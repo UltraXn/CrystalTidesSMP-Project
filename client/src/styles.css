@@ -1857,3 +1857,22 @@ html {
         color: var(--accent);
     }
 }
+
+/* -----------------------------------------------------------
+   CURSOR PERSONALIZADO (TENTÁCULO / KRAKEN)
+   -----------------------------------------------------------
+   Instrucciones:
+   1. Coloca tu imagen 'cursor.png' (y opcionalmente 'cursor-active.png') 
+      en la carpeta 'client/public/'.
+   2. Descomenta las líneas de abajo quitando los símbolos de comentario.
+----------------------------------------------------------- */
+
+/*
+body {
+    cursor: url('/cursor.png'), auto;
+}
+
+a, button, input, select, textarea, .clickable {
+    cursor: url('/cursor-active.png'), pointer;
+}
+*/
