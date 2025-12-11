@@ -6,7 +6,6 @@ import ScrollToHash from "@/components/ScrollToHash"
 
 import Home from "@/pages/Home"
 import Blog from "@/pages/Blog"
-import Events from "@/pages/Events"
 import Rules from "@/pages/Rules"
 import Donors from "@/pages/Donors"
 import Contests from "@/pages/Contests"
@@ -14,6 +13,7 @@ import Suggestions from "@/pages/Suggestions"
 import Account from "@/pages/Account"
 import Login from "@/pages/Login"
 import Register from "@/pages/Register"
+import NotFound from "@/pages/NotFound"
 
 import Stories from "@/pages/Stories"
 
@@ -46,9 +46,6 @@ export default function App() {
             <div id="news">
               <Blog />
             </div>
-            <div id="events">
-              <Events />
-            </div>
             <div id="stories">
               <Stories />
             </div>
@@ -61,6 +58,7 @@ export default function App() {
         <Route path="/account" element={<Account />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
 
       <Footer />

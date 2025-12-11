@@ -1,0 +1,29 @@
+# Ejemplo de configuración para Nginx en tu VPS (Ubuntu/Debian)
+# Archivo: /etc/nginx/sites-available/crystaltides
+
+server {
+    listen 80;
+    server_name crystaltides.net www.crystaltides.net; # Tu dominio real
+
+    # 1. Frontend (React)
+    # Servir los archivos estáticos generados por 'npm run build'
+    location / {
+        root /var/www/crystaltides/client/dist;
+        index index.html;
+        try_files $uri $uri/ /index.html; # Importante para React Router
+    }
+
+    # 2. Backend (Node.js API)
+    # Redirigir llamadas de /api al servidor Node corriendo en puerto 3001
+    location /api {
+        proxy_pass http://localhost:3001;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+
+# NOTA: Después de crear este archivo, usa Certbot para activar HTTPS gratis:
+# sudo certbot --nginx -d crystaltides.net
