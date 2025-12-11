@@ -138,7 +138,7 @@ export default function Hero() {
                         <span ref={countRef}>{playerCount}</span> Jugadores Online
                     </div>
 
-                    <h3>Conectate al Servidor</h3>
+                    <h2>Conectate al Servidor</h2>
                     <div className="server-ip-box">
                         <div className="server-ip-info">
                             <span className="server-edition">Java Edition</span>

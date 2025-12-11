@@ -237,8 +237,9 @@ html {
     margin-right: auto;
 }
 
-.server-connect-container h3 {
-    color: var(--accent);
+.server-connect-container h2 {
+    color: #fff;
+    /* Improved contrast from var(--accent) */
     font-size: 1.5rem;
     font-weight: 700;
     text-transform: uppercase;
@@ -250,7 +251,8 @@ html {
     align-items: center;
     justify-content: space-between;
     width: 100%;
-    background: var(--bg-alt);
+    background: rgba(10, 10, 15, 0.85);
+    /* Darker background for better text contrast */
     border: 1px solid var(--accent);
     border-radius: var(--radius);
     padding: 1.5rem 2rem;
@@ -266,7 +268,8 @@ html {
 }
 
 .server-edition {
-    color: var(--muted);
+    color: #cbd5e1;
+    /* Much lighter gray for WCAG AA compliance */
     font-size: 0.9rem;
     font-weight: 500;
 }
@@ -282,9 +285,11 @@ html {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    background: transparent;
+    background: rgba(109, 165, 192, 0.15);
+    /* Slight background to help contrast */
     border: 1px solid var(--accent);
-    color: var(--accent);
+    color: #fff;
+    /* White text for better readability */
     padding: 0.8rem 1.5rem;
     border-radius: var(--radius);
     font-weight: 600;
