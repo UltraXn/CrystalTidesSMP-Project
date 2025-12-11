@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom"
+import LazyWrapper from "@/components/LazyWrapper"
 
 import Navbar from "@/components/Navbar"
 import SocialSidebar from "@/components/SocialSidebar"
@@ -37,22 +38,34 @@ export default function App() {
               <Home />
             </div>
             <div id="rules">
-              <Rules />
+              <LazyWrapper minHeight="80vh">
+                <Rules />
+              </LazyWrapper>
             </div>
             <div id="donors">
-              <Donors />
+              <LazyWrapper minHeight="60vh">
+                <Donors />
+              </LazyWrapper>
             </div>
             <div id="contests">
-              <Contests />
+              <LazyWrapper minHeight="50vh">
+                <Contests />
+              </LazyWrapper>
             </div>
             <div id="news">
-              <Blog />
+              <LazyWrapper minHeight="50vh">
+                <Blog />
+              </LazyWrapper>
             </div>
             <div id="stories">
-              <Stories />
+              <LazyWrapper minHeight="80vh">
+                <Stories />
+              </LazyWrapper>
             </div>
             <div id="suggestions">
-              <Suggestions />
+              <LazyWrapper minHeight="50vh">
+                <Suggestions />
+              </LazyWrapper>
             </div>
           </main>
         } />
