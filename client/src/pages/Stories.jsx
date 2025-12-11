@@ -11,8 +11,11 @@ const PLACES = [
         coords: "0, 100, 0",
         desc: "Nuestro punto de bienvenida. Una isla flotante iluminada por linternas.",
         longDesc: "El Santuario del Spawn fue la primera construcción del servidor. Diseñado para recibir a los nuevos jugadores con una atmósfera de paz y misterio. Cuenta con portales de teletransporte ocultos tras las cascadas y una zona de intercambio con aldeanos protegidos. Los cerezos fueron plantados a mano uno por uno.",
-        image: "/hero-bg-1.png",
-        author: "Killaradian & UltraXn"
+        image: "/hero-bg-1.webp",
+        authors: [
+            { name: "Killaradian", role: "Arquitecto" },
+            { name: "UltraXn", role: "Co-Creador" }
+        ]
     },
     {
         id: 2,
@@ -22,7 +25,7 @@ const PLACES = [
         longDesc: "Zona restringida por el staff. Se rumorea que será una nueva mazmorra procedural.",
         image: null,
         isComingSoon: true,
-        author: "Admin"
+        authors: [{ name: "Admin", role: "Staff" }]
     },
     {
         id: 3,
@@ -32,7 +35,7 @@ const PLACES = [
         longDesc: "Ampliación del borde del mundo programada para la versión 1.22.",
         image: null,
         isComingSoon: true,
-        author: "Staff"
+        authors: [{ name: "Staff", role: "Team" }]
     }
 ]
 
@@ -142,7 +145,7 @@ export default function Stories() {
                             </div>
 
                             <div style={{ padding: "2.5rem" }}>
-                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1.5rem" }}>
+                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1.5rem", flexWrap: "wrap", gap: "1rem" }}>
                                     <div>
                                         <h2 style={{ fontSize: "2.5rem", fontWeight: "800", marginBottom: "0.5rem", lineHeight: 1 }}>
                                             {selectedPlace.title}
@@ -153,17 +156,21 @@ export default function Stories() {
                                         </span>
                                     </div>
 
-                                    {/* AUTOR TAG */}
-                                    <div style={{ display: "flex", alignItems: "center", gap: "1rem", background: "rgba(255,255,255,0.05)", padding: "0.5rem 1rem", borderRadius: "50px", border: "1px solid rgba(255,255,255,0.1)" }}>
-                                        <img
-                                            src={`https://minotar.net/helm/${selectedPlace.author}/100.png`}
-                                            alt={selectedPlace.author}
-                                            style={{ width: "32px", height: "32px", borderRadius: "50%" }}
-                                        />
-                                        <div>
-                                            <div style={{ fontSize: "0.7rem", color: "var(--muted)", textTransform: "uppercase", fontWeight: "bold" }}>Constructor</div>
-                                            <div style={{ fontWeight: "bold", color: "#fff" }}>{selectedPlace.author}</div>
-                                        </div>
+                                    {/* AUTORES TAGS (Lista) */}
+                                    <div style={{ display: "flex", gap: "1rem" }}>
+                                        {selectedPlace.authors && selectedPlace.authors.map((auth, idx) => (
+                                            <div key={idx} style={{ display: "flex", alignItems: "center", gap: "0.8rem", background: "rgba(255,255,255,0.05)", padding: "0.5rem 1rem", borderRadius: "50px", border: "1px solid rgba(255,255,255,0.1)" }}>
+                                                <img
+                                                    src={`https://minotar.net/helm/${auth.name}/100.png`}
+                                                    alt={auth.name}
+                                                    style={{ width: "32px", height: "32px", borderRadius: "50%" }}
+                                                />
+                                                <div>
+                                                    <div style={{ fontSize: "0.6rem", color: "var(--muted)", textTransform: "uppercase", fontWeight: "bold" }}>{auth.role}</div>
+                                                    <div style={{ fontWeight: "bold", color: "#fff", fontSize: "0.9rem" }}>{auth.name}</div>
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
 
