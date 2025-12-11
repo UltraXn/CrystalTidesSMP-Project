@@ -2,6 +2,7 @@ import { useState } from "react"
 import { FaPaperPlane, FaPoll, FaCheckCircle } from "react-icons/fa"
 import Section from "@/components/Section"
 import AnimatedSection from "@/components/AnimatedSection"
+import { activePoll } from "@/data/pollData"
 
 export default function Suggestions() {
     const [formStatus, setFormStatus] = useState('idle') // idle, sending, success
@@ -70,43 +71,26 @@ export default function Suggestions() {
 
                         <div className="poll-card">
                             <div style={{ marginBottom: '1rem', color: 'var(--accent)', fontSize: '0.8rem', fontWeight: 'bold', textTransform: 'uppercase' }}>
-                                Encuesta Semanal #42
+                                {activePoll.title}
                             </div>
                             <h4 className="poll-question">
-                                ¿Deberíamos añadir el Mod "Create" en la próxima temporada?
+                                {activePoll.question}
                             </h4>
 
                             <div className="poll-options">
-                                {/* Opción A */}
-                                <div className="poll-option" onClick={() => handleVote(1)}>
-                                    <div className="poll-bar-track">
-                                        <div className="poll-bar-fill" style={{ width: '75%' }}></div>
-                                        <span className="poll-label">¡SÍ! Me encanta la ingeniería</span>
-                                        <span className="poll-percent">75%</span>
+                                {activePoll.options.map((option) => (
+                                    <div key={option.id} className="poll-option" onClick={() => handleVote(option.id)}>
+                                        <div className="poll-bar-track">
+                                            <div className="poll-bar-fill" style={{ width: `${option.percent}%` }}></div>
+                                            <span className="poll-label">{option.label}</span>
+                                            <span className="poll-percent">{option.percent}%</span>
+                                        </div>
                                     </div>
-                                </div>
-
-                                {/* Opción B */}
-                                <div className="poll-option" onClick={() => handleVote(2)}>
-                                    <div className="poll-bar-track">
-                                        <div className="poll-bar-fill" style={{ width: '15%' }}></div>
-                                        <span className="poll-label">No, prefiero Vanilla</span>
-                                        <span className="poll-percent">15%</span>
-                                    </div>
-                                </div>
-
-                                {/* Opción C */}
-                                <div className="poll-option" onClick={() => handleVote(3)}>
-                                    <div className="poll-bar-track">
-                                        <div className="poll-bar-fill" style={{ width: '10%' }}></div>
-                                        <span className="poll-label">Me da igual</span>
-                                        <span className="poll-percent">10%</span>
-                                    </div>
-                                </div>
+                                ))}
                             </div>
 
                             <div style={{ marginTop: '1.5rem', fontSize: '0.9rem', color: 'var(--muted)', textAlign: 'center' }}>
-                                Total de votos: 1,240 • Cierra en 2 días
+                                Total de votos: {activePoll.totalVotes} • Cierra en {activePoll.closesIn}
                             </div>
                         </div>
 

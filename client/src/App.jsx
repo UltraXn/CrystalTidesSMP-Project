@@ -19,8 +19,11 @@ import NewsPage from "@/pages/NewsPage"
 import NotFound from "@/pages/NotFound"
 
 import Stories from "@/pages/Stories"
+import Forum from "@/pages/Forum"
+import ForumCategory from "@/pages/ForumCategory"
 
 import Footer from "@/components/Footer"
+import AdminPanel from "@/pages/AdminPanel"
 
 import "@/styles.css"
 
@@ -71,7 +74,10 @@ export default function App() {
         <Route path="/account" element={<Account />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/admin" element={<AdminPanel />} />
         <Route path="/news" element={<NewsPage />} />
+        <Route path="/forum" element={<Forum />} />
+        <Route path="/forum/:id" element={<ForumCategory />} />
         <Route path="/map" element={<Map />} />
         <Route path="*" element={<NotFound />} />
       </Routes>

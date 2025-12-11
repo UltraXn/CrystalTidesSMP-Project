@@ -22,19 +22,20 @@ export default function Footer() {
                 <div className="footer-section">
                     <h3>SERVIDOR</h3>
                     <ul>
-                        <li><a href="#rules">Reglas</a></li>
+                        <li><Link to="/#rules">Reglas</Link></li>
                         <li><Link to="/map">Mapa Online</Link></li>
-                        <li><a href="#suggestions">Sugerencias</a></li>
+                        <li><Link to="/#suggestions">Sugerencias</Link></li>
                     </ul>
                 </div>
 
                 <div className="footer-section">
                     <h3>COMUNIDAD</h3>
                     <ul>
-                        <li><a href="#news">Noticias</a></li>
-                        <li><a href="#contests">Eventos</a></li>
-                        <li><a href="#stories">Historias</a></li>
-                        <li><a href="#donors" style={{ color: 'var(--accent)', fontWeight: 'bold' }}>Donar / VIP</a></li>
+                        <li><Link to="/#news">Noticias</Link></li>
+                        <li><Link to="/#contests">Eventos</Link></li>
+                        <li><Link to="/#stories">Historias</Link></li>
+                        <li><Link to="/forum">Foro</Link></li>
+                        <li><Link to="/#donors" style={{ color: 'var(--accent)', fontWeight: 'bold' }}>Donar / VIP</Link></li>
                     </ul>
                 </div>
 
