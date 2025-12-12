@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { supabase } from '../services/supabaseClient'
+import { supabase } from '../../services/supabaseClient'
 import { FaHeart, FaUser } from 'react-icons/fa'
 import '@/donation-feed.css'
 

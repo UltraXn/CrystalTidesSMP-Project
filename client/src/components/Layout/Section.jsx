@@ -1,6 +1,6 @@
 import { useRef, useEffect } from 'react';
 import anime from 'animejs/lib/anime.es.js';
-import { useIntersectionObserver } from '../hooks/useIntersectionObserver';
+import { useIntersectionObserver } from '../../hooks/useIntersectionObserver';
 
 export default function Section({
     title,

@@ -3,7 +3,7 @@ import useEmblaCarousel from 'embla-carousel-react'
 import Autoplay from 'embla-carousel-autoplay'
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa'
 
-const SkinViewer = lazy(() => import('./SkinViewer'))
+const SkinViewer = lazy(() => import('../Widgets/SkinViewer'))
 
 const EmblaCarousel = (props) => {
     const { slides, options } = props

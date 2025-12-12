@@ -1,6 +1,6 @@
 import Hero from "@/components/Hero"
-import Section from "@/components/Section"
-import ServerWidgets from "@/components/ServerWidgets"
+import Section from "@/components/Layout/Section"
+import ServerWidgets from "@/components/Widgets/ServerWidgets"
 
 
 export default function Home() {

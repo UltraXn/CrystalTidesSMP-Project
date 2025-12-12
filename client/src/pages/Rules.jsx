@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react"
-import Section from "@/components/Section"
+import Section from "@/components/Layout/Section"
 import { FaHandshake, FaUserShield, FaCity, FaIndustry, FaHammer, FaLeaf, FaPaintBrush, FaVideo, FaShieldAlt } from "react-icons/fa"
 import anime from "animejs/lib/anime.es.js"
 

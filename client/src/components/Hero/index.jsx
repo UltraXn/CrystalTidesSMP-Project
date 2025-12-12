@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from "react"
 import { Link } from "react-router-dom"
 import { FaCopy, FaCheck, FaUsers } from "react-icons/fa"
-import HeroBackgroundCarousel from "./HeroBackgroundCarousel"
-import HeroParticles from "./HeroParticles"
+import HeroBackgroundCarousel from "./Carousel"
+import HeroParticles from "./Particles"
 import anime from "animejs/lib/anime.es.js"
 
 export default function Hero() {

@@ -1,4 +1,4 @@
-import { useIntersectionObserver } from '../hooks/useIntersectionObserver'
+import { useIntersectionObserver } from '../../hooks/useIntersectionObserver'
 
 export default function ServerWidgets() {
     const [ref, isVisible] = useIntersectionObserver({

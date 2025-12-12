@@ -1,9 +1,9 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom"
-import LazyWrapper from "@/components/LazyWrapper"
+import LazyWrapper from "@/components/Utils/LazyWrapper"
 
-import Navbar from "@/components/Navbar"
-import SocialSidebar from "@/components/SocialSidebar"
-import ScrollToHash from "@/components/ScrollToHash"
+import Navbar from "@/components/Layout/Navbar"
+import SocialSidebar from "@/components/Layout/SocialSidebar"
+import ScrollToHash from "@/components/Utils/ScrollToHash"
 
 import Home from "@/pages/Home"
 import Blog from "@/pages/Blog"
@@ -22,7 +22,7 @@ import Stories from "@/pages/Stories"
 import Forum from "@/pages/Forum"
 import ForumCategory from "@/pages/ForumCategory"
 
-import Footer from "@/components/Footer"
+import Footer from "@/components/Layout/Footer"
 import AdminPanel from "@/pages/AdminPanel"
 
 import "@/styles.css"

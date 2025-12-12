@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { FaPaperPlane, FaPoll, FaCheckCircle } from "react-icons/fa"
-import Section from "@/components/Section"
+import Section from "@/components/Layout/Section"
 
 import { activePoll } from "@/data/pollData"
 

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react"
-import Section from "@/components/Section"
+import Section from "@/components/Layout/Section"
 
 import { FaHammer, FaDiceD20, FaMapMarkedAlt, FaRunning } from "react-icons/fa"
 import anime from "animejs/lib/anime.es.js"

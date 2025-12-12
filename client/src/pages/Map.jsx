@@ -1,5 +1,5 @@
 import { useState } from "react"
-import Section from "@/components/Section"
+import Section from "@/components/Layout/Section"
 import { FaMapMarkedAlt, FaExpand } from "react-icons/fa"
 
 export default function Map() {

@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { FaMapPin, FaQuestion, FaTimes, FaUser } from "react-icons/fa"
-import Section from "@/components/Section"
+import Section from "@/components/Layout/Section"
 
 import { motion, AnimatePresence } from "framer-motion"
 

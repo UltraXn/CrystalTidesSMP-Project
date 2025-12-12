@@ -1,6 +1,6 @@
 import { FaCalendarAlt, FaArrowRight, FaTag } from "react-icons/fa"
 import { Link } from "react-router-dom"
-import Section from "@/components/Section"
+import Section from "@/components/Layout/Section"
 
 
 const NEWS = [

@@ -1,7 +1,7 @@
-import Section from "@/components/Section"
-import EmblaCarousel from "@/components/EmblaCarousel"
-import { KoFiButton } from "@/components/KoFi"
-import DonationFeed from "@/components/DonationFeed"
+import Section from "@/components/Layout/Section"
+import EmblaCarousel from "@/components/UI/EmblaCarousel"
+import { KoFiButton } from "@/components/Widgets/KoFi"
+import DonationFeed from "@/components/Widgets/DonationFeed"
 
 
 const DONORS = [
