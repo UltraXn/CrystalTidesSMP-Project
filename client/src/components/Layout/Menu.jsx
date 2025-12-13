@@ -1,14 +1,28 @@
+
 import { useState, useRef, useEffect } from 'react'
 import { FaBars } from 'react-icons/fa'
 import { Link } from 'react-router-dom'
-import anime from 'animejs/lib/anime.es.js'
+import anime from 'animejs'
+import { useTranslation } from 'react-i18next'
 
 export default function Menu() {
+    const { t } = useTranslation()
     const [isOpen, setIsOpen] = useState(false)
+    const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 })
+    const buttonRef = useRef(null)
     const dropdownRef = useRef(null)
     const itemsRef = useRef([])
 
-    const toggleMenu = () => setIsOpen(!isOpen)
+    const toggleMenu = () => {
+        if (!isOpen && buttonRef.current) {
+            const rect = buttonRef.current.getBoundingClientRect()
+            setMenuPosition({
+                top: rect.bottom,
+                left: rect.left
+            })
+        }
+        setIsOpen(!isOpen)
+    }
     const closeMenu = () => setIsOpen(false)
 
     useEffect(() => {
@@ -71,27 +85,37 @@ export default function Menu() {
     return (
         <div className="menu-container">
             <button
+                ref={buttonRef}
                 className="menu-trigger"
                 onClick={toggleMenu}
             >
                 <FaBars className="menu-icon" />
-                <span className="menu-text">MENU</span>
+                <span className="menu-text">{t('navbar.menu')}</span>
             </button>
 
             <div
                 className="menu-dropdown"
                 ref={dropdownRef}
+                style={{
+                    position: 'fixed',
+                    top: `${menuPosition.top}px`,
+                    left: `${menuPosition.left}px`,
+                    width: '240px',
+                    zIndex: 9999,
+                    visibility: 'hidden', // Controlled by anime.js
+                    opacity: 0
+                }}
             >
                 <div ref={addToRefs}></div>
 
-                <Link to="/#rules" className="menu-item" onClick={closeMenu} ref={addToRefs}>Reglas</Link>
-                <Link to="/#donors" className="menu-item" style={{ color: 'var(--accent)', fontWeight: 'bold' }} onClick={closeMenu} ref={addToRefs}>Donadores 💎</Link>
-                <Link to="/#contests" className="menu-item" onClick={closeMenu} ref={addToRefs}>Eventos</Link>
-                <Link to="/#news" className="menu-item" onClick={closeMenu} ref={addToRefs}>Noticias</Link>
-                <Link to="/#stories" className="menu-item" onClick={closeMenu} ref={addToRefs}>Historias</Link>
-                <Link to="/#suggestions" className="menu-item" onClick={closeMenu} ref={addToRefs}>Sugerencias</Link>
-                <Link to="/forum" className="menu-item" onClick={closeMenu} ref={addToRefs}>Foro 💬</Link>
-                <Link to="/map" className="menu-item" onClick={closeMenu} ref={addToRefs}>Mapa Online 🗺️</Link>
+                <Link to="/#rules" className="menu-item" onClick={closeMenu} ref={addToRefs}>{t('navbar.rules')}</Link>
+                <Link to="/#donors" className="menu-item" style={{ color: 'var(--accent)', fontWeight: 'bold' }} onClick={closeMenu} ref={addToRefs}>{t('navbar.donors')} 💎</Link>
+                <Link to="/#contests" className="menu-item" onClick={closeMenu} ref={addToRefs}>{t('navbar.contests')}</Link>
+                <Link to="/#news" className="menu-item" onClick={closeMenu} ref={addToRefs}>{t('navbar.news')}</Link>
+                <Link to="/#stories" className="menu-item" onClick={closeMenu} ref={addToRefs}>{t('navbar.stories')}</Link>
+                <Link to="/#suggestions" className="menu-item" onClick={closeMenu} ref={addToRefs}>{t('navbar.suggestions')}</Link>
+                <Link to="/forum" className="menu-item" onClick={closeMenu} ref={addToRefs}>{t('navbar.forum')} 💬</Link>
+                <Link to="/map" className="menu-item" onClick={closeMenu} ref={addToRefs}>{t('footer.online_map')} 🗺️</Link>
             </div>
         </div>
     )

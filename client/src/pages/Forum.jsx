@@ -1,20 +1,21 @@
 import { FaComments, FaBullhorn, FaTools, FaCoffee, FaUser, FaClock, FaFire, FaPoll } from 'react-icons/fa'
 import { Link } from 'react-router-dom'
+import { useState, useEffect } from "react"
+import { activePoll } from "@/data/pollData"
+import { useTranslation } from 'react-i18next'
 
-const categories = [
+const initialCategories = [
     {
         id: 1,
-        title: "Anuncios y Noticias",
-        description: "Actualizaciones oficiales, notas del parche y eventos importantes.",
+        translationKey: "announcements",
         icon: <FaBullhorn />,
-        topics: 15,
-        posts: 42,
-        lastPost: { user: "Admin", date: "Hace 2 horas" }
+        topics: 0,
+        posts: 0,
+        lastPost: { user: "Staff", date: "Reciente" }
     },
     {
         id: 2,
-        title: "Discusión General",
-        description: "Habla sobre cualquier cosa relacionada con CrystalTides SMP.",
+        translationKey: "general",
         icon: <FaComments />,
         topics: 84,
         posts: 320,
@@ -22,8 +23,7 @@ const categories = [
     },
     {
         id: 3,
-        title: "Soporte y Ayuda",
-        description: "¿Tienes problemas? Pide ayuda a la comunidad o al staff.",
+        translationKey: "support",
         icon: <FaTools />,
         topics: 22,
         posts: 98,
@@ -31,8 +31,7 @@ const categories = [
     },
     {
         id: 4,
-        title: "Off-Topic",
-        description: "Zona libre para hablar de otros juegos o temas variados.",
+        translationKey: "offtopic",
         icon: <FaCoffee />,
         topics: 45,
         posts: 1230,
@@ -40,28 +39,53 @@ const categories = [
     }
 ]
 
-import { activePoll } from "@/data/pollData"
-
 export default function Forum() {
+    const { t } = useTranslation()
+    const [categories, setCategories] = useState(initialCategories)
     const featuredPoll = activePoll
+    const API_URL = import.meta.env.VITE_API_URL
+
+    useEffect(() => {
+        if (!API_URL) return
+
+        // Actualizar contador de noticias
+        fetch(`${API_URL}/news`)
+            .then(res => res.json())
+            .then(data => {
+                const publishedCount = Array.isArray(data) ? data.filter(n => n.status === 'Published').length : 0
+
+                setCategories(prev => prev.map(cat => {
+                    if (cat.id === 1) {
+                        return {
+                            ...cat,
+                            topics: publishedCount,
+                            posts: publishedCount, // Por ahora 1 post por tema
+                            lastPost: { user: "Staff", date: "Hoy" } // Podríamos tomar la fecha real de data[0]
+                        }
+                    }
+                    return cat
+                }))
+            })
+            .catch(err => console.error("Error updates forum stats:", err))
+    }, [])
 
     return (
         <div className="section" style={{ minHeight: '80vh', paddingTop: '8rem' }}>
-            <h2>Foro de la Comunidad</h2>
+            <h2>{t('forum_page.title')}</h2>
             <p style={{ color: 'var(--muted)', marginBottom: '3rem', maxWidth: '600px', margin: '0 auto 3rem' }}>
-                Conéctate con otros jugadores, comparte ideas y mantente al día con lo último de CrystalTides.
+                {t('forum_page.subtitle')}
             </p>
 
             {/* Featured Active Poll */}
             <div className="forum-featured-poll" style={{ maxWidth: '900px', margin: '0 auto 3rem auto' }}>
                 <div className="section-subtitle" style={{ color: '#fff', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}>
-                    <FaFire color="#ff4500" /> <span style={{ color: 'var(--text)' }}>Votación Más Concurrida</span> <span className="status-badge-active">ACTIVA</span>
+                    <FaFire color="#ff4500" /> <span style={{ color: 'var(--text)' }}>{t('forum_page.hot_topic')}</span> <span className="status-badge-active">{t('forum_page.active')}</span>
                 </div>
 
                 <div className="poll-card" style={{ border: '1px solid var(--accent)', boxShadow: '0 0 15px rgba(109,165,192,0.1)' }}>
                     <div style={{ marginBottom: '1rem', color: 'var(--accent)', fontSize: '0.9rem', fontWeight: 'bold', textTransform: 'uppercase', display: 'flex', justifyContent: 'space-between' }}>
-                        <span><FaPoll style={{ marginRight: '8px', verticalAlign: 'middle' }} />Encuesta Oficial</span>
-                        <span style={{ color: '#ff4500', display: 'flex', alignItems: 'center', gap: '5px' }}><FaFire /> HOT TOPIC</span>
+                        <span><FaPoll style={{ marginRight: '8px', verticalAlign: 'middle' }} />{t('forum_page.official_poll')}</span>
+                        <span style={{ color: '#ff4500', display: 'flex', alignItems: 'center', gap: '5px' }}><FaFire /> {t('forum_page.hot_label')}</span>
                     </div>
                     <h3 className="poll-question" style={{ fontSize: '1.3rem', marginBottom: '1.5rem', color: '#fff' }}>
                         {featuredPoll.question}
@@ -82,8 +106,8 @@ export default function Forum() {
                     </div>
 
                     <div style={{ marginTop: '1.5rem', fontSize: '0.9rem', color: 'var(--muted)', textAlign: 'center', display: 'flex', justifyContent: 'center', gap: '2rem' }}>
-                        <span>Total de votos: <strong>{featuredPoll.totalVotes}</strong></span>
-                        <span>Termina en: <strong style={{ color: '#ff9900' }}>{featuredPoll.closesIn}</strong></span>
+                        <span>{t('suggestions.total_votes')}: <strong>{featuredPoll.totalVotes}</strong></span>
+                        <span>{t('suggestions.closes_in')}: <strong style={{ color: '#ff9900' }}>{featuredPoll.closesIn}</strong></span>
                     </div>
                 </div>
             </div>
@@ -95,17 +119,17 @@ export default function Forum() {
                             {cat.icon}
                         </div>
                         <div className="cat-info">
-                            <h3>{cat.title}</h3>
-                            <p>{cat.description}</p>
+                            <h3>{t(`forum_page.categories.${cat.translationKey}.title`)}</h3>
+                            <p>{t(`forum_page.categories.${cat.translationKey}.desc`)}</p>
                         </div>
                         <div className="cat-stats">
                             <div className="stat-item">
                                 <span>{cat.topics}</span>
-                                <small>Temas</small>
+                                <small>{t('forum_page.stats.topics')}</small>
                             </div>
                             <div className="stat-item">
                                 <span>{cat.posts}</span>
-                                <small>Posts</small>
+                                <small>{t('forum_page.stats.posts')}</small>
                             </div>
                         </div>
                         <div className="cat-last-post">

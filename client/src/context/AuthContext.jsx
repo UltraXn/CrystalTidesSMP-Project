@@ -52,10 +52,14 @@ export const AuthProvider = ({ children }) => {
     };
 
     // Función extra: Registro (Opcional, pero útil tenerla lista)
-    const register = async (email, password) => {
+    // Función extra: Registro (Opcional, pero útil tenerla lista)
+    const register = async (email, password, metadata = {}) => {
         const { data, error } = await supabase.auth.signUp({
             email,
             password,
+            options: {
+                data: metadata
+            }
         });
         if (error) throw error;
         return data;

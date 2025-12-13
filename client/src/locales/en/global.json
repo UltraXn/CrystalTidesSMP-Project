@@ -1,0 +1,240 @@
+{
+    "navbar": {
+        "home": "Home",
+        "rules": "Rules",
+        "donors": "Donors",
+        "contests": "Contests",
+        "news": "News",
+        "stories": "Stories",
+        "suggestions": "Suggestions",
+        "map": "Map",
+        "forum": "Forum",
+        "account": "My Account",
+        "login": "Login",
+        "menu": "MENU",
+        "achievements": "Achievements",
+        "register": "Register"
+    },
+    "home": {
+        "title": "About the Server",
+        "description": "CrystalTides is a haven built by many hands: a world where the community holds up the sky and companionship sets the pace for every step. Here, stories are born in teams, goals are achieved together, and everyone becomes part of a tide that grows, breathes, and moves forward as one.",
+        "join_us": "If you want to feel the pulse of this world closer, join the current: accompany Killubysmali on her Twitch channel and immerse yourself in the collective warmth of La Pecerita de killu Discord. That's where the adventure truly begins, where every voice matters and every presence leaves a mark."
+    },
+    "footer": {
+        "server": "SERVER",
+        "community": "COMMUNITY",
+        "online_map": "Online Map",
+        "donate": "Donate",
+        "events": "Events",
+        "slogan": "The best option is fun at Crystal Tides SMP!",
+        "rights": "All rights reserved.",
+        "rules": "Rules",
+        "suggestions": "Suggestions",
+        "news": "News",
+        "stories": "Stories",
+        "forum": "Forum"
+    },
+    "login": {
+        "title": "Login",
+        "welcome": "Welcome back, adventurer",
+        "email_label": "Email",
+        "email_placeholder": "email@example.com",
+        "password_label": "Password",
+        "password_placeholder": "••••••••",
+        "submit": "Enter",
+        "sign_in_verb": "Sign In",
+        "loading": "Signing in...",
+        "forgot_password": "Forgot your password?",
+        "or_continue": "Or continue with",
+        "or_sign_in_with": "Or sign in with",
+        "no_account": "Don't have an account?",
+        "register": "Register",
+        "back_home": "Back to home"
+    },
+    "register": {
+        "title": "Create Account",
+        "subtitle": "Join the adventure today",
+        "nick_label": "Nick",
+        "nick_placeholder": "Your Nickname",
+        "email_label": "Email",
+        "password_label": "Password",
+        "confirm_password_label": "Confirm Password",
+        "submit": "Sign Up",
+        "or_register_with": "Or register with",
+        "already_have_account": "Already have an account?",
+        "sign_in": "Sign In",
+        "back_home": "Back to home",
+        "passwords_do_not_match": "Passwords do not match",
+        "success_title": "You have registered!",
+        "success_msg": "Welcome to Crystal Tides SMP. We have sent a confirmation link to your email.",
+        "go_to_login": "Go to Login"
+    },
+    "forum_page": {
+        "title": "Community Forum",
+        "subtitle": "Connect with other players, share ideas and keep up to date with CrystalTides.",
+        "hot_topic": "Trending Poll",
+        "active": "ACTIVE",
+        "official_poll": "Official Poll",
+        "hot_label": "HOT TOPIC",
+        "stats": {
+            "topics": "Topics",
+            "posts": "Posts"
+        },
+        "categories": {
+            "announcements": {
+                "title": "Announcements & News",
+                "desc": "Official updates, patch notes and important events."
+            },
+            "general": {
+                "title": "General Discussion",
+                "desc": "Talk about anything related to CrystalTides SMP."
+            },
+            "support": {
+                "title": "Support & Help",
+                "desc": "Having trouble? Ask the community or staff for help."
+            },
+            "offtopic": {
+                "title": "Off-Topic",
+                "desc": "Free zone to talk about other games or various topics."
+            }
+        }
+    },
+    "hero": {
+        "welcome": "Welcome to",
+        "description": "Dive into a world of adventure, community, and limitless creativity. Join us! We await you ✨",
+        "players_online": "Players Online",
+        "connect": "Connect to Server",
+        "java_edition": "Java Edition",
+        "copy_ip": "Copy IP",
+        "copied": "Copied!"
+    },
+    "rules": {
+        "title": "Server Rules",
+        "intro": "To maintain a healthy and fun community, it is essential to respect these coexistence rules. Failure to comply can lead to severe sanctions.",
+        "items": {
+            "1": {
+                "title": "PVP With Consent",
+                "desc": "PVP is allowed as long as it is agreed upon between 2 or more players. Do not abuse a player who does not want PVP."
+            },
+            "2": {
+                "title": "No Stealing or Griefing",
+                "desc": "Stealing is prohibited. You can trade or help, but not loot. Destroying property or killing pets will be punished with a permaban. We use Core Protect."
+            },
+            "3": {
+                "title": "Village Bases",
+                "desc": "If you live in a village, leave a VISIBLE sign or wall so others know it is occupied and do not loot it or harm the villagers."
+            },
+            "4": {
+                "title": "Automated Farms",
+                "desc": "100% automatic constructions and villager/iron farms are prohibited. Exception: Semi-automatic farms with manual activation."
+            },
+            "5": {
+                "title": "No Mega Builds",
+                "desc": "Giant castles spanning too many CHUNKS are not allowed. Build large villages, but avoid massive individual structures."
+            },
+            "6": {
+                "title": "Biome Cleanup",
+                "desc": "You must undo temporary constructions that mar the landscape (dirt pillars, cobble bridges, etc)."
+            },
+            "7": {
+                "title": "Aesthetics",
+                "desc": "Constructions must be aesthetically pleasing. Avoid doing things 'halfway' or without effort."
+            },
+            "8": {
+                "title": "Streaming and Community",
+                "desc": "Free to stream giving credit to Killu and Neroferno. Invite friends as long as they respect the rules and join Discord."
+            },
+            "9": {
+                "title": "Reports and Safety",
+                "desc": "Use /co inspect to check for thefts. Contact Killu for claims. Do not take justice into your own hands."
+            }
+        }
+    },
+    "donors": {
+        "title": "Donors Hall",
+        "intro": "Maintaining a quality server requires passion, time, and resources. The people listed below have decided to go a step further to ensure the stability and future of CrystalTides. 100% of these contributions go to host maintenance, plugin development, and infrastructure improvements. Thank you for believing in us! 💜.",
+        "latest_title": "Latest Donations"
+    },
+    "contests": {
+        "title": "Contests and Events",
+        "intro": "Participate in our regular events to win exclusive prizes, temporary ranks, and unique items. Competition is part of our essence!",
+        "status": {
+            "active": "Ongoing",
+            "soon": "Coming Soon",
+            "finished": "Finished"
+        },
+        "items": {
+            "1": {
+                "title": "Master Builder",
+                "desc": "Show off your creativity by building under a surprise theme. The best architects will be immortalized in the Hall!"
+            },
+            "2": {
+                "title": "PvP Tournament",
+                "desc": "Gear up and prepare for glory. An elimination tournament where only the strongest will survive in the arena."
+            },
+            "3": {
+                "title": "Treasure Hunt",
+                "desc": "Clues hidden all over the map. Can you decipher Killu's riddles before anyone else?"
+            },
+            "4": {
+                "title": "Parkour Challenge",
+                "desc": "Impossible jumps and timers to the limit. Complete the hellish circuit created by Neroferno."
+            }
+        }
+    },
+    "blog": {
+        "title": "News and Announcements",
+        "loading": "Loading news...",
+        "view_all": "View news and announcements",
+        "read_more": "Read more",
+        "empty": "No description"
+    },
+    "stories": {
+        "title": "Places and Lore",
+        "intro": "Discover the points of interest of our world. Click on the cards to see details.",
+        "items": {
+            "1": {
+                "title": "Spawn Sanctuary",
+                "desc": "Our welcome point. A floating island illuminated by lanterns.",
+                "longDesc": "The Spawn Sanctuary was the first construction of the server. Designed to welcome new players with an atmosphere of peace and mystery. It features teleport portals hidden behind waterfalls and a protected villager trading zone. The cherry trees were planted by hand one by one."
+            },
+            "2": {
+                "title": "Future Project!",
+                "desc": "A new zone is being built in secret.",
+                "longDesc": "Zone restricted by staff. Rumor has it that it will be a new procedural dungeon."
+            },
+            "3": {
+                "title": "Expansion Coming Soon!",
+                "desc": "We are preparing the ground for something big.",
+                "longDesc": "World border expansion scheduled for version 1.22."
+            }
+        }
+    },
+    "suggestions": {
+        "title": "Suggestions and Polls",
+        "form_title": "Send your Proposal",
+        "form": {
+            "nick": "Your Nick / Email",
+            "nick_placeholder": "Ex: Steve or steve@mail.com",
+            "type": "Type",
+            "msg": "Message",
+            "msg_placeholder": "Describe your idea...",
+            "submit": "Send Proposal",
+            "sending": "Sending...",
+            "received": "Received!",
+            "success_msg": "Your suggestion has been sent to the staff and our Discord.",
+            "send_another": "Send another",
+            "options": {
+                "general": "General Suggestion",
+                "bug": "Bug Report",
+                "mod": "Mod/Plugin Request",
+                "complaint": "Complaint"
+            }
+        },
+        "poll_title": "Active Poll",
+        "total_votes": "Total votes",
+        "closes_in": "Closes in",
+        "suggest_poll": "Suggest Poll",
+        "other_idea": "Have another idea for a poll?"
+    }
+}

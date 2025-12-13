@@ -1,0 +1,240 @@
+{
+    "navbar": {
+        "home": "Inicio",
+        "rules": "Reglas",
+        "donors": "Donadores",
+        "contests": "Eventos",
+        "news": "Noticias",
+        "stories": "Historias",
+        "suggestions": "Sugerencias",
+        "map": "Mapa",
+        "forum": "Foro",
+        "account": "Mi Cuenta",
+        "login": "Ingresar",
+        "menu": "MENU",
+        "achievements": "Logros",
+        "register": "Registrarse"
+    },
+    "home": {
+        "title": "Sobre el Servidor",
+        "description": "CrystalTides es un refugio construido con manos múltiples: un mundo donde la comunidad sostiene el cielo y el compañerismo marca el ritmo de cada paso. Aquí, las historias nacen en equipo, las metas se alcanzan en conjunto y cada jugador se vuelve parte de una marea que crece, respira y avanza unida.",
+        "join_us": "Si quieres sentir el pulso de este mundo más de cerca, únete a la corriente: acompaña a Killubysmali en su canal de Twitch y sumérgete en la calidez colectiva del Discord de La Pecerita de killu. Allí comienza realmente la aventura, donde cada voz importa y cada presencia deja huella."
+    },
+    "footer": {
+        "server": "SERVIDOR",
+        "community": "COMUNIDAD",
+        "online_map": "Mapa Online",
+        "donate": "Donar",
+        "events": "Eventos",
+        "slogan": "¡La mejor opción es diversión en Crystal Tides SMP!",
+        "rights": "Todos los derechos reservados.",
+        "rules": "Reglas",
+        "suggestions": "Sugerencias",
+        "news": "Noticias",
+        "stories": "Historias",
+        "forum": "Foro"
+    },
+    "login": {
+        "title": "Iniciar Sesión",
+        "welcome": "Bienvenido de nuevo, aventurero",
+        "email_label": "Email",
+        "email_placeholder": "correo@ejemplo.com",
+        "password_label": "Contraseña",
+        "password_placeholder": "••••••••",
+        "submit": "Ingresar",
+        "sign_in_verb": "Iniciar Sesión",
+        "loading": "Iniciando...",
+        "forgot_password": "¿Olvidaste tu contraseña?",
+        "or_continue": "O continúa con",
+        "or_sign_in_with": "O inicia con",
+        "no_account": "¿No tienes cuenta?",
+        "register": "Regístrate",
+        "back_home": "Volver al inicio"
+    },
+    "register": {
+        "title": "Crear Cuenta",
+        "subtitle": "Únete a la aventura hoy mismo",
+        "nick_label": "Nick",
+        "nick_placeholder": "Tu Nickname",
+        "email_label": "Email",
+        "password_label": "Contraseña",
+        "confirm_password_label": "Confirmar Contraseña",
+        "submit": "Registrarse",
+        "or_register_with": "O regístrate con",
+        "already_have_account": "¿Ya tienes cuenta?",
+        "sign_in": "Inicia Sesión",
+        "back_home": "Volver al inicio",
+        "passwords_do_not_match": "Las contraseñas no coinciden",
+        "success_title": "¡Te has registrado!",
+        "success_msg": "Bienvenido a Crystal Tides SMP. Hemos enviado un enlace de confirmación a tu correo electrónico.",
+        "go_to_login": "Ir al Login"
+    },
+    "forum_page": {
+        "title": "Foro de la Comunidad",
+        "subtitle": "Conéctate con otros jugadores, comparte ideas y mantente al día con lo último de CrystalTides.",
+        "hot_topic": "Votación Más Concurrida",
+        "active": "ACTIVA",
+        "official_poll": "Encuesta Oficial",
+        "hot_label": "TEMA CANDENTE",
+        "stats": {
+            "topics": "Temas",
+            "posts": "Posts"
+        },
+        "categories": {
+            "announcements": {
+                "title": "Anuncios y Noticias",
+                "desc": "Actualizaciones oficiales, notas del parche y eventos importantes."
+            },
+            "general": {
+                "title": "Discusión General",
+                "desc": "Habla sobre cualquier cosa relacionada con CrystalTides SMP."
+            },
+            "support": {
+                "title": "Soporte y Ayuda",
+                "desc": "¿Tienes problemas? Pide ayuda a la comunidad o al staff."
+            },
+            "offtopic": {
+                "title": "Off-Topic",
+                "desc": "Zona libre para hablar de otros juegos o temas variados."
+            }
+        }
+    },
+    "hero": {
+        "welcome": "Bienvenido a",
+        "description": "Sumérgete en un mundo de aventuras, comunidad y creatividad sin límites. ¡Únete a nosotros! Te esperamos ✨",
+        "players_online": "Jugadores Online",
+        "connect": "Conéctate al Servidor",
+        "java_edition": "Edición Java",
+        "copy_ip": "Copiar IP",
+        "copied": "¡Copiado!"
+    },
+    "rules": {
+        "title": "Reglas del Servidor",
+        "intro": "Para mantener una comunidad sana y divertida, es fundamental respetar estas normas de convivencia. El incumplimiento puede llevar a sanciones severas.",
+        "items": {
+            "1": {
+                "title": "PVP Con Consentimiento",
+                "desc": "Estará permitido el PVP mientras sea acordado entre 2 o más jugadores. No abusen de un jugador que no quiera PVP."
+            },
+            "2": {
+                "title": "No Robar ni Griefing",
+                "desc": "Está prohibido robar. Pueden tradear o ayudar, pero no saquear. Destruir propiedades o matar mascotas será castigado con permaban. Usamos Core Protect."
+            },
+            "3": {
+                "title": "Bases en Aldeas",
+                "desc": "Si vives en una aldea, deja un letrero o muralla VISIBLE para que otros sepan que está ocupada y no la saqueen ni dañen a los aldeanos."
+            },
+            "4": {
+                "title": "Granjas Automatizadas",
+                "desc": "Prohibidas construcciones 100% automáticas y granjas de aldeanos/hierro. Excepción: Granjas semi-automáticas con activación manual."
+            },
+            "5": {
+                "title": "No Mega Construcciones",
+                "desc": "No se permiten castillos gigantes que abarquen demasiados CHUNKS. Construye aldeas grandes, pero evita estructuras masivas individuales."
+            },
+            "6": {
+                "title": "Limpieza del Bioma",
+                "desc": "Deben deshacer construcciones temporales que aféen el paisaje (pilares de tierra, puentes cobble, etc)."
+            },
+            "7": {
+                "title": "Estética",
+                "desc": "Las construcciones deben ser estéticamente atractivas. Evita hacer cosas 'a medias' o sin esfuerzo."
+            },
+            "8": {
+                "title": "Streaming y Comunidad",
+                "desc": "Libres de hacer stream dando crédito a Killu y Neroferno. Inviten amigos siempre que respeten las reglas y se unan al Discord."
+            },
+            "9": {
+                "title": "Reportes y Seguridad",
+                "desc": "Usen /co inspect para revisar robos. Contactar a Killu para reclamos. No tomen la justicia por su propia mano."
+            }
+        }
+    },
+    "donors": {
+        "title": "Hall de Donadores",
+        "intro": "Mantener un servidor de calidad requiere pasión, tiempo y recursos. Las personas listadas a continuación han decidido ir un paso más allá para asegurar la estabilidad y el futuro de CrystalTides. El 100% de estas contribuciones se destinan al mantenimiento del host, desarrollo de plugins y mejoras de infraestructura. ¡Gracias por creer en nosotros! 💜.",
+        "latest_title": "Últimas Donaciones"
+    },
+    "contests": {
+        "title": "Concursos y Eventos",
+        "intro": "Participa en nuestros eventos regulares para ganar premios exclusivos, rangos temporales y objetos únicos. ¡La competición es parte de nuestra esencia!",
+        "status": {
+            "active": "En Curso",
+            "soon": "Próximamente",
+            "finished": "Finalizado"
+        },
+        "items": {
+            "1": {
+                "title": "Master Builder",
+                "desc": "Demuestra tu creatividad construyendo bajo una temática sorpresa. ¡Los mejores arquitectos serán inmortalizados en el Hall!"
+            },
+            "2": {
+                "title": "Torneo PvP",
+                "desc": "Equípate y prepárate para la gloria. Un torneo eliminatorio donde solo el más fuerte sobrevivirá en la arena."
+            },
+            "3": {
+                "title": "Búsqueda del Tesoro",
+                "desc": "Pistas ocultas por todo el mapa. ¿Podrás descifrar los acertijos de Killu antes que los demás?"
+            },
+            "4": {
+                "title": "Parkour Challenge",
+                "desc": "Saltos imposibles y cronómetros al límite. Completa el circuito infernal creado por Neroferno."
+            }
+        }
+    },
+    "blog": {
+        "title": "Noticias y Anuncios",
+        "loading": "Cargando noticias...",
+        "view_all": "Ver noticias y anuncios",
+        "read_more": "Leer más",
+        "empty": "Sin descripción"
+    },
+    "stories": {
+        "title": "Lugares y Lore",
+        "intro": "Descubre los puntos de interés de nuestro mundo. Haz clic en las tarjetas para ver los detalles.",
+        "items": {
+            "1": {
+                "title": "Santuario del Spawn",
+                "desc": "Nuestro punto de bienvenida. Una isla flotante iluminada por linternas.",
+                "longDesc": "El Santuario del Spawn fue la primera construcción del servidor. Diseñado para recibir a los nuevos jugadores con una atmósfera de paz y misterio. Cuenta con portales de teletransporte ocultos tras las cascadas y una zona de intercambio con aldeanos protegidos. Los cerezos fueron plantados a mano uno por uno."
+            },
+            "2": {
+                "title": "¡Futuro Proyecto!",
+                "desc": "Una nueva zona está siendo construida en secreto.",
+                "longDesc": "Zona restringida por el staff. Se rumorea que será una nueva mazmorra procedural."
+            },
+            "3": {
+                "title": "¡Expansión en Breve!",
+                "desc": "Estamos preparando el terreno para algo grande.",
+                "longDesc": "Ampliación del borde del mundo programada para la versión 1.22."
+            }
+        }
+    },
+    "suggestions": {
+        "title": "Sugerencias y Encuestas",
+        "form_title": "Envía tu Propuesta",
+        "form": {
+            "nick": "Tu Nick / Correo",
+            "nick_placeholder": "Ej: Steve o steve@mail.com",
+            "type": "Tipo",
+            "msg": "Mensaje",
+            "msg_placeholder": "Descríbenos tu idea...",
+            "submit": "Enviar Propuesta",
+            "sending": "Enviando...",
+            "received": "¡Recibido!",
+            "success_msg": "Tu sugerencia ha sido enviada al staff y a nuestro Discord.",
+            "send_another": "Enviar otra",
+            "options": {
+                "general": "Sugerencia General",
+                "bug": "Reporte de Bug",
+                "mod": "Solicitud de Mod/Plugin",
+                "complaint": "Queja"
+            }
+        },
+        "poll_title": "Votación Activa",
+        "total_votes": "Total de votos",
+        "closes_in": "Cierra en",
+        "suggest_poll": "Sugerir Encuesta",
+        "other_idea": "¿Tienes otra idea para encuesta?"
+    }
+}

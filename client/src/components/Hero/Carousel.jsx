@@ -4,11 +4,11 @@ import Autoplay from 'embla-carousel-autoplay'
 import Fade from 'embla-carousel-fade'
 
 const IMAGES = [
-    '/hero-bg-1.webp',
-    '/hero-bg-2.webp',
-    '/hero-bg-3.webp',
-    '/hero-bg-4.webp',
-    '/hero-bg-5.webp'
+    '/images/backgrounds/hero-bg-1.webp',
+    '/images/backgrounds/hero-bg-2.webp',
+    '/images/backgrounds/hero-bg-3.webp',
+    '/images/backgrounds/hero-bg-4.webp',
+    '/images/backgrounds/hero-bg-5.webp'
 ]
 
 const HeroBackgroundCarousel = () => {

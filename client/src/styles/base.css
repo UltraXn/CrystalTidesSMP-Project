@@ -1,0 +1,136 @@
+:root {
+    /* Paleta de Colores Nueva */
+    --bg: #0B0C10;
+    --bg-alt: #0C7075;
+    --bg-soft: #0F969C;
+
+    --accent: #6DA5C0;
+    --accent-soft: rgba(109, 165, 192, 0.15);
+
+    --text: #FFFFFF;
+    --muted: #A0B0C0;
+
+    --radius: 10px;
+    --speed: 0.25s ease;
+}
+
+/* Reset y Base */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 90px;
+}
+
+body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    cursor: url('/cursor.png'), auto;
+}
+
+#root {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    text-align: left;
+    /* Reset text align to normal */
+}
+
+/* Animaciones Globales (Mantenlas aquí si ya las tenías) */
+@keyframes logo-spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes scroll-vertical {
+    0% {
+        transform: translateY(0);
+    }
+
+    100% {
+        transform: translateY(-50%);
+    }
+}
+
+@keyframes glow-pulse {
+    0% {
+        filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.2)) drop-shadow(0 0 4px rgba(109, 165, 192, 0.3));
+    }
+
+    50% {
+        filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.5)) drop-shadow(0 0 10px rgba(15, 150, 156, 0.6));
+    }
+
+    100% {
+        filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.2)) drop-shadow(0 0 4px rgba(109, 165, 192, 0.3));
+    }
+}
+
+@keyframes jump {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+@keyframes popUp {
+    0% {
+        opacity: 0;
+        transform: translateY(30px) scale(0.95);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes pulseSecret {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 0.1;
+    }
+
+    50% {
+        transform: scale(1.1);
+        opacity: 0.3;
+        color: var(--accent);
+    }
+}
+
+/* Clases de utilidad para animación */
+.animate-pop-up {
+    opacity: 0;
+    animation: popUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.delay-100 {
+    animation-delay: 0.1s;
+}
+
+.delay-200 {
+    animation-delay: 0.2s;
+}
+
+.delay-300 {
+    animation-delay: 0.3s;
+}

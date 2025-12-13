@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react"
 import { Link } from "react-router-dom"
-import anime from "animejs/lib/anime.es.js"
+import anime from "animejs"
 
 export default function NotFound() {
     const titleRef = useRef(null)
@@ -58,7 +58,7 @@ export default function NotFound() {
             <div ref={titleRef} style={{ marginBottom: '2rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 <img
                     ref={logoRef}
-                    src="/logo.png"
+                    src="/images/ui/logo.webp"
                     alt="Crystal Tides Logo"
                     className="not-found-logo"
                     onMouseEnter={handleLogoHover}

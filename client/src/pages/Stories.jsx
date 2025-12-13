@@ -1,17 +1,15 @@
 import { useState } from "react"
 import { FaMapPin, FaQuestion, FaTimes, FaUser } from "react-icons/fa"
 import Section from "@/components/Layout/Section"
+import { useTranslation } from 'react-i18next'
 
 import { motion, AnimatePresence } from "framer-motion"
 
-const PLACES = [
+const PLACES_CONFIG = [
     {
         id: 1,
-        title: "Santuario del Spawn",
         coords: "0, 100, 0",
-        desc: "Nuestro punto de bienvenida. Una isla flotante iluminada por linternas.",
-        longDesc: "El Santuario del Spawn fue la primera construcción del servidor. Diseñado para recibir a los nuevos jugadores con una atmósfera de paz y misterio. Cuenta con portales de teletransporte ocultos tras las cascadas y una zona de intercambio con aldeanos protegidos. Los cerezos fueron plantados a mano uno por uno.",
-        image: "/hero-bg-1.webp",
+        image: "/images/backgrounds/hero-bg-1.webp",
         authors: [
             { name: "Killaradian", role: "Arquitecto" },
             { name: "UltraXn", role: "Co-Creador" }
@@ -19,20 +17,14 @@ const PLACES = [
     },
     {
         id: 2,
-        title: "¡Futuro Proyecto!",
         coords: "???",
-        desc: "Una nueva zona está siendo construida en secreto.",
-        longDesc: "Zona restringida por el staff. Se rumorea que será una nueva mazmorra procedural.",
         image: null,
         isComingSoon: true,
         authors: [{ name: "Admin", role: "Staff" }]
     },
     {
         id: 3,
-        title: "¡Expansión en Breve!",
         coords: "???",
-        desc: "Estamos preparando el terreno para algo grande.",
-        longDesc: "Ampliación del borde del mundo programada para la versión 1.22.",
         image: null,
         isComingSoon: true,
         authors: [{ name: "Staff", role: "Team" }]
@@ -40,21 +32,32 @@ const PLACES = [
 ]
 
 export default function Stories() {
-    const [selectedPlace, setSelectedPlace] = useState(null)
+    const { t } = useTranslation()
+    const [selectedPlaceId, setSelectedPlaceId] = useState(null)
+
+    // Derived state with translations
+    const places = PLACES_CONFIG.map(config => ({
+        ...config,
+        title: t(`stories.items.${config.id}.title`),
+        desc: t(`stories.items.${config.id}.desc`),
+        longDesc: t(`stories.items.${config.id}.longDesc`)
+    }))
+
+    const selectedPlace = places.find(p => p.id === selectedPlaceId)
 
     return (
-        <Section title="lugares y lore">
+        <Section title={t('stories.title')}>
             <Section>
                 <div style={{ textAlign: "center", marginBottom: "3rem", color: "var(--muted)", maxWidth: "600px", margin: "0 auto 3rem" }}>
-                    <p>Descubre los puntos de interés de nuestro mundo. Haz clic en las tarjetas para ver los detalles.</p>
+                    <p>{t('stories.intro')}</p>
                 </div>
 
                 <div className="places-grid">
-                    {PLACES.map(place => (
+                    {places.map(place => (
                         <div
                             key={place.id}
                             className="place-card"
-                            onClick={() => setSelectedPlace(place)}
+                            onClick={() => setSelectedPlaceId(place.id)}
                             style={{ cursor: "pointer" }}
                         >
                             <div className="place-image-container">
@@ -89,7 +92,7 @@ export default function Stories() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        onClick={() => setSelectedPlace(null)}
+                        onClick={() => setSelectedPlaceId(null)}
                         className="modal-overlay"
                         style={{
                             position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
@@ -113,7 +116,7 @@ export default function Stories() {
                             }}
                         >
                             <button
-                                onClick={() => setSelectedPlace(null)}
+                                onClick={() => setSelectedPlaceId(null)}
                                 style={{
                                     position: "absolute", top: "20px", right: "20px",
                                     background: "rgba(0,0,0,0.5)", border: "none",
@@ -145,19 +148,19 @@ export default function Stories() {
                             </div>
 
                             <div style={{ padding: "2.5rem" }}>
-                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1.5rem", flexWrap: "wrap", gap: "1rem" }}>
-                                    <div>
-                                        <h2 style={{ fontSize: "2.5rem", fontWeight: "800", marginBottom: "0.5rem", lineHeight: 1 }}>
+                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem", flexWrap: "wrap", gap: "1.5rem" }}>
+                                    <div style={{ flex: "10 1 auto", minWidth: "250px" }}>
+                                        <h2 style={{ fontSize: "2.2rem", fontWeight: "800", marginBottom: "0.5rem", lineHeight: 1.1, textTransform: "uppercase", letterSpacing: "-1px" }}>
                                             {selectedPlace.title}
                                         </h2>
-                                        <span style={{ color: "var(--accent)", fontFamily: "monospace", fontSize: "1.1rem" }}>
-                                            <FaMapPin style={{ marginRight: "0.5rem" }} />
+                                        <span style={{ color: "var(--accent)", fontFamily: "monospace", fontSize: "1rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                                            <FaMapPin />
                                             {selectedPlace.coords}
                                         </span>
                                     </div>
 
                                     {/* AUTORES TAGS (Lista) */}
-                                    <div style={{ display: "flex", gap: "1rem" }}>
+                                    <div style={{ display: "flex", gap: "1rem", flex: "1 0 auto", justifyContent: "flex-end" }}>
                                         {selectedPlace.authors && selectedPlace.authors.map((auth, idx) => (
                                             <div key={idx} style={{ display: "flex", alignItems: "center", gap: "0.8rem", background: "rgba(255,255,255,0.05)", padding: "0.5rem 1rem", borderRadius: "50px", border: "1px solid rgba(255,255,255,0.1)" }}>
                                                 <img

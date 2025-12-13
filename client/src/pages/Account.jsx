@@ -3,6 +3,7 @@ import { FaUser, FaSignOutAlt, FaGamepad, FaClock, FaCoins, FaTrophy, FaServer, 
 import { useAuth } from '@/context/AuthContext'
 import { useEffect, useState, useRef } from 'react'
 import { supabase } from '@/services/supabaseClient'
+import { compressImage } from '@/utils/imageOptimizer'
 import '@/dashboard.css'
 
 export default function Account() {
@@ -35,14 +36,21 @@ export default function Account() {
             }
 
             const file = event.target.files[0]
-            const fileExt = file.name.split('.').pop()
-            const fileName = `${user.id}/${Math.random()}.${fileExt}`
+
+            // Optimizar imagen (Client-Side) -> WebP
+            const compressedBlob = await compressImage(file)
+
+            const fileExt = 'webp'
+            const fileName = `${user.id}/${Date.now()}.${fileExt}`
             const filePath = `${fileName}`
 
             // 1. Subir a Supabase Storage
             const { error: uploadError } = await supabase.storage
                 .from('avatars')
-                .upload(filePath, file)
+                .upload(filePath, compressedBlob, {
+                    contentType: 'image/webp',
+                    upsert: true
+                })
 
             if (uploadError) {
                 if (uploadError.message.includes("Bucket not found")) {

@@ -21,11 +21,12 @@ import NotFound from "@/pages/NotFound"
 import Stories from "@/pages/Stories"
 import Forum from "@/pages/Forum"
 import ForumCategory from "@/pages/ForumCategory"
+import ForumThread from "@/pages/ForumThread"
 
 import Footer from "@/components/Layout/Footer"
 import AdminPanel from "@/pages/AdminPanel"
 
-import "@/styles.css"
+
 
 export default function App() {
   return (
@@ -78,6 +79,7 @@ export default function App() {
         <Route path="/news" element={<NewsPage />} />
         <Route path="/forum" element={<Forum />} />
         <Route path="/forum/:id" element={<ForumCategory />} />
+        <Route path="/forum/thread/:id" element={<ForumThread />} />
         <Route path="/map" element={<Map />} />
         <Route path="*" element={<NotFound />} />
       </Routes>

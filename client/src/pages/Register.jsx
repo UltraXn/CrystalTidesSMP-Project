@@ -2,8 +2,12 @@ import { useState } from 'react'
 import { FaUser, FaEnvelope, FaLock, FaUserPlus, FaGamepad, FaDiscord, FaTwitch, FaEye, FaEyeSlash } from 'react-icons/fa'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
+import { supabase } from '@/services/supabaseClient'
+import SuccessModal from '@/components/UI/SuccessModal'
+import { useTranslation } from 'react-i18next'
 
 export default function Register() {
+    const { t } = useTranslation()
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [confirmPassword, setConfirmPassword] = useState('')
@@ -11,15 +15,18 @@ export default function Register() {
     const [showPassword, setShowPassword] = useState(false)
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
     const [error, setError] = useState('')
+    const [showSuccessModal, setShowSuccessModal] = useState(false)
+
     const { register, loginWithProvider } = useAuth()
     const navigate = useNavigate()
 
     const handleProviderLogin = async (provider) => {
         try {
-            setError('')
-            await loginWithProvider(provider)
+            const { error: providerError } = await loginWithProvider(provider)
+            if (providerError) throw providerError
         } catch (err) {
-            setError(`Error al registrarse con ${provider}: ` + err.message)
+            console.error(err)
+            setError(`Error al iniciar con ${provider}`)
         }
     }
 
@@ -28,39 +35,69 @@ export default function Register() {
         setError('')
 
         if (password !== confirmPassword) {
-            return setError('Las contraseñas no coinciden')
+            return setError(t('register.passwords_do_not_match'))
         }
 
         try {
-            const { user } = await register(email, password)
+            const { data: existingUser } = await supabase
+                .from('profiles')
+                .select('username')
+                .eq('username', minecraftUser)
+                .single()
+
+            if (existingUser) {
+                return setError(`${t('register.user_exists')} ("${minecraftUser}")`)
+            }
+
+            const { user, error: registerError } = await register(email, password, {
+                username: minecraftUser,
+                full_name: minecraftUser,
+                role: 'user',
+                avatar_url: `https://minotar.net/helm/${minecraftUser}/100.png`
+            })
+
+            if (registerError) {
+                if (registerError.message.includes('unique constraint') || registerError.status === 409) {
+                    return setError(`${t('register.user_exists')} (DB)`)
+                }
+                throw registerError
+            }
+
             if (user) {
-                // Aquí podríamos guardar el usuario de minecraft en la base de datos
-                // usando supabase.from('profiles').insert({ user_id: user.id, minecraft_username: minecraftUser })
-                alert('Registro exitoso! Por favor verifica tu email.')
-                navigate('/login')
+                setShowSuccessModal(true)
             }
         } catch (err) {
-            setError('Error al registrarse: ' + err.message)
+            console.error(err)
+            setError('Error: ' + (err.message || "Error desconocido"))
         }
     }
 
     return (
         <div className="account-page">
+            <SuccessModal
+                isOpen={showSuccessModal}
+                title={t('register.success_title')}
+                message={t('register.success_msg')}
+                buttonText={t('register.go_to_login')}
+                onAction={() => navigate('/login')}
+                onClose={() => navigate('/login')}
+            />
+
             <div className="account-container">
                 <div className="account-card animate-pop-up">
                     <div className="account-header">
-                        <h2>Crear Cuenta</h2>
-                        <p>Únete a la aventura hoy mismo</p>
+                        <h2>{t('register.title')}</h2>
+                        <p>{t('register.subtitle')}</p>
                     </div>
 
                     {error && <div style={{ color: 'red', textAlign: 'center', marginBottom: '1rem' }}>{error}</div>}
 
                     <form className="account-form" onSubmit={handleSubmit}>
                         <div className="form-group">
-                            <label><FaGamepad /> Usuario de Minecraft</label>
+                            <label><FaGamepad /> {t('register.nick_label')}</label>
                             <input
                                 type="text"
-                                placeholder="Tu username exacto"
+                                placeholder={t('register.nick_placeholder')}
                                 required
                                 value={minecraftUser}
                                 onChange={(e) => setMinecraftUser(e.target.value)}
@@ -68,7 +105,7 @@ export default function Register() {
                         </div>
 
                         <div className="form-group">
-                            <label><FaEnvelope /> Email</label>
+                            <label><FaEnvelope /> {t('register.email_label')}</label>
                             <input
                                 type="email"
                                 placeholder="correo@ejemplo.com"
@@ -79,7 +116,7 @@ export default function Register() {
                         </div>
 
                         <div className="form-group">
-                            <label><FaLock /> Contraseña</label>
+                            <label><FaLock /> {t('register.password_label')}</label>
                             <div style={{ position: 'relative' }}>
                                 <input
                                     type={showPassword ? "text" : "password"}
@@ -113,7 +150,7 @@ export default function Register() {
                         </div>
 
                         <div className="form-group">
-                            <label><FaLock /> Confirmar Contraseña</label>
+                            <label><FaLock /> {t('register.confirm_password_label')}</label>
                             <div style={{ position: 'relative' }}>
                                 <input
                                     type={showConfirmPassword ? "text" : "password"}
@@ -147,13 +184,13 @@ export default function Register() {
                         </div>
 
                         <button type="submit" className="btn-submit">
-                            <FaUserPlus /> Registrarse
+                            <FaUserPlus /> {t('register.submit')}
                         </button>
                     </form>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', margin: '1.5rem 0' }}>
                         <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.1)' }}></div>
-                        <span style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>O regístrate con</span>
+                        <span style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>{t('register.or_register_with')}</span>
                         <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.1)' }}></div>
                     </div>
 
@@ -178,9 +215,9 @@ export default function Register() {
 
                     <div className="account-footer">
                         <p>
-                            ¿Ya tienes cuenta? <Link to="/login" className="btn-text">Inicia Sesión</Link>
+                            {t('register.already_have_account')} <Link to="/login" className="btn-text">{t('register.sign_in')}</Link>
                         </p>
-                        <Link to="/" className="back-link">← Volver al inicio</Link>
+                        <Link to="/" className="back-link">← {t('register.back_home')}</Link>
                     </div>
                 </div>
             </div>

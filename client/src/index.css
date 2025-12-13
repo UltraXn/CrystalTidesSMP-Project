@@ -1,33 +1,27 @@
-:root {
-  --bg: #0B0C10;
-  --bg-alt: #0C7075;
-  --bg-soft: #0F969C;
+/* Main CSS Entry Point */
 
-  --accent: #6DA5C0;
-  --accent-soft: rgba(109, 165, 192, 0.15);
+/* 1. Variables & Global Tokens */
+@import './styles/variables.css';
 
-  --text: #FFFFFF;
-  --muted: #A0B0C0;
+/* 2. Animations & Keyframes */
+@import './styles/animations.css';
 
-  --radius: 10px;
-  --speed: 0.25s ease;
-}
+/* 3. Base Styles & Resets */
+@import './styles/base.css';
 
-/* reset mínimo */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+/* 4. Layout (Navbar, Footer, Grid) */
+@import './styles/layout.css';
 
-html {
-  scroll-behavior: smooth;
-}
+/* 5. Component Styles (Buttons, Forms, Cards) */
+@import './styles/components.css';
 
-body {
-  font-family: 'inter', system-ui, sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  line-height: 1.6;
-  -webkit-font-smoothing: antialiased;
-}
+/* 6. Section Specific Styles (Donors, Rules, News) */
+@import './styles/sections.css';
+
+/* 7. Page Specific Styles */
+@import './styles/pages.css';
+
+/* Compatibility: Import legacy styles-patch if absolutely needed,
+   but ideally everything should be moved to modules above.
+   For now, we assume modules cover patch content.
+*/
