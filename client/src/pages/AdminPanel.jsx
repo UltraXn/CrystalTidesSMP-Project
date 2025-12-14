@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import { useAuth } from "../context/AuthContext"
 import { useNavigate } from "react-router-dom"
 import { FaUsers, FaChartLine, FaShieldAlt, FaCogs, FaTicketAlt, FaHistory, FaNewspaper } from "react-icons/fa"
+import { useTranslation } from 'react-i18next'
 
 // Sub-componentes del Admin Panel
 import DashboardOverview from "@/components/Admin/DashboardOverview"
@@ -15,6 +16,7 @@ import EventsManager from "@/components/Admin/EventsManager"
 import SiteConfig from "@/components/Admin/SiteConfig"
 
 export default function AdminPanel() {
+    const { t } = useTranslation()
     const { user, loading } = useAuth()
     const navigate = useNavigate()
     const [activeTab, setActiveTab] = useState('overview')
@@ -27,7 +29,7 @@ export default function AdminPanel() {
         if (!loading && !user) navigate('/login')
     }, [user, loading, navigate])
 
-    if (loading) return <div className="admin-layout-full"><div className="section" style={{textAlign:'center', marginTop:'4rem'}}>Cargando panel...</div></div>
+    if (loading) return <div className="admin-layout-full"><div className="section" style={{textAlign:'center', marginTop:'4rem'}}>{t('admin.loading_panel')}</div></div>
     
     if (!isAdmin) {
         return (
@@ -43,10 +45,10 @@ export default function AdminPanel() {
                 zIndex: 9999
             }}>
                 <FaShieldAlt size={64} />
-                <h1 style={{fontSize: '2rem'}}>ACCESO DENEGADO 🛑</h1>
-                <p style={{color: '#aaa'}}>No tienes los permisos necesarios para estar aquí.</p>
+                <h1 style={{fontSize: '2rem'}}>{t('admin.access_denied.title')}</h1>
+                <p style={{color: '#aaa'}}>{t('admin.access_denied.msg')}</p>
                 <button onClick={() => navigate('/')} className="btn-primary" style={{marginTop: '1rem'}}>
-                    Volver al Inicio
+                    {t('admin.access_denied.back_home')}
                 </button>
             </div>
         )
@@ -69,32 +71,32 @@ export default function AdminPanel() {
             </div>
 
             <div className="admin-nav-tabs">
-                <AdminTab active={activeTab === 'overview'} onClick={() => setActiveTab('overview')} label="General" />
-                <AdminTab active={activeTab === 'tickets'} onClick={() => setActiveTab('tickets')} label="Tickets" />
-                <AdminTab active={activeTab === 'users'} onClick={() => setActiveTab('users')} label="Usuarios" />
-                <AdminTab active={activeTab === 'suggestions'} onClick={() => setActiveTab('suggestions')} label="Sugerencias" />
-                <AdminTab active={activeTab === 'polls'} onClick={() => setActiveTab('polls')} label="Encuestas" />
-                <AdminTab active={activeTab === 'events'} onClick={() => setActiveTab('events')} label="Eventos" />
-                <AdminTab active={activeTab === 'news'} onClick={() => setActiveTab('news')} label="Noticias" />
-                <AdminTab active={activeTab === 'logs'} onClick={() => setActiveTab('logs')} label="Logs" />
-                <AdminTab active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} label="Config" />
+                <AdminTab active={activeTab === 'overview'} onClick={() => setActiveTab('overview')} label={t('admin.tabs.general')} />
+                <AdminTab active={activeTab === 'tickets'} onClick={() => setActiveTab('tickets')} label={t('admin.tabs.tickets')} />
+                <AdminTab active={activeTab === 'users'} onClick={() => setActiveTab('users')} label={t('admin.tabs.users')} />
+                <AdminTab active={activeTab === 'suggestions'} onClick={() => setActiveTab('suggestions')} label={t('admin.tabs.suggestions')} />
+                <AdminTab active={activeTab === 'polls'} onClick={() => setActiveTab('polls')} label={t('admin.tabs.polls')} />
+                <AdminTab active={activeTab === 'events'} onClick={() => setActiveTab('events')} label={t('admin.tabs.events')} />
+                <AdminTab active={activeTab === 'news'} onClick={() => setActiveTab('news')} label={t('admin.tabs.news')} />
+                <AdminTab active={activeTab === 'logs'} onClick={() => setActiveTab('logs')} label={t('admin.tabs.logs')} />
+                <AdminTab active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} label={t('admin.tabs.settings')} />
             </div>
 
             {/* Main Content */}
             <main className="admin-content-full">
                  <div className="section-header">
                     <h2>
-                        {activeTab === 'overview' && 'Dashboard General'}
-                        {activeTab === 'tickets' && 'Centro de Tickets'}
-                        {activeTab === 'users' && 'Gestión de Usuarios'}
-                        {activeTab === 'suggestions' && 'Buzón de Sugerencias'}
-                        {activeTab === 'polls' && 'Gestor de Encuestas'}
-                        {activeTab === 'events' && 'Gestor de Eventos'}
-                        {activeTab === 'news' && 'Editor de Noticias'}
-                        {activeTab === 'logs' && 'Registro de Auditoría'}
-                        {activeTab === 'settings' && 'Configuración del Sitio'}
+                        {activeTab === 'overview' && t('admin.headers.general')}
+                        {activeTab === 'tickets' && t('admin.headers.tickets')}
+                        {activeTab === 'users' && t('admin.headers.users')}
+                        {activeTab === 'suggestions' && t('admin.headers.suggestions')}
+                        {activeTab === 'polls' && t('admin.headers.polls')}
+                        {activeTab === 'events' && t('admin.headers.events')}
+                        {activeTab === 'news' && t('admin.headers.news')}
+                        {activeTab === 'logs' && t('admin.headers.logs')}
+                        {activeTab === 'settings' && t('admin.headers.settings')}
                     </h2>
-                     <p className="section-subtitle">Panel de control administrativo</p>
+                     <p className="section-subtitle">{t('admin.panel_subtitle')}</p>
                 </div>
 
                 {activeTab === 'overview' && <DashboardOverview />}
@@ -123,14 +125,15 @@ function AdminTab({ active, onClick, label }) {
 }
 
 function UserRoleDisplay({ role }) {
+    const { t } = useTranslation()
     const roles = {
-        neroferno: { label: 'Neroferno', color: '#8b5cf6', img: '/ranks/rank-neroferno.png' },
-        killu: { label: 'Killu', color: '#ec4899', img: '/ranks/rank-killu.png' },
-        founder: { label: 'Fundador', color: '#a855f7', img: '/ranks/rank-fundador.png' },
-        admin: { label: 'Admin', color: '#f59e0b', img: '/ranks/admin.png' },
-        helper: { label: 'Helper', color: '#3b82f6', img: '/ranks/helper.png' },
-        donor: { label: 'Donador', color: '#22c55e', img: '/ranks/rank-donador.png' },
-        user: { label: 'Usuario', img: '/ranks/user.png' }
+        neroferno: { label: t('account.roles.neroferno'), color: '#8b5cf6', img: '/ranks/rank-neroferno.png' },
+        killu: { label: t('account.roles.killu'), color: '#ec4899', img: '/ranks/rank-killu.png' },
+        founder: { label: t('account.roles.founder'), color: '#a855f7', img: '/ranks/rank-fundador.png' },
+        admin: { label: t('account.roles.admin'), color: '#f59e0b', img: '/ranks/admin.png' },
+        helper: { label: t('account.roles.helper'), color: '#3b82f6', img: '/ranks/helper.png' },
+        donor: { label: t('account.roles.donor'), color: '#22c55e', img: '/ranks/rank-donador.png' },
+        user: { label: t('account.roles.user'), img: '/ranks/user.png' }
     }
 
     const current = roles[role] || roles.user

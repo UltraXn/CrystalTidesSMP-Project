@@ -1,6 +1,6 @@
 import Hero from "@/components/Hero"
 import Section from "@/components/Layout/Section"
-import ServerWidgets from "@/components/Widgets/ServerWidgets"
+import ServerFeatures from "@/components/Home/ServerFeatures"
 
 
 import { useTranslation } from 'react-i18next'
@@ -15,10 +15,7 @@ export default function Home() {
                 <Section>
                     <p>{t('home.description')}</p>
                     <p>{t('home.join_us')}</p>
-                </Section>
-
-                <Section>
-                    <ServerWidgets />
+                    <ServerFeatures />
                 </Section>
             </Section>
         </>

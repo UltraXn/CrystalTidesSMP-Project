@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import { FaTrash, FaCheck, FaSpinner, FaInbox, FaFilter } from 'react-icons/fa'
+import { useTranslation } from 'react-i18next'
 
 const API_URL = import.meta.env.VITE_API_URL
 
 export default function SuggestionsManager() {
+    const { t } = useTranslation()
     const [suggestions, setSuggestions] = useState([])
     const [loading, setLoading] = useState(true)
 
@@ -27,7 +29,7 @@ export default function SuggestionsManager() {
     }, [])
 
     const handleDelete = async (id) => {
-        if(!window.confirm("¿Estás seguro de que quieres eliminar esta sugerencia?")) return
+        if(!window.confirm(t('admin.suggestions.delete_confirm'))) return
         try {
             await fetch(`${API_URL}/suggestions/${id}`, { method: 'DELETE' })
             fetchSuggestions()
@@ -37,21 +39,21 @@ export default function SuggestionsManager() {
     return (
         <div className="admin-card">
             <h3 style={{ marginBottom: '1.5rem', display:'flex', alignItems:'center', gap:'0.5rem' }}>
-                <FaInbox /> Buzón de Sugerencias
+                <FaInbox /> {t('admin.suggestions.title')}
             </h3>
             
             {loading ? (
-                <div style={{padding:'2rem', textAlign:'center'}}><FaSpinner className="spin" size={24}/> Cargando...</div>
+                <div style={{padding:'2rem', textAlign:'center'}}><FaSpinner className="spin" size={24}/> {t('admin.suggestions.loading')}</div>
             ) : (
                 <div className="admin-table-container">
                     <table className="admin-table">
                         <thead>
                             <tr>
-                                <th style={{width:'120px'}}>Fecha</th>
-                                <th style={{width:'100px'}}>Tipo</th>
-                                <th style={{width:'150px'}}>Usuario</th>
-                                <th>Mensaje</th>
-                                <th style={{width:'80px'}}>Acción</th>
+                                <th style={{width:'120px'}}>{t('admin.suggestions.table.date')}</th>
+                                <th style={{width:'100px'}}>{t('admin.suggestions.table.type')}</th>
+                                <th style={{width:'150px'}}>{t('admin.suggestions.table.user')}</th>
+                                <th>{t('admin.suggestions.table.message')}</th>
+                                <th style={{width:'80px'}}>{t('admin.suggestions.table.action')}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -76,7 +78,7 @@ export default function SuggestionsManager() {
                             ))}
                         </tbody>
                     </table>
-                    {suggestions.length === 0 && <p style={{textAlign:'center', padding:'2rem', color:'#666'}}>No hay sugerencias recibidas.</p>}
+                    {suggestions.length === 0 && <p style={{textAlign:'center', padding:'2rem', color:'#666'}}>{t('admin.suggestions.empty')}</p>}
                 </div>
             )}
         </div>

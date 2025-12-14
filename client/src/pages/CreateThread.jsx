@@ -3,11 +3,13 @@ import { useNavigate } from 'react-router-dom'
 import { FaPen, FaPoll, FaDiscord, FaTimes, FaPlus, FaCheckCircle } from 'react-icons/fa'
 import { useAuth } from '@/context/AuthContext'
 import Section from '@/components/Layout/Section'
+import { useTranslation } from 'react-i18next'
 
 const API_URL = import.meta.env.VITE_API_URL
 
 export default function CreateThread() {
     const { user } = useAuth()
+    const { t } = useTranslation()
     const navigate = useNavigate()
     
     // Thread Data
@@ -25,7 +27,7 @@ export default function CreateThread() {
 
     const handleSubmit = async (e) => {
         e.preventDefault()
-        if(!user) return alert("Debes iniciar sesión")
+        if(!user) return alert(t('create_thread.form.error_login'))
         setSubmitting(true)
         
         const pollData = showPoll ? {
@@ -57,23 +59,19 @@ export default function CreateThread() {
             })
             if(res.ok) {
                 const data = await res.json()
-                // Redirect depending on ID
-                // Wait, need to ensure route exists. 
-                // For now, redirect to category page or thread page if logic supports it.
-                // Standard forum structure /forum/thread/:id
-                navigate(`/forum/thread/${data.id}`)
+                navigate(`/forum/thread/topic/${data.id}`)
             } else {
-                alert("Error creando tema")
+                alert(t('create_thread.form.error_create'))
             }
         } catch(err) { 
             console.error(err)
-            alert("Error de conexión")
+            alert(t('create_thread.form.error_conn'))
         } finally {
             setSubmitting(false)
         }
     }
 
-    const addOption = () => setOptions([...pollOptions, ''])
+    const addOption = () => setPollOptions([...pollOptions, ''])
     const updateOption = (idx, val) => {
         const newOpts = [...pollOptions]
         newOpts[idx] = val
@@ -81,44 +79,44 @@ export default function CreateThread() {
     }
 
     return (
-        <Section title="Crear Nuevo Tema">
+        <Section title={t('create_thread.title')}>
             <Section>
                 <form onSubmit={handleSubmit} style={{ maxWidth: '800px', margin: '0 auto', background: 'rgba(0,0,0,0.4)', padding: '2rem', borderRadius: '12px' }}>
                     
                     {/* Category Select */}
                     <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-                        <label className="form-label" style={{ display: 'block', marginBottom: '0.5rem', color: '#ccc' }}>Categoría</label>
+                        <label className="form-label" style={{ display: 'block', marginBottom: '0.5rem', color: '#ccc' }}>{t('create_thread.form.category')}</label>
                         <select 
                             className="form-input" 
                             value={categoryId} 
                             onChange={e => setCategoryId(e.target.value)}
                             style={{ width: '100%', padding: '0.8rem', background: 'rgba(255,255,255,0.05)', color: '#fff', border: '1px solid #444', borderRadius: '6px' }}
                         >
-                            <option value="2">Discusión General</option>
-                            <option value="3">Soporte y Ayuda</option>
-                            <option value="4">Off-Topic</option>
+                            <option value="2">{t('forum_page.categories.general.title')}</option>
+                            <option value="3">{t('forum_page.categories.support.title')}</option>
+                            <option value="4">{t('forum_page.categories.offtopic.title')}</option>
                         </select>
                     </div>
 
                     <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-                        <label className="form-label" style={{ display: 'block', marginBottom: '0.5rem', color: '#ccc' }}>Título</label>
+                        <label className="form-label" style={{ display: 'block', marginBottom: '0.5rem', color: '#ccc' }}>{t('create_thread.form.title')}</label>
                         <input 
                             className="form-input" 
                             value={title} 
                             onChange={e => setTitle(e.target.value)} 
-                            placeholder="Título de tu tema" 
+                            placeholder={t('create_thread.form.title_placeholder')} 
                             required 
                             style={{ width: '100%', padding: '0.8rem', background: 'rgba(255,255,255,0.05)', color: '#fff', border: '1px solid #444', borderRadius: '6px' }}
                         />
                     </div>
 
                     <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-                        <label className="form-label" style={{ display: 'block', marginBottom: '0.5rem', color: '#ccc' }}>Contenido</label>
+                        <label className="form-label" style={{ display: 'block', marginBottom: '0.5rem', color: '#ccc' }}>{t('create_thread.form.content')}</label>
                         <textarea 
                             className="form-input" 
                             value={content} 
                             onChange={e => setContent(e.target.value)} 
-                            placeholder="Escribe aquí..." 
+                            placeholder={t('create_thread.form.content_placeholder')} 
                             required 
                             rows={8}
                             style={{ width: '100%', padding: '0.8rem', background: 'rgba(255,255,255,0.05)', color: '#fff', border: '1px solid #444', borderRadius: '6px', resize: 'vertical' }}
@@ -129,7 +127,7 @@ export default function CreateThread() {
                     <div style={{ marginBottom: '2rem', padding: '1.5rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', border: showPoll ? '1px solid var(--accent)' : '1px dashed #444' }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }} onClick={() => setShowPoll(!showPoll)}>
                             <h4 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', color: showPoll ? 'var(--accent)' : '#aaa' }}>
-                                <FaPoll /> Añadir Encuesta
+                                <FaPoll /> {t('create_thread.form.add_poll')}
                             </h4>
                             <div className={`checkbox ${showPoll ? 'active' : ''}`} style={{ width: '20px', height: '20px', border: '1px solid #666', borderRadius: '4px', background: showPoll ? 'var(--accent)' : 'transparent' }}>
                                 {showPoll && <FaCheckCircle size={14} color="#000" style={{ margin: '2px' }} />}
@@ -143,13 +141,13 @@ export default function CreateThread() {
                                 <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                     <input type="checkbox" checked={isDiscordPoll} onChange={e => setIsDiscordPoll(e.target.checked)} id="discordCheck" />
                                     <label htmlFor="discordCheck" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', color: isDiscordPoll ? '#5865F2' : '#ccc' }}>
-                                        <FaDiscord /> Vincular encuesta de Discord existente
+                                        <FaDiscord /> {t('create_thread.form.discord_poll')}
                                     </label>
                                 </div>
 
                                 {isDiscordPoll ? (
                                     <div>
-                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: '#aaa' }}>Enlace al Mensaje de Discord (Opción "Copiar Enlace del Mensaje")</label>
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: '#aaa' }}>{t('create_thread.form.discord_link_label')}</label>
                                         <input 
                                             value={discordLink} 
                                             onChange={e => setDiscordLink(e.target.value)} 
@@ -157,12 +155,12 @@ export default function CreateThread() {
                                             style={{ width: '100%', padding: '0.7rem', background: '#222', border: '1px solid #555', color: '#fff', borderRadius: '4px' }}
                                         />
                                         <p style={{ fontSize: '0.8rem', color: 'var(--muted)', marginTop: '0.5rem' }}>
-                                            Esto mostrará un botón para ir a votar a Discord directamente.
+                                            {t('create_thread.form.discord_hint')}
                                         </p>
                                     </div>
                                 ) : (
                                     <div>
-                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: '#aaa' }}>Pregunta de la Encuesta</label>
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: '#aaa' }}>{t('create_thread.form.poll_question')}</label>
                                         <input 
                                             value={pollQuestion} 
                                             onChange={e => setPollQuestion(e.target.value)} 
@@ -170,7 +168,7 @@ export default function CreateThread() {
                                             style={{ width: '100%', padding: '0.7rem', background: '#222', border: '1px solid #555', color: '#fff', borderRadius: '4px', marginBottom: '1rem' }}
                                         />
                                         
-                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: '#aaa' }}>Opciones</label>
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: '#aaa' }}>{t('create_thread.form.options')}</label>
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                                             {pollOptions.map((opt, idx) => (
                                                 <div key={idx} style={{ display: 'flex', gap: '0.5rem' }}>
@@ -188,7 +186,7 @@ export default function CreateThread() {
                                                 </div>
                                             ))}
                                             <button type="button" onClick={() => setPollOptions([...pollOptions, ''])} className="btn-secondary" style={{ fontSize: '0.8rem', padding: '0.4rem' }}>
-                                                <FaPlus /> Añadir Opción
+                                                <FaPlus /> {t('create_thread.form.add_option')}
                                             </button>
                                         </div>
                                     </div>
@@ -198,7 +196,7 @@ export default function CreateThread() {
                     </div>
 
                     <button type="submit" className="btn-primary" style={{ width: '100%', padding: '1rem', fontSize: '1.1rem' }} disabled={submitting}>
-                        {submitting ? 'Publicando...' : 'Publicar Tema'}
+                        {submitting ? t('create_thread.form.submitting') : t('create_thread.form.submit')}
                     </button>
                     
                 </form>

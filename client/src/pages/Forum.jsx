@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 const initialCategories = [
     {
         id: 1,
+        slug: "announcements",
         translationKey: "announcements",
         icon: <FaBullhorn />,
         topics: 0,
@@ -14,6 +15,7 @@ const initialCategories = [
     },
     {
         id: 2,
+        slug: "general",
         translationKey: "general",
         icon: <FaComments />,
         topics: 0,
@@ -22,6 +24,7 @@ const initialCategories = [
     },
     {
         id: 3,
+        slug: "support",
         translationKey: "support",
         icon: <FaTools />,
         topics: 0,
@@ -30,6 +33,7 @@ const initialCategories = [
     },
     {
         id: 4,
+        slug: "off-topic",
         translationKey: "offtopic",
         icon: <FaCoffee />,
         topics: 0,
@@ -186,7 +190,7 @@ export default function Forum() {
 
             <div className="forum-categories">
                 {categories.map((cat) => (
-                    <Link to={`/forum/${cat.id}`} key={cat.id} className="forum-category-card" style={{ textDecoration: 'none', color: 'inherit' }}>
+                    <Link to={`/forum/${cat.slug}`} key={cat.id} className="forum-category-card" style={{ textDecoration: 'none', color: 'inherit' }}>
                         <div className="cat-icon-wrapper">
                             {cat.icon}
                         </div>

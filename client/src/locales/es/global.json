@@ -1,4 +1,50 @@
 {
+    "forum_category": {
+        "back_link": "Volver al Foro",
+        "new_thread": "Nuevo Tema",
+        "loading": "Cargando temas...",
+        "no_threads": "No hay temas en esta categoría aún.",
+        "be_first": "¡Sé el primero en crear uno!",
+        "replies": "Resp.",
+        "views": "Vistas"
+    },
+    "forum_thread": {
+        "back_link": "Volver",
+        "back_forum": "Volver al Foro",
+        "loading": "Cargando contenido...",
+        "not_found": "Contenido no disponible",
+        "views": "Vistas",
+        "comments": "Comentarios",
+        "write_reply": "Escribe tu respuesta...",
+        "publish": "Publicar",
+        "login_to_reply": "Inicia sesión para participar.",
+        "login": "Iniciar Sesión",
+        "thread_error": "Contenido no encontrado",
+        "comment_error": "Error al publicar comentario",
+        "just_now": "Justo ahora"
+    },
+    "create_thread": {
+        "title": "Crear Nuevo Tema",
+        "form": {
+            "category": "Categoría",
+            "title": "Título",
+            "title_placeholder": "Título de tu tema",
+            "content": "Contenido",
+            "content_placeholder": "Escribe aquí...",
+            "add_poll": "Añadir Encuesta",
+            "discord_poll": "Vincular encuesta de Discord existente",
+            "discord_link_label": "Enlace al Mensaje de Discord (Opción \"Copiar Enlace del Mensaje\")",
+            "discord_hint": "Esto mostrará un botón para ir a votar a Discord directamente.",
+            "poll_question": "Pregunta de la Encuesta",
+            "options": "Opciones",
+            "add_option": "Añadir Opción",
+            "submit": "Publicar Tema",
+            "submitting": "Publicando...",
+            "error_login": "Debes iniciar sesión",
+            "error_create": "Error creando tema",
+            "error_conn": "Error de conexión"
+        }
+    },
     "navbar": {
         "home": "Inicio",
         "rules": "Reglas",
@@ -14,6 +60,14 @@
         "menu": "MENU",
         "achievements": "Logros",
         "register": "Registrarse"
+    },
+    "features": {
+        "economy_title": "Economía Dinámica",
+        "economy_desc": "Participa en un mercado impulsado por jugadores. Comercia, subasta y construye tu imperio empresarial.",
+        "protection_title": "Respeto Mutuo",
+        "protection_desc": "Sin piedras de protección. Confiamos en nuestra comunidad y usamos CoreProtect para seguridad total.",
+        "dungeons_title": "Mazmorras Épicas",
+        "dungeons_desc": "Enfréntate a desafíos únicos y jefes personalizados para obtener recompensas legendarias."
     },
     "home": {
         "title": "Sobre el Servidor",
@@ -257,7 +311,12 @@
         },
         "roles": {
             "admin": "Administrador",
-            "user": "Aventurero"
+            "user": "Aventurero",
+            "founder": "Fundador",
+            "helper": "Ayudante",
+            "donor": "Donador",
+            "neroferno": "Neroferno",
+            "killu": "Killu"
         },
         "nav": {
             "overview": "Resumen",
@@ -314,5 +373,303 @@
             "cancel": "Cancelar"
         },
         "admin_panel": "Panel Admin"
+    },
+    "admin": {
+        "loading_panel": "Cargando panel...",
+        "access_denied": {
+            "title": "ACCESO DENEGADO 🛑",
+            "msg": "No tienes los permisos necesarios para estar aquí.",
+            "back_home": "Volver al Inicio"
+        },
+        "panel_subtitle": "Panel de control administrativo",
+        "tabs": {
+            "general": "General",
+            "tickets": "Tickets",
+            "users": "Usuarios",
+            "suggestions": "Sugerencias",
+            "polls": "Encuestas",
+            "events": "Eventos",
+            "news": "Noticias",
+            "logs": "Logs",
+            "settings": "Config"
+        },
+        "headers": {
+            "general": "Dashboard General",
+            "tickets": "Centro de Tickets",
+            "users": "Gestión de Usuarios",
+            "suggestions": "Buzón de Sugerencias",
+            "polls": "Gestor de Encuestas",
+            "events": "Gestor de Eventos",
+            "news": "Editor de Noticias",
+            "logs": "Registro de Auditoría",
+            "settings": "Configuración del Sitio"
+        },
+        "dashboard": {
+            "stats": {
+                "server_status": "Estado del Servidor",
+                "online": "ONLINE",
+                "offline": "OFFLINE",
+                "no_connection": "Sin conexión",
+                "players": "Jugadores Simultáneos",
+                "capacity": "Capacidad",
+                "pending_tickets": "Tickets Pendientes",
+                "high_priority": "de Alta Prioridad",
+                "revenue": "Ingresos del Mes",
+                "vs_prev_month": "vs mes ant."
+            },
+            "resources": {
+                "title": "Recursos del Sistema",
+                "updated_now": "Actualizado ahora",
+                "cpu": "Carga CPU",
+                "ram": "Uso RAM"
+            },
+            "staff": {
+                "title": "Staff Online",
+                "offline_msg": "Servidor Offline - Sin actividad"
+            }
+        },
+        "tickets": {
+            "search_placeholder": "Buscar tickets...",
+            "new_ticket": "Nuevo Ticket",
+            "loading": "Cargando tickets...",
+            "empty": "No hay tickets registrados aún.",
+            "table": {
+                "id": "ID",
+                "user": "Usuario",
+                "subject": "Asunto",
+                "priority": "Prioridad",
+                "status": "Estado",
+                "date": "Fecha",
+                "action": "Acción"
+            },
+            "priority": {
+                "low": "Baja",
+                "medium": "Media",
+                "high": "Alta",
+                "urgent": "Urgente"
+            },
+            "status": {
+                "open": "Abierto",
+                "pending": "Pendiente",
+                "resolved": "Resuelto",
+                "closed": "Cerrado"
+            },
+            "create_modal": {
+                "title": "Crear Nuevo Ticket",
+                "subject": "Asunto",
+                "description": "Descripción",
+                "desc_placeholder": "Describe el problema detalladamente...",
+                "submit": "Crear Ticket",
+                "cancel": "Cancelar",
+                "saving": "Guardando...",
+                "error_subject": "El asunto es obligatorio",
+                "error_create": "Error creando ticket"
+            },
+            "detail": {
+                "original_desc": "DESCRIPCIÓN ORIGINAL",
+                "no_desc": "Sin descripción detallada.",
+                "no_history": "No hay mensajes en el historial.",
+                "reply_placeholder": "Escribe una respuesta para el usuario...",
+                "closed_msg": "Este ticket está cerrado. Reábrelo para responder.",
+                "delete_confirm": "¿Estás seguro de que quieres eliminar este ticket? Esta acción no se puede deshacer."
+            },
+            "actions": {
+                "ban": "Banear User",
+                "resolve": "Marcar Resuelto",
+                "close": "Cerrar Ticket",
+                "reopen": "Reabrir Ticket",
+                "delete": "Eliminar"
+            },
+            "ban_modal": {
+                "title": "Sancionar Usuario",
+                "nickname": "Nickname de Minecraft",
+                "nick_hint": "Confirma el nombre exacto del jugador en el servidor.",
+                "type": "Tipo de Sanción",
+                "temp": "Temporal",
+                "perm": "Permanente",
+                "amount": "Cantidad",
+                "unit": "Unidad",
+                "reason": "Razón / Motivo",
+                "submit": "Aplicar Sanción",
+                "error_nick": "Escribe el Nickname del jugador",
+                "success": "Usuario baneado correctamente"
+            },
+            "units": {
+                "m": "Minutos",
+                "h": "Horas",
+                "d": "Días",
+                "mo": "Meses"
+            }
+        },
+        "alerts": {
+            "error_title": "¡Ups! Algo salió mal",
+            "success_title": "¡Éxito!",
+            "warning_title": "Atención",
+            "confirm_title": "¿Estás seguro?",
+            "accept": "Aceptar"
+        },
+        "users": {
+            "title": "Gestión de Usuarios",
+            "search_placeholder": "Buscar usuario por correo (ej: steve@mail.com)",
+            "search_btn": "Buscar",
+            "table": {
+                "user": "Usuario/Email",
+                "id": "ID",
+                "role": "Rol Actual",
+                "change_role": "Cambiar Rol"
+            },
+            "registered": "Registrado",
+            "no_results": "No se encontraron usuarios con ese correo.",
+            "initial_msg": "Usa el buscador para encontrar usuarios.",
+            "searching": "Buscando...",
+            "confirm_role": "¿Cambiar rol a ",
+            "error_role": "Error actualizando rol"
+        },
+        "settings": {
+            "loading": "Cargando configuración...",
+            "error_save": "Error al guardar configuración",
+            "theme": {
+                "title": "Tema Global del Sitio",
+                "desc": "Personaliza la apariencia de CrystalTides. ¡Esto afectará a todos los visitantes!",
+                "default": "Cristal Original",
+                "halloween": "Modo Halloween",
+                "christmas": "Modo Navidad"
+            },
+            "announcement": {
+                "title": "Anuncio Global (Annobar)",
+                "placeholder": "Ej: Mantenimiento programado hoy a las 20:00 GMT-3",
+                "save": "Guardar",
+                "desc": "Deja este campo vacío para desactivar la barra de anuncios."
+            },
+            "danger": {
+                "title": "Zona de Peligro",
+                "maintenance_title": "Modo Mantenimiento",
+                "maintenance_desc": "Si activas esto, solo los administradores podrán acceder al sitio. Los usuarios verán una pantalla de 'En construcción'."
+            },
+            "maintenance_modal": {
+                "title_on": "⚠️ ACTIVAR Mantenimiento",
+                "title_off": "Desactivar Mantenimiento",
+                "msg_on": "Si activas esto, solo los administradores podrán acceder al sitio. ¿Seguro?",
+                "msg_off": "El sitio volverá a ser público para todos.",
+                "confirm_on": "Sí, cerrar sitio",
+                "confirm_off": "Abrir sitio",
+                "cancel": "Uy... mejor no"
+            }
+        },
+        "suggestions": {
+            "title": "Buzón de Sugerencias",
+            "loading": "Cargando...",
+            "empty": "No hay sugerencias recibidas.",
+            "delete_confirm": "¿Estás seguro de que quieres eliminar esta sugerencia?",
+            "table": {
+                "date": "Fecha",
+                "type": "Tipo",
+                "user": "Usuario",
+                "message": "Mensaje",
+                "action": "Acción"
+            }
+        },
+        "polls": {
+            "active_title": "Encuesta Activa",
+            "create_title": "Nueva Encuesta",
+            "status_active": "EN PROGRESO",
+            "ends_in": "Termina: ",
+            "votes": "votos",
+            "total_votes": "Total: {{count}} votos",
+            "close_btn": "Finalizar Encuesta",
+            "no_active": "No hay ninguna encuesta activa.",
+            "form": {
+                "title": "Título",
+                "title_ph": "Ej: Votación Semanal",
+                "question": "Pregunta",
+                "question_ph": "¿Qué modo de juego prefieren?",
+                "options": "Opciones",
+                "option_ph": "Opción ",
+                "add_option": "Añadir Opción",
+                "duration": "Duración (Días)",
+                "warning_active": "⚠️ Al crear una nueva encuesta, la actual se cerrará automáticamente.",
+                "submit": "Lanzar Encuesta",
+                "success": "¡Encuesta lanzada!",
+                "error_options": "Necesitas al menos 2 opciones",
+                "error_create": "Error al crear encuesta"
+            },
+            "confirm_close": "¿Estás seguro de finalizar la encuesta activa?"
+        },
+        "news": {
+            "loading": "Cargando noticias...",
+            "edit_title": "Editar Noticia",
+            "create_title": "Nueva Noticia",
+            "cancel": "Cancelar",
+            "form": {
+                "title": "Título",
+                "category": "Categoría",
+                "status": "Estado",
+                "draft": "Borrador",
+                "published": "Publicado",
+                "image": "Imagen de Portada (URL)",
+                "content": "Contenido",
+                "save": "Guardar Cambios",
+                "publish": "Publicar Noticia"
+            },
+            "search_ph": "Buscar noticia...",
+            "write_btn": "Redactar Noticia",
+            "table": {
+                "title": "Título",
+                "category": "Categoría",
+                "status": "Estado",
+                "date": "Fecha",
+                "actions": "Acciones"
+            },
+            "no_news": "No hay noticias aún.",
+            "delete_modal": {
+                "title": "¿Eliminar Noticia?",
+                "desc": "Esta acción no se puede deshacer. La noticia será eliminada permanentemente.",
+                "confirm": "Sí, Eliminar",
+                "cancel": "Cancelar"
+            },
+            "error_save": "Error al guardar la noticia",
+            "error_delete": "Error al eliminar"
+        },
+        "events": {
+            "title": "Gestión de Eventos y Concursos",
+            "loading": "Cargando eventos...",
+            "create_title": "Nuevo Evento",
+            "edit_title": "Editar Evento",
+            "cancel": "Cancelar",
+            "form": {
+                "title": "Título",
+                "desc": "Descripción",
+                "type": "Tipo (Icono)",
+                "status": "Estado",
+                "save": "Guardar Cambios",
+                "create": "Crear Evento",
+                "types": {
+                    "hammer": "Construcción 🔨",
+                    "dice": "Rol / Azar 🎲",
+                    "map": "Exploración 🗺️",
+                    "running": "Carrera / Parkour 🏃"
+                },
+                "statuses": {
+                    "active": "Activo (En Curso)",
+                    "soon": "Próximamente",
+                    "finished": "Finalizado"
+                }
+            },
+            "table": {
+                "icon": "Icono",
+                "event": "Evento",
+                "status": "Estado",
+                "actions": "Acciones"
+            },
+            "no_events": "No hay eventos creados.",
+            "delete_modal": {
+                "title": "¿Eliminar Evento?",
+                "desc": "Esta acción no se puede deshacer. El evento y todos sus datos serán eliminados permanentemente.",
+                "confirm": "Sí, Eliminar",
+                "cancel": "Cancelar"
+            },
+            "error_save": "Error al guardar evento",
+            "error_delete": "Error al eliminar"
+        }
     }
 }

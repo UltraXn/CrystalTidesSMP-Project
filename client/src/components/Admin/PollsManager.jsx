@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import { FaPoll, FaPlus, FaTimes, FaCheck, FaCheckCircle, FaSpinner, FaStopCircle, FaTrash } from 'react-icons/fa'
+import { useTranslation } from 'react-i18next'
 
 const API_URL = import.meta.env.VITE_API_URL
 
 export default function PollsManager() {
+    const { t } = useTranslation()
     const [activePoll, setActivePoll] = useState(null)
     const [loading, setLoading] = useState(true)
 
@@ -38,7 +40,7 @@ export default function PollsManager() {
         try {
             const validOptions = options.filter(o => o.trim() !== '')
             if (validOptions.length < 2) {
-                alert("Necesitas al menos 2 opciones")
+                alert(t('admin.polls.form.error_options'))
                 setCreating(false)
                 return
             }
@@ -65,7 +67,7 @@ export default function PollsManager() {
                 setButtonSuccess(true)
                 setTimeout(() => setButtonSuccess(false), 3000)
             } else {
-                alert("Error al crear encuesta")
+                alert(t('admin.polls.form.error_create'))
             }
         } catch(err) { console.error(err) }
         finally { setCreating(false) }
@@ -74,7 +76,7 @@ export default function PollsManager() {
     // Close Handler
     const handleClose = async () => {
         if(!activePoll) return;
-        if(!window.confirm("¿Estás seguro de finalizar la encuesta activa?")) return
+        if(!window.confirm(t('admin.polls.confirm_close'))) return
         
         try {
             await fetch(`${API_URL}/polls/close/${activePoll.id}`, { method: 'POST' })
@@ -99,15 +101,15 @@ export default function PollsManager() {
             {/* COLUMN 1: ACTIVE POLL */}
             <div className="admin-card">
                 <h3 style={{ marginBottom: '1.5rem', display:'flex', alignItems:'center', gap:'0.5rem' }}>
-                    <FaPoll /> Encuesta Activa
+                    <FaPoll /> {t('admin.polls.active_title')}
                 </h3>
 
                 {loading ? <div style={{textAlign:'center'}}><FaSpinner className="spin" /></div> : (
                     activePoll ? (
                         <div>
                             <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'1rem' }}>
-                                <span className="badge" style={{background:'#22c55e', color:'#000'}}>EN PROGRESO</span>
-                                <span style={{fontSize:'0.8rem', color:'#aaa'}}>Termina: {activePoll.closesIn}</span>
+                                <span className="badge" style={{background:'#22c55e', color:'#000'}}>{t('admin.polls.status_active')}</span>
+                                <span style={{fontSize:'0.8rem', color:'#aaa'}}>{t('admin.polls.ends_in')} {activePoll.closesIn}</span>
                             </div>
                             
                             <h4 style={{marginBottom:'0.5rem', color:'var(--accent)'}}>{activePoll.title}</h4>
@@ -117,22 +119,22 @@ export default function PollsManager() {
                                 {activePoll.options.map(opt => (
                                     <div key={opt.id} style={{background:'rgba(255,255,255,0.05)', padding:'0.5rem', borderRadius:'4px', display:'flex', justifyContent:'space-between'}}>
                                         <span>{opt.label}</span>
-                                        <span style={{fontWeight:'bold'}}>{opt.percent}% ({opt.votes} votos)</span>
+                                        <span style={{fontWeight:'bold'}}>{opt.percent}% ({opt.votes} {t('admin.polls.votes')})</span>
                                     </div>
                                 ))}
                                 <div style={{marginTop:'0.5rem', textAlign:'right', color:'#888', fontSize:'0.9rem'}}>
-                                    Total: {activePoll.totalVotes} votos
+                                    {t('admin.polls.total_votes', {count: activePoll.totalVotes})}
                                 </div>
                             </div>
 
                             <button onClick={handleClose} className="btn-secondary" style={{width:'100%', borderColor:'#ef4444', color:'#ef4444'}}>
-                                <FaStopCircle /> Finalizar Encuesta
+                                <FaStopCircle /> {t('admin.polls.close_btn')}
                             </button>
                         </div>
                     ) : (
                         <div style={{textAlign:'center', padding:'3rem', color:'#666', border:'1px dashed #444', borderRadius:'8px'}}>
                             <FaPoll size={32} style={{marginBottom:'1rem'}}/>
-                            <p>No hay ninguna encuesta activa.</p>
+                            <p>{t('admin.polls.no_active')}</p>
                         </div>
                     )
                 )}
@@ -141,22 +143,22 @@ export default function PollsManager() {
             {/* COLUMN 2: CREATE NEW */}
             <div className="admin-card">
                 <h3 style={{ marginBottom: '1.5rem', display:'flex', alignItems:'center', gap:'0.5rem' }}>
-                    <FaCheckCircle /> Nueva Encuesta
+                    <FaCheckCircle /> {t('admin.polls.create_title')}
                 </h3>
 
                 <form onSubmit={handleCreate}>
                     <div className="form-group">
-                        <label className="admin-label">Título</label>
-                        <input className="admin-input" value={title} onChange={e => setTitle(e.target.value)} placeholder="Ej: Votación Semanal" required />
+                        <label className="admin-label">{t('admin.polls.form.title')}</label>
+                        <input className="admin-input" value={title} onChange={e => setTitle(e.target.value)} placeholder={t('admin.polls.form.title_ph')} required />
                     </div>
                     
                     <div className="form-group">
-                        <label className="admin-label">Pregunta</label>
-                        <textarea className="admin-input" value={question} onChange={e => setQuestion(e.target.value)} placeholder="¿Qué modo de juego prefieren?" required rows={3} style={{resize:'vertical'}}></textarea>
+                        <label className="admin-label">{t('admin.polls.form.question')}</label>
+                        <textarea className="admin-input" value={question} onChange={e => setQuestion(e.target.value)} placeholder={t('admin.polls.form.question_ph')} required rows={3} style={{resize:'vertical'}}></textarea>
                     </div>
 
                     <div className="form-group">
-                        <label className="admin-label">Opciones</label>
+                        <label className="admin-label">{t('admin.polls.form.options')}</label>
                         <div style={{display:'flex', flexDirection:'column', gap:'0.5rem'}}>
                             {options.map((opt, idx) => (
                                 <div key={idx} style={{display:'flex', gap:'0.5rem'}}>
@@ -164,7 +166,7 @@ export default function PollsManager() {
                                         className="admin-input" 
                                         value={opt} 
                                         onChange={e => updateOption(idx, e.target.value)} 
-                                        placeholder={`Opción ${idx + 1}`}
+                                        placeholder={`${t('admin.polls.form.option_ph')}${idx + 1}`}
                                         required
                                     />
                                     {options.length > 2 && (
@@ -176,22 +178,22 @@ export default function PollsManager() {
                             ))}
                         </div>
                         <button type="button" onClick={() => setOptions([...options, ''])} className="btn-secondary" style={{marginTop:'0.5rem', width:'100%'}}>
-                            <FaPlus /> Añadir Opción
+                            <FaPlus /> {t('admin.polls.form.add_option')}
                         </button>
                     </div>
 
                     <div className="form-group">
-                        <label className="admin-label">Duración (Días)</label>
+                        <label className="admin-label">{t('admin.polls.form.duration')}</label>
                         <input className="admin-input" type="number" min="1" max="30" value={daysDuration} onChange={e => setDaysDuration(e.target.value)} />
                     </div>
 
                     <div style={{marginTop:'2rem', paddingTop:'1rem', borderTop:'1px solid #333'}}>
-                        {activePoll && <p style={{color:'#facc15', fontSize:'0.9rem', marginBottom:'1rem'}}>⚠️ Al crear una nueva encuesta, la actual se cerrará automáticamente.</p>}
+                        {activePoll && <p style={{color:'#facc15', fontSize:'0.9rem', marginBottom:'1rem'}}>{t('admin.polls.form.warning_active')}</p>}
                         
                         <button type="submit" className="btn-primary" style={{width:'100%', background: buttonSuccess ? '#22c55e' : '', borderColor: buttonSuccess ? '#22c55e' : ''}} disabled={creating || buttonSuccess}>
                             {creating ? <FaSpinner className="spin" /> : buttonSuccess ? (
-                                <><FaCheck /> ¡Encuesta lanzada!</>
-                            ) : 'Lanzar Encuesta'}
+                                <><FaCheck /> {t('admin.polls.form.success')}</>
+                            ) : t('admin.polls.form.submit')}
                         </button>
                     </div>
                 </form>

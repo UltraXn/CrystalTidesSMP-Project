@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react"
 import { FaPlus, FaEdit, FaTrash, FaHammer, FaDiceD20, FaMapMarkedAlt, FaRunning, FaCheckCircle, FaHourglassStart, FaFlagCheckered, FaExclamationTriangle } from "react-icons/fa"
+import { useTranslation } from "react-i18next"
 
 export default function EventsManager({ user }) {
+    const { t } = useTranslation()
     const [events, setEvents] = useState([])
     const [loading, setLoading] = useState(true)
     const [isEditing, setIsEditing] = useState(false)
@@ -16,10 +18,12 @@ export default function EventsManager({ user }) {
         'running': <FaRunning />
     }
     
+    // Moved statusMap inside to use t() but we can also use dynamic access in render
+    // However, statusMap is used for both label and color/icon.
     const statusMap = {
-        'active': { label: 'En Curso', icon: <FaCheckCircle />, color: '#4ade80' },
-        'soon': { label: 'Próximamente', icon: <FaHourglassStart />, color: '#fbbf24' },
-        'finished': { label: 'Finalizado', icon: <FaFlagCheckered />, color: '#ef4444' }
+        'active': { label: t('admin.events.form.statuses.active'), icon: <FaCheckCircle />, color: '#4ade80' },
+        'soon': { label: t('admin.events.form.statuses.soon'), icon: <FaHourglassStart />, color: '#fbbf24' },
+        'finished': { label: t('admin.events.form.statuses.finished'), icon: <FaFlagCheckered />, color: '#ef4444' }
     }
 
     const API_URL = import.meta.env.VITE_API_URL
@@ -64,7 +68,7 @@ export default function EventsManager({ user }) {
             setDeleteConfirm(null)
         } catch (error) {
             console.error("Error eliminando evento:", error)
-            alert("Error al eliminar")
+            alert(t('admin.events.error_delete'))
         }
     }
 
@@ -96,23 +100,23 @@ export default function EventsManager({ user }) {
             setIsEditing(false)
         } catch (error) {
             console.error("Error guardando evento:", error)
-            alert("Error al guardar evento")
+            alert(t('admin.events.error_save'))
         }
     }
 
-    if (loading) return <div className="admin-card">Cargando eventos...</div>
+    if (loading) return <div className="admin-card">{t('admin.events.loading')}</div>
 
     if (isEditing) {
         return (
             <div className="admin-card">
                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
-                    <h3 style={{ fontSize: "1.2rem" }}>{currentEvent.id ? "Editar Evento" : "Nuevo Evento"}</h3>
-                    <button className="btn-secondary" onClick={() => setIsEditing(false)}>Cancelar</button>
+                    <h3 style={{ fontSize: "1.2rem" }}>{currentEvent.id ? t('admin.events.edit_title') : t('admin.events.create_title')}</h3>
+                    <button className="btn-secondary" onClick={() => setIsEditing(false)}>{t('admin.events.cancel')}</button>
                 </div>
 
                 <form onSubmit={handleSave} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
                     <div className="form-group">
-                        <label className="form-label">Título</label>
+                        <label className="form-label">{t('admin.events.form.title')}</label>
                         <input
                             type="text"
                             className="form-input"
@@ -123,7 +127,7 @@ export default function EventsManager({ user }) {
                     </div>
 
                     <div className="form-group">
-                        <label className="form-label">Descripción</label>
+                        <label className="form-label">{t('admin.events.form.desc')}</label>
                          <textarea
                             className="form-textarea"
                             rows="4"
@@ -134,35 +138,35 @@ export default function EventsManager({ user }) {
 
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
                          <div className="form-group">
-                            <label className="form-label">Tipo (Icono)</label>
+                            <label className="form-label">{t('admin.events.form.type')}</label>
                             <select
                                 className="form-input"
                                 value={currentEvent.type}
                                 onChange={e => setCurrentEvent({ ...currentEvent, type: e.target.value })}
                             >
-                                <option value="hammer">Construcción 🔨</option>
-                                <option value="dice">Rol / Azar 🎲</option>
-                                <option value="map">Exploración 🗺️</option>
-                                <option value="running">Carrera / Parkour 🏃</option>
+                                <option value="hammer">{t('admin.events.form.types.hammer')}</option>
+                                <option value="dice">{t('admin.events.form.types.dice')}</option>
+                                <option value="map">{t('admin.events.form.types.map')}</option>
+                                <option value="running">{t('admin.events.form.types.running')}</option>
                             </select>
                         </div>
                         <div className="form-group">
-                            <label className="form-label">Estado</label>
+                            <label className="form-label">{t('admin.events.form.status')}</label>
                             <select
                                 className="form-input"
                                 value={currentEvent.status}
                                 onChange={e => setCurrentEvent({ ...currentEvent, status: e.target.value })}
                             >
-                                <option value="soon">Próximamente</option>
-                                <option value="active">Activo (En Curso)</option>
-                                <option value="finished">Finalizado</option>
+                                <option value="soon">{t('admin.events.form.statuses.soon')}</option>
+                                <option value="active">{t('admin.events.form.statuses.active')}</option>
+                                <option value="finished">{t('admin.events.form.statuses.finished')}</option>
                             </select>
                         </div>
                     </div>
 
                     <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "1rem" }}>
                         <button type="submit" className="btn-primary">
-                            {currentEvent.id ? "Guardar Cambios" : "Crear Evento"}
+                            {currentEvent.id ? t('admin.events.form.save') : t('admin.events.form.create')}
                         </button>
                     </div>
                 </form>
@@ -173,9 +177,9 @@ export default function EventsManager({ user }) {
     return (
         <div className="admin-card" style={{ position: 'relative' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
-                <h3>Gestión de Eventos y Concursos</h3>
+                <h3>{t('admin.events.title')}</h3>
                 <button className="btn-primary" onClick={handleNew} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <FaPlus size={12} /> Nuevo Evento
+                    <FaPlus size={12} /> {t('admin.events.create_title')}
                 </button>
             </div>
 
@@ -183,15 +187,15 @@ export default function EventsManager({ user }) {
                 <table className="admin-table">
                     <thead>
                         <tr>
-                            <th>Icono</th>
-                            <th>Evento</th>
-                            <th>Estado</th>
-                            <th style={{ textAlign: "right" }}>Acciones</th>
+                            <th>{t('admin.events.table.icon')}</th>
+                            <th>{t('admin.events.table.event')}</th>
+                            <th>{t('admin.events.table.status')}</th>
+                            <th style={{ textAlign: "right" }}>{t('admin.events.table.actions')}</th>
                         </tr>
                     </thead>
                     <tbody>
                         {events.length === 0 ? (
-                             <tr><td colSpan="4" style={{ textAlign: "center", padding: "2rem", color: "#666" }}>No hay eventos creados.</td></tr>
+                             <tr><td colSpan="4" style={{ textAlign: "center", padding: "2rem", color: "#666" }}>{t('admin.events.no_events')}</td></tr>
                         ) : events.map(event => (
                             <tr key={event.id}>
                                 <td style={{ fontSize: '1.2rem', color: 'var(--accent)' }}>
@@ -215,7 +219,7 @@ export default function EventsManager({ user }) {
                                     <button
                                         onClick={() => handleEdit(event)}
                                         style={{ background: "none", border: "none", color: "var(--accent)", cursor: "pointer", marginRight: "1rem" }}
-                                        title="Editar"
+                                        title={t('admin.events.edit_title')}
                                     >
                                         <FaEdit />
                                     </button>
@@ -272,9 +276,9 @@ export default function EventsManager({ user }) {
                         }}>
                             <FaExclamationTriangle />
                         </div>
-                        <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.4rem' }}>¿Eliminar Evento?</h3>
+                        <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.4rem' }}>{t('admin.events.delete_modal.title')}</h3>
                         <p style={{ color: '#aaa', marginBottom: '2rem' }}>
-                            Esta acción no se puede deshacer. El evento y todos sus datos serán eliminados permanentemente.
+                            {t('admin.events.delete_modal.desc')}
                         </p>
                         <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
                             <button 
@@ -282,7 +286,7 @@ export default function EventsManager({ user }) {
                                 onClick={() => setDeleteConfirm(null)}
                                 style={{ flex: 1 }}
                             >
-                                Cancelar
+                                {t('admin.events.delete_modal.cancel')}
                             </button>
                             <button 
                                 className="btn-primary" 
@@ -294,7 +298,7 @@ export default function EventsManager({ user }) {
                                     color: '#fff' 
                                 }}
                             >
-                                Sí, Eliminar
+                                {t('admin.events.delete_modal.confirm')}
                             </button>
                         </div>
                     </div>

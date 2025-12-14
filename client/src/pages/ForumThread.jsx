@@ -27,6 +27,7 @@ export default function ForumThread() {
 
     const API_URL = import.meta.env.VITE_API_URL
     const isTopic = type === 'topic'
+    const { t } = useTranslation()
 
     useEffect(() => {
         setLoading(true)
@@ -45,7 +46,8 @@ export default function ForumThread() {
                     date: new Date(data.created_at).toLocaleDateString(),
                     longDate: new Date(data.created_at).toLocaleString(),
                     image: isTopic ? null : data.image,
-                    tag: isTopic ? categoryNames[data.category_id] : data.category,
+                    // Map category ID to translation key logic if needed, but for now simple fallback
+                    tag: isTopic ? (categoryNames[data.category_id] || "General") : data.category,
                     views: data.views || 0,
                     poll: data.poll || null
                 })
@@ -53,7 +55,7 @@ export default function ForumThread() {
             })
             .catch(err => {
                 console.error(err)
-                setError("Contenido no encontrado")
+                setError(t('forum_thread.thread_error'))
                 setLoading(false)
             })
 
@@ -119,7 +121,7 @@ export default function ForumThread() {
                     user: isTopic ? savedComment.author_name : savedComment.user_name,
                     avatar: isTopic ? savedComment.author_avatar : savedComment.user_avatar,
                     role: isTopic ? savedComment.author_role : savedComment.user_role,
-                    date: "Justo ahora",
+                    date: t('forum_thread.just_now'),
                     content: savedComment.content
                 }
                 setComments([...comments, newC])
@@ -127,20 +129,20 @@ export default function ForumThread() {
             }
         } catch (error) {
             console.error("Error posting comment:", error)
-            alert("Error al publicar comentario")
+            alert(t('forum_thread.comment_error'))
         }
     }
 
     if (loading) return (
         <div style={{ minHeight: '80vh', paddingTop: '100px', display: 'flex', justifyContent: 'center' }}>
-            <Loader text="Cargando contenido..." />
+            <Loader text={t('forum_thread.loading')} />
         </div>
     )
 
     if (error || !thread) return (
         <div style={{ minHeight: '80vh', paddingTop: '100px', textAlign: 'center', color: '#fff' }}>
-            <h2>{error || "Contenido no disponible"}</h2>
-            <Link to="/forum" className="btn-secondary" style={{ marginTop: '1rem' }}>Volver al Foro</Link>
+            <h2>{error || t('forum_thread.not_found')}</h2>
+            <Link to="/forum" className="btn-secondary" style={{ marginTop: '1rem' }}>{t('forum_thread.back_forum')}</Link>
         </div>
     )
 
@@ -148,8 +150,8 @@ export default function ForumThread() {
         <div className="" style={{ minHeight: '100vh', paddingTop: '8rem', paddingBottom: '4rem', background: '#050505' }}>
             <div style={{ maxWidth: '900px', margin: '0 auto', padding: '0 2rem' }}>
                 <div style={{ marginBottom: '2rem' }}>
-                    <Link to={isTopic ? `/forum/${thread.category_id || 2}` : '/forum/1'} style={{ color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none', marginBottom: '1rem' }}>
-                        <FaArrowLeft /> Volver
+                    <Link to={isTopic ? `/forum/${thread.category_id === 1 ? 'announcements' : thread.category_id === 2 ? 'general' : thread.category_id === 3 ? 'support' : 'off-topic'}` : '/forum/announcements'} style={{ color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none', marginBottom: '1rem' }}>
+                        <FaArrowLeft /> {t('forum_thread.back_link')}
                     </Link>
                 </div>
 
@@ -172,7 +174,7 @@ export default function ForumThread() {
                                     <FaCalendarAlt /> {thread.longDate}
                                 </span>
                                 <span style={{ color: 'var(--muted)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem', marginLeft: '1rem' }}>
-                                    <FaEye /> {thread.views} Vistas
+                                    <FaEye /> {thread.views} {t('forum_thread.views')}
                                 </span>
                             </div>
                             <h1 style={{ fontSize: '2.5rem', color: '#fff', lineHeight: 1.2 }}>{thread.title}</h1>
@@ -207,7 +209,7 @@ export default function ForumThread() {
 
                 <div style={{ padding: '2rem', background: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
                     <h3 style={{ color: '#fff', marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <FaReply /> Comentarios ({comments.length})
+                        <FaReply /> {t('forum_thread.comments')} ({comments.length})
                     </h3>
 
                     <div className="comments-list" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginBottom: '3rem' }}>
@@ -234,18 +236,18 @@ export default function ForumThread() {
                                  {user.user_metadata?.avatar_url ? <img src={user.user_metadata.avatar_url} style={{width:'100%',height:'100%',objectFit:'cover'}}/> : <FaUser color="#888" style={{padding:'8px'}}/>}
                             </div>
                             <div style={{ flexGrow: 1 }}>
-                                <textarea className="form-textarea" placeholder="Escribe tu respuesta..." rows="3" value={newComment} onChange={(e) => setNewComment(e.target.value)} style={{ width: '100%', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', padding: '1rem', borderRadius: '8px', color: '#fff', resize: 'vertical' }}></textarea>
+                                <textarea className="form-textarea" placeholder={t('forum_thread.write_reply')} rows="3" value={newComment} onChange={(e) => setNewComment(e.target.value)} style={{ width: '100%', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', padding: '1rem', borderRadius: '8px', color: '#fff', resize: 'vertical' }}></textarea>
                                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
                                     <button type="submit" className="btn-primary" disabled={!newComment.trim()}>
-                                        <FaPaperPlane /> Publicar
+                                        <FaPaperPlane /> {t('forum_thread.publish')}
                                     </button>
                                 </div>
                             </div>
                         </form>
                     ) : (
                         <div style={{ textAlign: 'center', padding: '2rem', background: 'rgba(0,0,0,0.2)', borderRadius: '8px' }}>
-                            <p style={{ color: 'var(--muted)', marginBottom: '1rem' }}>Inicia sesión para participar.</p>
-                            <Link to="/login" className="btn-secondary">Iniciar Sesión</Link>
+                            <p style={{ color: 'var(--muted)', marginBottom: '1rem' }}>{t('forum_thread.login_to_reply')}</p>
+                            <Link to="/login" className="btn-secondary">{t('forum_thread.login')}</Link>
                         </div>
                     )}
                 </div>

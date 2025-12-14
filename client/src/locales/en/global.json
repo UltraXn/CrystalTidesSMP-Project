@@ -1,4 +1,50 @@
 {
+    "forum_category": {
+        "back_link": "Back to Forum",
+        "new_thread": "New Thread",
+        "loading": "Loading threads...",
+        "no_threads": "No threads in this category yet.",
+        "be_first": "Be the first to create one!",
+        "replies": "Replies",
+        "views": "Views"
+    },
+    "forum_thread": {
+        "back_link": "Back",
+        "back_forum": "Back to Forum",
+        "loading": "Loading content...",
+        "not_found": "Content not available",
+        "views": "Views",
+        "comments": "Comments",
+        "write_reply": "Write your reply...",
+        "publish": "Post Reply",
+        "login_to_reply": "Login to participate.",
+        "login": "Login",
+        "thread_error": "Content not found",
+        "comment_error": "Error posting comment",
+        "just_now": "Just now"
+    },
+    "create_thread": {
+        "title": "Create New Thread",
+        "form": {
+            "category": "Category",
+            "title": "Title",
+            "title_placeholder": "Thread title",
+            "content": "Content",
+            "content_placeholder": "Write here...",
+            "add_poll": "Add Poll",
+            "discord_poll": "Link existing Discord poll",
+            "discord_link_label": "Discord Message Link (\"Copy Message Link\" option)",
+            "discord_hint": "This will show a button to vote directly on Discord.",
+            "poll_question": "Poll Question",
+            "options": "Options",
+            "add_option": "Add Option",
+            "submit": "Post Thread",
+            "submitting": "Posting...",
+            "error_login": "You must be logged in",
+            "error_create": "Error creating thread",
+            "error_conn": "Connection error"
+        }
+    },
     "navbar": {
         "home": "Home",
         "rules": "Rules",
@@ -14,6 +60,14 @@
         "menu": "MENU",
         "achievements": "Achievements",
         "register": "Register"
+    },
+    "features": {
+        "economy_title": "Dynamic Economy",
+        "economy_desc": "Participate in a player-driven market. Trade, auction, and build your business empire.",
+        "protection_title": "Mutual Respect",
+        "protection_desc": "No protection stones. We trust our community and use CoreProtect for total security.",
+        "dungeons_title": "Epic Dungeons",
+        "dungeons_desc": "Face unique challenges and custom bosses to obtain legendary rewards."
     },
     "home": {
         "title": "About the Server",
@@ -97,7 +151,16 @@
                 "title": "Off-Topic",
                 "desc": "Free zone to talk about other games or various topics."
             }
-        }
+        },
+        "official_poll_section": "Official Poll",
+        "active_voting": "Active Voting",
+        "hot": "Hot",
+        "view_full": "View full",
+        "no_active_poll": "No active polls at the moment.",
+        "news_section": "News & Announcements",
+        "new_badge": "NEW",
+        "loading_news": "Loading news...",
+        "view_all_news": "View all"
     },
     "hero": {
         "welcome": "Welcome to",
@@ -248,7 +311,12 @@
         },
         "roles": {
             "admin": "Administrator",
-            "user": "Adventurer"
+            "user": "Adventurer",
+            "founder": "Founder",
+            "helper": "Helper",
+            "donor": "Donor",
+            "neroferno": "Neroferno",
+            "killu": "Killu"
         },
         "nav": {
             "overview": "Overview",
@@ -305,5 +373,303 @@
             "cancel": "Cancel"
         },
         "admin_panel": "Admin Panel"
+    },
+    "admin": {
+        "loading_panel": "Loading panel...",
+        "access_denied": {
+            "title": "ACCESS DENIED 🛑",
+            "msg": "You do not have the necessary permissions to be here.",
+            "back_home": "Back to Home"
+        },
+        "panel_subtitle": "Administrative Control Panel",
+        "tabs": {
+            "general": "General",
+            "tickets": "Tickets",
+            "users": "Users",
+            "suggestions": "Suggestions",
+            "polls": "Polls",
+            "events": "Events",
+            "news": "News",
+            "logs": "Logs",
+            "settings": "Config"
+        },
+        "headers": {
+            "general": "General Dashboard",
+            "tickets": "Ticket Center",
+            "users": "User Management",
+            "suggestions": "Suggestion Box",
+            "polls": "Poll Manager",
+            "events": "Event Manager",
+            "news": "News Editor",
+            "logs": "Audit Log",
+            "settings": "Site Configuration"
+        },
+        "dashboard": {
+            "stats": {
+                "server_status": "Server Status",
+                "online": "ONLINE",
+                "offline": "OFFLINE",
+                "no_connection": "No connection",
+                "players": "Concurrent Players",
+                "capacity": "Capacity",
+                "pending_tickets": "Pending Tickets",
+                "high_priority": "High Priority",
+                "revenue": "Monthly Revenue",
+                "vs_prev_month": "vs prev. month"
+            },
+            "resources": {
+                "title": "System Resources",
+                "updated_now": "Updated just now",
+                "cpu": "CPU Load",
+                "ram": "RAM Usage"
+            },
+            "staff": {
+                "title": "Staff Online",
+                "offline_msg": "Server Offline - No activity"
+            }
+        },
+        "tickets": {
+            "search_placeholder": "Search tickets...",
+            "new_ticket": "New Ticket",
+            "loading": "Loading tickets...",
+            "empty": "No tickets registered yet.",
+            "table": {
+                "id": "ID",
+                "user": "User",
+                "subject": "Subject",
+                "priority": "Priority",
+                "status": "Status",
+                "date": "Date",
+                "action": "Action"
+            },
+            "priority": {
+                "low": "Low",
+                "medium": "Medium",
+                "high": "High",
+                "urgent": "Urgent"
+            },
+            "status": {
+                "open": "Open",
+                "pending": "Pending",
+                "resolved": "Resolved",
+                "closed": "Closed"
+            },
+            "create_modal": {
+                "title": "Create New Ticket",
+                "subject": "Subject",
+                "description": "Description",
+                "desc_placeholder": "Describe the issue in detail...",
+                "submit": "Create Ticket",
+                "cancel": "Cancel",
+                "saving": "Saving...",
+                "error_subject": "Subject is required",
+                "error_create": "Error creating ticket"
+            },
+            "detail": {
+                "original_desc": "ORIGINAL DESCRIPTION",
+                "no_desc": "No detailed description.",
+                "no_history": "No messages in history.",
+                "reply_placeholder": "Write a reply to the user...",
+                "closed_msg": "This ticket is closed. Reopen it to reply.",
+                "delete_confirm": "Are you sure you want to delete this ticket? This cannot be undone."
+            },
+            "actions": {
+                "ban": "Ban User",
+                "resolve": "Mark Resolved",
+                "close": "Close Ticket",
+                "reopen": "Reopen Ticket",
+                "delete": "Delete"
+            },
+            "ban_modal": {
+                "title": "Sanction User",
+                "nickname": "Minecraft Nickname",
+                "nick_hint": "Confirm the exact player name on the server.",
+                "type": "Sanction Type",
+                "temp": "Temporary",
+                "perm": "Permanent",
+                "amount": "Amout",
+                "unit": "Unit",
+                "reason": "Reason",
+                "submit": "Apply Sanction",
+                "error_nick": "Enter player nickname",
+                "success": "User banned successfully"
+            },
+            "units": {
+                "m": "Minutes",
+                "h": "Hours",
+                "d": "Days",
+                "mo": "Months"
+            }
+        },
+        "alerts": {
+            "error_title": "Oops! Something went wrong",
+            "success_title": "Success!",
+            "warning_title": "Attention",
+            "confirm_title": "Are you sure?",
+            "accept": "OK"
+        },
+        "users": {
+            "title": "User Management",
+            "search_placeholder": "Search user by email (e.g. steve@mail.com)",
+            "search_btn": "Search",
+            "table": {
+                "user": "User/Email",
+                "id": "ID",
+                "role": "Current Role",
+                "change_role": "Change Role"
+            },
+            "registered": "Registered",
+            "no_results": "No users found with that email.",
+            "initial_msg": "Use the search bar to find users.",
+            "searching": "Searching...",
+            "confirm_role": "Change role to ",
+            "error_role": "Error updating role"
+        },
+        "settings": {
+            "loading": "Loading settings...",
+            "error_save": "Error saving settings",
+            "theme": {
+                "title": "Global Site Settings",
+                "desc": "Customize CrystalTides appearance. This will affect all visitors!",
+                "default": "Original Crystal",
+                "halloween": "Halloween Mode",
+                "christmas": "Christmas Mode"
+            },
+            "announcement": {
+                "title": "Global Announcement (Annobar)",
+                "placeholder": "Ex: Scheduled maintenance today at 20:00 GMT-3",
+                "save": "Save",
+                "desc": "Leave empty to disable the announcement bar."
+            },
+            "danger": {
+                "title": "Danger Zone",
+                "maintenance_title": "Maintenance Mode",
+                "maintenance_desc": "If enabled, only admins can access the site. Users will see an 'Under Construction' screen."
+            },
+            "maintenance_modal": {
+                "title_on": "⚠️ ENABLE Maintenance",
+                "title_off": "Disable Maintenance",
+                "msg_on": "If enabled, only admins can access the site. Are you sure?",
+                "msg_off": "The site will be public for everyone again.",
+                "confirm_on": "Yes, close site",
+                "confirm_off": "Open site",
+                "cancel": "Oops... better not"
+            }
+        },
+        "suggestions": {
+            "title": "Suggestion Box",
+            "loading": "Loading...",
+            "empty": "No suggestions received.",
+            "delete_confirm": "Are you sure you want to delete this suggestion?",
+            "table": {
+                "date": "Date",
+                "type": "Type",
+                "user": "User",
+                "message": "Message",
+                "action": "Action"
+            }
+        },
+        "polls": {
+            "active_title": "Active Poll",
+            "create_title": "New Poll",
+            "status_active": "IN PROGRESS",
+            "ends_in": "Ends in: ",
+            "votes": "votes",
+            "total_votes": "Total: {{count}} votes",
+            "close_btn": "End Poll",
+            "no_active": "No active poll.",
+            "form": {
+                "title": "Title",
+                "title_ph": "Ex: Weekly Vote",
+                "question": "Question",
+                "question_ph": "Which gamemode do you prefer?",
+                "options": "Options",
+                "option_ph": "Option ",
+                "add_option": "Add Option",
+                "duration": "Duration (Days)",
+                "warning_active": "⚠️ Creating a new poll will automatically close the current one.",
+                "submit": "Launch Poll",
+                "success": "Poll launched!",
+                "error_options": "You need at least 2 options",
+                "error_create": "Error creating poll"
+            },
+            "confirm_close": "Are you sure you want to end the active poll?"
+        },
+        "news": {
+            "loading": "Loading news...",
+            "edit_title": "Edit News",
+            "create_title": "New News",
+            "cancel": "Cancel",
+            "form": {
+                "title": "Title",
+                "category": "Category",
+                "status": "Status",
+                "draft": "Draft",
+                "published": "Published",
+                "image": "Cover Image (URL)",
+                "content": "Content",
+                "save": "Save Changes",
+                "publish": "Publish News"
+            },
+            "search_ph": "Search news...",
+            "write_btn": "Write News",
+            "table": {
+                "title": "Title",
+                "category": "Category",
+                "status": "Status",
+                "date": "Date",
+                "actions": "Actions"
+            },
+            "no_news": "No news yet.",
+            "delete_modal": {
+                "title": "Delete News?",
+                "desc": "This action cannot be undone. The news will be permanently deleted.",
+                "confirm": "Yes, Delete",
+                "cancel": "Cancel"
+            },
+            "error_save": "Error saving news",
+            "error_delete": "Error deleting"
+        },
+        "events": {
+            "title": "Events & Contests Management",
+            "loading": "Loading events...",
+            "create_title": "New Event",
+            "edit_title": "Edit Event",
+            "cancel": "Cancel",
+            "form": {
+                "title": "Title",
+                "desc": "Description",
+                "type": "Type (Icon)",
+                "status": "Status",
+                "save": "Save Changes",
+                "create": "Create Event",
+                "types": {
+                    "hammer": "Construction 🔨",
+                    "dice": "Roleplay / RNG 🎲",
+                    "map": "Exploration 🗺️",
+                    "running": "Race / Parkour 🏃"
+                },
+                "statuses": {
+                    "active": "Active (In Progress)",
+                    "soon": "Coming Soon",
+                    "finished": "Finished"
+                }
+            },
+            "table": {
+                "icon": "Icon",
+                "event": "Event",
+                "status": "Status",
+                "actions": "Actions"
+            },
+            "no_events": "No events created.",
+            "delete_modal": {
+                "title": "Delete Event?",
+                "desc": "This action cannot be undone. The event will be permanently deleted.",
+                "confirm": "Yes, Delete",
+                "cancel": "Cancel"
+            },
+            "error_save": "Error saving event",
+            "error_delete": "Error deleting"
+        }
     }
 }

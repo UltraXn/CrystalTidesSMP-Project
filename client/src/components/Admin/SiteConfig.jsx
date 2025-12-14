@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react'
 import { FaTree, FaGhost, FaWater, FaSnowflake, FaSave, FaCheck, FaExclamationTriangle, FaBullhorn } from 'react-icons/fa'
 import { useAuth } from '../../context/AuthContext'
 import ConfirmationModal from '../UI/ConfirmationModal'
+import { useTranslation } from 'react-i18next'
 
 const API_URL = import.meta.env.VITE_API_URL
 
 export default function SiteConfig() {
+    const { t } = useTranslation()
     const { user } = useAuth()
     const [settings, setSettings] = useState({
         theme: 'default',
@@ -62,7 +64,7 @@ export default function SiteConfig() {
                     window.dispatchEvent(new CustomEvent('maintenanceChanged', { detail: newValue }));
                 }
             } else {
-                alert("Error al guardar configuración")
+                alert(t('admin.settings.error_save'))
             }
         } catch(err) {
             console.error(err)
@@ -71,7 +73,7 @@ export default function SiteConfig() {
         }
     }
 
-    if (loading) return <div>Cargando configuración...</div>
+    if (loading) return <div>{t('admin.settings.loading')}</div>
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
@@ -79,11 +81,10 @@ export default function SiteConfig() {
             {/* 1. SELECCIÓN DE TEMA (MODO NAVIDAD / HALLOWEEN) */}
             <div className="admin-card">
                 <h3 style={{ marginBottom: '1.5rem', display:'flex', alignItems:'center', gap:'0.5rem' }}>
-                    <FaWater /> Tema Global del Sitio
+                    <FaWater /> {t('admin.settings.theme.title')}
                 </h3>
                 <p style={{ color: '#aaa', marginBottom: '2rem' }}>
-                    Personaliza la apariencia de CrystalTides para celebrar ocasiones especiales.
-                    ¡Esto afectará a todos los visitantes!
+                    {t('admin.settings.theme.desc')}
                 </p>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem' }}>
@@ -92,7 +93,7 @@ export default function SiteConfig() {
                         active={settings.theme === 'default'} 
                         onClick={() => handleUpdate('theme', 'default')}
                         icon={<FaWater size={40} color="#00bcd4" />}
-                        title="Cristal Original"
+                        title={t('admin.settings.theme.default')}
                         color="#00bcd4"
                         loading={saving === 'theme'}
                     />
@@ -102,7 +103,7 @@ export default function SiteConfig() {
                         active={settings.theme === 'halloween'} 
                         onClick={() => handleUpdate('theme', 'halloween')}
                         icon={<FaGhost size={40} color="#ff7518" />}
-                        title="Modo Halloween"
+                        title={t('admin.settings.theme.halloween')}
                         color="#ff7518"
                         loading={saving === 'theme'}
                     />
@@ -112,7 +113,7 @@ export default function SiteConfig() {
                         active={settings.theme === 'christmas'} 
                         onClick={() => handleUpdate('theme', 'christmas')}
                         icon={<FaTree size={40} color="#ef4444" />}
-                        title="Modo Navidad"
+                        title={t('admin.settings.theme.christmas')}
                         color="#ef4444"
                         loading={saving === 'theme'}
                     />
@@ -122,12 +123,12 @@ export default function SiteConfig() {
             {/* 2. ANUNCIOS GLOBALES */}
             <div className="admin-card">
                 <h3 style={{ marginBottom: '1.5rem', display:'flex', alignItems:'center', gap:'0.5rem' }}>
-                    <FaBullhorn /> Anuncio Global (Annobar)
+                    <FaBullhorn /> {t('admin.settings.announcement.title')}
                 </h3>
                 <div style={{ display: 'flex', gap: '1rem' }}>
                     <input 
                         className="admin-input" 
-                        placeholder="Ej: Mantenimiento programado hoy a las 20:00 GMT-3" 
+                        placeholder={t('admin.settings.announcement.placeholder')} 
                         value={settings.announcement || ''}
                         onChange={(e) => setSettings(prev => ({...prev, announcement: e.target.value}))}
                     />
@@ -136,26 +137,25 @@ export default function SiteConfig() {
                         onClick={() => handleUpdate('announcement', settings.announcement)}
                         disabled={saving === 'announcement'}
                     >
-                        {saving === 'announcement' ? '...' : <FaSave />} Guardar
+                        {saving === 'announcement' ? '...' : <FaSave />} {t('admin.settings.announcement.save')}
                     </button>
                 </div>
                 <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '0.5rem' }}>
-                    Deja este campo vacío para desactivar la barra de anuncios.
+                    {t('admin.settings.announcement.desc')}
                 </p>
             </div>
 
             {/* 3. ZONA DE PELIGRO / MANTENIMIENTO */}
             <div className="admin-card" style={{ border: '1px solid #ef4444' }}>
                 <h3 style={{ marginBottom: '1.5rem', display:'flex', alignItems:'center', gap:'0.5rem', color: '#ef4444' }}>
-                    <FaExclamationTriangle /> Zona de Peligro
+                    <FaExclamationTriangle /> {t('admin.settings.danger.title')}
                 </h3>
                 
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(239, 68, 68, 0.1)', padding: '1rem', borderRadius: '8px' }}>
                     <div>
-                        <h4 style={{ margin: 0, color: '#fff' }}>Modo Mantenimiento</h4>
+                        <h4 style={{ margin: 0, color: '#fff' }}>{t('admin.settings.danger.maintenance_title')}</h4>
                         <p style={{ margin: '0.5rem 0 0', color: '#aaa', fontSize: '0.9rem' }}>
-                            Si activas esto, solo los administradores podrán acceder al sitio.
-                            Los usuarios verán una pantalla de "En construcción".
+                            {t('admin.settings.danger.maintenance_desc')}
                         </p>
                     </div>
                     <label className="switch">
@@ -182,12 +182,12 @@ export default function SiteConfig() {
                     handleUpdate('maintenance_mode', String(maintenanceTarget));
                     setShowMaintenanceModal(false);
                 }}
-                title={maintenanceTarget ? "⚠️ ACTIVAR Mantenimiento" : "Desactivar Mantenimiento"}
+                title={maintenanceTarget ? t('admin.settings.maintenance_modal.title_on') : t('admin.settings.maintenance_modal.title_off')}
                 message={maintenanceTarget 
-                    ? "Si activas esto, solo los administradores podrán acceder al sitio. ¿Seguro?" 
-                    : "El sitio volverá a ser público para todos."}
-                confirmText={maintenanceTarget ? "Sí, cerrar sitio" : "Abrir sitio"}
-                cancelText="Uy... mejor no"
+                    ? t('admin.settings.maintenance_modal.msg_on') 
+                    : t('admin.settings.maintenance_modal.msg_off')}
+                confirmText={maintenanceTarget ? t('admin.settings.maintenance_modal.confirm_on') : t('admin.settings.maintenance_modal.confirm_off')}
+                cancelText={t('admin.settings.maintenance_modal.cancel')}
                 isDanger={maintenanceTarget}
             />
         </div>

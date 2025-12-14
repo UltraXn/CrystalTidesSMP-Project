@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react"
 import { FaPlus, FaEdit, FaTrash, FaImage, FaSearch, FaExclamationTriangle } from "react-icons/fa"
+import { useTranslation } from "react-i18next"
 
 export default function AdminNews({ user }) {
+    const { t } = useTranslation()
     const [news, setNews] = useState([])
     const [loading, setLoading] = useState(true)
     const [isEditing, setIsEditing] = useState(false)
@@ -50,7 +52,7 @@ export default function AdminNews({ user }) {
             setDeleteConfirm(null)
         } catch (error) {
             console.error("Error eliminando noticia:", error)
-            alert("Error al eliminar")
+            alert(t('admin.news.error_delete'))
         }
     }
 
@@ -89,23 +91,23 @@ export default function AdminNews({ user }) {
             setIsEditing(false)
         } catch (error) {
             console.error("Error guardando noticia:", error)
-            alert("Error al guardar la noticia")
+            alert(t('admin.news.error_save'))
         }
     }
 
-    if (loading) return <div className="admin-card">Cargando noticias...</div>
+    if (loading) return <div className="admin-card">{t('admin.news.loading')}</div>
 
     if (isEditing) {
         return (
             <div className="admin-card">
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
-                    <h3 style={{ fontSize: "1.2rem" }}>{currentPost.id ? "Editar Noticia" : "Nueva Noticia"}</h3>
-                    <button className="btn-secondary" onClick={() => setIsEditing(false)}>Cancelar</button>
+                    <h3 style={{ fontSize: "1.2rem" }}>{currentPost.id ? t('admin.news.edit_title') : t('admin.news.create_title')}</h3>
+                    <button className="btn-secondary" onClick={() => setIsEditing(false)}>{t('admin.news.cancel')}</button>
                 </div>
 
                 <form onSubmit={handleSave} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
                     <div className="form-group">
-                        <label className="form-label">Título</label>
+                        <label className="form-label">{t('admin.news.form.title')}</label>
                         <input
                             type="text"
                             className="form-input"
@@ -117,34 +119,34 @@ export default function AdminNews({ user }) {
 
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
                         <div className="form-group">
-                            <label className="form-label">Categoría</label>
+                            <label className="form-label">{t('admin.news.form.category')}</label>
                             <select
                                 className="form-input"
                                 value={currentPost.category}
                                 onChange={e => setCurrentPost({ ...currentPost, category: e.target.value })}
                             >
-                                <option>General</option>
-                                <option>Evento</option>
-                                <option>Update</option>
-                                <option>Sistema</option>
-                                <option>Comunidad</option>
+                                <option value="General">General</option>
+                                <option value="Evento">Evento</option>
+                                <option value="Update">Update</option>
+                                <option value="Sistema">Sistema</option>
+                                <option value="Comunidad">Comunidad</option>
                             </select>
                         </div>
                         <div className="form-group">
-                            <label className="form-label">Estado</label>
+                            <label className="form-label">{t('admin.news.form.status')}</label>
                             <select
                                 className="form-input"
                                 value={currentPost.status}
                                 onChange={e => setCurrentPost({ ...currentPost, status: e.target.value })}
                             >
-                                <option value="Draft">Borrador</option>
-                                <option value="Published">Publicado</option>
+                                <option value="Draft">{t('admin.news.form.draft')}</option>
+                                <option value="Published">{t('admin.news.form.published')}</option>
                             </select>
                         </div>
                     </div>
 
                     <div className="form-group">
-                        <label className="form-label">Imagen de Portada (URL)</label>
+                        <label className="form-label">{t('admin.news.form.image')}</label>
                         <div style={{ display: "flex", gap: "0.5rem" }}>
                             <div style={{ background: "#333", width: "40px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "4px" }}>
                                 <FaImage color="#888" />
@@ -160,7 +162,7 @@ export default function AdminNews({ user }) {
                     </div>
 
                     <div className="form-group">
-                        <label className="form-label">Contenido</label>
+                        <label className="form-label">{t('admin.news.form.content')}</label>
                         <textarea
                             className="form-textarea"
                             rows="10"
@@ -171,7 +173,7 @@ export default function AdminNews({ user }) {
 
                     <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "1rem" }}>
                         <button type="submit" className="btn-primary">
-                            {currentPost.id ? "Guardar Cambios" : "Publicar Noticia"}
+                            {currentPost.id ? t('admin.news.form.save') : t('admin.news.form.publish')}
                         </button>
                     </div>
                 </form>
@@ -184,10 +186,10 @@ export default function AdminNews({ user }) {
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
                 <div style={{ position: 'relative', width: '300px' }}>
                     <FaSearch style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#666' }} />
-                    <input type="text" placeholder="Buscar noticia..." style={{ width: '100%', padding: '0.8rem 1rem 0.8rem 2.5rem', background: 'rgba(0,0,0,0.2)', border: '1px solid #333', borderRadius: '8px', color: '#fff' }} />
+                    <input type="text" placeholder={t('admin.news.search_ph')} style={{ width: '100%', padding: '0.8rem 1rem 0.8rem 2.5rem', background: 'rgba(0,0,0,0.2)', border: '1px solid #333', borderRadius: '8px', color: '#fff' }} />
                 </div>
                 <button className="btn-primary" onClick={handleNew} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <FaPlus size={12} /> Redactar Noticia
+                    <FaPlus size={12} /> {t('admin.news.write_btn')}
                 </button>
             </div>
 
@@ -195,16 +197,16 @@ export default function AdminNews({ user }) {
                 <table className="admin-table">
                     <thead>
                         <tr>
-                            <th>Título</th>
-                            <th>Categoría</th>
-                            <th>Estado</th>
-                            <th>Fecha</th>
-                            <th style={{ textAlign: "right" }}>Acciones</th>
+                            <th>{t('admin.news.table.title')}</th>
+                            <th>{t('admin.news.table.category')}</th>
+                            <th>{t('admin.news.table.status')}</th>
+                            <th>{t('admin.news.table.date')}</th>
+                            <th style={{ textAlign: "right" }}>{t('admin.news.table.actions')}</th>
                         </tr>
                     </thead>
                     <tbody>
                         {news.length === 0 ? (
-                            <tr><td colSpan="5" style={{ textAlign: "center", padding: "2rem", color: "#666" }}>No hay noticias aún.</td></tr>
+                            <tr><td colSpan="5" style={{ textAlign: "center", padding: "2rem", color: "#666" }}>{t('admin.news.no_news')}</td></tr>
                         ) : news.map(post => (
                             <tr key={post.id}>
                                 <td style={{ fontWeight: "500", color: "#fff" }}>{post.title}</td>
@@ -215,7 +217,7 @@ export default function AdminNews({ user }) {
                                         background: post.status === "Published" ? "rgba(74, 222, 128, 0.1)" : "rgba(251, 191, 36, 0.1)",
                                         padding: "0.2rem 0.6rem", borderRadius: "4px", fontSize: "0.8rem"
                                     }}>
-                                        {post.status === "Published" ? "Publicado" : "Borrador"}
+                                        {post.status === "Published" ? t('admin.news.form.published') : t('admin.news.form.draft')}
                                     </span>
                                 </td>
                                 <td style={{ color: "var(--muted)", fontSize: "0.9rem" }}>
@@ -225,7 +227,7 @@ export default function AdminNews({ user }) {
                                     <button
                                         onClick={() => handleEdit(post)}
                                         style={{ background: "none", border: "none", color: "var(--accent)", cursor: "pointer", marginRight: "1rem" }}
-                                        title="Editar"
+                                        title={t('admin.news.edit_title')}
                                     >
                                         <FaEdit />
                                     </button>
@@ -282,9 +284,9 @@ export default function AdminNews({ user }) {
                         }}>
                             <FaExclamationTriangle />
                         </div>
-                        <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.4rem' }}>¿Eliminar Noticia?</h3>
+                        <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.4rem' }}>{t('admin.news.delete_modal.title')}</h3>
                         <p style={{ color: '#aaa', marginBottom: '2rem' }}>
-                            Esta acción no se puede deshacer. La noticia será eliminada permanentemente.
+                            {t('admin.news.delete_modal.desc')}
                         </p>
                         <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
                             <button 
@@ -292,7 +294,7 @@ export default function AdminNews({ user }) {
                                 onClick={() => setDeleteConfirm(null)}
                                 style={{ flex: 1 }}
                             >
-                                Cancelar
+                                {t('admin.news.delete_modal.cancel')}
                             </button>
                             <button 
                                 className="btn-primary" 
@@ -304,7 +306,7 @@ export default function AdminNews({ user }) {
                                     color: '#fff' 
                                 }}
                             >
-                                Sí, Eliminar
+                                {t('admin.news.delete_modal.confirm')}
                             </button>
                         </div>
                     </div>

@@ -201,21 +201,21 @@ export default function Navbar() {
                                         <FaTrophy /> {t('navbar.achievements')}
                                     </Link>
                                     <Link to="/account?tab=posts" className="menu-item" onClick={closeUserDropdown} ref={addToUserRefs}>
-                                        <FaEdit /> {t('navbar.forum')}
+                                        <FaEdit /> {t('account.nav.posts')}
                                     </Link>
 
                                     {isAdmin && (
                                         <>
                                             <div className="dropdown-divider"></div>
                                             <Link to="/admin" className="menu-item admin-link" onClick={closeUserDropdown} ref={addToUserRefs}>
-                                                <FaShieldAlt /> Panel Admin
+                                                <FaShieldAlt /> {t('account.admin_panel')}
                                             </Link>
                                         </>
                                     )}
 
                                     <div className="dropdown-divider"></div>
                                     <button className="menu-item logout-link" onClick={handleLogout} ref={addToUserRefs}>
-                                        <FaSignOutAlt /> Cerrar Sesión
+                                        <FaSignOutAlt /> {t('account.nav.logout')}
                                     </button>
                                 </div>
                             </div>
@@ -233,14 +233,15 @@ export default function Navbar() {
 }
 
 function UserRoleDisplay({ role }) {
+    const { t } = useTranslation()
     const roles = {
-        neroferno: { label: 'Neroferno', img: '/ranks/rank-neroferno.png' },
-        killu: { label: 'Killu', img: '/ranks/rank-killu.png' },
-        founder: { label: 'Fundador', img: '/ranks/rank-fundador.png' },
-        admin: { label: 'Admin', img: '/ranks/admin.png' },
-        helper: { label: 'Helper', img: '/ranks/helper.png' },
-        donor: { label: 'Donador', img: '/ranks/rank-donador.png' },
-        user: { label: 'Usuario', img: '/ranks/user.png' }
+        neroferno: { label: t('account.roles.neroferno'), img: '/ranks/rank-neroferno.png' },
+        killu: { label: t('account.roles.killu'), img: '/ranks/rank-killu.png' },
+        founder: { label: t('account.roles.founder'), img: '/ranks/rank-fundador.png' },
+        admin: { label: t('account.roles.admin'), img: '/ranks/admin.png' },
+        helper: { label: t('account.roles.helper'), img: '/ranks/helper.png' },
+        donor: { label: t('account.roles.donor'), img: '/ranks/rank-donador.png' },
+        user: { label: t('account.roles.user'), img: '/ranks/user.png' }
     }
     const current = roles[role] || roles.user
 

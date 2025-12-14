@@ -2,10 +2,12 @@ import { useState } from 'react'
 import { FaSearch } from 'react-icons/fa'
 import { useAuth } from "@/context/AuthContext"
 import { supabase } from "@/services/supabaseClient"
+import { useTranslation } from 'react-i18next'
 
 const API_URL = import.meta.env.VITE_API_URL
 
 export default function UsersManager() {
+    const { t } = useTranslation()
     const [users, setUsers] = useState([])
     const [loading, setLoading] = useState(false)
     const [emailQuery, setEmailQuery] = useState('')
@@ -34,7 +36,7 @@ export default function UsersManager() {
     }
 
     const handleRoleChange = async (userId, newRole) => {
-        if(!confirm(`¿Cambiar rol a ${newRole}?`)) return
+        if(!confirm(`${t('admin.users.confirm_role')} ${newRole}?`)) return
         try {
             const res = await fetch(`${API_URL}/users/${userId}/role`, {
                 method: 'PATCH',
@@ -52,7 +54,7 @@ export default function UsersManager() {
                     window.location.href = '/login'
                 }
             } else {
-                alert("Error actualizando rol")
+                alert(t('admin.users.error_role'))
             }
         } catch (error) {
             console.error(error)
@@ -63,13 +65,13 @@ export default function UsersManager() {
 
     return (
         <div className="admin-card">
-            <h3 style={{ marginBottom: '1rem' }}>Gestión de Usuarios</h3>
+            <h3 style={{ marginBottom: '1rem' }}>{t('admin.users.title')}</h3>
             
             {/* Search Bar */}
             <form onSubmit={handleSearch} style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
                 <input 
                     type="text" 
-                    placeholder="Buscar usuario por correo (ej: steve@mail.com)" 
+                    placeholder={t('admin.users.search_placeholder')} 
                     className="admin-input" // Assume this class exists or is basic input style
                     value={emailQuery}
                     onChange={(e) => setEmailQuery(e.target.value)}
@@ -83,7 +85,7 @@ export default function UsersManager() {
                     }}
                 />
                 <button type="submit" className="btn-action close" style={{ background: 'var(--accent)', color: '#000' }}>
-                    <FaSearch /> Buscar
+                    <FaSearch /> {t('admin.users.search_btn')}
                 </button>
             </form>
 
@@ -91,10 +93,10 @@ export default function UsersManager() {
                 <table className="admin-table">
                     <thead>
                         <tr>
-                            <th>Usuario/Email</th>
-                            <th>ID</th>
-                            <th>Rol Actual</th>
-                            {canManageRoles && <th>Cambiar Rol</th>}
+                            <th>{t('admin.users.table.user')}</th>
+                            <th>{t('admin.users.table.id')}</th>
+                            <th>{t('admin.users.table.role')}</th>
+                            {canManageRoles && <th>{t('admin.users.table.change_role')}</th>}
                         </tr>
                     </thead>
                     <tbody>
@@ -102,7 +104,7 @@ export default function UsersManager() {
                             <tr key={u.id}>
                                 <td>
                                     <div style={{fontWeight:'bold', color:'#fff'}}>{u.email}</div>
-                                    <div style={{fontSize:'0.8rem', color:'#666'}}>Registrado: {new Date(u.created_at).toLocaleDateString()}</div>
+                                    <div style={{fontSize:'0.8rem', color:'#666'}}>{t('admin.users.registered')}: {new Date(u.created_at).toLocaleDateString()}</div>
                                 </td>
                                 <td style={{fontFamily:'monospace', fontSize:'0.8rem', color:'#555'}}>{u.id.substring(0,8)}...</td>
                                 <td>
@@ -116,13 +118,13 @@ export default function UsersManager() {
                                             value={u.role || 'user'}
                                             onChange={(e) => handleRoleChange(u.id, e.target.value)}
                                         >
-                                            <option value="user">Usuario</option>
-                                            <option value="donor">Donador</option>
-                                            <option value="founder">Fundador</option>
-                                            <option value="admin">Admin</option>
-                                            <option value="helper">Helper</option>
-                                            <option value="neroferno">Neroferno</option>
-                                            <option value="killu">Killu</option>
+                                            <option value="user">{t('account.roles.user')}</option>
+                                            <option value="donor">{t('account.roles.donor')}</option>
+                                            <option value="founder">{t('account.roles.founder')}</option>
+                                            <option value="admin">{t('account.roles.admin')}</option>
+                                            <option value="helper">{t('account.roles.helper')}</option>
+                                            <option value="neroferno">{t('account.roles.neroferno')}</option>
+                                            <option value="killu">{t('account.roles.killu')}</option>
                                         </select>
                                     </td>
                                 )}
@@ -131,26 +133,27 @@ export default function UsersManager() {
                     </tbody>
                 </table>
                 {users.length === 0 && hasSearched && !loading && (
-                    <div style={{ padding: '2rem', textAlign: 'center', color: '#666' }}>No se encontraron usuarios con ese correo.</div>
+                    <div style={{ padding: '2rem', textAlign: 'center', color: '#666' }}>{t('admin.users.no_results')}</div>
                 )}
                 {users.length === 0 && !hasSearched && (
-                    <div style={{ padding: '2rem', textAlign: 'center', color: '#666' }}>Usa el buscador para encontrar usuarios.</div>
+                    <div style={{ padding: '2rem', textAlign: 'center', color: '#666' }}>{t('admin.users.initial_msg')}</div>
                 )}
-                {loading && <div style={{ padding: '2rem', textAlign: 'center', color: '#aaa' }}>Buscando...</div>}
+                {loading && <div style={{ padding: '2rem', textAlign: 'center', color: '#aaa' }}>{t('admin.users.searching')}</div>}
             </div>
         </div>
     )
 }
 
 function RoleBadge({ role }) {
+    const { t } = useTranslation()
     const roles = {
-        neroferno: { label: 'Neroferno', img: '/ranks/rank-neroferno.png' },
-        killu: { label: 'Killu', img: '/ranks/rank-killu.png' },
-        founder: { label: 'Fundador', img: '/ranks/rank-fundador.png' },
-        admin: { label: 'Admin', img: '/ranks/admin.png' },
-        helper: { label: 'Helper', img: '/ranks/helper.png' },
-        donor: { label: 'Donador', img: '/ranks/rank-donador.png' },
-        user: { label: 'Usuario', img: '/ranks/user.png' }
+        neroferno: { label: t('account.roles.neroferno'), img: '/ranks/rank-neroferno.png' },
+        killu: { label: t('account.roles.killu'), img: '/ranks/rank-killu.png' },
+        founder: { label: t('account.roles.founder'), img: '/ranks/rank-fundador.png' },
+        admin: { label: t('account.roles.admin'), img: '/ranks/admin.png' },
+        helper: { label: t('account.roles.helper'), img: '/ranks/helper.png' },
+        donor: { label: t('account.roles.donor'), img: '/ranks/rank-donador.png' },
+        user: { label: t('account.roles.user'), img: '/ranks/user.png' }
     }
     const current = roles[role] || roles.user
 

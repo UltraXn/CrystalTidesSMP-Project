@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { FaUser, FaServer, FaTicketAlt, FaMoneyBillWave, FaMemory, FaMicrochip } from 'react-icons/fa'
+import { useTranslation } from 'react-i18next'
 
 export default function DashboardOverview() {
+    const { t } = useTranslation()
     const [serverStats, setServerStats] = useState({ online: false, players: { online: 0, max: 0 }, ping: 0 })
     const API_URL = import.meta.env.VITE_API_URL
 
@@ -46,30 +48,30 @@ export default function DashboardOverview() {
             {/* KPI CARDS */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem' }}>
                 <StatCard
-                    title="Estado del Servidor"
-                    value={serverStats.online ? "ONLINE" : "OFFLINE"}
-                    percent={serverStats.online ? `Ping: ${serverStats.ping}ms` : "Sin conexión"}
+                    title={t('admin.dashboard.stats.server_status')}
+                    value={serverStats.online ? t('admin.dashboard.stats.online') : t('admin.dashboard.stats.offline')}
+                    percent={serverStats.online ? `Ping: ${serverStats.ping}ms` : t('admin.dashboard.stats.no_connection')}
                     icon={<FaServer />}
                     color={serverStats.online ? "#4ade80" : "#ef4444"}
                 />
                 <StatCard
-                    title="Jugadores Simultáneos"
+                    title={t('admin.dashboard.stats.players')}
                     value={serverStats.players?.online || 0}
-                    percent={`Capacidad: ${serverStats.players?.max || 0}`}
+                    percent={`${t('admin.dashboard.stats.capacity')}: ${serverStats.players?.max || 0}`}
                     icon={<FaUser />}
                     color="#3b82f6"
                 />
                 <StatCard
-                    title="Tickets Pendientes"
+                    title={t('admin.dashboard.stats.pending_tickets')}
                     value={ticketStats.open}
-                    percent={`${ticketStats.urgent} de Alta Prioridad`}
+                    percent={`${ticketStats.urgent} ${t('admin.dashboard.stats.high_priority')}`}
                     icon={<FaTicketAlt />}
                     color="#facc15"
                 />
                 <StatCard
-                    title="Ingresos del Mes"
+                    title={t('admin.dashboard.stats.revenue')}
                     value={`$${donationStats.currentMonth}`}
-                    percent={`${parseFloat(donationStats.percentChange) >= 0 ? '+' : ''}${donationStats.percentChange}% vs mes ant.`}
+                    percent={`${parseFloat(donationStats.percentChange) >= 0 ? '+' : ''}${donationStats.percentChange}% ${t('admin.dashboard.stats.vs_prev_month')}`}
                     icon={<FaMoneyBillWave />}
                     color="#c084fc"
                 />
@@ -81,13 +83,13 @@ export default function DashboardOverview() {
                 {/* Resource Usage (Mocked until Pterodactyl API is fully linked) */}
                 <div className="admin-card">
                     <h3 style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between' }}>
-                        <span>Recursos del Sistema</span>
-                        <small style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>Actualizado ahora</small>
+                        <span>{t('admin.dashboard.resources.title')}</span>
+                        <small style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>{t('admin.dashboard.resources.updated_now')}</small>
                     </h3>
 
                     <div style={{ marginBottom: '1.5rem' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><FaMicrochip /> CPU Load</span>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><FaMicrochip /> {t('admin.dashboard.resources.cpu')}</span>
                             <span style={{ fontWeight: 'bold' }}>{serverStats.online ? "45%" : "0%"}</span>
                         </div>
                         <div style={{ width: '100%', height: '8px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px', overflow: 'hidden' }}>
@@ -97,7 +99,7 @@ export default function DashboardOverview() {
 
                     <div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><FaMemory /> RAM Usage</span>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><FaMemory /> {t('admin.dashboard.resources.ram')}</span>
                             <span style={{ fontWeight: 'bold' }}>{serverStats.online ? "6.2 GB / 12 GB" : "0 GB"}</span>
                         </div>
                         <div style={{ width: '100%', height: '8px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px', overflow: 'hidden' }}>
@@ -108,7 +110,7 @@ export default function DashboardOverview() {
 
                 {/* Staff Activity */}
                 <div className="admin-card">
-                    <h3 style={{ marginBottom: '1rem' }}>Staff Online</h3>
+                    <h3 style={{ marginBottom: '1rem' }}>{t('admin.dashboard.staff.title')}</h3>
                     {serverStats.online ? (
                         <ul style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
                             {/* Mock Staff List */}
@@ -123,14 +125,14 @@ export default function DashboardOverview() {
                             <li style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: '8px' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
                                     <div style={{ width: '8px', height: '8px', background: '#facc15', borderRadius: '50%' }}></div>
-                                    <img src="https://minotar.net/helm/Alex/32.png" alt="Alex" style={{ borderRadius: '50%', width: '24px' }} />
+                                    <img src="https://minotar.net/helm/Steve/32.png" alt="Alex" style={{ borderRadius: '50%', width: '24px' }} />
                                     <span>AlexMod</span>
                                 </div>
                                 <span style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>AFK 5m</span>
                             </li>
                         </ul>
                     ) : (
-                        <p style={{ color: 'var(--muted)', textAlign: 'center', marginTop: '2rem' }}>Servidor Offline - Sin actividad</p>
+                        <p style={{ color: 'var(--muted)', textAlign: 'center', marginTop: '2rem' }}>{t('admin.dashboard.staff.offline_msg')}</p>
                     )}
                 </div>
 
