@@ -8,8 +8,9 @@
     background: transparent;
     backdrop-filter: none;
     border-bottom: 1px solid transparent;
-    position: sticky;
+    position: fixed;
     top: 0;
+    width: 100%;
     z-index: 1000;
     transition: all 0.4s ease-in-out;
 }

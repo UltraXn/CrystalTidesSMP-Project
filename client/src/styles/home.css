@@ -42,8 +42,8 @@
     text-align: center;
     width: 100%;
     position: relative;
-    padding-top: 6rem;
-    height: 80vh;
+    /* padding-top removed to allow full screen start */
+    height: 100vh;
     display: flex;
     flex-direction: column;
     justify-content: center;
