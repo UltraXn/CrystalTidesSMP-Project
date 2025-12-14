@@ -14,118 +14,26 @@ export default function Navbar() {
     const logoRef = useRef(null)
     const animationRef = useRef(null)
     const [dropdownOpen, setDropdownOpen] = useState(false)
-    const dropdownRef = useRef(null)
+    const [scrolled, setScrolled] = useState(false)
 
-    const changeLanguage = (lng) => {
-        i18n.changeLanguage(lng)
-    }
-
-    // Close dropdown when clicking outside
+    // Scroll detection
     useEffect(() => {
-        function handleClickOutside(event) {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-                setDropdownOpen(false)
+        const handleScroll = () => {
+            if (window.scrollY > 50) {
+                setScrolled(true)
+            } else {
+                setScrolled(false)
             }
         }
-        document.addEventListener("mousedown", handleClickOutside)
-        return () => document.removeEventListener("mousedown", handleClickOutside)
+
+        window.addEventListener('scroll', handleScroll)
+        return () => window.removeEventListener('scroll', handleScroll)
     }, [])
 
-    const userDropdownRef = useRef(null)
-    const userItemsRef = useRef([])
-
-    const closeUserDropdown = () => setDropdownOpen(false)
-
-    // Helper to add refs
-    const addToUserRefs = (el) => {
-        if (el && !userItemsRef.current.includes(el)) {
-            userItemsRef.current.push(el);
-        }
-    };
-
-    // ANIMATION LOGIC FOR USER DROPDOWN (Copied from Menu.jsx)
-    useEffect(() => {
-        // Reset refs on render to avoid duplication
-        userItemsRef.current = [];
-
-        if (dropdownOpen) {
-            // OPEN ANIMATION
-            if (userDropdownRef.current) {
-                anime.remove(userDropdownRef.current);
-                anime.set(userDropdownRef.current, { visibility: 'visible', opacity: 1 });
-
-                anime({
-                    targets: userDropdownRef.current,
-                    scale: [0.9, 1],
-                    opacity: [0, 1],
-                    translateY: [10, 0],
-                    easing: 'spring(1, 80, 10, 0)',
-                    duration: 600
-                });
-            }
-
-            if (userItemsRef.current.length > 0) {
-                anime.remove(userItemsRef.current);
-                anime({
-                    targets: userItemsRef.current,
-                    translateX: [20, 0],
-                    opacity: [0, 1],
-                    delay: anime.stagger(50, { start: 100 }), // Faster stagger for smaller menu
-                    easing: 'easeOutExpo'
-                });
-            }
-
-        } else {
-            // CLOSE ANIMATION
-            if (userDropdownRef.current) {
-                anime.remove(userDropdownRef.current);
-                anime.remove(userItemsRef.current);
-
-                anime({
-                    targets: userDropdownRef.current,
-                    opacity: 0,
-                    translateY: 10,
-                    duration: 200,
-                    easing: 'easeInQuad',
-                    complete: () => {
-                        if (!dropdownOpen && userDropdownRef.current) {
-                            anime.set(userDropdownRef.current, { visibility: 'hidden' });
-                        }
-                    }
-                });
-            }
-        }
-    }, [dropdownOpen]);
-
-    const handleLogoHover = () => {
-        if (animationRef.current) animationRef.current.pause()
-
-        animationRef.current = anime({
-            targets: logoRef.current,
-            translateY: [
-                { value: -10, duration: 200, easing: 'easeOutQuad' },
-                { value: 0, duration: 200, easing: 'easeInQuad' },
-                { value: -5, duration: 200, easing: 'easeOutQuad' },
-                { value: 0, duration: 200, easing: 'easeInQuad' }
-            ],
-            duration: 800
-        });
-    }
-
-    const handleLogout = async () => {
-        await logout()
-        setDropdownOpen(false)
-        navigate('/')
-    }
-
-    // Check if admin (Allowed roles: admin, neroferno, killu, helper)
-    const allowedRoles = ['admin', 'neroferno', 'killu', 'helper']
-    const isAdmin = allowedRoles.includes(user?.user_metadata?.role)
-
     return (
-        <header className="navbar">
+        <header className={`navbar ${scrolled ? 'scrolled' : ''}`}>
             <div className="navbar-brand">
-                <Link to="/">
+                <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '1rem', textDecoration: 'none' }}>
                     <img
                         ref={logoRef}
                         src="/images/ui/logo.webp"
@@ -135,97 +43,98 @@ export default function Navbar() {
                         width="40"
                         height="40"
                     />
+                    <h2 className="navbar-title">Crystal Tides</h2>
                 </Link>
             </div>
 
             <div className="nav-links">
                 <Menu />
+            </div>
 
-                <div className="nav-right-section">
-                    {/* Selector de Idioma */}
-                    <div className="language-selector">
-                        <button
-                            onClick={() => changeLanguage('es')}
-                            title="Español"
-                            className={`lang-btn ${i18n.resolvedLanguage === 'es' ? 'active' : ''}`}
-                        >
-                            <img src="/images/flags/es.svg" alt="Español" width="20" height="15" />
-                            ES
-                        </button>
-                        <div className="lang-divider"></div>
-                        <button
-                            onClick={() => changeLanguage('en')}
-                            title="English"
-                            className={`lang-btn ${i18n.resolvedLanguage === 'en' ? 'active' : ''}`}
-                        >
-                            <img src="/images/flags/us.svg" alt="English" width="20" height="15" />
-                            EN
-                        </button>
-                    </div>
+            <div className="nav-right-section">
+                {/* Selector de Idioma */}
+                <div className="language-selector">
+                    <button
+                        onClick={() => changeLanguage('es')}
+                        title="Español"
+                        className={`lang-btn ${i18n.resolvedLanguage === 'es' ? 'active' : ''}`}
+                    >
+                        <img src="/images/flags/es.svg" alt="Español" width="20" height="15" />
+                        ES
+                    </button>
+                    <div className="lang-divider"></div>
+                    <button
+                        onClick={() => changeLanguage('en')}
+                        title="English"
+                        className={`lang-btn ${i18n.resolvedLanguage === 'en' ? 'active' : ''}`}
+                    >
+                        <img src="/images/flags/us.svg" alt="English" width="20" height="15" />
+                        EN
+                    </button>
+                </div>
 
-                    <div className="nav-auth">
-                        {user ? (
-                            <div className="user-dropdown-container" ref={dropdownRef}>
-                                <button
-                                    className="nav-btn primary"
-                                    style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.6rem 1rem' }}
-                                    onClick={() => setDropdownOpen(!dropdownOpen)}
-                                >
-                                    {user.user_metadata?.avatar_url ? (
-                                        <img src={user.user_metadata.avatar_url} alt="Avatar" className="user-mini-avatar" />
-                                    ) : (
-                                        <FaUserCircle size={20} />
-                                    )}
-                                    <span>{user.user_metadata?.username || user.email.split('@')[0]}</span>
+                <div className="nav-auth">
+                    {user ? (
+                        <div className="user-dropdown-container" ref={dropdownRef}>
+                            <button
+                                className="nav-btn primary"
+                                style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.6rem 1rem' }}
+                                onClick={() => setDropdownOpen(!dropdownOpen)}
+                            >
+                                {user.user_metadata?.avatar_url ? (
+                                    <img src={user.user_metadata.avatar_url} alt="Avatar" className="user-mini-avatar" />
+                                ) : (
+                                    <FaUserCircle size={20} />
+                                )}
+                                <span>{user.user_metadata?.username || user.email.split('@')[0]}</span>
+                            </button>
+
+                            {/* Dropdown Menu - ALWAYS RENDERED but visibility controlled by anime.js */}
+                            <div
+                                className="menu-dropdown"
+                                ref={userDropdownRef}
+                                style={{
+                                    visibility: 'hidden', // Controlled by anime.js
+                                    opacity: 0,
+                                    display: 'block' // Ensure it's reachable for animation
+                                }}
+                            >
+                                <div className="dropdown-header" ref={addToUserRefs}>
+                                        <div style={{ display:'flex', justifyContent:'center', marginBottom: '0.5rem' }}>
+                                            <UserRoleDisplay role={user.user_metadata?.role || 'user'} />
+                                        </div>
+                                    </div>
+                                <Link to="/account" className="menu-item" onClick={closeUserDropdown} ref={addToUserRefs}>
+                                    <FaCog /> {t('navbar.account')}
+                                </Link>
+                                <Link to="/account?tab=achievements" className="menu-item" onClick={closeUserDropdown} ref={addToUserRefs}>
+                                    <FaTrophy /> {t('navbar.achievements')}
+                                </Link>
+                                <Link to="/account?tab=posts" className="menu-item" onClick={closeUserDropdown} ref={addToUserRefs}>
+                                    <FaEdit /> {t('account.nav.posts')}
+                                </Link>
+
+                                {isAdmin && (
+                                    <>
+                                        <div className="dropdown-divider"></div>
+                                        <Link to="/admin" className="menu-item admin-link" onClick={closeUserDropdown} ref={addToUserRefs}>
+                                            <FaShieldAlt /> {t('account.admin_panel')}
+                                        </Link>
+                                    </>
+                                )}
+
+                                <div className="dropdown-divider"></div>
+                                <button className="menu-item logout-link" onClick={handleLogout} ref={addToUserRefs}>
+                                    <FaSignOutAlt /> {t('account.nav.logout')}
                                 </button>
-
-                                {/* Dropdown Menu - ALWAYS RENDERED but visibility controlled by anime.js */}
-                                <div
-                                    className="menu-dropdown"
-                                    ref={userDropdownRef}
-                                    style={{
-                                        visibility: 'hidden', // Controlled by anime.js
-                                        opacity: 0,
-                                        display: 'block' // Ensure it's reachable for animation
-                                    }}
-                                >
-                                    <div className="dropdown-header" ref={addToUserRefs}>
-                                         <div style={{ display:'flex', justifyContent:'center', marginBottom: '0.5rem' }}>
-                                             <UserRoleDisplay role={user.user_metadata?.role || 'user'} />
-                                         </div>
-                                     </div>
-                                    <Link to="/account" className="menu-item" onClick={closeUserDropdown} ref={addToUserRefs}>
-                                        <FaCog /> {t('navbar.account')}
-                                    </Link>
-                                    <Link to="/account?tab=achievements" className="menu-item" onClick={closeUserDropdown} ref={addToUserRefs}>
-                                        <FaTrophy /> {t('navbar.achievements')}
-                                    </Link>
-                                    <Link to="/account?tab=posts" className="menu-item" onClick={closeUserDropdown} ref={addToUserRefs}>
-                                        <FaEdit /> {t('account.nav.posts')}
-                                    </Link>
-
-                                    {isAdmin && (
-                                        <>
-                                            <div className="dropdown-divider"></div>
-                                            <Link to="/admin" className="menu-item admin-link" onClick={closeUserDropdown} ref={addToUserRefs}>
-                                                <FaShieldAlt /> {t('account.admin_panel')}
-                                            </Link>
-                                        </>
-                                    )}
-
-                                    <div className="dropdown-divider"></div>
-                                    <button className="menu-item logout-link" onClick={handleLogout} ref={addToUserRefs}>
-                                        <FaSignOutAlt /> {t('account.nav.logout')}
-                                    </button>
-                                </div>
                             </div>
-                        ) : (
-                            <>
-                                <Link to="/login" className="nav-btn">{t('navbar.login')}</Link>
-                                <Link to="/register" className="nav-btn primary">{t('navbar.register')}</Link>
-                            </>
-                        )}
-                    </div>
+                        </div>
+                    ) : (
+                        <>
+                            <Link to="/login" className="nav-btn">{t('navbar.login')}</Link>
+                            <Link to="/register" className="nav-btn primary">{t('navbar.register')}</Link>
+                        </>
+                    )}
                 </div>
             </div>
         </header>
