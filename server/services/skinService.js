@@ -40,7 +40,7 @@ const getSkinFromDb = async (username) => {
         // SkinsRestorer typically has columns: Nick, Value, Signature, Timestamp
         // Nick is the player name (lowercase usually?)
         
-        const [rows] = await pool.query(`SELECT Value FROM ${tableName} WHERE Nick = ?`, [username]);
+        const [rows] = await pool.query(`SELECT Value FROM ${tableName} WHERE Name = ?`, [username]);
         
         if (rows.length > 0) {
             const textureBase64 = rows[0].Value;

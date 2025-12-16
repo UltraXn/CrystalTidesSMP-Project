@@ -69,7 +69,7 @@ export default function NotFound() {
             </div>
 
             <p style={{ maxWidth: '500px', color: 'var(--muted)', marginBottom: '3rem', fontSize: '1.1rem' }}>
-                Parece que este chunk no se generó correctamente o teletransportaste a unas coordenadas que no existen.
+                Parece que este chunk no se generó correctamente o te teletransportaste a unas coordenadas que no existen.
             </p>
 
             <div ref={buttonRef} style={{ opacity: 0 }}>

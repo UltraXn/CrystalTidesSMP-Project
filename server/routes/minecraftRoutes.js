@@ -8,5 +8,7 @@ router.get('/skin/:username', minecraftController.getSkin);
 
 // POST /api/minecraft/link
 router.post('/link', minecraftController.verifyLinkCode);
+router.post('/link/init', minecraftController.initWebLink);
+router.get('/link/check', minecraftController.checkLinkStatus);
 
 module.exports = router;

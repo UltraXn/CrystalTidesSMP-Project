@@ -1,17 +1,17 @@
 import { useState } from 'react'
-import { FaUser, FaEnvelope, FaLock, FaUserPlus, FaGamepad, FaDiscord, FaTwitch, FaEye, FaEyeSlash } from 'react-icons/fa'
+import { FaUser, FaEnvelope, FaLock, FaUserPlus, FaDiscord, FaTwitch, FaEye, FaEyeSlash } from 'react-icons/fa'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
-import { supabase } from '@/services/supabaseClient'
 import SuccessModal from '@/components/UI/SuccessModal'
 import { useTranslation } from 'react-i18next'
 
 export default function Register() {
     const { t } = useTranslation()
     const [email, setEmail] = useState('')
+    const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
     const [confirmPassword, setConfirmPassword] = useState('')
-    const [minecraftUser, setMinecraftUser] = useState('')
+
     const [showPassword, setShowPassword] = useState(false)
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
     const [error, setError] = useState('')
@@ -39,21 +39,12 @@ export default function Register() {
         }
 
         try {
-            const { data: existingUser } = await supabase
-                .from('profiles')
-                .select('username')
-                .eq('username', minecraftUser)
-                .single()
-
-            if (existingUser) {
-                return setError(`${t('register.user_exists')} ("${minecraftUser}")`)
-            }
-
+            // Use user provided username (independent of Minecraft nick)
             const { user, error: registerError } = await register(email, password, {
-                username: minecraftUser,
-                full_name: minecraftUser,
-                role: 'user',
-                avatar_url: `https://minotar.net/helm/${minecraftUser}/100.png`
+                username: username,
+                full_name: username,
+                // role: 'user', 
+                avatar_url: `https://ui-avatars.com/api/?name=${username}`
             })
 
             if (registerError) {
@@ -93,14 +84,16 @@ export default function Register() {
                     {error && <div style={{ color: 'red', textAlign: 'center', marginBottom: '1rem' }}>{error}</div>}
 
                     <form className="account-form" onSubmit={handleSubmit}>
+                        
                         <div className="form-group">
-                            <label><FaGamepad /> {t('register.nick_label')}</label>
+                            <label><FaUser /> {t('register.username_label', 'Nombre de Usuario')}</label>
+                            <div style={{marginBottom:'5px', fontSize:'0.8rem', color:'var(--muted)'}}>No tiene que ser tu nick de Minecraft</div>
                             <input
                                 type="text"
-                                placeholder={t('register.nick_placeholder')}
+                                placeholder="Tu nombre en la web"
                                 required
-                                value={minecraftUser}
-                                onChange={(e) => setMinecraftUser(e.target.value)}
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
                             />
                         </div>
 

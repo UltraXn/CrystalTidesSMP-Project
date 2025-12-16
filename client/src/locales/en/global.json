@@ -332,7 +332,7 @@
         "overview": {
             "stats_title": "Global Statistics",
             "rank": "Rank",
-            "coins": "Coins",
+            "coins": "KilluCoins",
             "playtime": "Playtime",
             "news_title": "Latest News",
             "no_news": "There are no recent notifications for you."
@@ -378,6 +378,7 @@
         },
         "connections": {
             "title": "Linked Accounts",
+            "success_link": "Account linked successfully!",
             "link_discord": "Link Discord",
             "link_twitch": "Link Twitch",
             "linked": "Linked",
@@ -389,7 +390,19 @@
             "confirm_unlink": "Yes, unlink",
             "cancel": "Cancel"
         },
-        "admin_panel": "Admin Panel"
+        "admin_panel": "Admin Panel",
+        "settings": {
+            "title": "Settings",
+            "security": "Security",
+            "privacy": "Privacy",
+            "new_password": "New Password",
+            "confirm_password": "Confirm Password",
+            "update_password": "Update Password",
+            "public_stats": "Show stats publicly",
+            "public_stats_desc": "Allow other users to see your gameplay stats.",
+            "success_password": "Password updated successfully!",
+            "success_privacy": "Privacy settings saved."
+        }
     },
     "admin": {
         "loading_panel": "Loading panel...",

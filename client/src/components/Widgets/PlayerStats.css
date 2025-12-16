@@ -1,148 +1,182 @@
 .player-stats-container {
-    background: rgba(20, 20, 25, 0.6);
-    border: 2px solid #333;
-    border-radius: 4px; /* Minecraft style square corners */
-    padding: 1.5rem;
-    margin-top: 2rem;
-    position: relative;
-    box-shadow: 
-        inset 0 0 20px rgba(0,0,0,0.5),
-        0 4px 6px rgba(0,0,0,0.3);
+  background: rgba(20, 20, 25, 0.6);
+  border: 2px solid #333;
+  border-radius: 4px; /* Minecraft style square corners */
+  padding: 1.5rem;
+  margin-top: 2rem;
+  position: relative;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5), 0 4px 6px rgba(0, 0, 0, 0.3);
 }
 
 /* Pseudo-element for a subtle pixel border effect if desired */
 .player-stats-container::before {
-    content: '';
-    position: absolute;
-    top: -2px; left: -2px; right: -2px; bottom: -2px;
-    border: 1px solid rgba(255,255,255,0.1);
-    pointer-events: none;
-    border-radius: 4px;
+  content: "";
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  pointer-events: none;
+  border-radius: 4px;
 }
 
 .stats-header {
-    margin: 0 0 1.5rem 0;
-    color: #fff;
-    font-size: 1.2rem;
-    /* font-family: 'Minecraft' removed */
-    border-bottom: 2px solid #333;
-    padding-bottom: 0.5rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+  margin: 0 0 1.5rem 0;
+  color: #fff;
+  font-size: 1.2rem;
+  /* font-family: 'Minecraft' removed */
+  border-bottom: 2px solid #333;
+  padding-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .pixel-icon {
-    font-size: 1.4rem;
+  font-size: 1.4rem;
 }
 
 .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 1rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
 }
 
 .stat-item {
-    background: rgba(0, 0, 0, 0.4);
-    border: 1px solid #444;
-    padding: 1rem;
-    border-radius: 4px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    transition: background 0.2s;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid #444;
+  padding: 1rem;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  transition: background 0.2s;
 }
 
 .stat-item:hover {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: #666;
+  background: rgba(255, 255, 255, 0.05);
+  border-color: #666;
 }
 
 .stat-item.full-width {
-    grid-column: 1 / -1;
-    flex-direction: row;
-    gap: 1.5rem;
-    justify-content: flex-start;
-    padding: 1rem 1.5rem;
+  grid-column: 1 / -1;
+  flex-direction: row;
+  gap: 1.5rem;
+  justify-content: flex-start;
+  padding: 1rem 1.5rem;
 }
 
 .stat-icon {
-    font-size: 1.5rem;
-    margin-bottom: 0.5rem;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  display: flex; /* Centering fix */
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+/* Glow for text icons (uses currentColor) */
+.stat-icon svg {
+  filter: drop-shadow(0 0 8px currentColor);
+}
+
+/* Glow for images (Ranks & Coins) */
+.stat-icon img {
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.4));
+  transition: transform 0.3s ease;
+}
+
+.stat-item:hover .stat-icon svg {
+  filter: drop-shadow(0 0 12px currentColor);
+}
+
+.stat-item:hover .stat-icon img {
+  filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.7));
+  transform: scale(1.1);
 }
 
 .stat-item.full-width .stat-icon {
-    margin-bottom: 0;
-    font-size: 2rem;
+  margin-bottom: 0;
+  font-size: 2rem;
 }
 
 .stat-info {
-    display: flex;
-    flex-direction: column;
+  display: flex;
+  flex-direction: column;
 }
 
 .stat-item.full-width .stat-info {
-    align-items: flex-start;
+  align-items: flex-start;
 }
 
 .stat-value {
-    color: #fff;
-    font-size: 1.4rem;
-    font-weight: bold;
-    /* font-family: 'Minecraft' removed */
-    text-shadow: 2px 2px 0 #000;
-    line-height: 1.2;
+  color: #fff;
+  font-size: 1.4rem;
+  font-weight: bold;
+  /* font-family: 'Minecraft' removed */
+  text-shadow: 2px 2px 0 #000;
+  line-height: 1.2;
 }
 
 .stat-label {
-    color: #aaa;
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-top: 0.2rem;
+  color: #aaa;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 0.2rem;
 }
 
 /* Loading State */
 .player-stats-loading {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 150px;
-    color: var(--muted);
-    gap: 1rem;
-    background: rgba(20, 20, 25, 0.6);
-    border: 2px solid #333;
-    border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 150px;
+  color: var(--muted);
+  gap: 1rem;
+  background: rgba(20, 20, 25, 0.6);
+  border: 2px solid #333;
+  border-radius: 4px;
 }
 
 .minecraft-loader {
-    width: 20px;
-    height: 20px;
-    background: #fff;
-    box-shadow: 20px 0 #fff, -20px 0 #fff;
-    animation: pixelStatsLoader 1s infinite alternate;
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  box-shadow: 20px 0 #fff, -20px 0 #fff;
+  animation: pixelStatsLoader 1s infinite alternate;
 }
 
 @keyframes pixelStatsLoader {
-    0% { background: rgba(255,255,255,0.2); box-shadow: 20px 0 rgba(255,255,255,0.2), -20px 0 rgba(255,255,255,0.2); }
-    50% { background: #fff; box-shadow: 20px 0 rgba(255,255,255,0.2), -20px 0 rgba(255,255,255,0.2); }
-    100% { background: rgba(255,255,255,0.2); box-shadow: 20px 0 rgba(255,255,255,0.2), -20px 0 #fff; }
+  0% {
+    background: rgba(255, 255, 255, 0.2);
+    box-shadow: 20px 0 rgba(255, 255, 255, 0.2),
+      -20px 0 rgba(255, 255, 255, 0.2);
+  }
+  50% {
+    background: #fff;
+    box-shadow: 20px 0 rgba(255, 255, 255, 0.2),
+      -20px 0 rgba(255, 255, 255, 0.2);
+  }
+  100% {
+    background: rgba(255, 255, 255, 0.2);
+    box-shadow: 20px 0 rgba(255, 255, 255, 0.2), -20px 0 #fff;
+  }
 }
 
 /* Error State */
 .player-stats-error {
-    background: rgba(60, 20, 20, 0.6);
-    border: 2px solid #e74c3c;
-    color: #ffd7d7;
-    padding: 1.5rem;
-    border-radius: 4px;
-    text-align: center;
-    /* font-family: 'Minecraft' removed */
+  background: rgba(60, 20, 20, 0.6);
+  border: 2px solid #e74c3c;
+  color: #ffd7d7;
+  padding: 1.5rem;
+  border-radius: 4px;
+  text-align: center;
+  /* font-family: 'Minecraft' removed */
 }
 
 /* Font face if not loaded globally */
-

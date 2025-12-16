@@ -57,8 +57,9 @@ const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SU
 let supabase;
 if (supabaseUrl && supabaseKey) supabase = createClient(supabaseUrl, supabaseKey);
 
+const pool = require('../config/database');
+
 const verifyLinkCode = async (req, res) => {
-    let connection;
     try {
         const { code, userId } = req.body;
         if (!code || !userId) return res.status(400).json({ error: 'Code and UserId required' });
@@ -66,8 +67,7 @@ const verifyLinkCode = async (req, res) => {
         if (!supabase) return res.status(503).json({ error: 'Server configuration error (Supabase)' });
 
         // 1. Verify Code in MySQL
-        connection = await mysql.createConnection(dbConfig);
-        const [rows] = await connection.execute(
+        const [rows] = await pool.execute(
             'SELECT * FROM web_verifications WHERE code = ?',
             [code]
         );
@@ -80,33 +80,102 @@ const verifyLinkCode = async (req, res) => {
         
         // Check Expiry
         if (Date.now() > Number(verification.expires_at)) {
-            await connection.execute('DELETE FROM web_verifications WHERE code = ?', [code]);
+            await pool.execute('DELETE FROM web_verifications WHERE code = ?', [code]);
             return res.status(400).json({ error: 'Code expired. Please generate a new one.' });
         }
 
-        // 2. Code is Valid! Link Account in Supabase
+        // 2. Code is Valid! Link Account in Supabase (Web Side)
         const { error: updateError } = await supabase.auth.admin.updateUserById(
             userId,
-            { user_metadata: { minecraft_uuid: verification.uuid, username: verification.player_name } }
+            { user_metadata: { minecraft_uuid: verification.uuid, minecraft_nick: verification.player_name } }
         );
 
         if (updateError) throw updateError;
 
-        // 3. Cleanup
-        await connection.execute('DELETE FROM web_verifications WHERE uuid = ?', [verification.uuid]);
+        // 3. Link Account in MySQL (Plugin Side)
+        // This allows the plugin to check verification status via SQL
+        await pool.execute(
+            'INSERT INTO linked_accounts (uuid, player_name, web_user_id) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE player_name = ?, web_user_id = ?',
+            [verification.uuid, verification.player_name, userId, verification.player_name, userId]
+        );
+
+        // 4. Cleanup
+        await pool.execute('DELETE FROM web_verifications WHERE uuid = ?', [verification.uuid]);
         
         res.json({ success: true, username: verification.player_name, uuid: verification.uuid });
 
     } catch (error) {
         console.error('Link Verification Error:', error);
         res.status(500).json({ error: 'Verification failed: ' + error.message });
-    } finally {
-        if (connection) await connection.end();
+    }
+};
+
+const initWebLink = async (req, res) => {
+    try {
+        const { userId } = req.body;
+        if (!userId) return res.status(400).json({ error: 'UserId required' });
+
+        // Generate a random 4-char code (e.g. "XT92")
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // No I O 0 1 for clarity
+        let code = '';
+        for (let i = 0; i < 4; i++) {
+            code += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+
+        // Expires in 15 minutes
+        const expiresAt = Date.now() + 15 * 60 * 1000;
+
+        // Insert into pending_web_links (requires table creation)
+        await pool.execute(
+            'INSERT INTO pending_web_links (code, web_user_id, expires_at) VALUES (?, ?, ?)',
+            [code, userId, expiresAt]
+        );
+
+        res.json({ success: true, code });
+
+    } catch (error) {
+        console.error('Init Web Link Error:', error);
+        res.status(500).json({ error: 'Failed to initiate link: ' + error.message });
+    }
+};
+
+const checkLinkStatus = async (req, res) => {
+    try {
+        const { userId } = req.query; 
+        if (!userId) return res.status(400).json({ error: 'UserId required' });
+
+        if (!supabase) return res.status(503).json({ error: 'Supabase not configured' });
+
+        const [rows] = await pool.execute('SELECT * FROM linked_accounts WHERE web_user_id = ?', [userId]);
+
+        if (rows.length > 0) {
+            const link = rows[0];
+            
+            // Sync Supabase
+             const { error: updateError } = await supabase.auth.admin.updateUserById(
+                userId,
+                { user_metadata: { minecraft_uuid: link.uuid, minecraft_nick: link.player_name } }
+            );
+            
+            if (updateError) {
+                console.error("Supabase sync error:", updateError);
+            }
+            
+            return res.json({ linked: true, uuid: link.uuid, nick: link.player_name });
+        }
+        
+        res.json({ linked: false });
+
+    } catch (error) {
+        console.error('Check Link Status Error:', error);
+        res.status(500).json({ error: error.message });
     }
 };
 
 module.exports = {
     getStatus,
     getSkin,
-    verifyLinkCode
+    verifyLinkCode,
+    initWebLink,
+    checkLinkStatus
 };

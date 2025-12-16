@@ -18,10 +18,12 @@ import Suggestions from "@/pages/Suggestions"
 import Account from "@/pages/Account"
 import Login from "@/pages/Login"
 import Register from "@/pages/Register"
+import ForgotPassword from "@/pages/ForgotPassword"
 import Map from "@/pages/Map"
 import NewsPage from "@/pages/NewsPage"
 import NotFound from "@/pages/NotFound"
 import Maintenance from "@/pages/Maintenance"
+import Verify from "@/pages/Verify"
 
 import Stories from "@/pages/Stories"
 import Forum from "@/pages/Forum"
@@ -36,7 +38,7 @@ import AdminPanel from "@/pages/AdminPanel"
 
 import { useEffect, useState } from "react"
 
-function StatusHandler({ maintenanceActive, setMaintenanceActive }) {
+function StatusHandler({ maintenanceActive }) {
     const { user, loading } = useAuth()
     const location = useLocation()
     const navigate = useNavigate()
@@ -69,6 +71,7 @@ function StatusHandler({ maintenanceActive, setMaintenanceActive }) {
 }
 
 export default function App() {
+
   const [announcement, setAnnouncement] = useState(null)
   const [maintenanceMode, setMaintenanceMode] = useState(false)
 
@@ -176,6 +179,7 @@ export default function App() {
 
         <Route path="/account" element={<Account />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/register" element={<Register />} />
         <Route path="/admin" element={<AdminPanel />} />
         <Route path="/news" element={<NewsPage />} />
@@ -187,6 +191,8 @@ export default function App() {
         
         <Route path="/support" element={<LazyWrapper><Support /></LazyWrapper>} />
         <Route path="/support/:id" element={<LazyWrapper><TicketDetail /></LazyWrapper>} />
+
+        <Route path="/verify" element={<Verify />} />
 
         <Route path="/maintenance" element={<Maintenance />} />
         <Route path="*" element={<NotFound />} />
@@ -246,6 +252,6 @@ function HeaderWrapper({ announcement }) {
 function FooterWrapper() {
   const location = useLocation()
   // No mostrar footer en rutas de admin, mantenimiento o cuenta
-  if (location.pathname.startsWith('/admin') || location.pathname === '/maintenance' || location.pathname === '/account') return null
+  if (location.pathname.startsWith('/admin') || location.pathname === '/maintenance' || location.pathname === '/account' || location.pathname === '/login' || location.pathname === '/register' || location.pathname === '/verify') return null
   return <Footer />
 }

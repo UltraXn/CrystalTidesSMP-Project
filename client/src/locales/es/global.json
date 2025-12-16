@@ -328,7 +328,7 @@
         "overview": {
             "stats_title": "Estadísticas Globales",
             "rank": "Rango",
-            "coins": "Monedas",
+            "coins": "KilluCoins",
             "playtime": "Tiempo Jugado",
             "news_title": "Últimas Novedades",
             "no_news": "No hay notificaciones recientes para ti."
@@ -368,12 +368,9 @@
             "title": "Vincular Minecraft",
             "not_linked": "Sin vincular",
             "current_user": "Usuario actual: ",
-            "link_button": "Vincular Cuenta",
-            "instruction_1": "Usa ",
-            "instruction_2": " en el servidor para vincular."
-        },
         "connections": {
-            "title": "Cuentas Vinculadas",
+            "title": "Cuentas Conectadas",
+            "success_link": "¡Cuenta vinculada exitosamente!",
             "link_discord": "Vincular Discord",
             "link_twitch": "Vincular Twitch",
             "linked": "Vinculado",
@@ -387,7 +384,20 @@
         },
         "admin_panel": "Panel Admin"
     },
-    "admin": {
+    "settings": {
+        "title": "Configuración",
+        "security": "Seguridad",
+        "privacy": "Privacidad",
+        "new_password": "Nueva Contraseña",
+        "confirm_password": "Confirmar Contraseña",
+        "update_password": "Actualizar Contraseña",
+        "public_stats": "Mostrar estadísticas públicamente",
+        "public_stats_desc": "Permite que otros usuarios vean tus estadísticas de juego.",
+        "success_password": "¡Contraseña actualizada correctamente!",
+        "success_privacy": "Preferencias de privacidad guardadas."
+    }
+},
+"admin": {
         "loading_panel": "Cargando panel...",
         "access_denied": {
             "title": "ACCESO DENEGADO 🛑",

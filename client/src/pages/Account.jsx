@@ -1,7 +1,8 @@
-import { useNavigate, Link } from 'react-router-dom'
-import { FaUser, FaSignOutAlt, FaGamepad, FaClock, FaCoins, FaTrophy, FaServer, FaCamera, FaPen, FaThumbtack, FaComment, FaShieldAlt, FaMedal, FaLink, FaDiscord, FaTwitch } from 'react-icons/fa'
+import { useNavigate, Link, useSearchParams } from 'react-router-dom'
+import { motion as Motion, AnimatePresence } from 'framer-motion'
+import { FaUser, FaSignOutAlt, FaGamepad, FaClock, FaCoins, FaTrophy, FaServer, FaCamera, FaPen, FaThumbtack, FaComment, FaShieldAlt, FaMedal, FaLink, FaDiscord, FaTwitch, FaCog } from 'react-icons/fa'
 import { useAuth } from '@/context/AuthContext'
-import { useEffect, useState, useRef, lazy, Suspense } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { supabase } from '@/services/supabaseClient'
 import { compressImage } from '@/utils/imageOptimizer'
 import { useTranslation } from 'react-i18next'
@@ -11,13 +12,107 @@ import RoleBadge from "@/components/User/RoleBadge"
 import ConfirmationModal from "@/components/UI/ConfirmationModal"
 import PlayerStats from "@/components/Widgets/PlayerStats"
 
-const SkinViewer = lazy(() => import('@/components/Widgets/AccountSkinViewer'))
+// Achievement Card Component
+const AchievementCard = ({ title, description, icon, unlocked, criteria }) => (
+    <div className={`achievement-card ${unlocked ? 'unlocked' : 'locked'}`} style={{
+        background: unlocked ? 'linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02))' : 'rgba(0,0,0,0.2)',
+        border: unlocked ? '1px solid rgba(76, 175, 80, 0.3)' : '1px solid rgba(255,255,255,0.05)',
+        borderRadius: '12px',
+        padding: '1.5rem',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        textAlign: 'center',
+        gap: '0.8rem',
+        position: 'relative',
+        overflow: 'hidden',
+        transition: 'transform 0.2s, box-shadow 0.2s'
+    }}
+    onMouseEnter={(e) => {
+        if (unlocked) {
+            e.currentTarget.style.transform = 'translateY(-5px)'
+            e.currentTarget.style.boxShadow = '0 10px 20px rgba(0,0,0,0.3)'
+        }
+    }}
+    onMouseLeave={(e) => {
+        e.currentTarget.style.transform = 'translateY(0)'
+        e.currentTarget.style.boxShadow = 'none'
+    }}
+    >
+        {unlocked && <div style={{ position: 'absolute', top: '10px', right: '10px', color: '#4CAF50' }}><FaMedal /></div>}
+        
+        <div className="card-icon" style={{ 
+            fontSize: '2.5rem', 
+            opacity: unlocked ? 1 : 0.3, 
+            filter: unlocked ? 'none' : 'grayscale(100%)',
+            background: unlocked ? 'rgba(76, 175, 80, 0.1)' : 'rgba(255,255,255,0.05)',
+            width: '60px',
+            height: '60px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: '50%'
+        }}>
+            {icon}
+        </div>
+        
+        <div>
+            <h3 style={{ color: unlocked ? '#fff' : '#888', marginBottom: '0.3rem', fontSize: '1.1rem' }}>{title}</h3>
+            <p style={{ color: '#aaa', fontSize: '0.85rem', lineHeight: '1.4' }}>{description}</p>
+            {!unlocked && <p style={{ color: '#666', fontSize: '0.75rem', marginTop: '0.5rem', fontStyle: 'italic' }}>Requisito: {criteria}</p>}
+        </div>
+    </div>
+)
+
+// Nav Button Component
+const NavButton = ({ active, onClick, icon, label }) => (
+    <button 
+        onClick={onClick}
+        className={`nav-btn ${active ? 'active' : ''}`}
+        style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            width: '100%',
+            padding: '12px 16px',
+            border: 'none',
+            background: active ? 'rgba(109, 165, 192, 0.1)' : 'transparent',
+            color: active ? '#fff' : '#ccc',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            fontSize: '1rem',
+            textAlign: 'left',
+            transition: 'all 0.2s',
+            borderLeft: active ? '3px solid var(--accent)' : '3px solid transparent'
+        }}
+    >
+        <span style={{ color: active ? 'var(--accent)' : '#666' }}>{icon}</span>
+        {label}
+    </button>
+)
 
 export default function Account() {
     const { t } = useTranslation()
     const { user, logout, loading, updateUser } = useAuth()
     const navigate = useNavigate()
-    const [activeTab, setActiveTab] = useState('overview')
+    const [searchParams, setSearchParams] = useSearchParams()
+    
+    // Initialize activeTab from URL, fallback to 'overview'
+    const [activeTab, setActiveTabInternal] = useState(searchParams.get('tab') || 'overview')
+
+    // Sync state when URL changes
+    useEffect(() => {
+        const tab = searchParams.get('tab')
+        if (tab && tab !== activeTab) {
+            setActiveTabInternal(tab)
+        }
+    }, [searchParams, activeTab])
+
+    const setActiveTab = (tab) => {
+        setActiveTabInternal(tab)
+        setSearchParams({ tab })
+    }
+
     const [uploading, setUploading] = useState(false)
     const [userThreads, setUserThreads] = useState([])
     const [loadingThreads, setLoadingThreads] = useState(false)
@@ -25,17 +120,20 @@ export default function Account() {
     const [newName, setNewName] = useState("")
     const [isUnlinkModalOpen, setIsUnlinkModalOpen] = useState(false)
     const [identityToUnlink, setIdentityToUnlink] = useState(null)
-    const [skinUrl, setSkinUrl] = useState(null)
+    const [linkCode, setLinkCode] = useState(null)
+    const [linkLoading, setLinkLoading] = useState(false)
     const fileInputRef = useRef(null)
 
     const API_URL = import.meta.env.VITE_API_URL
 
+    // Auth Check
     useEffect(() => {
         if (!loading && !user) {
             navigate('/login')
         }
     }, [user, loading, navigate])
 
+    // Fetch Threads
     useEffect(() => {
         if (activeTab === 'posts' && user) {
             setLoadingThreads(true)
@@ -50,6 +148,54 @@ export default function Account() {
                 .finally(() => setLoadingThreads(false))
         }
     }, [activeTab, user, API_URL])
+
+    // Generate Link Code (Web-First)
+    const handleGenerateCode = async () => {
+        setLinkLoading(true)
+        try {
+            const res = await fetch(`${API_URL}/minecraft/link/init`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: user.id })
+            })
+            const data = await res.json()
+            if (data.code) {
+                setLinkCode(data.code)
+            } else {
+                alert("Info: " + (data.error || data.message || "Error desconocido"))
+            }
+        } catch (e) {
+            console.error(e)
+            alert("Error al conectar con el servidor")
+        } finally {
+            setLinkLoading(false)
+        }
+    }
+
+    // Polling for Link Status
+    useEffect(() => {
+        let interval;
+        const uuid = user?.user_metadata?.minecraft_uuid
+        const linked = !!uuid
+        
+        if (linkCode && !linked) {
+            interval = setInterval(async () => {
+                try {
+                    const res = await fetch(`${API_URL}/minecraft/link/check?userId=${user.id}`)
+                    const data = await res.json()
+                    if (data.linked) {
+                        clearInterval(interval)
+                        await supabase.auth.refreshSession()
+                        alert(t('account.connections.success_link', "¡Cuenta vinculada exitosamente!"))
+                        window.location.reload()
+                    }
+                } catch (e) {
+                    console.error("Polling error", e)
+                }
+            }, 3000)
+        }
+        return () => clearInterval(interval)
+    }, [linkCode, user, API_URL, t])
 
     const handleLogout = async () => {
         await logout()
@@ -85,7 +231,6 @@ export default function Account() {
             const { data } = supabase.storage.from('avatars').getPublicUrl(filePath)
             await updateUser({ avatar_url: data.publicUrl })
 
-            // alert('¡Avatar actualizado!') // Optional: replace with toast
         } catch (error) {
             alert(t('account.avatar.error_update') + error.message)
         } finally {
@@ -98,7 +243,7 @@ export default function Account() {
         try {
             await updateUser({ 
                 full_name: newName.trim(), 
-                username: newName.trim() // Also update username for MC stats
+                username: newName.trim()
             })
             setIsEditingName(false)
         } catch {
@@ -115,12 +260,10 @@ export default function Account() {
                 }
             })
             if (error) throw error
-            // linkIdentity usually forces a redirect for OAuth providers, so execution stops here mostly.
-            // If it returns data.url, we might need to follow it if not handled automatically (Supabase v2 handles it usually)
             if (data?.url) window.location.href = data.url
         } catch (error) {
             console.error("Error linking provider:", error)
-            alert("Error linking account: " + error.message)
+            alert("Error: " + error.message)
         }
     }
 
@@ -131,17 +274,11 @@ export default function Account() {
 
     const confirmUnlink = async () => {
         if (!identityToUnlink) return
-
         try {
             const { error } = await supabase.auth.unlinkIdentity(identityToUnlink)
             if (error) throw error
-            
-            // Close modal
             setIsUnlinkModalOpen(false)
             setIdentityToUnlink(null)
-            
-            // Refresh logic - reloading is the simplest way to refresh auth state from Supabase
-            // Alternatively, updated user object would be better but requires AuthContext support
             location.reload()
         } catch (error) {
             console.error("Error unlinking provider:", error)
@@ -150,32 +287,54 @@ export default function Account() {
         }
     }
 
-    // Fetch Player Stats - Hooks must be unconditional
+    // Stats Logic
     const [statsData, setStatsData] = useState(null)
     const [loadingStats, setLoadingStats] = useState(false)
     const [statsError, setStatsError] = useState(false)
 
-    // Derived values - safely accessed
-    const mcUsername = user?.user_metadata?.username || t('account.minecraft.not_linked')
+    const mcUUID = user?.user_metadata?.minecraft_uuid
+    const isLinked = !!mcUUID
+    const mcUsername = isLinked ? (user?.user_metadata?.minecraft_nick || user?.user_metadata?.username) : t('account.minecraft.not_linked')
+    const statsQueryParam = mcUUID
+
     const isAdmin = user?.user_metadata?.role === 'admin' || user?.user_metadata?.role === 'owner'
     
-    // Check connected providers - safety check needed if user is null (though effect handles redirect)
     const identities = user?.identities || []
     const discordIdentity = identities.find(id => id.provider === 'discord')
     const twitchIdentity = identities.find(id => id.provider === 'twitch')
 
+    // Settings Logic
+    const [passwords, setPasswords] = useState({ new: '', confirm: '' })
+    const [publicStats, setPublicStats] = useState(user?.user_metadata?.public_stats !== false)
+
+    const handleUpdatePassword = async () => {
+        if(passwords.new !== passwords.confirm) return alert("Las contraseñas no coinciden")
+        if(passwords.new.length < 6) return alert("Mínimo 6 caracteres")
+        try {
+            const { error } = await supabase.auth.updateUser({ password: passwords.new })
+            if(error) throw error
+            alert(t('account.settings.success_password', '¡Contraseña actualizada!'))
+            setPasswords({ new: '', confirm: '' })
+        } catch(e) {
+            alert("Error: " + e.message)
+        }
+    }
+
+    const handlePrivacyToggle = async () => {
+         const newVal = !publicStats
+         setPublicStats(newVal)
+         await updateUser({ public_stats: newVal })
+    }
+
     useEffect(() => {
-        if (activeTab === 'overview' && mcUsername && mcUsername !== t('account.minecraft.not_linked')) {
+        if (activeTab === 'overview' && isLinked) {
             setLoadingStats(true)
-            fetch(`${API_URL}/player-stats/${mcUsername}`)
+            fetch(`${API_URL}/player-stats/${statsQueryParam}`)
                 .then(res => {
                     if (!res.ok) throw new Error("Failed to fetch stats")
                     return res.json()
                 })
                 .then(data => {
-                    if (data.money) {
-                        data.money = parseInt(data.money)
-                    }
                     setStatsData(data)
                     setStatsError(false)
                 })
@@ -185,29 +344,7 @@ export default function Account() {
                 })
                 .finally(() => setLoadingStats(false))
         }
-    }, [activeTab, mcUsername, API_URL, t])
-
-    useEffect(() => {
-        const fetchSkin = async () => {
-            if (mcUsername && mcUsername !== t('account.minecraft.not_linked')) {
-                try {
-                    const res = await fetch(`${API_URL}/minecraft/skin/${mcUsername}`);
-                    const data = await res.json();
-                    if (data.url) {
-                        setSkinUrl(data.url);
-                    } else {
-                         setSkinUrl(`https://minotar.net/skin/${mcUsername}`);
-                    }
-                } catch (e) {
-                    console.error("Failed to fetch skin", e);
-                    setSkinUrl(`https://minotar.net/skin/${mcUsername}`);
-                }
-            } else {
-                setSkinUrl(`https://minotar.net/skin/Steve`);
-            }
-        }
-        fetchSkin()
-    }, [mcUsername, API_URL, t])
+    }, [activeTab, isLinked, statsQueryParam, API_URL])
 
     if (loading || !user) return <div style={{height:'100vh', display:'flex', alignItems:'center', justifyContent:'center'}}><Loader /></div>
 
@@ -222,7 +359,7 @@ export default function Account() {
                             {uploading ? (
                                 <div style={{ height:'100%', display:'flex', alignItems:'center', justifyContent:'center', background:'#333' }}>...</div>
                             ) : (
-                                <img src={user.user_metadata?.avatar_url || "https://ui-avatars.com/api/?name=" + (user.user_metadata?.full_name || "User")} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                <img src={user.user_metadata?.avatar_url || (isLinked ? `https://mc-heads.net/avatar/${mcUUID}/100` : "https://ui-avatars.com/api/?name=" + (user.user_metadata?.full_name || "User"))} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                             )}
                             <div style={{ position: 'absolute', bottom: 0, left: 0, width: '100%', background: 'rgba(0,0,0,0.6)', fontSize: '0.7rem', padding: '2px 0' }}><FaCamera /></div>
                         </div>
@@ -249,13 +386,12 @@ export default function Account() {
                         {isAdmin && <Link to="/admin" className="btn-small" style={{ marginTop: '1rem', display: 'inline-block', background: '#e74c3c', padding: '0.3rem 0.8rem', fontSize: '0.8rem', borderRadius: '4px' }}><FaShieldAlt /> {t('account.admin_panel')}</Link>}
                     </div>
 
-
                     <nav className="sidebar-nav" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                         <NavButton active={activeTab === 'overview'} onClick={() => setActiveTab('overview')} icon={<FaServer />} label={t('account.nav.overview')} />
                         <NavButton active={activeTab === 'posts'} onClick={() => setActiveTab('posts')} icon={<FaComment />} label={t('account.nav.posts')} />
                         <NavButton active={activeTab === 'achievements'} onClick={() => setActiveTab('achievements')} icon={<FaTrophy />} label={t('account.nav.achievements')} />
-                        <NavButton active={activeTab === 'minecraft'} onClick={() => setActiveTab('minecraft')} icon={<FaGamepad />} label={t('account.nav.minecraft')} />
                         <NavButton active={activeTab === 'connections'} onClick={() => setActiveTab('connections')} icon={<FaLink />} label={t('account.nav.connections')} />
+                        <NavButton active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} icon={<FaCog />} label={t('account.settings.title', 'Configuración')} />
                         
                         <div style={{ height: '1px', background: 'rgba(255,255,255,0.1)', margin: '1rem 0' }}></div>
                         
@@ -270,36 +406,52 @@ export default function Account() {
                     {activeTab === 'overview' && (
                         <div className="fade-in">
                             <h2 style={{ color: '#fff', marginBottom: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem' }}>{t('account.overview.stats_title')}</h2>
-                            
 
-
-                            <PlayerStats 
-                                username={mcUsername} 
-                                statsData={statsData} 
-                                loading={loadingStats} 
-                                error={statsError} 
-                            />
-                            
-                            <div style={{ marginBottom: '2rem' }}></div>
-
-                            <div className="dashboard-card" style={{ background: 'rgba(30,30,35,0.6)', padding: '2rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                                <h3 style={{ marginBottom: '1rem', color: '#fff' }}>{t('account.overview.news_title')}</h3>
-                                <p style={{ color: 'var(--muted)' }}>{t('account.overview.no_news')}</p>
-                            </div>
+                            {isLinked ? (
+                                <PlayerStats 
+                                    username={mcUsername} 
+                                    statsData={statsData} 
+                                    loading={loadingStats} 
+                                    error={statsError} 
+                                />
+                            ) : (
+                                <div className="dashboard-card animate-fade-in" style={{ background: 'rgba(231, 76, 60, 0.1)', padding: '2rem', borderRadius: '16px', border: '1px solid rgba(231, 76, 60, 0.3)', textAlign:'center', marginBottom: '2rem' }}>
+                                    <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔗</div>
+                                    <h3 style={{ color: '#ff6b6b', marginBottom: '1rem', fontSize: '1.5rem' }}>{t('account.overview.not_linked_title', '¡Vincula tu cuenta!')}</h3>
+                                    <p style={{ color: '#ccc', marginBottom: '1.5rem', lineHeight: '1.6' }}>
+                                        {t('account.overview.not_linked_msg', 'Para ver tus estadísticas en tiempo real (dinero, tiempo de juego, KDR), necesitas verificar que eres el dueño de la cuenta de Minecraft.')}
+                                    </p>
+                                    <button 
+                                        onClick={() => setActiveTab('connections')}
+                                        style={{ background: 'var(--accent)', border: 'none', padding: '0.8rem 2rem', cursor: 'pointer', borderRadius: '50px', color: '#000', fontWeight: 'bold', fontSize: '1rem', boxShadow: '0 4px 15px rgba(109, 165, 192, 0.4)' }}
+                                    >
+                                        {t('account.overview.verify_btn', 'Verificar Ahora')}
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     )}
 
                     {activeTab === 'posts' && (
-                        <div className="fade-in">
-                            <h2 style={{ color: '#fff', marginBottom: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem' }}>{t('account.posts.title')}</h2>
+                        <div key="posts" className="fade-in">
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem' }}>
+                                <h2 style={{ color: '#fff', margin: 0 }}>{t('account.posts.title')}</h2>
+                                <Link to="/forum" style={{ background: 'var(--accent)', color: '#fff', padding: '6px 12px', borderRadius: '4px', fontSize: '0.9rem', textDecoration: 'none', fontWeight: 'bold' }}>
+                                    + {t('forum.create_topic', 'Crear Tema')}
+                                </Link>
+                            </div>
+                            
                             {loadingThreads ? <Loader text={t('account.posts.loading')} /> : (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                                     {userThreads.length === 0 ? (
-                                        <p style={{ color: 'var(--muted)' }}>{t('account.posts.empty')}</p>
+                                        <div style={{ textAlign: 'center', padding: '2rem', background: 'rgba(255,255,255,0.02)', borderRadius: '8px' }}>
+                                            <p style={{ color: 'var(--muted)', marginBottom: '1rem' }}>{t('account.posts.empty')}</p>
+                                            <Link to="/forum" style={{ color: 'var(--accent)', textDecoration: 'underline' }}>Ir al Foro</Link>
+                                        </div>
                                     ) : (
                                         userThreads.map(thread => (
                                             <Link to={`/forum/thread/topic/${thread.id}`} key={thread.id} style={{ textDecoration: 'none' }}>
-                                                <div className="thread-card-mini" style={{ background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                <div className="thread-card-mini" style={{ background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: 'background 0.2s' }} onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'} onMouseOut={e => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}>
                                                     <div>
                                                         <h4 style={{ color: '#fff', margin: '0 0 0.3rem 0' }}>{thread.title}</h4>
                                                         <span style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>{new Date(thread.created_at).toLocaleDateString()}</span>
@@ -318,231 +470,237 @@ export default function Account() {
                     )}
 
                     {activeTab === 'achievements' && (
-                        <div className="fade-in">
+                        <div key="achievements" className="fade-in">
                             <h2 style={{ color: '#fff', marginBottom: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem' }}>{t('account.achievements.title')}</h2>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '1rem' }}>
-                                <AchievementBadge title={t('account.achievements.items.welcome')} icon="👋" unlocked={true} />
-                                <AchievementBadge title={t('account.achievements.items.first_post')} icon="📝" unlocked={userThreads.length > 0} />
-                                <AchievementBadge title={t('account.achievements.items.veteran')} icon="⚔️" unlocked={false} />
-                                <AchievementBadge title={t('account.achievements.items.donor')} icon="💎" unlocked={false} />
-                                <AchievementBadge title={t('account.achievements.items.hunter')} icon="🏹" unlocked={false} />
-                            </div>
+                            
+                            {(() => {
+                                const hoursPlayed = statsData?.raw_playtime ? (Number(statsData.raw_playtime) / 1000 / 60 / 60) : 0;
+                                const isVeteran = hoursPlayed > 50; 
+                                const isHunter = (statsData?.raw_kills || 0) > 50;
+                                const isMiner = (statsData?.raw_blocks_mined || 0) > 1000;
+                                
+                                const rank = (statsData?.raw_rank || "").toLowerCase();
+                                const isDonor = rank.includes('vip') || rank.includes('mvp') || rank.includes('donador') || rank.includes('founder') || rank.includes('owner') || rank.includes('killu') || rank.includes('nero');
+
+                                return (
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1.5rem' }}>
+                                        <AchievementCard 
+                                            title={t('account.achievements.items.welcome')} 
+                                            icon="👋" 
+                                            unlocked={true} 
+                                            description="Te has unido a nuestra comunidad."
+                                        />
+                                        <AchievementCard 
+                                            title={t('account.achievements.items.first_post')} 
+                                            icon="📝" 
+                                            unlocked={userThreads.length > 0} 
+                                            description="Tu voz ha sido escuchada por primera vez en el foro."
+                                            criteria="Publicar 1 tema"
+                                        />
+                                        <AchievementCard 
+                                            title={t('account.achievements.items.veteran', 'Veterano')} 
+                                            icon="⚔️" 
+                                            unlocked={isVeteran} 
+                                            description="Has demostrado lealtad con horas de servicio."
+                                            criteria="+50 horas de juego"
+                                        />
+                                        <AchievementCard 
+                                            title={t('account.achievements.items.donor', 'Donador')} 
+                                            icon="💎" 
+                                            unlocked={isDonor} 
+                                            description="Gracias por contribuir al crecimiento del servidor."
+                                            criteria="Rango VIP o superior"
+                                        />
+                                        <AchievementCard 
+                                            title={t('account.achievements.items.hunter', 'Cazador')} 
+                                            icon="🏹" 
+                                            unlocked={isHunter} 
+                                            description="Un depredador letal en el campo de batalla."
+                                            criteria="+50 Kills"
+                                        />
+                                        <AchievementCard 
+                                            title="Minero" 
+                                            icon="⛏️" 
+                                            unlocked={isMiner} 
+                                            description="La base de nuestra economía está en tus manos."
+                                            criteria="+1000 Bloques minados"
+                                        />
+                                    </div>
+                                )
+                            })()}
                         </div>
                     )}
 
-                    {activeTab === 'minecraft' && (
-                        <div className="fade-in">
-                            <h2 style={{ color: '#fff', marginBottom: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem' }}>{t('account.minecraft.title')}</h2>
-                            <div className="dashboard-card" style={{ 
-                                background: 'rgba(20, 20, 25, 0.8)', 
-                                borderRadius: '16px', 
-                                border: '1px solid rgba(255,255,255,0.05)', 
-                                overflow: 'hidden',
-                                maxWidth: '500px',
-                                margin: '0 auto',
-                                boxShadow: '0 8px 32px rgba(0,0,0,0.2)'
-                            }}>
-                                <div style={{ 
-                                    padding: '1rem', 
-                                    display: 'flex', 
-                                    justifyContent: 'center', 
-                                    alignItems: 'center',
-                                    background: 'radial-gradient(circle at center, rgba(109, 165, 192, 0.2) 0%, transparent 70%)',
-                                    minHeight: '300px',
-                                    position: 'relative'
-                                }}>
-                                    <Suspense fallback={<div style={{height: 350, display:'flex', alignItems:'center', justifyContent:'center'}}>Cargando skin...</div>}>
-                                        <SkinViewer 
-                                            skinUrl={skinUrl || `https://minotar.net/skin/Steve`} 
-                                            width={300} 
-                                            height={350} 
-                                        />
-                                    </Suspense>
-                                </div>
-                                
-                                <div style={{ 
-                                    padding: '1.5rem', 
-                                    background: 'linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.2))',
-                                    textAlign: 'center',
-                                    position: 'relative',
-                                    zIndex: 3
-                                }}>
-                                    <p style={{ color: 'var(--muted)', fontSize: '0.9rem', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '1px' }}>{t('account.minecraft.current_user')}</p>
-                                    <h3 style={{ color: '#fff', fontSize: '1.8rem', margin: '0 0 1rem 0', fontWeight: 'bold' }}>
-                                        {mcUsername}
-                                    </h3>
-                                    
-                                    <div style={{ padding: '0.8rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', display: 'inline-block' }}>
-                                        <p style={{ fontSize: '0.9rem', color: 'var(--muted)', margin: 0 }}>
-                                            {t('account.minecraft.instruction_1')} <code style={{ color: '#58a6ff', background: 'rgba(88, 166, 255, 0.1)', padding: '2px 6px', borderRadius: '4px' }}>/link {user.email}</code> {t('account.minecraft.instruction_2')}
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                    
                     {activeTab === 'connections' && (
-                        <div className="fade-in">
+                        <div key="connections" className="fade-in">
                             <h2 style={{ color: '#fff', marginBottom: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem' }}>{t('account.connections.title')}</h2>
-                            <div className="dashboard-card" style={{ display: 'grid', gap: '1rem' }}>
-                                
-                                {/* Discord Connection */}
-                                <div style={{ 
-                                    background: 'rgba(30,30,35,0.6)', 
-                                    padding: '1.5rem', 
-                                    borderRadius: '16px', 
-                                    border: '1px solid rgba(255,255,255,0.05)', 
-                                    display: 'flex', 
-                                    justifyContent: 'space-between', 
-                                    alignItems: 'center' 
-                                }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                        <div style={{ background: '#5865F2', padding: '10px', borderRadius: '50%', display: 'flex' }}>
-                                            <FaDiscord size={24} color="white" />
-                                        </div>
+                            
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
+                                {/* Minecraft Card */}
+                                <div className="connection-card" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px', padding: '1.5rem' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+                                        <div style={{ background: '#44bd32', padding: '10px', borderRadius: '50%', color: '#fff' }}><FaGamepad /></div>
                                         <div>
-                                            <h3 style={{ color: '#fff', margin: 0 }}>Discord</h3>
-                                            <p style={{ color: 'var(--muted)', fontSize: '0.9rem', margin: '4px 0 0 0' }}>
-                                                {discordIdentity ? `${t('account.connections.linked')}` : t('account.connections.not_linked')}
-                                            </p>
+                                            <h3 style={{ margin: 0, color: '#fff' }}>Minecraft</h3>
+                                            <p style={{ margin: 0, color: '#888', fontSize: '0.9rem' }}>{isLinked ? 'Vinculado' : 'No vinculado'}</p>
                                         </div>
                                     </div>
+                                    
+                                    {isLinked ? (
+                                        <div style={{ background: 'rgba(76, 175, 80, 0.1)', color: '#4CAF50', padding: '1rem', borderRadius: '8px', textAlign: 'center', fontWeight: 'bold' }}>
+                                            ✓ {mcUsername}
+                                        </div>
+                                    ) : (
+                                        <div>
+                                            <p style={{ color: '#aaa', fontSize: '0.9rem', marginBottom: '1rem' }}>
+                                                Vincula tu cuenta de Minecraft para acceder a estadísticas y sincronizar tu rango.
+                                            </p>
+                                            
+                                            {!linkCode ? (
+                                                <button 
+                                                    onClick={handleGenerateCode} 
+                                                    disabled={linkLoading}
+                                                    style={{ width: '100%', background: 'var(--accent)', border: 'none', padding: '10px', borderRadius: '6px', color: '#fff', fontWeight: 'bold', cursor: 'pointer', opacity: linkLoading ? 0.7 : 1 }}
+                                                >
+                                                    {linkLoading ? 'Generando...' : 'Obtener Código de Vinculación'}
+                                                </button>
+                                            ) : (
+                                                <div className="link-code-box animate-pop" style={{ background: '#222', border: '2px dashed var(--accent)', padding: '1.5rem', borderRadius: '8px', textAlign: 'center' }}>
+                                                    <p style={{ color: '#ccc', marginBottom: '0.5rem' }}>Entra al servidor y escribe:</p>
+                                                    <code style={{ display: 'block', background: '#000', color: 'var(--accent)', padding: '0.8rem', borderRadius: '4px', fontSize: '1.2rem', fontWeight: 'bold', letterSpacing: '2px', marginBottom: '1rem' }}>/link {linkCode}</code>
+                                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                                                        <Loader size="small" />
+                                                        <span style={{ fontSize: '0.8rem', color: '#888' }}>Esperando confirmación...</span>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Discord Card */}
+                                <div className="connection-card" style={{ background: 'rgba(88, 101, 242, 0.1)', border: '1px solid rgba(88, 101, 242, 0.3)', borderRadius: '12px', padding: '1.5rem' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+                                        <div style={{ background: '#5865F2', padding: '10px', borderRadius: '50%', color: '#fff' }}><FaDiscord /></div>
+                                        <div>
+                                            <h3 style={{ margin: 0, color: '#fff' }}>Discord</h3>
+                                            <p style={{ margin: 0, color: '#888', fontSize: '0.9rem' }}>{discordIdentity ? 'Conectado' : 'Desconectado'}</p>
+                                        </div>
+                                    </div>
+                                    
                                     {discordIdentity ? (
                                         <button 
-                                            onClick={() => handleUnlinkProvider(discordIdentity.id)} 
-                                            className="btn-text" 
-                                            style={{ color: '#ff6b6b', background: 'transparent', border:'none', cursor:'pointer' }}
+                                            onClick={() => handleUnlinkProvider(discordIdentity.id)}
+                                            style={{ width: '100%', background: 'rgba(231, 76, 60, 0.2)', border: '1px solid rgba(231, 76, 60, 0.5)', color: '#ff6b6b', padding: '8px', borderRadius: '6px', cursor: 'pointer' }}
                                         >
-                                            {t('account.connections.disconnect')}
+                                            Desvincular
                                         </button>
                                     ) : (
                                         <button 
-                                            onClick={() => handleLinkProvider('discord')} 
-                                            className="btn-primary" 
-                                            style={{ background: '#5865F2', border:'none', padding:'0.5rem 1rem', borderRadius:'6px', color:'#fff', cursor:'pointer' }}
+                                            onClick={() => handleLinkProvider('discord')}
+                                            style={{ width: '100%', background: '#5865F2', border: 'none', color: '#fff', padding: '8px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer' }}
                                         >
-                                            {t('account.connections.connect')}
+                                            Conectar Discord
                                         </button>
                                     )}
                                 </div>
 
-                                {/* Twitch Connection */}
-                                <div style={{ 
-                                    background: 'rgba(30,30,35,0.6)', 
-                                    padding: '1.5rem', 
-                                    borderRadius: '16px', 
-                                    border: '1px solid rgba(255,255,255,0.05)', 
-                                    display: 'flex', 
-                                    justifyContent: 'space-between', 
-                                    alignItems: 'center' 
-                                }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                        <div style={{ background: '#9146FF', padding: '10px', borderRadius: '50%', display: 'flex' }}>
-                                            <FaTwitch size={24} color="white" />
-                                        </div>
+                                {/* Twitch Card */}
+                                <div className="connection-card" style={{ background: 'rgba(145, 70, 255, 0.1)', border: '1px solid rgba(145, 70, 255, 0.3)', borderRadius: '12px', padding: '1.5rem' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+                                        <div style={{ background: '#9146FF', padding: '10px', borderRadius: '50%', color: '#fff' }}><FaTwitch /></div>
                                         <div>
-                                            <h3 style={{ color: '#fff', margin: 0 }}>Twitch</h3>
-                                            <p style={{ color: 'var(--muted)', fontSize: '0.9rem', margin: '4px 0 0 0' }}>
-                                                {twitchIdentity ? `${t('account.connections.linked')}` : t('account.connections.not_linked')}
-                                            </p>
+                                            <h3 style={{ margin: 0, color: '#fff' }}>Twitch</h3>
+                                            <p style={{ margin: 0, color: '#888', fontSize: '0.9rem' }}>{twitchIdentity ? 'Conectado' : 'Desconectado'}</p>
                                         </div>
                                     </div>
+                                    
                                     {twitchIdentity ? (
                                         <button 
-                                            onClick={() => handleUnlinkProvider(twitchIdentity.id)} 
-                                            className="btn-text" 
-                                            style={{ color: '#ff6b6b', background: 'transparent', border:'none', cursor:'pointer' }}
+                                            onClick={() => handleUnlinkProvider(twitchIdentity.id)}
+                                            style={{ width: '100%', background: 'rgba(231, 76, 60, 0.2)', border: '1px solid rgba(231, 76, 60, 0.5)', color: '#ff6b6b', padding: '8px', borderRadius: '6px', cursor: 'pointer' }}
                                         >
-                                            {t('account.connections.disconnect')}
+                                            Desvincular
                                         </button>
                                     ) : (
                                         <button 
-                                            onClick={() => handleLinkProvider('twitch')} 
-                                            className="btn-primary" 
-                                            style={{ background: '#9146FF', border:'none', padding:'0.5rem 1rem', borderRadius:'6px', color:'#fff', cursor:'pointer' }}
+                                            onClick={() => handleLinkProvider('twitch')}
+                                            style={{ width: '100%', background: '#9146FF', border: 'none', color: '#fff', padding: '8px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer' }}
                                         >
-                                            {t('account.connections.connect')}
+                                            Conectar Twitch
                                         </button>
                                     )}
                                 </div>
-
                             </div>
                         </div>
                     )}
+                    {activeTab === 'settings' && (
+                        <div key="settings" className="fade-in">
+                            <h2 style={{ color: '#fff', marginBottom: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem' }}>{t('account.settings.title', 'Configuración')}</h2>
+                            
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
+                                {/* Privacy Card */}
+                                <div className="dashboard-card" style={{ background: 'rgba(255,255,255,0.03)', padding: '1.5rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                    <h3 style={{ color: '#fff', marginBottom: '1rem', display:'flex', alignItems:'center', gap:'10px' }}><FaShieldAlt /> {t('account.settings.privacy', 'Privacidad')}</h3>
+                                    
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <div>
+                                            <p style={{ color: '#fff', margin: 0 }}>{t('account.settings.public_stats', 'Mostrar estadísticas públicas')}</p>
+                                            <p style={{ color: '#888', fontSize: '0.8rem', margin: 0 }}>{t('account.settings.public_stats_desc', 'Otros usuarios podrán ver tu perfil.')}</p>
+                                        </div>
+                                        <label className="switch" style={{ position: 'relative', display: 'inline-block', width: '50px', height: '26px' }}>
+                                            <input type="checkbox" checked={publicStats} onChange={handlePrivacyToggle} style={{ opacity: 0, width: 0, height: 0 }} />
+                                            <span className="slider round" style={{ position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: publicStats ? 'var(--accent)' : '#ccc', transition: '.4s', borderRadius: '34px' }}>
+                                                <span style={{ position: 'absolute', content: '""', height: '18px', width: '18px', left: publicStats ? '26px' : '4px', bottom: '4px', backgroundColor: 'white', transition: '.4s', borderRadius: '50%' }}></span>
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
 
-
-
-                    <ConfirmationModal 
-                        isOpen={isUnlinkModalOpen}
-                        onClose={() => setIsUnlinkModalOpen(false)}
-                        onConfirm={confirmUnlink}
-                        title={t('account.connections.unlink_confirm_title')}
-                        message={t('account.connections.unlink_confirm_message')}
-                        confirmText={t('account.connections.confirm_unlink')}
-                        cancelText={t('account.connections.cancel')}
-                        isDanger={true}
-                    />
-
+                                {/* Security Card */}
+                                <div className="dashboard-card" style={{ background: 'rgba(255,255,255,0.03)', padding: '1.5rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                    <h3 style={{ color: '#fff', marginBottom: '1rem', display:'flex', alignItems:'center', gap:'10px' }}><FaUser /> {t('account.settings.security', 'Seguridad')}</h3>
+                                    
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                        <div>
+                                            <label style={{ display: 'block', color: '#ccc', marginBottom: '5px', fontSize: '0.9rem' }}>{t('account.settings.new_password', 'Nueva Contraseña')}</label>
+                                            <input 
+                                                type="password" 
+                                                value={passwords.new}
+                                                onChange={e => setPasswords({...passwords, new: e.target.value})}
+                                                style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #444', background: '#222', color: '#fff' }}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label style={{ display: 'block', color: '#ccc', marginBottom: '5px', fontSize: '0.9rem' }}>{t('account.settings.confirm_password', 'Confirmar Contraseña')}</label>
+                                            <input 
+                                                type="password" 
+                                                value={passwords.confirm}
+                                                onChange={e => setPasswords({...passwords, confirm: e.target.value})}
+                                                style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #444', background: '#222', color: '#fff' }}
+                                            />
+                                        </div>
+                                        <button 
+                                            onClick={handleUpdatePassword}
+                                            style={{ background: 'var(--accent)', border: 'none', padding: '10px', borderRadius: '6px', color: '#fff', fontWeight: 'bold', cursor: 'pointer', marginTop: '0.5rem' }}
+                                        >
+                                            {t('account.settings.update_password', 'Actualizar Contraseña')}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </main>
             </div>
-        </div>
-    )
-}
-
-// Subcomponents for cleaner code
-function NavButton({ active, onClick, icon, label }) {
-    return (
-        <button 
-            onClick={onClick}
-            style={{
-                background: active ? 'var(--accent)' : 'transparent',
-                color: active ? '#000' : 'var(--muted)',
-                border: 'none',
-                padding: '0.8rem 1rem',
-                textAlign: 'left',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                fontWeight: active ? 'bold' : 'normal',
-                transition: 'all 0.2s'
-            }}
-        >
-            {icon} {label}
-        </button>
-    )
-}
-
-function StatBox({ icon, value, label }) {
-    return (
-        <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1.5rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <div style={{ fontSize: '2rem' }}>{icon}</div>
-            <div>
-                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#fff' }}>{value}</div>
-                <div style={{ fontSize: '0.9rem', color: 'var(--muted)' }}>{label}</div>
-            </div>
-        </div>
-    )
-}
-
-function AchievementBadge({ title, icon, unlocked }) {
-    return (
-        <div style={{ 
-            aspectRatio: '1/1', 
-            background: unlocked ? 'rgba(46, 204, 113, 0.1)' : 'rgba(0,0,0,0.3)', 
-            border: unlocked ? '1px solid #2ecc71' : '1px solid #333',
-            borderRadius: '12px',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            opacity: unlocked ? 1 : 0.5,
-            padding: '1rem'
-        }}>
-            <span style={{ fontSize: '2rem', marginBottom: '0.5rem', filter: unlocked ? 'none' : 'grayscale(100%)' }}>{icon}</span>
-            <span style={{ fontSize: '0.8rem', color: unlocked ? '#fff' : '#666', textAlign: 'center' }}>{title}</span>
+            
+            <ConfirmationModal 
+                isOpen={isUnlinkModalOpen}
+                onClose={() => setIsUnlinkModalOpen(false)}
+                onConfirm={confirmUnlink}
+                title="Desvincular cuenta"
+                message="¿Estás seguro? Podrías perder acceso a ciertas características."
+            />
         </div>
     )
 }

@@ -153,7 +153,16 @@ export default function Navbar() {
                     </Link>
                 </div>
                 <div className="nav-links">
-                    <Menu />
+                    <div className="desktop-nav-items">
+                        <Link to="/#rules">{t('navbar.rules')}</Link>
+                        <Link to="/#news">{t('navbar.news')}</Link>
+                        <Link to="/forum">{t('navbar.forum')}</Link>
+                        <Link to="/map">{t('footer.online_map')}</Link>
+                        <Link to="/#donors" style={{ color: 'var(--accent)', fontWeight: 'bold' }}>{t('navbar.donors')}</Link>
+                    </div>
+                    <div className="mobile-menu-trigger">
+                        <Menu />
+                    </div>
                 </div>
             </div>
 

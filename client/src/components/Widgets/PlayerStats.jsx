@@ -34,7 +34,19 @@ export default function PlayerStats({ statsData, loading, error }) {
                 <StatItem 
                     icon={<FaTrophy />} 
                     label={t('account.overview.rank')} 
-                    value={statsData.rank} 
+                    value={(() => {
+                        const r = statsData.rank?.toLowerCase() || '';
+                        const imgStyle = { height: '45px', maxWidth: '100%', objectFit: 'contain', imageRendering: 'pixelated' };
+                        
+                        if (r.includes('miembro') || r.includes('default')) return <img src="/ranks/user.png" alt="Miembro" style={imgStyle} />;
+                        if (r.includes('donador')) return <img src="/ranks/donador.png" alt="Donador" style={imgStyle} />;
+                        if (r.includes('fundador')) return <img src="/ranks/rank-fundador.png" alt="Fundador" style={imgStyle} />;
+                        if (r.includes('killuwu')) return <img src="/ranks/rank-killu.png" alt="Killuwu" style={imgStyle} />;
+                        if (r.includes('neroferno')) return <img src="/ranks/rank-neroferno.png" alt="Neroferno" style={imgStyle} />;
+                        if (r.includes('developer')) return <img src="/ranks/developer.png" alt="Developer" style={imgStyle} />;
+                        // Fallback text if no image matches (e.g. Developer if no image exists)
+                        return <span className="rank-text">{statsData.rank}</span>;
+                    })()}
                     color="#f1c40f" 
                 />
                  <StatItem 

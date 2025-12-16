@@ -100,6 +100,21 @@
     text-shadow: 0 0 8px currentColor;
 }
 
+.desktop-nav-items {
+    display: none; 
+    gap: 1.5rem;
+    align-items: center;
+}
+
+@media (min-width: 1024px) {
+    .desktop-nav-items {
+        display: flex;
+    }
+    .mobile-menu-trigger {
+        display: none;
+    }
+}
+
 .nav-auth {
     display: flex;
     gap: 1rem;
