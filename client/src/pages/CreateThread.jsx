@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FaPen, FaPoll, FaDiscord, FaTimes, FaPlus, FaCheckCircle } from 'react-icons/fa'
+import { FaPen, FaPoll, FaDiscord, FaTimes, FaPlus, FaCheckCircle, FaImage } from 'react-icons/fa'
 import { useAuth } from '@/context/AuthContext'
+import { supabase } from '@/services/supabaseClient'
 import Section from '@/components/Layout/Section'
 import { useTranslation } from 'react-i18next'
 
@@ -24,39 +25,152 @@ export default function CreateThread() {
     const [discordLink, setDiscordLink] = useState('')
     const [isDiscordPoll, setIsDiscordPoll] = useState(false)
     const [submitting, setSubmitting] = useState(false)
+    // State for deferred upload
+    const [pendingImage, setPendingImage] = useState(null)
+
+    // Utility to compress image to WebP
+    const compressImage = async (file) => {
+        return new Promise((resolve, reject) => {
+            const img = new Image()
+            img.src = URL.createObjectURL(file)
+            img.onload = () => {
+                const canvas = document.createElement('canvas')
+                const ctx = canvas.getContext('2d')
+                
+                // Max dimension rule (1920px)
+                const MAX_SIZE = 1920
+                let width = img.width
+                let height = img.height
+                
+                if (width > height) {
+                    if (width > MAX_SIZE) {
+                        height *= MAX_SIZE / width
+                        width = MAX_SIZE
+                    }
+                } else {
+                    if (height > MAX_SIZE) {
+                        width *= MAX_SIZE / height
+                        height = MAX_SIZE
+                    }
+                }
+
+                canvas.width = width
+                canvas.height = height
+                ctx.drawImage(img, 0, 0, width, height)
+                
+                canvas.toBlob((blob) => {
+                    if (blob) {
+                        resolve(blob) 
+                    } else {
+                        reject(new Error("Compression failed"))
+                    }
+                }, 'image/webp', 0.8) // 0.8 Quality = Great balance
+            }
+            img.onerror = (err) => reject(err)
+        })
+    }
+
+    const handleImageSelection = async (e) => {
+        const file = e.target.files[0]
+        if (!file) return
+
+        if (file.size > 20 * 1024 * 1024) {
+            return alert("La imagen es demasiado pesada. Máximo 20MB.")
+        }
+
+        try {
+            // Compress immediately but DO NOT upload yet
+            const compressedBlob = await compressImage(file)
+            
+            // Create a local preview
+            const previewUrl = URL.createObjectURL(compressedBlob)
+            
+            setPendingImage({
+                blob: compressedBlob,
+                preview: previewUrl,
+                name: file.name
+            })
+
+            // Clear input
+            e.target.value = null
+
+        } catch (error) {
+            console.error("Compression Error:", error)
+            alert("Error al procesar la imagen.")
+        }
+    }
+
+    const clearPendingImage = () => {
+        if(pendingImage?.preview) URL.revokeObjectURL(pendingImage.preview)
+        setPendingImage(null)
+    }
+
+    const uploadPendingImage = async () => {
+        if (!pendingImage) return null
+
+        const fileName = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}.webp`
+        const { error } = await supabase.storage
+            .from('forum-uploads')
+            .upload(fileName, pendingImage.blob, {
+                contentType: 'image/webp',
+                cacheControl: '3600',
+                upsert: false
+            })
+
+        if (error) throw error
+
+        const { data: { publicUrl } } = supabase.storage
+            .from('forum-uploads')
+            .getPublicUrl(fileName)
+            
+        return publicUrl
+    }
 
     const handleSubmit = async (e) => {
         e.preventDefault()
         if(!user) return alert(t('create_thread.form.error_login'))
         setSubmitting(true)
         
-        const pollData = showPoll ? {
-            enabled: true,
-            question: isDiscordPoll ? "Encuesta de Discord" : pollQuestion,
-            options: isDiscordPoll ? [] : pollOptions.filter(o => o.trim() !== ''),
-            discord_link: isDiscordPoll ? discordLink : null,
-            closes_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
-        } : null
-
-        const body = {
-            category_id: parseInt(categoryId),
-            title,
-            content,
-            user_data: {
-                id: user.id || 'anonymous', // Fallback if auth issue
-                name: user?.user_metadata?.username || user?.email?.split('@')[0] || "Usuario",
-                avatar: user?.user_metadata?.avatar_url,
-                role: user?.user_metadata?.role || 'user'
-            },
-            poll_data: pollData
-        }
-
         try {
+            let finalContent = content
+
+            // 1. Upload Image if exists
+            if (pendingImage) {
+                const imageUrl = await uploadPendingImage()
+                if (imageUrl) {
+                    finalContent += `\n\n![Imagen](${imageUrl})`
+                }
+            }
+
+            // 2. Prepare Poll Data
+            const pollData = showPoll ? {
+                enabled: true,
+                question: isDiscordPoll ? "Encuesta de Discord" : pollQuestion,
+                options: isDiscordPoll ? [] : pollOptions.filter(o => o.trim() !== ''),
+                discord_link: isDiscordPoll ? discordLink : null,
+                closes_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+            } : null
+
+            // 3. Create Thread
+            const body = {
+                category_id: parseInt(categoryId),
+                title,
+                content: finalContent,
+                user_data: {
+                    id: user.id || 'anonymous', 
+                    name: user?.user_metadata?.username || user?.email?.split('@')[0] || "Usuario",
+                    avatar: user?.user_metadata?.avatar_url,
+                    role: user?.user_metadata?.role || 'user'
+                },
+                poll_data: pollData
+            }
+
             const res = await fetch(`${API_URL}/forum/threads`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body)
             })
+
             if(res.ok) {
                 const data = await res.json()
                 navigate(`/forum/thread/topic/${data.id}`)
@@ -65,13 +179,13 @@ export default function CreateThread() {
             }
         } catch(err) { 
             console.error(err)
-            alert(t('create_thread.form.error_conn'))
+            alert("Error al crear el tema o subir la imagen.")
         } finally {
             setSubmitting(false)
         }
     }
 
-    const addOption = () => setPollOptions([...pollOptions, ''])
+
     const updateOption = (idx, val) => {
         const newOpts = [...pollOptions]
         newOpts[idx] = val
@@ -90,11 +204,11 @@ export default function CreateThread() {
                             className="form-input" 
                             value={categoryId} 
                             onChange={e => setCategoryId(e.target.value)}
-                            style={{ width: '100%', padding: '0.8rem', background: 'rgba(255,255,255,0.05)', color: '#fff', border: '1px solid #444', borderRadius: '6px' }}
+                            style={{ width: '100%', padding: '0.8rem', background: '#222', color: '#fff', border: '1px solid #444', borderRadius: '6px' }}
                         >
-                            <option value="2">{t('forum_page.categories.general.title')}</option>
-                            <option value="3">{t('forum_page.categories.support.title')}</option>
-                            <option value="4">{t('forum_page.categories.offtopic.title')}</option>
+                            <option value="2" style={{ background: '#222', color: '#fff' }}>{t('forum_page.categories.general.title')}</option>
+                            <option value="3" style={{ background: '#222', color: '#fff' }}>{t('forum_page.categories.support.title')}</option>
+                            <option value="4" style={{ background: '#222', color: '#fff' }}>{t('forum_page.categories.offtopic.title')}</option>
                         </select>
                     </div>
 
@@ -111,7 +225,15 @@ export default function CreateThread() {
                     </div>
 
                     <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-                        <label className="form-label" style={{ display: 'block', marginBottom: '0.5rem', color: '#ccc' }}>{t('create_thread.form.content')}</label>
+                        <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', color: '#ccc' }}>
+                            {t('create_thread.form.content')}
+                            { !pendingImage && (
+                                <label className="btn-secondary" style={{ padding: '0.2rem 0.5rem', fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                                    <FaImage /> {t('create_thread.form.attach_image')}
+                                    <input type="file" accept="image/*" onChange={handleImageSelection} style={{ display: 'none' }} />
+                                </label>
+                            )}
+                        </label>
                         <textarea 
                             className="form-input" 
                             value={content} 
@@ -121,6 +243,22 @@ export default function CreateThread() {
                             rows={8}
                             style={{ width: '100%', padding: '0.8rem', background: 'rgba(255,255,255,0.05)', color: '#fff', border: '1px solid #444', borderRadius: '6px', resize: 'vertical' }}
                         />
+                        
+                        {/* Pending Image Preview */}
+                        {pendingImage && (
+                            <div style={{ marginTop: '1rem', padding: '1rem', background: 'rgba(0,0,0,0.3)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1px solid var(--accent)' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                    <img src={pendingImage.preview} alt="Preview" style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '6px' }} />
+                                    <div>
+                                        <span style={{ display: 'block', fontSize: '0.9rem', fontWeight: 'bold', color: '#fff' }}>{t('create_thread.form.image_attached')}</span>
+                                        <span style={{ fontSize: '0.8rem', color: '#ccc' }}>{t('create_thread.form.upload_preview_hint')}</span>
+                                    </div>
+                                </div>
+                                <button type="button" onClick={clearPendingImage} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <FaTimes /> {t('create_thread.form.remove_image')}
+                                </button>
+                            </div>
+                        )}
                     </div>
 
                     {/* Poll Section Toggle */}

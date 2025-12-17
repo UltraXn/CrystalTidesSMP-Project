@@ -1,7 +1,7 @@
 import Menu from "./Menu"
-import { Link, useNavigate } from "react-router-dom"
+import { Link, useNavigate, useLocation } from "react-router-dom"
 import { useAuth } from "@/context/AuthContext"
-import { FaUserCircle, FaTrophy, FaEdit, FaShieldAlt, FaSignOutAlt, FaCog } from "react-icons/fa"
+import { FaUserCircle, FaTrophy, FaEdit, FaShieldAlt, FaSignOutAlt, FaCog, FaServer, FaLink } from "react-icons/fa"
 import { useRef, useState, useEffect } from "react"
 import anime from 'animejs'
 
@@ -132,15 +132,19 @@ export default function Navbar() {
         navigate('/')
     }
 
+    const location = useLocation()
+    // Exact match for home, since other pages like /forum need to be treated as "internal"
+    const isHome = location.pathname === '/'
+
     // Check if admin (Allowed roles: admin, neroferno, killu, helper)
     const allowedRoles = ['admin', 'neroferno', 'killu', 'helper']
     const isAdmin = allowedRoles.includes(user?.user_metadata?.role)
 
     return (
-        <header className={`navbar ${scrolled ? 'scrolled' : ''}`}>
+        <header className={`navbar ${scrolled ? 'scrolled' : ''} ${isHome ? 'is-home' : ''}`}>
             <div className="navbar-left-section" style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
                 <div className="navbar-brand">
-                    <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '1rem', textDecoration: 'none' }}>
+                    <Link to="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
                         <img
                             ref={logoRef}
                             src="/images/ui/logo.webp"
@@ -150,15 +154,17 @@ export default function Navbar() {
                             width="40"
                             height="40"
                         />
+                        <span className="navbar-title">Crystal Tides SMP</span>
                     </Link>
                 </div>
                 <div className="nav-links">
                     <div className="desktop-nav-items">
                         <Link to="/#rules">{t('navbar.rules')}</Link>
+                        <Link to="/#donors" style={{ color: 'var(--accent)', fontWeight: 'bold' }}>{t('navbar.donors')}</Link>
                         <Link to="/#news">{t('navbar.news')}</Link>
+                        <Link to="/#suggestions">{t('footer.suggestions')}</Link>
                         <Link to="/forum">{t('navbar.forum')}</Link>
                         <Link to="/map">{t('footer.online_map')}</Link>
-                        <Link to="/#donors" style={{ color: 'var(--accent)', fontWeight: 'bold' }}>{t('navbar.donors')}</Link>
                     </div>
                     <div className="mobile-menu-trigger">
                         <Menu />
@@ -166,9 +172,7 @@ export default function Navbar() {
                 </div>
             </div>
 
-            <div className="navbar-center-title">
-                <h2>Crystal Tides SMP</h2>
-            </div>
+
 
             <div className="nav-right-section">
                 {/* Selector de Idioma */}
@@ -223,14 +227,20 @@ export default function Navbar() {
                                             <UserRoleDisplay role={user.user_metadata?.role || 'user'} />
                                         </div>
                                     </div>
-                                <Link to="/account" className="menu-item" onClick={closeUserDropdown} ref={addToUserRefs}>
-                                    <FaCog /> {t('navbar.account')}
-                                </Link>
-                                <Link to="/account?tab=achievements" className="menu-item" onClick={closeUserDropdown} ref={addToUserRefs}>
-                                    <FaTrophy /> {t('navbar.achievements')}
+                                <Link to="/account?tab=overview" className="menu-item" onClick={closeUserDropdown} ref={addToUserRefs}>
+                                    <FaServer /> {t('account.nav.overview', 'Resumen')}
                                 </Link>
                                 <Link to="/account?tab=posts" className="menu-item" onClick={closeUserDropdown} ref={addToUserRefs}>
-                                    <FaEdit /> {t('account.nav.posts')}
+                                    <FaEdit /> {t('account.nav.posts', 'Mis Publicaciones')}
+                                </Link>
+                                <Link to="/account?tab=achievements" className="menu-item" onClick={closeUserDropdown} ref={addToUserRefs}>
+                                    <FaTrophy /> {t('navbar.achievements', 'Logros')}
+                                </Link>
+                                <Link to="/account?tab=connections" className="menu-item" onClick={closeUserDropdown} ref={addToUserRefs}>
+                                    <FaLink /> {t('account.nav.connections', 'Conexiones')}
+                                </Link>
+                                <Link to="/account?tab=settings" className="menu-item" onClick={closeUserDropdown} ref={addToUserRefs}>
+                                    <FaCog /> {t('account.settings.title', 'Configuración')}
                                 </Link>
 
                                 {isAdmin && (

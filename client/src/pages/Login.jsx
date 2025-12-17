@@ -126,7 +126,7 @@ export default function Login() {
                         <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.1)' }}></div>
                     </div>
 
-                    <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
+                    <div className="social-login-group" style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
                         <button
                             type="button"
                             onClick={() => handleProviderLogin('discord')}

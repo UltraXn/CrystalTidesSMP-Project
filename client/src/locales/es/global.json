@@ -42,7 +42,11 @@
             "submitting": "Publicando...",
             "error_login": "Debes iniciar sesión",
             "error_create": "Error creando tema",
-            "error_conn": "Error de conexión"
+            "error_conn": "Error de conexión",
+            "attach_image": "Adjuntar Imagen",
+            "image_attached": "Imagen adjunta",
+            "upload_preview_hint": "Se subirá al publicar",
+            "remove_image": "Quitar"
         }
     },
     "navbar": {
@@ -65,14 +69,22 @@
         "economy_title": "Economía Dinámica",
         "economy_desc": "Participa en un mercado impulsado por jugadores. Comercia, subasta y construye tu imperio empresarial.",
         "protection_title": "Respeto Mutuo",
-        "protection_desc": "Sin piedras de protección. Confiamos en nuestra comunidad y usamos CoreProtect para seguridad total.",
-        "dungeons_title": "Mazmorras Épicas",
-        "dungeons_desc": "Enfréntate a desafíos únicos y jefes personalizados para obtener recompensas legendarias."
+        "protection_desc": "Tu esfuerzo está seguro. Protege tus construcciones con un bloque de protección y duerme tranquilo sabiendo que nadie tocará lo que es tuyo.",
+        "events_title": "Eventos Únicos",
+        "events_desc": "Participa en torneos, concursos de construcción y eventos de lore donde la historia del servidor avanza contigo. ¡Premios exclusivos te esperan!"
     },
     "home": {
         "title": "Sobre el Servidor",
-        "description": "CrystalTides es un refugio construido con manos múltiples: un mundo donde la comunidad sostiene el cielo y el compañerismo marca el ritmo de cada paso. Aquí, las historias nacen en equipo, las metas se alcanzan en conjunto y cada jugador se vuelve parte de una marea que crece, respira y avanza unida.",
-        "join_us": "Si quieres sentir el pulso de este mundo más de cerca, únete a la corriente: acompaña a Killubysmali en su canal de Twitch y sumérgete en la calidez colectiva del Discord de La Pecerita de killu. Allí comienza realmente la aventura, donde cada voz importa y cada presencia deja huella."
+        "description": "CrystalTides no es solo un territorio, es el legado vivo de cuatro entidades primordiales. Fue forjado por la unión de un Soberano Acuático, dueño de las profundidades; una Presencia Abismal e insondable, dueña de la mente y los secretos, que no responde a leyes ni bandos, sino a su propia voluntad; un Viajero de las Estrellas, portador de la visión cósmica y la estrategia bélica inigualables; y una Fuerza Terrenal, enraizada en los misterios antiguos de estas tierras.\n\nHoy, CrystalTides es un crisol de maravillas, un mundo mágico moldeado por esta alianza divina donde cada rincón respira la esencia de sus fundadores: la marea, el abismo, el cosmos y la tierra.",
+        "join_us_twitch": "Si queréis ver en qué gasta su tiempo una criatura acuática hiperactiva, id a ver a Killubysmali en Twitch. Lo mismo te dibuja una obra de arte, que te da una MASTER class of English o se pone a jugar Repo como si le fuera la vida en ello.",
+        "join_us_discord": "¿Te quedaste con ganas de más locura? Únete a La Pecerita de killu en Discord. Pero cuidado: en esas aguas profundas acecha la temible Killujaiba, se entonan himnos al Hombre Océano (me coge de la mano y me lleva a un lugar~ 🎵) y todavía hay un trauma colectivo por la Cucharita de killu (que se le perdió...).",
+        "stats": {
+            "discord": "Miembros en Discord",
+            "registered": "Jugadores Registrados",
+            "years": "Años Online",
+            "staff": "Staff Activo",
+            "year_suffix": " Año"
+        }
     },
     "footer": {
         "server": "SERVIDOR",
@@ -108,9 +120,10 @@
     "register": {
         "title": "Crear Cuenta",
         "subtitle": "Únete a la aventura hoy mismo",
-        "nick_label": "Nick",
-        "nick_placeholder": "Tu Nickname",
+        "username_label": "Nombre de Usuario",
+        "username_placeholder": "Tu nombre en la web",
         "email_label": "Email",
+        "email_placeholder": "correo@ejemplo.com",
         "password_label": "Contraseña",
         "confirm_password_label": "Confirmar Contraseña",
         "submit": "Registrarse",
@@ -169,7 +182,8 @@
         "connect": "Conéctate al Servidor",
         "java_edition": "Edición Java",
         "copy_ip": "Copiar IP",
-        "copied": "¡Copiado!"
+        "copied": "¡Copiado!",
+        "kofi_text": "¡Dona en Ko-Fi!"
     },
     "rules": {
         "title": "Reglas del Servidor",
@@ -212,7 +226,17 @@
     "donors": {
         "title": "Hall de Donadores",
         "intro": "Mantener un servidor de calidad requiere pasión, tiempo y recursos. Las personas listadas a continuación han decidido ir un paso más allá para asegurar la estabilidad y el futuro de CrystalTides. El 100% de estas contribuciones se destinan al mantenimiento del host, desarrollo de plugins y mejoras de infraestructura. ¡Gracias por creer en nosotros! 💜.",
-        "latest_title": "Últimas Donaciones"
+        "latest_title": "Últimas Donaciones",
+        "profiles": {
+            "killu": "Creadora y administradora principal.",
+            "neroferno": "Co-fundador y desarrollador. (Realmente muy ultroso)",
+            "law": "Una creatura particular parte de esta maravillosa comunidad.",
+            "pixie": "Querido por sus opiniones variadas y su apoyo constante 💜.",
+            "zeta": "¡Un usuario realmente perseverante ante las adversidades!",
+            "sendples": "The Paideidad. The Goat. The DONATOR",
+            "zen": "Un Tryhard. ¡DEJA LOS BOSSES! (gracias por apoyar a la comunidad✨)",
+            "churly": "Boop Bip Boop! 🤖"
+        }
     },
     "contests": {
         "title": "Concursos y Eventos",
@@ -358,10 +382,22 @@
             "title": "Logros Desbloqueados",
             "items": {
                 "welcome": "Bienvenido",
+                "welcome_desc": "Te has unido a nuestra comunidad.",
                 "first_post": "Primer Post",
+                "first_post_desc": "Tu voz ha sido escuchada por primera vez en el foro.",
+                "first_post_criteria": "Publicar 1 tema",
                 "veteran": "Veterano",
+                "veteran_desc": "Has demostrado lealtad con horas de servicio.",
+                "veteran_criteria": "+50 horas de juego",
                 "donor": "Donador",
-                "hunter": "Cazador"
+                "donor_desc": "Gracias por contribuir al crecimiento del servidor.",
+                "donor_criteria": "Rango VIP o superior",
+                "hunter": "Cazador",
+                "hunter_desc": "Un depredador letal en el campo de batalla.",
+                "hunter_criteria": "+50 Kills",
+                "miner": "Minero",
+                "miner_desc": "La base de nuestra economía está en tus manos.",
+                "miner_criteria": "+1000 Bloques minados"
             }
         },
         "minecraft": {
@@ -376,8 +412,18 @@
             "link_twitch": "Vincular Twitch",
             "linked": "Vinculado",
             "not_linked": "No vinculado",
+            "connected": "Conectado",
+            "disconnected": "Desconectado",
             "connect": "Conectar",
             "disconnect": "Desconectar",
+            "link_desc": "Vincula tu cuenta para sincronizar rango y stats.",
+            "get_code": "Obtener Código",
+            "generating": "Generando...",
+            "type_in_server": "Escribe en el servidor:",
+            "waiting": "Esperando...",
+            "unlink": "Desvincular",
+            "connect_discord": "Conectar Discord",
+            "connect_twitch": "Conectar Twitch",
             "unlink_confirm_title": "¿Desvincular cuenta?",
             "unlink_confirm_message": "¿Estás seguro de que deseas desvincular esta cuenta? Tendrás que volver a conectarla para usarla en el futuro.",
             "confirm_unlink": "Sí, desvincular",

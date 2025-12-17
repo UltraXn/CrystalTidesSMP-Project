@@ -15,16 +15,16 @@
 
 /* NEW FULL LAYOUT (No Sidebar) */
 .admin-layout-full {
-    height: 100vh; /* Fixed height to prevent global scroll */
+    height: 100vh; /* Fixed height for app-like feel */
     padding-top: 80px;
-    max-width: 1400px;
-    margin: 0 auto;
-    padding-left: 2rem;
-    padding-right: 2rem;
+    max-width: 100%; /* Full width */
+    margin: 0;
+    padding-left: 1rem;
+    padding-right: 1rem;
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
-    overflow: hidden; /* Prevent container scroll */
+    overflow: hidden; /* Clip everything outside */
 }
 
 .admin-top-bar {
@@ -53,10 +53,10 @@
 
 .admin-tab-btn {
     background: rgba(255,255,255,0.02); /* Slight bg for visibility */
-    border: 1px solid rgba(255,255,255,0.05); /* Border for definition */
+    border: 1px solid rgba(255,255,255,0.15); /* Border for definition */
     color: #888;
     padding: 0.6rem 1.2rem;
-    border-radius: 6px;
+    border-radius: 2px;
     cursor: pointer;
     font-weight: 600;
     transition: all 0.2s;
@@ -82,31 +82,18 @@
 .admin-content-full {
     flex: 1;
     width: 100%;
-    overflow-y: auto; /* Internal scroll */
-    padding-bottom: 2rem;
-    /* Custom Scrollbar for this container */
-    scrollbar-width: thin;
-    scrollbar-color: var(--accent) #1a1a1a;
-}
-
-.admin-content-full::-webkit-scrollbar {
-    width: 8px;
-}
-
-.admin-content-full::-webkit-scrollbar-track {
-    background: #1a1a1a;
-}
-
-.admin-content-full::-webkit-scrollbar-thumb {
-    background-color: var(--accent);
-    border-radius: 4px;
+    /* Removed overflow-y: auto and scrollbar styles to use document scroll */
+    padding-bottom: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 /* Admin Card / Containers */
 .admin-card {
   background: #1a1a1a;
-  border: 1px solid #333;
-  border-radius: var(--radius);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 2px;
   padding: 1.5rem;
   margin-bottom: 2rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
@@ -162,6 +149,30 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+/* Dashboard Grids */
+.admin-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+}
+
+.admin-analytics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); /* Reduced min-width to fit more columns */
+    gap: 1.5rem;
+}
+
+@media (max-width: 768px) {
+    .admin-analytics-grid {
+        grid-template-columns: 1fr; /* Stack on mobile */
+    }
+    
+    .admin-kpi-grid {
+        grid-template-columns: 1fr; /* Stack on mobile */
+        gap: 1rem;
+    }
 }
 
 /* =========================================
@@ -303,8 +314,8 @@
     width: 100%;
     padding: 0.8rem 1rem;
     background: #252525;
-    border: 1px solid #444;
-    border-radius: 6px;
+    border: 1px solid #555;
+    border-radius: 2px;
     color: #fff;
     font-family: inherit;
     font-size: 0.95rem;
@@ -394,4 +405,84 @@ input:focus + .slider {
 
 input:checked + .slider:before {
   transform: translateX(26px);
+}
+
+/* =========================================
+   MOBILE RESPONSIVENESS
+   ========================================= */
+@media (max-width: 768px) {
+    .admin-layout-full {
+        padding-left: 1rem;
+        padding-right: 1rem;
+        height: auto; /* Allow scrolling on mobile typically, or keep fixed if we want app-like feel. Keep fixed but ensure inner content scrolls. */
+    }
+
+    .admin-top-bar {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+        padding: 1rem;
+    }
+
+    .admin-brand-top {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .admin-user-profile {
+        width: 100%;
+        border-top: 1px solid #333;
+        padding-top: 1rem;
+        align-items: flex-start;
+    }
+    
+    .user-info {
+        flex-direction: row !important;
+        gap: 1rem;
+    }
+
+    .admin-nav-tabs {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+        overflow-x: visible; /* Disable scroll */
+        padding-bottom: 0;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+    }
+    
+    .admin-tab-btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+    }
+
+    .admin-content-full {
+        padding-bottom: 6rem; /* Extra storage for navbar */
+    }
+    
+    /* Tables handling */
+    .admin-table th, .admin-table td {
+        padding: 0.8rem 0.5rem;
+        font-size: 0.8rem;
+    }
+    
+    .modal-content {
+        max-height: 85vh;
+        width: 95%;
+        margin: 1rem;
+    }
+}
+
+/* KANBAN STYLES */
+.kanban-cards-container::-webkit-scrollbar {
+    width: 6px;
+}
+.kanban-cards-container::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 4px;
+}
+.kanban-cards-container::-webkit-scrollbar-thumb:hover {
+    background: #555;
 }

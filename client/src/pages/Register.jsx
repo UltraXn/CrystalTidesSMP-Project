@@ -86,11 +86,10 @@ export default function Register() {
                     <form className="account-form" onSubmit={handleSubmit}>
                         
                         <div className="form-group">
-                            <label><FaUser /> {t('register.username_label', 'Nombre de Usuario')}</label>
-                            <div style={{marginBottom:'5px', fontSize:'0.8rem', color:'var(--muted)'}}>No tiene que ser tu nick de Minecraft</div>
+                            <label><FaUser /> {t('register.username_label')}</label>
                             <input
                                 type="text"
-                                placeholder="Tu nombre en la web"
+                                placeholder={t('register.username_placeholder')}
                                 required
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}
@@ -101,7 +100,7 @@ export default function Register() {
                             <label><FaEnvelope /> {t('register.email_label')}</label>
                             <input
                                 type="email"
-                                placeholder="correo@ejemplo.com"
+                                placeholder={t('register.email_placeholder')}
                                 required
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
@@ -187,7 +186,7 @@ export default function Register() {
                         <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.1)' }}></div>
                     </div>
 
-                    <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
+                    <div className="social-login-group" style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
                         <button
                             type="button"
                             onClick={() => handleProviderLogin('discord')}

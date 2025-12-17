@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+// eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
@@ -17,11 +18,7 @@ export default function Support() {
     // New Ticket Form State
     const [newTicket, setNewTicket] = useState({ subject: '', category: 'General', priority: 'normal', message: '' })
 
-    useEffect(() => {
-        if (user) fetchTickets()
-    }, [user])
-
-    const fetchTickets = async () => {
+    const fetchTickets = useCallback(async () => {
         try {
             const { data, error } = await supabase
                 .from('tickets')
@@ -36,7 +33,11 @@ export default function Support() {
         } finally {
             setLoading(false)
         }
-    }
+    }, [user])
+
+    useEffect(() => {
+        if (user) fetchTickets()
+    }, [user, fetchTickets])
 
     const handleCreateTicket = async (e) => {
         e.preventDefault()

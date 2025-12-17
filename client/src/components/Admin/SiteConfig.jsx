@@ -76,43 +76,79 @@ export default function SiteConfig() {
     if (loading) return <div>{t('admin.settings.loading')}</div>
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+        <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', 
+            gap: '1.5rem',
+            alignItems: 'start' /* Evita que se estiren innecesariamente */
+        }}>
             
-            {/* 1. SELECCIÓN DE TEMA (MODO NAVIDAD / HALLOWEEN) */}
-            <div className="admin-card">
-                <h3 style={{ marginBottom: '1.5rem', display:'flex', alignItems:'center', gap:'0.5rem' }}>
-                    <FaWater /> {t('admin.settings.theme.title')}
-                </h3>
-                <p style={{ color: '#aaa', marginBottom: '2rem' }}>
-                    {t('admin.settings.theme.desc')}
-                </p>
+            {/* 1. SELECCIÓN DE TEMA + MANTENIMIENTO */}
+            <div className="admin-card" style={{ height: '100%' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
+                    <div>
+                        <h3 style={{ marginBottom: '0.4rem', display:'flex', alignItems:'center', gap:'0.5rem' }}>
+                            <FaWater /> {t('admin.settings.theme.title')}
+                        </h3>
+                        <p style={{ color: '#888', margin: 0, fontSize: '0.85rem' }}>
+                            {t('admin.settings.theme.desc')}
+                        </p>
+                    </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem' }}>
-                    {/* DEFAULT */}
+                    {/* MANTENIMIENTO TOGGLE COMPACTO */}
+                    <div style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: '0.8rem', 
+                        background: settings.maintenance_mode === 'true' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(255, 255, 255, 0.05)', 
+                        padding: '0.5rem 0.8rem', 
+                        borderRadius: '4px', 
+                        border: settings.maintenance_mode === 'true' ? '1px solid #ef4444' : '1px solid #444'
+                    }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', lineHeight: 1.2 }}>
+                            <span style={{ fontWeight: 'bold', fontSize: '0.75rem', color: settings.maintenance_mode === 'true' ? '#ef4444' : '#fff' }}>
+                                MANTENIMIENTO
+                            </span>
+                        </div>
+                        <label className="switch" style={{ transform: 'scale(0.8)', margin: 0 }}>
+                            <input 
+                                type="checkbox" 
+                                checked={settings.maintenance_mode === 'true'} 
+                                onChange={() => {}} 
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    const nextState = !(settings.maintenance_mode === 'true');
+                                    setMaintenanceTarget(nextState);
+                                    setShowMaintenanceModal(true);
+                                }}
+                            />
+                            <span className="slider round"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
+                    {/* El grid de temas ahora es 2 columnas interno para ahorrar altura */}
                     <ThemeCard 
                         active={settings.theme === 'default'} 
                         onClick={() => handleUpdate('theme', 'default')}
-                        icon={<FaWater size={40} color="#00bcd4" />}
+                        icon={<FaWater size={32} color="#00bcd4" />}
                         title={t('admin.settings.theme.default')}
                         color="#00bcd4"
                         loading={saving === 'theme'}
                     />
-
-                    {/* HALLOWEEN */}
                     <ThemeCard 
                         active={settings.theme === 'halloween'} 
                         onClick={() => handleUpdate('theme', 'halloween')}
-                        icon={<FaGhost size={40} color="#ff7518" />}
+                        icon={<FaGhost size={32} color="#ff7518" />}
                         title={t('admin.settings.theme.halloween')}
                         color="#ff7518"
                         loading={saving === 'theme'}
                     />
-
-                    {/* NAVIDAD */}
                     <ThemeCard 
                         active={settings.theme === 'christmas'} 
                         onClick={() => handleUpdate('theme', 'christmas')}
-                        icon={<FaTree size={40} color="#ef4444" />}
+                        icon={<FaTree size={32} color="#ef4444" />}
                         title={t('admin.settings.theme.christmas')}
                         color="#ef4444"
                         loading={saving === 'theme'}
@@ -120,58 +156,62 @@ export default function SiteConfig() {
                 </div>
             </div>
 
-            {/* 2. ANUNCIOS GLOBALES */}
-            <div className="admin-card">
+            {/* 2. ANUNCIOS GLOBALES (LATERAL AHORA) */}
+            <div className="admin-card" style={{ height: '100%' }}>
                 <h3 style={{ marginBottom: '1.5rem', display:'flex', alignItems:'center', gap:'0.5rem' }}>
                     <FaBullhorn /> {t('admin.settings.announcement.title')}
                 </h3>
-                <div style={{ display: 'flex', gap: '1rem' }}>
-                    <input 
-                        className="admin-input" 
-                        placeholder={t('admin.settings.announcement.placeholder')} 
-                        value={settings.announcement || ''}
-                        onChange={(e) => setSettings(prev => ({...prev, announcement: e.target.value}))}
-                    />
-                    <button 
-                        className="btn-primary" 
-                        onClick={() => handleUpdate('announcement', settings.announcement)}
-                        disabled={saving === 'announcement'}
-                    >
-                        {saving === 'announcement' ? '...' : <FaSave />} {t('admin.settings.announcement.save')}
-                    </button>
-                </div>
-                <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '0.5rem' }}>
-                    {t('admin.settings.announcement.desc')}
-                </p>
-            </div>
-
-            {/* 3. ZONA DE PELIGRO / MANTENIMIENTO */}
-            <div className="admin-card" style={{ border: '1px solid #ef4444' }}>
-                <h3 style={{ marginBottom: '1.5rem', display:'flex', alignItems:'center', gap:'0.5rem', color: '#ef4444' }}>
-                    <FaExclamationTriangle /> {t('admin.settings.danger.title')}
-                </h3>
                 
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(239, 68, 68, 0.1)', padding: '1rem', borderRadius: '8px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                     <div>
-                        <h4 style={{ margin: 0, color: '#fff' }}>{t('admin.settings.danger.maintenance_title')}</h4>
-                        <p style={{ margin: '0.5rem 0 0', color: '#aaa', fontSize: '0.9rem' }}>
-                            {t('admin.settings.danger.maintenance_desc')}
-                        </p>
+                        <label className="admin-label">{t('admin.settings.announcement.placeholder')}</label>
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <input 
+                                className="admin-input" 
+                                placeholder="Ej: Mantenimiento programado hoy a las 20:00..." 
+                                value={settings.announcement || ''}
+                                onChange={(e) => setSettings(prev => ({...prev, announcement: e.target.value}))}
+                            />
+                            <button 
+                                className="btn-primary" 
+                                style={{ whiteSpace: 'nowrap' }}
+                                onClick={() => handleUpdate('announcement', settings.announcement)}
+                                disabled={saving === 'announcement'}
+                            >
+                                {saving === 'announcement' ? '...' : <FaSave />}
+                            </button>
+                        </div>
                     </div>
-                    <label className="switch">
-                        <input 
-                            type="checkbox" 
-                            checked={settings.maintenance_mode === 'true'} 
-                            onChange={() => {}} // Controlled manually via onClick
-                            onClick={(e) => {
-                                e.preventDefault();
-                                const nextState = !(settings.maintenance_mode === 'true');
-                                setMaintenanceTarget(nextState);
-                                setShowMaintenanceModal(true);
-                            }}
-                        />
-                        <span className="slider round"></span>
-                    </label>
+                    
+                    <div style={{ 
+                        padding: '1rem', 
+                        background: 'rgba(255,255,255,0.03)', 
+                        border: '1px solid #333',
+                        borderRadius: '4px'
+                    }}>
+                        <h4 style={{ margin: '0 0 0.5rem', fontSize: '0.85rem', color: '#aaa', textTransform: 'uppercase' }}>Vista Previa</h4>
+                        {settings.announcement ? (
+                            <div style={{
+                                background: 'var(--accent)',
+                                color: '#1a1a1a',
+                                padding: '0.4rem 1rem',
+                                textAlign: 'center',
+                                fontWeight: '600',
+                                fontSize: '0.9rem',
+                                borderRadius: '4px',
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                gap: '0.5rem'
+                            }}>
+                                <span>📢</span> {settings.announcement}
+                            </div>
+                        ) : (
+                            <p style={{ fontStyle: 'italic', color: '#666', fontSize: '0.9rem', textAlign: 'center', margin: 0 }}>
+                                La barra de anuncios está desactivada.
+                            </p>
+                        )}
+                    </div>
                 </div>
             </div>
 

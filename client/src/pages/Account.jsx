@@ -65,29 +65,14 @@ const AchievementCard = ({ title, description, icon, unlocked, criteria }) => (
 )
 
 // Nav Button Component
+// Nav Button Component
 const NavButton = ({ active, onClick, icon, label }) => (
     <button 
         onClick={onClick}
         className={`nav-btn ${active ? 'active' : ''}`}
-        style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-            width: '100%',
-            padding: '12px 16px',
-            border: 'none',
-            background: active ? 'rgba(109, 165, 192, 0.1)' : 'transparent',
-            color: active ? '#fff' : '#ccc',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            fontSize: '1rem',
-            textAlign: 'left',
-            transition: 'all 0.2s',
-            borderLeft: active ? '3px solid var(--accent)' : '3px solid transparent'
-        }}
     >
-        <span style={{ color: active ? 'var(--accent)' : '#666' }}>{icon}</span>
-        {label}
+        <span className="nav-icon">{icon}</span>
+        <span className="nav-text">{label}</span>
     </button>
 )
 
@@ -102,8 +87,8 @@ export default function Account() {
 
     // Sync state when URL changes
     useEffect(() => {
-        const tab = searchParams.get('tab')
-        if (tab && tab !== activeTab) {
+        const tab = searchParams.get('tab') || 'overview'
+        if (tab !== activeTab) {
             setActiveTabInternal(tab)
         }
     }, [searchParams, activeTab])
@@ -359,31 +344,33 @@ export default function Account() {
                             {uploading ? (
                                 <div style={{ height:'100%', display:'flex', alignItems:'center', justifyContent:'center', background:'#333' }}>...</div>
                             ) : (
-                                <img src={user.user_metadata?.avatar_url || (isLinked ? `https://mc-heads.net/avatar/${statsData?.skin_name || mcUUID}/100` : "https://ui-avatars.com/api/?name=" + (user.user_metadata?.full_name || "User"))} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                <img src={user.user_metadata?.avatar_url || (isLinked ? `https://mc-heads.net/avatar/${statsData?.username || mcUsername}/100` : "https://ui-avatars.com/api/?name=" + (user.user_metadata?.full_name || "User"))} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                             )}
                             <div style={{ position: 'absolute', bottom: 0, left: 0, width: '100%', background: 'rgba(0,0,0,0.6)', fontSize: '0.7rem', padding: '2px 0' }}><FaCamera /></div>
                         </div>
                         <input type="file" ref={fileInputRef} onChange={handleAvatarUpload} style={{ display: 'none' }} accept="image/*" />
                         
-                        {isEditingName ? (
-                            <div style={{ display: 'flex', gap: '5px', justifyContent: 'center', marginBottom: '0.5rem' }}>
-                                <input 
-                                    autoFocus 
-                                    value={newName} 
-                                    onChange={e => setNewName(e.target.value)}
-                                    placeholder={user.user_metadata?.full_name}
-                                    style={{ background: '#222', border: '1px solid #444', color: '#fff', padding: '4px', borderRadius: '4px', width: '140px' }}
-                                />
-                                <button onClick={handleNameUpdate} style={{ background: 'var(--accent)', border: 'none', borderRadius: '4px', cursor:'pointer' }}>💾</button>
-                            </div>
-                        ) : (
-                            <h3 className="user-name" style={{ color: '#fff', fontSize: '1.2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                                {user.user_metadata?.full_name || mcUsername}
-                                <FaPen size={12} style={{ cursor: 'pointer', color: 'var(--muted)' }} onClick={() => { setNewName(user.user_metadata?.full_name || ""); setIsEditingName(true); }} />
-                            </h3>
-                        )}
-                        <span className="user-email" style={{ color: 'var(--muted)', fontSize: '0.9rem' }}>{user.email}</span>
-                        {isAdmin && <Link to="/admin" className="btn-small" style={{ marginTop: '1rem', display: 'inline-block', background: '#e74c3c', padding: '0.3rem 0.8rem', fontSize: '0.8rem', borderRadius: '4px' }}><FaShieldAlt /> {t('account.admin_panel')}</Link>}
+                        <div className="user-info-group" style={{ flex: 1, minWidth: 0 }}>
+                            {isEditingName ? (
+                                <div style={{ display: 'flex', gap: '5px', justifyContent: 'center', marginBottom: '0.5rem' }}>
+                                    <input 
+                                        autoFocus 
+                                        value={newName} 
+                                        onChange={e => setNewName(e.target.value)}
+                                        placeholder={user.user_metadata?.full_name}
+                                        style={{ background: '#222', border: '1px solid #444', color: '#fff', padding: '4px', borderRadius: '4px', width: '140px' }}
+                                    />
+                                    <button onClick={handleNameUpdate} style={{ background: 'var(--accent)', border: 'none', borderRadius: '4px', cursor:'pointer' }}>💾</button>
+                                </div>
+                            ) : (
+                                <h3 className="user-name" style={{ color: '#fff', fontSize: '1.2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                    {user.user_metadata?.full_name || mcUsername}
+                                    <FaPen size={12} style={{ cursor: 'pointer', color: 'var(--muted)' }} onClick={() => { setNewName(user.user_metadata?.full_name || ""); setIsEditingName(true); }} />
+                                </h3>
+                            )}
+                            <span className="user-email" style={{ color: 'var(--muted)', fontSize: '0.9rem', display: 'block', wordBreak: 'break-all' }}>{user.email}</span>
+                            {isAdmin && <Link to="/admin" className="btn-small" style={{ marginTop: '0.5rem', display: 'inline-block', background: '#e74c3c', padding: '0.3rem 0.8rem', fontSize: '0.8rem', borderRadius: '4px' }}><FaShieldAlt /> {t('account.admin_panel')}</Link>}
+                        </div>
                     </div>
 
                     <nav className="sidebar-nav" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -488,42 +475,42 @@ export default function Account() {
                                             title={t('account.achievements.items.welcome')} 
                                             icon="👋" 
                                             unlocked={true} 
-                                            description="Te has unido a nuestra comunidad."
+                                            description={t('account.achievements.items.welcome_desc')}
                                         />
                                         <AchievementCard 
                                             title={t('account.achievements.items.first_post')} 
                                             icon="📝" 
                                             unlocked={userThreads.length > 0} 
-                                            description="Tu voz ha sido escuchada por primera vez en el foro."
-                                            criteria="Publicar 1 tema"
+                                            description={t('account.achievements.items.first_post_desc')}
+                                            criteria={t('account.achievements.items.first_post_criteria')}
                                         />
                                         <AchievementCard 
-                                            title={t('account.achievements.items.veteran', 'Veterano')} 
+                                            title={t('account.achievements.items.veteran')} 
                                             icon="⚔️" 
                                             unlocked={isVeteran} 
-                                            description="Has demostrado lealtad con horas de servicio."
-                                            criteria="+50 horas de juego"
+                                            description={t('account.achievements.items.veteran_desc')}
+                                            criteria={t('account.achievements.items.veteran_criteria')}
                                         />
                                         <AchievementCard 
-                                            title={t('account.achievements.items.donor', 'Donador')} 
+                                            title={t('account.achievements.items.donor')} 
                                             icon="💎" 
                                             unlocked={isDonor} 
-                                            description="Gracias por contribuir al crecimiento del servidor."
-                                            criteria="Rango VIP o superior"
+                                            description={t('account.achievements.items.donor_desc')}
+                                            criteria={t('account.achievements.items.donor_criteria')}
                                         />
                                         <AchievementCard 
-                                            title={t('account.achievements.items.hunter', 'Cazador')} 
+                                            title={t('account.achievements.items.hunter')} 
                                             icon="🏹" 
                                             unlocked={isHunter} 
-                                            description="Un depredador letal en el campo de batalla."
-                                            criteria="+50 Kills"
+                                            description={t('account.achievements.items.hunter_desc')}
+                                            criteria={t('account.achievements.items.hunter_criteria')}
                                         />
                                         <AchievementCard 
-                                            title="Minero" 
+                                            title={t('account.achievements.items.miner')} 
                                             icon="⛏️" 
                                             unlocked={isMiner} 
-                                            description="La base de nuestra economía está en tus manos."
-                                            criteria="+1000 Bloques minados"
+                                            description={t('account.achievements.items.miner_desc')}
+                                            criteria={t('account.achievements.items.miner_criteria')}
                                         />
                                     </div>
                                 )
@@ -547,14 +534,14 @@ export default function Account() {
                                         {/* Text Middle */}
                                         <div style={{ flex: 1 }}>
                                             <h3 style={{ margin: 0, color: '#fff', fontSize: '1.1rem' }}>Minecraft</h3>
-                                            <p style={{ margin: '4px 0 0', color: '#888', fontSize: '0.85rem' }}>{isLinked ? 'Vinculado' : 'No vinculado'}</p>
+                                            <p style={{ margin: '4px 0 0', color: '#888', fontSize: '0.85rem' }}>{isLinked ? t('account.connections.linked') : t('account.connections.not_linked')}</p>
                                         </div>
 
                                         {/* Avatar Right */}
                                         {isLinked && (
                                             <div style={{ width: '48px', height: '48px', flexShrink: 0 }}>
                                                 <img 
-                                                    src={`https://mc-heads.net/avatar/${statsData?.skin_name || mcUUID}`} 
+                                                    src={`https://mc-heads.net/avatar/${statsData?.username || mcUsername}`} 
                                                     alt={mcUsername} 
                                                     style={{ width: '100%', height: '100%', borderRadius: '8px', objectFit: 'contain', background: 'rgba(0,0,0,0.2)' }} 
                                                 />
@@ -570,7 +557,7 @@ export default function Account() {
                                         ) : (
                                             <div>
                                                 <p style={{ color: '#aaa', fontSize: '0.9rem', marginBottom: '1rem', lineHeight: '1.4' }}>
-                                                    Vincula tu cuenta para sincronizar rango y stats.
+                                                    {t('account.connections.link_desc')}
                                                 </p>
                                                 
                                                 {!linkCode ? (
@@ -579,15 +566,15 @@ export default function Account() {
                                                         disabled={linkLoading}
                                                         style={{ width: '100%', background: 'var(--accent)', border: 'none', padding: '10px', borderRadius: '6px', color: '#1a1a1a', fontWeight: 'bold', cursor: 'pointer', transition: 'opacity 0.2s', opacity: linkLoading ? 0.7 : 1 }}
                                                     >
-                                                        {linkLoading ? 'Generando...' : 'Obtener Código'}
+                                                        {linkLoading ? t('account.connections.generating') : t('account.connections.get_code')}
                                                     </button>
                                                 ) : (
                                                     <div className="link-code-box animate-pop" style={{ background: '#222', border: '1px dashed var(--accent)', padding: '1rem', borderRadius: '8px', textAlign: 'center' }}>
-                                                        <p style={{ color: '#ccc', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Escribe en el servidor:</p>
+                                                        <p style={{ color: '#ccc', marginBottom: '0.5rem', fontSize: '0.9rem' }}>{t('account.connections.type_in_server')}</p>
                                                         <code style={{ display: 'block', background: '#000', color: 'var(--accent)', padding: '0.6rem', borderRadius: '4px', fontSize: '1.1rem', fontWeight: 'bold', letterSpacing: '1px', marginBottom: '0.8rem' }}>/link {linkCode}</code>
                                                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                                                             <Loader size="small" />
-                                                            <span style={{ fontSize: '0.75rem', color: '#888' }}>Esperando...</span>
+                                                            <span style={{ fontSize: '0.75rem', color: '#888' }}>{t('account.connections.waiting')}</span>
                                                         </div>
                                                     </div>
                                                 )}
@@ -609,8 +596,8 @@ export default function Account() {
                                             <h3 style={{ margin: 0, color: '#fff', fontSize: '1.1rem' }}>Discord</h3>
                                             <p style={{ margin: '4px 0 0', color: '#888', fontSize: '0.85rem' }}>
                                                 {discordIdentity 
-                                                    ? (discordIdentity.identity_data?.full_name || discordIdentity.identity_data?.name || discordIdentity.identity_data?.user_name || 'Conectado') 
-                                                    : 'Desconectado'}
+                                                    ? (discordIdentity.identity_data?.full_name || discordIdentity.identity_data?.name || discordIdentity.identity_data?.user_name || t('account.connections.connected')) 
+                                                    : t('account.connections.disconnected')}
                                             </p>
                                         </div>
 
@@ -634,14 +621,14 @@ export default function Account() {
                                                 onMouseOver={e => e.currentTarget.style.background = 'rgba(231, 76, 60, 0.25)'}
                                                 onMouseOut={e => e.currentTarget.style.background = 'rgba(231, 76, 60, 0.15)'}
                                             >
-                                                Desvincular
+                                                {t('account.connections.unlink')}
                                             </button>
                                         ) : (
                                             <button 
                                                 onClick={() => handleLinkProvider('discord')}
                                                 style={{ width: '100%', background: '#5865F2', border: 'none', color: '#fff', padding: '10px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 15px rgba(88, 101, 242, 0.3)' }}
                                             >
-                                                Conectar Discord
+                                                {t('account.connections.connect_discord')}
                                             </button>
                                         )}
                                     </div>
@@ -660,8 +647,8 @@ export default function Account() {
                                             <h3 style={{ margin: 0, color: '#fff', fontSize: '1.1rem' }}>Twitch</h3>
                                             <p style={{ margin: '4px 0 0', color: '#888', fontSize: '0.85rem' }}>
                                                 {twitchIdentity 
-                                                    ? (twitchIdentity.identity_data?.full_name || twitchIdentity.identity_data?.name || twitchIdentity.identity_data?.login || 'Conectado') 
-                                                    : 'Desconectado'}
+                                                    ? (twitchIdentity.identity_data?.full_name || twitchIdentity.identity_data?.name || twitchIdentity.identity_data?.login || t('account.connections.connected')) 
+                                                    : t('account.connections.disconnected')}
                                             </p>
                                         </div>
 
@@ -685,14 +672,14 @@ export default function Account() {
                                                 onMouseOver={e => e.currentTarget.style.background = 'rgba(231, 76, 60, 0.25)'}
                                                 onMouseOut={e => e.currentTarget.style.background = 'rgba(231, 76, 60, 0.15)'}
                                             >
-                                                Desvincular
+                                                {t('account.connections.unlink')}
                                             </button>
                                         ) : (
                                             <button 
                                                 onClick={() => handleLinkProvider('twitch')}
                                                 style={{ width: '100%', background: '#9146FF', border: 'none', color: '#fff', padding: '10px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 15px rgba(145, 70, 255, 0.3)' }}
                                             >
-                                                Conectar Twitch
+                                                {t('account.connections.connect_twitch')}
                                             </button>
                                         )}
                                     </div>

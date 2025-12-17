@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { FaPlus, FaEdit, FaTrash, FaHammer, FaDiceD20, FaMapMarkedAlt, FaRunning, FaCheckCircle, FaHourglassStart, FaFlagCheckered, FaExclamationTriangle } from "react-icons/fa"
 import { useTranslation } from "react-i18next"
 
-export default function EventsManager({ user }) {
+export default function EventsManager() {
     const { t } = useTranslation()
     const [events, setEvents] = useState([])
     const [loading, setLoading] = useState(true)
@@ -28,11 +28,7 @@ export default function EventsManager({ user }) {
 
     const API_URL = import.meta.env.VITE_API_URL
 
-    useEffect(() => {
-        fetchEvents()
-    }, [])
-
-    const fetchEvents = async () => {
+    const fetchEvents = useCallback(async () => {
         try {
             const res = await fetch(`${API_URL}/events`)
             const data = await res.json()
@@ -44,7 +40,11 @@ export default function EventsManager({ user }) {
         } finally {
             setLoading(false)
         }
-    }
+    }, [API_URL])
+
+    useEffect(() => {
+        fetchEvents()
+    }, [fetchEvents])
 
     const handleEdit = (event) => {
         setCurrentEvent(event)

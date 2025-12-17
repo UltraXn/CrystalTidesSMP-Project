@@ -23,7 +23,7 @@ const ContestCard = ({ event, onRegister, registering, isRegistered }) => {
                        status === 'soon' ? t('contests.status.soon') :
                        t('contests.status.finished');
 
-    const statusClass = `status-${status}`
+
 
     return (
         <div className="contest-card">
@@ -123,7 +123,7 @@ export default function Contests() {
         }
 
         fetchData()
-    }, [user]) // Re-run if user logs in/out
+    }, [user, API_URL]) // Re-run if user logs in/out
 
     const handleRegister = async (eventId) => {
         if (!user) {
@@ -188,9 +188,9 @@ export default function Contests() {
     return (
         <Section title={t('contests.title')}>
             <Section>
-                <p style={{ textAlign: "center", maxWidth: "700px", margin: "0 auto 3rem", color: "var(--muted)" }}>
-                    {t('contests.intro')}
-                </p>
+                <div className="crystal-card">
+                    <p>{t('contests.intro')}</p>
+                </div>
             </Section>
 
             <div className="contests-grid">

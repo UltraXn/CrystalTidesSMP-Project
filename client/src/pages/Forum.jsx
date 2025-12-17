@@ -95,7 +95,7 @@ export default function Forum() {
             })
             .catch(err => console.error("Error loading news:", err))
 
-    }, [])
+    }, [API_URL])
 
     return (
         <div className="section" style={{ minHeight: '80vh', paddingTop: '8rem' }}>
@@ -105,7 +105,7 @@ export default function Forum() {
             </p>
 
             {/* Featured Section: Poll OR News */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem', maxWidth: '1000px', margin: '0 auto 4rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem', maxWidth: '1000px', margin: '0 auto 4rem' }}>
                 
                 {/* Active Poll Column */}
                 <div>

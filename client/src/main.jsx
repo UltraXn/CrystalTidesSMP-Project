@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-// 1. Main CSS Entry
+// 1. styles
+import './styles/tailwind.css'
 import './styles/main.css'
 // import './index.css'
 

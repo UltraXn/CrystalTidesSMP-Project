@@ -92,10 +92,10 @@ export default function DashboardOverview() {
         : 0;
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        <div className="dashboard-wrapper">
 
             {/* KPI CARDS */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem' }}>
+            <div className="admin-kpi-grid">
                 <StatCard
                     title={t('admin.dashboard.stats.server_status')}
                     value={serverStats.online ? "ONLINE" : (serverStats.status || "OFFLINE").toUpperCase()}
@@ -127,84 +127,104 @@ export default function DashboardOverview() {
             </div>
 
             {/* ANALYTICS SECTION */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '1.5rem' }}>
+            <div className="admin-analytics-grid">
 
                 {/* Resource Usage (Real Data) */}
-                <div className="admin-card">
-                    <h3 style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between' }}>
-                        <span>{t('admin.dashboard.resources.title')}</span>
+                <div className="admin-card" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                    <h3 style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <FaServer style={{ color: 'var(--accent)' }} /> 
+                            {t('admin.dashboard.resources.title')}
+                        </span>
                         <small style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>{t('admin.dashboard.resources.updated_now')}</small>
                     </h3>
 
-                    <div style={{ marginBottom: '1.5rem' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><FaMicrochip /> {t('admin.dashboard.resources.cpu')}</span>
-                            <span style={{ fontWeight: 'bold' }}>{serverStats.cpu}%</span>
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2rem', justifyContent: 'center' }}>
+                        <div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.8rem' }}>
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', color: '#ccc' }}>
+                                    <FaMicrochip /> {t('admin.dashboard.resources.cpu')}
+                                </span>
+                                <span style={{ fontWeight: 'bold', color: '#fff' }}>{serverStats.cpu}%</span>
+                            </div>
+                            <div style={{ width: '100%', height: '10px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px', overflow: 'hidden' }}>
+                                <div style={{ width: `${Math.min(serverStats.cpu, 100)}%`, height: '100%', background: 'linear-gradient(90deg, #f87171, #ef4444)', transition: 'width 1s ease-out' }}></div>
+                            </div>
                         </div>
-                        <div style={{ width: '100%', height: '8px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px', overflow: 'hidden' }}>
-                            <div style={{ width: `${Math.min(serverStats.cpu, 100)}%`, height: '100%', background: '#f87171', transition: 'width 1s' }}></div>
-                        </div>
-                    </div>
 
-                    <div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><FaMemory /> {t('admin.dashboard.resources.ram')}</span>
-                            <span style={{ fontWeight: 'bold' }}>{serverStats.memory.current} MB / {serverStats.memory.limit} MB</span>
-                        </div>
-                        <div style={{ width: '100%', height: '8px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px', overflow: 'hidden' }}>
-                            <div style={{ width: `${memoryPercent}%`, height: '100%', background: '#60a5fa', transition: 'width 1s' }}></div>
+                        <div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.8rem' }}>
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', color: '#ccc' }}>
+                                    <FaMemory /> {t('admin.dashboard.resources.ram')}
+                                </span>
+                                <span style={{ fontWeight: 'bold', color: '#fff' }}>{serverStats.memory.current} / {serverStats.memory.limit} MB</span>
+                            </div>
+                            <div style={{ width: '100%', height: '10px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px', overflow: 'hidden' }}>
+                                <div style={{ width: `${memoryPercent}%`, height: '100%', background: 'linear-gradient(90deg, #60a5fa, #3b82f6)', transition: 'width 1s ease-out' }}></div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 {/* Staff Activity */}
-                <div className="admin-card">
-                    <h3 style={{ marginBottom: '1rem' }}>Staff Online</h3>
-                    {serverStats.online ? (
-                        <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                            {staffOnline.length > 0 ? (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                                    {staffOnline.map((staff, idx) => (
-                                        <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: 'rgba(255,255,255,0.03)', padding: '0.8rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                                            <img src={staff.avatar} alt={staff.username} style={{ width: '32px', height: '32px', borderRadius: '50%' }} />
-                                            <div>
-                                                <div style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>{staff.username}</div>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
-                                                    {staff.role_image ? (
-                                                        <img src={staff.role_image} alt={staff.role} style={{ height: 'auto', maxHeight: '32px', display: 'block' }} />
-                                                    ) : (
-                                                        <span style={{ fontSize: '0.8rem', color: '#aaa', textTransform: 'capitalize' }}>{staff.role}</span>
-                                                    )}
-                                                    
-                                                    {staff.login_time && (
-                                                        <span style={{ fontSize: '0.75rem', color: '#888', display: 'flex', alignItems: 'center', background: 'rgba(0,0,0,0.3)', padding: '2px 6px', borderRadius: '4px' }}>
-                                                            <FaClock size={10} style={{ marginRight: '4px' }} />
+                <div className="admin-card" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                    <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <FaUsers style={{ color: 'var(--accent)' }} /> 
+                        Staff Online
+                        {staffOnline.length > 0 && <span style={{ background: '#4ade80', color: '#000', fontSize: '0.75rem', padding: '2px 8px', borderRadius: '10px', marginLeft: 'auto' }}>{staffOnline.length} Active</span>}
+                    </h3>
+                    
+                    <div style={{ flex: 1 }}>
+                        {serverStats.online ? (
+                            <div style={{ maxHeight: '300px', overflowY: 'auto', paddingRight: '5px' }}>
+                                {staffOnline.length > 0 ? (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                                        {staffOnline.map((staff, idx) => (
+                                            <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: 'rgba(255,255,255,0.03)', padding: '0.8rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)', transition: 'transform 0.2s', cursor: 'default' }} onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'} onMouseOut={e => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}>
+                                                <div style={{ position: 'relative' }}>
+                                                    <img src={staff.avatar} alt={staff.username} style={{ width: '38px', height: '38px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.1)' }} />
+                                                    <div style={{ position: 'absolute', bottom: 0, right: 0, width: '10px', height: '10px', background: '#4ade80', borderRadius: '50%', border: '2px solid #1a1a1a' }}></div>
+                                                </div>
+                                                <div style={{ flex: 1 }}>
+                                                    <div style={{ fontWeight: 'bold', fontSize: '0.95rem', color: '#fff' }}>{staff.username}</div>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+                                                        {staff.role_image ? (
+                                                            <img src={staff.role_image} alt={staff.role} style={{ height: '24px', objectFit: 'contain' }} />
+                                                        ) : (
+                                                            <span style={{ fontSize: '0.75rem', background: 'rgba(255,255,255,0.1)', padding: '2px 6px', borderRadius: '4px', color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{staff.role}</span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                {staff.login_time && (
+                                                    <div style={{ fontSize: '0.8rem', color: '#888', textAlign: 'right' }}>
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', justifyContent: 'flex-end' }}>
+                                                            <FaClock size={12} />
                                                             {(() => {
                                                                 const diff = Date.now() - staff.login_time;
                                                                 const hours = Math.floor(diff / 3600000);
                                                                 const mins = Math.floor((diff % 3600000) / 60000);
                                                                 return `${hours}h ${mins}m`;
                                                             })()}
-                                                        </span>
-                                                    )}
-                                                </div>
+                                                        </div>
+                                                        <small style={{ opacity: 0.6 }}>Online</small>
+                                                    </div>
+                                                )}
                                             </div>
-                                            <div style={{ marginLeft: 'auto', width: '8px', height: '8px', borderRadius: '50%', background: '#4ade80', boxShadow: '0 0 5px #4ade80' }}></div>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--muted)', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', border: '1px dashed rgba(255,255,255,0.1)' }}>
-                                    <FaUsers size={24} style={{ marginBottom: '0.5rem', opacity: 0.7 }} />
-                                    <p style={{ margin: 0, fontStyle: 'italic' }}>
-                                        No hay staff conectado
-                                    </p>
-                                </div>
-                            )}
-                        </div>
-                    ) : (
-                        <p style={{ color: 'var(--muted)', textAlign: 'center', marginTop: '2rem' }}>{t('admin.dashboard.staff.offline_msg')}</p>
-                    )}
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '3rem 0', opacity: 0.6 }}>
+                                        <FaUsers size={32} style={{ marginBottom: '1rem', color: '#666' }} />
+                                        <p style={{ margin: 0, fontStyle: 'italic', color: '#888' }}>No hay staff conectado</p>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <p style={{ color: 'var(--muted)', textAlign: 'center' }}>{t('admin.dashboard.staff.offline_msg')}</p>
+                            </div>
+                        )}
+                    </div>
                 </div>
 
             </div>

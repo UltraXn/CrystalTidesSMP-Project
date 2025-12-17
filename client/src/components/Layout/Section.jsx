@@ -33,7 +33,7 @@ export default function Section({
                 delay: delay
             });
         }
-    }, [isVisible, delay, direction]);
+    }, [isVisible, delay, direction, ref]);
 
     if (title) {
         return (

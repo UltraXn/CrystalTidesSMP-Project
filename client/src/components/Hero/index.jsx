@@ -89,15 +89,20 @@ export default function Hero() {
 
         fetchPlayerCount();
 
+        // Capture current refs for cleanup
+        const welcomeEl = welcomeRef.current;
+        const descEl = descRef.current;
+        const containerEl = containerRef.current;
+
         // Cleanup
         return () => {
             tl.pause();
             if (countAnimation) countAnimation.pause();
-            anime.remove([welcomeRef.current, descRef.current, containerRef.current]);
+            anime.remove([welcomeEl, descEl, containerEl]);
             anime.remove('.hero-brand-char');
         };
 
-    }, [])
+    }, [API_URL])
 
     const handleCopy = () => {
         navigator.clipboard.writeText(ip)
@@ -117,7 +122,7 @@ export default function Hero() {
                     minWidth: char === ' ' ? '12px' : 'auto'
                 }}
             >
-                {char === ' ' ? '\u00A0' : char}
+                {char}
             </span>
         ));
     };
@@ -130,51 +135,53 @@ export default function Hero() {
                 <h1>
                     <span
                         ref={welcomeRef}
-                        style={{ display: 'inline-block', opacity: 0, color: 'var(--text)' }}
+                        style={{ display: 'inline-block', color: 'var(--text)' }}
                     >
                         {t('hero.welcome')}
                     </span>
                     {" "}
-                    <span className="brand-wrapper">
+                    <span className="brand-wrapper" style={{ display: 'inline-block', maxWidth: '100%', wordBreak: 'break-word' }}>
                         {renderBrandText()}
                     </span>
                 </h1>
 
-                <p ref={descRef} style={{ opacity: 0 }}>
+                <p ref={descRef}>
                     {t('hero.description')}
                 </p>
 
                 <div
                     className="server-connect-container"
                     ref={containerRef}
-                    style={{ opacity: 0 }}
+                    style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
                 >
-                    <div className="online-count" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '1rem', color: isOnline === false ? '#ef4444' : '#4ade80', fontWeight: 'bold' }}>
+                    <div className="server-status-pill">
                         {isOnline === false ? (
                             <>
-                                <span style={{ width: 10, height: 10, background: '#ef4444', borderRadius: '50%', boxShadow: '0 0 10px #ef4444' }}></span>
+                                <span className="status-dot" style={{ background: '#ef4444', boxShadow: '0 0 8px #ef4444' }}></span>
                                 OFFLINE
                             </>
                         ) : (
                             <>
-                                <FaUsers />
+                                <span className="status-dot"></span>
                                 <span ref={countRef}>{playerCount}</span> {t('hero.players_online')}
                             </>
                         )}
                     </div>
 
-                    <h2>{t('hero.connect')}</h2>
-                    <div className="server-ip-box">
-                        <div className="server-ip-info">
-                            <span className="server-edition">{t('hero.java_edition')}</span>
-                            <span className="server-ip">{ip}</span>
+                    <div className="ip-container">
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                            <span style={{ fontSize: '0.8rem', color: '#89D9D1', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '0.2rem', fontWeight: '600' }}>
+                                {t('hero.java_edition')}
+                            </span>
+                            <span className="ip-text">{ip}</span>
                         </div>
-                        <button onClick={handleCopy} className="btn-copy-box">
+                        <button onClick={handleCopy} className="copy-btn">
                             {copied ? <FaCheck /> : <FaCopy />}
                             {copied ? t('hero.copied') : t('hero.copy_ip')}
                         </button>
                     </div>
-                    <a href="#donors" className="btn-donate-hero">{t('footer.donate')}</a>
+
+                    <Link to="/#donors" className="btn-donate-hero">{t('footer.donate')}</Link>
                 </div>
             </div>
         </section>

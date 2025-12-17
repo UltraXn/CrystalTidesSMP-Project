@@ -31,72 +31,85 @@ export default function ForumCategory() {
     const API_URL = import.meta.env.VITE_API_URL
 
     useEffect(() => {
-        setLoading(true)
-        if (!categoryId) {
-            setLoading(false)
-            return
-        }
+        // Reset loading on id change not needed if we trust the flow, but good practice if switching categories.
+        // However, triggering state immediately is bad.
+        // Let's just create an async function.
+        const fetchData = async () => {
+             setLoading(true)
+             if (!categoryId) {
+                 setLoading(false)
+                 return
+             }
 
         if (String(categoryId) === "1") {
-            // Fetch real news for "Anuncios"
-            fetch(`${API_URL}/news`)
-                .then(res => res.json())
-                .then(data => {
-                    const mappedNews = Array.isArray(data) ? data.filter(n => n.status === 'Published').map(n => ({
-                        id: n.id,
-                        title: n.title,
-                        author: "Staff",
-                        replies: n.replies || 0,
-                        views: n.views || 0,
-                        lastActivity: new Date(n.created_at).toLocaleDateString(),
-                        pinned: true,
-                        tag: n.category
-                    })) : []
-                    setThreads(mappedNews)
-                    setLoading(false)
-                })
-                .catch(err => {
-                    console.error("Error loading forum news:", err)
-                    setLoading(false)
-                })
+            try {
+                // Fetch real news for "Anuncios"
+                const res = await fetch(`${API_URL}/news`)
+                const data = await res.json()
+                const mappedNews = Array.isArray(data) ? data.filter(n => n.status === 'Published').map(n => ({
+                    id: n.id,
+                    title: n.title,
+                    author: "Staff",
+                    replies: n.replies || 0,
+                    views: n.views || 0,
+                    lastActivity: new Date(n.created_at).toLocaleDateString(),
+                    pinned: true,
+                    tag: n.category
+                })) : []
+                setThreads(mappedNews)
+            } catch (err) {
+                 console.error("Error loading forum news:", err)
+            } finally {
+                 setLoading(false)
+            }
         } else {
-            // Fetch real user threads
-            fetch(`${API_URL}/forum/category/${categoryId}`)
-                .then(res => res.json())
-                .then(data => {
-                     const mappedThreads = Array.isArray(data) ? data.map(t => ({
-                         id: t.id,
-                         title: t.title,
-                         author: t.author_name || "Anónimo",
-                         replies: t.reply_count || 0,
-                         views: t.views || 0,
-                         lastActivity: new Date(t.created_at).toLocaleDateString(),
-                         pinned: t.pinned || false,
-                         tag: null // No tags in users threads for now
-                     })) : []
-                     setThreads(mappedThreads)
-                     setLoading(false)
-                })
-                .catch(err => {
-                    console.error(err)
-                    setLoading(false)
-                })
+            try {
+                // Fetch real user threads
+                const res = await fetch(`${API_URL}/forum/category/${categoryId}`)
+                const data = await res.json()
+                const mappedThreads = Array.isArray(data) ? data.map(t => ({
+                     id: t.id,
+                     title: t.title,
+                     author: t.author_name || "Anónimo",
+                     replies: t.reply_count || 0,
+                     views: t.views || 0,
+                     lastActivity: new Date(t.created_at).toLocaleDateString(),
+                     pinned: t.pinned || false,
+                     tag: null // No tags in users threads for now
+                })) : []
+                setThreads(mappedThreads)
+            } catch (err) {
+                console.error(err)
+            } finally {
+                setLoading(false)
+            }
         }
-    }, [categoryId, slug])
+    }
+    
+    fetchData()
+    }, [categoryId, slug, API_URL])
 
     return (
         <div className="section" style={{ minHeight: '80vh', paddingTop: '8rem' }}>
-            <div className="forum-header" style={{ maxWidth: '900px', margin: '0 auto 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                    <Link to="/forum" style={{ color: 'var(--muted)', fontSize: '0.9rem', marginBottom: '0.5rem', display: 'block', textDecoration: 'none' }}>&larr; {t('forum_category.back_link')}</Link>
-                    <h2 style={{ fontSize: '2rem', margin: 0 }}>{categoryTitle}</h2>
-                </div>
-
-                {String(categoryId) !== "1" && (
-                    <Link to="/forum/create" className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration:'none' }}>
-                        <FaPen /> {t('forum_category.new_thread')}
+            <div className="forum-header" style={{ maxWidth: '900px', margin: '0 auto 2rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <Link to="/forum" style={{ color: 'var(--muted)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none', transition: 'color 0.2s' }}
+                        onMouseOver={(e) => e.target.style.color = 'var(--accent)'}
+                        onMouseOut={(e) => e.target.style.color = 'var(--muted)'}
+                    >
+                        &larr; {t('forum_category.back_link')}
                     </Link>
-                )}
+
+                    {String(categoryId) !== "1" && (
+                        <Link to="/forum/create" className="btn" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
+                            <FaPen /> {t('forum_category.new_thread')}
+                        </Link>
+                    )}
+                </div>
+                
+                <div style={{ textAlign: 'center', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '1.5rem' }}>
+                    <h2 style={{ fontSize: '2.5rem', margin: 0, textTransform: 'uppercase', letterSpacing: '2px', color: 'var(--accent)', textShadow: '0 0 10px rgba(137, 217, 209, 0.3)' }}>{categoryTitle}</h2>
+                </div>
             </div>
 
             <div className="threads-list" style={{ maxWidth: '900px', margin: '0 auto' }}>

@@ -13,7 +13,7 @@ import AdminNews from "@/components/Admin/AdminNews"
 import SuggestionsManager from "@/components/Admin/SuggestionsManager"
 import PollsManager from "@/components/Admin/PollsManager"
 import EventsManager from "@/components/Admin/EventsManager"
-import SiteConfig from "@/components/Admin/SiteConfig"
+import StaffWorkspace from "@/components/Admin/StaffHub/StaffWorkspace"
 
 export default function AdminPanel() {
     const { t } = useTranslation()
@@ -78,26 +78,14 @@ export default function AdminPanel() {
                 <AdminTab active={activeTab === 'polls'} onClick={() => setActiveTab('polls')} label={t('admin.tabs.polls')} />
                 <AdminTab active={activeTab === 'events'} onClick={() => setActiveTab('events')} label={t('admin.tabs.events')} />
                 <AdminTab active={activeTab === 'news'} onClick={() => setActiveTab('news')} label={t('admin.tabs.news')} />
+                <AdminTab active={activeTab === 'staff_hub'} onClick={() => setActiveTab('staff_hub')} label="Staff Hub" />
                 <AdminTab active={activeTab === 'logs'} onClick={() => setActiveTab('logs')} label={t('admin.tabs.logs')} />
                 <AdminTab active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} label={t('admin.tabs.settings')} />
             </div>
 
             {/* Main Content */}
             <main className="admin-content-full">
-                 <div className="section-header">
-                    <h2>
-                        {activeTab === 'overview' && t('admin.headers.general')}
-                        {activeTab === 'tickets' && t('admin.headers.tickets')}
-                        {activeTab === 'users' && t('admin.headers.users')}
-                        {activeTab === 'suggestions' && t('admin.headers.suggestions')}
-                        {activeTab === 'polls' && t('admin.headers.polls')}
-                        {activeTab === 'events' && t('admin.headers.events')}
-                        {activeTab === 'news' && t('admin.headers.news')}
-                        {activeTab === 'logs' && t('admin.headers.logs')}
-                        {activeTab === 'settings' && t('admin.headers.settings')}
-                    </h2>
-                     <p className="section-subtitle">{t('admin.panel_subtitle')}</p>
-                </div>
+
 
                 {activeTab === 'overview' && <DashboardOverview />}
                 {activeTab === 'tickets' && <TicketsManager />}
@@ -106,6 +94,7 @@ export default function AdminPanel() {
                 {activeTab === 'polls' && <PollsManager />}
                 {activeTab === 'events' && <EventsManager />}
                 {activeTab === 'news' && <AdminNews user={user} />}
+                {activeTab === 'staff_hub' && <StaffWorkspace />}
                 {activeTab === 'logs' && <AuditLog />}
                 {activeTab === 'settings' && <SiteConfig />}
             </main>

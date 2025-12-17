@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion'
 import { FaTools, FaDiscord } from 'react-icons/fa'
 import { Link } from 'react-router-dom' // For admin login link if needed

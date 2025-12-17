@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { FaCalendarAlt, FaTag, FaSearch, FaArrowRight } from "react-icons/fa"
 import Section from "@/components/Layout/Section"
 
@@ -10,15 +10,14 @@ const CATEGORIES = ["Todas", "Evento", "Update", "Sistema", "Comunidad"]
 export default function NewsPage() {
     const [news, setNews] = useState([])
     const [loading, setLoading] = useState(true)
-    const [activeCategory, setActiveCategory] = useState("Todas")
-    const [search, setSearch] = useState("")
+
 
     useEffect(() => {
         const apiUrl = import.meta.env.VITE_API_URL
         if (!apiUrl) {
             console.error("VITE_API_URL no está definida. Reinicia el servidor frontend.")
             // Fallback para evitar pantalla negra si falta la env
-            setLoading(false)
+            setTimeout(() => setLoading(false), 0)
             return
         }
 
@@ -37,12 +36,6 @@ export default function NewsPage() {
                 setLoading(false)
             })
     }, [])
-
-    const filteredNews = news.filter(post => {
-        const matchesCategory = activeCategory === "Todas" || post.category === activeCategory
-        const matchesSearch = post.title.toLowerCase().includes(search.toLowerCase())
-        return matchesCategory && matchesSearch
-    })
 
     if (loading) {
         return (

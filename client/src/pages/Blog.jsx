@@ -53,7 +53,7 @@ export default function Blog() {
             })
             .catch(err => console.error("Error cargando noticias home:", err))
             .finally(() => setLoading(false))
-    }, [])
+    }, [API_URL])
 
     return (
         <Section title={t('blog.title')}>

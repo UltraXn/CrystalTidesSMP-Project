@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { FaSearch, FaPlus, FaTimes, FaSpinner, FaCircle, FaPaperPlane, FaGavel, FaCheckCircle, FaLock, FaEye, FaTicketAlt, FaExclamationCircle, FaExclamationTriangle } from "react-icons/fa"
 import { useAuth } from "@/context/AuthContext"
 import { useTranslation } from 'react-i18next'
@@ -256,13 +256,7 @@ function TicketDetailModal({ ticket, onClose, refreshTickets }) {
     const [confirmAction, setConfirmAction] = useState(null)
     const scrollRef = useRef(null)
 
-    useEffect(() => {
-        if (ticket) {
-            fetchMessages()
-        }
-    }, [ticket])
-
-    const fetchMessages = async () => {
+    const fetchMessages = useCallback(async () => {
         try {
             const res = await fetch(`${API_URL}/tickets/${ticket.id}/messages`)
             if (res.ok) {
@@ -275,7 +269,13 @@ function TicketDetailModal({ ticket, onClose, refreshTickets }) {
         } catch (error) {
             console.error("Error fetching messages:", error)
         }
-    }
+    }, [ticket.id])
+
+    useEffect(() => {
+        if (ticket) {
+            fetchMessages()
+        }
+    }, [ticket, fetchMessages])
 
     const handleSendMessage = async (e) => {
         e.preventDefault()
@@ -452,7 +452,7 @@ function TicketDetailModal({ ticket, onClose, refreshTickets }) {
     )
 }
 
-function BanUserModal({ ticket, onClose, onSuccess }) {
+function BanUserModal({ onClose, onSuccess }) {
     const { t } = useTranslation()
     const [nickname, setNickname] = useState('') // El admin debe confirmar el nick exacto
     const [reason, setReason] = useState('')

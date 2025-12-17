@@ -1,4 +1,4 @@
-import { FaGem, FaHandshake, FaDungeon } from "react-icons/fa"
+import { FaGem, FaHandshake, FaCalendarAlt } from "react-icons/fa"
 import { useTranslation } from 'react-i18next'
 
 export default function ServerFeatures() {
@@ -16,16 +16,16 @@ export default function ServerFeatures() {
             desc: t('features.protection_desc')
         },
         {
-            icon: <FaDungeon size={40} color="#ef9a9a" />, // Light red
-            title: t('features.dungeons_title'),
-            desc: t('features.dungeons_desc')
+            icon: <FaCalendarAlt size={40} color="#ffab91" />, // Light orange
+            title: t('features.events_title'),
+            desc: t('features.events_desc')
         }
     ]
 
     return (
         <div className="features-grid" style={{ 
             display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', 
+            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', 
             gap: '2rem', 
             marginTop: '3rem' 
         }}>

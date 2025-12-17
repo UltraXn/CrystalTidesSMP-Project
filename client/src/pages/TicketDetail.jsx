@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+// eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
@@ -18,31 +19,13 @@ export default function TicketDetail() {
     const [newMessage, setNewMessage] = useState('')
     const [loading, setLoading] = useState(true)
 
-    useEffect(() => {
-        if (id && user) {
-            fetchTicketData()
-            
-            // Subscribe to real-time messages
-            const channel = supabase
-                .channel(`ticket_chat_${id}`)
-                .on('postgres_changes', { 
-                    event: 'INSERT', 
-                    schema: 'public', 
-                    table: 'ticket_messages',
-                    filter: `ticket_id=eq.${id}`
-                }, (payload) => {
-                    setMessages(prev => [...prev, payload.new])
-                    scrollToBottom()
-                })
-                .subscribe()
+    const scrollToBottom = useCallback(() => {
+        setTimeout(() => {
+            messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+        }, 100)
+    }, [])
 
-            return () => {
-                supabase.removeChannel(channel)
-            }
-        }
-    }, [id, user])
-
-    const fetchTicketData = async () => {
+    const fetchTicketData = useCallback(async () => {
         try {
             // Fetch Ticket Info
             const { data: ticketData, error: ticketError } = await supabase
@@ -69,13 +52,31 @@ export default function TicketDetail() {
             console.error('Error fetching details:', error)
             navigate('/support') // Fallback if not authorized or not found
         }
-    }
+    }, [id, navigate, scrollToBottom])
 
-    const scrollToBottom = () => {
-        setTimeout(() => {
-            messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-        }, 100)
-    }
+    useEffect(() => {
+        if (id && user) {
+            fetchTicketData()
+            
+            // Subscribe to real-time messages
+            const channel = supabase
+                .channel(`ticket_chat_${id}`)
+                .on('postgres_changes', { 
+                    event: 'INSERT', 
+                    schema: 'public', 
+                    table: 'ticket_messages',
+                    filter: `ticket_id=eq.${id}`
+                }, (payload) => {
+                    setMessages(prev => [...prev, payload.new])
+                    scrollToBottom()
+                })
+                .subscribe()
+
+            return () => {
+                supabase.removeChannel(channel)
+            }
+        }
+    }, [id, user, fetchTicketData, scrollToBottom])
 
     const handleSendMessage = async (e) => {
         e.preventDefault()

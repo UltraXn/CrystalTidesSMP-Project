@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { FaPlus, FaEdit, FaTrash, FaImage, FaSearch, FaExclamationTriangle } from "react-icons/fa"
 import { useTranslation } from "react-i18next"
 
@@ -12,12 +12,7 @@ export default function AdminNews({ user }) {
 
     const API_URL = import.meta.env.VITE_API_URL
 
-    // Cargar noticias al montar
-    useEffect(() => {
-        fetchNews()
-    }, [])
-
-    const fetchNews = async () => {
+    const fetchNews = useCallback(async () => {
         try {
             const res = await fetch(`${API_URL}/news`)
             const data = await res.json()
@@ -27,7 +22,12 @@ export default function AdminNews({ user }) {
         } finally {
             setLoading(false)
         }
-    }
+    }, [API_URL])
+
+    // Cargar noticias al montar
+    useEffect(() => {
+        fetchNews()
+    }, [fetchNews])
 
     const handleEdit = (post) => {
         setCurrentPost(post)

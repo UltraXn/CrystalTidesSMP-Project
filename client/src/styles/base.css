@@ -10,8 +10,15 @@
     --text: #FFFFFF;
     --muted: #D9D9D9;
 
-    --radius: 10px;
+    --radius: 3px;
     --speed: 0.25s ease;
+
+    /* Tu Paleta CrystalTides (RGB) */
+    --ct-void: 11, 12, 16;       /* #0B0C10 - Fondo Oscuro */
+    --ct-deep: 12, 89, 82;       /* #0C5952 - Verde Profundo */
+    --ct-tide: 22, 140, 128;     /* #168C80 - Verde Mar */
+    --ct-crystal: 137, 217, 209; /* #89D9D1 - Acento Cian */
+    --ct-text: 255, 255, 255;    /* #FFFFFF */
 }
 
 /* Themes */
@@ -50,15 +57,17 @@ body {
     color: var(--text);
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
-    cursor: url('/cursor.png'), auto;
+    /* cursor: url('/cursor.png'), auto; */
 }
 
 #root {
     width: 100%;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
     margin: 0;
     padding: 0;
     text-align: left;
-    /* Reset text align to normal */
     position: relative;
     z-index: 1;
 }

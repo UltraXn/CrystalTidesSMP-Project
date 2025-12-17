@@ -146,4 +146,13 @@ const closePoll = async (id) => {
     return { success: true };
 };
 
-module.exports = { getActivePoll, votePoll, createPoll, closePoll, getPollById };
+const deletePoll = async (id) => {
+    // 1. Delete options first (manual cascade)
+    await supabase.from('poll_options').delete().eq('poll_id', id);
+    // 2. Delete poll
+    const { error } = await supabase.from('polls').delete().eq('id', id);
+    if(error) throw error;
+    return { success: true };
+};
+
+module.exports = { getActivePoll, votePoll, createPoll, closePoll, getPollById, deletePoll };

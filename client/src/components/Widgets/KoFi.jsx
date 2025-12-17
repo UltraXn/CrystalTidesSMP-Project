@@ -4,8 +4,7 @@ import anime from 'animejs';
 const KoFiWidget = ({
     kofiId = "G2G03Y8FL",
     color = "#0C5952",
-    text = "¡Dona por Ko-Fi!",
-    overlay = false
+    text = "¡Dona por Ko-Fi!"
 }) => {
     useEffect(() => {
         // Load the Ko-Fi script
@@ -34,7 +33,7 @@ const KoFiWidget = ({
     return null;
 };
 
-const KoFiButton = ({ kofiId = "G2G03Y8FL" }) => {
+const KoFiButton = ({ kofiId = "G2G03Y8FL", text = "¡Dona por Ko-Fi!" }) => {
     const iconRef = useRef(null);
     const animationRef = useRef(null);
 
@@ -78,7 +77,7 @@ const KoFiButton = ({ kofiId = "G2G03Y8FL" }) => {
                 alt="Ko-fi donation icon"
                 style={{ height: '20px', width: 'auto', display: 'block' }}
             />
-            <span>¡Dona en Ko-Fi!</span>
+            <span>{text}</span>
         </a>
     );
 }

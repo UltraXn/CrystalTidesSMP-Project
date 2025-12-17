@@ -6,26 +6,18 @@ import Navbar from "@/components/Layout/Navbar"
 import SocialSidebar from "@/components/Layout/SocialSidebar"
 import ScrollToHash from "@/components/Utils/ScrollToHash"
 import TypingBubbles from "@/components/Effects/TypingBubbles"
-import SectionDivider from "@/components/Layout/SectionDivider"
 import AmbientBubbles from "@/components/Effects/AmbientBubbles"
 
 import Home from "@/pages/Home"
-import Blog from "@/pages/Blog"
-import Rules from "@/pages/Rules"
-import Donors from "@/pages/Donors"
-import Contests from "@/pages/Contests"
-import Suggestions from "@/pages/Suggestions"
 import Account from "@/pages/Account"
 import Login from "@/pages/Login"
 import Register from "@/pages/Register"
 import ForgotPassword from "@/pages/ForgotPassword"
 import Map from "@/pages/Map"
-import NewsPage from "@/pages/NewsPage"
 import NotFound from "@/pages/NotFound"
 import Maintenance from "@/pages/Maintenance"
 import Verify from "@/pages/Verify"
 
-import Stories from "@/pages/Stories"
 import Forum from "@/pages/Forum"
 import ForumCategory from "@/pages/ForumCategory"
 import ForumThread from "@/pages/ForumThread"
@@ -134,69 +126,33 @@ export default function App() {
       <ScrollToHash />
       <HeaderWrapper announcement={announcement} />
 
-      <Routes>
-        <Route path="/" element={
-          <main>
-            <div id="home">
-              <Home />
-            </div>
-            <SectionDivider />
-            <div id="rules">
-              <Rules />
-            </div>
-            <SectionDivider />
-            <div id="donors">
-              <LazyWrapper minHeight="60vh" rootMargin="600px 0px">
-                <Donors />
-              </LazyWrapper>
-            </div>
-            <SectionDivider />
-            <div id="contests">
-              <LazyWrapper minHeight="50vh">
-                <Contests />
-              </LazyWrapper>
-            </div>
-            <SectionDivider />
-            <div id="news">
-              <LazyWrapper minHeight="50vh">
-                <Blog />
-              </LazyWrapper>
-            </div>
-            <SectionDivider />
-            <div id="stories">
-              <LazyWrapper minHeight="80vh">
-                <Stories />
-              </LazyWrapper>
-            </div>
-            <SectionDivider />
-            <div id="suggestions">
-              <LazyWrapper minHeight="50vh">
-                <Suggestions />
-              </LazyWrapper>
-            </div>
-          </main>
-        } />
+      <main style={{ flex: 1, display: 'flex', flexDirection: 'column', width: '100%' }}>
+        <Routes>
+            <Route path="/" element={<Home />} />
+            
 
-        <Route path="/account" element={<Account />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/admin" element={<AdminPanel />} />
-        <Route path="/news" element={<NewsPage />} />
-        <Route path="/forum" element={<Forum />} />
-        <Route path="/forum/create" element={<CreateThread />} />
-        <Route path="/forum/:id" element={<ForumCategory />} />
-        <Route path="/forum/thread/:type/:id" element={<ForumThread />} />
-        <Route path="/map" element={<Map />} />
-        
-        <Route path="/support" element={<LazyWrapper><Support /></LazyWrapper>} />
-        <Route path="/support/:id" element={<LazyWrapper><TicketDetail /></LazyWrapper>} />
 
-        <Route path="/verify" element={<Verify />} />
+            <Route path="/account" element={<Account />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/admin" element={<AdminPanel />} />
 
-        <Route path="/maintenance" element={<Maintenance />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+            <Route path="/forum" element={<Forum />} />
+            <Route path="/forum/create" element={<CreateThread />} />
+            <Route path="/forum/:id" element={<ForumCategory />} />
+            <Route path="/forum/thread/:type/:id" element={<ForumThread />} />
+            <Route path="/map" element={<Map />} />
+            
+            <Route path="/support" element={<LazyWrapper><Support /></LazyWrapper>} />
+            <Route path="/support/:id" element={<LazyWrapper><TicketDetail /></LazyWrapper>} />
+
+            <Route path="/verify" element={<Verify />} />
+
+            <Route path="/maintenance" element={<Maintenance />} />
+            <Route path="*" element={<NotFound />} />
+        </Routes>
+      </main>
 
       <FooterWrapper />
       <EffectsWrapper />
@@ -244,7 +200,7 @@ function HeaderWrapper({ announcement }) {
         </div>
       )}
       <Navbar />
-      <SocialSidebar />
+      {!location.pathname.startsWith('/admin') && <SocialSidebar />}
     </>
   )
 }

@@ -28,9 +28,10 @@ const SkinViewerComponent = ({ skinUrl, width = 300, height = 400 }) => {
             }
 
             // Adjust controls - disable zoom if desired
-            viewer.controls.enableZoom = false;
+            viewer.controls.enableZoom = true; // Fixed zoom level
+            viewer.camera.position.z = 60; // Closer zoom (default is usually ~60-70)
             // Shift the camera target UP so the model appears LOWER in the frame
-            viewer.controls.target.y = 4;
+            viewer.controls.target.y = 5; // Slight adjustment based on feedback
 
             viewerRef.current = viewer;
         } catch (error) {

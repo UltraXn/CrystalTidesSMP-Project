@@ -1,20 +1,17 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import './AmbientBubbles.css';
 
 const AmbientBubbles = () => {
-    const [bubbles, setBubbles] = useState([]);
-
-    useEffect(() => {
+    const [bubbles] = useState(() => {
         const bubbleCount = 20; // Increased count
-        const newBubbles = Array.from({ length: bubbleCount }).map((_, i) => ({
+        return Array.from({ length: bubbleCount }).map((_, i) => ({
             id: i,
             size: Math.random() * 25 + 15, // 15px - 40px (Smaller, sharper pixels)
             left: Math.random() * 100, // 0% - 100%
             animationDuration: Math.random() * 15 + 10, // 10s - 25s (Slower rise)
             animationDelay: Math.random() * 20, // 0s - 20s
         }));
-        setBubbles(newBubbles);
-    }, []);
+    });
 
     return (
         <div className="ambient-bubbles-container">

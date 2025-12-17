@@ -79,21 +79,26 @@
 }
 
 /* Glow for text icons (uses currentColor) */
+/* Glow for text icons (uses currentColor) */
 .stat-icon svg {
   filter: drop-shadow(0 0 8px currentColor);
+  animation: icon-glow-pulse 3s infinite ease-in-out;
 }
 
 /* Glow for images (Ranks & Coins) */
 .stat-icon img {
   filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.4));
   transition: transform 0.3s ease;
+  animation: img-glow-pulse 3s infinite ease-in-out;
 }
 
 .stat-item:hover .stat-icon svg {
+  animation: none; /* Pause pulse on hover or keep it intensified */
   filter: drop-shadow(0 0 12px currentColor);
 }
 
 .stat-item:hover .stat-icon img {
+  animation: none;
   filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.7));
   transform: scale(1.1);
 }
@@ -180,3 +185,22 @@
 }
 
 /* Font face if not loaded globally */
+/* @font-face ... */
+
+@keyframes icon-glow-pulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 8px currentColor);
+  }
+  50% {
+    filter: drop-shadow(0 0 16px currentColor);
+  }
+}
+
+@keyframes img-glow-pulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.4));
+  }
+  50% {
+    filter: drop-shadow(0 0 16px rgba(255, 255, 255, 0.8));
+  }
+}

@@ -3,6 +3,7 @@ import { FaMapPin, FaQuestion, FaTimes, FaUser } from "react-icons/fa"
 import Section from "@/components/Layout/Section"
 import { useTranslation } from 'react-i18next'
 
+// eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from "framer-motion"
 
 const PLACES_CONFIG = [
@@ -48,7 +49,7 @@ export default function Stories() {
     return (
         <Section title={t('stories.title')}>
             <Section>
-                <div style={{ textAlign: "center", marginBottom: "3rem", color: "var(--muted)", maxWidth: "600px", margin: "0 auto 3rem" }}>
+                <div className="crystal-card">
                     <p>{t('stories.intro')}</p>
                 </div>
 

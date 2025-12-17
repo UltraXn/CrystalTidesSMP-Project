@@ -209,4 +209,38 @@ const getCategoryStats = async () => {
     return stats;
 }
 
-module.exports = { getThreads, getUserThreads, getThread, createThread, getPosts, createPost, getCategoryStats };
+const updateThread = async (id, { title, content }) => {
+    const { data, error } = await supabase.from('forum_threads').update({ title, content }).eq('id', id).select().single();
+    if(error) throw error;
+    return data;
+};
+
+const deleteThread = async (id) => {
+    // 1. Fetch thread first to check for poll
+    const { data: thread } = await supabase.from('forum_threads').select('poll_id').eq('id', id).single();
+
+    // 2. Delete Poll if exists
+    if (thread && thread.poll_id) {
+        await pollService.deletePoll(thread.poll_id).catch(err => console.error("Error cleaning up poll:", err));
+    }
+
+    // 3. Delete posts
+    await supabase.from('forum_posts').delete().eq('thread_id', id);
+    
+    // 4. Delete thread
+    const { error } = await supabase.from('forum_threads').delete().eq('id', id);
+    if(error) throw error;
+};
+
+const updatePost = async (id, { content }) => {
+    const { data, error } = await supabase.from('forum_posts').update({ content }).eq('id', id).select().single();
+    if(error) throw error;
+    return data;
+};
+
+const deletePost = async (id) => {
+    const { error } = await supabase.from('forum_posts').delete().eq('id', id);
+    if(error) throw error;
+};
+
+module.exports = { getThreads, getUserThreads, getThread, createThread, getPosts, createPost, getCategoryStats, updateThread, deleteThread, updatePost, deletePost };

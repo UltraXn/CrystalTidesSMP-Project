@@ -65,14 +65,22 @@
         "economy_title": "Dynamic Economy",
         "economy_desc": "Participate in a player-driven market. Trade, auction, and build your business empire.",
         "protection_title": "Mutual Respect",
-        "protection_desc": "No protection stones. We trust our community and use CoreProtect for total security.",
-        "dungeons_title": "Epic Dungeons",
-        "dungeons_desc": "Face unique challenges and custom bosses to obtain legendary rewards."
+        "protection_desc": "Your effort is safe. Protect your builds with a protection block and sleep soundly knowing no one will touch what is yours.",
+        "events_title": "Unique Events",
+        "events_desc": "Participate in tournaments, build contests, and lore events where the server story evolves with you. Exclusive prizes await!"
     },
     "home": {
         "title": "About the Server",
-        "description": "CrystalTides is a haven built by many hands: a world where the community holds up the sky and companionship sets the pace for every step. Here, stories are born in teams, goals are achieved together, and everyone becomes part of a tide that grows, breathes, and moves forward as one.",
-        "join_us": "If you want to feel the pulse of this world closer, join the current: accompany Killubysmali on her Twitch channel and immerse yourself in the collective warmth of La Pecerita de killu Discord. That's where the adventure truly begins, where every voice matters and every presence leaves a mark."
+        "description": "CrystalTides is not merely a territory, it is the living legacy of four primordial entities. It was forged by the union of an Aquatic Sovereign, master of the depths; an Abyssal Presence, unfathomable, owner of the mind and secrets, answering to no laws or factions but its own will; a Traveler of the Stars, bearer of cosmic vision and unmatched strategic warfare; and an Earthly Force, rooted in the ancient mysteries of these lands.\n\nToday, CrystalTides is a crucible of wonders, a magical world shaped by this divine alliance where every corner breathes the essence of its founders: the tide, the abyss, the cosmos, and the earth.",
+        "join_us_twitch": "If you want to see how a hyperactive aquatic creature spends her time, go check out Killubysmali on Twitch. She might draw a masterpiece, give you a MASTER class of English, or play Repo as if her life depended on it.",
+        "join_us_discord": "Craving more madness? Join 'La Pecerita de killu' on Discord. But beware: the fearsome Killujaiba lurks in those deep waters, hymns to the Ocean Man are sung (take me by the hand, lead me to the land~ 🎵), and there is still collective trauma over Killu's Little Spoon (which she lost...).",
+        "stats": {
+            "discord": "Discord Members",
+            "registered": "Registered Players",
+            "years": "Years Online",
+            "staff": "Active Staff",
+            "year_suffix": " Year"
+        }
     },
     "footer": {
         "server": "SERVER",
@@ -108,9 +116,10 @@
     "register": {
         "title": "Create Account",
         "subtitle": "Join the adventure today",
-        "nick_label": "Nick",
-        "nick_placeholder": "Your Nickname",
+        "username_label": "Username",
+        "username_placeholder": "Your web username",
         "email_label": "Email",
+        "email_placeholder": "email@example.com",
         "password_label": "Password",
         "confirm_password_label": "Confirm Password",
         "submit": "Sign Up",
@@ -169,7 +178,8 @@
         "connect": "Connect to Server",
         "java_edition": "Java Edition",
         "copy_ip": "Copy IP",
-        "copied": "Copied!"
+        "copied": "Copied!",
+        "kofi_text": "Donate on Ko-Fi!"
     },
     "rules": {
         "title": "Server Rules",
@@ -216,7 +226,17 @@
     "donors": {
         "title": "Donors Hall",
         "intro": "Maintaining a quality server requires passion, time, and resources. The people listed below have decided to go a step further to ensure the stability and future of CrystalTides. 100% of these contributions go to host maintenance, plugin development, and infrastructure improvements. Thank you for believing in us! 💜.",
-        "latest_title": "Latest Donations"
+        "latest_title": "Latest Donations",
+        "profiles": {
+            "killu": "Creator and main administrator.",
+            "neroferno": "Co-founder and developer. (Truly very 'ultroso')",
+            "law": "A particular creature part of this wonderful community.",
+            "pixie": "Beloved for his varied opinions and constant support 💜.",
+            "zeta": "A truly perseverant user in the face of adversity!",
+            "sendples": "The Paideidad. The Goat. The DONATOR",
+            "zen": "A Tryhard. LEAVE THE BOSSES ALONE! (thanks for supporting the community✨)",
+            "churly": "Boop Bip Boop! 🤖"
+        }
     },
     "contests": {
         "title": "Contests and Events",
@@ -362,10 +382,22 @@
             "title": "Unlocked Achievements",
             "items": {
                 "welcome": "Welcome",
+                "welcome_desc": "You have joined our community.",
                 "first_post": "First Post",
+                "first_post_desc": "Your voice has been heard for the first time in the forum.",
+                "first_post_criteria": "Post 1 thread",
                 "veteran": "Veteran",
+                "veteran_desc": "You have shown loyalty with hours of service.",
+                "veteran_criteria": "+50 hours of playtime",
                 "donor": "Donor",
-                "hunter": "Hunter"
+                "donor_desc": "Thank you for contributing to the server growth.",
+                "donor_criteria": "VIP Rank or higher",
+                "hunter": "Hunter",
+                "hunter_desc": "A lethal predator on the battlefield.",
+                "hunter_criteria": "+50 Kills",
+                "miner": "Miner",
+                "miner_desc": "The foundation of our economy is in your hands.",
+                "miner_criteria": "+1000 Blocks mined"
             }
         },
         "minecraft": {
@@ -383,8 +415,18 @@
             "link_twitch": "Link Twitch",
             "linked": "Linked",
             "not_linked": "Not linked",
+            "connected": "Connected",
+            "disconnected": "Disconnected",
             "connect": "Connect",
             "disconnect": "Disconnect",
+            "link_desc": "Link your account to sync rank and stats.",
+            "get_code": "Get Code",
+            "generating": "Generating...",
+            "type_in_server": "Type in server:",
+            "waiting": "Waiting...",
+            "unlink": "Unlink",
+            "connect_discord": "Connect Discord",
+            "connect_twitch": "Connect Twitch",
             "unlink_confirm_title": "Unlink account?",
             "unlink_confirm_message": "Are you sure you want to unlink this account? You will have to reconnect it to use it in the future.",
             "confirm_unlink": "Yes, unlink",

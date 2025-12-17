@@ -61,4 +61,36 @@ const getStats = async (req, res) => {
     } catch (e) { res.status(500).json({error:e.message}); }
 };
 
-module.exports = { getThreads, getUserThreads, getThread, createThread, getPosts, createPost, getStats };
+const updateThread = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = await forumService.updateThread(id, req.body);
+        res.json(result);
+    } catch (e) { res.status(500).json({error:e.message}); }
+};
+
+const deleteThread = async (req, res) => {
+    try {
+        const { id } = req.params;
+        await forumService.deleteThread(id);
+        res.json({ message: "Thread deleted" });
+    } catch (e) { res.status(500).json({error:e.message}); }
+};
+
+const updatePost = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = await forumService.updatePost(id, req.body);
+        res.json(result);
+    } catch (e) { res.status(500).json({error:e.message}); }
+};
+
+const deletePost = async (req, res) => {
+    try {
+        const { id } = req.params;
+        await forumService.deletePost(id);
+        res.json({ message: "Post deleted" });
+    } catch (e) { res.status(500).json({error:e.message}); }
+};
+
+module.exports = { getThreads, getUserThreads, getThread, createThread, getPosts, createPost, getStats, updateThread, deleteThread, updatePost, deletePost };

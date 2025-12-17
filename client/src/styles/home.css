@@ -19,7 +19,7 @@
     flex: 0 0 100%;
     height: 100%;
     position: relative;
-    min-width: 0;
+    min-width: 100%; /* Ensure full width */
 }
 
 .hero-bg-image {
@@ -44,7 +44,8 @@
     width: 100%;
     position: relative;
     /* padding-top removed to allow full screen start */
-    height: 100vh;
+    min-height: 100vh;
+    height: 100vh; /* Fallback/Force */
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -147,6 +148,7 @@
 .donor-card:hover {
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
     z-index: 2;
+    border-color: var(--accent);
 }
 
 .donor-card-image-container {
@@ -158,7 +160,7 @@
     display: flex;
     justify-content: center;
     align-items: flex-end;
-    height: 250px;
+    height: 300px; /* Increased height for better framing */
     position: relative;
     overflow: hidden;
 }
@@ -169,13 +171,12 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(3px);
+    background: linear-gradient(to top, var(--bg-alt) 0%, rgba(0,0,0,0.2) 100%);
     z-index: 1;
 }
 
 .donor-card-img {
-    height: 220px;
+    height: 95%; /* Adjust to fit better */
     width: auto;
     object-fit: contain;
     filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.5));
@@ -184,9 +185,9 @@
     z-index: 2;
 }
 
-.donor-card:hover .donor-card-img {
+/* .donor-card:hover .donor-card-img {
     transform: scale(1.05);
-}
+} Removed to stop animation */
 
 .donor-card-content {
     padding: 1.5rem;
@@ -198,6 +199,7 @@
     position: relative;
     z-index: 2;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
+    align-items: center;
 }
 
 .donor-card-content h3 {
@@ -208,11 +210,14 @@
 }
 
 .donor-rank {
-    color: var(--accent);
-    font-weight: 700;
-    text-transform: uppercase;
-    font-size: 0.9rem;
-    letter-spacing: 1px;
+    /* color styles usually handled inline or global, but ensuring here */
+    display: inline-block;
+    margin-bottom: 0.5rem;
+}
+
+.donor-rank img {
+    height: auto;
+    max-width: 100%;
 }
 
 .donor-card-content p {
@@ -220,4 +225,185 @@
     font-size: 0.95rem;
     line-height: 1.5;
     margin-top: 0.5rem;
+    text-align: center;
+}
+
+@media (max-width: 768px) {
+    .hero h1 {
+        font-size: 1.8rem !important;
+        line-height: 1.2;
+        margin-bottom: 1rem;
+    }
+
+    .hero h1 span.brand-wrapper {
+        display: block; 
+        font-size: 1.8rem;
+    }
+
+    .hero p {
+        font-size: 0.95rem;
+        padding: 0 1rem;
+    }
+
+    .hero-content {
+        padding: 6rem 1rem 0; /* Push content down from fixed navbar */
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .brand-section h3 {
+        font-size: 1.4rem;
+    }
+
+    /* Hide Social Sidebar */
+    .social-sidebar {
+        display: none !important;
+    }
+
+    /* Hide Navbar Title */
+    .navbar-title {
+        display: none !important;
+    }
+
+    /* Donate Button */
+    .btn-donate-hero {
+        margin-top: 1rem;
+        padding: 0.7rem 2rem;
+        font-size: 0.9rem;
+        width: auto;
+    }
+    
+    .server-connect-container {
+         margin-bottom: 3rem;
+    }
+
+    /* Stack Social Login Buttons on Mobile */
+    .social-login-group {
+        flex-direction: column;
+    }
+
+    .social-login-group button {
+        width: 100%;
+    }
+}
+
+/* Server Status Pill (Crystal Artifact) */
+.server-status-pill {
+    /* Fondo semitransparente usando tu Verde Profundo */
+    background: rgba(var(--ct-deep), 0.3);
+    /* Efecto vidrio borroso */
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    
+    /* Borde sutil del color "Mágico" */
+    border: 1px solid rgba(var(--ct-crystal), 0.3);
+    border-radius: 50px; /* Bordes muy redondos */
+    
+    /* Texto y espaciado */
+    color: rgb(var(--ct-text));
+    padding: 8px 20px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+}
+  
+/* Efecto al pasar el mouse: se ilumina */
+.server-status-pill:hover {
+    background: rgba(var(--ct-deep), 0.6);
+    border-color: rgba(var(--ct-crystal), 0.8);
+    box-shadow: 0 0 15px rgba(var(--ct-crystal), 0.4); /* Glow mágico */
+    transform: translateY(-2px);
+}
+  
+/* El puntito verde de "Online" */
+.status-dot {
+    height: 8px;
+    width: 8px;
+    background-color: rgb(var(--ct-crystal)); /* Usamos tu Cian */
+    border-radius: 50%;
+    box-shadow: 0 0 8px rgb(var(--ct-crystal)); /* El punto brilla */
+}
+  
+/* IP Container (The Portal) - Horizontal Layout */
+.ip-container {
+    background: rgba(11, 12, 16, 0.6);
+    border: 1px solid rgba(137, 217, 209, 0.2);
+    border-radius: 16px;
+    padding: 1rem 2rem;
+    max-width: fit-content;
+    margin: 2rem auto 0;
+    
+    display: flex;
+    flex-direction: row; /* Horizontal */
+    align-items: center;
+    gap: 2rem;
+    
+    backdrop-filter: blur(12px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* IP Text */
+.ip-text {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #ffffff;
+    text-shadow: 0 0 20px rgba(137, 217, 209, 0.4);
+    letter-spacing: 0.5px;
+}
+
+/* Copy Button - Gradient Crystal Style */
+.copy-btn {
+    background: linear-gradient(135deg, #89D9D1 0%, #168C80 100%);
+    border: none;
+    color: #020103;
+    padding: 0.7rem 1.5rem;
+    border-radius: 10px;
+    font-weight: 800;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 15px rgba(137, 217, 209, 0.3);
+}
+
+.copy-btn:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 8px 25px rgba(137, 217, 209, 0.5);
+    filter: brightness(1.1);
+}
+
+.copy-btn:active {
+    transform: translateY(0) scale(0.98);
+}
+
+/* Crystal Card (Reusable style for descriptions and text blocks) */
+.crystal-card {
+    text-align: center;
+    max-width: 900px;
+    margin: 0 auto 3rem; /* Adjusted for better spacing */
+    background: rgba(11, 12, 16, 0.6); /* Slightly darker for better readability */
+    border: 1px solid rgba(137, 217, 209, 0.1);
+    backdrop-filter: blur(8px);
+    padding: 3rem;
+    border-radius: 24px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2); /* Deep shadow */
+    transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+.crystal-card:hover {
+    border-color: rgba(137, 217, 209, 0.3);
+    transform: translateY(-2px);
+}
+
+.crystal-card p {
+    font-size: 1.2rem;
+    color: var(--muted);
+    line-height: 1.8;
 }

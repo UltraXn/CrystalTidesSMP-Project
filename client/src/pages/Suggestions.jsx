@@ -74,7 +74,7 @@ export default function Suggestions() {
                 setFormStatus('error')
                 setTimeout(() => setFormStatus('idle'), 3000)
             }
-        } catch (err) {
+        } catch {
              setFormStatus('error')
              setTimeout(() => setFormStatus('idle'), 3000)
         }

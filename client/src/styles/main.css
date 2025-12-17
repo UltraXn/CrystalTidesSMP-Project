@@ -1,9 +1,12 @@
 /* @import 'variables.css'; Moved into base.css */
 @import 'base.css';
+@import 'animations.css';
 @import 'layout.css';
 @import 'components.css';
 @import 'home.css';
-@import 'account.css';
-@import 'dashboard.css';
-@import 'admin.css';
+@import 'sections.css';
+@import 'pages.css';
 @import 'content.css';
+@import 'dashboard.css';
+@import 'account.css';
+@import 'admin.css';

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { FaSearch } from 'react-icons/fa'
 import { useAuth } from "@/context/AuthContext"
-import { supabase } from "@/services/supabaseClient"
+
 import { useTranslation } from 'react-i18next'
 
 const API_URL = import.meta.env.VITE_API_URL
