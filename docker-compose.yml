@@ -1,8 +1,8 @@
 services:
   # Frontend (React + Vite + Nginx)
   frontend:
-    # Imagen en GitHub Container Registry
-    image: ghcr.io/ultraxn/crystaltides-frontend:latest
+    # Local image name
+    image: crystaltides-frontend:latest
     build:
       context: ./client
       args:
@@ -17,8 +17,8 @@ services:
 
   # Backend (Express)
   backend:
-    # Imagen en GitHub Container Registry
-    image: ghcr.io/ultraxn/crystaltides-backend:latest
+    # Local image name
+    image: crystaltides-backend:latest
     build: ./server
     ports:
       - "3001:3001"
