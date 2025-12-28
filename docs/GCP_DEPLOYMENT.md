@@ -160,3 +160,25 @@ Google Cloud es caro para cómputo 24/7.
 - **Apagado Automático**: Si es un servidor privado, programa scripts para apagar la VM cuando no haya jugadores (ahorra muchísimo).
 
 > **Nota**: Al estar en la misma red de Google que tu API (Cloud Run), la latencia entre el Plugin (CrystalCore) y la Web será prácticamente **cero**.
+
+---
+
+### 💾 Estrategia de Base de Datos (Minecraft + Web)
+
+**¿1 o 2 Bases de Datos?**
+Necesitaremos **2 Motores Distintos**, pero no necesariamente 2 facturas.
+
+1.  **Web (PostgreSQL)**: CrystalTides Web usa Supabase (Postgres). Es excelente y tiene capa gratuita. **Recomendación: MANTENER SUPABASE**.
+2.  **Minecraft (MySQL)**: Plugins como `CoreProtect` (Logs) o `LuckPerms` (Permisos) funcionan nativamente mejor con **MySQL/MariaDB**. PostgreSQL suele dar problemas de compatibilidad en el ecosistema de Minecraft (Plugins legacy).
+
+#### 💡 Solución "Todo en Uno" (Credits Friendly)
+
+Ya que vas a tener una VM para Minecraft (`Minecraft Server VM`), la mejor estrategia es:
+
+- **Instalar Docker en la VM de Minecraft**.
+- Levantar un **contenedor de MySQL** dentro de esa misma VM (Localhost).
+  - _Costo Extra_: $0 (Usa el mismo disco/CPU de la VM).
+  - _Latencia_: 0ms (Ultrarápido para plugins).
+- **Web**: Sigue conectándose a Supabase externamente.
+
+De esta forma, **no pagas** una instancia gestionada de Cloud SQL (que es muy cara, ~$30/mes mínimo), y aprovechas los créditos del Compute Engine para todo.
