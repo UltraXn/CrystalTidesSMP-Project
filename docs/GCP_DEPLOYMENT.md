@@ -189,3 +189,18 @@ Ya que vas a tener una VM para Minecraft (`Minecraft Server VM`), la mejor estra
 - **Web**: Sigue conectándose a Supabase externamente.
 
 De esta forma, **no pagas** una instancia gestionada de Cloud SQL (que es muy cara, ~$30/mes mínimo), y aprovechas los créditos del Compute Engine para todo.
+
+---
+
+### ❓ FAQ: ¿Deberíamos usar Kubernetes (GKE)?
+
+**Respuesta Corta: NO.**
+
+**¿Por qué?**
+Kubernetes (K8s) sirve para orquestar cientos de microservicios. Para CrystalTides, usar un Cluster de K8s sería como **"matar moscas a cañonazos"**:
+
+1.  **Costo Base**: Un cluster GKE cobra una tarifa de gestión (~$70/mes) + los nodos. Cloud Run es gratis si no se usa.
+2.  **Complejidad**: Mantener un cluster requiere conocimientos avanzados de DevOps.
+3.  **Cloud Run YA ES Kubernetes**: Por debajo, Cloud Run usa Knative (Kubernetes) gestionado por Google. Obtienes los beneficios (contenedores, escalado) sin el dolor de cabeza de administrar el cluster.
+
+**Cuándo sí usar K8s**: Si tuviéramos 50 servidores de Minecraft distintos y quisiéramos crear/destruir instancias dinámicamente según la demanda en tiempo real (Lobby System masivo). Para 1 solo servidor SMP, una VM es superior.
