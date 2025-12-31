@@ -34,6 +34,9 @@ jobs:
       - name: Authorize Docker push
         run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
 
+      - name: Create .env file
+        run: echo "${{ secrets.ENV_FILE }}" > apps/web-server/.env
+
       - name: Build and Push Container
         run: |-
           docker build -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/backend:latest -f apps/web-server/Dockerfile .
@@ -47,30 +50,6 @@ jobs:
           image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/backend:latest
           env_vars: |
             NODE_ENV=production
-            DB_HOST=${{ secrets.DB_HOST }}
-            DB_USER=${{ secrets.DB_USER }}
-            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-            DB_NAME=${{ secrets.DB_NAME }}
-            DISCORD_TOKEN=${{ secrets.DISCORD_BOT_TOKEN }}
-            SUPABASE_URL=${{ secrets.SUPABASE_URL }}
-            SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_KEY }}
-            DISCORD_CLIENT_ID=${{ secrets.DISCORD_CLIENT_ID }}
-            DISCORD_CLIENT_SECRET=${{ secrets.DISCORD_CLIENT_SECRET }}
-            NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
-            PTERODACTYL_HOST=${{ secrets.PTERODACTYL_HOST }}
-            PTERODACTYL_API_KEY=${{ secrets.PTERODACTYL_API_KEY }}
-            PTERODACTYL_SERVER_ID=${{ secrets.PTERODACTYL_SERVER_ID }}
-            GOOGLE_CALENDAR_ID=${{ secrets.GOOGLE_CALENDAR_ID }}
-            MC_SERVER_HOST=${{ secrets.MC_SERVER_HOST }}
-            MC_SERVER_PORT=${{ secrets.MC_SERVER_PORT }}
-            CP_DB_HOST=${{ secrets.CP_DB_HOST }}
-            CP_DB_PORT=${{ secrets.CP_DB_PORT }}
-            CP_DB_USER=${{ secrets.CP_DB_USER }}
-            CP_DB_PASSWORD=${{ secrets.CP_DB_PASSWORD }}
-            CP_DB_NAME=${{ secrets.CP_DB_NAME }}
-            DISCORD_WEBHOOK_URL=${{ secrets.DISCORD_WEBHOOK_URL }}
-            DISCORD_MC_EVENTS_WEBHOOK=${{ secrets.DISCORD_MC_EVENTS_WEBHOOK }}
-            DISCORD_FORUM_WEBHOOK=${{ secrets.DISCORD_FORUM_WEBHOOK }}
 
   deploy-frontend:
     name: Deploy Frontend
