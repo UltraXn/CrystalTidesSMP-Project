@@ -30,6 +30,11 @@ ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL
 ENV VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY
 ENV VITE_API_URL=$VITE_API_URL
 
+# Verificar presencia de variables (los logs de build lo mostrarán)
+RUN echo "Checking build variables..." && \
+    if [ -z "$VITE_SUPABASE_URL" ]; then echo "WARNING: VITE_SUPABASE_URL is empty"; else echo "VITE_SUPABASE_URL is set"; fi && \
+    if [ -z "$VITE_SUPABASE_ANON_KEY" ]; then echo "WARNING: VITE_SUPABASE_ANON_KEY is empty"; else echo "VITE_SUPABASE_ANON_KEY is set"; fi
+
 # Construir solo el cliente usando Turbo
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN turbo run build --filter=@crystaltides/client...
