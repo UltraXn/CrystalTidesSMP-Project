@@ -23,6 +23,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          token: ${{ secrets.PAT_TOKEN }}
           submodules: recursive
 
       - name: Google Auth
@@ -65,6 +66,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          token: ${{ secrets.PAT_TOKEN }}
           submodules: recursive
 
       - name: Google Auth
@@ -107,6 +109,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          token: ${{ secrets.PAT_TOKEN }}
           submodules: recursive
 
       - name: Google Auth
