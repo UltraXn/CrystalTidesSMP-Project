@@ -3,7 +3,7 @@ import { supabase } from '../services/supabaseClient';
 
 import { User, Provider, AuthResponse, OAuthResponse } from '@supabase/supabase-js';
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
@@ -90,7 +90,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         
         if (error) {
             // Report Security Alert (Fire and forget)
-            fetch(`${import.meta.env.VITE_API_URL}/api/logs/security/report`, {
+            fetch(`${import.meta.env.VITE_API_URL}/logs/security/report`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 

@@ -98,7 +98,7 @@ ${t('admin.docs.content.tickets_desc', 'Centro de soporte. Prioriza y responde t
 ${t('admin.docs.content.discord_desc', 'Sincronización entre la web y la comunidad de Discord.')}
 
 ### 🔗 ${t('admin.docs.content.discord_linking', 'Vinculación')}
-- **CrystalLink**: ${t('admin.docs.content.discord_linking', 'Vinculación de cuentas mediante /link.')}
+- **CrystalCore**: ${t('admin.docs.content.discord_linking', 'Vinculación de cuentas mediante /link.')}
 
 ### 📢 ${t('admin.docs.content.discord_announcements', 'Anuncios')}
 - **Webhooks**: ${t('admin.docs.content.discord_announcements', 'Anuncios automáticos en el servidor de Discord al publicar noticias.')}
@@ -400,23 +400,32 @@ export default function AdminDocs() {
                     }
                     .docs-sidebar { display: none; }
                     .mobile-dropdown-container { display: block; }
-                    .docs-content { padding-right: 0; overflow-y: visible; }
-                    .docs-card { padding: 1.5rem; }
+                    .docs-content { 
+                        padding-right: 0; 
+                        overflow-y: visible;
+                        min-height: 500px; /* Ensure height on mobile */
+                    }
+                    .docs-card { padding: 1.25rem; }
                     h2 { font-size: 1.5rem !important; }
 
                     /* Header Stacking */
                     .docs-header {
                         flex-direction: column;
                         align-items: flex-start;
-                        gap: 1rem;
+                        gap: 1.5rem;
                     }
                     .docs-header > div {
                         width: 100%;
                         justify-content: space-between;
+                        flex-wrap: wrap; /* Allow buttons to wrap */
+                        gap: 0.8rem;
                     }
+                    /* Button adjustments for better touch targets */
                     .btn-primary, .btn-secondary {
-                        width: 100%;
+                        flex: 1;
                         justify-content: center;
+                        padding: 0.8rem;
+                        white-space: nowrap;
                     }
                 }
                 @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }

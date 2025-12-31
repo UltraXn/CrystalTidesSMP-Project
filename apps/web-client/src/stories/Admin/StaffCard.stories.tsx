@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { StaffCard } from '../components/Admin/StaffCard';
+import { StaffCard } from '../../components/Admin/StaffCard';
+import '../../styles/admin_staff.css'; // Import styles for StaffCard
 
 const meta = {
   title: 'Admin/StaffCard',

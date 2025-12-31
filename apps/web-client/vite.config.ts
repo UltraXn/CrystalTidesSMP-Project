@@ -13,6 +13,7 @@ const dirname = path.dirname(fileURLToPath(import.meta.url));
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 export default defineConfig({
+  envDir: '../../',
   plugins: [react() as unknown as PluginOption],
   build: {
     outDir: 'dist',
