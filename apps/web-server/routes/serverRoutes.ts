@@ -197,14 +197,14 @@ router.get('/staff', async (req: Request, res: Response) => {
         }
 
         // 3. Check Discord Status via Bot
+        let cards: any[] = [];
         try {
             const { data: settings } = await supabase.from('site_settings').select('value').eq('key', 'staff_cards').single();
 
             if (settings?.value) {
-                let cards = [];
                 try {
-                    cards = typeof settings.value === 'string' ? JSON.parse(settings.value) : settings.value;
-                    if (typeof cards === 'string') cards = JSON.parse(cards);
+                    const parsed = typeof settings.value === 'string' ? JSON.parse(settings.value) : settings.value;
+                    cards = typeof parsed === 'string' ? JSON.parse(parsed) : parsed;
                 } catch(e) { console.error("Parse error:", e); }
 
                 if (Array.isArray(cards)) {
@@ -306,8 +306,12 @@ router.get('/staff', async (req: Request, res: Response) => {
             const uuid = dbRef?.uuid || '00000000-0000-0000-0000-000000000000';
             const groups = dbRef?.groups || ['default'];
             
-            const staffGroups = ['owner', 'founder', 'fundador', 'neroferno', 'killuwu', 'developer', 'admin', 'moderator', 'helper'];
-            let role = groups.find(g => staffGroups.includes(g.toLowerCase())) || groups[0] || 'default';
+            const staffGroups = ['owner', 'founder', 'fundador', 'neroferno', 'killuwu', 'developer', 'admin', 'moderator', 'mod', 'helper', 'staff'];
+            
+            // Si el usuario está en las Staff Cards (supabase), podemos usar ese rol de fallback
+            const panelInfo = Array.isArray(cards) ? cards.find((c: any) => c.name.toLowerCase() === lowName || (c.mc_nickname && c.mc_nickname.toLowerCase() === lowName)) : null;
+
+            let role = groups.find(g => staffGroups.includes(g.toLowerCase())) || panelInfo?.role || groups[0] || 'default';
             let roleImage = null;
 
             if (username.toLowerCase() === 'ultraxn') { role = 'Neroferno'; roleImage = '/ranks/rank-neroferno.png'; }
