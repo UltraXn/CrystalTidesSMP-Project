@@ -63,6 +63,14 @@ jobs:
             GOOGLE_CALENDAR_ID=${{ secrets.GOOGLE_CALENDAR_ID }}
             MC_SERVER_HOST=${{ secrets.MC_SERVER_HOST }}
             MC_SERVER_PORT=${{ secrets.MC_SERVER_PORT }}
+            CP_DB_HOST=${{ secrets.CP_DB_HOST }}
+            CP_DB_PORT=${{ secrets.CP_DB_PORT }}
+            CP_DB_USER=${{ secrets.CP_DB_USER }}
+            CP_DB_PASSWORD=${{ secrets.CP_DB_PASSWORD }}
+            CP_DB_NAME=${{ secrets.CP_DB_NAME }}
+            DISCORD_WEBHOOK_URL=${{ secrets.DISCORD_WEBHOOK_URL }}
+            DISCORD_MC_EVENTS_WEBHOOK=${{ secrets.DISCORD_MC_EVENTS_WEBHOOK }}
+            DISCORD_FORUM_WEBHOOK=${{ secrets.DISCORD_FORUM_WEBHOOK }}
 
   deploy-frontend:
     name: Deploy Frontend
