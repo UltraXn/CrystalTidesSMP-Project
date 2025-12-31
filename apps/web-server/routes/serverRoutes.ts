@@ -310,9 +310,9 @@ router.get('/staff', async (req: Request, res: Response) => {
             let role = groups.find(g => staffGroups.includes(g.toLowerCase())) || groups[0] || 'default';
             let roleImage = null;
 
-            if (username.toLowerCase() === 'ultraxn') { role = 'Founder'; roleImage = '/ranks/rank-neroferno.png'; }
-            if (role === 'neroferno') { role = 'Founder'; roleImage = '/ranks/rank-neroferno.png'; }
-            if (role === 'killuwu') { role = 'Owner'; roleImage = '/ranks/rank-killu.png'; }
+            if (username.toLowerCase() === 'ultraxn') { role = 'Neroferno'; roleImage = '/ranks/rank-neroferno.png'; }
+            if (role === 'neroferno') { role = 'Neroferno'; roleImage = '/ranks/rank-neroferno.png'; }
+            if (role === 'killuwu') { role = 'Killuwu'; roleImage = '/ranks/rank-killu.png'; }
             if (role === 'developer') { role = 'Developer'; roleImage = '/ranks/developer.png'; }
 
             const skinName = skinMap[uuid];
