@@ -7,6 +7,8 @@ import Loader from "../UI/Loader"
 import AnimatedCounter from "../UI/AnimatedCounter"
 import { supabase } from '../../services/supabaseClient'
 
+import MinecraftAvatar from "../UI/MinecraftAvatar"
+
 interface StaffMember {
     username: string;
     avatar: string;
@@ -310,7 +312,12 @@ export default function DashboardOverview() {
                                                 cursor: 'default' 
                                             }}>
                                                 <div style={{ position: 'relative' }}>
-                                                    <img src={`https://mc-heads.net/avatar/${staff.username}/64`} alt={staff.username} style={{ width: '40px', height: '40px', borderRadius: '12px', boxShadow: '0 4px 10px rgba(0,0,0,0.3)', display: 'block' }} />
+                                                    <MinecraftAvatar 
+                                                        src={staff.avatar} 
+                                                        alt={staff.username} 
+                                                        size={64}
+                                                        style={{ width: '40px', height: '40px', borderRadius: '12px', boxShadow: '0 4px 10px rgba(0,0,0,0.3)', display: 'block' }} 
+                                                    />
                                                     
                                                     {/* Status Stack - Bottom Right */}
                                                     <div style={{ 
