@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 env:
-  PROJECT_ID: crystaltidessmp
+  PROJECT_ID: crystaltides-prod
   REGION: us-central1
   ARTIFACT_REPO: crystaltides-repo
 
