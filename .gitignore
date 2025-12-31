@@ -28,3 +28,6 @@ minecraft-plugin/
 
 # Documentation
 docs/
+
+*storybook.log
+storybook-static

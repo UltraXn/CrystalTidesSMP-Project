@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FaUsers, FaPlus, FaTrash, FaTwitter, FaDiscord, FaYoutube, FaTwitch, FaSave, FaTimes, FaCheckCircle, FaSync, FaGripVertical, FaEdit } from 'react-icons/fa';
+import { FaUsers, FaPlus, FaCheckCircle, FaSync, FaTimes, FaDiscord, FaTwitch, FaTwitter, FaYoutube, FaSave } from 'react-icons/fa';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import Loader from "../UI/Loader";
 import MinecraftAvatar from "../UI/MinecraftAvatar";
@@ -8,16 +8,7 @@ import { supabase } from '../../services/supabaseClient';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-interface StaffCard {
-    id: number | string;
-    name: string;
-    mc_nickname?: string;
-    role: string;
-    description: string;
-    image: string;
-    color: string;
-    socials: { twitter: string; discord: string; youtube: string; twitch: string; };
-}
+import StaffCardComponent, { StaffCardData as StaffCard } from './StaffCard';
 
 interface ServerStaffUser {
     uuid?: string;
@@ -551,101 +542,21 @@ export default function StaffCardsManager() {
                             {cards.map((card, index) => (
                                 <Draggable key={card.id} draggableId={card.id.toString()} index={index}>
                                     {(provided) => (
-                                        <div 
-                                            ref={provided.innerRef}
-                                            {...provided.draggableProps}
-                                            className="staff-card-premium"
-                                            style={{ 
-                                                borderTopColor: card.color,
-                                                ...provided.draggableProps.style
+                                        <StaffCardComponent 
+                                            innerRef={provided.innerRef}
+                                            draggableProps={provided.draggableProps}
+                                            dragHandleProps={provided.dragHandleProps}
+                                            style={provided.draggableProps.style}
+                                            data={card}
+                                            status={{
+                                                mc: onlineStaff[(card.mc_nickname || card.name).toLowerCase()]?.mc || 'offline',
+                                                discord: onlineStaff[(card.mc_nickname || card.name).toLowerCase()]?.discord || 'offline'
                                             }}
-                                        >
-                                            <div 
-                                                {...provided.dragHandleProps}
-                                                className="staff-card-drag-handle"
-                                                title={t('admin.staff.drag_tooltip')}
-                                            >
-                                                <FaGripVertical />
-                                            </div>
-
-                                            <div className="staff-avatar-wrapper">
-                                                <div className="staff-avatar-ring" style={{ boxShadow: `0 0 20px ${card.color}20` }}>
-                                                    <div className="staff-avatar-content">
-                                                        <MinecraftAvatar 
-                                                            src={card.image || card.mc_nickname || card.name} 
-                                                            alt={card.name} 
-                                                            size={128}
-                                                        />
-                                                    </div>
-                                                </div>
-                                                {/* Online Status Indicator (Double) */}
-                                                <div className="staff-status-indicators">
-                                                    <div 
-                                                        className={`status-orb-mini mc ${onlineStaff[(card.mc_nickname || card.name).toLowerCase()]?.mc === 'online' ? 'online' : 'offline'}`}
-                                                        title={`MC: ${onlineStaff[(card.mc_nickname || card.name).toLowerCase()]?.mc || 'offline'}`}
-                                                    />
-                                                    <div 
-                                                        className={`status-orb-mini discord ${onlineStaff[(card.mc_nickname || card.name).toLowerCase()]?.discord || 'offline'}`}
-                                                        title={`Discord: ${onlineStaff[(card.mc_nickname || card.name).toLowerCase()]?.discord || 'offline'}`}
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            <div className="staff-info-section">
-                                                <h4>{card.name}</h4>
-                                                
-                                                {getRoleBadge(card.role) ? (
-                                                    <div className="role-badge-img">
-                                                        <img src={getRoleBadge(card.role) || undefined} alt={card.role} />
-                                                    </div>
-                                                ) : (
-                                                    <span className="staff-role-badge" style={{ color: card.color, background: `${card.color}15`, border: `1px solid ${card.color}30` }}>
-                                                        {card.role}
-                                                    </span>
-                                                )}
-                                            </div>
-
-                                            <p className="staff-description">
-                                                {card.description || t('admin.staff.no_desc')}
-                                            </p>
-
-                                            <div className="staff-social-strip">
-                                                {card.socials?.discord && (
-                                                    <div title={`Discord: ${card.socials.discord}`} className="staff-social-link discord">
-                                                        <FaDiscord size={20} />
-                                                        <FaCheckCircle className="verified-dot" />
-                                                    </div>
-                                                )}
-                                                {card.socials?.twitch && (
-                                                    <a href={`https://twitch.tv/${card.socials.twitch}`} target="_blank" rel="noopener noreferrer" className="staff-social-link twitch">
-                                                        <FaTwitch size={20} />
-                                                        <FaCheckCircle className="verified-dot" />
-                                                    </a>
-                                                )}
-                                                {card.socials?.twitter && (
-                                                    <a href={card.socials.twitter} target="_blank" rel="noopener noreferrer" className="staff-social-link twitter">
-                                                        <FaTwitter size={20} />
-                                                    </a>
-                                                )}
-                                                {card.socials?.youtube && (
-                                                    <a href={card.socials.youtube} target="_blank" rel="noopener noreferrer" className="staff-social-link youtube">
-                                                        <FaYoutube size={20} />
-                                                    </a>
-                                                )}
-                                                {(!card.socials?.twitter && !card.socials?.discord && !card.socials?.youtube && !card.socials?.twitch) && (
-                                                    <span className="no-socials-msg">{t('admin.staff.no_socials')}</span>
-                                                )}
-                                            </div>
-
-                                            <div className="staff-card-actions">
-                                                <button onClick={() => handleEdit(card)} className="staff-btn-edit">
-                                                    <FaEdit /> {t('admin.staff.edit_btn')}
-                                                </button>
-                                                <button onClick={() => handleDelete(card.id)} className="staff-btn-delete" title={t('admin.staff.delete_tooltip')}>
-                                                    <FaTrash />
-                                                </button>
-                                            </div>
-                                        </div>
+                                            roleBadge={getRoleBadge(card.role)}
+                                            onEdit={() => handleEdit(card)}
+                                            onDelete={() => handleDelete(card.id)}
+                                            t={t}
+                                        />
                                     )}
                                 </Draggable>
                             ))}

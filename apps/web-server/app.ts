@@ -45,7 +45,15 @@ app.use('/api', apiLimiter); // Global limit for all API routes
 import hpp from 'hpp';
 
 // Middleware
-app.use(cors());
+app.use(cors({
+    origin: [
+        'https://crystaltidessmp.net',
+        'https://api.crystaltidessmp.net',
+        'http://localhost:3000', // Local development
+        'http://localhost:5173'  // Vite default
+    ],
+    credentials: true
+}));
 app.use(express.json());
 
 // Iniciar Jobs

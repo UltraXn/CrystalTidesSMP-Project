@@ -14,6 +14,7 @@ Este documento centraliza el roadmap completo del proyecto, organizando las tare
 - [x] **Google Calendar Sync**: Visualización de eventos externos en el Staff Hub.
 - [x] **Notion Integration**: Sincronización de tareas desde espacios de trabajo de Notion.
 - [x] **Premium UI/UX**: Rediseño completo con Glassmorphism y animaciones fluidas.
+- [x] **Sincronización de Estado Dual**: Visualización en tiempo real de estado Minecraft y Discord (Staff Cards).
 
 ### ✅ Web Pública
 
@@ -40,9 +41,12 @@ Este documento centraliza el roadmap completo del proyecto, organizando las tare
 - [x] **Rate Limiting**: Protección Anti-Spam en rutas críticas.
 - [x] **Cabeceras de Seguridad**: Implementar Helmet.js.
 - [x] **Validación Backend**: Esquemas estrictos (Zod/Joi).
+- [x] **Dominio Personalizado**: Configuración de `crystaltidessmp.net` (Web) y `api` (Backend) con SSL Full Strict.
+- [x] **CORS Production-Ready**: Configuración de seguridad para el nuevo dominio.
 
 ### 🚨 Alta Prioridad: Calidad de Código
 
+- [ ] **Storybook**: Documentación visual de componentes UI (Design System) - _PRIORIDAD MÁXIMA_.
 - [x] **Inferencia de tipos en Frontend**: Reutilizar esquemas Zod en React (react-hook-form).
   - [x] Admin Noticias (`NewsForm` refactorizado)
   - [x] Login/Register
@@ -97,7 +101,7 @@ Este documento centraliza el roadmap completo del proyecto, organizando las tare
 ### ☁️ Infraestructura Futura (VPS)
 
 - [ ] **VPS Dedicado**: Migración del servidor de juego a infraestructura propia (Futuro).
-- [ ] **Dockerización Pro**: Uso de Google Artifact Registry para imágenes de apps.
+- [x] **Dockerización Pro**: Uso de Google Artifact Registry para imágenes de apps (`pkg.dev`).
 - [ ] **CI/CD**: Automatización de despliegue mediante GitHub Actions.
 
 ---
@@ -111,8 +115,8 @@ Este documento centraliza el roadmap completo del proyecto, organizando las tare
 ### 🔒 Seguridad Avanzada (Fase 9)
 
 - [ ] **Confirmación Destructiva**: Requerir 2FA o contraseña para comandos críticos (ban/stop/op) desde la web.
-- [ ] **Whitelist de Comandos**: Lista blanca estricta para comandos web.
-- [ ] **Auditoría Web**: Logs inmutables de acciones administrativas.
+- [x] **Whitelist de Comandos**: Lista blanca estricta para comandos web.
+- [x] **Auditoría Web**: Logs inmutables de acciones administrativas.
 
 ### 🧪 Futuro: Stack Tecnológico & "Wow" Features (2026)
 
@@ -130,7 +134,7 @@ Esta sección define el "Siguiente Nivel" para profesionalizar el portfolio al m
 
 - [ ] **Husky + Commitlint**: Estandarizar commits (`feat:`, `fix:`) antes de subir código.
 - [ ] **Renovate Bot**: Automatización de actualizaciones de dependencias (`npm`).
-- [ ] **Storybook**: Documentación visual de componentes UI (Design System).
+- [ ] **Renovate Bot**: Automatización de actualizaciones de dependencias (`npm`).
 
 #### Observabilidad & Analítica
 
@@ -140,6 +144,6 @@ Esta sección define el "Siguiente Nivel" para profesionalizar el portfolio al m
 
 #### Seguridad
 
-- [ ] **2FA (TOTP)**: Autenticación de dos factores para el Panel de Admin.
+- [x] **2FA (TOTP)**: Autenticación de dos factores para el Panel de Admin.
 
 > Última actualización: 28 de Diciembre, 2025
