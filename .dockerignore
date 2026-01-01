@@ -10,8 +10,7 @@ build
 tmp
 apps/*/dist
 apps/*/node_modules
-.storybook
-apps/*/.storybook
+**/.storybook
 **/*.stories.tsx
 **/*.stories.ts
 **/*.stories.js
