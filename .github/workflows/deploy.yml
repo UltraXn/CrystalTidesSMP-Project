@@ -54,6 +54,8 @@ jobs:
           image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/backend:latest
           env_vars: |
             NODE_ENV=production
+            MC_SERVER_HOST=147.135.9.233
+            MC_SERVER_PORT=26408
 
   deploy-frontend:
     name: Deploy Frontend
