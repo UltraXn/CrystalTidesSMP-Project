@@ -12,10 +12,30 @@ export interface Rule {
 }
 
 export const getRules = async (): Promise<Rule[]> => {
-    const response = await fetch(`${API_URL}/rules`);
-    if (!response.ok) throw new Error('Failed to fetch rules');
-    const json = await response.json();
-    return json.success ? json.data : [];
+    try {
+        const response = await fetch(`${API_URL}/rules`);
+        if (!response.ok) throw new Error('Failed to fetch rules');
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+            const json = await response.json();
+            return json.success ? json.data : [];
+        }
+        return [];
+    } catch (error) {
+        if (import.meta.env.DEV) {
+            console.warn("Backend connection failed, using MOCK rules");
+            return [
+                {
+                    id: 1,
+                    category: "General",
+                    title: "Mock: Sé Amigable",
+                    content: "No hagas spam y respeta a los demás jugadores.",
+                    sort_order: 1
+                }
+            ];
+        }
+        throw error;
+    }
 };
 
 export const createRule = async (rule: Omit<Rule, 'id'>, token: string): Promise<Rule> => {
@@ -27,9 +47,17 @@ export const createRule = async (rule: Omit<Rule, 'id'>, token: string): Promise
         },
         body: JSON.stringify(rule)
     });
-    const json = await response.json();
+    const contentType = response.headers.get("content-type");
+    let json;
+    if (contentType && contentType.includes("application/json")) {
+        json = await response.json();
+    } else {
+        const text = await response.text();
+        throw new Error(text || `Error ${response.status}`);
+    }
+
     if (!response.ok) {
-        throw new Error(json.error?.message || json.message || 'Failed to create rule');
+        throw new Error(json?.error?.message || json?.message || 'Failed to create rule');
     }
     return json.data;
 };
@@ -43,9 +71,17 @@ export const updateRule = async (id: number, updates: Partial<Rule>, token: stri
         },
         body: JSON.stringify(updates)
     });
-    const json = await response.json();
+    const contentType = response.headers.get("content-type");
+    let json;
+    if (contentType && contentType.includes("application/json")) {
+        json = await response.json();
+    } else {
+        const text = await response.text();
+        throw new Error(text || `Error ${response.status}`);
+    }
+
     if (!response.ok) {
-        throw new Error(json.error?.message || json.message || 'Failed to update rule');
+        throw new Error(json?.error?.message || json?.message || 'Failed to update rule');
     }
     return json.data;
 };
@@ -58,7 +94,13 @@ export const deleteRule = async (id: number, token: string): Promise<void> => {
         }
     });
     if (!response.ok) {
-        const json = await response.json();
-        throw new Error(json.error?.message || json.message || 'Failed to delete rule');
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+            const json = await response.json();
+            throw new Error(json.error?.message || json.message || 'Failed to delete rule');
+        } else {
+            const text = await response.text();
+            throw new Error(text || `Error ${response.status}`);
+        }
     }
 };

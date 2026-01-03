@@ -373,11 +373,9 @@ export default function Rules() {
                     </div>
                 )}
 
-                {/* Rules Display Grid */}
                 {loading ? (
                     <div className="rules-empty">
-                        <Loader />
-                        <p style={{ marginTop: '2rem' }}>Cargando normativas...</p>
+                        <Loader text={t('rules.loading') || "Cargando normativas..."} />
                     </div>
                 ) : (
                     <div className="rules-grid">

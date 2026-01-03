@@ -3,6 +3,8 @@ import { FaPlus, FaTrash, FaSave, FaEdit, FaTimes, FaMapMarkerAlt, FaGhost, FaUs
 import ConfirmationModal from '../../UI/ConfirmationModal';
 import { getLocations, createLocation, updateLocation, deleteLocation, WorldLocation, LocationAuthor } from '../../../services/locationService';
 import { supabase } from '../../../services/supabaseClient';
+import { useTranslation } from 'react-i18next';
+import Loader from '../../UI/Loader';
 
 const AUTHOR_ROLES = [
     'architect',
@@ -14,6 +16,7 @@ const AUTHOR_ROLES = [
 ];
 
 export default function LocationsManager() {
+    const { t } = useTranslation();
     const [locations, setLocations] = useState<WorldLocation[]>([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -53,7 +56,7 @@ export default function LocationsManager() {
 
     const handleSave = async () => {
         if (!formData.title || !formData.description) {
-            alert('Por favor completa los campos básicos');
+            alert(t('locations_manager.form.error_fields', 'Por favor completa los campos básicos'));
             return;
         }
 
@@ -73,7 +76,7 @@ export default function LocationsManager() {
             await fetchLocations();
         } catch (error) {
             console.error('Error saving location:', error);
-            alert('Error al guardar');
+            alert(t('locations_manager.form.error_save', 'Error al guardar'));
         } finally {
             setSaving(false);
         }
@@ -130,9 +133,8 @@ export default function LocationsManager() {
     };
 
     if (loading) return (
-        <div className="p-20 flex flex-col items-center justify-center gap-4 text-white/50 animate-pulse">
-            <div className="w-12 h-12 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin"></div>
-            <p className="font-bold tracking-widest text-xs uppercase">Sincronizando Lore...</p>
+        <div style={{ padding: '5rem 0' }}>
+            <Loader text={t('locations_manager.loading', "Sincronizando Lore...")} />
         </div>
     );
 
@@ -209,9 +211,9 @@ export default function LocationsManager() {
             <div className="manager-header">
                 <div>
                     <h3 style={{ margin: 0, fontSize: '1.5rem', fontWeight: '900', color: '#fff', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                        <FaMapMarkerAlt style={{ color: 'var(--accent)' }} /> Lugares y Lore
+                        <FaMapMarkerAlt style={{ color: 'var(--accent)' }} /> {t('locations_manager.title', 'Gestor de Lugares y Lore')}
                     </h3>
-                    <p style={{ margin: '4px 0 0 0', fontSize: '0.9rem', color: 'rgba(255,255,255,0.4)' }}>Arquitectura del mundo y puntos de interés histórico</p>
+                    <p style={{ margin: '4px 0 0 0', fontSize: '0.9rem', color: 'rgba(255,255,255,0.4)' }}>{t('locations_manager.subtitle', 'Administra los puntos de interés y la historia del mundo.')}</p>
                 </div>
                 {!isCreating && (
                     <button 
@@ -219,7 +221,7 @@ export default function LocationsManager() {
                         className="modal-btn-primary hover-lift"
                         style={{ padding: '0.8rem 1.5rem', borderRadius: '16px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '10px' }}
                     >
-                        <FaPlus /> Nuevo Lugar
+                        <FaPlus /> {t('locations_manager.create_btn', 'Nuevo Lugar')}
                     </button>
                 )}
             </div>
@@ -229,7 +231,7 @@ export default function LocationsManager() {
                 <div className="admin-card editor-card">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem' }}>
                         <h4 style={{ margin: 0, fontSize: '1.2rem', fontWeight: '800', color: '#fff', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            {editingId ? <><FaEdit style={{ color: '#facc15' }} /> Editar Registro</> : <><FaPlus style={{ color: 'var(--accent)' }} /> Nuevo Registro</>}
+                            {editingId ? <><FaEdit style={{ color: '#facc15' }} /> {t('locations_manager.edit_title', 'Editar Registro')}</> : <><FaPlus style={{ color: 'var(--accent)' }} /> {t('locations_manager.create_title', 'Nuevo Registro')}</>}
                         </h4>
                         <button onClick={resetForm} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer' }}>
                             <FaTimes size={20} />
@@ -243,25 +245,25 @@ export default function LocationsManager() {
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                                 <div>
                                     <label style={{ display: 'block', marginBottom: '0.8rem', color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', fontWeight: '700' }}>
-                                        Título de la Localización
+                                        {t('locations_manager.form.title', 'Título de la Localización')}
                                     </label>
                                     <input 
                                         className="admin-input-premium" 
                                         value={formData.title}
                                         onChange={e => setFormData({...formData, title: e.target.value})}
-                                        placeholder="Ej: Gran Biblioteca de Cristal"
+                                        placeholder={t('locations_manager.form.title_ph', 'Ej: Gran Biblioteca de Cristal')}
                                         style={{ width: '100%', padding: '1rem' }}
                                     />
                                 </div>
                                 <div>
                                     <label style={{ display: 'block', marginBottom: '0.8rem', color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', fontWeight: '700' }}>
-                                        Coordenadas
+                                        {t('locations_manager.form.coords', 'Coordenadas')}
                                     </label>
                                     <input 
                                         className="admin-input-premium" 
                                         value={formData.coords}
                                         onChange={e => setFormData({...formData, coords: e.target.value})}
-                                        placeholder="0, 64, 0"
+                                        placeholder={t('locations_manager.form.coords_ph', '0, 64, 0')}
                                         style={{ width: '100%', padding: '1rem', fontFamily: 'monospace' }}
                                     />
                                 </div>
@@ -270,7 +272,7 @@ export default function LocationsManager() {
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                                 <div>
                                     <label style={{ display: 'block', marginBottom: '0.8rem', color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', fontWeight: '700' }}>
-                                        URL de la Imagen
+                                        {t('locations_manager.form.image', 'URL de la Imagen')}
                                     </label>
                                     <input 
                                         className="admin-input-premium" 
@@ -283,7 +285,7 @@ export default function LocationsManager() {
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                     <div>
                                         <label style={{ display: 'block', marginBottom: '0.8rem', color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', fontWeight: '700' }}>
-                                            Orden
+                                            {t('locations_manager.form.order', 'Orden')}
                                         </label>
                                         <input 
                                             type="number"
@@ -305,7 +307,9 @@ export default function LocationsManager() {
                                             width: '100%',
                                             height: '50px'
                                         }}>
-                                            <span style={{ fontSize: '0.8rem', fontWeight: '700', color: formData.is_coming_soon ? '#4ade80' : 'rgba(255,255,255,0.4)' }}>Secret?</span>
+                                            <span style={{ fontSize: '0.8rem', fontWeight: '700', color: formData.is_coming_soon ? '#4ade80' : 'rgba(255,255,255,0.4)' }}>
+                                                {t('locations_manager.secret', 'Secret?')}
+                                            </span>
                                             <label className="switch" style={{ transform: 'scale(0.8)' }}>
                                                 <input 
                                                     type="checkbox" 
@@ -322,7 +326,7 @@ export default function LocationsManager() {
 
                         <div>
                             <label style={{ display: 'block', marginBottom: '0.8rem', color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', fontWeight: '700' }}>
-                                Descripción Corta (Resumen)
+                                {t('locations_manager.form.desc', 'Descripción Corta (Resumen)')}
                             </label>
                             <input 
                                 className="admin-input-premium" 
@@ -334,7 +338,7 @@ export default function LocationsManager() {
 
                         <div>
                             <label style={{ display: 'block', marginBottom: '0.8rem', color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', fontWeight: '700' }}>
-                                Historia / Lore Detallado
+                                {t('locations_manager.form.lore', 'Historia / Lore Detallado')}
                             </label>
                             <textarea 
                                 className="admin-textarea-premium" 
@@ -348,7 +352,7 @@ export default function LocationsManager() {
                         {/* Authors Section */}
                         <div style={{ background: 'rgba(255,255,255,0.02)', padding: '1.5rem', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.05)' }}>
                             <label style={{ display: 'block', marginBottom: '1rem', color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', fontWeight: '700' }}>
-                                <FaUsers style={{ marginRight: '8px' }} /> Arquitectos / Autores
+                                <FaUsers style={{ marginRight: '8px' }} /> {t('locations_manager.form.authors', 'Arquitectos / Autores')}
                             </label>
                             
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.8rem', marginBottom: '1.5rem' }}>
@@ -375,7 +379,7 @@ export default function LocationsManager() {
                             <div className="author-controls">
                                 <input 
                                     className="admin-input-premium" 
-                                    placeholder="Nick del Autor"
+                                    placeholder={t('locations_manager.form.author_nick', 'Nick del Autor')}
                                     value={newAuthor.name}
                                     onChange={e => setNewAuthor({...newAuthor, name: e.target.value})}
                                     style={{ flexGrow: 1, padding: '0.8rem' }}
@@ -397,7 +401,7 @@ export default function LocationsManager() {
 
                     <div className="form-actions">
                         <button onClick={resetForm} style={{ padding: '1rem 2rem', borderRadius: '16px', background: 'rgba(255,255,255,0.05)', color: '#fff', fontWeight: '700', cursor: 'pointer', border: 'none' }}>
-                            Cancelar
+                            {t('admin.locations.form.cancel', 'Cancelar')}
                         </button>
                         <button 
                             onClick={handleSave} 
@@ -405,7 +409,7 @@ export default function LocationsManager() {
                             className="modal-btn-primary hover-lift"
                             style={{ padding: '1rem 3rem', borderRadius: '16px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '10px' }}
                         >
-                            {saving ? 'Guardando...' : <><FaSave /> Guardar Registro</>}
+                            {saving ? t('admin.locations.form.saving', 'Guardando...') : <><FaSave /> {t('admin.locations.form.save', 'Guardar Registro')}</>}
                         </button>
                     </div>
                 </div>
@@ -464,7 +468,9 @@ export default function LocationsManager() {
                                     </div>
                                     <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)', fontWeight: '700' }}>#{loc.sort_order}</span>
                                 </div>
-                                <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.2)', fontWeight: '900', textTransform: 'uppercase' }}>Lore Entry</span>
+                                <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.2)', fontWeight: '900', textTransform: 'uppercase' }}>
+                                    {t('admin.locations.lore_entry', 'Entrada de Lore')}
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -473,8 +479,8 @@ export default function LocationsManager() {
 
             <ConfirmationModal 
                 isOpen={!!deleteConfirmId}
-                title="Eliminar Registro de Lore"
-                message="¿Estás seguro de que quieres borrar este lugar? La historia asociada se perderá permanentemente."
+                title={t('admin.locations.delete_modal.title', "Eliminar Registro de Lore")}
+                message={t('admin.locations.delete_modal.msg', "¿Estás seguro de que quieres borrar este lugar? La historia asociada se perderá permanentemente.")}
                 onConfirm={confirmDelete}
                 onClose={() => setDeleteConfirmId(null)}
                 isDanger={true}

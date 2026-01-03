@@ -2,8 +2,7 @@ import { useState, useEffect } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { motion } from "framer-motion"
-import { FaUser, FaMedal, FaGamepad, FaTrophy, FaSkull, FaClock, FaHammer, FaTwitter, FaDiscord, FaTwitch, FaYoutube, FaHome, FaHeart } from "react-icons/fa"
-import RoleBadge from "../components/User/RoleBadge"
+import { FaUser, FaMedal, FaGamepad, FaTwitter, FaDiscord, FaTwitch, FaYoutube, FaHome } from "react-icons/fa"
 import Loader from "../components/UI/Loader"
 import { MEDAL_ICONS } from "../utils/MedalIcons"
 import MarkdownRenderer from "../components/UI/MarkdownRenderer"
@@ -11,11 +10,12 @@ import ProfileWall from "../components/User/ProfileWall"
 import SkinViewer from "../components/User/SkinViewer"
 import { useAuth } from "../context/AuthContext"
 import { isAdmin as checkIsAdmin } from "../utils/roleUtils"
-import { FaPlus } from "react-icons/fa6"
 import { supabase } from "../services/supabaseClient"
 import Toast, { ToastType } from "../components/UI/Toast"
+import ProfileHeader from "../components/User/ProfileHeader"
+import PlayerStatsGrid from "../components/User/PlayerStatsGrid"
 
-const API_URL = import.meta.env.VITE_API_URL
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 interface MedalDefinition {
     id: string | number;
@@ -96,18 +96,28 @@ export default function PublicProfile() {
                     'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
                 }
             });
-            
-            const data = await res.json();
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(text || `Error ${res.status}`);
+            }
+
+            const contentType = res.headers.get("content-type");
+            let data;
+            if (contentType && contentType.includes("application/json")) {
+                data = await res.json();
+            } else {
+                throw new Error("Invalid response from server");
+            }
             
             if (res.ok) {
                 setProfile(prev => prev ? ({ ...prev, reputation: data.newReputation }) : null);
-                showToast("¡Karma entregado!", "success");
+                showToast(t('profile.karma_success'), "success");
             } else {
-                showToast(data.error || "Error al dar karma", "error");
+                showToast(data.error || t('profile.karma_error'), "error");
             }
         } catch (e) { 
             console.error(e); 
-            showToast("Error de conexión", "error");
+            showToast(t('profile.karma_conn_error'), "error");
         }
         finally { setGivingKarma(false); }
     };
@@ -123,7 +133,14 @@ export default function PublicProfile() {
                     if(resUser.status === 404) throw new Error(t('profile.not_found', 'Usuario no encontrado'))
                     throw new Error("Error loading profile")
                 }
-                const response = await resUser.json()
+                
+                const contentType = resUser.headers.get("content-type");
+                let response;
+                if (contentType && contentType.includes("application/json")) {
+                    response = await resUser.json()
+                } else {
+                    throw new Error("Invalid response format from server")
+                }
                 if (!response.success || !response.data) throw new Error("Invalid response format")
                 const userData = response.data
                 setProfile(userData)
@@ -132,15 +149,18 @@ export default function PublicProfile() {
                 if (userData.medals && userData.medals.length > 0) {
                     const resSettings = await fetch(`${API_URL}/settings`)
                     if (resSettings.ok) {
-                        const settings = await resSettings.json()
-                        if (settings.medal_definitions) {
-                            try {
-                                const parsed = typeof settings.medal_definitions === 'string' 
-                                    ? JSON.parse(settings.medal_definitions) 
-                                    : settings.medal_definitions
-                                setMedalDefinitions(Array.isArray(parsed) ? parsed : [])
-                            } catch (e) {
-                                console.warn("Failed to parse medals", e)
+                        const contentType = resSettings.headers.get("content-type");
+                        if (contentType && contentType.includes("application/json")) {
+                            const settings = await resSettings.json()
+                            if (settings.medal_definitions) {
+                                try {
+                                    const parsed = typeof settings.medal_definitions === 'string' 
+                                        ? JSON.parse(settings.medal_definitions) 
+                                        : settings.medal_definitions
+                                    setMedalDefinitions(Array.isArray(parsed) ? parsed : [])
+                                } catch (e) {
+                                    console.warn("Failed to parse medals", e)
+                                }
                             }
                         }
                     }
@@ -151,11 +171,14 @@ export default function PublicProfile() {
                     try {
                         const resStats = await fetch(`${API_URL}/player-stats/${username}`)
                         if (resStats.ok) {
-                            const response = await resStats.json()
-                            if (response.success && response.data) {
-                                setPlayerStats(response.data)
-                            } else {
-                                setPlayerStats(response)
+                            const contentType = resStats.headers.get("content-type");
+                            if (contentType && contentType.includes("application/json")) {
+                                const response = await resStats.json()
+                                if (response.success && response.data) {
+                                    setPlayerStats(response.data)
+                                } else {
+                                    setPlayerStats(response)
+                                }
                             }
                         }
                     } catch (e) { console.warn("Failed to fetch stats", e) }
@@ -235,85 +258,17 @@ export default function PublicProfile() {
 
     return (
         <div className="public-profile-container fade-in">
-            <style>{`
-                .public-profile-container {
-                    padding-bottom: 4rem;
-                    min-height: 100vh;
-                    background: #050505;
-                    color: #fff;
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                }
-
-                /* Premium Header & Banner */
-                .profile-header-premium {
-                    width: 100%;
-                    height: 350px;
-                    position: relative;
-                    overflow: visible;
-                    background: #0a0a0a;
-                    margin-bottom: 4rem;
-                }
-                .profile-banner {
-                    width: 100%;
-                    height: 100%;
-                    object-fit: cover;
-                    mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 70%, rgba(0,0,0,0));
-                    opacity: 0.6;
-                }
-                .profile-banner-placeholder {
-                    width: 100%;
-                    height: 100%;
-                    background: linear-gradient(45deg, #111 25%, #1a1a1a 50%, #111 75%);
-                    background-size: 200% 200%;
-                    animation: gradient-shift 10s ease infinite;
-                    mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 70%, rgba(0,0,0,0));
-                }
-                @keyframes gradient-shift {
-                    0% { background-position: 0% 50% }
-                    50% { background-position: 100% 50% }
-                    100% { background-position: 0% 50% }
-                }
-
-                /* Floating Avatar Info */
-                .profile-header-content {
-                    position: absolute;
-                    bottom: -30px;
-                    left: 50%;
-                    transform: translateX(-50%);
-                    width: 100%;
-                    max-width: 1200px;
-                    padding: 0 2rem;
-                    display: flex;
-                    align-items: flex-end;
-                    gap: 2rem;
-                }
-                .profile-avatar-wrapper {
-                    position: relative;
-                    flex-shrink: 0;
-                }
-                .profile-avatar-premium {
-                    width: 180px;
-                    height: 180px;
-                    border-radius: 50%;
-                    border: 6px solid #050505;
-                    background: #111;
-                    box-shadow: 0 20px 40px rgba(0,0,0,0.6);
-                    object-fit: cover;
-                }
-                .profile-info-floating {
-                    padding-bottom: 20px;
-                }
-                .profile-info-floating h1 {
-                    font-size: 3rem;
-                    font-weight: 900;
-                    margin: 0;
-                    letter-spacing: -1px;
-                    text-shadow: 0 4px 20px rgba(0,0,0,0.8);
-                }
-
-                /* Layout */
+            {/* Premium Header */}
+            <ProfileHeader 
+                profile={profile} 
+                currentUser={currentUser} 
+                onGiveKarma={handleGiveKarma} 
+                givingKarma={givingKarma} 
+            />
+            
+            <div className="profile-content">
+                <style>{`
+                 /* Layout */
                 .profile-content {
                     width: 100%;
                     max-width: 1200px;
@@ -327,8 +282,13 @@ export default function PublicProfile() {
                     flex-direction: column;
                     gap: 2rem;
                 }
-
-                /* Glassmorphism Cards */
+                 @media (max-width: 900px) {
+                    .profile-content {
+                        grid-template-columns: 1fr;
+                    }
+                }
+                
+                /* Glassmorphism Cards (Still needed for SkinViewer wrapper) */
                 .premium-card {
                     background: rgba(255, 255, 255, 0.03);
                     backdrop-filter: blur(12px);
@@ -353,8 +313,7 @@ export default function PublicProfile() {
                     align-items: center;
                     gap: 0.8rem;
                 }
-
-                .skin-preview-premium {
+                 .skin-preview-premium {
                     width: 100%;
                     aspect-ratio: 3/4;
                     display: flex;
@@ -362,166 +321,25 @@ export default function PublicProfile() {
                     justify-content: center;
                     position: relative;
                 }
+                `}</style>
 
-                .stat-grid-premium {
-                    display: grid;
-                    grid-template-columns: repeat(2, 1fr);
-                    gap: 1rem;
-                }
-                .stat-item-premium {
-                    background: rgba(255,255,255,0.02);
-                    padding: 1.2rem;
-                    border-radius: 16px;
-                    border: 1px solid rgba(255,255,255,0.04);
-                    transition: transform 0.2s;
-                }
-                .stat-item-premium:hover {
-                    background: rgba(255,255,255,0.04);
-                    transform: translateY(-4px);
-                }
-                .stat-icon {
-                    width: 32px;
-                    height: 32px;
-                    border-radius: 8px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    margin-bottom: 0.8rem;
-                    font-size: 0.9rem;
-                }
-
-                @media (max-width: 900px) {
-                    .profile-header-content {
-                        flex-direction: column;
-                        align-items: center;
-                        text-align: center;
-                        bottom: -150px;
-                    }
-                    .profile-header-premium {
-                        margin-bottom: 11rem;
-                    }
-                    .profile-content {
-                        grid-template-columns: 1fr;
-                    }
-                    .profile-info-floating h1 {
-                        font-size: 2.2rem;
-                    }
-                }
-            `}</style>
-
-            
-            {/* Premium Header */}
-            <div className="profile-header-premium">
-                {profile.profile_banner_url ? (
-                    <img src={profile.profile_banner_url} alt="Banner" className="profile-banner" />
-                ) : (
-                    <div className="profile-banner-placeholder" />
-                )}
-                
-                <div className="profile-header-content">
-                    <div className="profile-avatar-wrapper">
-                        <img 
-                            src={
-                                (profile.avatar_preference === 'social' && profile.avatar_url) 
-                                    ? profile.avatar_url 
-                                    : `https://mc-heads.net/avatar/${profile.username}/180`
-                            } 
-                            alt={profile.username}
-                            className="profile-avatar-premium"
-                        />
-                    </div>
-                    <div className="profile-info-floating">
-                        <motion.div
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                        >
-                            <RoleBadge role={profile.role} username={profile.username} />
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-                                <h1>{profile.username}</h1>
-                                <div style={{ 
-                                    display: 'flex', 
-                                    alignItems: 'center', 
-                                    gap: '0.5rem', 
-                                    background: 'rgba(255,255,255,0.05)',
-                                    padding: '0.4rem 0.8rem',
-                                    borderRadius: '12px',
-                                    border: '1px solid rgba(255,255,255,0.1)',
-                                    backdropFilter: 'blur(10px)'
-                                }}>
-                                    <FaHeart style={{ color: '#ff4444' }} />
-                                    <span style={{ fontWeight: 800 }}>{profile.reputation || 0}</span>
-                                    {currentUser && currentUser.id !== profile.id && (
-                                        <button 
-                                            onClick={handleGiveKarma}
-                                            disabled={givingKarma}
-                                            style={{ 
-                                                background: 'none', 
-                                                border: 'none', 
-                                                color: '#ff4444', 
-                                                cursor: 'pointer',
-                                                padding: '0.2rem',
-                                                display: 'flex',
-                                                opacity: givingKarma ? 0.5 : 1
-                                            }}
-                                            title="Dar Karma"
-                                        >
-                                            <FaPlus />
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-                        </motion.div>
-                    </div>
-                </div>
-            </div>
-            
-            <div className="profile-content">
                 {/* Left Column: Stats & Skin */}
                 <div className="profile-sidebar">
                      {/* Skin Showcase */}
                      <div className="premium-card">
-                        <h3><FaGamepad /> {t('profile.skin', 'Avatar 3D')}</h3>
+                        <h3><FaGamepad /> {t('profile.skin_title')}</h3>
                         <div className="skin-preview-premium">
                             <SkinViewer username={profile.username} height={380} width={280} />
                         </div>
                     </div>
 
                     {/* Stats Showcase */}
-                    <div className="premium-card">
-                        <h3><FaTrophy /> {t('profile.stats', 'Estadísticas')}</h3>
-                        {(profile.public_stats || isAdmin) ? (
-                            <div className="stat-grid-premium">
-                                {statsLoading ? (
-                                    <Loader text="..." />
-                                ) : playerStats ? (
-                                    <>
-                                        <div className="stat-item-premium">
-                                            <div className="stat-icon" style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' }}><FaClock /></div>
-                                            <div style={{ fontSize: '1.2rem', fontWeight: 800 }}>{playerStats?.playtime || '0h'}</div>
-                                            <div style={{ fontSize: '0.7rem', color: '#666' }}>{t('profile.time', 'Tiempo Jugado')}</div>
-                                        </div>
-                                        <div className="stat-item-premium">
-                                            <div className="stat-icon" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}><FaSkull /></div>
-                                            <div style={{ fontSize: '1.2rem', fontWeight: 800 }}>{playerStats?.deaths || 0}</div>
-                                            <div style={{ fontSize: '0.7rem', color: '#666' }}>{t('profile.deaths', 'Muertes')}</div>
-                                        </div>
-                                        <div className="stat-item-premium" style={{ position: 'relative', overflow: 'hidden' }}>
-                                            <div className="stat-icon" style={{ background: 'rgba(234, 179, 8, 0.1)', color: '#eab308' }}>
-                                                <img src="/images/killucoin.webp" alt="K" style={{ width: '24px', height: '24px', objectFit: 'contain' }} />
-                                            </div>
-                                            <div style={{ fontSize: '1.2rem', fontWeight: 800 }}>{playerStats?.money || 0}</div>
-                                            <div style={{ fontSize: '0.7rem', color: '#666' }}>{t('profile.killucoins', 'Killucoins')}</div>
-                                        </div>
-                                        <div className="stat-item-premium">
-                                            <div className="stat-icon" style={{ background: 'rgba(34, 197, 94, 0.1)', color: '#22c55e' }}><FaHammer /></div>
-                                            <div style={{ fontSize: '1.2rem', fontWeight: 800 }}>{playerStats?.blocks_mined || 0}</div>
-                                            <div style={{ fontSize: '0.7rem', color: '#666' }}>{t('profile.mined', 'Bloques Minados')}</div>
-                                        </div>
-                                    </>
-                                ) : <p>Error</p>}
-                            </div>
-                        ) : <p>{t('profile.private_stats')}</p>}
-                    </div>
+                    <PlayerStatsGrid 
+                        stats={playerStats} 
+                        loading={statsLoading} 
+                        isPublic={!!profile.public_stats} 
+                        isAdmin={isAdmin} 
+                    />
                 </div>
 
                 {/* Right Column: Bio, Medals & Wall */}
@@ -532,7 +350,7 @@ export default function PublicProfile() {
                             <div style={{ flex: 1, minWidth: '300px' }}>
                                 <h3><FaUser /> {t('profile.about_me')}</h3>
                                 <div style={{ color: '#aaa', lineHeight: 1.8 }}>
-                                    {profile.bio ? <MarkdownRenderer content={profile.bio} /> : <p style={{ fontStyle: 'italic' }}>{t('profile.no_bio', 'Este usuario prefiere mantener el misterio.')}</p>}
+                                    {profile.bio ? <MarkdownRenderer content={profile.bio} /> : <p style={{ fontStyle: 'italic' }}>{t('profile.no_bio')}</p>}
                                 </div>
                             </div>
                             

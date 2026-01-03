@@ -1,88 +1,88 @@
 {
-    "name": "crystaltides-app",
-    "version": "1.0.0",
-    "packageManager": "npm@11.6.4",
-    "private": true,
-    "workspaces": [
-        "apps/*",
-        "plugins/*",
-        "packages/*"
-    ],
-    "scripts": {
-        "dev": "turbo run dev",
-        "build": "turbo run build",
-        "lint": "turbo run lint",
-        "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
-        "client": "npm run dev -w @crystaltides/client",
-        "server": "npm run dev -w @crystaltides/server",
-        "install:all": "npm install"
+  "name": "crystaltides-app",
+  "version": "1.0.0",
+  "packageManager": "npm@11.6.4",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "plugins/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "client": "npm run dev -w @crystaltides/client",
+    "server": "npm run dev -w @crystaltides/server",
+    "install:all": "npm install"
+  },
+  "overrides": {
+    "glob": "11.1.0",
+    "esbuild": "0.27.2",
+    "cross-spawn": "7.0.6",
+    "brace-expansion": "2.0.2",
+    "tar": "7.5.2",
+    "minimatch": "9.0.5",
+    "**": {
+      "glob": "11.1.0",
+      "tar": "7.5.2",
+      "cross-spawn": "7.0.6",
+      "brace-expansion": "2.0.2",
+      "minimatch": "9.0.5",
+      "tinyglobby": {
+        "glob": "11.1.0"
+      }
     },
-    "overrides": {
-        "glob": "11.1.0",
-        "esbuild": "0.27.2",
-        "cross-spawn": "7.0.6",
-        "brace-expansion": "2.0.2",
-        "tar": "7.5.2",
-        "minimatch": "9.0.5",
-        "**": {
-            "glob": "11.1.0",
-            "tar": "7.5.2",
-            "cross-spawn": "7.0.6",
-            "brace-expansion": "2.0.2",
-            "minimatch": "9.0.5",
-            "tinyglobby": {
-                "glob": "11.1.0"
-            }
-        },
-        "tinyglobby": {
-            "glob": "11.1.0"
-        }
-    },
-    "devDependencies": {
-        "@eslint/js": "^9.39.2",
-        "@testing-library/jest-dom": "^6.9.1",
-        "@testing-library/react": "^16.3.1",
-        "@types/node": "^25.0.3",
-        "@types/react": "^19.2.7",
-        "@types/react-dom": "^19.2.3",
-        "@typescript-eslint/eslint-plugin": "^8.50.1",
-        "@typescript-eslint/parser": "^8.50.1",
-        "@vitejs/plugin-react": "^5.1.2",
-        "autoprefixer": "^10.4.23",
-        "concurrently": "^8.0.0",
-        "cross-spawn": "7.0.6",
-        "eslint": "^9.39.2",
-        "eslint-plugin-react-hooks": "^7.0.1",
-        "eslint-plugin-react-refresh": "^0.4.26",
-        "fast-glob": "^3.3.3",
-        "glob": "11.1.0",
-        "globals": "^16.5.0",
-        "jsdom": "^27.3.0",
-        "micromatch": "^4.0.8",
-        "postcss": "^8.5.6",
-        "prettier": "^3.7.4",
-        "sucrase": "^3.35.1",
-        "tailwindcss": "^4.1.18",
-        "turbo": "^2.7.2",
-        "typescript-eslint": "^8.50.1",
-        "vite": "^6.2.0",
-        "vitest": "^3.0.10"
-    },
-    "dependencies": {
-        "@hello-pangea/dnd": "^18.0.1",
-        "@supabase/supabase-js": "^2.89.0",
-        "canvas-confetti": "^1.9.4",
-        "cors": "^2.8.5",
-        "discord.js": "^14.25.1",
-        "dotenv": "^17.2.3",
-        "embla-carousel-autoplay": "^8.6.0",
-        "embla-carousel-fade": "^8.6.0",
-        "embla-carousel-react": "^8.6.0",
-        "express": "^5.2.1",
-        "framer-motion": "^12.23.26",
-        "gsap": "^3.14.2",
-        "i18next": "^25.7.3",
-        "i18next-browser-languagedetector": "^8.2.0",
-        "tar": "7.5.2"
+    "tinyglobby": {
+      "glob": "11.1.0"
     }
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.2",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.1",
+    "@types/node": "^25.0.3",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "@typescript-eslint/eslint-plugin": "^8.50.1",
+    "@typescript-eslint/parser": "^8.50.1",
+    "@vitejs/plugin-react": "^5.1.2",
+    "autoprefixer": "^10.4.23",
+    "concurrently": "^8.0.0",
+    "cross-spawn": "7.0.6",
+    "eslint": "^9.39.2",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.26",
+    "fast-glob": "^3.3.3",
+    "glob": "11.1.0",
+    "globals": "^16.5.0",
+    "jsdom": "^27.3.0",
+    "micromatch": "^4.0.8",
+    "postcss": "^8.5.6",
+    "prettier": "^3.7.4",
+    "sucrase": "^3.35.1",
+    "tailwindcss": "^4.1.18",
+    "turbo": "^2.7.2",
+    "typescript-eslint": "^8.50.1",
+    "vite": "^6.2.0",
+    "vitest": "^3.0.10"
+  },
+  "dependencies": {
+    "@hello-pangea/dnd": "^18.0.1",
+    "@supabase/supabase-js": "^2.89.0",
+    "canvas-confetti": "^1.9.4",
+    "cors": "^2.8.5",
+    "discord.js": "^14.25.1",
+    "dotenv": "^17.2.3",
+    "embla-carousel-autoplay": "^8.6.0",
+    "embla-carousel-fade": "^8.6.0",
+    "embla-carousel-react": "^8.6.0",
+    "express": "^5.2.1",
+    "framer-motion": "^12.23.26",
+    "gsap": "^3.14.2",
+    "i18next": "^25.7.3",
+    "i18next-browser-languagedetector": "^8.2.0",
+    "tar": "7.5.2"
+  }
 }

@@ -68,7 +68,12 @@ export default function Footer() {
                 </div>
             </div>
 
-            <button className={`scroll-top-btn ${showScrollBtn ? 'visible' : ''}`} onClick={scrollToTop} aria-label={t('footer.aria_scroll_top', 'Volver arriba')}>
+            <button 
+                className={`scroll-top-btn ${showScrollBtn ? 'visible' : ''}`} 
+                onClick={scrollToTop} 
+                aria-label={t('footer.aria_scroll_top', 'Volver arriba')}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >
                 <FaArrowUp />
             </button>
 

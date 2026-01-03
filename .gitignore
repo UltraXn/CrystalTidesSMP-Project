@@ -31,3 +31,6 @@ docs/
 
 *storybook.log
 storybook-static
+
+# Docker setup
+docker-compose.lite.yml

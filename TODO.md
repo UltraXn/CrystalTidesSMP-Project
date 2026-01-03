@@ -102,7 +102,7 @@ Este documento centraliza el roadmap completo del proyecto, organizando las tare
 
 - [ ] **VPS Dedicado**: Migración del servidor de juego a infraestructura propia (Futuro).
 - [x] **Dockerización Pro**: Uso de Google Artifact Registry para imágenes de apps (`pkg.dev`).
-- [ ] **CI/CD**: Automatización de despliegue mediante GitHub Actions.
+- [x] **CI/CD**: Automatización de despliegue mediante GitHub Actions.
 
 ---
 

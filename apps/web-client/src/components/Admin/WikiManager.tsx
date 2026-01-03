@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from "react"
 import { useTranslation } from "react-i18next"
-import { motion, AnimatePresence } from "framer-motion"
-import { FaPlus, FaEdit, FaTrash, FaSave, FaTimes, FaBook, FaSearch, FaTag, FaGlobe } from "react-icons/fa"
+import { FaPlus, FaSearch } from "react-icons/fa"
 import { getWikiArticles, createWikiArticle, updateWikiArticle, deleteWikiArticle, WikiArticle } from "../../services/wikiService"
-import Loader from "../UI/Loader"
+import WikiArticleList from "./Wiki/WikiArticleList"
+import WikiArticleFormModal from "./Wiki/WikiArticleFormModal"
 
 interface WikiManagerProps {
     mockArticles?: WikiArticle[];
@@ -17,12 +17,7 @@ export default function WikiManager({ mockArticles }: WikiManagerProps = {}) {
 
     // Form State
     const [isEditing, setIsEditing] = useState(false)
-    const [formData, setFormData] = useState<Partial<WikiArticle>>({
-        title: "",
-        slug: "",
-        content: "",
-        category: "General"
-    })
+    const [currentArticle, setCurrentArticle] = useState<Partial<WikiArticle> | null>(null)
     const [editingId, setEditingId] = useState<number | null>(null)
     const [saving, setSaving] = useState(false)
 
@@ -43,8 +38,7 @@ export default function WikiManager({ mockArticles }: WikiManagerProps = {}) {
         fetchArticles()
     }, [fetchArticles])
 
-    const handleSave = async (e: React.FormEvent) => {
-        e.preventDefault()
+    const handleSave = async (formData: Partial<WikiArticle>) => {
         if (!formData.title || !formData.slug || !formData.content) return
 
         setSaving(true)
@@ -75,13 +69,13 @@ export default function WikiManager({ mockArticles }: WikiManagerProps = {}) {
     }
 
     const startEdit = (article: WikiArticle) => {
-        setFormData(article)
+        setCurrentArticle(article)
         setEditingId(article.id)
         setIsEditing(true)
     }
 
     const startNew = () => {
-        setFormData({ title: "", slug: "", content: "", category: "General" })
+        setCurrentArticle(null)
         setEditingId(null)
         setIsEditing(true)
     }
@@ -93,82 +87,23 @@ export default function WikiManager({ mockArticles }: WikiManagerProps = {}) {
 
     return (
         <div className="wiki-manager">
-            <style>{`
-                .wiki-manager {
-                    color: #fff;
-                }
-                .manager-header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    margin-bottom: 2rem;
-                }
-                .article-grid {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-                    gap: 1.5rem;
-                }
-                .article-card {
-                    background: rgba(255, 255, 255, 0.03);
-                    border: 1px solid rgba(255, 255, 255, 0.05);
-                    border-radius: 12px;
-                    padding: 1.5rem;
-                    transition: all 0.2s;
-                }
-                .article-card:hover {
-                    border-color: var(--accent);
-                    background: rgba(255, 255, 255, 0.05);
-                }
-                .form-overlay {
-                    position: fixed;
-                    inset: 0;
-                    background: rgba(0, 0, 0, 0.8);
-                    backdrop-filter: blur(5px);
-                    z-index: 1000;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    padding: 2rem;
-                }
-                .form-container {
-                    background: #111;
-                    border: 1px solid rgba(255, 255, 255, 0.1);
-                    border-radius: 20px;
-                    width: 100%;
-                    max-width: 1000px;
-                    max-height: 90vh;
-                    overflow-y: auto;
-                    padding: 2.5rem;
-                }
-                .input-group {
-                    margin-bottom: 1.5rem;
-                }
-                .input-group label {
-                    display: block;
-                    font-size: 0.75rem;
-                    text-transform: uppercase;
-                    color: #555;
-                    margin-bottom: 0.5rem;
-                    letter-spacing: 1px;
-                }
-                .input-group input, .input-group select, .input-group textarea {
-                    width: 100%;
-                    background: rgba(0, 0, 0, 0.3);
-                    border: 1px solid rgba(255, 255, 255, 0.1);
-                    border-radius: 8px;
-                    padding: 0.8rem 1rem;
-                    color: #fff;
-                    outline: none;
-                }
-                .input-group input:focus {
-                    border-color: var(--accent);
-                }
-            `}</style>
-
-            <div className="manager-header">
+             <div className="manager-header" style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: '2rem'
+                }}>
                 <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                    <div className="search-box">
-                        <FaSearch className="text-white/20" />
+                    <div className="search-box" style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: '8px', 
+                        background: 'rgba(255, 255, 255, 0.05)', 
+                        padding: '0.5rem 1rem', 
+                        borderRadius: '8px', 
+                        border: '1px solid rgba(255, 255, 255, 0.1)' 
+                    }}>
+                        <FaSearch className="text-white/20" style={{ color: 'rgba(255,255,255,0.4)' }} />
                         <input 
                             type="text" 
                             placeholder={t('admin.wiki.search_placeholder')} 
@@ -183,117 +118,21 @@ export default function WikiManager({ mockArticles }: WikiManagerProps = {}) {
                 </button>
             </div>
 
-            {loading ? (
-                <Loader text={t('admin.wiki.loading')} />
-            ) : filteredArticles.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '4rem', opacity: 0.3 }}>
-                    <FaBook size={48} style={{ marginBottom: '1rem' }} />
-                    <p>{t('admin.wiki.no_articles')}</p>
-                </div>
-            ) : (
-                <div className="article-grid">
-                    {filteredArticles.map(article => (
-                        <div key={article.id} className="article-card">
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-                                <span style={{ fontSize: '0.7rem', color: 'var(--accent)', background: 'rgba(22, 140, 128, 0.1)', padding: '2px 8px', borderRadius: '4px', textTransform: 'uppercase' }}>
-                                    {article.category}
-                                </span>
-                                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                    <button onClick={() => startEdit(article)} className="p-2 hover:text-amber-400"><FaEdit size={14} /></button>
-                                    <button onClick={() => handleDelete(article.id)} className="p-2 hover:text-red-400"><FaTrash size={14} /></button>
-                                </div>
-                            </div>
-                            <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>{article.title}</h3>
-                            <p style={{ fontSize: '0.8rem', color: '#555', marginBottom: '1rem' }}>/{article.slug}</p>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', fontSize: '0.75rem', color: '#444' }}>
-                                <span className="flex items-center gap-1"><FaGlobe /> {t('admin.wiki.public')}</span>
-                                <span className="flex items-center gap-1"><FaTag /> {article.content.length} {t('admin.wiki.char_count')}</span>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            )}
+            <WikiArticleList 
+                articles={filteredArticles}
+                loading={loading}
+                onEdit={startEdit}
+                onDelete={handleDelete}
+            />
 
-            {/* Modal Form */}
-            <AnimatePresence>
-                {isEditing && (
-                    <motion.div 
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="form-overlay"
-                    >
-                        <motion.div 
-                            initial={{ scale: 0.9, y: 20 }}
-                            animate={{ scale: 1, y: 0 }}
-                            className="form-container"
-                        >
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                                <h2>{editingId ? t('admin.wiki.edit_title') : t('admin.wiki.new_title')}</h2>
-                                <button onClick={() => setIsEditing(false)} style={{ background: 'none', border: 'none', color: '#555' }}><FaTimes size={20} /></button>
-                            </div>
-
-                            <form onSubmit={handleSave}>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-                                    <div className="input-group">
-                                        <label>{t('admin.wiki.title_label')}</label>
-                                        <input 
-                                            type="text" 
-                                            required
-                                            value={formData.title} 
-                                            onChange={e => setFormData({...formData, title: e.target.value})}
-                                            placeholder={t('admin.wiki.title_placeholder')}
-                                        />
-                                    </div>
-                                    <div className="input-group">
-                                        <label>{t('admin.wiki.slug_label')}</label>
-                                        <input 
-                                            type="text" 
-                                            required
-                                            value={formData.slug} 
-                                            onChange={e => setFormData({...formData, slug: e.target.value.toLowerCase().replace(/ /g, '-')})}
-                                            placeholder={t('admin.wiki.slug_placeholder')}
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="input-group">
-                                    <label>{t('admin.wiki.category_label')}</label>
-                                    <select 
-                                        value={formData.category} 
-                                        onChange={e => setFormData({...formData, category: e.target.value})}
-                                    >
-                                        <option value="General">{t('admin.wiki.categories.general')}</option>
-                                        <option value="Mecánicas">{t('admin.wiki.categories.mechanics')}</option>
-                                        <option value="Economía">{t('admin.wiki.categories.economy')}</option>
-                                        <option value="Comandos">{t('admin.wiki.categories.commands')}</option>
-                                        <option value="Rangos">{t('admin.wiki.categories.ranks')}</option>
-                                    </select>
-                                </div>
-
-                                <div className="input-group">
-                                    <label>{t('admin.wiki.content_label')}</label>
-                                    <textarea 
-                                        required
-                                        rows={12}
-                                        value={formData.content} 
-                                        onChange={e => setFormData({...formData, content: e.target.value})}
-                                        style={{ fontFamily: 'monospace', fontSize: '0.9rem' }}
-                                        placeholder={t('admin.wiki.content_placeholder')}
-                                    />
-                                </div>
-
-                                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '2rem' }}>
-                                    <button type="button" onClick={() => setIsEditing(false)} style={{ padding: '0.8rem 2rem', color: '#666' }}>{t('admin.wiki.cancel')}</button>
-                                    <button type="submit" disabled={saving} className="btn-primary" style={{ padding: '0.8rem 3rem' }}>
-                                        {saving ? <Loader size={16} /> : <>{editingId ? <><FaSave /> {t('admin.wiki.update_btn')}</> : <><FaSave /> {t('admin.wiki.publish_btn')}</>}</>}
-                                    </button>
-                                </div>
-                            </form>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+            <WikiArticleFormModal 
+                isOpen={isEditing}
+                onClose={() => setIsEditing(false)}
+                onSave={handleSave}
+                initialData={currentArticle}
+                isEditing={!!editingId}
+                saving={saving}
+            />
         </div>
     )
 }

@@ -19,6 +19,20 @@ export const getAllTickets = async () => {
 };
 
 /**
+ * Get a single ticket by id
+ */
+export const getTicketById = async (id: number) => {
+    const { data, error } = await supabase
+        .from('tickets')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+    if (error) throw error;
+    return data;
+};
+
+/**
  * Create a new ticket
  */
 interface TicketData {

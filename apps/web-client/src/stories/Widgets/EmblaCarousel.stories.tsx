@@ -1,11 +1,12 @@
-import type { Meta, StoryObj } from '@storybook/react-vite';
+// eslint-disable-next-line
+import type { Meta, StoryObj } from '@storybook/react';
 import EmblaCarousel from '../../components/UI/EmblaCarousel';
 
 const meta = {
   title: 'Widgets/EmblaCarousel',
   component: EmblaCarousel,
   parameters: {
-    layout: 'centered',
+    layout: 'fullscreen',
     backgrounds: {
         default: 'dark'
     }
@@ -48,5 +49,12 @@ export const SingleSlide: Story = {
     args: {
         slides: [slides[0]],
         options: { loop: false },
-    }
+    },
+    decorators: [
+        (Story) => (
+            <div style={{ padding: '2rem', '--slide-size': '100%' } as React.CSSProperties}>
+                <Story />
+            </div>
+        )
+    ]
 }

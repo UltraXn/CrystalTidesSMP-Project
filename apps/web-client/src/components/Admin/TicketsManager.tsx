@@ -1,77 +1,34 @@
-import { useState, useEffect, useRef, useCallback } from "react"
-import { FaSearch, FaPlus, FaTimes, FaSpinner, FaPaperPlane, FaGavel, FaCheckCircle, FaLock, FaEye, FaTicketAlt, FaExclamationCircle, FaExclamationTriangle, FaTrash, FaUsers } from "react-icons/fa"
+import { useState, useEffect, useCallback } from "react"
+import { FaSearch, FaPlus, FaTrash } from "react-icons/fa"
 import { useAuth } from "../../context/AuthContext"
 import { useTranslation } from 'react-i18next'
-import Loader from "../UI/Loader"
 import { supabase } from "../../services/supabaseClient"
 import { getAuthHeaders } from "../../services/adminAuth"
 
-const API_URL = import.meta.env.VITE_API_URL
-
-// Basic Interfaces
-interface Ticket {
-    id: number;
-    user_id: string;
-    subject: string;
-    description: string;
-    priority: 'low' | 'medium' | 'high' | 'urgent';
-    status: 'open' | 'pending' | 'resolved' | 'closed';
-    created_at: string;
-    profiles?: {
-        username: string;
-        avatar_url: string;
-    };
-}
-
-interface Message {
-    id: number;
-    user_id: string;
-    message: string;
-    is_staff: boolean;
-    created_at: string;
-}
-
-interface User {
-    id: string;
-    email?: string;
-    user_metadata?: {
-        full_name?: string;
-    };
-}
-
-interface AlertData {
-    message: string;
-    type: 'error' | 'success' | 'warning';
-}
-
-interface ConfirmData {
-    message: string;
-    onConfirm: () => void;
-}
+// New Components
+import { Ticket, Message, AlertData } from "./Tickets/types"
+import { CustomAlert, CustomConfirm } from "./Tickets/Shared"
+import TicketTable from "./Tickets/TicketTable"
+import CreateTicketModal from "./Tickets/CreateTicketModal"
+import TicketDetailModal from "./Tickets/TicketDetailModal"
 
 interface TicketsManagerProps {
     mockTickets?: Ticket[];
-    mockMessages?: Record<number, Message[]>; // Map ticket ID to messages
+    mockMessages?: Record<number, Message[]>;
 }
 
 export default function TicketsManager({ mockTickets, mockMessages }: TicketsManagerProps = {}) {
     const { t } = useTranslation()
-    const { user } = useAuth() as { user: User | null }
+    const { user } = useAuth() as { user: { id: string } | null }
     const [tickets, setTickets] = useState<Ticket[]>([])
     const [loading, setLoading] = useState(true)
     const [showCreateModal, setShowCreateModal] = useState(false)
-    const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null) // Controls if Detail Modal is open
+    const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null)
     const [selectedTicketIds, setSelectedTicketIds] = useState<number[]>([])
     const [confirmBulkDelete, setConfirmBulkDelete] = useState(false)
-
-    // Create Ticket State
-    const [newTicket, setNewTicket] = useState<{
-        subject: string;
-        description: string;
-        priority: 'low' | 'medium' | 'high' | 'urgent';
-    }>({ subject: '', description: '', priority: 'medium' })
     const [alert, setAlert] = useState<AlertData | null>(null)
-    const [isSubmitting, setIsSubmitting] = useState(false)
+
+    const API_URL = import.meta.env.VITE_API_URL
 
     const fetchTickets = useCallback(async () => {
         if (mockTickets) {
@@ -101,55 +58,15 @@ export default function TicketsManager({ mockTickets, mockMessages }: TicketsMan
             }
         } catch (error) {
             console.error("Failed to load tickets", error)
-            setAlert({ message: t('admin.alerts.error_title') + ": " + (error instanceof Error ? error.message : "Unknown Error"), type: 'error' })
+            setAlert({ message: t('admin.alerts.error_title', 'Error') + ": " + (error instanceof Error ? error.message : "Unknown Error"), type: 'error' })
         } finally {
             setLoading(false)
         }
-    }, [t])
+    }, [mockTickets, API_URL, t])
 
     useEffect(() => {
         fetchTickets()
     }, [fetchTickets])
-
-    const handleCreateTicket = async (e: React.FormEvent) => {
-        e.preventDefault()
-        if (!newTicket.subject) {
-            setAlert({ message: t('admin.tickets.create_modal.error_subject'), type: 'error' })
-            return
-        }
-
-        if (!user) return;
-
-        try {
-            setIsSubmitting(true)
-            const { data: { session } } = await supabase.auth.getSession();
-            const headers = { 
-                'Content-Type': 'application/json',
-                ...getAuthHeaders(session?.access_token || null)
-            };
-
-            const res = await fetch(`${API_URL}/tickets`, {
-                method: 'POST',
-                headers,
-                body: JSON.stringify({
-                    user_id: user.id,
-                    subject: newTicket.subject,
-                    description: newTicket.description,
-                    priority: newTicket.priority
-                })
-            })
-
-            if (!res.ok) throw new Error("Error creating ticket")
-
-            await fetchTickets()
-            setShowCreateModal(false)
-            setNewTicket({ subject: '', description: '', priority: 'medium' })
-        } catch (error) {
-            setAlert({ message: t('admin.tickets.create_modal.error_create') + ": " + (error instanceof Error ? error.message : String(error)), type: 'error' })
-        } finally {
-            setIsSubmitting(false)
-        }
-    }
 
     const toggleSelectTicket = (id: number) => {
         setSelectedTicketIds(prev => 
@@ -176,8 +93,6 @@ export default function TicketsManager({ mockTickets, mockMessages }: TicketsMan
                 ...getAuthHeaders(session?.access_token || null)
             };
 
-            // Since we don't have a bulk delete API yet, we'll do parallel requests
-            // Ideally this should be a single API call /tickets/bulk-delete
             await Promise.all(selectedTicketIds.map(id => 
                 fetch(`${API_URL}/tickets/${id}`, {
                     method: 'DELETE',
@@ -185,12 +100,12 @@ export default function TicketsManager({ mockTickets, mockMessages }: TicketsMan
                 })
             ));
 
-            setAlert({ message: t('admin.tickets.bulk_delete_success'), type: 'success' })
+            setAlert({ message: t('admin.tickets.bulk_delete_success', 'Tickets eliminados'), type: 'success' })
             setSelectedTicketIds([])
             fetchTickets()
         } catch (error) {
             console.error(error)
-            setAlert({ message: t('admin.alerts.error_title'), type: 'error' })
+            setAlert({ message: t('admin.alerts.error_title', 'Error'), type: 'error' })
         } finally {
             setLoading(false)
             setConfirmBulkDelete(false)
@@ -212,7 +127,7 @@ export default function TicketsManager({ mockTickets, mockMessages }: TicketsMan
                     <FaSearch style={{ position: 'absolute', left: '1.2rem', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.4)' }} />
                     <input 
                         type="text" 
-                        placeholder={t('admin.tickets.search_placeholder')} 
+                        placeholder={t('admin.tickets.search_placeholder', 'Buscar tickets...')} 
                         style={{ 
                             width: '100%', 
                             padding: '1rem 1rem 1rem 3rem', 
@@ -246,7 +161,7 @@ export default function TicketsManager({ mockTickets, mockMessages }: TicketsMan
                                 cursor: 'pointer'
                             }}
                         >
-                            <FaTrash size={14} /> {t('admin.tickets.delete_selected')} ({selectedTicketIds.length})
+                            <FaTrash size={14} /> {t('admin.tickets.delete_selected', 'Eliminar')} ({selectedTicketIds.length})
                         </button>
                     )}
                     <button
@@ -261,7 +176,7 @@ export default function TicketsManager({ mockTickets, mockMessages }: TicketsMan
                             borderRadius: '12px'
                         }}
                     >
-                        <FaPlus size={14} /> {t('admin.tickets.new_ticket')}
+                        <FaPlus size={14} /> {t('admin.tickets.new_ticket', 'Nuevo Ticket')}
                     </button>
                 </div>
             </div>
@@ -273,742 +188,44 @@ export default function TicketsManager({ mockTickets, mockMessages }: TicketsMan
                 border: '1px solid rgba(255,255,255,0.05)',
                 background: 'rgba(0,0,0,0.2)'
             }}>
-                {loading ? (
-                   <div style={{ padding: '4rem', display: 'flex', justifyContent: 'center' }}>
-                       <Loader text={t('admin.tickets.searching')} minimal size={40} />
-                   </div>
-                ) : tickets.length === 0 ? (
-                    <div style={{ padding: '4rem', textAlign: 'center', color: 'rgba(255,255,255,0.3)' }}>
-                        <FaTicketAlt size={48} style={{ marginBottom: '1rem', opacity: 0.5 }} />
-                        <p style={{ fontSize: '1.1rem' }}>{t('admin.tickets.empty')}</p>
-                    </div>
-                ) : (
-                    <div style={{ overflowX: 'auto' }}>
-                        <table className="admin-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
-                            <thead>
-                                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', background: 'rgba(255,255,255,0.02)' }}>
-                                    <th style={{width: '50px', padding: '1.5rem 1rem', textAlign: 'center'}}>
-                                        <input 
-                                            type="checkbox" 
-                                            checked={tickets.length > 0 && selectedTicketIds.length === tickets.length}
-                                            onChange={toggleSelectAll}
-                                            style={{cursor:'pointer', accentColor: 'var(--accent)'}}
-                                        />
-                                    </th>
-                                    <th style={{padding: '1.5rem 1rem', textAlign: 'left', color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px'}}>{t('admin.tickets.table.id')}</th>
-                                    <th style={{padding: '1.5rem 1rem', textAlign: 'left', color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px'}}>{t('admin.tickets.table.user')}</th>
-                                    <th style={{padding: '1.5rem 1rem', textAlign: 'left', color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px'}}>{t('admin.tickets.table.subject')}</th>
-                                    <th style={{padding: '1.5rem 1rem', textAlign: 'left', color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px', width: '120px'}}>{t('admin.tickets.table.priority')}</th>
-                                    <th style={{padding: '1.5rem 1rem', textAlign: 'left', color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px', width: '120px'}}>{t('admin.tickets.table.status')}</th>
-                                    <th style={{padding: '1.5rem 1rem', textAlign: 'left', color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px', width: '150px'}}>{t('admin.tickets.table.date')}</th>
-                                    <th style={{padding: '1.5rem 1rem', textAlign: 'right', color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px', width: '80px'}}>{t('admin.tickets.table.action')}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {Array.isArray(tickets) && tickets.map(ticketItem => (
-                                    <tr 
-                                        key={ticketItem.id} 
-                                        onClick={() => setSelectedTicket(ticketItem)} 
-                                        className="hover-bg-glass"
-                                        style={{ 
-                                            cursor: 'pointer', 
-                                            borderBottom: '1px solid rgba(255,255,255,0.03)',
-                                            background: selectedTicketIds.includes(ticketItem.id) ? 'rgba(var(--accent-rgb), 0.05)' : 'transparent',
-                                            transition: 'background 0.2s'
-                                        }}
-                                    >
-                                        <td onClick={e => e.stopPropagation()} style={{textAlign: 'center', padding: '1rem'}}>
-                                            <input 
-                                                type="checkbox" 
-                                                checked={selectedTicketIds.includes(ticketItem.id)}
-                                                onChange={() => toggleSelectTicket(ticketItem.id)}
-                                                style={{cursor:'pointer', accentColor: 'var(--accent)'}}
-                                            />
-                                        </td>
-                                        <td style={{ fontFamily: 'monospace', color: 'var(--accent)', fontWeight: 'bold', padding: '1rem' }}>#{ticketItem.id}</td>
-                                        <td style={{ color: '#ccc', fontSize: '0.95rem', padding: '1rem' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-                                                {ticketItem.profiles?.avatar_url ? (
-                                                    <img src={ticketItem.profiles.avatar_url} alt="" style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', border: '1px solid rgba(255,255,255,0.1)' }} />
-                                                ) : (
-                                                    <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                                        <FaUsers size={14} color="#666" />
-                                                    </div>
-                                                )}
-                                                <span style={{ fontWeight: '500' }}>{ticketItem.profiles?.username || ticketItem.user_id?.substring(0, 8) || 'Anon'}</span>
-                                            </div>
-                                        </td>
-                                        <td style={{ fontWeight: '600', color: '#fff', padding: '1rem' }}>{ticketItem.subject}</td>
-                                        <td style={{ padding: '1rem' }}><PriorityBadge priority={ticketItem.priority} /></td>
-                                        <td style={{ padding: '1rem' }}><StatusBadge status={ticketItem.status} /></td>
-                                        <td style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.85rem', padding: '1rem' }}>{new Date(ticketItem.created_at).toLocaleDateString()}</td>
-                                        <td style={{ padding: '1rem', textAlign: 'right' }}>
-                                            <button
-                                                onClick={(e) => { e.stopPropagation(); setSelectedTicket(ticketItem); }}
-                                                className="hover-scale"
-                                                style={{ 
-                                                    padding: '0.5rem', 
-                                                    border: '1px solid rgba(255,255,255,0.1)', 
-                                                    background: 'rgba(255,255,255,0.05)', 
-                                                    borderRadius: '8px', 
-                                                    cursor: 'pointer',
-                                                    color: 'var(--accent)'
-                                                }}
-                                                title={t('admin.tickets.view_details_tooltip')}
-                                            >
-                                                <FaEye size={16} />
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
+                <TicketTable 
+                    tickets={tickets} 
+                    loading={loading} 
+                    selectedTicketIds={selectedTicketIds} 
+                    toggleSelectAll={toggleSelectAll} 
+                    toggleSelectTicket={toggleSelectTicket}
+                    onViewTicket={setSelectedTicket}
+                />
             </div>
 
-            {/* MODAL: CREATE TICKET */}
+            {/* MODALS */}
             {showCreateModal && (
-                <div className="modal-overlay" style={{ backdropFilter: 'blur(10px)', background: 'rgba(0,0,0,0.7)' }}>
-                    <div className="admin-card modal-content" style={{ 
-                        width: '500px', 
-                        maxWidth: '90%', 
-                        border: '1px solid rgba(255,255,255,0.1)', 
-                        boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
-                        background: '#111',
-                        borderRadius: '24px',
-                        padding: '0'
-                    }}>
-                        <div style={{ 
-                            display: 'flex', 
-                            justifyContent: 'space-between', 
-                            marginBottom: '0', 
-                            borderBottom: '1px solid rgba(255,255,255,0.05)', 
-                            padding: '1.5rem', 
-                            alignItems: 'center',
-                            background: 'rgba(255,255,255,0.02)'
-                        }}>
-                            <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.8rem', fontSize: '1.2rem', color: '#fff' }}>
-                                <FaTicketAlt style={{ color: 'var(--accent)' }} /> {t('admin.tickets.create_modal.title')}
-                            </h3>
-                            <button 
-                                onClick={() => setShowCreateModal(false)} 
-                                className="hover-rotate"
-                                style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', fontSize: '1.2rem' }}
-                            >
-                                <FaTimes />
-                            </button>
-                        </div>
-                        
-                        <form onSubmit={handleCreateTicket} style={{ padding: '2rem' }}>
-                            <div style={{marginBottom: '1.5rem'}}>
-                                <label style={{ display: 'block', marginBottom: '0.8rem', color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', fontWeight: '700' }}>{t('admin.tickets.create_modal.subject')}</label>
-                                <input 
-                                    className="admin-input-premium" 
-                                    value={newTicket.subject} 
-                                    onChange={e => setNewTicket({ ...newTicket, subject: e.target.value })} 
-                                    autoFocus 
-                                    placeholder={t('admin.tickets.subject_ph')} 
-                                    style={{ width: '100%', padding: '1rem', fontSize: '1rem', borderRadius: '12px' }}
-                                />
-                            </div>
-
-                            <div style={{marginBottom: '1.5rem'}}>
-                                <label style={{ display: 'block', marginBottom: '0.8rem', color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', fontWeight: '700' }}>{t('admin.tickets.create_modal.description')}</label>
-                                <textarea 
-                                    className="admin-input-premium" 
-                                    rows={5} 
-                                    value={newTicket.description}  
-                                    onChange={e => setNewTicket({ ...newTicket, description: e.target.value })} 
-                                    placeholder={t('admin.tickets.create_modal.desc_placeholder')}
-                                    style={{ width: '100%', padding: '1rem', fontSize: '0.95rem', borderRadius: '12px', resize: 'vertical' }}
-                                />
-                            </div>
-
-                            <div style={{marginBottom: '2rem'}}>
-                                <label style={{ display: 'block', marginBottom: '0.8rem', color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', fontWeight: '700' }}>{t('admin.tickets.table.priority')}</label>
-                                <div style={{ position: 'relative' }}>
-                                    <select 
-                                         className="admin-input-premium" 
-                                         style={{ width: '100%', padding: '1rem', fontSize: '1rem', borderRadius: '12px', cursor: 'pointer', appearance: 'none' }}
-                                         value={newTicket.priority} 
-                                         onChange={e => setNewTicket({ ...newTicket, priority: e.target.value as 'low' | 'medium' | 'high' | 'urgent' })}
-                                     >
-                                         <option value="low">🟢 {t('admin.tickets.priority.low')}</option>
-                                         <option value="medium">🟡 {t('admin.tickets.priority.medium')}</option>
-                                         <option value="high">🟠 {t('admin.tickets.priority.high')}</option>
-                                         <option value="urgent">🔴 {t('admin.tickets.priority.urgent')}</option>
-                                     </select>
-                                </div>
-                            </div>
-
-                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', paddingTop: '1rem' }}>
-                                <button 
-                                    type="button" 
-                                    onClick={() => setShowCreateModal(false)} 
-                                    className="hover-lift"
-                                    style={{ 
-                                        padding: '1rem 2rem', 
-                                        background: 'transparent', 
-                                        border: '1px solid rgba(255,255,255,0.1)', 
-                                        color: '#ccc', 
-                                        borderRadius: '12px', 
-                                        cursor: 'pointer',
-                                        fontWeight: '600'
-                                    }}
-                                >
-                                    {t('admin.tickets.create_modal.cancel')}
-                                </button>
-                                <button 
-                                    type="submit" 
-                                    className="modal-btn-primary hover-lift" 
-                                    disabled={isSubmitting}
-                                    style={{ padding: '1rem 3rem', borderRadius: '12px' }}
-                                >
-                                    {isSubmitting ? <Loader minimal size={20} /> : <><FaPaperPlane /> {t('admin.tickets.create_modal.submit')}</>}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+                <CreateTicketModal 
+                    onClose={() => setShowCreateModal(false)}
+                    onSuccess={fetchTickets}
+                    user={user}
+                />
             )}
 
-            {/* MODAL: TICKET DETAILS */}
-            {alert && <CustomAlert message={alert.message} type={alert.type} onClose={() => setAlert(null)} />}
             {selectedTicket && (
                 <TicketDetailModal
                     ticket={selectedTicket}
                     onClose={() => setSelectedTicket(null)}
                     refreshTickets={fetchTickets}
                     mockMessages={mockMessages?.[selectedTicket.id]}
+                    user={user}
                 />
             )}
+
+            {alert && <CustomAlert message={alert.message} type={alert.type} onClose={() => setAlert(null)} />}
+            
             {confirmBulkDelete && (
                 <CustomConfirm 
-                    message={t('admin.tickets.bulk_delete_confirm')}
+                    message={t('admin.tickets.bulk_delete_confirm', '¿Estás seguro de eliminar los tickets seleccionados?')}
                     onConfirm={handleBulkDelete}
                     onCancel={() => setConfirmBulkDelete(false)}
                 />
             )}
-        </div>
-    )
-}
-
-// ---------------- SUB-COMPONENTS ----------------
-
-interface TicketDetailModalProps {
-    ticket: Ticket;
-    onClose: () => void;
-    refreshTickets: () => void;
-    mockMessages?: Message[];
-}
-
-function TicketDetailModal({ ticket, onClose, refreshTickets, mockMessages }: TicketDetailModalProps) {
-    const { t } = useTranslation()
-    const { user } = useAuth() as { user: User | null }
-    const [messages, setMessages] = useState<Message[]>([])
-    const [newMessage, setNewMessage] = useState('')
-    const [sending, setSending] = useState(false)
-    const [showBanModal, setShowBanModal] = useState(false)
-    const [alert, setAlert] = useState<AlertData | null>(null)
-    const [confirmAction, setConfirmAction] = useState<ConfirmData | null>(null)
-    const scrollRef = useRef<HTMLDivElement>(null)
-
-    const fetchMessages = useCallback(async () => {
-        if (mockMessages) {
-            setMessages(mockMessages)
-            setTimeout(() => {
-                if (scrollRef.current) scrollRef.current.scrollIntoView({ behavior: 'smooth' })
-            }, 100)
-            return
-        }
-        try {
-            const { data: { session } } = await supabase.auth.getSession();
-            const headers: HeadersInit = getAuthHeaders(session?.access_token || null);
-
-            const res = await fetch(`${API_URL}/tickets/${ticket.id}/messages`, { headers })
-            if (res.ok) {
-                const data = await res.json()
-                if (data.success && Array.isArray(data.data)) {
-                    setMessages(data.data)
-                } else if (Array.isArray(data)) {
-                    setMessages(data)
-                } else {
-                    setMessages([])
-                }
-                setTimeout(() => {
-                    if (scrollRef.current) scrollRef.current.scrollIntoView({ behavior: 'smooth' })
-                }, 100)
-            }
-        } catch (error) {
-            console.error("Error fetching messages:", error)
-        }
-    }, [ticket.id])
-
-    useEffect(() => {
-        if (ticket) {
-            fetchMessages()
-
-            // Real-time Subscription
-            console.log("Setting up realtime subscription for ticket:", ticket.id);
-            const channel = supabase
-                .channel(`ticket_chat_admin_${ticket.id}`)
-                .on('postgres_changes', { 
-                    event: 'INSERT', 
-                    schema: 'public', 
-                    table: 'ticket_messages',
-                    filter: `ticket_id=eq.${ticket.id}`
-                }, (payload: { new: Message }) => {
-                    console.log("New message received in Admin:", payload.new);
-                    setMessages(prev => {
-                        if (prev.some(m => m.id === payload.new.id)) return prev;
-                        return [...prev, payload.new as Message];
-                    });
-                    setTimeout(() => {
-                         if (scrollRef.current) scrollRef.current.scrollIntoView({ behavior: 'smooth' })
-                    }, 100)
-                })
-                .subscribe((status) => {
-                    console.log("Admin Realtime Subscription Status:", status);
-                })
-
-            return () => {
-                console.log("Cleaning up subscription for ticket:", ticket.id);
-                supabase.removeChannel(channel)
-            }
-        }
-    }, [ticket, fetchMessages])
-
-    const handleSendMessage = async (e: React.FormEvent) => {
-        e.preventDefault()
-        if (!newMessage.trim() || !user) return
-
-        setSending(true)
-        try {
-            const { data: { session } } = await supabase.auth.getSession();
-            const headers = { 
-                'Content-Type': 'application/json',
-                ...getAuthHeaders(session?.access_token || null)
-            };
-
-            const res = await fetch(`${API_URL}/tickets/${ticket.id}/messages`, {
-                method: 'POST',
-                headers,
-                body: JSON.stringify({
-                    user_id: user.id,
-                    message: newMessage,
-                    is_staff: true
-                })
-            })
-            if (res.ok) {
-                setNewMessage('')
-                fetchMessages()
-            }
-        } catch (error) {
-            console.error("Error sending message:", error)
-        } finally {
-            setSending(false)
-        }
-    }
-
-    const handleAction = async (action: string) => {
-        if (action === 'ban') {
-            setShowBanModal(true)
-            return
-        }
-
-        if (action === 'delete') {
-            setConfirmAction({
-                message: t('admin.tickets.detail.delete_confirm'),
-                onConfirm: () => handleAction('force_delete')
-            })
-            return
-        }
-
-        let method = 'PATCH'
-        let body: Record<string, string> | undefined = {}
-        let url = `${API_URL}/tickets/${ticket.id}/status`
-
-        if (action === 'resolve') body = { status: 'resolved' }
-        if (action === 'close') body = { status: 'closed' }
-        if (action === 'open') body = { status: 'open' }
-        if (action === 'delete' || action === 'force_delete') {
-            method = 'DELETE'
-            url = `${API_URL}/tickets/${ticket.id}`
-            body = undefined
-        }
-
-        try {
-            const { data: { session } } = await supabase.auth.getSession();
-            const headers = { 
-                'Content-Type': 'application/json',
-                ...getAuthHeaders(session?.access_token || null)
-            };
-
-            const res = await fetch(url, {
-                method: method,
-                headers,
-                body: body ? JSON.stringify(body) : undefined
-            })
-
-            if (res.ok) {
-                refreshTickets()
-                onClose()
-            } else {
-                setAlert({ message: t('admin.alerts.error_title'), type: 'error' })
-            }
-        } catch (error) {
-            setAlert({ message: t('admin.alerts.error_title') + ": " + (error instanceof Error ? error.message : String(error)), type: 'error' })
-        }
-    }
-
-    return (
-        <div className="modal-overlay">
-            {showBanModal && (
-                <BanUserModal 
-                    ticket={ticket} 
-                    onClose={() => setShowBanModal(false)}
-                    onSuccess={() => { 
-                        setShowBanModal(false)
-                        refreshTickets()
-                        setAlert({ message: t('admin.tickets.ban_modal.success'), type: 'success' }) 
-                    }}
-                />
-            )}
-            
-            {!showBanModal && (
-                <div className="modal-content" style={{ maxHeight: '85vh', height: '85vh' }}>
-                
-                    {/* Header Modal */}
-                    <div style={{ padding: '1.5rem', borderBottom: '1px solid #333', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', background: '#222', borderTopLeftRadius: 'var(--radius)', borderTopRightRadius: 'var(--radius)' }}>
-                        <div>
-                            <h2 style={{ margin: 0, fontSize: '1.4rem', color: '#fff' }}>{ticket.subject}</h2>
-                            <div style={{ display: 'flex', gap: '0.8rem', marginTop: '0.5rem', alignItems: 'center' }}>
-                                <span style={{color: '#888', fontFamily:'monospace'}}>#{ticket.id}</span>
-                                <PriorityBadge priority={ticket.priority} />
-                                <StatusBadge status={ticket.status} />
-                            </div>
-                        </div>
-                        <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: '#aaa', cursor: 'pointer', padding: '0.5rem' }}>
-                            <FaTimes size={22} />
-                        </button>
-                    </div>
-
-                    {/* Chat Body (Scrollable) */}
-                    <div style={{ flex: 1, overflowY: 'auto', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', background: '#181818' }}>
-                        
-                        {/* Mensaje original del usuario (Descripción) */}
-                        <div className="msg-bubble user">
-                            <div className="msg-header">{t('admin.tickets.detail.original_desc')}</div>
-                            <div style={{whiteSpace: 'pre-wrap'}}>{ticket.description || t('admin.tickets.detail.no_desc')}</div>
-                        </div>
-
-                        <div style={{height: '1px', background: '#333', margin: '1rem 0'}}></div>
-
-                        {messages.length === 0 && (
-                            <div style={{textAlign: 'center', color: '#555', padding: '2rem'}}>{t('admin.tickets.detail.no_history')}</div>
-                        )}
-
-                        {messages.map(msg => (
-                            <div key={msg.id} className={`msg-bubble ${msg.is_staff ? 'staff' : 'user'}`}>
-                                <div className="msg-header">{msg.is_staff ? t('admin.tickets.staff_label') : t('admin.tickets.table.user').toUpperCase()} • {new Date(msg.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
-                                <div>{msg.message}</div>
-                            </div>
-                        ))}
-                        
-                        {/* Referencia invisible para el scroll */}
-                        <div ref={scrollRef}></div>
-                    </div>
-
-                    {/* Footer Actions & Reply */}
-                    <div style={{ padding: '1.5rem', borderTop: '1px solid #333', background: '#222', borderBottomLeftRadius: 'var(--radius)', borderBottomRightRadius: 'var(--radius)' }}>
-                        
-                        {ticket.status !== 'closed' ? (
-                            <form onSubmit={handleSendMessage} style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
-                                <input 
-                                    className="admin-input" 
-                                    value={newMessage} 
-                                    onChange={e => setNewMessage(e.target.value)} 
-                                    placeholder={t('admin.tickets.detail.reply_placeholder')}
-                                    style={{flex: 1, marginBottom: 0}}
-                                />
-                                <button type="submit" className="btn-primary" disabled={sending} style={{padding: '0 1.5rem'}}>
-                                    {sending ? <FaSpinner className="spin"/> : <FaPaperPlane />}
-                                </button>
-                            </form>
-                        ) : (
-                            <div style={{padding: '1rem', background: '#2a1a1a', color: '#888', textAlign: 'center', borderRadius: '8px', marginBottom: '1.5rem', border: '1px solid #442222'}}>
-                                <FaLock style={{marginRight: '0.5rem', width: '0.8rem'}}/> {t('admin.tickets.detail.closed_msg')}
-                            </div>
-                        )}
-
-                        <div style={{ display: 'flex', gap: '0.8rem', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-                            <button onClick={() => handleAction('ban')} className="btn-action ban">{t('admin.tickets.actions.ban')}</button>
-                            {ticket.status !== 'resolved' && ticket.status !== 'closed' && <button onClick={() => handleAction('resolve')} className="btn-action resolve">{t('admin.tickets.actions.resolve')}</button>}
-                            {ticket.status !== 'closed' ? 
-                                <button onClick={() => handleAction('close')} className="btn-action close">{t('admin.tickets.actions.close')}</button> :
-                                <button onClick={() => handleAction('open')} className="btn-action" style={{background:'#555'}}>{t('admin.tickets.actions.reopen')}</button>
-                            }
-                            <button onClick={() => handleAction('delete')} className="btn-action delete" style={{marginLeft: 'auto'}}>{t('admin.tickets.actions.delete')}</button>
-                        </div>
-                    </div>
-                </div>
-            )}
-            {alert && <CustomAlert message={alert.message} type={alert.type} onClose={() => setAlert(null)} />}
-            {confirmAction && (
-                <CustomConfirm 
-                    message={confirmAction.message} 
-                    onConfirm={() => { setConfirmAction(null); confirmAction.onConfirm(); }} 
-                    onCancel={() => setConfirmAction(null)} 
-                />
-            )}
-        </div>
-    )
-}
-
-interface BanUserModalProps {
-    ticket?: Ticket; // Not used in component logic but passed? Ah ticket is passed
-    onClose: () => void;
-    onSuccess: () => void;
-}
-
-function BanUserModal({ onClose, onSuccess }: BanUserModalProps) {
-    const { t } = useTranslation()
-    const [nickname, setNickname] = useState('') // El admin debe confirmar el nick exacto
-    const [reason, setReason] = useState('')
-    const [duration, setDuration] = useState('temp') // 'temp' or 'perm'
-    const [timeValue, setTimeValue] = useState('7')
-    const [timeUnit, setTimeUnit] = useState('d') // m, h, d, mo
-    const [loading, setLoading] = useState(false)
-    const [alert, setAlert] = useState<AlertData | null>(null)
-
-    const handleBan = async (e: React.FormEvent) => {
-        e.preventDefault()
-        if(!nickname) {
-            setAlert({ message: t('admin.tickets.ban_modal.error_nick'), type: 'error' })
-            return
-        }
-        
-        setLoading(true)
-        try {
-            const { data: { session } } = await supabase.auth.getSession();
-            const headers = { 
-                'Content-Type': 'application/json',
-                ...getAuthHeaders(session?.access_token || null)
-            };
-
-            await fetch(`${import.meta.env.VITE_API_URL}/tickets/ban`, {
-                method: 'POST',
-                headers,
-                body: JSON.stringify({ 
-                    username: nickname, 
-                    reason: duration === 'perm' ? `[PERMANENTE] ${reason}` : `[TEMP: ${timeValue}${timeUnit}] ${reason}`
-                })
-            })
-            
-            onSuccess()
-        } catch (err) {
-            console.error(err)
-            setAlert({ message: t('admin.alerts.error_title') + ": " + (err instanceof Error ? err.message : String(err)), type: 'error' })
-        } finally {
-            setLoading(false)
-        }
-    }
-
-    return (
-        <div className="modal-overlay" style={{backdropFilter: 'blur(5px)'}}>
-            <div className="admin-card modal-content" style={{width: '450px', border: '1px solid #ef4444', boxShadow: '0 0 20px rgba(239, 68, 68, 0.2)'}}>
-                <div style={{display:'flex', alignItems:'center', gap:'0.5rem', marginBottom:'1.5rem', borderBottom:'1px solid #333', paddingBottom:'1rem'}}>
-                    <FaGavel color="#ef4444" size={20} />
-                    <h3 style={{margin:0, color:'#fff'}}>{t('admin.tickets.ban_modal.title')}</h3>
-                </div>
-
-                <form onSubmit={handleBan}>
-                    <div style={{marginBottom:'1rem'}}>
-                        <label className="admin-label">{t('admin.tickets.ban_modal.nickname')}</label>
-                        <input 
-                            className="admin-input" 
-                            value={nickname} 
-                            onChange={e => setNickname(e.target.value)} 
-                            placeholder={t('admin.tickets.ban_modal.nick_ph')}
-                            autoFocus
-                        />
-                         <div style={{fontSize: '0.75rem', color: '#666', marginTop: '0.3rem'}}>
-                            {t('admin.tickets.ban_modal.nick_hint')}
-                        </div>
-                    </div>
-
-                    <div style={{marginBottom:'1rem'}}>
-                        <label className="admin-label">{t('admin.tickets.ban_modal.type')}</label>
-                        <div style={{display:'flex', gap:'1rem'}}>
-                            <button 
-                                type="button" 
-                                className={`admin-tab-btn ${duration === 'temp' ? 'active' : ''}`}
-                                onClick={() => setDuration('temp')}
-                                style={{flex:1, textAlign:'center', borderColor: duration === 'temp' ? 'var(--accent)' : '#333'}}
-                            >
-                                {t('admin.tickets.ban_modal.temp')}
-                            </button>
-                            <button 
-                                type="button" 
-                                className={`admin-tab-btn ${duration === 'perm' ? 'active' : ''}`}
-                                onClick={() => setDuration('perm')}
-                                style={{flex:1, textAlign:'center', borderColor: duration === 'perm' ? '#ef4444' : '#333', color: duration === 'perm' ? '#ef4444' : '#aaa'}}
-                            >
-                                {t('admin.tickets.ban_modal.perm')}
-                            </button>
-                        </div>
-                    </div>
-
-                    {duration === 'temp' && (
-                        <div style={{marginBottom:'1rem', display:'flex', gap:'0.5rem'}}>
-                            <div style={{flex:1}}>
-                                <label className="admin-label">{t('admin.tickets.ban_modal.amount')}</label>
-                                <input type="number" className="admin-input" value={timeValue} onChange={e => setTimeValue(e.target.value)} min="1" />
-                            </div>
-                            <div style={{flex:1}}>
-                                <label className="admin-label">{t('admin.tickets.ban_modal.unit')}</label>
-                                <select 
-                                    className="admin-input" 
-                                    style={{ backgroundColor: '#1a1b20', color: 'white', cursor: 'pointer' }}
-                                    value={timeUnit} 
-                                    onChange={e => setTimeUnit(e.target.value)}
-                                >
-                                    <option value="m">{t('admin.tickets.units.m')}</option>
-                                    <option value="h">{t('admin.tickets.units.h')}</option>
-                                    <option value="d">{t('admin.tickets.units.d')}</option>
-                                    <option value="mo">{t('admin.tickets.units.mo')}</option>
-                                </select>
-                            </div>
-                        </div>
-                    )}
-
-                    <div style={{marginBottom:'1.5rem'}}>
-                        <label className="admin-label">{t('admin.tickets.ban_modal.reason')}</label>
-                        <textarea 
-                            className="admin-input" 
-                            rows={3} 
-                            value={reason} 
-                            onChange={e => setReason(e.target.value)} 
-                            placeholder={t('admin.tickets.ban_modal.reason_ph')}
-                        />
-                    </div>
-
-                    <div style={{display:'flex', justifyContent:'flex-end', gap:'1rem', borderTop:'1px solid #333', paddingTop:'1rem'}}>
-                        <button type="button" onClick={onClose} className="btn-secondary">{t('admin.tickets.create_modal.cancel')}</button>
-                        <button 
-                            type="submit" 
-                            className="btn-primary" 
-                            disabled={loading}
-                            style={{background: '#ef4444', border: 'none', color: '#fff'}}
-                        >
-                            {loading ? <FaSpinner className="spin"/> : <><FaGavel /> {t('admin.tickets.ban_modal.submit')}</>}
-                        </button>
-                    </div>
-                </form>
-            </div>
-            {alert && <CustomAlert message={alert.message} type={alert.type} onClose={() => setAlert(null)} />}
-        </div>
-    )
-}
-
-function PriorityBadge({ priority }: { priority: string }) {
-    const { t } = useTranslation()
-    const colors: Record<string, string> = { low: '#4ade80', medium: '#facc15', high: '#fb923c', urgent: '#ef4444' }
-    const labels: Record<string, string> = {
-        low: t('admin.tickets.priority.low'),
-        medium: t('admin.tickets.priority.medium'),
-        high: t('admin.tickets.priority.high'),
-        urgent: t('admin.tickets.priority.urgent')
-    }
-    return <span style={{ color: colors[priority] || colors.medium, fontWeight: 'bold', fontSize: '0.85rem', textTransform: 'capitalize' }}>{labels[priority] || priority}</span>
-}
-
-function StatusBadge({ status }: { status: string }) {
-    const { t } = useTranslation()
-    let color = '#aaa';
-    if (status === 'open') color = '#3b82f6';
-    if (status === 'pending') color = '#facc15';
-    if (status === 'resolved') color = '#4ade80';
-    if (status === 'closed') color = '#666';
-
-    const labels: Record<string, string> = {
-        open: t('admin.tickets.status.open'),
-        pending: t('admin.tickets.status.pending'),
-        resolved: t('admin.tickets.status.resolved'),
-        closed: t('admin.tickets.status.closed')
-    }
-
-    return (
-        <span className="status-chip" style={{ background: `${color}20`, color: color, border: `1px solid ${color}40`, padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 'bold' }}>
-            {labels[status] || status}
-        </span>
-    )
-}
-
-function CustomAlert({ message, type = 'error', onClose }: { message: string, type?: 'error' | 'success' | 'warning', onClose: () => void }) {
-    const { t } = useTranslation()
-    // type: 'error', 'success', 'warning'
-    const colors: Record<string, string> = { error: '#ef4444', success: '#10b981', warning: '#facc15' }
-    const Icon = type === 'error' ? FaExclamationCircle : (type === 'success' ? FaCheckCircle : FaExclamationTriangle)
-    
-    const titles: Record<string, string> = {
-        error: t('admin.alerts.error_title'),
-        success: t('admin.alerts.success_title'),
-        warning: t('admin.alerts.warning_title')
-    }
-
-    return (
-        <div className="modal-overlay" style={{ zIndex: 100000 }}>
-            <div className="admin-card modal-content" style={{ width: '400px', maxWidth: '90%', textAlign: 'center', padding: '2rem', border: `1px solid ${colors[type]}`, boxShadow: `0 0 30px ${colors[type]}20` }}>
-                <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'center' }}>
-                    <Icon size={48} color={colors[type]} />
-                </div>
-                <h3 style={{ marginBottom: '1rem', color: '#fff', fontSize: '1.5rem' }}>
-                    {titles[type] || t('admin.alerts.warning_title')}
-                </h3>
-                <p style={{ color: '#ccc', marginBottom: '2rem', lineHeight: '1.6' }}>{message}</p>
-                <button 
-                    onClick={onClose} 
-                    className="btn-primary" 
-                    style={{ width: '100%', justifyContent: 'center', background: colors[type], color: '#000', fontWeight: 'bold' }}
-                >
-                    {t('admin.alerts.accept')}
-                </button>
-            </div>
-        </div>
-    )
-}
-
-function CustomConfirm({ message, onConfirm, onCancel }: { message: string, onConfirm: () => void, onCancel: () => void }) {
-    const { t } = useTranslation()
-    return (
-        <div className="modal-overlay" style={{ zIndex: 100000 }}>
-            <div className="admin-card modal-content" style={{ width: '400px', maxWidth: '90%', textAlign: 'center', padding: '2rem', border: `1px solid #facc15`, boxShadow: `0 0 30px rgba(250, 204, 21, 0.2)` }}>
-                <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'center' }}>
-                    <FaExclamationTriangle size={48} color="#facc15" />
-                </div>
-                <h3 style={{ marginBottom: '1rem', color: '#fff', fontSize: '1.5rem' }}>
-                    {t('admin.alerts.confirm_title')}
-                </h3>
-                <p style={{ color: '#ccc', marginBottom: '2rem', lineHeight: '1.6' }}>{message}</p>
-                <div style={{ display: 'flex', gap: '1rem' }}>
-                     <button 
-                        onClick={onCancel} 
-                        className="btn-secondary" 
-                        style={{ flex: 1, justifyContent: 'center' }}
-                    >
-                        {t('admin.tickets.create_modal.cancel')}
-                    </button>
-                    <button 
-                        onClick={onConfirm} 
-                        className="btn-primary" 
-                        style={{ flex: 1, justifyContent: 'center', background: '#ef4444', color: '#fff', fontWeight: 'bold' }}
-                    >
-                        {t('admin.tickets.actions.delete')}
-                    </button>
-                </div>
-            </div>
         </div>
     )
 }

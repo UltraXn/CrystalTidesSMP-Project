@@ -190,6 +190,7 @@
   position: relative;
   overflow: hidden;
   cursor: pointer;
+  border-left: 2px solid transparent;
 }
 
 .nav-btn:hover {
@@ -234,10 +235,29 @@
   }
 
   .dashboard-sidebar {
-    margin-bottom: 0;
-    padding: 1.5rem;
-    background: rgba(15, 15, 20, 0.4); /* Lighter on mobile */
-    width: 100% !important; /* Force full width */
+    position: fixed;
+    left: 0;
+    top: 80px; /* Offset to stay below main navbar */
+    bottom: 0;
+    width: 280px !important;
+    z-index: 2000;
+    background: rgba(10, 10, 12, 0.98);
+    backdrop-filter: blur(30px);
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 0 24px 0 0;
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 3rem 1.5rem;
+  }
+
+  .dashboard-sidebar.open {
+    transform: translateX(0);
+  }
+
+  .sidebar-close-btn-mobile {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
   }
 
   .user-avatar-large {
@@ -268,51 +288,27 @@
   }
 
   .sidebar-nav {
-    flex-direction: row;
-    overflow-x: auto;
-    padding-bottom: 5px;
+    flex-direction: column;
     gap: 0.5rem;
-    margin: 0 -0.5rem; /* Negative margin to allow full-width scroll */
-    padding: 0 0.5rem 10px 0.5rem;
-    -webkit-overflow-scrolling: touch;
+    padding: 1rem 0;
   }
 
-  .sidebar-nav::-webkit-scrollbar {
-    height: 4px;
-  }
-
-  .sidebar-nav::-webkit-scrollbar-thumb {
-    background: var(--accent);
-    border-radius: 4px;
-  }
-
-  /* Target the buttons inside Account.jsx which are inline styled or use other classes?
-       In Account.jsx NavButton uses .nav-btn class.
-       But here in dashboard.css there is .sidebar-btn class.
-       I need to check if Account.jsx actually uses dashboard.css classes.
-       Account.jsx uses inline styles for NavButton structure but adds class `nav-btn`.
-       Wait, Account.jsx: `className={nav-btn ${active ? 'active' : ''}}`
-       And Account.jsx line 9 imports dashboard.css.
-       I should add .nav-btn style here for mobile to handle the scrolling.
-    */
   .nav-btn {
-    flex-direction: column !important; /* Stack icon and text for compactness */
+    flex-direction: row !important;
     align-items: center !important;
-    text-align: center !important;
-    padding: 0.8rem !important;
-    min-width: 80px;
-    font-size: 0.8rem !important;
-    white-space: nowrap;
-    flex-shrink: 0;
-    gap: 5px !important;
-    border-left: none !important;
-    border-bottom: 3px solid transparent;
-    background: rgba(255, 255, 255, 0.05) !important;
+    text-align: left !important;
+    padding: 1rem !important;
+    width: 100%;
+    font-size: 0.95rem !important;
+    gap: 15px !important;
+    border-bottom: none !important;
+    border-left: 3px solid transparent !important;
+    background: rgba(255, 255, 255, 0.03) !important;
   }
 
   .nav-btn.active {
-    border-bottom: 3px solid var(--accent) !important;
-    background: rgba(109, 165, 192, 0.2) !important;
+    border-left: 3px solid var(--accent) !important;
+    background: rgba(var(--accent-rgb), 0.1) !important;
   }
 
   .stat-grid {
@@ -381,4 +377,32 @@ input:checked + .slider:before {
 
 .slider.round:before {
   border-radius: 50%;
+}
+
+/* Account Mobile Navbar */
+.account-mobile-navbar {
+    z-index: 10001 !important;
+}
+
+.account-mobile-navbar .text-menu-btn {
+    text-transform: capitalize;
+}
+
+/* Mobile Drawer Handle */
+.drawer-handle {
+    width: 40px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    margin: -1rem auto 1.5rem; /* Standard positioning when closed */
+    display: none;
+    transition: all 0.3s ease;
+}
+
+@media (max-width: 1024px) {
+    .drawer-handle {
+        display: block;
+        background: var(--accent);
+        box-shadow: 0 0 15px var(--accent), 0 0 30px rgba(var(--accent-rgb), 0.4);
+    }
 }

@@ -32,6 +32,17 @@ interface PteroResources {
     };
 }
 
+interface StaffCard {
+    name: string;
+    mc_nickname?: string;
+    discordIds?: string[];
+    socials?: {
+        discord?: string;
+    };
+    role?: string;
+    image?: string;
+}
+
 interface PteroLimits {
     memory: number;
     cpu: number;
@@ -197,7 +208,7 @@ router.get('/staff', async (req: Request, res: Response) => {
         }
 
         // 3. Check Discord Status via Bot
-        let cards: any[] = [];
+        let cards: StaffCard[] = [];
         try {
             const { data: settings } = await supabase.from('site_settings').select('value').eq('key', 'staff_cards').single();
 
@@ -211,7 +222,7 @@ router.get('/staff', async (req: Request, res: Response) => {
                     const discordMapping: Record<string, string> = {};
                     const allIds: string[] = [];
 
-                    cards.forEach((card: { discordIds?: string[], socials?: { discord?: string }, name: string, mc_nickname?: string }) => {
+                    cards.forEach((card: StaffCard) => {
                          const idsToCheck: string[] = [];
                          if (Array.isArray(card.discordIds)) idsToCheck.push(...card.discordIds);
                          if (card.socials?.discord) {
@@ -247,7 +258,18 @@ router.get('/staff', async (req: Request, res: Response) => {
                                     }
                                 });
                             }
-                        } catch (botErr) { console.warn("Bot fetch failed:", botErr); }
+                        } catch (botErr: unknown) { 
+                            const error = botErr as { message?: string; code?: string };
+                            // Silent fallback for local dev to avoid console noise
+                            if (process.env.NODE_ENV === 'production') {
+                                console.warn("[Discord Bot] Presence fetch failed (Production):", error.message || error);
+                            } else {
+                                // Just a small info for dev
+                                if (error.code !== 'ECONNREFUSED') {
+                                    console.info("[Discord Bot] Presence skip (Dev): Bot not reachable.");
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -309,7 +331,7 @@ router.get('/staff', async (req: Request, res: Response) => {
             const staffGroups = ['owner', 'founder', 'fundador', 'neroferno', 'killuwu', 'developer', 'admin', 'moderator', 'mod', 'helper', 'staff'];
             
             // Si el usuario está en las Staff Cards (supabase), podemos usar ese rol de fallback
-            const panelInfo = Array.isArray(cards) ? cards.find((c: any) => c.name.toLowerCase() === lowName || (c.mc_nickname && c.mc_nickname.toLowerCase() === lowName)) : null;
+            const panelInfo = Array.isArray(cards) ? cards.find((c: StaffCard) => c.name.toLowerCase() === lowName || (c.mc_nickname && c.mc_nickname.toLowerCase() === lowName)) : null;
 
             let role = groups.find(g => staffGroups.includes(g.toLowerCase())) || panelInfo?.role || groups[0] || 'default';
             let roleImage = null;

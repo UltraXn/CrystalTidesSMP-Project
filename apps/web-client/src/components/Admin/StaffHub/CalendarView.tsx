@@ -92,7 +92,7 @@ const CustomToolbar = (props: ToolbarProps<CalendarEvent, object>) => {
               className={`switcher-btn ${view === v ? 'active' : ''}`}
               onClick={() => onView(v as View)}
             >
-              {t(`calendar.${v}`, v.charAt(0).toUpperCase() + v.slice(1))}
+              {t(`admin.staff_hub.kanban.calendar_views.${v}`, v.charAt(0).toUpperCase() + v.slice(1))}
             </button>
           ))}
         </div>
@@ -100,6 +100,8 @@ const CustomToolbar = (props: ToolbarProps<CalendarEvent, object>) => {
     </div>
   );
 };
+
+
 
 const CustomEvent = ({ event }: { event: CalendarEvent }) => {
   const isTask = event.type === 'task';
@@ -120,7 +122,7 @@ const CustomEvent = ({ event }: { event: CalendarEvent }) => {
 };
 
 export default function CalendarView({ tasks, googleEvents, notionTasks, onUpdateEventDate, onUpdateEventDuration }: CalendarViewProps) {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [view, setView] = useState<View>('month');
   const [date, setDate] = useState(new Date());
 
@@ -226,20 +228,20 @@ export default function CalendarView({ tasks, googleEvents, notionTasks, onUpdat
         onNavigate={setDate}
         components={components}
         culture={i18n.language === 'es' ? 'es' : 'en-US'}
-        messages={i18n.language === 'es' ? {
-          next: "Siguiente",
-          previous: "Anterior",
-          today: "Hoy",
-          month: "Mes",
-          week: "Semana",
-          day: "Día",
-          agenda: "Agenda",
-          date: "Fecha",
-          time: "Hora",
-          event: "Evento",
-          allDay: "Todo el día",
-          noEventsInRange: "No hay tareas en este rango"
-        } : undefined}
+        messages={{
+          next: t('admin.staff_hub.kanban.calendar_views.next', "Siguiente"),
+          previous: t('admin.staff_hub.kanban.calendar_views.prev', "Anterior"),
+          today: t('admin.staff_hub.kanban.calendar_views.today', "Hoy"),
+          month: t('admin.staff_hub.kanban.calendar_views.month', "Mes"),
+          week: t('admin.staff_hub.kanban.calendar_views.week', "Semana"),
+          day: t('admin.staff_hub.kanban.calendar_views.day', "Día"),
+          agenda: t('admin.staff_hub.kanban.calendar_views.agenda', "Agenda"),
+          date: t('admin.staff_hub.kanban.calendar_views.date', "Fecha"),
+          time: t('admin.staff_hub.kanban.calendar_views.time', "Hora"),
+          event: t('admin.staff_hub.kanban.calendar_views.event', "Evento"),
+          allDay: t('admin.staff_hub.kanban.calendar_views.all_day', "Todo el día"),
+          noEventsInRange: t('admin.staff_hub.kanban.calendar_views.no_events', "No hay tareas en este rango")
+        }}
       />
     </div>
   );

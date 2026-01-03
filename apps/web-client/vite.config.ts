@@ -1,14 +1,14 @@
-
 import { defineConfig } from 'vitest/config';
 import type { PluginOption } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 import { fileURLToPath } from 'url';
-// import { storybookTest } from '@storybook/addon-vitest/vitest-plugin';
+// import { storybookTest } from '@storybook/addon-vitest/vitest-plugin'; // Temporarily disabled due to dep conflict
 
-export default defineConfig(({ mode }) => {
-  // const isProduction = mode === 'production';
-  // const hasStorybook = !isProduction && (fs.existsSync(storybookMain) || fs.existsSync(storybookMainJs));
+
+export default defineConfig(() => {
+  const dirname = path.dirname(fileURLToPath(import.meta.url));
+
 
   return {
     envDir: '../../',
@@ -30,16 +30,16 @@ export default defineConfig(({ mode }) => {
     },
     resolve: {
       alias: {
-        '@': path.resolve(__dirname, 'src'),
-        '/src': path.resolve(__dirname, 'src'),
-        '@crystaltides/shared': path.resolve(__dirname, '../../packages/shared/src/index.ts'),
+        '@': path.resolve(dirname, 'src'),
+        '/src': path.resolve(dirname, 'src'),
+        '@crystaltides/shared': path.resolve(dirname, '../../packages/shared/src/index.ts'),
       },
     },
     server: {
       allowedHosts: ['crystaltidessmp.net'],
       proxy: {
         '/api': {
-          target: 'http://backend:3001',
+          target: process.env.VITE_PROXY_TARGET || 'http://localhost:3001',
           changeOrigin: true,
           secure: false,
         },
@@ -54,7 +54,7 @@ export default defineConfig(({ mode }) => {
       setupFiles: './src/setupTests.ts',
       include: ['./src/**/*.{test,spec}.{ts,tsx}'],
       root: '.',
-      projects: [],
+      projects: [], // hasStorybook ? [ ... ] : [] - Disabled to unblock Storybook UI
     },
   };
 });

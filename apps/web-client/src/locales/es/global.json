@@ -203,6 +203,7 @@
     "rules": {
         "title": "Reglas del Servidor",
         "intro": "Para mantener una comunidad sana y divertida, es fundamental respetar estas normas de convivencia. El incumplimiento puede llevar a sanciones severas.",
+        "loading": "Cargando normativas...",
         "items": {
             "1": {
                 "title": "PVP Con Consentimiento",
@@ -395,8 +396,10 @@
             "overview": "Resumen",
             "posts": "Mis Publicaciones",
             "achievements": "Logros",
+            "medals": "Medallas",
             "minecraft": "Cuenta Minecraft",
             "connections": "Conexiones",
+            "settings": "Ajustes",
             "logout": "Cerrar Sesión"
         },
         "overview": {
@@ -537,10 +540,22 @@
             "placeholder": "Escribe algo en este muro...",
             "post": "Publicar",
             "login_required": "Inicia sesión para dejar un comentario.",
-            "empty": "Aún no hay mensajes. ¡Sé el primero!"
-        }
+            "empty": "Aún no hay mensajes. ¡Sé el primero!",
+            "comment_posted": "¡Comentario publicado!",
+            "comment_deleted": "Comentario eliminado",
+            "error_posting": "Error al publicar comentario",
+            "error_deleting": "Error al eliminar comentario"
+        },
+        "karma_success": "¡Karma entregado!",
+        "karma_error": "Error al dar karma",
+        "karma_conn_error": "Error de conexión",
+        "no_bio": "Este aventurero aún no ha escrito su historia.",
+        "skin_title": "Skin del Personaje",
+        "stats_title": "Estadísticas de Juego",
+        "give_karma": "Dar Karma"
     },
 "admin": {
+        "close": "Cerrar",
         "loading_panel": "Cargando panel...",
         "sidebar": {
             "general": "General",
@@ -771,8 +786,28 @@
                     "bug": "Bug",
                     "feature": "Feature",
                     "maintenance": "Mantenimiento"
+                },
+                "empty": "Vacío",
+                "card": {
+                    "backlog": "Por confirmar",
+                    "unassigned": "Sin asignar"
+                },
+                "calendar_views": {
+                    "month": "Mes",
+                    "week": "Semana",
+                    "day": "Día",
+                    "agenda": "Agenda",
+                    "next": "Siguiente",
+                    "prev": "Anterior",
+                    "today": "Hoy",
+                    "date": "Fecha",
+                    "time": "Hora",
+                    "event": "Evento",
+                    "all_day": "Todo el día",
+                    "no_events": "No hay tareas en este rango"
                 }
             },
+
             "notes": {
                 "title": "Notas Rápidas",
                 "new_note_btn": "Nueva Nota",
@@ -819,6 +854,8 @@
             },
             "delete_confirm": "¿Estás seguro de que quieres eliminar este artículo?"
         },
+
+
         "2fa": {
             "title": "Verificación de Seguridad",
             "desc": "Ingresa tu código 2FA para acceder al Panel Administrativo.",
@@ -1476,21 +1513,27 @@
         "error_create": "Error al crear el ticket. Por favor, inténtalo de nuevo."
     },
     "gacha": {
-        "title": "Recompensa Diaria",
-        "subtitle": "¡Prueba tu suerte gratis cada 24 horas y recibe premios en el servidor!",
-        "claim_btn": "Reclamar Diario",
-        "cooldown_btn": "En Cooldown",
+        "title": "Ruleta Diaria",
+        "hero_title": "Ruleta del Destino",
+        "hero_subtitle": "¡Prueba tu suerte gratis cada 24 horas y reclama tesoros exclusivos para tu aventura!",
+        "btn_roll": "Girar Ruleta",
+        "btn_cooldown": "En Descanso",
         "history_btn": "Historial",
-        "last_rewards": "Últimos Premios",
-        "no_history": "Sin historial",
-        "opening": "Abriendo caja...",
+        "possible_rewards": "Posibles Premios",
+        "last_rewards": "Últimos Ganadores",
+        "no_history": "Aún no has reclamado ningún premio.",
+        "opening": "Girando la ruleta...",
         "claim_success": "¡El premio ha sido enviado a tu cola del servidor!",
-        "understood": "Entendido",
+        "reward_delivered": "¡El objeto ha sido teletransportado a tu inventario!",
+        "claim_btn": "Recoger Premio",
         "vuelve_mañana": "Vuelve mañana",
-        "already_claimed": "¡Ya has reclamado tu premio hoy!",
-        "roll_error": "Error al tirar",
+        "already_claimed": "¡Ya has girado la ruleta hoy!",
+        "roll_error": "Error al girar",
         "conn_error": "Error de conexión",
-        "loading": "Cargando Gacha..."
+        "loading": "Sincronizando Ruleta...",
+        "account_not_linked": "Cuenta no vinculada",
+        "link_instruction": "Debes vincular tu cuenta de Minecraft en los ajustes para poder recibir premios en el servidor.",
+        "link_button": "Vincular ahora"
     },
     "tutorial": {
         "step1_title": "¡Bienvenido a CrystalTides!",
@@ -1551,13 +1594,39 @@
         "mode": "Modo",
         "platform": "Plataforma",
         "offline_title": "Servidor No Disponible",
-        "offline_desc": "El servidor parece estar apagado o en mantenimiento. Por favor revisa nuestro Discord para más información."
+        "offline_desc": "El servidor parece estar apagado o en mantenimiento. Por favor revisa nuestro Discord para más información.",
+        "refresh_btn": "Actualizar Estado",
+        "copy_ip_btn": "Copiar IP",
+        "platform_val": "Edición Java",
+        "mode_val": "Survival / SMP"
     },
     "calendar": {
         "month": "Mes",
         "week": "Semana",
         "day": "Día",
         "agenda": "Agenda"
+    },
+    "locations_manager": {
+        "title": "Gestor de Lugares y Lore",
+        "subtitle": "Administra los puntos de interés y la historia del mundo.",
+        "loading": "Sincronizando Lore...",
+        "create_btn": "Nuevo Lugar",
+        "edit_title": "Editar Registro",
+        "create_title": "Nuevo Registro",
+        "form": {
+            "title": "Título de la Localización",
+            "title_ph": "Ej: Gran Biblioteca de Cristal",
+            "coords": "Coordenadas",
+            "coords_ph": "0, 64, 0",
+            "image": "URL de la Imagen",
+            "order": "Orden",
+            "desc": "Descripción Corta (Resumen)",
+            "lore": "Historia / Lore Detallado",
+            "authors": "Arquitectos / Autores",
+            "author_nick": "Nick del Autor",
+            "secret": "¿Secreto?",
+            "error_fields": "Por favor completa los campos básicos",
+            "error_save": "Error al guardar"
+        }
     }
-
 }

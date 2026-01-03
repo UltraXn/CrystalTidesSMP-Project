@@ -389,6 +389,7 @@ button,
 /* Embla Carousel */
 .embla {
   max-width: 1200px;
+  width: 100%;
   margin: 4rem auto;
   --slide-height: 19rem;
   --slide-spacing: 2rem;
@@ -520,6 +521,7 @@ button,
   .widget-wrapper {
     flex: 1 1 100%;
     max-width: 100%;
+    min-width: 0;
   }
 }
 

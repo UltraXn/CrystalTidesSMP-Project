@@ -77,21 +77,33 @@ export const rollGacha = async (userId: string) => {
     return selectedReward;
 };
 
+// Helper to sanitize Minecraft nicknames (Allow only A-Z, 0-9, and _)
+const sanitizeNick = (nick: string): string => {
+    return nick.replace(/[^a-zA-Z0-9_]/g, '');
+};
+
 // Helper to generate commands based on reward type
 const getCommandForReward = (reward: GachaReward, targetNick: string): string | null => {
+    const safeNick = sanitizeNick(targetNick);
+    
+    if (!safeNick) {
+        console.error("[GACHA] Attempted to generate command for invalid nickname:", targetNick);
+        return null;
+    }
+
     switch (reward.type) {
         case 'currency':
-             return `eco give ${targetNick} ${reward.value}`;
+             return `eco give ${safeNick} ${reward.value}`;
         case 'rank':
              // vault/luckperms command
              // Assuming rank ids match what we defined or have a mapping
-             return `lp user ${targetNick} parent addtemp ${reward.value} 3d`; // Simplified
+             return `lp user ${safeNick} parent addtemp ${reward.value} 3d`; // Simplified
         case 'item':
-             return `give ${targetNick} minecraft:${reward.value}`;
+             return `give ${safeNick} minecraft:${reward.value}`;
         case 'xp':
-             return `xp give ${targetNick} ${reward.value}`;
+             return `xp give ${safeNick} ${reward.value}`;
         case 'crate':
-             return `crate give ${targetNick} ${reward.value} 1`;
+             return `crate give ${safeNick} ${reward.value} 1`;
         default:
              return null;
     }

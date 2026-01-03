@@ -1,26 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { 
-    FaTrash, FaPlus, FaGripLines, FaEdit, FaExclamationCircle, 
-    FaCheckCircle, FaExclamationTriangle, FaSpinner,
-    FaCrown, FaTimes, FaGlobe
-} from 'react-icons/fa';
-import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
+import { FaCrown, FaPlus, FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
+import { DropResult } from '@hello-pangea/dnd';
 import Loader from '../UI/Loader';
 import { supabase } from '../../services/supabaseClient';
 import { getAuthHeaders } from '../../services/adminAuth';
+import DonorFormModal, { Donor } from './Donors/DonorFormModal';
+import DonorsList from './Donors/DonorsList';
+import DonorsConfirmModal from './Donors/DonorsConfirmModal';
 
 const API_URL = import.meta.env.VITE_API_URL || '/api';
-
-interface Donor {
-    id: string; 
-    name: string;
-    skinUrl: string;
-    description: string;
-    description_en?: string;
-    ranks: string[];
-    isPremium?: boolean;
-}
 
 export default function DonorsManager() {
     const { t } = useTranslation();
@@ -41,19 +30,6 @@ export default function DonorsManager() {
 
     // Custom Alert State
     const [alert, setAlert] = useState<{ message: string; type: 'error' | 'success' | 'warning' } | null>(null);
-
-    // Available Ranks for Selector
-    const AVAILABLE_RANKS = [
-        { id: 'donador', label: 'Donador', img: '/ranks/rank-donador.png' },
-        { id: 'fundador', label: 'Fundador', img: '/ranks/rank-fundador.png' },
-        { id: 'killu', label: 'Killu', img: '/ranks/rank-killu.png' },
-        { id: 'neroferno', label: 'Neroferno', img: '/ranks/rank-neroferno.png' },
-        { id: 'developer', label: 'Developer', img: '/ranks/developer.png' },
-        { id: 'admin', label: 'Admin', img: '/ranks/admin.png' },
-        { id: 'mod', label: 'Moderator', img: '/ranks/moderator.png' },
-        { id: 'helper', label: 'Helper', img: '/ranks/helper.png' },
-        { id: 'staff', label: 'Staff', img: '/ranks/staff.png' },
-    ];
 
     useEffect(() => {
         const fetchDonors = async () => {
@@ -190,65 +166,37 @@ export default function DonorsManager() {
         handleSaveList(items);
     };
 
-    const handleEditSave = () => {
-        if (!editingDonor) return;
-        
-        if (!editingDonor.name) {
+    const handleEditSave = (donorData: Donor) => {
+        if (!donorData.name) {
             setAlert({ message: t('admin.donors.validation.name_req'), type: "error" });
             return;
         }
-        if (!editingDonor.isPremium && !editingDonor.skinUrl) {
+        if (!donorData.isPremium && !donorData.skinUrl) {
             setAlert({ message: t('admin.donors.validation.skin_req'), type: "error" });
             return;
         }
-        if (!editingDonor.description) {
+        if (!donorData.description) {
             setAlert({ message: t('admin.donors.validation.desc_req'), type: "error" });
             return;
         }
 
         let newList = [...donors];
         const finalDonor = {
-            ...editingDonor,
-            skinUrl: editingDonor.isPremium 
-                ? `https://minotar.net/skin/${editingDonor.name}` 
-                : editingDonor.skinUrl
+            ...donorData,
+            skinUrl: donorData.isPremium 
+                ? `https://minotar.net/skin/${donorData.name}` 
+                : donorData.skinUrl
         };
 
         if (isNew) {
             finalDonor.id = Date.now().toString();
             newList.push(finalDonor);
         } else {
-            newList = newList.map(d => d.id === editingDonor.id ? finalDonor : d);
+            newList = newList.map(d => d.id === donorData.id ? finalDonor : d);
         }
         
         handleSaveList(newList);
         setEditingDonor(null);
-    };
-
-    const [translating, setTranslating] = useState(false);
-    const handleTranslate = async (text: string, toLang: 'es' | 'en', field: 'description' | 'description_en') => {
-        if (!text) return;
-        setTranslating(true);
-        try {
-            const { data: { session } } = await supabase.auth.getSession();
-            const res = await fetch(`${API_URL}/translation`, {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    ...getAuthHeaders(session?.access_token || null)
-                },
-                body: JSON.stringify({ text, targetLang: toLang })
-            });
-            const data = await res.json();
-            if (data.success) {
-                setEditingDonor(prev => prev ? ({ ...prev, [field]: data.translatedText }) : null);
-            }
-        } catch (e) {
-            console.error("Translation fail", e);
-            setAlert({ message: t('admin.donors.validation.translate_error'), type: "error" });
-        } finally {
-            setTranslating(false);
-        }
     };
 
     const openNew = () => {
@@ -285,289 +233,28 @@ export default function DonorsManager() {
                 </button>
             </div>
 
-            <DragDropContext onDragEnd={onDragEnd}>
-                <Droppable droppableId="donors-list">
-                    {(provided) => (
-                        <div 
-                            className="donors-grid"
-                            {...provided.droppableProps} 
-                            ref={provided.innerRef}
-                        >
-                            {donors.length === 0 && (
-                                <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '6rem', background: 'rgba(255,255,255,0.02)', borderRadius: '32px', border: '2px dashed rgba(255,255,255,0.05)' }}>
-                                    <FaCrown size={48} style={{ opacity: 0.1, marginBottom: '1.5rem', color: 'var(--accent)' }} />
-                                    <p style={{ color: 'rgba(255,255,255,0.3)', marginBottom: '2rem' }}>{t('admin.donors.empty_msg')}</p>
-                                    <button onClick={handleImportDefaults} className="btn-secondary" style={{ padding: '0.8rem 2rem' }}>
-                                        {t('admin.donors.import_btn')}
-                                    </button>
-                                </div>
-                            )}
-                            
-                            {donors.map((donor, index) => (
-                                <Draggable key={donor.id} draggableId={donor.id} index={index}>
-                                    {(provided) => (
-                                        <div
-                                            className="donor-card-premium"
-                                            ref={provided.innerRef}
-                                            {...provided.draggableProps}
-                                        >
-                                            <div className="donor-card-accent"></div>
-                                            <div {...provided.dragHandleProps} className="donor-drag-handle">
-                                                <FaGripLines />
-                                            </div>
-                                            
-                                            <div className="donor-card-header">
-                                                <div className="donor-avatar-wrapper">
-                                                    <img 
-                                                        className="donor-avatar"
-                                                        src={donor.skinUrl || `https://mc-heads.net/avatar/${donor.name}/64`} 
-                                                        alt={donor.name}
-                                                        onError={(e) => e.currentTarget.src = `https://mc-heads.net/avatar/Steve/64`}
-                                                    />
-                                                </div>
-                                                <div className="donor-info">
-                                                    <h4 className="donor-name">{donor.name}</h4>
-                                                    <div className="donor-ranks">
-                                                        {donor.ranks.map(r => (
-                                                            <span key={r} className="donor-rank-badge">{r}</span>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            </div>
+            <DonorsList 
+                donors={donors}
+                onDragEnd={onDragEnd}
+                onEdit={(d) => { setEditingDonor(d); setIsNew(false); }}
+                onDelete={(id) => setConfirmModal({ isOpen: true, type: 'delete', payload: id })}
+                onImport={handleImportDefaults}
+            />
 
-                                            <p className="donor-description">
-                                                "{donor.description}"
-                                            </p>
+            <DonorFormModal 
+                donor={editingDonor}
+                isNew={isNew}
+                onClose={() => setEditingDonor(null)}
+                onSave={handleEditSave}
+                saving={saving}
+            />
 
-                                            <div className="donor-card-actions">
-                                                <button 
-                                                    onClick={() => { setEditingDonor(donor); setIsNew(false); }} 
-                                                    className="donor-btn-action edit"
-                                                >
-                                                    <FaEdit size={14} /> {t('admin.polls.edit_btn', 'Editar')}
-                                                </button>
-                                                <button 
-                                                    onClick={() => setConfirmModal({ isOpen: true, type: 'delete', payload: donor.id })}
-                                                    className="donor-btn-action delete"
-                                                >
-                                                    <FaTrash size={14} /> {t('admin.donors.delete_btn', 'Eliminar')}
-                                                </button>
-                                            </div>
-                                        </div>
-                                    )}
-                                </Draggable>
-                            ))}
-                            {provided.placeholder}
-                        </div>
-                    )}
-                </Droppable>
-            </DragDropContext>
-
-            {/* MODAL: EDIT / CREATE */}
-            {editingDonor && (
-                <div className="sync-modal-overlay">
-                    <div className="sync-modal-content" style={{ maxWidth: '850px' }}>
-                        <div className="modal-accent-line"></div>
-                        
-                        <div className="poll-form-header">
-                            <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '12px', color: '#fff', fontSize: '1.5rem', fontWeight: '900' }}>
-                                <FaCrown style={{ color: 'var(--accent)' }} />
-                                {isNew ? t('admin.donors.new_title') : t('admin.donors.edit_title')}
-                            </h3>
-                            <button onClick={() => setEditingDonor(null)} className="btn-close-mini">
-                                <FaTimes />
-                            </button>
-                        </div>
-                        
-                        <div className="poll-form-body" style={{ overflowY: 'auto', maxHeight: '70vh', padding: '0.5rem' }}>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
-                                {/* Left Side: Basic Info */}
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                                    <div className="form-group">
-                                        <label className="admin-label-premium">{t('admin.donors.form.nick')}</label>
-                                        <input 
-                                            className="admin-input-premium" 
-                                            value={editingDonor.name} 
-                                            onChange={e => setEditingDonor({...editingDonor, name: e.target.value})}
-                                            placeholder={t('admin.donors.form.nick_ph')}
-                                        />
-                                    </div>
-
-                                    <div className="form-group">
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                                            <input 
-                                                type="checkbox" 
-                                                id="isPremiumDonor"
-                                                checked={editingDonor.isPremium || false}
-                                                onChange={e => setEditingDonor({...editingDonor, isPremium: e.target.checked})}
-                                                style={{ width: '20px', height: '20px', cursor: 'pointer' }}
-                                            />
-                                            <label htmlFor="isPremiumDonor" style={{ cursor: 'pointer', fontSize: '0.95rem', color: '#fff', fontWeight: 700 }}>
-                                                {t('admin.donors.form.is_premium')}
-                                            </label>
-                                        </div>
-                                    </div>
-
-                                    {!editingDonor.isPremium && (
-                                        <div className="form-group">
-                                            <label className="admin-label-premium">{t('admin.donors.form.skin_url')}</label>
-                                            <input 
-                                                className="admin-input-premium" 
-                                                value={editingDonor.skinUrl} 
-                                                onChange={e => setEditingDonor({...editingDonor, skinUrl: e.target.value})}
-                                                placeholder={t('admin.donors.form.skin_ph')}
-                                            />
-                                            <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)', marginTop: '0.5rem' }}>
-                                                {t('admin.donors.form.skin_hint')}
-                                            </p>
-                                        </div>
-                                    )}
-
-                                    <div className="form-group">
-                                        <label className="admin-label-premium">{t('admin.donors.form.ranks')}</label>
-                                        <div className="donor-ranks-selector">
-                                            {AVAILABLE_RANKS.map(rank => {
-                                                const isSelected = editingDonor.ranks.includes(rank.id);
-                                                return (
-                                                    <div 
-                                                        key={rank.id}
-                                                        onClick={() => {
-                                                            const newRanks = isSelected 
-                                                                ? editingDonor.ranks.filter(r => r !== rank.id)
-                                                                : [...editingDonor.ranks, rank.id];
-                                                            setEditingDonor({...editingDonor, ranks: newRanks});
-                                                        }}
-                                                        className={`rank-select-item ${isSelected ? 'active' : ''}`}
-                                                    >
-                                                        <img src={rank.img} alt={rank.label} />
-                                                        <span>{rank.label}</span>
-                                                    </div>
-                                                )
-                                            })}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Right Side: Descriptions & Preview */}
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                                    <div className="form-group">
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                            <label className="admin-label-premium">{t('admin.donors.form.desc')}</label>
-                                            <button 
-                                                className="btn-secondary" 
-                                                style={{ fontSize: '0.7rem', height: '28px', padding: '0 10px' }}
-                                                onClick={() => handleTranslate(editingDonor.description, 'en', 'description_en')}
-                                                disabled={translating || !editingDonor.description}
-                                            >
-                                                {translating ? <FaSpinner className="spin" /> : <FaGlobe />} {t('admin.donors.form.translate_en')}
-                                            </button>
-                                        </div>
-                                        <textarea 
-                                            className="admin-textarea-premium" 
-                                            value={editingDonor.description} 
-                                            onChange={e => setEditingDonor({...editingDonor, description: e.target.value})}
-                                            placeholder={t('admin.donors.form.desc_ph')}
-                                            rows={3}
-                                        />
-                                    </div>
-
-                                    <div className="form-group">
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                            <label className="admin-label-premium">{t('admin.donors.form.desc_en')}</label>
-                                            <button 
-                                                className="btn-secondary" 
-                                                style={{ fontSize: '0.7rem', height: '28px', padding: '0 10px' }}
-                                                onClick={() => handleTranslate(editingDonor.description_en || '', 'es', 'description')}
-                                                disabled={translating || !editingDonor.description_en}
-                                            >
-                                                {translating ? <FaSpinner className="spin" /> : <FaGlobe />} {t('admin.donors.form.translate_es')}
-                                            </button>
-                                        </div>
-                                        <textarea 
-                                            className="admin-textarea-premium" 
-                                            value={editingDonor.description_en || ''} 
-                                            onChange={e => setEditingDonor({...editingDonor, description_en: e.target.value})}
-                                            placeholder={t('admin.donors.form.desc_en_ph')}
-                                            rows={3}
-                                        />
-                                    </div>
-
-                                    <div className="donor-preview-pane">
-                                        <span style={{ fontSize: '0.7rem', fontWeight: 900, color: 'rgba(255,255,255,0.2)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Preview</span>
-                                        <div className="donor-card-premium" style={{ width: '100%', pointerEvents: 'none', background: 'rgba(255,255,255,0.02)' }}>
-                                            <div className="donor-card-header">
-                                                <div className="donor-avatar-wrapper">
-                                                    <img 
-                                                        className="donor-avatar"
-                                                        src={editingDonor.isPremium ? `https://mc-heads.net/avatar/${editingDonor.name}/64` : editingDonor.skinUrl} 
-                                                        alt="preview"
-                                                        onError={(e) => e.currentTarget.src = `https://mc-heads.net/avatar/Steve/64`}
-                                                    />
-                                                </div>
-                                                <div className="donor-info">
-                                                    <h4 className="donor-name">{editingDonor.name || 'New Donor'}</h4>
-                                                    <div className="donor-ranks">
-                                                        {editingDonor.ranks.map(r => (
-                                                            <span key={r} className="donor-rank-badge">{r}</span>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <p className="donor-description" style={{ fontSize: '0.8rem' }}>"{editingDonor.description || 'Description goes here...'}"</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="poll-form-footer" style={{ marginTop: '2rem' }}>
-                                <button className="btn-secondary" onClick={() => setEditingDonor(null)}>{t('admin.donors.form.cancel')}</button>
-                                <button className="modal-btn-primary" onClick={handleEditSave} disabled={saving} style={{ height: '50px', padding: '0 2.5rem' }}>
-                                    {saving ? <FaSpinner className="spin" /> : <><FaCheckCircle /> {t('admin.donors.form.save')}</>}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* MODAL: ACTIONS (DELETE / IMPORT) */}
-            {confirmModal.isOpen && (
-                <div className="sync-modal-overlay">
-                    <div className="sync-modal-content" style={{ maxWidth: '450px', textAlign: 'center', padding: '3rem' }}>
-                        <div className="modal-accent-line" style={{ background: confirmModal.type === 'delete' ? 'linear-gradient(90deg, transparent, #ef4444, transparent)' : '' }}></div>
-                        <div style={{ 
-                            width: '80px', height: '80px', 
-                            background: confirmModal.type === 'delete' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(var(--accent-rgb), 0.1)', 
-                            color: confirmModal.type === 'delete' ? '#ef4444' : 'var(--accent)', 
-                            borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 2rem auto', fontSize: '2rem' 
-                        }}>
-                            {confirmModal.type === 'delete' ? <FaTrash /> : <FaExclamationTriangle />}
-                        </div>
-                        <h3 style={{ marginBottom: '1rem', color: '#fff', fontSize: '1.75rem', fontWeight: '900' }}>
-                           {confirmModal.type === 'delete' ? t('admin.donors.delete_confirm.title') : t('admin.donors.import_confirm.title')}
-                        </h3>
-                        <p style={{ marginBottom: '2.5rem', color: 'rgba(255,255,255,0.4)', fontSize: '1rem', lineHeight: '1.6', fontWeight: '500' }}>
-                            {confirmModal.type === 'delete' ? t('admin.donors.delete_confirm.msg') : t('admin.donors.import_confirm.msg')}
-                        </p>
-                        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-                            <button onClick={() => setConfirmModal({ ...confirmModal, isOpen: false })} className="modal-btn-secondary" style={{ flex: 1 }}>
-                                {t('common.cancel', 'Cancelar')}
-                            </button>
-                            <button 
-                                onClick={confirmAction} 
-                                className="modal-btn-primary" 
-                                style={{ 
-                                    background: confirmModal.type === 'delete' ? '#ef4444' : '', 
-                                    color: '#fff', flex: 1, 
-                                    boxShadow: confirmModal.type === 'delete' ? '0 10px 30px rgba(239, 68, 68, 0.3)' : '' 
-                                }}
-                            >
-                                {confirmModal.type === 'delete' ? t('admin.donors.delete_confirm.btn') : t('admin.donors.import_confirm.btn')}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <DonorsConfirmModal 
+                isOpen={confirmModal.isOpen}
+                type={confirmModal.type}
+                onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+                onConfirm={confirmAction}
+            />
 
             {/* ALERT TOAST */}
             {alert && (

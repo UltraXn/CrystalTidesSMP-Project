@@ -73,10 +73,10 @@ const EmblaCarousel = (props: EmblaCarouselProps) => {
                 </div>
             </div>
 
-            <button className="embla__button embla__button--prev" onClick={scrollPrev}>
+            <button className="embla__button embla__button--prev" onClick={scrollPrev} aria-label="Previous slide">
                 <FaChevronLeft />
             </button>
-            <button className="embla__button embla__button--next" onClick={scrollNext}>
+            <button className="embla__button embla__button--next" onClick={scrollNext} aria-label="Next slide">
                 <FaChevronRight />
             </button>
         </div>

@@ -57,13 +57,28 @@ export const createTicket = async (req: Request, res: Response) => {
     }
 };
 
-// Admin: Update Status
+// Admin/User: Update Status
 export const updateStatus = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
         const { status } = req.body;
+        const ticketId = parseInt(id);
+        const user = (req as AuthenticatedRequest).user!;
+        const STAFF_ROLES = ['admin', 'neroferno', 'killu', 'killuwu', 'developer', 'moderator', 'mod', 'helper'];
 
-        const ticket = await ticketService.updateTicketStatus(parseInt(id), status);
+        // 1. Fetch ticket to check ownership
+        const ticketInfo = await ticketService.getTicketById(ticketId);
+        if (!ticketInfo) return sendError(res, 'Ticket not found', 'NOT_FOUND', 404);
+
+        // 2. Permission check: Owner can close, Staff can do anything
+        const isOwner = ticketInfo.user_id === user.id;
+        const isStaff = STAFF_ROLES.includes(user.role);
+
+        if (!isOwner && !isStaff) {
+            return res.status(403).json({ error: 'You do not have permission to update this ticket' });
+        }
+
+        const ticket = await ticketService.updateTicketStatus(ticketId, status);
         
         const username = getLogUsername(req);
         
@@ -96,7 +111,23 @@ export const getStats = async (req: Request, res: Response) => {
 export const getMessages = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const messages = await ticketService.getTicketMessages(parseInt(id));
+        const ticketId = parseInt(id);
+        const user = (req as AuthenticatedRequest).user!;
+        const STAFF_ROLES = ['admin', 'neroferno', 'killu', 'killuwu', 'developer', 'moderator', 'mod', 'helper'];
+
+        // 1. Fetch ticket to check ownership
+        const ticket = await ticketService.getTicketById(ticketId);
+        if (!ticket) return sendError(res, 'Ticket not found', 'NOT_FOUND', 404);
+
+        // 2. Check Permissions: User must own the ticket OR be staff
+        const isOwner = ticket.user_id === user.id;
+        const hasStaffRole = STAFF_ROLES.includes(user.role);
+
+        if (!isOwner && !hasStaffRole) {
+            return res.status(403).json({ error: 'You do not have permission to view this ticket' });
+        }
+
+        const messages = await ticketService.getTicketMessages(ticketId);
         return sendSuccess(res, messages);
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
@@ -108,11 +139,27 @@ export const getMessages = async (req: Request, res: Response) => {
 export const addMessage = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const { user_id, message, is_staff } = req.body;
+        const { message } = req.body; // Remove user_id and is_staff from body for security
+        const ticketId = parseInt(id);
+        const user = (req as AuthenticatedRequest).user!;
+        const STAFF_ROLES = ['admin', 'neroferno', 'killu', 'killuwu', 'developer', 'moderator', 'mod', 'helper'];
 
         if (!message) return sendError(res, "Message is required", 'MISSING_FIELD', 400);
 
-        const newMessage = await ticketService.addTicketMessage(parseInt(id), user_id, message, is_staff);
+        // 1. Fetch ticket to check ownership
+        const ticket = await ticketService.getTicketById(ticketId);
+        if (!ticket) return sendError(res, 'Ticket not found', 'NOT_FOUND', 404);
+
+        // 2. Permission check: Only owner or staff can reply
+        const isOwner = ticket.user_id === user.id;
+        const isStaff = STAFF_ROLES.includes(user.role);
+
+        if (!isOwner && !isStaff) {
+            return res.status(403).json({ error: 'You do not have permission to post messages in this ticket' });
+        }
+
+        // 3. Post with server-verified IDs
+        const newMessage = await ticketService.addTicketMessage(ticketId, user.id, message, isStaff);
         return sendSuccess(res, newMessage, 'Message added');
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);

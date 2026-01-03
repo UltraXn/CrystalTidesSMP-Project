@@ -1,34 +1,89 @@
 @import './styles/tailwind.css';
+@import './styles/animations.css';
+@import './styles/base.css';
+@import './styles/layout.css';
+@import './styles/components.css';
+@import './styles/sections.css';
+@import './styles/pages.css';
+@import './styles/home.css';
+@import './styles/admin.css';
+@import './styles/admin_kanban.css';
+@import './styles/admin_calendar.css';
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
 
 /* Main CSS Entry Point */
 
 /* 1. Variables & Global Tokens */
-/* 1. Variables & Global Tokens */
 /* variables.css merged into base.css */
 
 /* 2. Animations & Keyframes */
-@import './styles/animations.css';
 
 /* 3. Base Styles & Resets */
-@import './styles/base.css';
 
 /* 4. Layout (Navbar, Footer, Grid) */
-@import './styles/layout.css';
 
 /* 5. Component Styles (Buttons, Forms, Cards) */
-@import './styles/components.css';
 
 /* 6. Section Specific Styles (Donors, Rules, News) */
-@import './styles/sections.css';
 
 /* 7. Page Specific Styles */
-@import './styles/pages.css';
-@import './styles/home.css';
 
 /* 8. Admin Panel Styles */
-@import './styles/admin.css';
-@import './styles/admin_kanban.css';
-@import './styles/admin_calendar.css';
 
 /* Compatibility: Import legacy styles-patch if absolutely needed,
    but ideally everything should be moved to modules above.

@@ -203,6 +203,7 @@
     "rules": {
         "title": "Server Rules",
         "intro": "To maintain a healthy and fun community, it is essential to respect these coexistence rules. Failure to comply can lead to severe sanctions.",
+        "loading": "Loading rules...",
         "items": {
             "1": {
                 "title": "PVP With Consent",
@@ -398,8 +399,10 @@
             "overview": "Overview",
             "posts": "My Posts",
             "achievements": "Achievements",
+            "medals": "Medals",
             "minecraft": "Minecraft Account",
             "connections": "Connections",
+            "settings": "Settings",
             "logout": "Logout"
         },
         "overview": {
@@ -543,10 +546,22 @@
             "placeholder": "Write something on this wall...",
             "post": "Post",
             "login_required": "Log in to leave a comment.",
-            "empty": "No messages yet. Be the first!"
-        }
+            "empty": "No messages yet. Be the first!",
+            "comment_posted": "Comment posted!",
+            "comment_deleted": "Comment deleted",
+            "error_posting": "Error posting comment",
+            "error_deleting": "Error deleting comment"
+        },
+        "karma_success": "Karma delivered!",
+        "karma_error": "Error giving karma",
+        "karma_conn_error": "Connection error",
+        "no_bio": "This adventurer hasn't written their story yet.",
+        "skin_title": "Character Skin",
+        "stats_title": "Gameplay Statistics",
+        "give_karma": "Give Karma"
     },
     "admin": {
+        "close": "Close",
         "loading_panel": "Loading panel...",
         "sidebar": {
             "general": "General",
@@ -576,7 +591,12 @@
             "staff_hub": "Staff Hub",
             "docs": "Documentation",
             "donations": "Donations",
-            "wiki": "Wiki / Gamepedia"
+            "wiki": "Wiki / Gamepedia",
+            "locations": "Places & Lore",
+            "refresh_btn": "Refresh Status",
+            "copy_ip_btn": "Copy IP",
+            "platform_val": "Java Edition",
+            "mode_val": "Survival / SMP"
         },
         "headers": {
             "general": "General Dashboard",
@@ -593,7 +613,8 @@
             "staff_hub": "Staff Workspace",
             "docs": "Internal Documentation",
             "donations": "Donation Management",
-            "wiki": "Wiki / Gamepedia Editor"
+            "wiki": "Wiki / Gamepedia Editor",
+            "locations": "Places & Lore Manager"
         },
         "polls": {
             "title": "Poll Manager",
@@ -767,8 +788,28 @@
                     "bug": "Bug",
                     "feature": "Feature",
                     "maintenance": "Maintenance"
+                },
+                "empty": "Empty",
+                "card": {
+                    "backlog": "TBD",
+                    "unassigned": "Unassigned"
+                },
+                "calendar_views": {
+                    "month": "Month",
+                    "week": "Week",
+                    "day": "Day",
+                    "agenda": "Agenda",
+                    "next": "Next",
+                    "prev": "Back",
+                    "today": "Today",
+                    "date": "Date",
+                    "time": "Time",
+                    "event": "Event",
+                    "all_day": "All Day",
+                    "no_events": "No tasks in this range"
                 }
             },
+
             "notes": {
                 "title": "Quick Notes",
                 "new_note_btn": "New Note",
@@ -937,6 +978,8 @@
                 "ranks": "Ranks"
             }
         },
+
+
         "2fa": {
             "title": "Security Verification",
             "desc": "Enter your 2FA code to access the Admin Panel.",
@@ -1418,21 +1461,27 @@
         "error_create": "Error creating ticket. Please try again."
     },
     "gacha": {
-        "title": "Daily Reward",
-        "subtitle": "Try your luck for free every 24 hours and receive prizes on the server!",
-        "claim_btn": "Claim Daily",
-        "cooldown_btn": "On Cooldown",
+        "title": "Daily Roulette",
+        "hero_title": "Wheel of Destiny",
+        "hero_subtitle": "Try your luck for free every 24 hours and unlock exclusive treasures for your adventure!",
+        "btn_roll": "Spin Roulette",
+        "btn_cooldown": "On Cooldown",
         "history_btn": "History",
-        "last_rewards": "Latest Rewards",
-        "no_history": "No history",
-        "opening": "Opening box...",
+        "possible_rewards": "Possible Rewards",
+        "last_rewards": "Latest Winners",
+        "no_history": "You haven't claimed any prizes yet.",
+        "opening": "Spinning wheel...",
         "claim_success": "The prize has been sent to your server queue!",
-        "understood": "Understood",
+        "reward_delivered": "The item has been teleported to your Minecraft account!",
+        "claim_btn": "Claim Prize",
         "vuelve_mañana": "Come back tomorrow",
-        "already_claimed": "You have already claimed your prize today!",
-        "roll_error": "Roll error",
+        "already_claimed": "You have already spun the wheel today!",
+        "roll_error": "Spin error",
         "conn_error": "Connection error",
-        "loading": "Loading Gacha..."
+        "loading": "Syncing Roulette...",
+        "account_not_linked": "Account not linked",
+        "link_instruction": "You must link your Minecraft account in settings to receive prizes on the server.",
+        "link_button": "Link now"
     },
     "tutorial": {
         "step1_title": "Welcome to CrystalTides!",
@@ -1500,5 +1549,28 @@
         "week": "Week",
         "day": "Day",
         "agenda": "Agenda"
+    },
+    "locations_manager": {
+        "title": "Places & Lore Manager",
+        "subtitle": "Manage world points of interest and history.",
+        "loading": "Syncing Lore...",
+        "create_btn": "New Place",
+        "edit_title": "Edit Record",
+        "create_title": "New Record",
+        "form": {
+            "title": "Location Title",
+            "title_ph": "Ex: Great Crystal Library",
+            "coords": "Coordinates",
+            "coords_ph": "0, 64, 0",
+            "image": "Image URL",
+            "order": "Order",
+            "desc": "Short Description",
+            "lore": "Detailed Lore / History",
+            "authors": "Authors / Architects",
+            "author_nick": "Author Nick",
+            "secret": "Secret?",
+            "error_fields": "Please complete basic fields",
+            "error_save": "Error saving"
+        }
     }
 }

@@ -51,46 +51,46 @@ export const verifyLinkCode = async (req: Request, res: Response) => {
 
         // 1. Verify Code in MySQL
         const [rows] = await pool.execute<RowDataPacket[]>(
-            'SELECT * FROM web_verifications WHERE code = ?',
-            [code]
+            'SELECT source, source_id, expires_at FROM universal_links WHERE code = ?',
+            [code.toUpperCase()]
         );
 
         if (rows.length === 0) {
-            return res.status(404).json({ error: 'Invalid or expired code.' });
+            return res.status(404).json({ error: 'Código inválido o inexistente.' });
         }
 
         const verification = rows[0];
         
         // Check Expiry
         if (Date.now() > Number(verification.expires_at)) {
-            await pool.execute('DELETE FROM web_verifications WHERE code = ?', [code]);
-            return res.status(400).json({ error: 'Code expired. Please generate a new one.' });
+            await pool.execute('DELETE FROM universal_links WHERE code = ?', [code.toUpperCase()]);
+            return res.status(400).json({ error: 'El código ha expirado.' });
         }
 
-        // 2. Code is Valid! Link Account in Supabase (Web Side)
-        const { error: updateError } = await supabase.auth.admin.updateUserById(
-            userId,
-            { user_metadata: { minecraft_uuid: verification.uuid, minecraft_nick: verification.player_name } }
-        );
+        const source = verification.source;
+        const sourceId = verification.source_id;
 
-        if (updateError) throw updateError;
+        // 2. Link Account in MySQL (Unified Bridge)
+        let query = '';
+        if (source === 'minecraft') {
+            query = 'INSERT INTO linked_accounts (minecraft_uuid, web_user_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE web_user_id = ?';
+        } else if (source === 'discord') {
+            query = 'INSERT INTO linked_accounts (discord_id, web_user_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE web_user_id = ?';
+        }
 
-        // 3. Link Account in MySQL (Plugin Side)
-        // This allows the plugin to check verification status via SQL
-        await pool.execute(
-            'INSERT INTO linked_accounts (uuid, player_name, web_user_id) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE player_name = ?, web_user_id = ?',
-            [verification.uuid, verification.player_name, userId, verification.player_name, userId]
-        );
+        if (query) {
+            await pool.execute(query, [sourceId, userId, userId]);
+            await pool.execute('DELETE FROM universal_links WHERE code = ?', [code.toUpperCase()]);
+        }
 
-        // 4. Cleanup
-        await pool.execute('DELETE FROM web_verifications WHERE uuid = ?', [verification.uuid]);
-        
-        res.json({ success: true, username: verification.player_name, uuid: verification.uuid });
+        // 3. Sync Supabase user metadata (Optional but helpful)
+        // We'll let the checkLinkStatus or a hook handle full sync, 
+        // but let's confirm success
+        res.json({ success: true, source, linked: true });
 
     } catch (error) {
         console.error('Link Verification Error:', error);
-        const message = error instanceof Error ? error.message : String(error);
-        res.status(500).json({ error: 'Verification failed: ' + message });
+        res.status(500).json({ error: 'Error al procesar la vinculación.' });
     }
 };
 
@@ -99,28 +99,25 @@ export const initWebLink = async (req: Request, res: Response) => {
         const { userId } = req.body;
         if (!userId) return res.status(400).json({ error: 'UserId required' });
 
-        // Generate a random 4-char code (e.g. "XT92")
-        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // No I O 0 1 for clarity
+        // Generate a random 6-char code
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
         let code = '';
-        for (let i = 0; i < 4; i++) {
+        for (let i = 0; i < 6; i++) {
             code += chars.charAt(Math.floor(Math.random() * chars.length));
         }
 
-        // Expires in 15 minutes
         const expiresAt = Date.now() + 15 * 60 * 1000;
 
-        // Insert into pending_web_links (requires table creation)
         await pool.execute(
-            'INSERT INTO pending_web_links (code, web_user_id, expires_at) VALUES (?, ?, ?)',
-            [code, userId, expiresAt]
+            'INSERT INTO universal_links (code, source, source_id, expires_at) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE expires_at = ?',
+            [code, 'web', userId, expiresAt, expiresAt]
         );
 
         res.json({ success: true, code });
 
     } catch (error) {
         console.error('Init Web Link Error:', error);
-        const message = error instanceof Error ? error.message : String(error);
-        res.status(500).json({ error: 'Failed to initiate link: ' + message });
+        res.status(500).json({ error: 'Error al generar código de vinculación.' });
     }
 };
 
@@ -131,22 +128,34 @@ export const checkLinkStatus = async (req: Request, res: Response) => {
 
         if (!supabase) return res.status(503).json({ error: 'Supabase not configured' });
 
-        const [rows] = await pool.execute<RowDataPacket[]>('SELECT * FROM linked_accounts WHERE web_user_id = ?', [userId]);
+        const [rows] = await pool.execute<RowDataPacket[]>(
+            'SELECT * FROM linked_accounts WHERE web_user_id = ?', 
+            [userId]
+        );
 
         if (rows.length > 0) {
             const link = rows[0];
             
-            // Sync Supabase
-             const { error: updateError } = await supabase.auth.admin.updateUserById(
+            // Sync Supabase user metadata
+            await supabase.auth.admin.updateUserById(
                 userId as string,
-                { user_metadata: { minecraft_uuid: link.uuid, minecraft_nick: link.player_name } }
+                { 
+                    user_metadata: { 
+                        minecraft_uuid: link.minecraft_uuid, 
+                        minecraft_nick: link.minecraft_name,
+                        discord_id: link.discord_id,
+                        discord_tag: link.discord_tag,
+                        gacha_balance: link.gacha_balance
+                    } 
+                }
             );
             
-            if (updateError) {
-                console.error("Supabase sync error:", updateError);
-            }
-            
-            return res.json({ linked: true, uuid: link.uuid, nick: link.player_name });
+            return res.json({ 
+                linked: true, 
+                minecraft: { uuid: link.minecraft_uuid, name: link.minecraft_name },
+                discord: { id: link.discord_id, tag: link.discord_tag },
+                balance: link.gacha_balance
+            });
         }
         
         res.json({ linked: false });
