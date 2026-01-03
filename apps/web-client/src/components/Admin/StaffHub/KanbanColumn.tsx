@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import KanbanCard from './KanbanCard';
 import { KanbanTask } from '@crystaltides/shared';
 import { FaChevronDown, FaChevronRight, FaLayerGroup } from 'react-icons/fa';
@@ -19,6 +20,7 @@ interface KanbanColumnProps {
 }
 
 export default function KanbanColumn({ column, cards, onDragStart, onDrop, onDelete, onEdit }: KanbanColumnProps) {
+    const { t } = useTranslation();
     // Collapsed by default as requested
     const [isExpanded, setIsExpanded] = useState(false);
     
@@ -71,7 +73,7 @@ export default function KanbanColumn({ column, cards, onDragStart, onDrop, onDel
                     {cards.length === 0 && (
                         <div className="empty-column-placeholder">
                             <FaLayerGroup />
-                            <span>Vacío</span>
+                            <span>{t('admin.staff_hub.kanban.empty', 'Vacío')}</span>
                         </div>
                     )}
                 </div>

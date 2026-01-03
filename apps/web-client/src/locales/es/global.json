@@ -772,8 +772,28 @@
                     "bug": "Bug",
                     "feature": "Feature",
                     "maintenance": "Mantenimiento"
+                },
+                "empty": "Vacío",
+                "card": {
+                    "backlog": "Por confirmar",
+                    "unassigned": "Sin asignar"
+                },
+                "calendar_views": {
+                    "month": "Mes",
+                    "week": "Semana",
+                    "day": "Día",
+                    "agenda": "Agenda",
+                    "next": "Siguiente",
+                    "prev": "Anterior",
+                    "today": "Hoy",
+                    "date": "Fecha",
+                    "time": "Hora",
+                    "event": "Evento",
+                    "all_day": "Todo el día",
+                    "no_events": "No hay tareas en este rango"
                 }
             },
+
             "notes": {
                 "title": "Notas Rápidas",
                 "new_note_btn": "Nueva Nota",
@@ -820,27 +840,8 @@
             },
             "delete_confirm": "¿Estás seguro de que quieres eliminar este artículo?"
         },
-        "locations": {
-            "title": "Lugares y Lore",
-            "subtitle": "Arquitectura del mundo y puntos de interés histórico",
-            "loading": "Sincronizando Lore...",
-            "new_btn": "Nuevo Lugar",
-            "edit_title": "Editar Registro",
-            "new_title": "Nuevo Registro",
-            "delete_confirm_title": "Eliminar Registro de Lore",
-            "delete_confirm_msg": "¿Estás seguro de que quieres borrar este lugar? La historia asociada se perderá permanentemente.",
-            "lore_entry": "Entrada de Lore",
-            "secret": "¿Secreto?",
-            "coords": "Coordenadas",
-            "order": "Orden",
-            "image_url": "URL de la Imagen",
-            "short_desc": "Descripción Corta (Resumen)",
-            "long_desc": "Historia / Lore Detallado",
-            "authors": "Arquitectos / Autores",
-            "nick_ph": "Nick del Autor",
-            "cancel": "Cancelar",
-            "save_btn": "Guardar Registro"
-        },
+
+
         "2fa": {
             "title": "Verificación de Seguridad",
             "desc": "Ingresa tu código 2FA para acceder al Panel Administrativo.",
@@ -1586,6 +1587,28 @@
         "week": "Semana",
         "day": "Día",
         "agenda": "Agenda"
+    },
+    "locations_manager": {
+        "title": "Gestor de Lugares y Lore",
+        "subtitle": "Administra los puntos de interés y la historia del mundo.",
+        "loading": "Sincronizando Lore...",
+        "create_btn": "Nuevo Lugar",
+        "edit_title": "Editar Registro",
+        "create_title": "Nuevo Registro",
+        "form": {
+            "title": "Título de la Localización",
+            "title_ph": "Ej: Gran Biblioteca de Cristal",
+            "coords": "Coordenadas",
+            "coords_ph": "0, 64, 0",
+            "image": "URL de la Imagen",
+            "order": "Orden",
+            "desc": "Descripción Corta (Resumen)",
+            "lore": "Historia / Lore Detallado",
+            "authors": "Arquitectos / Autores",
+            "author_nick": "Nick del Autor",
+            "secret": "¿Secreto?",
+            "error_fields": "Por favor completa los campos básicos",
+            "error_save": "Error al guardar"
+        }
     }
-
 }

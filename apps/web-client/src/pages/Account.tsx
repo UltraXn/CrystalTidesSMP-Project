@@ -1,22 +1,22 @@
 import { useNavigate, Link, useSearchParams } from 'react-router-dom'
-import { FaUser, FaSignOutAlt, FaGamepad, FaTrophy, FaServer, FaCamera, FaPen, FaComment, FaShieldAlt, FaMedal, FaLink, FaDiscord, FaTwitch, FaCog, FaTwitter } from 'react-icons/fa'
-import { SiKofi } from 'react-icons/si'
+import { FaMedal } from 'react-icons/fa'
 import { useAuth } from '../context/AuthContext'
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import { supabase } from '../services/supabaseClient'
 import { UserIdentity, Provider } from '@supabase/supabase-js'
-import { compressImage } from '../utils/imageOptimizer'
 import { useTranslation } from 'react-i18next'
 import '../dashboard.css'
 import Loader from "../components/UI/Loader"
 import ConfirmationModal from "../components/UI/ConfirmationModal"
 import PlayerStats from "../components/Widgets/PlayerStats"
 import { MEDAL_ICONS } from "../utils/MedalIcons"
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
-import { updateUserSchema, UpdateUserFormValues } from '../schemas/user'
 import Toast, { ToastType } from "../components/UI/Toast"
-import TwoFactorSetup from '../components/Profile/Security/TwoFactorSetup'
+
+// Extracted Components
+import AccountSidebar from '../components/Account/AccountSidebar'
+import AchievementCard from '../components/Account/AchievementCard'
+import ConnectionCards from '../components/Account/ConnectionCards'
+import ProfileSettings from '../components/Account/ProfileSettings'
 
 interface Thread {
     id: string | number;
@@ -52,88 +52,9 @@ interface PlayerStatsData {
     raw_rank?: string;
 }
 
-
-interface AchievementCardProps {
-    title: string;
-    description: string;
-    icon: React.ReactNode;
-    unlocked: boolean;
-    criteria?: string;
-}
-
-// Achievement Card Component
-const AchievementCard = ({ title, description, icon, unlocked, criteria }: AchievementCardProps) => (
-    <div className={`achievement-card ${unlocked ? 'unlocked' : 'locked'}`} style={{
-        background: unlocked ? 'linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02))' : 'rgba(0,0,0,0.2)',
-        border: unlocked ? '1px solid rgba(76, 175, 80, 0.3)' : '1px solid rgba(255,255,255,0.05)',
-        borderRadius: '12px',
-        padding: '1.5rem',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        textAlign: 'center',
-        gap: '0.8rem',
-        position: 'relative',
-        overflow: 'hidden',
-        transition: 'transform 0.2s, box-shadow 0.2s'
-    }}
-    onMouseEnter={(e) => {
-        if (unlocked) {
-            e.currentTarget.style.transform = 'translateY(-5px)'
-            e.currentTarget.style.boxShadow = '0 10px 20px rgba(0,0,0,0.3)'
-        }
-    }}
-    onMouseLeave={(e) => {
-        e.currentTarget.style.transform = 'translateY(0)'
-        e.currentTarget.style.boxShadow = 'none'
-    }}
-    >
-        {unlocked && <div style={{ position: 'absolute', top: '10px', right: '10px', color: '#4CAF50' }}><FaMedal /></div>}
-        
-        <div className="card-icon" style={{ 
-            fontSize: '2.5rem', 
-            opacity: unlocked ? 1 : 0.3, 
-            filter: unlocked ? 'none' : 'grayscale(100%)',
-            background: unlocked ? 'rgba(76, 175, 80, 0.1)' : 'rgba(255,255,255,0.05)',
-            width: '60px',
-            height: '60px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderRadius: '50%'
-        }}>
-            {icon}
-        </div>
-        
-        <div>
-            <h3 style={{ color: unlocked ? '#fff' : '#888', marginBottom: '0.3rem', fontSize: '1.1rem' }}>{title}</h3>
-            <p style={{ color: '#aaa', fontSize: '0.85rem', lineHeight: '1.4' }}>{description}</p>
-            {!unlocked && <p style={{ color: '#666', fontSize: '0.75rem', marginTop: '0.5rem', fontStyle: 'italic' }}>Requisito: {criteria}</p>}
-        </div>
-    </div>
-)
-
-interface NavButtonProps {
-    active: boolean;
-    onClick: () => void;
-    icon: React.ReactNode;
-    label: string;
-}
-
-// Nav Button Component
-const NavButton = ({ active, onClick, icon, label }: NavButtonProps) => (
-    <button 
-        onClick={onClick}
-        className={`nav-btn ${active ? 'active' : ''}`}
-    >
-        <span className="nav-icon">{icon}</span>
-        <span className="nav-text">{label}</span>
-    </button>
-)
-
 export default function Account() {
     const { t } = useTranslation()
-    const { user, logout, loading, updateUser } = useAuth()
+    const { user, loading } = useAuth()
     const navigate = useNavigate()
     const [searchParams, setSearchParams] = useSearchParams()
     
@@ -153,16 +74,12 @@ export default function Account() {
         setSearchParams({ tab })
     }
 
-    const [uploading, setUploading] = useState(false)
     const [userThreads, setUserThreads] = useState<Thread[]>([])
     const [loadingThreads, setLoadingThreads] = useState(false)
-    const [isEditingName, setIsEditingName] = useState(false)
-    const [newName, setNewName] = useState("")
     const [isUnlinkModalOpen, setIsUnlinkModalOpen] = useState(false)
     const [identityToUnlink, setIdentityToUnlink] = useState<UserIdentity | null>(null)
     const [linkCode, setLinkCode] = useState<string | null>(null)
     const [linkLoading, setLinkLoading] = useState(false)
-    const fileInputRef = useRef<HTMLInputElement>(null)
 
     const API_URL = import.meta.env.VITE_API_URL
     
@@ -268,62 +185,6 @@ export default function Account() {
         return () => { if (interval) clearInterval(interval); }
     }, [linkCode, user, API_URL, t])
 
-    const handleLogout = async () => {
-        await logout()
-        navigate('/')
-    }
-
-    const handleAvatarClick = () => {
-        if (fileInputRef.current) fileInputRef.current.click()
-    }
-
-    const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        try {
-            setUploading(true)
-            if (!event.target.files || event.target.files.length === 0) {
-                throw new Error(t('account.avatar.error_select'))
-            }
-
-            const file = event.target.files[0]
-            if (!user) throw new Error("User session not found")
-            const compressedBlob = await compressImage(file)
-            const fileExt = 'webp'
-            const fileName = `${user.id}/${Date.now()}.${fileExt}`
-            const filePath = `${fileName}`
-
-            const { error: uploadError } = await supabase.storage
-                .from('avatars')
-                .upload(filePath, compressedBlob, {
-                    contentType: 'image/webp',
-                    upsert: true
-                })
-
-            if (uploadError) throw uploadError
-
-            const { data } = supabase.storage.from('avatars').getPublicUrl(filePath)
-            await updateUser({ avatar_url: data.publicUrl })
-
-        } catch (error) {
-            const message = error instanceof Error ? error.message : String(error);
-            alert(t('account.avatar.error_update') + message)
-        } finally {
-            setUploading(false)
-        }
-    }
-
-    const handleNameUpdate = async () => {
-        if (!newName.trim()) return setIsEditingName(false)
-        try {
-            await updateUser({ 
-                full_name: newName.trim(), 
-                username: newName.trim()
-            })
-            setIsEditingName(false)
-        } catch {
-            alert(t('account.name.error_update'))
-        }
-    }
-
     const handleLinkProvider = async (provider: string) => {
         try {
             const { data, error } = await supabase.auth.linkIdentity({
@@ -371,88 +232,10 @@ export default function Account() {
     const isLinked = !!mcUUID
     const mcUsername = isLinked ? (user?.user_metadata?.minecraft_nick || user?.user_metadata?.username) : t('account.minecraft.not_linked')
     const statsQueryParam = mcUUID
-
-    const isAdmin = user?.user_metadata?.role === 'admin' || user?.user_metadata?.role === 'owner'
     
     const identities = user?.identities || []
     const discordIdentity = identities.find((id: UserIdentity) => id.provider === 'discord')
     const twitchIdentity = identities.find((id: UserIdentity) => id.provider === 'twitch')
-
-    // Settings Logic
-    const [passwords, setPasswords] = useState({ new: '', confirm: '' })
-    const [publicStats, setPublicStats] = useState(user?.user_metadata?.public_stats !== false)
-    
-    // Zod Form for Profile
-    const { register, handleSubmit, setValue, watch } = useForm<UpdateUserFormValues>({
-        resolver: zodResolver(updateUserSchema),
-        defaultValues: {
-            bio: user?.user_metadata?.bio || "",
-            social_discord: user?.user_metadata?.social_discord || "",
-            social_twitter: user?.user_metadata?.social_twitter || "",
-            social_twitch: user?.user_metadata?.social_twitch || "",
-            social_youtube: user?.user_metadata?.social_youtube || "",
-            social_kofi: user?.user_metadata?.social_kofi || "",
-            avatar_preference: user?.user_metadata?.avatar_preference || "minecraft"
-        }
-    })
-
-    const [isSavingProfile, setIsSavingProfile] = useState(false)
-    const [isUpdatingPassword, setIsUpdatingPassword] = useState(false)
-
-    // Auto-fill social links from connected identities
-    useEffect(() => {
-        if (!user) return;
-        
-        if (discordIdentity) {
-            const name = discordIdentity.identity_data?.full_name || discordIdentity.identity_data?.name || discordIdentity.identity_data?.user_name;
-            if (name && !user.user_metadata?.social_discord) {
-                setValue('social_discord', name)
-            }
-        }
-
-        if (twitchIdentity) {
-            const name = twitchIdentity.identity_data?.name || twitchIdentity.identity_data?.login;
-            if (name && !user.user_metadata?.social_twitch) {
-                 setValue('social_twitch', `https://twitch.tv/${name}`)
-            }
-        }
-    }, [discordIdentity, twitchIdentity, user, setValue])
-
-    const handleUpdatePassword = async () => {
-        if(passwords.new !== passwords.confirm) return showToast("Las contraseñas no coinciden", "error")
-        if(passwords.new.length < 6) return showToast("Mínimo 6 caracteres", "error")
-        setIsUpdatingPassword(true)
-        try {
-            const { error } = await supabase.auth.updateUser({ password: passwords.new })
-            if(error) throw error
-            showToast(t('account.settings.success_password', '¡Contraseña actualizada!'), 'success')
-            setPasswords({ new: '', confirm: '' })
-        } catch(e) {
-            const message = e instanceof Error ? e.message : String(e);
-            showToast("Error: " + message, "error")
-        } finally {
-            setIsUpdatingPassword(false)
-        }
-    }
-
-    const handlePrivacyToggle = async () => {
-         const newVal = !publicStats
-         setPublicStats(newVal)
-         await updateUser({ public_stats: newVal })
-    }
-
-    const handleSaveProfile = async (data: UpdateUserFormValues) => {
-        setIsSavingProfile(true)
-        try {
-            await updateUser(data)
-            showToast("Perfil actualizado correctamente", "success")
-        } catch (e) {
-            console.error(e)
-            showToast("Error al guardar el perfil", "error")
-        } finally {
-            setIsSavingProfile(false)
-        }
-    }
 
     useEffect(() => {
         if ((activeTab === 'overview' || activeTab === 'connections') && isLinked) {
@@ -504,83 +287,14 @@ export default function Account() {
             <div className="dashboard-container animate-fade-in" style={{ padding: '0 2rem' }}>
 
                 {/* Sidebar */}
-                <aside className="dashboard-sidebar" style={{ background: 'rgba(30,30,35,0.6)' }}>
-                    <div className="user-snippet">
-                        <div className="user-avatar-premium-wrapper" style={{ position: 'relative', marginBottom: '1.2rem' }}>
-                            <div className="user-avatar-large" style={{ 
-                                width: '100px', 
-                                height: '100px', 
-                                border: '3px solid rgba(255,255,255,0.05)',
-                                background: 'rgba(255,255,255,0.02)',
-                                boxShadow: '0 10px 25px rgba(0,0,0,0.4)',
-                                position: 'relative',
-                                zIndex: 1,
-                                cursor: 'pointer',
-                                margin: '0 auto',
-                                borderRadius: '50%',
-                                overflow: 'hidden'
-                            }} onClick={handleAvatarClick}>
-                                {uploading ? (
-                                    <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.5)' }}>
-                                        <Loader minimal />
-                                    </div>
-                                ) : (
-                                    <>
-                                        <img 
-                                            src={
-                                                (user.user_metadata?.avatar_preference === 'social' && user.user_metadata?.avatar_url) 
-                                                    ? user.user_metadata.avatar_url 
-                                                    : (isLinked ? `https://mc-heads.net/avatar/${statsData?.username || mcUsername}/100` : "https://ui-avatars.com/api/?name=" + (user.user_metadata?.full_name || "User"))
-                                            } 
-                                            alt="Avatar" 
-                                            style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-                                        />
-                                        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', opacity: 0, transition: '0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center' }} className="avatar-hover-overlay" onMouseOver={e => e.currentTarget.style.opacity = '1'} onMouseOut={e => e.currentTarget.style.opacity = '0'}><FaCamera /></div>
-                                    </>
-                                )}
-                            </div>
-                            <div className="avatar-frame-placeholder" style={{ position: 'absolute', inset: '-8px', border: '2px dashed rgba(255,255,255,0.05)', borderRadius: '50%', pointerEvents: 'none', width: '116px', height: '116px', left: '50%', transform: 'translateX(-50%)' }}></div>
-                        </div>
-                        <input type="file" ref={fileInputRef} onChange={handleAvatarUpload} style={{ display: 'none' }} accept="image/*" />
-                        
-                        <div style={{ textAlign: 'center', width: '100%' }}>
-                            {isEditingName ? (
-                                <div style={{ display: 'flex', gap: '5px', justifyContent: 'center', marginBottom: '0.5rem' }}>
-                                    <input 
-                                        autoFocus 
-                                        value={newName} 
-                                        onChange={e => setNewName(e.target.value)}
-                                        placeholder={user.user_metadata?.full_name}
-                                        style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', padding: '6px 10px', borderRadius: '8px', width: '140px', outline: 'none' }}
-                                    />
-                                    <button onClick={handleNameUpdate} style={{ background: 'var(--accent)', border: 'none', borderRadius: '8px', cursor:'pointer', padding: '0 8px' }}>💾</button>
-                                </div>
-                            ) : (
-                                <h3 className="user-name" style={{ color: '#fff', fontSize: '1.2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontWeight: 800 }}>
-                                    {user.user_metadata?.full_name || mcUsername}
-                                    <FaPen size={12} style={{ cursor: 'pointer', color: 'rgba(255,255,255,0.3)' }} onClick={() => { setNewName(user.user_metadata?.full_name || ""); setIsEditingName(true); }} />
-                                </h3>
-                            )}
-                            <span className="user-email" style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem', display: 'block', wordBreak: 'break-all' }}>{user.email}</span>
-                            {isAdmin && <Link to="/admin" className="btn-small" style={{ marginTop: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(231, 76, 60, 0.1)', color: '#ff6b6b', border: '1px solid rgba(231, 76, 60, 0.2)', padding: '0.4rem 1rem', fontSize: '0.75rem', borderRadius: '8px', textDecoration: 'none', fontWeight: 700 }}><FaShieldAlt /> {t('account.admin_panel')}</Link>}
-                        </div>
-                    </div>
-
-                    <nav className="sidebar-nav">
-                        <NavButton active={activeTab === 'overview'} onClick={() => setActiveTab('overview')} icon={<FaServer />} label={t('account.nav.overview')} />
-                        <NavButton active={activeTab === 'posts'} onClick={() => setActiveTab('posts')} icon={<FaComment />} label={t('account.nav.posts')} />
-                        <NavButton active={activeTab === 'medals'} onClick={() => setActiveTab('medals')} icon={<FaMedal />} label="Medallas" />
-                        <NavButton active={activeTab === 'achievements'} onClick={() => setActiveTab('achievements')} icon={<FaTrophy />} label={t('account.nav.achievements')} />
-                        <NavButton active={activeTab === 'connections'} onClick={() => setActiveTab('connections')} icon={<FaLink />} label={t('account.nav.connections')} />
-                        <NavButton active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} icon={<FaCog />} label={t('account.settings.title', 'Configuración')} />
-                        
-                        <div style={{ height: '1px', background: 'rgba(255,255,255,0.1)', margin: '1rem 0' }}></div>
-                        
-                        <button onClick={handleLogout} style={{ background: 'transparent', border: 'none', color: '#ff6b6b', padding: '0.8rem', textAlign: 'left', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <FaSignOutAlt /> {t('account.nav.logout')}
-                        </button>
-                    </nav>
-                </aside>
+                <AccountSidebar 
+                    activeTab={activeTab} 
+                    setActiveTab={setActiveTab} 
+                    user={user}
+                    statsData={statsData || undefined}
+                    mcUsername={mcUsername}
+                    isLinked={isLinked}
+                />
 
                 {/* Main Content Area */}
                 <main className="dashboard-content">
@@ -781,486 +495,29 @@ export default function Account() {
                         <div key="connections" className="fade-in">
                             <h2 style={{ color: '#fff', marginBottom: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem' }}>{t('account.connections.title')}</h2>
                             
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.5rem' }}>
-                                {/* Minecraft Card */}
-                                <div className="connection-card" style={{ 
-                                    background: 'rgba(255,255,255,0.02)', 
-                                    border: '1px solid rgba(255,255,255,0.05)', 
-                                    borderRadius: '20px', 
-                                    padding: '1.8rem', 
-                                    display: 'flex', 
-                                    flexDirection: 'column', 
-                                    minHeight: '220px',
-                                    backdropFilter: 'blur(10px)',
-                                    boxShadow: '0 8px 32px rgba(0,0,0,0.1)'
-                                }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
-                                        {/* Logo Left */}
-                                        <div style={{ background: '#44bd32', padding: '12px', borderRadius: '50%', color: '#fff', fontSize: '1.2rem', display: 'flex', flexShrink: 0 }}>
-                                            <FaGamepad />
-                                        </div>
-                                        
-                                        {/* Text Middle */}
-                                        <div style={{ flex: 1 }}>
-                                            <h3 style={{ margin: 0, color: '#fff', fontSize: '1.1rem' }}>Minecraft</h3>
-                                            <p style={{ margin: '4px 0 0', color: '#888', fontSize: '0.85rem' }}>{isLinked ? t('account.connections.linked') : t('account.connections.not_linked')}</p>
-                                        </div>
-
-                                        {/* Avatar Right */}
-                                        {isLinked && (
-                                            <div style={{ width: '48px', height: '48px', flexShrink: 0 }}>
-                                                <img 
-                                                    src={`https://mc-heads.net/avatar/${statsData?.username || mcUsername}`} 
-                                                    alt={mcUsername} 
-                                                    style={{ width: '100%', height: '100%', borderRadius: '8px', objectFit: 'contain', background: 'rgba(0,0,0,0.2)' }} 
-                                                />
-                                            </div>
-                                        )}
-                                    </div>
-                                    
-                                    <div style={{ marginTop: 'auto' }}>
-                                        {isLinked ? (
-                                            <div style={{ background: 'rgba(76, 175, 80, 0.1)', color: '#4CAF50', padding: '0.8rem', borderRadius: '8px', textAlign: 'center', fontWeight: '600' }}>
-                                                ✓ {mcUsername}
-                                            </div>
-                                        ) : (
-                                            <div>
-                                                <p style={{ color: '#aaa', fontSize: '0.9rem', marginBottom: '1rem', lineHeight: '1.4' }}>
-                                                    {t('account.connections.link_desc')}
-                                                </p>
-                                                
-                                                {!linkCode ? (
-                                                    <button 
-                                                        onClick={handleGenerateCode} 
-                                                        disabled={linkLoading}
-                                                        style={{ width: '100%', background: 'var(--accent)', border: 'none', padding: '10px', borderRadius: '6px', color: '#1a1a1a', fontWeight: 'bold', cursor: 'pointer', transition: 'opacity 0.2s', opacity: linkLoading ? 0.7 : 1 }}
-                                                    >
-                                                        {linkLoading ? <Loader minimal /> : t('account.connections.get_code')}
-                                                    </button>
-                                                ) : (
-                                                    <div className="link-code-box animate-pop" style={{ background: '#222', border: '1px dashed var(--accent)', padding: '1rem', borderRadius: '8px', textAlign: 'center' }}>
-                                                        <p style={{ color: '#ccc', marginBottom: '0.5rem', fontSize: '0.9rem' }}>{t('account.connections.type_in_server')}</p>
-                                                        <code style={{ display: 'block', background: '#000', color: 'var(--accent)', padding: '0.6rem', borderRadius: '4px', fontSize: '1.1rem', fontWeight: 'bold', letterSpacing: '1px', marginBottom: '0.8rem' }}>/link {linkCode}</code>
-                                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                                                            <Loader />
-                                                            <span style={{ fontSize: '0.75rem', color: '#888' }}>{t('account.connections.waiting')}</span>
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* Discord Card */}
-                                <div className="connection-card" style={{ 
-                                    background: 'rgba(88, 101, 242, 0.05)', 
-                                    border: '1px solid rgba(88, 101, 242, 0.15)', 
-                                    borderRadius: '20px', 
-                                    padding: '1.8rem', 
-                                    display: 'flex', 
-                                    flexDirection: 'column', 
-                                    minHeight: '220px',
-                                    backdropFilter: 'blur(10px)',
-                                    boxShadow: '0 8px 32px rgba(88, 101, 242, 0.05)'
-                                }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
-                                        {/* Logo Left */}
-                                        <div style={{ background: '#5865F2', padding: '12px', borderRadius: '50%', color: '#fff', fontSize: '1.2rem', display: 'flex', flexShrink: 0 }}>
-                                            <FaDiscord />
-                                        </div>
-
-                                        {/* Text Middle */}
-                                        <div style={{ flex: 1 }}>
-                                            <h3 style={{ margin: 0, color: '#fff', fontSize: '1.1rem' }}>Discord</h3>
-                                            <p style={{ margin: '4px 0 0', color: '#888', fontSize: '0.85rem' }}>
-                                                {discordIdentity 
-                                                    ? (discordIdentity.identity_data?.full_name || discordIdentity.identity_data?.name || discordIdentity.identity_data?.user_name || t('account.connections.connected')) 
-                                                    : t('account.connections.disconnected')}
-                                            </p>
-                                        </div>
-
-                                        {/* Avatar Right */}
-                                        {discordIdentity?.identity_data?.avatar_url && (
-                                            <div style={{ width: '48px', height: '48px', flexShrink: 0 }}>
-                                                <img 
-                                                    src={discordIdentity.identity_data.avatar_url} 
-                                                    alt="Discord Avatar" 
-                                                    style={{ width: '100%', height: '100%', borderRadius: '50%' }} 
-                                                />
-                                            </div>
-                                        )}
-                                    </div>
-                                    
-                                    <div style={{ marginTop: 'auto' }}>
-                                        {discordIdentity ? (
-                                            <button 
-                                                onClick={() => handleUnlinkProvider(discordIdentity)}
-                                                style={{ width: '100%', background: 'rgba(231, 76, 60, 0.15)', border: '1px solid rgba(231, 76, 60, 0.3)', color: '#ff6b6b', padding: '10px', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', transition: 'background 0.2s' }}
-                                                onMouseOver={e => e.currentTarget.style.background = 'rgba(231, 76, 60, 0.25)'}
-                                                onMouseOut={e => e.currentTarget.style.background = 'rgba(231, 76, 60, 0.15)'}
-                                            >
-                                                {t('account.connections.unlink')}
-                                            </button>
-                                        ) : (
-                                            <button 
-                                                onClick={() => handleLinkProvider('discord')}
-                                                style={{ width: '100%', background: '#5865F2', border: 'none', color: '#fff', padding: '10px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 15px rgba(88, 101, 242, 0.3)' }}
-                                            >
-                                                {t('account.connections.connect_discord')}
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* Twitch Card */}
-                                <div className="connection-card" style={{ 
-                                    background: 'rgba(145, 70, 255, 0.05)', 
-                                    border: '1px solid rgba(145, 70, 255, 0.15)', 
-                                    borderRadius: '20px', 
-                                    padding: '1.8rem', 
-                                    display: 'flex', 
-                                    flexDirection: 'column', 
-                                    minHeight: '220px',
-                                    backdropFilter: 'blur(10px)',
-                                    boxShadow: '0 8px 32px rgba(145, 70, 255, 0.05)'
-                                }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
-                                        {/* Logo Left */}
-                                        <div style={{ background: '#9146FF', padding: '12px', borderRadius: '50%', color: '#fff', fontSize: '1.2rem', display: 'flex', flexShrink: 0 }}>
-                                            <FaTwitch />
-                                        </div>
-
-                                        {/* Text Middle */}
-                                        <div style={{ flex: 1 }}>
-                                            <h3 style={{ margin: 0, color: '#fff', fontSize: '1.1rem' }}>Twitch</h3>
-                                            <p style={{ margin: '4px 0 0', color: '#888', fontSize: '0.85rem' }}>
-                                                {twitchIdentity 
-                                                    ? (twitchIdentity.identity_data?.full_name || twitchIdentity.identity_data?.name || twitchIdentity.identity_data?.login || t('account.connections.connected')) 
-                                                    : t('account.connections.disconnected')}
-                                            </p>
-                                        </div>
-
-                                        {/* Avatar Right */}
-                                        {twitchIdentity?.identity_data?.avatar_url && (
-                                            <div style={{ width: '48px', height: '48px', flexShrink: 0 }}>
-                                                <img 
-                                                    src={twitchIdentity.identity_data.avatar_url} 
-                                                    alt="Twitch Avatar" 
-                                                    style={{ width: '100%', height: '100%', borderRadius: '50%' }} 
-                                                />
-                                            </div>
-                                        )}
-                                    </div>
-                                    
-                                    <div style={{ marginTop: 'auto' }}>
-                                        {twitchIdentity ? (
-                                            <button 
-                                                onClick={() => handleUnlinkProvider(twitchIdentity)}
-                                                style={{ width: '100%', background: 'rgba(231, 76, 60, 0.15)', border: '1px solid rgba(231, 76, 60, 0.3)', color: '#ff6b6b', padding: '10px', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', transition: 'background 0.2s' }}
-                                                onMouseOver={e => e.currentTarget.style.background = 'rgba(231, 76, 60, 0.25)'}
-                                                onMouseOut={e => e.currentTarget.style.background = 'rgba(231, 76, 60, 0.15)'}
-                                            >
-                                                {t('account.connections.unlink')}
-                                            </button>
-                                        ) : (
-                                            <button 
-                                                onClick={() => handleLinkProvider('twitch')}
-                                                style={{ width: '100%', background: '#9146FF', border: 'none', color: '#fff', padding: '10px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 15px rgba(145, 70, 255, 0.3)' }}
-                                            >
-                                                {t('account.connections.connect_twitch')}
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
+                            <ConnectionCards
+                                isLinked={isLinked}
+                                mcUsername={mcUsername}
+                                statsDataUsername={statsData?.username}
+                                linkCode={linkCode}
+                                linkLoading={linkLoading}
+                                onGenerateCode={handleGenerateCode}
+                                discordIdentity={discordIdentity}
+                                twitchIdentity={twitchIdentity}
+                                onLinkProvider={handleLinkProvider}
+                                onUnlinkProvider={handleUnlinkProvider}
+                            />
                         </div>
                     )}
+                    
                     {activeTab === 'settings' && (
-                        <div key="settings" className="fade-in">
-                            <h2 style={{ color: '#fff', marginBottom: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem' }}>{t('account.settings.title', 'Configuración')}</h2>
-                            
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
-                                {/* Profile Info Card */}
-                                <div className="dashboard-card" style={{ background: 'rgba(255,255,255,0.03)', padding: '1.5rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)', gridColumn: '1 / -1' }}>
-                                    <h3 style={{ color: '#fff', marginBottom: '1.5rem', display:'flex', alignItems:'center', gap:'10px' }}><FaUser /> Información del Perfil</h3>
-
-                                    {/* Avatar Preference Selector */}
-                                    <div style={{ marginBottom: '2rem', padding: '1.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                                        <label style={{ display: 'block', color: '#ccc', marginBottom: '1rem', fontSize: '0.9rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                                            Preferencia de Avatar
-                                        </label>
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                                            <div 
-                                                onClick={() => setValue('avatar_preference', 'minecraft')}
-                                                style={{ 
-                                                    padding: '1rem', 
-                                                    borderRadius: '10px', 
-                                                    border: `2px solid ${watch('avatar_preference') === 'minecraft' ? 'var(--accent)' : 'rgba(255,255,255,0.1)'}`,
-                                                    background: watch('avatar_preference') === 'minecraft' ? 'rgba(109, 165, 192, 0.1)' : 'transparent',
-                                                    cursor: 'pointer',
-                                                    display: 'flex',
-                                                    flexDirection: 'column',
-                                                    alignItems: 'center',
-                                                    gap: '0.8rem',
-                                                    transition: '0.2s'
-                                                }}
-                                            >
-                                                <img src={`https://mc-heads.net/avatar/${mcUsername}/48`} alt="MC" style={{ width: '48px', height: '48px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.1)' }} />
-                                                <span style={{ fontSize: '0.85rem', color: watch('avatar_preference') === 'minecraft' ? '#fff' : '#888', fontWeight: '600' }}>Minecraft Head</span>
-                                            </div>
-
-                                            <div 
-                                                onClick={() => setValue('avatar_preference', 'social')}
-                                                style={{ 
-                                                    padding: '1rem', 
-                                                    borderRadius: '10px', 
-                                                    border: `2px solid ${watch('avatar_preference') === 'social' ? 'var(--accent)' : 'rgba(255,255,255,0.1)'}`,
-                                                    background: watch('avatar_preference') === 'social' ? 'rgba(109, 165, 192, 0.1)' : 'transparent',
-                                                    cursor: 'pointer',
-                                                    display: 'flex',
-                                                    flexDirection: 'column',
-                                                    alignItems: 'center',
-                                                    gap: '0.8rem',
-                                                    transition: '0.2s'
-                                                }}
-                                            >
-                                                <div style={{ width: '48px', height: '48px', borderRadius: '50%', overflow: 'hidden', border: '2px solid rgba(255,255,255,0.1)' }}>
-                                                    <img 
-                                                        src={user?.user_metadata?.avatar_url || "https://ui-avatars.com/api/?name=" + (user?.user_metadata?.full_name || "User")} 
-                                                        alt="Social" 
-                                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-                                                    />
-                                                </div>
-                                                <span style={{ fontSize: '0.85rem', color: watch('avatar_preference') === 'social' ? '#fff' : '#888', fontWeight: '600' }}>Social / Web</span>
-                                            </div>
-                                        </div>
-                                        <p style={{ marginTop: '1rem', fontSize: '0.75rem', color: '#666', fontStyle: 'italic' }}>
-                                            * Selecciona qué imagen prefieres ver en tu perfil público y barra de navegación.
-                                        </p>
-                                    </div>
-
-                                    {/* Profile Banner */}
-                                    <div style={{ marginBottom: '2.5rem', position: 'relative' }}>
-                                        <label style={{ display: 'block', color: 'rgba(255,255,255,0.4)', marginBottom: '1.2rem', fontSize: '0.8rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '2px' }}>
-                                            {t('account.settings.banner', 'Banner del Perfil')}
-                                        </label>
-                                        
-                                        <div style={{ 
-                                            width: '100%', 
-                                            height: '200px', 
-                                            borderRadius: '20px', 
-                                            overflow: 'hidden', 
-                                            background: '#111',
-                                            border: '1px solid rgba(255,255,255,0.05)',
-                                            position: 'relative',
-                                            marginBottom: '1.5rem',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center'
-                                        }}>
-                                            {watch('profile_banner_url') ? (
-                                                <>
-                                                    <img src={watch('profile_banner_url')} alt="Banner Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                                    <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.6), transparent)' }} />
-                                                </>
-                                            ) : (
-                                                <div style={{ color: '#444', textAlign: 'center' }}>
-                                                    <FaCamera size={40} style={{ marginBottom: '1rem', opacity: 0.3 }} />
-                                                    <p style={{ fontSize: '0.9rem' }}>Sin Banner</p>
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        <div style={{ 
-                                            display: 'flex', 
-                                            gap: '1rem', 
-                                            background: 'rgba(255,255,255,0.03)', 
-                                            padding: '1rem', 
-                                            borderRadius: '16px',
-                                            border: '1px solid rgba(255,255,255,0.05)'
-                                        }}>
-                                            <div style={{ flex: 1 }}>
-                                                <input 
-                                                    {...register('profile_banner_url')}
-                                                    placeholder="URL de la imagen (ej: https://imgur.com/...)"
-                                                    style={{ 
-                                                        width: '100%', 
-                                                        padding: '12px 16px', 
-                                                        borderRadius: '12px', 
-                                                        border: '1px solid rgba(255,255,255,0.1)', 
-                                                        background: 'rgba(0,0,0,0.2)', 
-                                                        color: '#fff',
-                                                        outline: 'none',
-                                                        fontSize: '0.9rem'
-                                                    }}
-                                                />
-                                            </div>
-                                        </div>
-                                        <p style={{ marginTop: '0.8rem', fontSize: '0.75rem', color: '#666', paddingLeft: '0.5rem' }}>
-                                            {t('account.settings.banner_hint', 'Introduce una URL de imagen (Imgur, Discord, etc). Recomendado: 1200x400px.')}
-                                        </p>
-                                    </div>
-                                    
-                                    <form onSubmit={handleSubmit(handleSaveProfile)} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '2rem' }}>
-                                        <div>
-                                            <label style={{ display: 'block', color: '#ccc', marginBottom: '8px', fontSize: '0.9rem' }}>Biografía (Markdown opcional)</label>
-                                            <textarea 
-                                                {...register('bio')}
-                                                rows={4}
-                                                maxLength={500}
-                                                placeholder="Cuéntanos un poco sobre ti..."
-                                                style={{ 
-                                                    width: '100%', 
-                                                    padding: '16px', 
-                                                    borderRadius: '16px', 
-                                                    border: '1px solid rgba(255,255,255,0.1)', 
-                                                    background: 'rgba(0,0,0,0.3)', 
-                                                    color: '#fff', 
-                                                    resize: 'vertical',
-                                                    outline: 'none',
-                                                    fontSize: '0.95rem',
-                                                    lineHeight: '1.6'
-                                                }}
-                                            />
-                                            <span style={{ fontSize: '0.7rem', color: '#555', marginTop: '8px', display: 'block', textAlign: 'right', fontWeight: 600 }}>MAX 500 CHARS</span>
-                                        </div>
-                                        
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                            <label style={{ color: '#ccc', fontSize: '0.9rem', marginBottom: '-0.5rem' }}>Redes Sociales</label>
-                                            
-                                            {/* Discord Input Group */}
-                                            <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px', padding: '0 16px', transition: '0.2s' }}>
-                                                <FaDiscord style={{ color: '#5865F2', fontSize: '1.2rem', minWidth: '24px' }} />
-                                                <input 
-                                                    {...register('social_discord')}
-                                                    placeholder="Usuario#0000"
-                                                    style={{ flex: 1, padding: '14px', background: 'transparent', border: 'none', color: '#fff', outline: 'none', fontSize: '0.9rem' }}
-                                                />
-                                            </div>
-
-                                            {/* Twitter Input Group */}
-                                            <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px', padding: '0 16px', transition: '0.2s' }}>
-                                                <FaTwitter style={{ color: '#1da1f2', fontSize: '1.2rem', minWidth: '24px' }} />
-                                                <input 
-                                                    {...register('social_twitter')}
-                                                    placeholder="Twitter (ej: @miusuario)"
-                                                    style={{ flex: 1, padding: '14px', background: 'transparent', border: 'none', color: '#fff', outline: 'none', fontSize: '0.9rem' }}
-                                                />
-                                            </div>
-
-                                            {/* Twitch Input Group */}
-                                            <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px', padding: '0 16px', transition: '0.2s' }}>
-                                                <FaTwitch style={{ color: '#9146FF', fontSize: '1.2rem', minWidth: '24px' }} />
-                                                <input 
-                                                    {...register('social_twitch')}
-                                                    placeholder="Canal de Twitch"
-                                                    style={{ flex: 1, padding: '14px', background: 'transparent', border: 'none', color: '#fff', outline: 'none', fontSize: '0.9rem' }}
-                                                />
-                                            </div>
-
-                                            {/* Ko-Fi Input Group */}
-                                            <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px', padding: '0 16px', transition: '0.2s' }}>
-                                                <SiKofi style={{ color: '#00AF96', fontSize: '1.2rem', minWidth: '24px' }} />
-                                                <input 
-                                                    {...register('social_kofi')}
-                                                    placeholder="URL de Ko-Fi"
-                                                    style={{ flex: 1, padding: '14px', background: 'transparent', border: 'none', color: '#fff', outline: 'none', fontSize: '0.9rem' }}
-                                                />
-                                            </div>
-                                            
-                                            <button 
-                                                type="submit"
-                                                disabled={isSavingProfile}
-                                                className="btn-primary"
-                                                style={{ 
-                                                    marginTop: '1.5rem', 
-                                                    padding: '14px', 
-                                                    display: 'flex', 
-                                                    justifyContent: 'center', 
-                                                    alignItems: 'center', 
-                                                    gap: '12px',
-                                                    borderRadius: '14px',
-                                                    fontWeight: 800,
-                                                    fontSize: '1rem',
-                                                    letterSpacing: '0.5px',
-                                                    boxShadow: '0 8px 20px rgba(109, 165, 192, 0.2)'
-                                                }}
-                                            >
-                                                {isSavingProfile ? <Loader minimal /> : <><FaUser /> {t('account.settings.save_info', 'Actualizar Perfil')}</>}
-                                            </button>
-                                        </div>
-                                    </form>
-                                </div>
-
-                                {/* Privacy Card */}
-                                <div className="dashboard-card" style={{ background: 'rgba(255,255,255,0.03)', padding: '1.5rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                                    <h3 style={{ color: '#fff', marginBottom: '1rem', display:'flex', alignItems:'center', gap:'10px' }}><FaShieldAlt /> {t('account.settings.privacy', 'Privacidad')}</h3>
-                                    
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <div>
-                                            <p style={{ color: '#fff', margin: 0 }}>{t('account.settings.public_stats', 'Mostrar estadísticas públicas')}</p>
-                                            <p style={{ color: '#888', fontSize: '0.8rem', margin: 0 }}>{t('account.settings.public_stats_desc', 'Otros usuarios podrán ver tu perfil.')}</p>
-                                        </div>
-                                        <label className="switch" style={{ position: 'relative', display: 'inline-block', width: '50px', height: '26px', flexShrink: 0 }}>
-                                            <input type="checkbox" checked={publicStats} onChange={handlePrivacyToggle} style={{ opacity: 0, width: 0, height: 0 }} />
-                                            <span className="slider round" style={{ position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: publicStats ? 'var(--accent)' : '#ccc', transition: '.4s', borderRadius: '34px' }}>
-                                                <span style={{ position: 'absolute', height: '18px', width: '18px', left: publicStats ? '28px' : '4px', bottom: '4px', backgroundColor: 'white', transition: '.4s', borderRadius: '50%' }}></span>
-                                            </span>
-                                        </label>
-                                    </div>
-                                </div>
-
-                                {/* Security Card */}
-                                <div className="dashboard-card" style={{ background: 'rgba(255,255,255,0.03)', padding: '1.5rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                                    <h3 style={{ color: '#fff', marginBottom: '1rem', display:'flex', alignItems:'center', gap:'10px' }}><FaUser /> {t('account.settings.security', 'Seguridad')}</h3>
-                                    
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                        <div>
-                                            <label style={{ display: 'block', color: 'rgba(255,255,255,0.4)', marginBottom: '8px', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase' }}>{t('account.settings.new_password', 'Nueva Contraseña')}</label>
-                                            <input 
-                                                type="password" 
-                                                value={passwords.new}
-                                                onChange={e => setPasswords({...passwords, new: e.target.value})}
-                                                style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.3)', color: '#fff', outline: 'none' }}
-                                            />
-                                        </div>
-                                        <div>
-                                            <label style={{ display: 'block', color: 'rgba(255,255,255,0.4)', marginBottom: '8px', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase' }}>{t('account.settings.confirm_password', 'Confirmar Contraseña')}</label>
-                                            <input 
-                                                type="password" 
-                                                value={passwords.confirm}
-                                                onChange={e => setPasswords({...passwords, confirm: e.target.value})}
-                                                style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.3)', color: '#fff', outline: 'none' }}
-                                            />
-                                        </div>
-                                        <button 
-                                            onClick={handleUpdatePassword}
-                                            disabled={isUpdatingPassword}
-                                            style={{ 
-                                                background: 'rgba(255,255,255,0.05)', 
-                                                border: '1px solid rgba(255,255,255,0.1)', 
-                                                padding: '12px', 
-                                                borderRadius: '12px', 
-                                                color: '#fff', 
-                                                fontWeight: 'bold', 
-                                                cursor: 'pointer', 
-                                                marginTop: '0.5rem', 
-                                                display: 'flex', 
-                                                justifyContent: 'center', 
-                                                alignItems: 'center',
-                                                transition: '0.2s'
-                                            }}
-                                            onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
-                                            onMouseOut={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
-                                        >
-                                            {isUpdatingPassword ? <Loader minimal /> : t('account.settings.update_password', 'Actualizar Contraseña')}
-                                        </button>
-                                    </div>
-                                </div>
-                                <TwoFactorSetup />
-                            </div>
-                        </div>
+                        <ProfileSettings 
+                            user={user}
+                            mcUsername={mcUsername}
+                            discordIdentity={discordIdentity}
+                            twitchIdentity={twitchIdentity}
+                            showToast={showToast}
+                        />
                     )}
                 </main>
             </div>

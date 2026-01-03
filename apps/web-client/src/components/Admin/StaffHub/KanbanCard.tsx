@@ -1,6 +1,7 @@
 import React from 'react';
 import { FaGripVertical, FaUserCircle, FaClock, FaTrash, FaEdit } from 'react-icons/fa';
 import { KanbanTask } from '@crystaltides/shared';
+import { useTranslation } from 'react-i18next';
 
 interface KanbanCardProps {
     card: KanbanTask;
@@ -10,6 +11,7 @@ interface KanbanCardProps {
 }
 
 export default function KanbanCard({ card, onDragStart, onDelete, onEdit }: KanbanCardProps) {
+    const { t } = useTranslation();
     const hasTime = card.due_date?.includes('T');
     
     return (
@@ -55,11 +57,13 @@ export default function KanbanCard({ card, onDragStart, onDelete, onEdit }: Kanb
                             border: `1px solid ${getPriorityColor(card.priority)}40`
                         }}
                     >
-                        {card.priority}
+                        {t(`admin.staff_hub.kanban.priorities.${card.priority.toLowerCase()}`, card.priority)}
                     </span>
                 )}
                 {" "}
-                {card.type && <span className="card-tag type">{card.type}</span>}
+                {card.type && <span className="card-tag type">
+                    {t(`admin.staff_hub.kanban.types.${card.type.toLowerCase()}`, card.type)}
+                </span>}
             </div>
 
              <div className="card-footer">
@@ -76,12 +80,16 @@ export default function KanbanCard({ card, onDragStart, onDelete, onEdit }: Kanb
                      ) : (
                          <FaUserCircle color="#333" size={18} />
                      )}
-                     <span className="card-assignee-name">{card.assignee || 'Unassigned'}</span>
+                     <span className="card-assignee-name">
+                        {card.assignee === 'Unassigned' || !card.assignee 
+                            ? t('admin.staff_hub.kanban.card.unassigned', 'Sin asignar') 
+                            : card.assignee}
+                     </span>
                 </div>
                 {card.columnId === 'idea' ? (
                     <div className="card-date-badge backlog">
                         <FaClock size={10} color="#666" />
-                        <span>Por confirmar</span>
+                        <span>{t('admin.staff_hub.kanban.card.backlog', 'Por confirmar')}</span>
                     </div>
                 ) : card.due_date ? (
                     <div className="card-date-badge">

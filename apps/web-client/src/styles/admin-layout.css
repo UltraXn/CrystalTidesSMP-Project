@@ -413,45 +413,83 @@
   }
 }
 
-/* Floating Hamburger Button for Mobile - FAB Style */
-.admin-hamburger-floating {
-  position: fixed;
-  bottom: 1.5rem;
-  right: 1.5rem;
-  z-index: 1800;
-  background: linear-gradient(135deg, rgba(var(--accent-rgb), 0.95) 0%, rgba(var(--accent-rgb), 0.85) 100%);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 16px;
-  width: 56px;
-  height: 56px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #000;
-  font-size: 1.4rem;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1) inset;
-}
-
-.admin-hamburger-floating:hover {
-  transform: scale(1.08);
-  box-shadow: 0 12px 32px rgba(var(--accent-rgb), 0.5), 0 0 0 1px rgba(255, 255, 255, 0.2) inset;
-}
-
-.admin-hamburger-floating:active {
-  transform: scale(0.96);
-}
-
-.admin-hamburger-floating.hide {
-  transform: translateY(120px);
-  opacity: 0;
-  pointer-events: none;
-}
-
-@media (min-width: 1024px) {
-  .admin-hamburger-floating {
+/* Mobile Bottom Navbar */
+.admin-mobile-navbar {
     display: none;
-  }
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 70px;
+    background: rgba(10, 10, 10, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    z-index: 10000;
+    padding: 0 1rem;
+    padding-bottom: env(safe-area-inset-bottom);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
 }
+
+@media (max-width: 1024px) {
+    .admin-mobile-navbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-around;
+    }
+    
+    .admin-layout-main {
+        padding-bottom: 90px !important;
+    }
+}
+
+.mobile-nav-item {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.4);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 600;
+    gap: 4px;
+    padding: 8px;
+    border-radius: 16px;
+    position: relative; /* Essential for absolute children */
+    width: 100%;
+    flex: 1;
+    transition: color 0.3s;
+    text-transform: capitalize; /* Cleaner than uppercase */
+    letter-spacing: 0px;
+    z-index: 1;
+}
+
+.mobile-nav-item .icon {
+    font-size: 1.25rem;
+    margin-bottom: 2px;
+    transition: transform 0.2s;
+    z-index: 2;
+}
+
+.mobile-nav-item.active {
+    color: #fff;
+}
+
+.mobile-nav-item.active .icon {
+    transform: translateY(-1px);
+    color: var(--accent);
+    filter: drop-shadow(0 0 12px rgba(var(--accent-rgb), 0.6));
+}
+
+/* Pill Style Indicator behind the icon */
+.mobile-nav-item .active-indicator {
+    position: absolute;
+    inset: 6px 12px; /* Margins around the button */
+    background: rgba(var(--accent-rgb), 0.15);
+    border-radius: 12px;
+    z-index: 0; /* Behind text/icon */
+    box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.2) inset;
+}
+
+

@@ -577,7 +577,8 @@
             "staff_hub": "Staff Hub",
             "docs": "Documentation",
             "donations": "Donations",
-            "wiki": "Wiki / Gamepedia"
+            "wiki": "Wiki / Gamepedia",
+            "locations": "Places & Lore"
         },
         "headers": {
             "general": "General Dashboard",
@@ -594,7 +595,8 @@
             "staff_hub": "Staff Workspace",
             "docs": "Internal Documentation",
             "donations": "Donation Management",
-            "wiki": "Wiki / Gamepedia Editor"
+            "wiki": "Wiki / Gamepedia Editor",
+            "locations": "Places & Lore Manager"
         },
         "polls": {
             "title": "Poll Manager",
@@ -768,8 +770,28 @@
                     "bug": "Bug",
                     "feature": "Feature",
                     "maintenance": "Maintenance"
+                },
+                "empty": "Empty",
+                "card": {
+                    "backlog": "TBD",
+                    "unassigned": "Unassigned"
+                },
+                "calendar_views": {
+                    "month": "Month",
+                    "week": "Week",
+                    "day": "Day",
+                    "agenda": "Agenda",
+                    "next": "Next",
+                    "prev": "Back",
+                    "today": "Today",
+                    "date": "Date",
+                    "time": "Time",
+                    "event": "Event",
+                    "all_day": "All Day",
+                    "no_events": "No tasks in this range"
                 }
             },
+
             "notes": {
                 "title": "Quick Notes",
                 "new_note_btn": "New Note",
@@ -938,27 +960,8 @@
                 "ranks": "Ranks"
             }
         },
-        "locations": {
-            "title": "Places & Lore",
-            "subtitle": "World architecture and historical points of interest",
-            "loading": "Syncing Lore...",
-            "new_btn": "New Place",
-            "edit_title": "Edit Entry",
-            "new_title": "New Entry",
-            "delete_confirm_title": "Delete Lore Entry",
-            "delete_confirm_msg": "Are you sure you want to delete this place? Historical data will be permanently lost.",
-            "lore_entry": "Lore Entry",
-            "secret": "Secret?",
-            "coords": "Coordinates",
-            "order": "Order",
-            "image_url": "Image URL",
-            "short_desc": "Short Description (Summary)",
-            "long_desc": "Detailed History / Lore",
-            "authors": "Architects / Authors",
-            "nick_ph": "Author Nick",
-            "cancel": "Cancel",
-            "save_btn": "Save Entry"
-        },
+
+
         "2fa": {
             "title": "Security Verification",
             "desc": "Enter your 2FA code to access the Admin Panel.",
@@ -1528,5 +1531,28 @@
         "week": "Week",
         "day": "Day",
         "agenda": "Agenda"
+    },
+    "locations_manager": {
+        "title": "Places & Lore Manager",
+        "subtitle": "Manage world points of interest and history.",
+        "loading": "Syncing Lore...",
+        "create_btn": "New Place",
+        "edit_title": "Edit Record",
+        "create_title": "New Record",
+        "form": {
+            "title": "Location Title",
+            "title_ph": "Ex: Great Crystal Library",
+            "coords": "Coordinates",
+            "coords_ph": "0, 64, 0",
+            "image": "Image URL",
+            "order": "Order",
+            "desc": "Short Description",
+            "lore": "Detailed Lore / History",
+            "authors": "Authors / Architects",
+            "author_nick": "Author Nick",
+            "secret": "Secret?",
+            "error_fields": "Please complete basic fields",
+            "error_save": "Error saving"
+        }
     }
 }

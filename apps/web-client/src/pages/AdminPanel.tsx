@@ -3,7 +3,7 @@ import { useAuth } from "../context/AuthContext"
 import { useNavigate } from "react-router-dom"
 import { 
     FaShieldAlt, FaChartPie, FaUsers, FaTicketAlt, FaLightbulb, 
-    FaPoll, FaCalendarAlt, FaNewspaper, FaGamepad, FaIdCard, FaBars, FaTimes, 
+    FaPoll, FaCalendarAlt, FaNewspaper, FaGamepad, FaIdCard, FaTimes, 
     FaBriefcase, FaListUl, FaCog, FaArrowLeft, FaBook, FaDonate, FaGift, FaMapMarkerAlt
 } from "react-icons/fa"
 import { useTranslation } from 'react-i18next'
@@ -43,6 +43,7 @@ import StaffCardsManager from "../components/Admin/StaffCardsManager"
 import AdminDocs from "../components/Admin/AdminDocs"
 import WikiManager from "../components/Admin/WikiManager"
 import LocationsManager from "../components/Admin/Config/LocationsManager"
+import AdminMobileNavbar from "../components/Admin/AdminMobileNavbar"
 
 
 export default function AdminPanel() {
@@ -221,7 +222,7 @@ export default function AdminPanel() {
                     <SidebarItem active={activeTab === 'suggestions'} onClick={() => { setActiveTab('suggestions'); if(isMobile) setSidebarOpen(false); }} icon={<FaLightbulb />} label={t('admin.tabs.suggestions')} />
                     <SidebarItem active={activeTab === 'polls'} onClick={() => { setActiveTab('polls'); if(isMobile) setSidebarOpen(false); }} icon={<FaPoll />} label={t('admin.tabs.polls')} />
                     <SidebarItem active={activeTab === 'wiki'} onClick={() => { setActiveTab('wiki'); if(isMobile) setSidebarOpen(false); }} icon={<FaBook />} label={t('admin.tabs.wiki', 'Wiki / Gamepedia')} />
-                    <SidebarItem active={activeTab === 'locations'} onClick={() => { setActiveTab('locations'); if(isMobile) setSidebarOpen(false); }} icon={<FaMapMarkerAlt />} label="Lugares y Lore" />
+                    <SidebarItem active={activeTab === 'locations'} onClick={() => { setActiveTab('locations'); if(isMobile) setSidebarOpen(false); }} icon={<FaMapMarkerAlt />} label={t('admin.tabs.locations', 'Lugares y Lore')} />
                     <SidebarItem active={activeTab === 'gacha_dev'} onClick={() => { navigate('/gacha'); if(isMobile) setSidebarOpen(false); }} icon={<FaGift style={{ color: '#ff8000' }} />} label="Gacha (Dev/Internal)" />
 
                     <div className="xp-sidebar-header">{t('admin.sidebar.staff_management')}</div>
@@ -237,15 +238,7 @@ export default function AdminPanel() {
 
             {/* Main Surface - Offset by Sidebar width */}
             <div className="admin-layout-main">
-                {/* Floating Hamburger Button for Mobile */}
-                {isMobile && (
-                    <button 
-                        onClick={() => setSidebarOpen(true)}
-                        className={`admin-hamburger-floating ${scrollDirection === 'down' ? 'hide' : ''}`}
-                    >
-                        <FaBars />
-                    </button>
-                )}
+
                 
                 <header className={`admin-layout-header ${isMobile && scrollDirection === 'down' ? 'hide' : ''}`}>
                     <div className="admin-header-left">
@@ -318,6 +311,17 @@ export default function AdminPanel() {
                 </main>
 
             </div>
+
+            {/* Mobile Bottom Navbar */}
+            {isMobile && (
+                <AdminMobileNavbar 
+                    activeTab={activeTab} 
+                    setActiveTab={setActiveTab} 
+                    sidebarOpen={sidebarOpen} 
+                    setSidebarOpen={setSidebarOpen} 
+                />
+            )}
+
             <Admin2FAModal 
                 isOpen={show2FAModal} 
                 onVerified={() => setShow2FAModal(false)} 
