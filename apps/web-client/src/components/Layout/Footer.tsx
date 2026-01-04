@@ -83,6 +83,9 @@ export default function Footer() {
                     <Link to="/policies/tos" style={{ color: 'var(--muted)', textDecoration: 'none' }}>{t('footer.tos', 'Términos')}</Link>
                 </div>
                 <p>&copy; {new Date().getFullYear()} CrystalTides SMP. {t('footer.rights')}</p>
+                <p style={{ marginTop: '0.5rem', fontSize: '0.75rem', opacity: 0.8, color: 'var(--muted)', textAlign: 'center', maxWidth: '100%', padding: '0 1rem' }}>
+                    NOT AN OFFICIAL MINECRAFT PRODUCT. NOT APPROVED BY OR ASSOCIATED WITH MOJANG OR MICROSOFT.
+                </p>
             </div>
         </footer>
     )
