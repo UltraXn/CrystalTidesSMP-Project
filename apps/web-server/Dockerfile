@@ -36,7 +36,8 @@ COPY --from=builder /app/apps/web-server/package*.json ./apps/web-server/
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/apps/web-server/dist ./dist
 # Credentials for Google Calendar
-COPY --from=builder /app/apps/web-server/service-account.json ./service-account.json
+# Credentials for Google Calendar handled via ENV vars now
+
 # Copy .env file generated during build
 COPY --from=builder /app/apps/web-server/.env ./.env
 
