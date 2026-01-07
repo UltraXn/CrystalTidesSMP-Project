@@ -1,0 +1,24 @@
+# Secrets
+.env
+*.json
+!package.json
+!tsconfig.json
+!manifest.json
+!vercel.json
+!turbo.json
+
+# Build Artifacts
+dist/
+node_modules/
+.turbo/
+
+# Compiled JS in source directories (if any)
+routes/*.js
+controllers/*.js
+services/*.js
+models/*.js
+utils/*.js
+middleware/*.js
+config/*.js
+index.js
+app.js
