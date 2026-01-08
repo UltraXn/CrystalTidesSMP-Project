@@ -1557,7 +1557,7 @@
         "back": "Atrás"
     },
     "common": {
-        "loading_content": "Cargando contenido...",
+        "loading_content": "Sincronizando...",
         "loading": "Cargando...",
         "processing": "Procesando...",
         "copy": "COPIAR",
