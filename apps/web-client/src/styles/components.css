@@ -1003,7 +1003,33 @@ button,
 }
 /* Connection Cards Styling */
 .connection-card {
+  border-radius: 20px;
+  padding: 1.8rem;
+  display: flex;
+  flex-direction: column;
+  min-height: 220px;
+  backdrop-filter: blur(10px);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.connection-card.minecraft-card {
+  background: rgba(52, 211, 153, 0.1);
+  border-color: rgba(52, 211, 153, 0.2);
+  box-shadow: 0 8px 32px rgba(52, 211, 153, 0.1);
+}
+
+.connection-card.discord-card {
+  background: rgba(88, 101, 242, 0.1);
+  border-color: rgba(88, 101, 242, 0.2);
+  box-shadow: 0 8px 32px rgba(88, 101, 242, 0.11);
+}
+
+.connection-card.twitch-card {
+  background: rgba(145, 70, 255, 0.1);
+  border-color: rgba(145, 70, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(145, 70, 255, 0.1);
 }
 
 .connection-card:hover {

@@ -52,17 +52,7 @@ const ConnectionCards: React.FC<ConnectionCardsProps> = ({
     return (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.5rem' }}>
             {/* Minecraft Card */}
-            <div className="connection-card" style={{ 
-                background: 'rgba(255,255,255,0.02)', 
-                border: '1px solid rgba(255,255,255,0.05)', 
-                borderRadius: '20px', 
-                padding: '1.8rem', 
-                display: 'flex', 
-                flexDirection: 'column', 
-                minHeight: '220px',
-                backdropFilter: 'blur(10px)',
-                boxShadow: '0 8px 32px rgba(0,0,0,0.1)'
-            }}>
+            <div className="connection-card minecraft-card">
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
                     {/* Logo Left */}
                     <div style={{ background: '#44bd32', padding: '12px', borderRadius: '50%', color: '#fff', fontSize: '1.2rem', display: 'flex', flexShrink: 0 }}>
@@ -244,17 +234,7 @@ const ConnectionCards: React.FC<ConnectionCardsProps> = ({
             </div>
 
             {/* Twitch Card */}
-            <div className="connection-card" style={{ 
-                background: 'rgba(145, 70, 255, 0.05)', 
-                border: '1px solid rgba(145, 70, 255, 0.15)', 
-                borderRadius: '20px', 
-                padding: '1.8rem', 
-                display: 'flex', 
-                flexDirection: 'column', 
-                minHeight: '220px',
-                backdropFilter: 'blur(10px)',
-                boxShadow: '0 8px 32px rgba(145, 70, 255, 0.05)'
-            }}>
+            <div className="connection-card twitch-card">
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
                     {/* Logo Left */}
                     <div style={{ background: '#9146FF', padding: '12px', borderRadius: '50%', color: '#fff', fontSize: '1.2rem', display: 'flex', flexShrink: 0 }}>
