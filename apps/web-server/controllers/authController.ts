@@ -42,15 +42,15 @@ export const unlinkIdentity = async (req: Request, res: Response) => {
             return res.status(400).json({ message: 'Falta identityId' });
         }
 
-        if (!user || !user.sub) {
+        if (!user || !user.id) {
              return res.status(401).json({ message: 'No autenticado' });
         }
 
-        console.log(`Attempting to unlink identity ${identityId} for user ${user.sub}`);
+        console.log(`Attempting to unlink identity ${identityId} for user ${user.id}`);
 
         // Verify that the identity belongs to the user prevents deleting other people's identities
         // We can fetch the user first
-        const { data: userData, error: userError } = await supabase.auth.admin.getUserById(user.sub);
+        const { data: userData, error: userError } = await supabase.auth.admin.getUserById(user.id);
         
         if (userError || !userData.user) {
             return res.status(404).json({ message: 'Usuario no encontrado' });
