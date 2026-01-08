@@ -119,7 +119,7 @@ export default function AdminPanel() {
     const isAdmin = allowedRoles.includes(user?.user_metadata?.role?.toLowerCase())
     
     // Roles con acceso privilegiado (Configuración y Equipo)
-    const superAdminRoles = ['neroferno', 'killu', 'developer'];
+    const superAdminRoles = ['neroferno', 'killu', 'killuwu', 'developer'];
     const hasSecureAccess = superAdminRoles.some(role => user?.user_metadata?.role?.toLowerCase().includes(role));
 
     useEffect(() => {
