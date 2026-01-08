@@ -38,7 +38,7 @@ export interface WebUser {
  */
 export const getStaffUsers = async () => {
     try {
-        const targetGroups = ['neroferno', 'killuwu', 'killu', 'owner', 'developer', 'admin', 'moderator', 'helper']; 
+        const targetGroups = ['neroferno', 'killuwu', 'killu', 'developer', 'admin', 'moderator', 'helper']; 
         
         // 1. Fetch UUIDs from LuckPerms Players (Primary Group)
         const groupsPlaceholder = targetGroups.map(() => '?').join(',');
