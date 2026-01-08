@@ -1,7 +1,18 @@
-import { useState, useContext, useEffect } from 'react';
+import { createContext, useState, useContext, useEffect } from 'react';
 import { supabase } from '../services/supabaseClient';
 import { User, Provider, AuthResponse, OAuthResponse } from '@supabase/supabase-js';
-import { AuthContext, AuthContextType } from './AuthContextDefinition';
+
+interface AuthContextType {
+    user: User | null;
+    login: (email: string, password: string) => Promise<AuthResponse['data']>;
+    loginWithProvider: (provider: Provider) => Promise<OAuthResponse['data']>;
+    logout: () => Promise<void>;
+    register: (email: string, password: string, metadata?: Record<string, unknown>) => Promise<AuthResponse['data']>;
+    updateUser: (data: Record<string, unknown>) => Promise<User | undefined>;
+    loading: boolean;
+}
+
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
@@ -16,7 +27,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         // 1. Verificar sesión activa al inicio
         const checkSession = async () => {
             try {
-                // Usar getUser() en lugar de getSession() para asegurar datos frescos del servidor (roles actualizados, etc)
+                // Usar getUser() en lugar de getSession() para asegurar datos frescos del servidor
                 const { data: { user } } = await supabase.auth.getUser();
                 setUser(user ?? null);
             } catch (error) {
@@ -28,16 +39,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
         checkSession();
 
-        // 2. Escuchar cambios de estado (Login, Logout, Token Refreshed) en tiempo real
+        // 2. Escuchar cambios de estado
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-            if (session?.user) {
-                // Always fetch fresh user data from the server to ensure identities and metadata are up-to-date
-                // The session.user comes from the JWT and might be stale regarding recent profile changes
-                const { data: { user: freshUser } } = await supabase.auth.getUser();
-                setUser(freshUser ?? session.user);
-            } else {
-                setUser(null);
-            }
+            // Simplificado para evitar bucles infinitos y bloqueos
+            // session.user viene del token JWT. Si necesitamos datos frescos post-link,
+            // refreshSession() debe ser llamado explícitamente donde ocurra la acción.
+            setUser(session?.user ?? null);
             setLoading(false);
         });
 
