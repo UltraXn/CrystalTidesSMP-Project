@@ -76,12 +76,13 @@ export const unlinkIdentity = async (req: Request, res: Response) => {
             throw new Error("Missing Supabase Configuration");
         }
 
-        // Strategy: Use RPC (Database Function) to delete identity.
-        // We created a 'delete_identity_by_id' function in Postgres that runs with security definer privileges.
-        console.log(`Unlink Attempt (RPC): calling delete_identity_by_id for ${identity.id}`);
+        // Strategy: Use RPC (Database Function) to delete identity by provider_id.
+        // This avoids UUID parsing errors if the frontend sends the provider ID (e.g. "70203020").
+        console.log(`Unlink Attempt (RPC): calling delete_identity_by_provider_id for User ${user.id} and Identity ${identityId}`);
 
-        const { error: rpcError } = await supabase.rpc('delete_identity_by_id', { 
-            identity_id_input: identity.id 
+        const { error: rpcError } = await supabase.rpc('delete_identity_by_provider_id', { 
+            user_id_input: user.id,
+            provider_id_input: identityId
         });
 
         if (rpcError) {
@@ -91,8 +92,6 @@ export const unlinkIdentity = async (req: Request, res: Response) => {
 
         console.log("Identity deleted successfully via RPC");
         res.json({ success: true, message: 'Identidad desvinculada correctamente' });
-
-        console.log("Identity deleted successfully via Admin API");
 
         /* 
         // Legacy SDK Call (Failed)
