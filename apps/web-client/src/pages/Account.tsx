@@ -202,7 +202,12 @@ export default function Account() {
             interval = setInterval(async () => {
                 if (!user) return
                 try {
-                    const res = await fetch(`${API_URL}/minecraft/link/check?userId=${user.id}`)
+                    const session = (await supabase.auth.getSession()).data.session;
+                    const res = await fetch(`${API_URL}/minecraft/link/check?userId=${user.id}`, {
+                        headers: {
+                            'Authorization': `Bearer ${session?.access_token}`
+                        }
+                    })
                     const data = await res.json()
                     if (data.linked) {
                         clearInterval(interval)
