@@ -42,6 +42,38 @@ if (supabaseUrl && supabaseKey) supabase = createClient(supabaseUrl, supabaseKey
 
 import { RowDataPacket } from 'mysql2';
 
+async function syncSupabaseMetadata(userId: string, token: string | undefined, metadata: any) {
+    const sbUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+    const sbAnonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+
+    // Try user token first (more resilient/safer)
+    if (token && sbUrl && sbAnonKey) {
+        try {
+            const userSupabase = createClient(sbUrl, sbAnonKey, { 
+                global: { headers: { Authorization: `Bearer ${token}` } } 
+            });
+            const { error } = await userSupabase.auth.updateUser({ data: metadata });
+            if (!error) return true;
+            console.error('User token sync error:', error);
+        } catch (e) {
+            console.error('User token sync caught error:', e);
+        }
+    }
+
+    // Fallback to Admin Client
+    if (supabase) {
+        try {
+            const { error } = await supabase.auth.admin.updateUserById(userId, { user_metadata: metadata });
+            if (!error) return true;
+            console.error('Admin sync error:', error);
+        } catch (e) {
+            console.error('Admin sync caught error:', e);
+        }
+    }
+
+    return false;
+}
+
 export const verifyLinkCode = async (req: Request, res: Response) => {
     try {
         const { code, userId } = req.body;
@@ -87,19 +119,11 @@ export const verifyLinkCode = async (req: Request, res: Response) => {
 
         // 3. Sync Supabase user metadata immediately
         if (source === 'minecraft') {
-            try {
-                await supabase.auth.admin.updateUserById(
-                    userId,
-                    { 
-                        user_metadata: { 
-                            minecraft_uuid: sourceId, 
-                            minecraft_nick: playerName
-                        } 
-                    }
-                );
-            } catch (syncError) {
-                console.error('Failed to sync metadata during manual link:', syncError);
-            }
+            const token = req.headers.authorization?.split(' ')[1];
+            await syncSupabaseMetadata(userId, token, { 
+                minecraft_uuid: sourceId, 
+                minecraft_nick: playerName 
+            });
         }
 
         res.json({ success: true, source, linked: true, playerName });
@@ -153,24 +177,14 @@ export const checkLinkStatus = async (req: Request, res: Response) => {
             const link = rows[0];
             
             // Sync Supabase user metadata
-            try {
-                await supabase.auth.admin.updateUserById(
-                    userId as string,
-                    { 
-                        user_metadata: { 
-                            minecraft_uuid: link.minecraft_uuid, 
-                            minecraft_nick: link.minecraft_name,
-                            discord_id: link.discord_id,
-                            discord_tag: link.discord_tag,
-                            gacha_balance: link.gacha_balance
-                        } 
-                    }
-                );
-            } catch (syncError) {
-                console.error('CRITICAL: Failed to sync Supabase metadata:', syncError);
-                // We DON'T return 500 here because the MySQL link IS successful.
-                // But the UI might not update without a refresh if this fails.
-            }
+            const token = req.headers.authorization?.split(' ')[1];
+            await syncSupabaseMetadata(userId as string, token, {
+                minecraft_uuid: link.minecraft_uuid, 
+                minecraft_nick: link.minecraft_name,
+                discord_id: link.discord_id,
+                discord_tag: link.discord_tag,
+                gacha_balance: link.gacha_balance
+            });
             
             return res.json({ 
                 linked: true, 
