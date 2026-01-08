@@ -479,7 +479,7 @@
             "get_code": "Obtener Código",
             "generating": "Generando...",
             "type_in_server": "Escribe en el servidor:",
-            "waiting": "Esperando...",
+            "waiting": "Sincronizando...",
             "unlink": "Desvincular",
             "connect_discord": "Conectar Discord",
             "connect_twitch": "Conectar Twitch",
@@ -1562,7 +1562,7 @@
         "back": "Atrás"
     },
     "common": {
-        "loading_content": "Sincronizando...",
+        "loading_content": "Cargando...",
         "loading": "Cargando...",
         "processing": "Procesando...",
         "copy": "COPIAR",

@@ -482,7 +482,7 @@
             "get_code": "Get Code",
             "generating": "Generating...",
             "type_in_server": "Type in server:",
-            "waiting": "Waiting...",
+            "waiting": "Syncing...",
             "unlink": "Unlink",
             "connect_discord": "Connect Discord",
             "connect_twitch": "Connect Twitch",
@@ -1507,7 +1507,7 @@
         "back": "Back"
     },
     "common": {
-        "loading_content": "Loading content...",
+        "loading_content": "Loading...",
         "loading": "Loading...",
         "processing": "Processing...",
         "copy": "COPY",

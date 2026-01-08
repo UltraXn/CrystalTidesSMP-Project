@@ -134,18 +134,18 @@ const ConnectionCards: React.FC<ConnectionCardsProps> = ({
                                         <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.05)' }}></div>
                                     </div>
 
-                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                    <div className="link-input-group">
                                         <input 
                                             type="text" 
                                             placeholder="CÓDIGO (Ej: 123456)"
                                             value={manualCode}
                                             onChange={(e) => onManualCodeChange?.(e.target.value)}
-                                            style={{ flex: 1, background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', padding: '10px', borderRadius: '6px', color: '#fff', fontSize: '0.9rem', textAlign: 'center', outline: 'none' }}
+                                            className="link-input"
                                         />
                                         <button 
                                             onClick={onVerifyCode}
                                             disabled={isVerifying || !manualCode}
-                                            style={{ background: isVerifying ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', padding: '0 15px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem', whiteSpace: 'nowrap' }}
+                                            className="btn-verify"
                                         >
                                             {isVerifying ? <Loader minimal /> : 'Verificar'}
                                         </button>
@@ -156,7 +156,7 @@ const ConnectionCards: React.FC<ConnectionCardsProps> = ({
                                     <p style={{ color: '#ccc', marginBottom: '0.5rem', fontSize: '0.9rem' }}>{t('account.connections.type_in_server')}</p>
                                     <code style={{ display: 'block', background: '#000', color: 'var(--accent)', padding: '0.6rem', borderRadius: '4px', fontSize: '1.1rem', fontWeight: 'bold', letterSpacing: '1px', marginBottom: '0.8rem' }}>/link {linkCode}</code>
                                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                                        <Loader />
+                                        <Loader text="" />
                                         <span style={{ fontSize: '0.75rem', color: '#888' }}>{t('account.connections.waiting')}</span>
                                     </div>
                                 </div>
@@ -167,17 +167,7 @@ const ConnectionCards: React.FC<ConnectionCardsProps> = ({
             </div>
 
             {/* Discord Card */}
-            <div className="connection-card" style={{ 
-                background: 'rgba(88, 101, 242, 0.05)', 
-                border: '1px solid rgba(88, 101, 242, 0.15)', 
-                borderRadius: '20px', 
-                padding: '1.8rem', 
-                display: 'flex', 
-                flexDirection: 'column', 
-                minHeight: '220px',
-                backdropFilter: 'blur(10px)',
-                boxShadow: '0 8px 32px rgba(88, 101, 242, 0.05)'
-            }}>
+            <div className="connection-card discord-card">
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
                     {/* Logo Left */}
                     <div style={{ background: '#5865F2', padding: '12px', borderRadius: '50%', color: '#fff', fontSize: '1.2rem', display: 'flex', flexShrink: 0 }}>
@@ -231,18 +221,19 @@ const ConnectionCards: React.FC<ConnectionCardsProps> = ({
                                 <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.05)' }}></div>
                             </div>
 
-                            <div style={{ display: 'flex', gap: '8px' }}>
+                            <div className="link-input-group">
                                 <input 
                                     type="text" 
                                     placeholder={t('account.connections.discord_code_placeholder')}
                                     value={discordManualCode}
                                     onChange={(e) => onDiscordManualCodeChange?.(e.target.value)}
-                                    style={{ flex: 1, background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(88, 101, 242, 0.3)', padding: '10px', borderRadius: '6px', color: '#fff', fontSize: '0.9rem', textAlign: 'center', outline: 'none' }}
+                                    className="link-input"
+                                    style={{ border: '1px solid rgba(88, 101, 242, 0.3)' }}
                                 />
                                 <button 
                                     onClick={onVerifyDiscordCode}
                                     disabled={isVerifyingDiscord || !discordManualCode}
-                                    style={{ background: isVerifyingDiscord ? 'rgba(255,255,255,0.1)' : 'rgba(88, 101, 242, 0.1)', border: '1px solid rgba(88, 101, 242, 0.3)', color: '#fff', padding: '0 15px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem', whiteSpace: 'nowrap' }}
+                                    className="btn-verify discord"
                                 >
                                     {isVerifyingDiscord ? <Loader minimal /> : t('common.verify', 'Verificar')}
                                 </button>

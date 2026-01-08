@@ -1001,3 +1001,87 @@ button,
   transform: translateY(-2px);
   box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
 }
+/* Connection Cards Styling */
+.connection-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.connection-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+}
+
+.link-input-group {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+.link-input {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 10px;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 0.9rem;
+  text-align: center;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.link-input:focus {
+  border-color: var(--accent);
+}
+
+.btn-verify {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  padding: 0 15px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 80px;
+}
+
+.btn-verify:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.btn-verify:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-verify.discord {
+  background: rgba(88, 101, 242, 0.1);
+  border-color: rgba(88, 101, 242, 0.3);
+}
+
+.btn-verify.discord:hover:not(:disabled) {
+  background: rgba(88, 101, 242, 0.2);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .connection-card {
+    padding: 1.2rem !important;
+    min-height: auto !important;
+  }
+
+  .link-input-group {
+    flex-direction: column;
+  }
+
+  .btn-verify {
+    padding: 12px;
+    width: 100%;
+  }
+}
