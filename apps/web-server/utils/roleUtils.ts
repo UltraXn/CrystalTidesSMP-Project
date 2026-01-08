@@ -21,4 +21,25 @@ export const checkRole = (allowedRoles: string[]) => {
  * Helper for single role checks
  */
 export const isAdmin = (role: string) => ADMIN_ROLES.includes(role);
-export const isStaff = (role: string) => STAFF_ROLES.includes(role);
+
+export const ROLE_PRIORITY: Record<string, number> = {
+    'neroferno': 100,
+    'killu': 100,
+    'killuwu': 100,
+    'developer': 90,
+    'admin': 80,
+    'moderator': 50,
+    'mod': 50,
+    'staff': 40,
+    'helper': 30,
+    'founder': 10,
+    'donor': 10,
+    'vip': 10,
+    'user': 0
+};
+
+export const getRolePriority = (role?: string): number => {
+    if (!role) return 0;
+    return ROLE_PRIORITY[role.toLowerCase()] || 0;
+};
+

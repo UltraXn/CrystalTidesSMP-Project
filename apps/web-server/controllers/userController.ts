@@ -5,6 +5,8 @@ import * as forumService from '../services/forumService.js';
 
 import { Request, Response } from 'express';
 import { sendSuccess, sendError } from '../utils/responseHandler.js';
+import { getRolePriority } from '../utils/roleUtils.js';
+import supabase from '../config/supabaseClient.js';
 
 export const getAllUsers = async (req: Request, res: Response) => {
     try {
@@ -23,6 +25,34 @@ export const updateUserRole = async (req: Request, res: Response) => {
         const { role } = req.body;
         
         if (!role) return sendError(res, 'Role is required', 'MISSING_FIELD', 400);
+
+        // Security: Role Hierarchy Check
+        // 1. Check if requester has authority
+        const requestorRole = (req as any).user?.role;
+        const requestorPriority = getRolePriority(requestorRole);
+        const newRolePriority = getRolePriority(role);
+
+        if (newRolePriority > requestorPriority) {
+            return sendError(res, 'No tienes permiso para asignar un rango superior al tuyo', 'FORBIDDEN', 403);
+        }
+
+        // 2. Check if target user is protected (Higher or Equal rank)
+        // We need to fetch the target user currently to check their role
+        const { data: { user: targetUser }, error: fetchError } = await supabase.auth.admin.getUserById(id);
+        
+        if (fetchError || !targetUser) {
+             return sendError(res, 'Usuario objetivo no encontrado', 'NOT_FOUND', 404);
+        }
+
+        const targetPriority = getRolePriority(targetUser.user_metadata?.role);
+
+        // Allow SuperAdmins (100) to edit anyone (even other 100s, usually acceptable, or block equals? 
+        // User request: "Staff no puedan cambiarse a un rango superior". 
+        // We block if target >= requestor AND requestor < 100.
+        // This allows 'killuwu' (100) to edit 'neroferno' (100), but blocks 'developer' (90) from editing 'developer' (90).
+        if (targetPriority >= requestorPriority && requestorPriority < 100) {
+            return sendError(res, 'No puedes modificar a un usuario con igual o mayor autoridad', 'FORBIDDEN', 403);
+        }
 
         const updatedUser = await userService.updateUserRole(id, role);
 
