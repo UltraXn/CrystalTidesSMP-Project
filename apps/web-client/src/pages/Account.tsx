@@ -237,33 +237,12 @@ export default function Account() {
     const confirmUnlink = async () => {
         if (!identityToUnlink) return
         try {
-            // Hotfix: Use manual backend endpoint because "Manual linking is disabled" on client side
-            const { data: { session } } = await supabase.auth.getSession()
-            if (!session) throw new Error("No active session")
+            // Standard Supabase Unlink (Requires "Manual Linking" enabled in Dashboard)
+            const { error } = await supabase.auth.unlinkIdentity(identityToUnlink)
 
-            console.log("Unlinking identity:", identityToUnlink.id);
-
-            // Use fetch to call our custom endpoint
-            const res = await fetch(`${API_URL}/auth/unlink`, {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${session.access_token}`
-                },
-                body: JSON.stringify({ identityId: identityToUnlink.id }) // Uses .id from UserIdentity
-            })
-
-            let data;
-            const text = await res.text();
-            try {
-                data = JSON.parse(text);
-            } catch {
-                data = { message: text || res.statusText };
-            }
-
-            if (!res.ok) {
-                 console.error("Unlink failed status:", res.status, "Body:", text);
-                 throw new Error(data.message || `Failed to unlink identity (Status: ${res.status})`)
+            if (error) {
+                 console.error("Unlink failed:", error);
+                 throw error;
             }
 
             setIsUnlinkModalOpen(false)
