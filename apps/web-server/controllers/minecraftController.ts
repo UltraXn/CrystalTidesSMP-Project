@@ -127,21 +127,26 @@ export const verifyLinkCode = async (req: Request, res: Response) => {
         const playerName = verification.player_name;
 
         // 2. Link Account in MySQL (Unified Bridge)
-        let query = '';
         if (source === 'minecraft') {
-            // If conflict on minecraft_uuid (PK) -> Update web_user_id
-            // If conflict on web_user_id (UNIQUE) -> Update minecraft_uuid/name (Merge)
-            query = `
+            // Clean up any existing links for this user OR this minecraft uuid to avoid collisions
+            await pool.execute('UPDATE linked_accounts SET minecraft_uuid = NULL, minecraft_name = NULL WHERE web_user_id = ?', [targetUserId]);
+            await pool.execute('UPDATE linked_accounts SET web_user_id = NULL WHERE minecraft_uuid = ?', [sourceId]);
+            
+            // Now insert or update the consolidated row
+            const query = `
                 INSERT INTO linked_accounts (minecraft_uuid, minecraft_name, web_user_id) 
                 VALUES (?, ?, ?) 
                 ON DUPLICATE KEY UPDATE 
                     minecraft_name = VALUES(minecraft_name),
-                    minecraft_uuid = VALUES(minecraft_uuid),
                     web_user_id = VALUES(web_user_id)
             `;
             await pool.execute(query, [sourceId, playerName, targetUserId]);
         } else if (source === 'discord') {
-            query = `
+            // Clean up existing discord links for this user
+            await pool.execute('UPDATE linked_accounts SET discord_id = NULL, discord_tag = NULL WHERE web_user_id = ?', [targetUserId]);
+            await pool.execute('UPDATE linked_accounts SET web_user_id = NULL WHERE discord_id = ?', [sourceId]);
+
+            const query = `
                 INSERT INTO linked_accounts (discord_id, web_user_id) 
                 VALUES (?, ?) 
                 ON DUPLICATE KEY UPDATE 
@@ -150,9 +155,10 @@ export const verifyLinkCode = async (req: Request, res: Response) => {
             await pool.execute(query, [sourceId, targetUserId]);
         }
 
-        if (query) {
-            await pool.execute('DELETE FROM universal_links WHERE code = ?', [code.toUpperCase()]);
-        }
+        // Clean up linked rows that might have become empty (no MC and no Discord)
+        await pool.execute('DELETE FROM linked_accounts WHERE minecraft_uuid IS NULL AND discord_id IS NULL');
+
+        await pool.execute('DELETE FROM universal_links WHERE code = ?', [code.toUpperCase()]);
 
         // 3. Sync Supabase user metadata immediately
         if (source === 'minecraft') {
