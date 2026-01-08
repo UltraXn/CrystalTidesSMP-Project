@@ -218,7 +218,8 @@ export default function Account() {
                 await supabase.auth.refreshSession()
                 setShowSuccessModal(true)
             } else {
-                showToast(data.error || t('account.connections.verify_error', "Código inválido o expirado"), 'error')
+                const errorMsg = data.details ? `${data.error}: ${data.details} ${data.sqlError || ''}` : (data.error || t('account.connections.verify_error', "Código inválido o expirado"));
+                showToast(errorMsg, 'error')
             }
         } catch (e) {
             console.error(e)
