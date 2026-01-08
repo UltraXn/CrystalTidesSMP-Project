@@ -261,6 +261,13 @@ export default function Account() {
                 })
                 const data = await res.json()
                 if (!res.ok) throw new Error(data.error || 'Error unlinking Minecraft')
+                
+                // Redundancy: Force update metadata from client-side to ensure UI updates immediately
+                // This covers cases where the backend fails to sync with Supabase due to env var issues
+                await supabase.auth.updateUser({
+                    data: { minecraft_uuid: null, minecraft_nick: null }
+                })
+                
                 showToast("Cuenta de Minecraft desvinculada", 'success')
             }
 
