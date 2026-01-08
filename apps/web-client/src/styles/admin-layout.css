@@ -506,8 +506,22 @@
 @media (max-width: 1024px) {
     .drawer-handle {
         display: block;
-        background: var(--accent);
-        box-shadow: 0 0 15px var(--accent), 0 0 30px rgba(var(--accent-rgb), 0.4);
+        background: linear-gradient(to right, transparent, var(--accent), transparent);
+        box-shadow: 0 0 15px var(--accent);
+        animation: handle-glow 3s infinite ease-in-out;
+    }
+}
+
+@keyframes handle-glow {
+    0%, 100% { 
+        opacity: 0.5; 
+        box-shadow: 0 0 8px var(--accent);
+        transform: scaleX(1);
+    }
+    50% { 
+        opacity: 1; 
+        box-shadow: 0 0 16px var(--accent), 0 0 25px rgba(var(--accent-rgb), 0.4);
+        transform: scaleX(1.1);
     }
 }
 
