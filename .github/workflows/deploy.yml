@@ -56,6 +56,8 @@ jobs:
             NODE_ENV=production
             MC_SERVER_HOST=147.135.9.233
             MC_SERVER_PORT=26408
+            VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}
+            VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
   deploy-frontend:
     name: Deploy Frontend
