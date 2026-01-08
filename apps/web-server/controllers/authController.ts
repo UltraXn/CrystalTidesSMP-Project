@@ -78,7 +78,7 @@ export const unlinkIdentity = async (req: Request, res: Response) => {
         }
 
         // Endpoint: DELETE /admin/users/:user_id/identities/:identity_id
-        const url = `${supabaseUrl}/auth/v1/admin/users/${user.id}/identities/${identityId}`;
+        const url = `${supabaseUrl}/auth/v1/admin/users/${user.id}/identities/${identity.id}`;
         
         console.log(`Manual Admin API Call to: ${url}`);
 
