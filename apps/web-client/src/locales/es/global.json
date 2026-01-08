@@ -464,6 +464,8 @@
         "connections": {
             "title": "Cuentas Conectadas",
             "success_link": "¡Cuenta vinculada exitosamente!",
+            "verify_success": "¡Cuenta vinculada con éxito!",
+            "verify_error": "Código inválido o expirado",
             "link_discord": "Vincular Discord",
             "link_twitch": "Vincular Twitch",
             "linked": "Vinculado",

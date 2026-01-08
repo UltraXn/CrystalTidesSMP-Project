@@ -108,6 +108,8 @@ export default function Account() {
     const [unlinkTarget, setUnlinkTarget] = useState<'provider' | 'minecraft' | null>(null)
     const [linkCode, setLinkCode] = useState<string | null>(null)
     const [linkLoading, setLinkLoading] = useState(false)
+    const [manualCode, setManualCode] = useState('')
+    const [isVerifying, setIsVerifying] = useState(false)
     const [isUnlinking, setIsUnlinking] = useState(false)
 
     const API_URL = import.meta.env.VITE_API_URL
@@ -189,6 +191,40 @@ export default function Account() {
             alert("Error al conectar con el servidor")
         } finally {
             setLinkLoading(false)
+        }
+    }
+
+    const handleVerifyManualCode = async () => {
+        if (!user || !manualCode.trim()) return
+        setIsVerifying(true)
+        try {
+            const session = (await supabase.auth.getSession()).data.session;
+            const res = await fetch(`${API_URL}/minecraft/link`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session?.access_token}`
+                },
+                body: JSON.stringify({ 
+                    userId: user.id,
+                    code: manualCode.trim().toUpperCase()
+                })
+            })
+            
+            const data = await res.json()
+            if (data.linked || data.success) {
+                await supabase.auth.refreshSession()
+                showToast(t('account.connections.verify_success', "¡Cuenta vinculada con éxito!"), 'success')
+                // Wait a bit for the toast and then reload
+                setTimeout(() => window.location.reload(), 1500)
+            } else {
+                showToast(data.error || t('account.connections.verify_error', "Código inválido o expirado"), 'error')
+            }
+        } catch (e) {
+            console.error(e)
+            showToast("Error de conexión con el servidor", 'error')
+        } finally {
+            setIsVerifying(false)
         }
     }
 
@@ -613,6 +649,10 @@ export default function Account() {
                                 onLinkProvider={handleLinkProvider}
                                 onUnlinkProvider={handleUnlinkProvider}
                                 onUnlinkMinecraft={handleUnlinkMinecraft}
+                                manualCode={manualCode}
+                                onManualCodeChange={setManualCode}
+                                onVerifyCode={handleVerifyManualCode}
+                                isVerifying={isVerifying}
                             />
                         </div>
                     )}

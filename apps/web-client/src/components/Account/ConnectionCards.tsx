@@ -16,6 +16,10 @@ export interface ConnectionCardsProps {
     onLinkProvider: (provider: string) => void;
     onUnlinkProvider: (identity: UserIdentity) => void;
     onUnlinkMinecraft: () => void;
+    manualCode?: string;
+    onManualCodeChange?: (val: string) => void;
+    onVerifyCode?: () => void;
+    isVerifying?: boolean;
 }
 
 const ConnectionCards: React.FC<ConnectionCardsProps> = ({
@@ -29,7 +33,11 @@ const ConnectionCards: React.FC<ConnectionCardsProps> = ({
     twitchIdentity,
     onLinkProvider,
     onUnlinkProvider,
-    onUnlinkMinecraft
+    onUnlinkMinecraft,
+    manualCode,
+    onManualCodeChange,
+    onVerifyCode,
+    isVerifying
 }) => {
     const { t } = useTranslation();
 
@@ -74,8 +82,18 @@ const ConnectionCards: React.FC<ConnectionCardsProps> = ({
                 <div style={{ marginTop: 'auto' }}>
                     {isLinked ? (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                            <div style={{ background: 'rgba(76, 175, 80, 0.1)', color: '#4CAF50', padding: '0.8rem', borderRadius: '8px', textAlign: 'center', fontWeight: '600' }}>
-                                ✓ {mcUsername}
+                            <div className="animate-pop" style={{ 
+                                background: 'linear-gradient(45deg, rgba(76, 175, 80, 0.2), rgba(68, 189, 50, 0.3))', 
+                                border: '1px solid rgba(76, 175, 80, 0.4)',
+                                color: '#4CAF50', 
+                                padding: '1rem', 
+                                borderRadius: '12px', 
+                                textAlign: 'center', 
+                                fontWeight: '700',
+                                boxShadow: '0 4px 15px rgba(76, 175, 80, 0.1)'
+                            }}>
+                                <span style={{ fontSize: '1.2rem', display: 'block', marginBottom: '4px' }}>✨ {t('account.connections.success_link')} ✨</span>
+                                {mcUsername}
                             </div>
                             <button 
                                 onClick={onUnlinkMinecraft}
@@ -87,19 +105,44 @@ const ConnectionCards: React.FC<ConnectionCardsProps> = ({
                             </button>
                         </div>
                     ) : (
-                        <div>
-                            <p style={{ color: '#aaa', fontSize: '0.9rem', marginBottom: '1rem', lineHeight: '1.4' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            <p style={{ color: '#aaa', fontSize: '0.9rem', margin: 0, lineHeight: '1.4' }}>
                                 {t('account.connections.link_desc')}
                             </p>
                             
                             {!linkCode ? (
-                                <button 
-                                    onClick={onGenerateCode} 
-                                    disabled={linkLoading}
-                                    style={{ width: '100%', background: 'var(--accent)', border: 'none', padding: '10px', borderRadius: '6px', color: '#1a1a1a', fontWeight: 'bold', cursor: 'pointer', transition: 'opacity 0.2s', opacity: linkLoading ? 0.7 : 1 }}
-                                >
-                                    {linkLoading ? <Loader minimal /> : t('account.connections.get_code')}
-                                </button>
+                                <>
+                                    <button 
+                                        onClick={onGenerateCode} 
+                                        disabled={linkLoading}
+                                        style={{ width: '100%', background: 'var(--accent)', border: 'none', padding: '12px', borderRadius: '8px', color: '#1a1a1a', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s', opacity: linkLoading ? 0.7 : 1, boxShadow: '0 4px 15px rgba(var(--accent-rgb), 0.2)' }}
+                                    >
+                                        {linkLoading ? <Loader minimal /> : t('account.connections.get_code')}
+                                    </button>
+
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '5px 0' }}>
+                                        <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.05)' }}></div>
+                                        <span style={{ fontSize: '0.7rem', color: '#555', fontWeight: 'bold' }}>O USA UN CÓDIGO</span>
+                                        <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.05)' }}></div>
+                                    </div>
+
+                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                        <input 
+                                            type="text" 
+                                            placeholder="CÓDIGO (Ej: 123456)"
+                                            value={manualCode}
+                                            onChange={(e) => onManualCodeChange?.(e.target.value)}
+                                            style={{ flex: 1, background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', padding: '10px', borderRadius: '6px', color: '#fff', fontSize: '0.9rem', textAlign: 'center', outline: 'none' }}
+                                        />
+                                        <button 
+                                            onClick={onVerifyCode}
+                                            disabled={isVerifying || !manualCode}
+                                            style={{ background: isVerifying ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', padding: '0 15px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem', whiteSpace: 'nowrap' }}
+                                        >
+                                            {isVerifying ? <Loader minimal /> : 'Verificar'}
+                                        </button>
+                                    </div>
+                                </>
                             ) : (
                                 <div className="link-code-box animate-pop" style={{ background: '#222', border: '1px dashed var(--accent)', padding: '1rem', borderRadius: '8px', textAlign: 'center' }}>
                                     <p style={{ color: '#ccc', marginBottom: '0.5rem', fontSize: '0.9rem' }}>{t('account.connections.type_in_server')}</p>
