@@ -486,6 +486,8 @@
             "unlink": "Unlink",
             "connect_discord": "Connect Discord",
             "connect_twitch": "Connect Twitch",
+            "or_use_link": "OR USE /LINK",
+            "discord_code_placeholder": "DISCORD CODE",
             "unlink_confirm_title": "Unlink account?",
             "unlink_confirm_message": "Are you sure you want to unlink this account? You will have to reconnect it to use it in the future.",
             "confirm_unlink": "Yes, unlink",

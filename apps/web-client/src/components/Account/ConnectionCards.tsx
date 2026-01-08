@@ -20,6 +20,10 @@ export interface ConnectionCardsProps {
     onManualCodeChange?: (val: string) => void;
     onVerifyCode?: () => void;
     isVerifying?: boolean;
+    discordManualCode?: string;
+    onDiscordManualCodeChange?: (val: string) => void;
+    onVerifyDiscordCode?: () => void;
+    isVerifyingDiscord?: boolean;
 }
 
 const ConnectionCards: React.FC<ConnectionCardsProps> = ({
@@ -37,7 +41,11 @@ const ConnectionCards: React.FC<ConnectionCardsProps> = ({
     manualCode,
     onManualCodeChange,
     onVerifyCode,
-    isVerifying
+    isVerifying,
+    discordManualCode,
+    onDiscordManualCodeChange,
+    onVerifyDiscordCode,
+    isVerifyingDiscord
 }) => {
     const { t } = useTranslation();
 
@@ -209,12 +217,37 @@ const ConnectionCards: React.FC<ConnectionCardsProps> = ({
                             {t('account.connections.unlink')}
                         </button>
                     ) : (
-                        <button 
-                            onClick={() => onLinkProvider('discord')}
-                            style={{ width: '100%', background: '#5865F2', border: 'none', color: '#fff', padding: '10px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 15px rgba(88, 101, 242, 0.3)' }}
-                        >
-                            {t('account.connections.connect_discord')}
-                        </button>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            <button 
+                                onClick={() => onLinkProvider('discord')}
+                                style={{ width: '100%', background: '#5865F2', border: 'none', color: '#fff', padding: '10px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 15px rgba(88, 101, 242, 0.3)' }}
+                            >
+                                {t('account.connections.connect_discord')}
+                            </button>
+
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '5px 0' }}>
+                                <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.05)' }}></div>
+                                <span style={{ fontSize: '0.7rem', color: '#888', fontWeight: 'bold' }}>{t('account.connections.or_use_link')}</span>
+                                <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.05)' }}></div>
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                                <input 
+                                    type="text" 
+                                    placeholder={t('account.connections.discord_code_placeholder')}
+                                    value={discordManualCode}
+                                    onChange={(e) => onDiscordManualCodeChange?.(e.target.value)}
+                                    style={{ flex: 1, background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(88, 101, 242, 0.3)', padding: '10px', borderRadius: '6px', color: '#fff', fontSize: '0.9rem', textAlign: 'center', outline: 'none' }}
+                                />
+                                <button 
+                                    onClick={onVerifyDiscordCode}
+                                    disabled={isVerifyingDiscord || !discordManualCode}
+                                    style={{ background: isVerifyingDiscord ? 'rgba(255,255,255,0.1)' : 'rgba(88, 101, 242, 0.1)', border: '1px solid rgba(88, 101, 242, 0.3)', color: '#fff', padding: '0 15px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem', whiteSpace: 'nowrap' }}
+                                >
+                                    {isVerifyingDiscord ? <Loader minimal /> : t('common.verify', 'Verificar')}
+                                </button>
+                            </div>
+                        </div>
                     )}
                 </div>
             </div>

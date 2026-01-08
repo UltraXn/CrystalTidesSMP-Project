@@ -110,7 +110,9 @@ export default function Account() {
     const [linkCode, setLinkCode] = useState<string | null>(null)
     const [linkLoading, setLinkLoading] = useState(false)
     const [manualCode, setManualCode] = useState('')
+    const [discordManualCode, setDiscordManualCode] = useState('')
     const [isVerifying, setIsVerifying] = useState(false)
+    const [isVerifyingDiscord, setIsVerifyingDiscord] = useState(false)
     const [isUnlinking, setIsUnlinking] = useState(false)
     const [showSuccessModal, setShowSuccessModal] = useState(false)
 
@@ -226,6 +228,39 @@ export default function Account() {
             showToast("Error de conexión con el servidor", 'error')
         } finally {
             setIsVerifying(false)
+        }
+    }
+
+    const handleVerifyDiscordCode = async () => {
+        if (!user || !discordManualCode.trim()) return
+        setIsVerifyingDiscord(true)
+        try {
+            const session = (await supabase.auth.getSession()).data.session;
+            const res = await fetch(`${API_URL}/minecraft/link`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session?.access_token}`
+                },
+                body: JSON.stringify({ 
+                    userId: user.id,
+                    code: discordManualCode.trim().toUpperCase()
+                })
+            })
+            
+            const data = await res.json()
+            if (data.linked || data.success) {
+                await supabase.auth.refreshSession()
+                setShowSuccessModal(true)
+            } else {
+                const errorMsg = data.details ? `${data.error}: ${data.details} ${data.sqlError || ''}` : (data.error || t('account.connections.verify_error', "Código inválido o expirado"));
+                showToast(errorMsg, 'error')
+            }
+        } catch (e) {
+            console.error(e)
+            showToast("Error de conexión con el servidor", 'error')
+        } finally {
+            setIsVerifyingDiscord(false)
         }
     }
 
@@ -653,6 +688,10 @@ export default function Account() {
                                 onManualCodeChange={setManualCode}
                                 onVerifyCode={handleVerifyManualCode}
                                 isVerifying={isVerifying}
+                                discordManualCode={discordManualCode}
+                                onDiscordManualCodeChange={setDiscordManualCode}
+                                onVerifyDiscordCode={handleVerifyDiscordCode}
+                                isVerifyingDiscord={isVerifyingDiscord}
                             />
                         </div>
                     )}

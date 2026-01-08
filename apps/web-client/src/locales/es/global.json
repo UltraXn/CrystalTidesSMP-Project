@@ -483,6 +483,8 @@
             "unlink": "Desvincular",
             "connect_discord": "Conectar Discord",
             "connect_twitch": "Conectar Twitch",
+            "or_use_link": "O USA /LINK",
+            "discord_code_placeholder": "CÓDIGO DISCORD",
             "unlink_confirm_title": "¿Desvincular cuenta?",
             "unlink_confirm_message": "¿Estás seguro de que deseas desvincular esta cuenta? Tendrás que volver a conectarla para usarla en el futuro.",
             "confirm_unlink": "Sí, desvincular",
