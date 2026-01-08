@@ -137,18 +137,24 @@ export const checkLinkStatus = async (req: Request, res: Response) => {
             const link = rows[0];
             
             // Sync Supabase user metadata
-            await supabase.auth.admin.updateUserById(
-                userId as string,
-                { 
-                    user_metadata: { 
-                        minecraft_uuid: link.minecraft_uuid, 
-                        minecraft_nick: link.minecraft_name,
-                        discord_id: link.discord_id,
-                        discord_tag: link.discord_tag,
-                        gacha_balance: link.gacha_balance
-                    } 
-                }
-            );
+            try {
+                await supabase.auth.admin.updateUserById(
+                    userId as string,
+                    { 
+                        user_metadata: { 
+                            minecraft_uuid: link.minecraft_uuid, 
+                            minecraft_nick: link.minecraft_name,
+                            discord_id: link.discord_id,
+                            discord_tag: link.discord_tag,
+                            gacha_balance: link.gacha_balance
+                        } 
+                    }
+                );
+            } catch (syncError) {
+                console.error('CRITICAL: Failed to sync Supabase metadata:', syncError);
+                // We DON'T return 500 here because the MySQL link IS successful.
+                // But the UI might not update without a refresh if this fails.
+            }
             
             return res.json({ 
                 linked: true, 
