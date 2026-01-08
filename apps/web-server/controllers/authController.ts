@@ -50,7 +50,7 @@ export const unlinkIdentity = async (req: Request, res: Response) => {
 
         // Skip manual verification in Node.js because of type mismatches (string vs int)
         // and reliance on the secure RPC which checks user_id ownership.
-        const identity = { id: identityId }; // Mock object to keep existing variable usage if any, but actually we use identityId directly.
+        // const identity = { id: identityId }; // Removed unused variable
 
 
         // Proceed to unlink

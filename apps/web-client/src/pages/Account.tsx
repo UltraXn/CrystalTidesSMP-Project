@@ -105,6 +105,7 @@ export default function Account() {
     const [loadingThreads, setLoadingThreads] = useState(false)
     const [isUnlinkModalOpen, setIsUnlinkModalOpen] = useState(false)
     const [identityToUnlink, setIdentityToUnlink] = useState<UserIdentity | null>(null)
+    const [unlinkTarget, setUnlinkTarget] = useState<'provider' | 'minecraft' | null>(null)
     const [linkCode, setLinkCode] = useState<string | null>(null)
     const [linkLoading, setLinkLoading] = useState(false)
     const [isUnlinking, setIsUnlinking] = useState(false)
@@ -232,36 +233,50 @@ export default function Account() {
 
     const handleUnlinkProvider = (identity: UserIdentity) => {
         setIdentityToUnlink(identity)
+        setUnlinkTarget('provider')
+        setIsUnlinkModalOpen(true)
+    }
+
+    const handleUnlinkMinecraft = () => {
+        setUnlinkTarget('minecraft')
         setIsUnlinkModalOpen(true)
     }
 
     const confirmUnlink = async () => {
-        if (!identityToUnlink) return
         setIsUnlinking(true)
         try {
-            // Standard Supabase Unlink (Requires "Manual Linking" enabled in Dashboard)
-            const { error } = await supabase.auth.unlinkIdentity(identityToUnlink)
-
-            if (error) {
-                 console.error("Unlink failed:", error);
-                 throw error;
+            if (unlinkTarget === 'provider' && identityToUnlink) {
+                // Standard Supabase Unlink
+                const { error } = await supabase.auth.unlinkIdentity(identityToUnlink)
+                if (error) throw error
+                showToast("Cuenta desvinculada correctamente", 'success')
+            } 
+            else if (unlinkTarget === 'minecraft') {
+                // Minecraft Backend Unlink
+                const res = await fetch(`${API_URL}/minecraft/link/unlink`, {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+                    }
+                })
+                const data = await res.json()
+                if (!res.ok) throw new Error(data.error || 'Error unlinking Minecraft')
+                showToast("Cuenta de Minecraft desvinculada", 'success')
             }
 
-            // Success feedback
-            showToast("Cuenta desvinculada correctamente", 'success')
-            
             // Close modal first
             setIsUnlinkModalOpen(false)
             setIdentityToUnlink(null)
+            setUnlinkTarget(null)
             
             // Soft refresh session instead of hard reload if possible, otherwise reload after short delay
             await supabase.auth.refreshSession()
             window.location.reload() 
 
         } catch (error) {
-            console.error("Error unlinking provider:", error)
+            console.error("Error unlinking:", error)
             const message = error instanceof Error ? error.message : String(error)
-            alert("Error unlinking account: " + message)
+            alert("Error: " + message)
             setIsUnlinkModalOpen(false)
         } finally {
             setIsUnlinking(false)
@@ -562,6 +577,7 @@ export default function Account() {
                                 twitchIdentity={twitchIdentity}
                                 onLinkProvider={handleLinkProvider}
                                 onUnlinkProvider={handleUnlinkProvider}
+                                onUnlinkMinecraft={handleUnlinkMinecraft}
                             />
                         </div>
                     )}
@@ -579,7 +595,6 @@ export default function Account() {
             </div>
             
             
-
 
             <ConfirmationModal 
                 isOpen={isUnlinkModalOpen}

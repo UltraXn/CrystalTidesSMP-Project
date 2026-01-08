@@ -166,3 +166,47 @@ export const checkLinkStatus = async (req: Request, res: Response) => {
         res.status(500).json({ error: message });
     }
 };
+
+export const unlinkAccount = async (req: Request, res: Response) => {
+    try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const user = (req as any).user;
+        const userId = user?.id;
+
+        if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+        if (!supabase) return res.status(503).json({ error: 'Supabase not configured' });
+
+        // 1. Remove from MySQL (Set Minecraft columns to NULL)
+        // First get the minecraft name to sync later
+        const [rows] = await pool.execute('SELECT minecraft_name FROM linked_accounts WHERE web_user_id = ?', [userId]);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const minecraftName = (rows as any[])[0]?.minecraft_name;
+
+        await pool.execute('UPDATE linked_accounts SET minecraft_uuid = NULL, minecraft_name = NULL WHERE web_user_id = ?', [userId]);
+        
+        // Clean up if row is fully empty (no discord link either)
+        await pool.execute('DELETE FROM linked_accounts WHERE web_user_id = ? AND minecraft_uuid IS NULL AND discord_id IS NULL', [userId]);
+
+        // 2. Clear Supabase Metadata
+        await supabase.auth.admin.updateUserById(
+            userId,
+            {
+                user_metadata: {
+                    minecraft_uuid: null,
+                    minecraft_nick: null
+                }
+            }
+        );
+
+        // 3. Sync with CrystalCore Plugin
+        if (minecraftName) {
+            await pool.execute('INSERT INTO web_pending_commands (command) VALUES (?)', [`crystalcore sync ${minecraftName}`]);
+        }
+
+        res.json({ success: true, message: 'Minecraft account unlinked successfully' });
+
+    } catch (error) {
+        console.error('Unlink Account Error:', error);
+        res.status(500).json({ error: 'Error al desvincular la cuenta.' });
+    }
+};

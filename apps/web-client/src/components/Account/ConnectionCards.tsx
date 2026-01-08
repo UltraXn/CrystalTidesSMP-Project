@@ -15,6 +15,7 @@ export interface ConnectionCardsProps {
     twitchIdentity?: UserIdentity;
     onLinkProvider: (provider: string) => void;
     onUnlinkProvider: (identity: UserIdentity) => void;
+    onUnlinkMinecraft: () => void;
 }
 
 const ConnectionCards: React.FC<ConnectionCardsProps> = ({
@@ -27,7 +28,8 @@ const ConnectionCards: React.FC<ConnectionCardsProps> = ({
     discordIdentity,
     twitchIdentity,
     onLinkProvider,
-    onUnlinkProvider
+    onUnlinkProvider,
+    onUnlinkMinecraft
 }) => {
     const { t } = useTranslation();
 
@@ -71,8 +73,18 @@ const ConnectionCards: React.FC<ConnectionCardsProps> = ({
                 
                 <div style={{ marginTop: 'auto' }}>
                     {isLinked ? (
-                        <div style={{ background: 'rgba(76, 175, 80, 0.1)', color: '#4CAF50', padding: '0.8rem', borderRadius: '8px', textAlign: 'center', fontWeight: '600' }}>
-                            ✓ {mcUsername}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                            <div style={{ background: 'rgba(76, 175, 80, 0.1)', color: '#4CAF50', padding: '0.8rem', borderRadius: '8px', textAlign: 'center', fontWeight: '600' }}>
+                                ✓ {mcUsername}
+                            </div>
+                            <button 
+                                onClick={onUnlinkMinecraft}
+                                style={{ width: '100%', background: 'rgba(231, 76, 60, 0.15)', border: '1px solid rgba(231, 76, 60, 0.3)', color: '#ff6b6b', padding: '10px', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', transition: 'background 0.2s' }}
+                                onMouseOver={e => e.currentTarget.style.background = 'rgba(231, 76, 60, 0.25)'}
+                                onMouseOut={e => e.currentTarget.style.background = 'rgba(231, 76, 60, 0.15)'}
+                            >
+                                {t('account.connections.unlink')}
+                            </button>
                         </div>
                     ) : (
                         <div>

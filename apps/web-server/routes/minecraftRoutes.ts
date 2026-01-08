@@ -12,5 +12,6 @@ router.get('/skin/:username', minecraftController.getSkin);
 router.post('/link/init', authenticateToken, minecraftController.initWebLink);
 router.get('/link/check', authenticateToken, minecraftController.checkLinkStatus);
 router.post('/link', authenticateToken, minecraftController.verifyLinkCode);
+router.post('/link/unlink', authenticateToken, minecraftController.unlinkAccount);
 
 export default router;
