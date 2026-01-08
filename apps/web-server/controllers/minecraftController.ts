@@ -224,7 +224,12 @@ export const unlinkAccount = async (req: Request, res: Response) => {
 
         // 3. Sync with CrystalCore Plugin
         if (minecraftName) {
-            await pool.execute('INSERT INTO web_pending_commands (command) VALUES (?)', [`crystalcore sync ${minecraftName}`]);
+            try {
+                await pool.execute('INSERT INTO web_pending_commands (command) VALUES (?)', [`crystalcore sync ${minecraftName}`]);
+            } catch (dbError) {
+                 console.error("Warning: Could not insert sync command (Plugin likely not updated or table missing):", dbError);
+                 // Swallow error so client still gets success for the unlink itself
+            }
         }
 
         res.json({ success: true, message: 'Minecraft account unlinked successfully' });
