@@ -236,6 +236,12 @@ export const unlinkAccount = async (req: Request, res: Response) => {
 
     } catch (error) {
         console.error('Unlink Account Error:', error);
+        // Log detailed error for debugging schema issues
+        if (error instanceof Error) {
+             console.error('Stack:', error.stack);
+             // @ts-ignore
+             if (error.sqlMessage) console.error('SQL Message:', error.sqlMessage);
+        }
         res.status(500).json({ error: 'Error al desvincular la cuenta.' });
     }
 };
