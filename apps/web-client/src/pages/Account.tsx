@@ -236,7 +236,7 @@ export default function Account() {
         setIsVerifyingDiscord(true)
         try {
             const session = (await supabase.auth.getSession()).data.session;
-            const res = await fetch(`${API_URL}/minecraft/link`, {
+            const res = await fetch(`${API_URL}/discord/link`, {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
