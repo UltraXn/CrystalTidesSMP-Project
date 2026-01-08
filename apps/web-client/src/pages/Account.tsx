@@ -169,9 +169,13 @@ export default function Account() {
         if (!user) return
         setLinkLoading(true)
         try {
+            const session = (await supabase.auth.getSession()).data.session;
             const res = await fetch(`${API_URL}/minecraft/link/init`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session?.access_token}`
+                },
                 body: JSON.stringify({ userId: user.id })
             })
             const data = await res.json()

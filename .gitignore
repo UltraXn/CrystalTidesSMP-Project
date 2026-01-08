@@ -43,3 +43,5 @@ apps/web-server/crystaltides-prod-*.json
 
 # Local Agents Context
 AGENTS.md
+
+tools.yaml
