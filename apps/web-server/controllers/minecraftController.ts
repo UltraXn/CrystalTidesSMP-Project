@@ -51,7 +51,7 @@ export const verifyLinkCode = async (req: Request, res: Response) => {
 
         // 1. Verify Code in MySQL
         const [rows] = await pool.execute<RowDataPacket[]>(
-            'SELECT source, source_id, expires_at FROM universal_links WHERE code = ?',
+            'SELECT source, source_id, player_name, expires_at FROM universal_links WHERE code = ?',
             [code.toUpperCase()]
         );
 
@@ -69,24 +69,40 @@ export const verifyLinkCode = async (req: Request, res: Response) => {
 
         const source = verification.source;
         const sourceId = verification.source_id;
+        const playerName = verification.player_name;
 
         // 2. Link Account in MySQL (Unified Bridge)
         let query = '';
         if (source === 'minecraft') {
-            query = 'INSERT INTO linked_accounts (minecraft_uuid, web_user_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE web_user_id = ?';
+            query = 'INSERT INTO linked_accounts (minecraft_uuid, minecraft_name, web_user_id) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE minecraft_name = ?, web_user_id = ?';
+            await pool.execute(query, [sourceId, playerName, userId, playerName, userId]);
         } else if (source === 'discord') {
             query = 'INSERT INTO linked_accounts (discord_id, web_user_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE web_user_id = ?';
+            await pool.execute(query, [sourceId, userId, userId]);
         }
 
         if (query) {
-            await pool.execute(query, [sourceId, userId, userId]);
             await pool.execute('DELETE FROM universal_links WHERE code = ?', [code.toUpperCase()]);
         }
 
-        // 3. Sync Supabase user metadata (Optional but helpful)
-        // We'll let the checkLinkStatus or a hook handle full sync, 
-        // but let's confirm success
-        res.json({ success: true, source, linked: true });
+        // 3. Sync Supabase user metadata immediately
+        if (source === 'minecraft') {
+            try {
+                await supabase.auth.admin.updateUserById(
+                    userId,
+                    { 
+                        user_metadata: { 
+                            minecraft_uuid: sourceId, 
+                            minecraft_nick: playerName
+                        } 
+                    }
+                );
+            } catch (syncError) {
+                console.error('Failed to sync metadata during manual link:', syncError);
+            }
+        }
+
+        res.json({ success: true, source, linked: true, playerName });
 
     } catch (error) {
         console.error('Link Verification Error:', error);
