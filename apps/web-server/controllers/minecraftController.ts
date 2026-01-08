@@ -145,10 +145,16 @@ export const verifyLinkCode = async (req: Request, res: Response) => {
         await pool.execute('DELETE FROM universal_links WHERE code = ?', [code.toUpperCase()]);
 
         // 3. Sync Meta
+        const token = req.headers.authorization?.split(' ')[1];
         if (source === 'minecraft') {
-            await syncSupabaseMetadata(targetUserId, undefined, { 
+            await syncSupabaseMetadata(targetUserId, token, { 
                 minecraft_uuid: sourceId, 
                 minecraft_nick: playerName 
+            });
+        } else if (source === 'discord') {
+            await syncSupabaseMetadata(targetUserId, token, {
+                discord_id: sourceId,
+                discord_tag: playerName
             });
         }
 

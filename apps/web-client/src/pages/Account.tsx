@@ -236,7 +236,7 @@ export default function Account() {
         setIsVerifyingDiscord(true)
         try {
             const session = (await supabase.auth.getSession()).data.session;
-            const res = await fetch(`${API_URL}/discord/link`, {
+            const res = await fetch(`${API_URL}/minecraft/link`, {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
@@ -404,7 +404,7 @@ export default function Account() {
     const twitchIdentity = identities.find((id: UserIdentity) => id.provider === 'twitch')
 
     // Detect manual link via metadata (from bot/manual code)
-    const discordMetadata = user?.user_metadata?.discord_id || user?.user_metadata?.discord_name
+    const discordMetadata = user?.user_metadata?.discord_id || user?.user_metadata?.discord_name || user?.user_metadata?.discord_tag
     const isDiscordLinked = !!discordIdentity || !!discordMetadata
 
     useEffect(() => {
@@ -685,7 +685,7 @@ export default function Account() {
                                 onGenerateCode={handleGenerateCode}
                                 discordIdentity={discordIdentity}
                                 isDiscordLinked={isDiscordLinked}
-                                discordMetadataName={user?.user_metadata?.discord_name}
+                                discordMetadataName={user?.user_metadata?.discord_tag || user?.user_metadata?.discord_name || user?.user_metadata?.social_discord}
                                 twitchIdentity={twitchIdentity}
                                 onLinkProvider={handleLinkProvider}
                                 onUnlinkProvider={handleUnlinkProvider}
