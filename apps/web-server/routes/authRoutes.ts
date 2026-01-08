@@ -9,6 +9,7 @@ const router = express.Router();
 router.post('/register', authController.register);
 router.post('/login', authController.login);
 router.get('/me', authController.getMe); 
+router.post('/unlink', authenticateToken, authController.unlinkIdentity); 
 
 // 2FA Routes
 router.get('/2fa/status', authenticateToken, twoFactorController.get2FAStatus);
