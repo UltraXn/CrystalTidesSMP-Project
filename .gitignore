@@ -45,3 +45,7 @@ apps/web-server/crystaltides-prod-*.json
 AGENTS.md
 
 tools.yaml
+
+# TestSprite
+**/testsprite_tests/
+testsprite_tests/
