@@ -12,15 +12,17 @@ import { FaSearch } from 'react-icons/fa'
 
 import UsersTable from './Users/UsersTable'
 import UserMedalsModal from './Users/UserMedalsModal'
+import UserAchievementsModal from './Users/UserAchievementsModal'
 import UserRoleModal from './Users/UserRoleModal'
-import { UserDefinition, MedalDefinition } from './Users/types'
+import { UserDefinition, MedalDefinition, AchievementDefinition } from './Users/types'
 
 interface UsersManagerProps {
     mockUsers?: UserDefinition[];
     mockMedals?: MedalDefinition[];
+    mockAchievements?: AchievementDefinition[];
 }
 
-export default function UsersManager({ mockUsers, mockMedals }: UsersManagerProps = {}) {
+export default function UsersManager({ mockUsers, mockMedals, mockAchievements }: UsersManagerProps = {}) {
     const { t } = useTranslation()
     const [users, setUsers] = useState<UserDefinition[]>(mockUsers || [])
     const [loading, setLoading] = useState(false)
@@ -29,7 +31,11 @@ export default function UsersManager({ mockUsers, mockMedals }: UsersManagerProp
     
     // Medal Management State
     const [availableMedals, setAvailableMedals] = useState<MedalDefinition[]>(mockMedals || [])
+    const [availableAchievements, setAvailableAchievements] = useState<AchievementDefinition[]>(mockAchievements || [])
+    
     const [editingUser, setEditingUser] = useState<UserDefinition | null>(null)
+    const [editingType, setEditingType] = useState<'medals' | 'achievements' | null>(null)
+    
     const [savingMedals, setSavingMedals] = useState(false)
 
     // Role Change Modal State
@@ -37,24 +43,48 @@ export default function UsersManager({ mockUsers, mockMedals }: UsersManagerProp
 
     const { user } = useAuth() as { user: UserDefinition | null } 
 
-    // Fetch available medals on load
-    useEffect(() => {
+    const fetchSettings = () => {
         if (mockMedals) return;
+        console.log('UsersManager: Fetching settings...');
         fetch(`${API_URL}/settings`)
             .then(res => {
                 if(!res.ok) throw new Error("Fetch failed");
                 return res.json();
             })
             .then(data => {
+                console.log('UsersManager: Loaded settings from API', data);
                 if(data.medal_definitions) {
                     try {
                         const parsed = typeof data.medal_definitions === 'string' ? JSON.parse(data.medal_definitions) : data.medal_definitions;
+                        console.log('UsersManager: Parsed medals', parsed);
                         setAvailableMedals(Array.isArray(parsed) ? parsed : []);
-                    } catch { setAvailableMedals([]); }
+                    } catch (e) { 
+                        console.error('UsersManager: Error parsing medals', e);
+                        setAvailableMedals([]); 
+                    }
+                }
+                if(data.achievement_definitions) {
+                    try {
+                        console.log('UsersManager: Raw achievements data', data.achievement_definitions);
+                        const parsed = typeof data.achievement_definitions === 'string' ? JSON.parse(data.achievement_definitions) : data.achievement_definitions;
+                        console.log('UsersManager: Parsed achievements', parsed);
+                        setAvailableAchievements(Array.isArray(parsed) ? parsed : []);
+                    } catch (e) { 
+                        console.error('UsersManager: Error parsing achievements', e);
+                        setAvailableAchievements([]); 
+                    }
+                } else {
+                    console.warn('UsersManager: No achievement_definitions found in settings data');
                 }
             })
             .catch(console.warn);
-    }, [mockMedals]);
+    };
+
+    // Fetch available medals on load
+    useEffect(() => {
+        fetchSettings();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const handleSearch = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -134,7 +164,7 @@ export default function UsersManager({ mockUsers, mockMedals }: UsersManagerProp
         }
     }
 
-    const handleSaveMedals = async () => {
+    const handleSaveMetadata = async () => {
         if (!editingUser) return;
         setSavingMedals(true);
         try {
@@ -144,17 +174,22 @@ export default function UsersManager({ mockUsers, mockMedals }: UsersManagerProp
                 ...getAuthHeaders(session?.access_token || null)
             };
 
+            const payload = editingType === 'medals' 
+                ? { medals: editingUser.medals } 
+                : { achievements: editingUser.achievements };
+
             const res = await fetch(`${API_URL}/users/${editingUser.id}/metadata`, {
                 method: 'PATCH',
                 headers,
-                body: JSON.stringify({ metadata: { medals: editingUser.medals } })
+                body: JSON.stringify({ metadata: payload })
             });
 
             if (res.ok) {
-                setUsers(users.map(u => u.id === editingUser.id ? { ...u, medals: editingUser.medals } : u));
+                setUsers(users.map(u => u.id === editingUser.id ? { ...u, ...payload } : u));
                 setEditingUser(null);
+                setEditingType(null);
             } else {
-                alert(t('admin.users.error_medals'));
+                alert(t('admin.users.error_update', 'Error al actualizar'));
             }
         } catch (error) {
             console.error(error);
@@ -174,6 +209,19 @@ export default function UsersManager({ mockUsers, mockMedals }: UsersManagerProp
             newMedals = [...newMedals, medalId];
         }
         setEditingUser({ ...editingUser, medals: newMedals });
+    };
+
+    const toggleAchievement = (achievementId: string | number) => {
+        if (!editingUser) return;
+        const hasAchievement = editingUser.achievements?.includes(achievementId);
+        let newAchievements = editingUser.achievements || [];
+        
+        if (hasAchievement) {
+            newAchievements = newAchievements.filter(id => id !== achievementId);
+        } else {
+            newAchievements = [...newAchievements, achievementId];
+        }
+        setEditingUser({ ...editingUser, achievements: newAchievements });
     };
 
     const canManageRoles = ['neroferno', 'killu', 'killuwu', 'developer'].includes(user?.user_metadata?.role || '');
@@ -208,19 +256,36 @@ export default function UsersManager({ mockUsers, mockMedals }: UsersManagerProp
                 loading={loading} 
                 hasSearched={hasSearched} 
                 canManageRoles={canManageRoles} 
-                onEditMedals={setEditingUser} 
+                onEditMedals={(u) => { setEditingUser(u); setEditingType('medals'); }}
+                onEditAchievements={(u) => { 
+                    fetchSettings(); 
+                    setEditingUser(u); 
+                    setEditingType('achievements'); 
+                }}
                 onRoleChange={handleRoleChange} 
             />
 
             {/* Medals Modal */}
-            {editingUser && (
+            {editingUser && editingType === 'medals' && (
                 <UserMedalsModal 
                     user={editingUser} 
                     availableMedals={availableMedals} 
-                    onClose={() => setEditingUser(null)} 
-                    onSave={handleSaveMedals} 
+                    onClose={() => { setEditingUser(null); setEditingType(null); }} 
+                    onSave={handleSaveMetadata} 
                     saving={savingMedals} 
                     onToggleMedal={toggleMedal} 
+                />
+            )}
+
+            {/* Achievements Modal */}
+            {editingUser && editingType === 'achievements' && (
+                <UserAchievementsModal 
+                    user={editingUser} 
+                    availableAchievements={availableAchievements} 
+                    onClose={() => { setEditingUser(null); setEditingType(null); }} 
+                    onSave={handleSaveMetadata} 
+                    saving={savingMedals} 
+                    onToggleAchievement={toggleAchievement} 
                 />
             )}
 

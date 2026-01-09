@@ -227,7 +227,7 @@ export default function PolicyPage() {
 
                 <div style={{ marginTop: '4rem', textAlign: 'center', color: '#666', fontSize: '0.85rem', paddingBottom: '2rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.8rem', background: 'rgba(255,255,255,0.02)', padding: '1.5rem 3rem', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                         <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '1rem' }}>{t('policies.contact_support', '¿Tienes dudas sobre nuestras políticas?')}</span>
+                         <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '1rem' }}>{t('policies.contact_support_msg', '¿Tienes dudas sobre nuestras políticas?')}</span>
                          <Link 
                             to="/support" 
                             className="hover-lift"
@@ -243,7 +243,7 @@ export default function PolicyPage() {
                                 boxShadow: '0 4px 15px rgba(var(--accent-rgb), 0.3)'
                             }}
                         >
-                            <FaHeadset size={18} /> Contactar Soporte
+                            <FaHeadset size={18} /> {t('policies.contact_support_btn', 'Contactar Soporte')}
                         </Link>
                     </div>
                     <p style={{ margin: '1rem 0 0', opacity: 0.5 }}>© {new Date().getFullYear()} CrystalTides SMP.</p>

@@ -8,12 +8,13 @@ export interface AchievementCardProps {
     unlocked: boolean;
     criteria?: string;
     onShare?: () => void;
+    color?: string;
 }
 
-const AchievementCard = ({ title, description, icon, unlocked, criteria, onShare }: AchievementCardProps) => (
+const AchievementCard = ({ title, description, icon, unlocked, criteria, onShare, color = '#4CAF50' }: AchievementCardProps) => (
     <div className={`achievement-card ${unlocked ? 'unlocked' : 'locked'}`} style={{
         background: unlocked ? 'linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02))' : 'transparent',
-        border: unlocked ? '1px solid rgba(76, 175, 80, 0.3)' : '1px dashed rgba(255,255,255,0.15)',
+        border: unlocked ? `1px solid ${color}4d` : '1px dashed rgba(255,255,255,0.15)',
         borderRadius: '12px',
         padding: '1.5rem',
         display: 'flex',
@@ -29,7 +30,7 @@ const AchievementCard = ({ title, description, icon, unlocked, criteria, onShare
     onMouseEnter={(e) => {
         e.currentTarget.style.transform = 'translateY(-5px)'
         e.currentTarget.style.boxShadow = unlocked 
-            ? '0 10px 20px rgba(76, 175, 80, 0.1)' 
+            ? `0 10px 20px ${color}1a` 
             : '0 5px 15px rgba(0,0,0,0.3)'
         
         if (!unlocked) {
@@ -49,15 +50,38 @@ const AchievementCard = ({ title, description, icon, unlocked, criteria, onShare
                  {onShare && (
                     <button 
                         onClick={(e) => { e.stopPropagation(); onShare(); }}
-                        style={{ color: 'rgba(255,255,255,0.5)', background: 'none', border: 'none', cursor: 'pointer', transition: '0.2s' }}
-                        onMouseOver={e => e.currentTarget.style.color = '#fff'}
-                        onMouseOut={e => e.currentTarget.style.color = 'rgba(255,255,255,0.5)'}
+                        style={{ 
+                            color: '#fff', 
+                            background: 'rgba(255,255,255,0.1)', 
+                            border: '1px solid rgba(255,255,255,0.1)', 
+                            borderRadius: '50%',
+                            width: '32px',
+                            height: '32px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer', 
+                            transition: 'all 0.3s ease',
+                            boxShadow: '0 2px 5px rgba(0,0,0,0.2)'
+                        }}
+                        onMouseEnter={e => {
+                            e.currentTarget.style.background = `${color}33`;
+                            e.currentTarget.style.borderColor = color;
+                            e.currentTarget.style.boxShadow = `0 0 15px ${color}66`;
+                            e.currentTarget.style.transform = 'scale(1.1)';
+                        }}
+                        onMouseLeave={e => {
+                            e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
+                            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)';
+                            e.currentTarget.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+                            e.currentTarget.style.transform = 'scale(1)';
+                        }}
                         title="Compartir Logro"
                     >
                         <FaShareAlt size={14} />
                     </button>
                  )}
-                <div style={{ color: '#4CAF50', filter: 'drop-shadow(0 0 5px rgba(76,175,80,0.5))' }}>
+                <div style={{ color: color, filter: `drop-shadow(0 0 5px ${color}80)` }}>
                     <FaMedal />
                 </div>
             </div>
@@ -71,7 +95,7 @@ const AchievementCard = ({ title, description, icon, unlocked, criteria, onShare
             fontSize: '2.5rem', 
             opacity: unlocked ? 1 : 0.4, 
             filter: unlocked ? 'none' : 'grayscale(100%)',
-            background: unlocked ? 'rgba(76, 175, 80, 0.1)' : 'rgba(255,255,255,0.03)',
+            background: unlocked ? `${color}1a` : 'rgba(255,255,255,0.03)',
             width: '60px',
             height: '60px',
             display: 'flex',
@@ -79,7 +103,7 @@ const AchievementCard = ({ title, description, icon, unlocked, criteria, onShare
             justifyContent: 'center',
             borderRadius: '50%',
             marginBottom: '0.5rem',
-            border: unlocked ? '1px solid rgba(76, 175, 80, 0.2)' : '1px solid rgba(255,255,255,0.05)'
+            border: unlocked ? `1px solid ${color}33` : '1px solid rgba(255,255,255,0.05)'
         }}>
             {icon}
         </div>

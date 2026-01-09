@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import html2canvas from 'html2canvas';
+import { useTranslation } from 'react-i18next';
 import { FaDownload, FaTimes } from 'react-icons/fa';
 
 
@@ -17,7 +18,7 @@ interface ShareableCardProps {
 const ShareableCard: React.FC<ShareableCardProps> = ({ achievement, username, onClose }) => {
     const cardRef = useRef<HTMLDivElement>(null);
     const [generating, setGenerating] = useState(false);
-    // const { t } = useTranslation(); // Unused for now
+    const { t } = useTranslation();
 
     const handleDownload = async () => {
         if (!cardRef.current) return;
@@ -75,7 +76,7 @@ const ShareableCard: React.FC<ShareableCardProps> = ({ achievement, username, on
 
                     {/* Right: Achievement Content */}
                     <div style={{ flex: 1 }}>
-                        <h4 style={{ color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '2px', fontSize: '0.9rem', marginBottom: '0.5rem' }}>LOGRO DESBLOQUEADO</h4>
+                        <h4 style={{ color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '2px', fontSize: '0.9rem', marginBottom: '0.5rem' }}>{t('account.achievement_unlocked', 'LOGRO DESBLOQUEADO')}</h4>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
                              <div style={{ 
                                 fontSize: '3rem', 
@@ -83,7 +84,10 @@ const ShareableCard: React.FC<ShareableCardProps> = ({ achievement, username, on
                                 padding: '15px', 
                                 borderRadius: '50%',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                border: '1px solid rgba(255,255,255,0.1)'
+                                border: '1px solid rgba(255,255,255,0.1)',
+                                width: '80px',
+                                height: '80px',
+                                flexShrink: 0
                              }}>
                                 {achievement.icon}
                              </div>
@@ -94,8 +98,8 @@ const ShareableCard: React.FC<ShareableCardProps> = ({ achievement, username, on
                         <p style={{ color: '#ccc', fontSize: '1.1rem', lineHeight: '1.5' }}>{achievement.description}</p>
                         
                         <div style={{ marginTop: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <img src="/logo.png" alt="CrystalTides" style={{ height: '24px', opacity: 0.8 }} /> 
-                            <span style={{ color: '#666', fontSize: '0.9rem' }}>crystaltides.net</span>
+                            <img src="/images/ui/logo.png" alt="CrystalTides" style={{ height: '24px', opacity: 0.8 }} /> 
+                            <span style={{ color: '#666', fontSize: '0.9rem' }}>mc.crystaltidesSMP.net</span>
                         </div>
                     </div>
                 </div>
@@ -108,7 +112,7 @@ const ShareableCard: React.FC<ShareableCardProps> = ({ achievement, username, on
                         className="btn-primary"
                         style={{ padding: '1rem 2rem', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.8rem' }}
                     >
-                        {generating ? 'Generando...' : <><FaDownload /> Descargar Imagen</>}
+                        {generating ? t('common.generating', 'Generando...') : <><FaDownload /> {t('account.download_image', 'Descargar Imagen')}</>}
                     </button>
                 </div>
             </div>

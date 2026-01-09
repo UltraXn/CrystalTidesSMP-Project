@@ -51,8 +51,7 @@ export default function Register() {
             if (message.includes('unique constraint') || message.includes('409')) {
                 return setGeneralError(`${t('register.user_exists')} (DB)`)
             }
-            
-            setGeneralError('Error: ' + message)
+            setGeneralError(t('register.error_generic', 'Error') + ': ' + message)
         }
     }
 

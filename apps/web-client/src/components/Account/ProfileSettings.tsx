@@ -114,12 +114,12 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
                 {/* Profile Info Card */}
                 <div className="dashboard-card" style={{ background: 'rgba(255,255,255,0.03)', padding: '1.5rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)', gridColumn: '1 / -1' }}>
-                    <h3 style={{ color: '#fff', marginBottom: '1.5rem', display:'flex', alignItems:'center', gap:'10px' }}><FaUser /> Información del Perfil</h3>
+                    <h3 style={{ color: '#fff', marginBottom: '1.5rem', display:'flex', alignItems:'center', gap:'10px' }}><FaUser /> {t('account.settings.profile_info', 'Información del Perfil')}</h3>
 
                     {/* Avatar Preference Selector */}
                     <div style={{ marginBottom: '2rem', padding: '1.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
                         <label style={{ display: 'block', color: '#ccc', marginBottom: '1rem', fontSize: '0.9rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                            Preferencia de Avatar
+                            {t('account.settings.avatar_pref', 'Preferencia de Avatar')}
                         </label>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                             <div 
@@ -138,7 +138,7 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({
                                 }}
                             >
                                 <img src={`https://mc-heads.net/avatar/${mcUsername}/48`} alt="MC" style={{ width: '48px', height: '48px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.1)' }} />
-                                <span style={{ fontSize: '0.85rem', color: watch('avatar_preference') === 'minecraft' ? '#fff' : '#888', fontWeight: '600' }}>Minecraft Head</span>
+                                <span style={{ fontSize: '0.85rem', color: watch('avatar_preference') === 'minecraft' ? '#fff' : '#888', fontWeight: '600' }}>{t('account.settings.mc_head', 'Minecraft Head')}</span>
                             </div>
 
                             <div 
@@ -163,11 +163,11 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({
                                         style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
                                     />
                                 </div>
-                                <span style={{ fontSize: '0.85rem', color: watch('avatar_preference') === 'social' ? '#fff' : '#888', fontWeight: '600' }}>Social / Web</span>
+                                <span style={{ fontSize: '0.85rem', color: watch('avatar_preference') === 'social' ? '#fff' : '#888', fontWeight: '600' }}>{t('account.settings.social_web', 'Social / Web')}</span>
                             </div>
                         </div>
                         <p style={{ marginTop: '1rem', fontSize: '0.75rem', color: '#666', fontStyle: 'italic' }}>
-                            * Selecciona qué imagen prefieres ver en tu perfil público y barra de navegación.
+                            {t('account.settings.avatar_hint', '* Selecciona qué imagen prefieres ver en tu perfil público y barra de navegación.')}
                         </p>
                     </div>
 
@@ -198,7 +198,7 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({
                             ) : (
                                 <div style={{ color: '#444', textAlign: 'center' }}>
                                     <FaCamera size={40} style={{ marginBottom: '1rem', opacity: 0.3 }} />
-                                    <p style={{ fontSize: '0.9rem' }}>Sin Banner</p>
+                                    <p style={{ fontSize: '0.9rem' }}>{t('account.settings.no_banner', 'Sin Banner')}</p>
                                 </div>
                             )}
                         </div>
@@ -214,7 +214,7 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({
                             <div style={{ flex: 1 }}>
                                 <input 
                                     {...register('profile_banner_url')}
-                                    placeholder="URL de la imagen (ej: https://imgur.com/...)"
+                                    placeholder={t('account.settings.banner_placeholder', 'URL de la imagen (ej: https://imgur.com/...)')}
                                     style={{ 
                                         width: '100%', 
                                         padding: '12px 16px', 
@@ -235,12 +235,12 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({
                     
                     <form onSubmit={handleSubmit(handleSaveProfile)} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '2rem' }}>
                         <div>
-                            <label style={{ display: 'block', color: '#ccc', marginBottom: '8px', fontSize: '0.9rem' }}>Biografía (Markdown opcional)</label>
+                            <label style={{ display: 'block', color: '#ccc', marginBottom: '8px', fontSize: '0.9rem' }}>{t('account.settings.bio_label', 'Biografía (Markdown opcional)')}</label>
                             <textarea 
                                 {...register('bio')}
                                 rows={4}
                                 maxLength={500}
-                                placeholder="Cuéntanos un poco sobre ti..."
+                                placeholder={t('account.settings.bio_ph', 'Cuéntanos un poco sobre ti...')}
                                 style={{ 
                                     width: '100%', 
                                     padding: '16px', 
@@ -254,11 +254,11 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({
                                     lineHeight: '1.6'
                                 }}
                             />
-                            <span style={{ fontSize: '0.7rem', color: '#555', marginTop: '8px', display: 'block', textAlign: 'right', fontWeight: 600 }}>MAX 500 CHARS</span>
+                            <span style={{ fontSize: '0.7rem', color: '#555', marginTop: '8px', display: 'block', textAlign: 'right', fontWeight: 600 }}>{t('account.settings.max_chars', 'MAX 500 CARS')}</span>
                         </div>
                         
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                            <label style={{ color: '#ccc', fontSize: '0.9rem', marginBottom: '-0.5rem' }}>Redes Sociales</label>
+                            <label style={{ color: '#ccc', fontSize: '0.9rem', marginBottom: '-0.5rem' }}>{t('account.settings.social_links', 'Redes Sociales')}</label>
                             
                             {/* Discord Input Group */}
                             <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px', padding: '0 16px', transition: '0.2s' }}>
@@ -266,7 +266,7 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({
                                 <input 
                                     {...register('social_discord')}
                                     autoComplete="off"
-                                    placeholder="nombredeusuario"
+                                    placeholder={t('account.settings.username_ph', 'nombredeusuario')}
                                     style={{ flex: 1, padding: '14px', background: 'transparent', border: 'none', color: '#fff', outline: 'none', fontSize: '0.9rem' }}
                                 />
                             </div>
@@ -277,7 +277,7 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({
                                 <input 
                                     {...register('social_twitter')}
                                     autoComplete="off"
-                                    placeholder="Twitter (ej: @miusuario)"
+                                    placeholder={t('account.settings.twitter_ph', 'Twitter (ej: @miusuario)')}
                                     style={{ flex: 1, padding: '14px', background: 'transparent', border: 'none', color: '#fff', outline: 'none', fontSize: '0.9rem' }}
                                 />
                             </div>
@@ -288,7 +288,7 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({
                                 <input 
                                     {...register('social_twitch')}
                                     autoComplete="off"
-                                    placeholder="Canal de Twitch"
+                                    placeholder={t('account.settings.twitch_ph', 'Canal de Twitch')}
                                     style={{ flex: 1, padding: '14px', background: 'transparent', border: 'none', color: '#fff', outline: 'none', fontSize: '0.9rem' }}
                                 />
                             </div>
@@ -299,7 +299,7 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({
                                 <input 
                                     {...register('social_kofi')}
                                     autoComplete="off"
-                                    placeholder="URL de Ko-Fi"
+                                    placeholder={t('account.settings.kofi_ph', 'URL de Ko-Fi')}
                                     style={{ flex: 1, padding: '14px', background: 'transparent', border: 'none', color: '#fff', outline: 'none', fontSize: '0.9rem' }}
                                 />
                             </div>
@@ -322,7 +322,7 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({
                                     boxShadow: '0 8px 20px rgba(109, 165, 192, 0.2)'
                                 }}
                             >
-                                {isSavingProfile ? <Loader minimal /> : <><FaUser /> {t('account.settings.save_info', 'Actualizar Perfil')}</>}
+                                {isSavingProfile ? <Loader minimal /> : <><FaUser /> {t('account.settings.save_profile', 'Actualizar Perfil')}</>}
                             </button>
                         </div>
                     </form>

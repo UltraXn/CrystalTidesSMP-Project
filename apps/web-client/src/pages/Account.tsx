@@ -37,6 +37,7 @@ interface MedalDefinition {
     description: string;
     icon: string;
     color: string;
+    image_url?: string;
 }
 
 interface PlayerStatsData {
@@ -58,6 +59,16 @@ interface PlayerStatsData {
     raw_rank?: string;
 }
 
+interface AchievementDefinition {
+    id: string | number;
+    name: string;
+    description: string;
+    criteria: string;
+    icon: string;
+    image_url?: string;
+    color?: string;
+}
+
 export default function Account() {
     const { t } = useTranslation()
     const { user, loading } = useAuth()
@@ -70,6 +81,7 @@ export default function Account() {
     // Mobile Navigation States
     const [isMobile, setIsMobile] = useState(window.innerWidth < 1024)
     const [sidebarOpen, setSidebarOpen] = useState(false)
+
 
     // Handle Resize
     useEffect(() => {
@@ -120,6 +132,12 @@ export default function Account() {
     const [isUnlinking, setIsUnlinking] = useState(false)
     const [showSuccessModal, setShowSuccessModal] = useState(false)
     const [sharingAchievement, setSharingAchievement] = useState<{title: string, description: string, icon: React.ReactNode, unlocked: boolean} | null>(null)
+    const handleShare = (achievement: any) => {
+        setSharingAchievement({
+            ...achievement,
+            unlocked: true // Ensure it shows as unlocked in the share card
+        })
+    }
 
 
     const API_URL = import.meta.env.VITE_API_URL
@@ -143,7 +161,10 @@ export default function Account() {
     }, [user, loading, navigate])
 
     // Fetch Medal Definitions
+    // Fetch Definitions (Medals & Achievements)
     const [medalDefinitions, setMedalDefinitions] = useState<MedalDefinition[]>([])
+    const [achievementDefinitions, setAchievementDefinitions] = useState<AchievementDefinition[]>([])
+    
     useEffect(() => {
         fetch(`${API_URL}/settings`)
             .then(res => {
@@ -151,14 +172,22 @@ export default function Account() {
                 return res.json();
             })
             .then(data => {
+                // Medals
                 if(data.medal_definitions) {
                     try {
                         const parsed = typeof data.medal_definitions === 'string' ? JSON.parse(data.medal_definitions) : data.medal_definitions;
                         setMedalDefinitions(Array.isArray(parsed) ? parsed : []);
                     } catch { setMedalDefinitions([]); }
                 }
+                // Achievements
+                if(data.achievement_definitions) {
+                    try {
+                        const parsed = typeof data.achievement_definitions === 'string' ? JSON.parse(data.achievement_definitions) : data.achievement_definitions;
+                        setAchievementDefinitions(Array.isArray(parsed) ? parsed : []);
+                    } catch { setAchievementDefinitions([]); }
+                }
             })
-            .catch(err => console.warn("Medal fetch error:", err)); // warn instead of error to reduce noise
+            .catch(err => console.warn("Settings fetch error:", err));
     }, [API_URL]);
 
     // Fetch Threads
@@ -468,6 +497,16 @@ export default function Account() {
     const rankLower = (statsData?.raw_rank || "").toLowerCase();
     const isPatron = rankLower.includes('donador') || rankLower.includes('fundador') || rankLower.includes('donor') || rankLower.includes('founder') || rankLower.includes('neroferno');
 
+    const unlockStatus: Record<string, boolean> = {
+        'dweller': isDweller,
+        'magnate': isMagnate,
+        'architect': isArchitect,
+        'deep_miner': isDeepMiner,
+        'guardian': isGuardian,
+        'time_traveler': isTimeTraveler,
+        'patron': isPatron
+    };
+
     useEffect(() => {
         if ((activeTab === 'overview' || activeTab === 'connections') && isLinked) {
             setLoadingStats(true)
@@ -598,7 +637,7 @@ export default function Account() {
                                     boxShadow: '0 4px 20px rgba(0,0,0,0.2)'
                                 }}>
                                     <h3 style={{ color: '#fff', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.1rem', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '1rem' }}>
-                                        🎯 Estilo de Juego
+                                        🎯 {t('account.overview.playstyle.title', 'Estilo de Juego')}
                                     </h3>
                                     <PlaystyleRadar stats={{
                                         blocksPlaced: Number(statsData?.raw_blocks_placed || 0),
@@ -620,42 +659,42 @@ export default function Account() {
                                     justifyContent: 'center' 
                                 }}>
                                     <h3 style={{ color: '#fff', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <FaInfoCircle color="var(--accent)" /> Métricas de Estilo
+                                        <FaInfoCircle color="var(--accent)" /> {t('account.overview.playstyle.metrics_title', 'Métricas de Estilo')}
                                     </h3>
                                     
                                     <div style={{ overflowX: 'auto', fontSize: '0.85rem' }}>
                                         <table style={{ width: '100%', borderCollapse: 'collapse', color: '#bbb' }}>
                                             <thead>
                                                 <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', textAlign: 'left' }}>
-                                                    <th style={{ padding: '6px 0', color: 'var(--accent)' }}>Estilo</th>
-                                                    <th style={{ padding: '6px 0', color: 'var(--accent)' }}>Meta (100%)</th>
+                                                    <th style={{ padding: '6px 0', color: 'var(--accent)' }}>{t('account.overview.playstyle.style', 'Estilo')}</th>
+                                                    <th style={{ padding: '6px 0', color: 'var(--accent)' }}>{t('account.overview.playstyle.goal', 'Meta (100%)')}</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                                                    <td style={{ padding: '6px 0', display: 'flex', alignItems: 'center', gap: '6px' }}><span style={{color:'#e67e22'}}>🛠️</span> Constructor</td>
-                                                    <td style={{ padding: '6px 0' }}>300,000 bloques</td>
+                                                    <td style={{ padding: '6px 0', display: 'flex', alignItems: 'center', gap: '6px' }}><span style={{color:'#e67e22'}}>🛠️</span> {t('account.overview.playstyle.constructor', 'Constructor')}</td>
+                                                    <td style={{ padding: '6px 0' }}>300,000 {t('account.overview.playstyle.blocks', 'bloques')}</td>
                                                 </tr>
                                                 <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                                                    <td style={{ padding: '6px 0', display: 'flex', alignItems: 'center', gap: '6px' }}><span style={{color:'#e74c3c'}}>⚔️</span> Luchador</td>
-                                                    <td style={{ padding: '6px 0' }}>5,000 pts (Kill x10)</td>
+                                                    <td style={{ padding: '6px 0', display: 'flex', alignItems: 'center', gap: '6px' }}><span style={{color:'#e74c3c'}}>⚔️</span> {t('account.overview.playstyle.fighter', 'Luchador')}</td>
+                                                    <td style={{ padding: '6px 0' }}>5,000 {t('account.overview.playstyle.pts_kill', 'pts (Kill x10)')}</td>
                                                 </tr>
                                                 <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                                                    <td style={{ padding: '6px 0', display: 'flex', alignItems: 'center', gap: '6px' }}><span style={{color:'#3498db'}}>🗺️</span> Explorador</td>
-                                                    <td style={{ padding: '6px 0' }}>200 horas</td>
+                                                    <td style={{ padding: '6px 0', display: 'flex', alignItems: 'center', gap: '6px' }}><span style={{color:'#3498db'}}>🗺️</span> {t('account.overview.playstyle.explorer', 'Explorador')}</td>
+                                                    <td style={{ padding: '6px 0' }}>200 {t('account.overview.playstyle.hours', 'horas')}</td>
                                                 </tr>
                                                 <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                                                    <td style={{ padding: '6px 0', display: 'flex', alignItems: 'center', gap: '6px' }}><span style={{color:'#f1c40f'}}>💰</span> Mercader</td>
+                                                    <td style={{ padding: '6px 0', display: 'flex', alignItems: 'center', gap: '6px' }}><span style={{color:'#f1c40f'}}>💰</span> {t('account.overview.playstyle.merchant', 'Mercader')}</td>
                                                     <td style={{ padding: '6px 0' }}>$1,000,000</td>
                                                 </tr>
                                                 <tr>
-                                                    <td style={{ padding: '6px 0', display: 'flex', alignItems: 'center', gap: '6px' }}><span style={{color:'#9b59b6'}}>👥</span> Social</td>
-                                                    <td style={{ padding: '6px 0' }}>100 pts (H x0.2 + Rango)</td>
+                                                    <td style={{ padding: '6px 0', display: 'flex', alignItems: 'center', gap: '6px' }}><span style={{color:'#9b59b6'}}>👥</span> {t('account.overview.playstyle.social', 'Social')}</td>
+                                                    <td style={{ padding: '6px 0' }}>100 {t('account.overview.playstyle.pts_formula', 'pts (H x0.2 + Rango)')}</td>
                                                 </tr>
                                             </tbody>
                                         </table>
                                         <div style={{ marginTop: '10px', fontSize: '0.75rem', color: '#666', fontStyle: 'italic' }}>
-                                            * Social: +30 pts por rango Donador, Fundador, Killuwu, Neroferno, Developer o Staff.
+                                            {t('account.overview.playstyle.social_note', '* Social: +30 pts por rango Donador, Fundador, Killuwu, Neroferno, Developer o Staff.')}
                                         </div>
                                     </div>
                                 </div>
@@ -664,87 +703,7 @@ export default function Account() {
                     </div>
                     )}
 
-                    {activeTab === 'posts' && (
-                        <div key="posts" className="fade-in">
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem' }}>
-                                <h2 style={{ color: '#fff', margin: 0 }}>{t('account.posts.title')}</h2>
-                                <Link to="/forum" style={{ background: 'var(--accent)', color: '#fff', padding: '6px 12px', borderRadius: '4px', fontSize: '0.9rem', textDecoration: 'none', fontWeight: 'bold' }}>
-                                    + {t('forum.create_topic', 'Crear Tema')}
-                                </Link>
-                            </div>
-                            
-                            {loadingThreads ? <Loader text={t('account.posts.loading')} /> : (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                    {userThreads.length === 0 ? (
-                                        <div style={{ textAlign: 'center', padding: '2rem', background: 'rgba(255,255,255,0.02)', borderRadius: '8px' }}>
-                                            <p style={{ color: 'var(--muted)', marginBottom: '1rem' }}>{t('account.posts.empty')}</p>
-                                            <Link to="/forum" style={{ color: 'var(--accent)', textDecoration: 'underline' }}>Ir al Foro</Link>
-                                        </div>
-                                    ) : (
-                                        userThreads.map(thread => (
-                                            <Link to={`/forum/thread/topic/${thread.id}`} key={thread.id} style={{ textDecoration: 'none' }}>
-                                                <div className="thread-card-mini" style={{ background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: 'background 0.2s' }} onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'} onMouseOut={e => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}>
-                                                    <div>
-                                                        <h4 style={{ color: '#fff', margin: '0 0 0.3rem 0' }}>{thread.title}</h4>
-                                                        <span style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>{new Date(thread.created_at).toLocaleDateString()}</span>
-                                                    </div>
-                                                    <div style={{ display: 'flex', gap: '1rem', color: 'var(--muted)', fontSize: '0.9rem' }}>
-                                                        <span>{thread.views} {t('account.posts.views')}</span>
-                                                        <span>{thread.reply_count} {t('account.posts.replies')}</span>
-                                                    </div>
-                                                </div>
-                                            </Link>
-                                        ))
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                    )}
 
-                    {activeTab === 'medals' && (
-                        <div key="medals" className="fade-in">
-                            <h2 style={{ color: '#fff', marginBottom: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem' }}>Mis Medallas</h2>
-                            {(!user.user_metadata?.medals || user.user_metadata.medals.length === 0) ? (
-                                <div style={{ textAlign: 'center', padding: '3rem', background: 'rgba(255,255,255,0.02)', borderRadius: '12px' }}>
-                                    <FaMedal size={48} style={{ color: '#333', marginBottom: '1rem' }} />
-                                    <p style={{ color: '#888' }}>Aún no tienes medallas especiales.</p>
-                                </div>
-                            ) : (
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1.5rem' }}>
-                                    {user.user_metadata.medals.map((medalId: string) => {
-                                        const def = medalDefinitions.find(m => m.id === medalId);
-                                        if (!def) return null;
-                                        const Icon = MEDAL_ICONS[def.icon as keyof typeof MEDAL_ICONS] || FaMedal;
-                                        return (
-                                            <div key={medalId} className="medal-card animate-pop" style={{ 
-                                                background: `linear-gradient(145deg, ${def.color}10, rgba(0,0,0,0.4))`,
-                                                border: `1px solid ${def.color}40`,
-                                                borderRadius: '12px',
-                                                padding: '1.5rem',
-                                                display: 'flex',
-                                                flexDirection: 'column',
-                                                alignItems: 'center',
-                                                textAlign: 'center',
-                                                position: 'relative',
-                                                overflow: 'hidden'
-                                            }}>
-                                                <div style={{ 
-                                                    fontSize: '2.5rem', 
-                                                    color: def.color, 
-                                                    marginBottom: '1rem',
-                                                    filter: `drop-shadow(0 0 10px ${def.color}60)`
-                                                }}>
-                                                    <Icon /> 
-                                                </div>
-                                                <h3 style={{ color: '#fff', fontSize: '1.1rem', marginBottom: '0.5rem' }}>{def.name}</h3>
-                                                <p style={{ color: '#ccc', fontSize: '0.85rem' }}>{def.description}</p>
-                                            </div>
-                                        )
-                                    })}
-                                </div>
-                            )}
-                        </div>
-                    )}
 
                     {activeTab === 'achievements' && (
                         <div key="achievements" className="fade-in">
@@ -761,7 +720,7 @@ export default function Account() {
                     {/* Season Timeline */}
                     <div style={{ marginBottom: '2.5rem', background: 'rgba(255,255,255,0.02)', padding: '2rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
                          <h3 style={{ color: 'var(--accent)', marginBottom: '1.5rem', fontSize: '1rem', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 'bold' }}>
-                            📅 Tu Travesía en CrystalTides
+                            {t('account.journey_title', '📅 Tu Travesía en CrystalTides')}
                          </h3>
                          <div style={{ display: 'flex', alignItems: 'center', gap: '0', position: 'relative', overflowX: 'auto', padding: '1rem 0' }}>
                             {/* Line Background */}
@@ -770,121 +729,160 @@ export default function Account() {
                             {/* Nodes */}
                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '140px', position: 'relative', zIndex: 1 }}>
                                 <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: 'var(--accent)', marginBottom: '12px', boxShadow: '0 0 15px var(--accent)' }} />
-                                <span style={{ color: '#fff', fontSize: '0.9rem', fontWeight: 'bold' }}>Llegada</span>
+                                <span style={{ color: '#fff', fontSize: '0.9rem', fontWeight: 'bold' }}>{t('account.journey_arrival', 'Llegada')}</span>
                                 <span style={{ color: '#666', fontSize: '0.8rem', marginTop: '4px' }}>{statsData?.member_since || '???'}</span>
                             </div>
 
                              {statsData?.raw_rank && !['default'].includes(statsData.raw_rank.toLowerCase()) && (
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '140px', position: 'relative', zIndex: 1, marginLeft: 'auto', marginRight: 'auto' }}>
                                     <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#fff', marginBottom: '12px' }} />
-                                    <span style={{ color: '#fff', fontSize: '0.9rem' }}>Ascenso</span>
+                                    <span style={{ color: '#fff', fontSize: '0.9rem' }}>{t('account.journey_promotion', 'Ascenso')}</span>
                                     <span style={{ color: 'var(--accent)', fontSize: '0.8rem', marginTop: '4px', textTransform: 'capitalize' }}>{statsData.raw_rank}</span>
                                 </div>
                              )}
 
                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '140px', position: 'relative', zIndex: 1, marginLeft: 'auto' }}>
                                 <div style={{ width: '16px', height: '16px', transform: 'rotate(45deg)', background: '#4CAF50', marginBottom: '12px', boxShadow: '0 0 15px #4CAF50' }} />
-                                <span style={{ color: '#fff', fontSize: '0.9rem', fontWeight: 'bold' }}>Hoy</span>
-                                <span style={{ color: '#888', fontSize: '0.8rem', marginTop: '4px' }}>{(statsData?.playtime ? (parseInt(statsData.playtime.match(/(\d+)h/)?.[1] || '0') + (parseInt(statsData.playtime.match(/(\d+)m/)?.[1] || '0')/60)) : 0).toFixed(1)}h jugadas</span>
+                                <span style={{ color: '#fff', fontSize: '0.9rem', fontWeight: 'bold' }}>{t('account.journey_today', 'Hoy')}</span>
+                                <span style={{ color: '#888', fontSize: '0.8rem', marginTop: '4px' }}>{(statsData?.playtime ? (parseInt(statsData.playtime.match(/(\d+)h/)?.[1] || '0') + (parseInt(statsData.playtime.match(/(\d+)m/)?.[1] || '0')/60)) : 0).toFixed(1)}h {t('account.journey_played', 'jugadas')}</span>
                             </div>
                          </div>
                     </div>
                             
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1.5rem' }}>
-                                <AchievementCard 
-                                    title={t('account.achievements.items.dweller')} 
-                                    icon="🌊" 
-                                    unlocked={isDweller} 
-                                    description={t('account.achievements.items.dweller_desc')}
-                                    criteria={t('account.achievements.items.dweller_criteria')}
-                                    onShare={() => setSharingAchievement({
-                                        title: t('account.achievements.items.dweller'),
-                                        description: t('account.achievements.items.dweller_desc'),
-                                        icon: "🌊",
-                                        unlocked: true
-                                    })}
-                                />
-                                <AchievementCard 
-                                    title={t('account.achievements.items.magnate')} 
-                                    icon="💎" 
-                                    unlocked={isMagnate} 
-                                    description={t('account.achievements.items.magnate_desc')}
-                                    criteria={t('account.achievements.items.magnate_criteria')}
-                                    onShare={() => setSharingAchievement({
-                                        title: t('account.achievements.items.magnate'),
-                                        description: t('account.achievements.items.magnate_desc'),
-                                        icon: "💎",
-                                        unlocked: true
-                                    })}
-                                />
-                                <AchievementCard 
-                                    title={t('account.achievements.items.architect')} 
-                                    icon="🏗️" 
-                                    unlocked={isArchitect} 
-                                    description={t('account.achievements.items.architect_desc')}
-                                    criteria={t('account.achievements.items.architect_criteria')}
-                                    onShare={() => setSharingAchievement({
-                                        title: t('account.achievements.items.architect'),
-                                        description: t('account.achievements.items.architect_desc'),
-                                        icon: "🏗️",
-                                        unlocked: true
-                                    })}
-                                />
-                                <AchievementCard 
-                                    title={t('account.achievements.items.deep_miner')} 
-                                    icon="⛏️" 
-                                    unlocked={isDeepMiner} 
-                                    description={t('account.achievements.items.deep_miner_desc')}
-                                    criteria={t('account.achievements.items.deep_miner_criteria')}
-                                    onShare={() => setSharingAchievement({
-                                        title: t('account.achievements.items.deep_miner'),
-                                        description: t('account.achievements.items.deep_miner_desc'),
-                                        icon: "⛏️",
-                                        unlocked: true
-                                    })}
-                                />
-                                <AchievementCard 
-                                    title={t('account.achievements.items.guardian')} 
-                                    icon="⚔️" 
-                                    unlocked={isGuardian} 
-                                    description={t('account.achievements.items.guardian_desc')}
-                                    criteria={t('account.achievements.items.guardian_criteria')}
-                                    onShare={() => setSharingAchievement({
-                                        title: t('account.achievements.items.guardian'),
-                                        description: t('account.achievements.items.guardian_desc'),
-                                        icon: "⚔️",
-                                        unlocked: true
-                                    })}
-                                />
-                                <AchievementCard 
-                                    title={t('account.achievements.items.time_traveler')} 
-                                    icon="⏳" 
-                                    unlocked={isTimeTraveler} 
-                                    description={t('account.achievements.items.time_traveler_desc')}
-                                    criteria={t('account.achievements.items.time_traveler_criteria')}
-                                    onShare={() => setSharingAchievement({
-                                        title: t('account.achievements.items.time_traveler'),
-                                        description: t('account.achievements.items.time_traveler_desc'),
-                                        icon: "⏳",
-                                        unlocked: true
-                                    })}
-                                />
-                                <AchievementCard 
-                                    title={t('account.achievements.items.patron')} 
-                                    icon="👑" 
-                                    unlocked={isPatron} 
-                                    description={t('account.achievements.items.patron_desc')}
-                                    criteria={t('account.achievements.items.patron_criteria')}
-                                    onShare={() => setSharingAchievement({
-                                        title: t('account.achievements.items.patron'),
-                                        description: t('account.achievements.items.patron_desc'),
-                                        icon: "👑",
-                                        unlocked: true
-                                    })}
-                                />
+                                {achievementDefinitions.length > 0 ? (
+                                    achievementDefinitions.map((achievement) => {
+                                        const isUnlocked = unlockStatus[achievement.id] || (user.user_metadata?.achievements?.includes(achievement.id)) || false;
+                                        
+                                        // Prioritize uploaded image, fallback to emoji/icon
+                                        const renderedIcon = achievement.image_url ? (
+                                            <img 
+                                                src={achievement.image_url} 
+                                                alt={achievement.name} 
+                                                style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '8px' }} 
+                                            />
+                                        ) : achievement.icon;
+
+                                        return (
+                                            <AchievementCard 
+                                                key={achievement.id}
+                                                title={achievement.name}
+                                                description={achievement.description}
+                                                criteria={achievement.criteria}
+                                                icon={renderedIcon}
+                                                unlocked={isUnlocked}
+                                                onShare={isUnlocked ? () => handleShare(achievement) : undefined}
+                                                color={achievement.color}
+                                            />
+                                        );
+                                    })
+                                ) : (
+                                    <p style={{ color: '#666', gridColumn: '1/-1', textAlign: 'center' }}>No hay logros.</p>
+                                )}
                             </div>
                         </div>
                     )}
+
+                     {activeTab === 'posts' && (
+                         <div key="posts" className="fade-in">
+                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem' }}>
+                                 <h2 style={{ color: '#fff', margin: 0 }}>{t('account.posts.title')}</h2>
+                                 <Link to="/forum" style={{ background: 'var(--accent)', color: '#fff', padding: '6px 12px', borderRadius: '4px', fontSize: '0.9rem', textDecoration: 'none', fontWeight: 'bold' }}>
+                                     + {t('account.posts.create_topic', 'Crear Tema')}
+                                 </Link>
+                             </div>
+                             
+                             {loadingThreads ? <Loader text={t('account.posts.loading')} /> : (
+                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                     {userThreads.length === 0 ? (
+                                         <div style={{ textAlign: 'center', padding: '2rem', background: 'rgba(255,255,255,0.02)', borderRadius: '8px' }}>
+                                             <p style={{ color: 'var(--muted)', marginBottom: '1rem' }}>{t('account.posts.empty')}</p>
+                                             <Link to="/forum" style={{ color: 'var(--accent)', textDecoration: 'underline' }}>{t('account.posts.go_to_forum', 'Ir al Foro')}</Link>
+                                         </div>
+                                     ) : (
+                                         userThreads.map(thread => (
+                                             <Link to={`/forum/thread/topic/${thread.id}`} key={thread.id} style={{ textDecoration: 'none' }}>
+                                                 <div className="thread-card-mini" style={{ background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: 'background 0.2s' }} onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'} onMouseOut={e => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}>
+                                                     <div>
+                                                         <h4 style={{ color: '#fff', margin: '0 0 0.3rem 0' }}>{thread.title}</h4>
+                                                         <span style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>{new Date(thread.created_at).toLocaleDateString()}</span>
+                                                     </div>
+                                                     <div style={{ display: 'flex', gap: '1rem', color: 'var(--muted)', fontSize: '0.9rem' }}>
+                                                         <span>{thread.views} {t('account.posts.views')}</span>
+                                                         <span>{thread.reply_count} {t('account.posts.replies')}</span>
+                                                     </div>
+                                                 </div>
+                                             </Link>
+                                         ))
+                                     )}
+                                 </div>
+                             )}
+                         </div>
+                     )}
+
+                     {activeTab === 'medals' && (
+                         <div key="medals" className="fade-in">
+                             <h2 style={{ color: '#fff', marginBottom: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem' }}>{t('account.medals_title', 'Mis Medallas')}</h2>
+                             {(!user.user_metadata?.medals || user.user_metadata.medals.length === 0) ? (
+                                 <div style={{ textAlign: 'center', padding: '3rem', background: 'rgba(255,255,255,0.02)', borderRadius: '12px' }}>
+                                     <FaMedal size={48} style={{ color: '#333', marginBottom: '1rem' }} />
+                                     <p style={{ color: '#888' }}>{t('account.no_medals', 'Aún no tienes medallas especiales.')}</p>
+                                 </div>
+                             ) : (
+                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1.5rem' }}>
+                                     {user.user_metadata.medals.map((medalId: string) => {
+                                         const def = medalDefinitions.find(m => m.id === medalId);
+                                         if (!def) return null;
+                                         const Icon = MEDAL_ICONS[def.icon as keyof typeof MEDAL_ICONS] || FaMedal;
+                                         return (
+                                             <div key={medalId} className="medal-card animate-pop" style={{ 
+                                                 background: `linear-gradient(145deg, ${def.color}10, rgba(0,0,0,0.4))`,
+                                                 border: `1px solid ${def.color}40`,
+                                                 borderRadius: '12px',
+                                                 padding: '1.5rem',
+                                                 display: 'flex',
+                                                 flexDirection: 'column',
+                                                 alignItems: 'center',
+                                                 textAlign: 'center',
+                                                 position: 'relative',
+                                                 overflow: 'hidden'
+                                             }}>
+                                                 <div style={{ 
+                                                     height: '60px',
+                                                     width: '60px',
+                                                     marginBottom: '1rem',
+                                                     display: 'flex',
+                                                     alignItems: 'center',
+                                                     justifyContent: 'center'
+                                                 }}>
+                                                     {def.image_url ? (
+                                                         <img 
+                                                             src={def.image_url} 
+                                                             alt={def.name} 
+                                                             style={{ 
+                                                                 width: '100%', 
+                                                                 height: '100%', 
+                                                                 objectFit: 'contain', 
+                                                                 filter: `drop-shadow(0 0 10px ${def.color}60)` 
+                                                             }} 
+                                                         />
+                                                     ) : (
+                                                         <div style={{ fontSize: '2.5rem', color: def.color, filter: `drop-shadow(0 0 10px ${def.color}60)` }}>
+                                                             <Icon />
+                                                         </div>
+                                                     )}
+                                                 </div>
+                                                 <h3 style={{ color: '#fff', fontSize: '1.1rem', marginBottom: '0.5rem' }}>{def.name}</h3>
+                                                 <p style={{ color: '#ccc', fontSize: '0.85rem' }}>{def.description}</p>
+                                             </div>
+                                         )
+                                     })}
+                                 </div>
+                             )}
+                         </div>
+                     )}
+
+
 
                     {activeTab === 'connections' && (
                         <div key="connections" className="fade-in">
@@ -937,8 +935,8 @@ export default function Account() {
                 onClose={() => !isUnlinking && setIsUnlinkModalOpen(false)}
                 onConfirm={confirmUnlink}
                 isLoading={isUnlinking}
-                title="Desvincular cuenta"
-                message="¿Estás seguro? Podrías perder acceso a ciertas características."
+                title={t('account.unlink_confirm_title', 'Desvincular cuenta')}
+                message={t('account.unlink_confirm_msg', '¿Estás seguro? Podrías perder acceso a ciertas características.')}
             />
             
             <Toast 

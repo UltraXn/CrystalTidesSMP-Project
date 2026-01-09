@@ -22,27 +22,27 @@ const PlaystyleRadarFinal: React.FC<PlaystyleRadarProps> = ({ stats }) => {
 
     const scores = [
         {
-            subject: t('account.playstyle.builder', 'Constructor'),
+            subject: t('account.overview.playstyle.constructor', 'Constructor'),
             A: getScore(stats.blocksPlaced + stats.blocksMined, 300000), // 300k blocks
             fullMark: 100,
         },
         {
-            subject: t('account.playstyle.fighter', 'Luchador'),
+            subject: t('account.overview.playstyle.fighter', 'Luchador'),
             A: getScore(stats.kills * 10 + stats.mobKills, 5000), // 5k mob kills equivalent
             fullMark: 100,
         },
         {
-            subject: t('account.playstyle.explorer', 'Explorador'),
+            subject: t('account.overview.playstyle.explorer', 'Explorador'),
             A: getScore(stats.playtimeHours, 200), // 200h
             fullMark: 100,
         },
         {
-            subject: t('account.playstyle.merchant', 'Mercader'),
+            subject: t('account.overview.playstyle.merchant', 'Mercader'),
             A: getScore(stats.money, 1000000), // 1M coins
             fullMark: 100,
         },
         {
-            subject: t('account.playstyle.social', 'Social'),
+            subject: t('account.overview.playstyle.social', 'Social'),
             A: getScore(
                 (stats.playtimeHours * 0.2) + (['donador', 'fundador', 'killuwu', 'neroferno', 'developer', 'staff'].some(r => stats.rank.toLowerCase().includes(r)) ? 30 : 0), 
                 100

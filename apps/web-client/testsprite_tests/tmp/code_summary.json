@@ -1,0 +1,88 @@
+{
+  "tech_stack": [
+    "TypeScript",
+    "React",
+    "Vite",
+    "Supabase",
+    "TailwindCSS",
+    "shadcn/ui",
+    "React Router",
+    "Zod",
+    "React Hook Form",
+    "TanStack Query"
+  ],
+  "features": [
+    {
+      "name": "Authentication & User Management",
+      "description": "Handles user login, registration, and profile management using Supabase Auth.",
+      "files": [
+        "src/context/AuthContext.tsx",
+        "src/services/supabaseClient.ts",
+        "src/pages/Login.tsx",
+        "src/pages/Register.tsx",
+        "src/pages/Account.tsx",
+        "src/components/Account/ProfileEditModal.tsx"
+      ]
+    },
+    {
+      "name": "Game Integrations (Minecraft/Discord)",
+      "description": "Links web accounts to Minecraft and Discord identities, managing role synchronization and data display.",
+      "files": [
+        "src/pages/Verify.tsx",
+        "src/components/Account/ConnectionCards.tsx",
+        "src/components/Account/MinecraftSkinViewer.tsx",
+        "src/services/discordService.ts"
+      ]
+    },
+    {
+      "name": "Dashboard & Statistics",
+      "description": "Displays user statistics, playstyle analysis (radar chart), and achievements.",
+      "files": [
+        "src/pages/Dashboard.tsx",
+        "src/components/User/PlaystyleRadar.tsx",
+        "src/components/User/PlayerStatsGrid.tsx",
+        "src/components/User/AchievementsList.tsx",
+        "src/components/User/SeasonTimeline.tsx"
+      ]
+    },
+    {
+      "name": "Forum System",
+      "description": "A community forum with categories, threads, polls, and markdown support.",
+      "files": [
+        "src/pages/Forum.tsx",
+        "src/pages/ForumCategory.tsx",
+        "src/pages/ForumThread.tsx",
+        "src/components/Forum/PollDisplay.tsx",
+        "src/services/forumService.ts"
+      ]
+    },
+    {
+      "name": "Admin Panel",
+      "description": "Administrative interface for managing users, tickets, news, and events.",
+      "files": [
+        "src/pages/AdminPanel.tsx",
+        "src/components/Admin/UsersManager.tsx",
+        "src/components/Admin/TicketsManager.tsx",
+        "src/components/Admin/NewsForm.tsx"
+      ]
+    },
+    {
+      "name": "Economy & Shop",
+      "description": "Gacha system, donation management, and virtual currency handling.",
+      "files": [
+        "src/pages/Gacha.tsx",
+        "src/services/gachaService.ts",
+        "src/components/Admin/DonationsManager.tsx"
+      ]
+    },
+    {
+      "name": "Component Library / Storybook",
+      "description": "Extensive collection of UI components with defined stories for isolated testing and edge case validation.",
+      "files": [
+        "src/stories",
+        ".storybook/main.ts",
+        "src/components/UI"
+      ]
+    }
+  ]
+}

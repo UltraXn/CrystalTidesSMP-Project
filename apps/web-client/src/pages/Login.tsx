@@ -41,9 +41,9 @@ export default function Login() {
             console.error(err)
             const message = err instanceof Error ? err.message : String(err)
             if (message === 'Invalid login credentials') {
-                setGeneralError('Credenciales inválidas. Verifica tu correo y contraseña.')
+                setGeneralError(t('login.error_invalid_credentials', 'Credenciales inválidas. Verifica tu correo y contraseña.'))
             } else {
-                setGeneralError(message || 'Error al iniciar sesión')
+                setGeneralError(message || t('login.error_generic', 'Error al iniciar sesión'))
             }
         }
     }

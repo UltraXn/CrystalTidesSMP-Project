@@ -14,7 +14,8 @@ const PUBLIC_SETTINGS_WHITELIST = [
     'server_rules',
     'donors_list',
     'last_donors',
-    'medal_definitions'
+    'medal_definitions',
+    'achievement_definitions'
 ];
 
 // Obtener todas las configuraciones

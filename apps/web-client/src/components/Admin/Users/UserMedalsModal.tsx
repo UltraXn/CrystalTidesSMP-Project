@@ -1,6 +1,7 @@
 import { FaTimes, FaMedal, FaCheck } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
 import { UserDefinition, MedalDefinition } from './types';
+import { MEDAL_ICONS } from '../../../utils/MedalIcons';
 
 interface UserMedalsModalProps {
     user: UserDefinition;
@@ -54,7 +55,23 @@ export default function UserMedalsModal({ user, availableMedals, onClose, onSave
                                         filter: active ? `drop-shadow(0 0 10px ${medal.color}60)` : 'grayscale(1) opacity(0.5)',
                                         transition: 'all 0.3s'
                                     }}>
-                                        <FaMedal /> 
+                                        {medal.image_url ? (
+                                            <img 
+                                                src={medal.image_url} 
+                                                alt={medal.name} 
+                                                style={{ 
+                                                    width: '32px', 
+                                                    height: '32px', 
+                                                    objectFit: 'contain',
+                                                    filter: active ? `drop-shadow(0 0 5px ${medal.color}80)` : 'grayscale(1) opacity(0.5)'
+                                                }} 
+                                            />
+                                        ) : (
+                                            (() => {
+                                                const Icon = MEDAL_ICONS[medal.icon as keyof typeof MEDAL_ICONS] || FaMedal;
+                                                return <Icon />;
+                                            })()
+                                        )} 
                                     </div>
                                     <div style={{ fontSize: '0.75rem', fontWeight: '800', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{medal.name}</div>
                                     {active && (

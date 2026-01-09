@@ -5,7 +5,7 @@ import {
     FaPaintBrush, FaVideo, FaShieldAlt, FaPlus, FaEdit, 
     FaTrash, FaSave, FaGavel, FaInfoCircle, FaTimes,
     FaBalanceScale, FaUserSecret, FaGlobeAmericas, FaBullhorn,
-    FaLanguage, FaSpinner
+    FaLanguage, FaSpinner, FaPalette, FaUsers
 } from "react-icons/fa"
 import { gsap } from "gsap"
 import { useTranslation } from 'react-i18next'
@@ -31,6 +31,8 @@ const CATEGORY_CONFIG: Record<string, { icon: React.ReactNode, color: string }> 
     'Mundo': { icon: <FaGlobeAmericas />, color: '#60a5fa' }, // Blue
     'Cuenta': { icon: <FaUserSecret />, color: '#94a3b8' }, // Gray
     'Discord': { icon: <FaBullhorn />, color: '#5865F2' }, // Discord Blue
+    'Estética': { icon: <FaPalette />, color: '#f472b6' }, // Pink/Rose
+    'Comunidad': { icon: <FaUsers />, color: '#fb7185' }, // Rose/Coral
 }
 
 const DEFAULT_ICON_CONFIG = { icon: <FaGavel />, color: '#94a3b8' };
@@ -169,7 +171,7 @@ export default function Rules() {
     };
 
     const handleDelete = async (id: number) => {
-        if (!confirm("¿Seguro que quieres borrar esta regla?")) return;
+        if (!confirm(t('common.confirm_delete', '¿Seguro que quieres borrar este elemento?'))) return;
         if (!user) return;
         try {
             const token = (await supabase.auth.getSession()).data.session?.access_token;
@@ -179,7 +181,7 @@ export default function Rules() {
             fetchRules();
         } catch (err: unknown) {
             const msg = err instanceof Error ? err.message : String(err);
-            alert("Error al borrar: " + msg);
+            alert(t('rules.delete_error', 'Error al borrar') + ": " + msg);
         }
     };
 
@@ -198,7 +200,7 @@ export default function Rules() {
                 {/* Header Section */}
                 <div className="rules-header">
                     <p className="rules-intro">
-                        {t('rules.intro') || "Nuestra comunidad se basa en el respeto y el juego limpio. Por favor, lee atentamente nuestras normas para asegurar una convivencia pacífica."}
+                        {t('rules.intro') || "Para mantener una comunidad sana y divertida, es fundamental respetar estas normas de convivencia. El incumplimiento puede llevar a sanciones severas."}
                     </p>
 
                     {/* Filter Bar */}
@@ -207,7 +209,7 @@ export default function Rules() {
                             onClick={() => setActiveFilter(null)}
                             className={`filter-btn ${!activeFilter ? 'active' : ''}`}
                         >
-                            <FaBalanceScale /> Todas
+                            <FaBalanceScale /> {t('rules.all', 'Todas')}
                         </button>
                         {categories.map(cat => {
                             const config = CATEGORY_CONFIG[cat] || DEFAULT_ICON_CONFIG;
@@ -217,7 +219,7 @@ export default function Rules() {
                                     onClick={() => setActiveFilter(cat)}
                                     className={`filter-btn ${activeFilter === cat ? 'active' : ''}`}
                                 >
-                                    {config.icon} {cat}
+                                    {config.icon} {t(`rules.categories.${cat.toLowerCase()}`, cat)}
                                 </button>
                             );
                         })}
@@ -241,7 +243,7 @@ export default function Rules() {
                             className="btn-primary"
                             style={{ padding: '1rem 2.5rem', borderRadius: '100px' }}
                         >
-                            <FaPlus /> Nueva Normativa
+                            <FaPlus /> {t('rules.new_rule', 'Nueva Normativa')}
                         </button>
                     )}
                 </div>
@@ -251,22 +253,22 @@ export default function Rules() {
                     <div className="rules-admin-form">
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2rem' }}>
                             <h3 style={{ margin: 0, color: 'var(--accent)' }}>
-                                {editRuleId ? 'Editando Norma' : 'Nueva Norma'}
+                                {editRuleId ? t('rules.editing', 'Editando Norma') : t('rules.new_norm', 'Nueva Norma')}
                             </h3>
                             <button onClick={() => setIsEditing(false)} className="filter-btn">
-                                <FaTimes /> Cerrar
+                                <FaTimes /> {t('rules.close', 'Cerrar')}
                             </button>
                         </div>
                         
                         <div className="form-grid">
                             <div>
-                                <label>Categoría</label>
+                                <label>{t('rules.category', 'Categoría')}</label>
                                 <input 
                                     type="text" 
                                     list="category-suggestions"
                                     value={formData.category}
                                     onChange={e => setFormData({...formData, category: e.target.value})}
-                                    placeholder="Ej: PvP, Chat, Construcción..."
+                                    placeholder={t('rules.cat_placeholder', 'Ej: PvP, Chat, Construcción...')}
                                 />
                                 <datalist id="category-suggestions">
                                     {Object.keys(CATEGORY_CONFIG).map(c => <option key={c} value={c} />)}
@@ -274,7 +276,7 @@ export default function Rules() {
                             </div>
                             
                             <div>
-                                <label>Orden de Visualización</label>
+                                <label>{t('rules.sort_order', 'Orden de Visualización')}</label>
                                 <input 
                                     type="number" 
                                     value={formData.sort_order}
@@ -284,7 +286,7 @@ export default function Rules() {
 
                             <div className="form-full">
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <label>Título (Español)</label>
+                                    <label>{t('rules.title_es', 'Título (Español)')}</label>
                                     <button 
                                         type="button" 
                                         className="btn-translate-premium" 
@@ -292,20 +294,20 @@ export default function Rules() {
                                         onClick={() => handleTranslate(formData.title || '', 'en', 'title_en')}
                                         disabled={!!translating || !formData.title}
                                     >
-                                        {translating === 'title_en' ? <FaSpinner className="spin" /> : <FaLanguage />} Traducir a EN
+                                        {translating === 'title_en' ? <FaSpinner className="spin" /> : <FaLanguage />} {t('rules.translate_to_en', 'Traducir a EN')}
                                     </button>
                                 </div>
                                 <input 
                                     type="text" 
                                     value={formData.title}
                                     onChange={e => setFormData({...formData, title: e.target.value})}
-                                    placeholder="Título en español"
+                                    placeholder={t('rules.title_placeholder_es', 'Título en español')}
                                 />
                             </div>
 
                             <div className="form-full">
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <label>Título (Inglés) <span style={{ opacity: 0.5 }}>(Opcional)</span></label>
+                                    <label>{t('rules.title_en', 'Título (Inglés)')} <span style={{ opacity: 0.5 }}>({t('common.optional', 'Opcional')})</span></label>
                                     <button 
                                         type="button" 
                                         className="btn-translate-premium" 
@@ -313,20 +315,20 @@ export default function Rules() {
                                         onClick={() => handleTranslate(formData.title_en || '', 'es', 'title')}
                                         disabled={!!translating || !formData.title_en}
                                     >
-                                        {translating === 'title' ? <FaSpinner className="spin" /> : <FaLanguage />} Traducir a ES
+                                        {translating === 'title' ? <FaSpinner className="spin" /> : <FaLanguage />} {t('rules.translate_to_es', 'Traducir a ES')}
                                     </button>
                                 </div>
                                 <input 
                                     type="text" 
                                     value={formData.title_en}
                                     onChange={e => setFormData({...formData, title_en: e.target.value})}
-                                    placeholder="English title"
+                                    placeholder={t('rules.title_placeholder_en', 'English title')}
                                 />
                             </div>
 
                             <div className="form-full">
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <label>Contenido (Español)</label>
+                                    <label>{t('rules.content_es', 'Contenido (Español)')}</label>
                                     <button 
                                         type="button" 
                                         className="btn-translate-premium" 
@@ -334,20 +336,20 @@ export default function Rules() {
                                         onClick={() => handleTranslate(formData.content || '', 'en', 'content_en')}
                                         disabled={!!translating || !formData.content}
                                     >
-                                        {translating === 'content_en' ? <FaSpinner className="spin" /> : <FaLanguage />} Traducir a EN
+                                        {translating === 'content_en' ? <FaSpinner className="spin" /> : <FaLanguage />} {t('rules.translate_to_en', 'Traducir a EN')}
                                     </button>
                                 </div>
                                 <textarea 
                                     rows={4}
                                     value={formData.content}
                                     onChange={e => setFormData({...formData, content: e.target.value})}
-                                    placeholder="Contenido en español..."
+                                    placeholder={t('rules.content_placeholder_es', 'Contenido en español...')}
                                 />
                             </div>
 
                             <div className="form-full">
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <label>Contenido (Inglés) <span style={{ opacity: 0.5 }}>(Opcional)</span></label>
+                                    <label>{t('rules.content_en', 'Contenido (Inglés)')} <span style={{ opacity: 0.5 }}>({t('common.optional', 'Opcional')})</span></label>
                                     <button 
                                         type="button" 
                                         className="btn-translate-premium" 
@@ -355,19 +357,19 @@ export default function Rules() {
                                         onClick={() => handleTranslate(formData.content_en || '', 'es', 'content')}
                                         disabled={!!translating || !formData.content_en}
                                     >
-                                        {translating === 'content' ? <FaSpinner className="spin" /> : <FaLanguage />} Traducir a ES
+                                        {translating === 'content' ? <FaSpinner className="spin" /> : <FaLanguage />} {t('rules.translate_to_es', 'Traducir a ES')}
                                     </button>
                                 </div>
                                 <textarea 
                                     rows={4}
                                     value={formData.content_en}
                                     onChange={e => setFormData({...formData, content_en: e.target.value})}
-                                    placeholder="English content..."
+                                    placeholder={t('rules.content_placeholder_en', 'English content...')}
                                 />
                             </div>
 
                             <button onClick={handleSave} className="rules-save-btn" disabled={!!translating}>
-                                <FaSave /> {editRuleId ? 'ACTUALIZAR NORMA' : 'PUBLICAR NORMA'}
+                                <FaSave /> {editRuleId ? t('rules.update_btn', 'ACTUALIZAR NORMA') : t('rules.publish_btn', 'PUBLICAR NORMA')}
                             </button>
                         </div>
                     </div>
@@ -399,7 +401,7 @@ export default function Rules() {
                                     )}
 
                                     <div className="rule-category-badge" style={{ color: accent }}>
-                                        {config.icon} {rule.category}
+                                        {config.icon} {t(`rules.categories.${(rule.category || 'General').toLowerCase()}`, rule.category || 'General')}
                                     </div>
 
                                     <h3 className="rule-title-premium">
@@ -434,7 +436,7 @@ export default function Rules() {
 
                 {!loading && filteredRules.length === 0 && (
                     <div className="rules-empty">
-                        No se encontraron normas en esta categoría.
+                        {t('rules.no_results', 'No se encontraron normas en esta categoría.')}
                     </div>
                 )}
             </div>

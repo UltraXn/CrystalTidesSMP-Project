@@ -211,8 +211,7 @@ export default function Navbar() {
                             <NotificationCenter />
                             <div className="user-dropdown-container" ref={dropdownRef}>
                             <button
-                                className="nav-btn primary"
-                                style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.6rem 1rem' }}
+                                className="nav-btn user-menu-btn"
                                 onClick={() => setDropdownOpen(!dropdownOpen)}
                             >
                                 {(() => {

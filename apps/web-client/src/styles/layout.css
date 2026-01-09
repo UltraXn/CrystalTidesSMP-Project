@@ -696,3 +696,49 @@
 #suggestions {
   background: transparent;
 }
+
+/* User Menu Button */
+.user-menu-btn {
+  display: flex !important;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.5rem 1rem;
+  
+  /* Visual Style (Cyan Solid) */
+  background: var(--accent) !important;
+  color: #111 !important;
+  border: none !important;
+  
+  /* Initial Glow (Soft) */
+  box-shadow: 0 0 10px rgba(137, 217, 209, 0.4);
+  
+  font-weight: 800;
+  border-radius: 6px;
+  text-shadow: none;
+  
+  /* Smooth Transition */
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  
+  /* Prevent default transforms if inherited */
+  transform: none;
+}
+
+/* Hover State - "Saca Brillo" (Increased Glow) */
+.user-menu-btn:hover {
+  /* Stronger, larger glow */
+  box-shadow: 0 0 20px var(--accent), 0 0 40px rgba(137, 217, 209, 0.6);
+  
+  /* Slight brightness boost */
+  filter: brightness(1.1);
+  
+  /* Ensure it doesn't move */
+  transform: none !important;
+  
+  /* Ensure colors stay dark/contrast */
+  color: #000 !important;
+}
+
+/* Active/Focus State */
+.user-menu-btn:active {
+  transform: scale(0.98) !important; /* Subtle press effect */
+}
