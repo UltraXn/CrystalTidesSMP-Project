@@ -9,6 +9,8 @@ interface ShareableCardProps {
         title: string;
         description: string;
         icon: React.ReactNode;
+        image_url?: string; // Add this
+        color?: string; // Add this too for potential dynamic coloring
         unlocked: boolean;
     };
     username: string;
@@ -89,7 +91,15 @@ const ShareableCard: React.FC<ShareableCardProps> = ({ achievement, username, on
                                 height: '80px',
                                 flexShrink: 0
                              }}>
-                                {achievement.icon}
+                                {achievement.image_url ? (
+                                    <img 
+                                        src={achievement.image_url} 
+                                        alt={achievement.title} 
+                                        style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '8px' }} 
+                                    />
+                                ) : (
+                                    achievement.icon
+                                )}
                              </div>
                              <div>
                                  <h2 style={{ color: '#fff', margin: 0, fontSize: '2rem', fontWeight: 800 }}>{achievement.title}</h2>
