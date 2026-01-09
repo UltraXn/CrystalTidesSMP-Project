@@ -11,7 +11,7 @@ const mockUser = {
   id: 'mock-user-id',
   email: 'admin@crystaltides.com',
   user_metadata: {
-    role: 'owner', // Default to highest privilege for visibility
+    role: 'neroferno', // Default to highest privilege for visibility
     avatar_url: 'https://github.com/shadcn.png'
   },
   app_metadata: {},

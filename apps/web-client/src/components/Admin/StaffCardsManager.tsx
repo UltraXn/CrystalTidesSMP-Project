@@ -22,35 +22,7 @@ interface ServerStaffUser {
     twitch?: { username: string };
 }
 
-const DEFAULT_STAFF = [
-    {
-        id: 1715001,
-        name: 'Neroferno',
-        role: 'Neroferno',
-        description: 'Creador y Owner de CrystalTides.',
-        image: 'Neroferno',
-        color: '#8b5cf6',
-        socials: { twitter: 'https://twitter.com/neroferno', discord: 'neroferno', youtube: '', twitch: 'neroferno' }
-    },
-    {
-        id: 1715002,
-        name: 'Killuwu',
-        role: 'Killuwu',
-        description: 'Administradora y Co-Owner.',
-        image: 'Killuwu',
-        color: '#0ea5e9', // Cyber Cyan
-        socials: { twitter: '', discord: 'killuwu', youtube: '', twitch: '' }
-    },
-    {
-        id: 1715003,
-        name: 'Churlito',
-        role: 'Developer',
-        description: 'Desarrollador Full Stack.',
-        image: 'Churlito',
-        color: '#ec4899', // Hot Pink
-        socials: { twitter: '', discord: 'churlito', youtube: '', twitch: '' }
-    }
-];
+// Mock Data Removed
 
 // Mock Interfaces
 interface MockStaffCardsManagerProps {
@@ -106,15 +78,15 @@ export default function StaffCardsManager({ mockCards, mockOnlineStatus }: MockS
                 if(rawCards && rawCards !== "[]") {
                     try {
                         const parsed = typeof rawCards === 'string' ? JSON.parse(rawCards) : rawCards;
-                        setCards(Array.isArray(parsed) && parsed.length > 0 ? parsed : DEFAULT_STAFF);
+                        setCards(Array.isArray(parsed) && parsed.length > 0 ? parsed : []);
                     } catch { 
-                        setCards(DEFAULT_STAFF); 
+                        setCards([]); 
                     }
                 } else {
-                    setCards(DEFAULT_STAFF);
+                    setCards([]);
                 }
             })
-            .catch(() => setCards(DEFAULT_STAFF))
+            .catch(() => setCards([]))
             .finally(() => setLoading(false));
 
         // Initial Online Check
