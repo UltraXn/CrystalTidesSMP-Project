@@ -80,12 +80,14 @@ ${t('admin.docs.content.notes_desc', 'Un muro de post-its compartidos. Úsalo pa
 # 👮 ${t('admin.docs.titles.users_manage', 'Gestión de Usuarios')}
 
 ### Users Manager
-${t('admin.docs.content.users_desc', 'Lista completa de usuarios registrados.')}
-- **Roles**: ${t('admin.docs.content.users_roles', 'Asignar roles web (Admin, Mod).')}
-- **Ban**: ${t('admin.docs.content.users_ban', 'Bloquear acceso a la web.')}
+${t('admin.docs.content.users_desc', 'Lista completa de usuarios registrados y control de staff.')}
+- **Roles**: Asignar roles (Admin, Staff, Developer) con jerarquía protegida.
+- **Auditoría**: Cada cambio de rol queda registrado en los logs.
 
-### Tickets System
-${t('admin.docs.content.tickets_desc', 'Centro de soporte. Prioriza y responde tickets de usuarios.')}
+### 🎟️ Tickets System (Soporte)
+Centro de soporte avanzado para la comunidad. 
+- **Modales Premium**: Interfaz mejorada con Portals para evitar errores visuales (z-index).
+- **Gestión**: Prioriza, asigna y resuelve dudas de los usuarios en tiempo real.
         `
     },
     {
@@ -98,10 +100,10 @@ ${t('admin.docs.content.tickets_desc', 'Centro de soporte. Prioriza y responde t
 ${t('admin.docs.content.discord_desc', 'Sincronización entre la web y la comunidad de Discord.')}
 
 ### 🔗 ${t('admin.docs.content.discord_linking', 'Vinculación')}
-- **CrystalCore**: ${t('admin.docs.content.discord_linking', 'Vinculación de cuentas mediante /link.')}
+- **Sync**: Los roles de Discord se sincronizan automáticamente con la cuenta web.
 
 ### 📢 ${t('admin.docs.content.discord_announcements', 'Anuncios')}
-- **Webhooks**: ${t('admin.docs.content.discord_announcements', 'Anuncios automáticos en el servidor de Discord al publicar noticias.')}
+- **Noticias**: Al publicar una noticia, se envía automáticamente un aviso al canal configurado en Discord.
         `
     },
     {
@@ -111,10 +113,10 @@ ${t('admin.docs.content.discord_desc', 'Sincronización entre la web y la comuni
         content: `
 # 📝 ${t('admin.docs.titles.audit', 'Logs de Auditoría')}
 
-${t('admin.docs.content.audit_desc', 'Registro histórico de todas las acciones administrativas realizadas en la web y el juego.')}
+${t('admin.docs.content.audit_desc', 'Registro histórico de todas las acciones administrativas.')}
 
-- **Filtros**: ${t('admin.docs.tabs.logs', 'Logs')} permite filtrar por origen (Web/Juego) y usuario.
-- **Acciones**: ${t('admin.docs.content.audit_desc', 'Registra cambios en configuración, bans, tickets y más.')}
+- **Transparencia**: Registra quién, cuándo y qué cambió (Roles, Configuración, Gamificación).
+- **Seguridad**: Los logs son inmutables para garantizar la integridad del equipo.
         `
     },
     {
@@ -124,12 +126,10 @@ ${t('admin.docs.content.audit_desc', 'Registro histórico de todas las acciones 
         content: `
 # 💻 ${t('admin.docs.titles.console_bridge', 'Consola Remota (Secure Bridge)')}
 
-${t('admin.docs.content.console_desc', 'Ejecuta comandos en el servidor de Minecraft de forma segura.')}
+${t('admin.docs.content.console_desc', 'Ejecuta comandos en el servidor de Minecraft en tiempo real.')}
 
-### ${t('admin.docs.content.common_cmds', 'Comandos Comunes')}
-- \`kick <player>\`: ${t('admin.docs.content.cmd_kick', 'Expulsar.')}
-- \`ban <player>\`: ${t('admin.docs.content.cmd_ban', 'Banear.')}
-- \`broadcast <msg>\`: ${t('admin.docs.content.cmd_broadcast', 'Anuncio global.')}
+### 🔥 Seguridad de Acciones
+- **Premium Confirmation**: Toda acción destructiva (Kick, Ban total) requiere confirmación mediante el nuevo sistema de seguridad visual.
         `
     },
     {
@@ -139,26 +139,29 @@ ${t('admin.docs.content.console_desc', 'Ejecuta comandos en el servidor de Minec
         content: `
 # 📢 ${t('admin.docs.titles.content_web', 'Contenido Web')}
 
-### ${t('admin.docs.content.news', 'Noticias')}
-${t('admin.docs.content.news_desc', 'Editor de posts tipo blog con Markdown.')}
+### 📝 Noticias & Encuestas
+Editor de Markdown integrado para publicar anuncios ricos y votaciones interactivas para los jugadores.
 
-### Broadcasts
-${t('admin.docs.content.broadcast_desc', 'Controla la alerta superior de la web.')}
-
-### ${t('admin.docs.content.polls', 'Encuestas')}
-${t('admin.docs.content.polls_desc', 'Crea votaciones para la comunidad.')}
+### 🛰️ Broadcasts
+Mensajes emergentes globales en la parte superior de la web para avisos de mantenimiento o eventos inminentes.
         `
     },
     {
         id: 'gamification',
-        title: t('admin.docs.titles.gamification', 'Gamificación'),
+        title: t('admin.docs.titles.gamification', 'Gamificación (Medallas)'),
         icon: FaGamepad,
         content: `
-# 🎮 Gacha & Stats
+# 🏆 Sistema de Medallas Premium
 
-### ${t('admin.docs.content.gacha_config', 'Configuración Gacha')}
-- **Cooldown**: ${t('admin.docs.content.gacha_cooldown', '24 horas por usuario.')}
-- **${t('admin.docs.content.prizes', 'Premios')}**: ${t('admin.docs.content.gacha_prizes', 'Entrega automática in-game.')}
+Gestión visual completa de los logros y medallas del servidor.
+
+### 🏅 Medal Definitions
+- **Upload Directo**: Ahora puedes subir imágenes personalizadas directamente desde el panel (vía Supabase Storage).
+- **Control de Estética**: Ajuste de colores dinámicos y previsualización en tiempo real.
+- **Iconografía**: Soporte para cientos de iconos de React Icons o archivos PNG/WebP personalizados.
+
+### 🔒 Confirmaciones
+Sistema de eliminación protegido con modales animados para evitar pérdidas accidentales de definiciones de medallas.
         `
     }
 ];
