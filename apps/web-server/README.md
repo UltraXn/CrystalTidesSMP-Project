@@ -1,52 +1,71 @@
-# ⚡ Servidor Web CrystalTides (Backend)
+# ⚡ CrystalTides Web Server (API)
 
-La API backend principal para la plataforma **CrystalTides SMP**. Maneja la autenticación, procesamiento de datos del juego, pagos e integraciones con servicios externos (Discord, Twitch, Minecraft).
+La **API Central** del ecosistema CrystalTides. Este servicio actúa como orquestador, conectando el Frontend, el Servidor de Minecraft, Discord y servicios de terceros.
 
 ## 🏗️ Stack Tecnológico
 
-- **Runtime**: Node.js
-- **Framework**: Express / Custom (TypeScript)
-- **Base de Datos**: Supabase (PostgreSQL) y MySQL (Datos del Juego)
-- **Autenticación**: Supabase Auth
-- **Integraciones**:
-  - Google Calendar (Eventos)
-  - Pterodactyl (Control del Servidor)
-  - Twitch API (Clips y Auth)
+- **Runtime**: Node.js 20+ (TypeScript).
+- **Framework**: Express.js con arquitectura de controladores y servicios.
+- **Base de Datos**: 
+    - **Supabase (PostgreSQL)**: Persistencia de datos web (Usuarios, Posts, Tickets).
+    - **MySQL**: Conexión de lectura/escritura a bases de datos del servidor de juego (LuckPerms, CoreProtect, Economy).
+- **Seguridad**: JWT (Supabase Auth), Helmet, Rate Limiting, CORS estricto.
 
-## 📂 Estructura del Proyecto
+## 🔌 Módulos y Arquitectura
 
-- `controllers/`: Manejadores de peticiones.
-- `routes/`: Definición de endpoints de la API.
-- `services/`: Lógica de negocio y clientes de API externos.
-- `middleware/`: Capas de autenticación y validación.
-- `schemas/`: Esquemas de validación Zod.
+### 1. Sistema de Autenticación & Vinculación
+Maneja el flujo de registro híbrido:
+1.  **Auth Social**: Login vía Google/Discord (Supabase).
+2.  **Vinculación MC**: Validación de propiedad de cuenta de Minecraft mediante código de un solo uso (generado in-game o vía Discord Bot).
+3.  **Sync**: Sincronización automática de avatares, roles y nicknames.
 
-## 🚀 Comenzando
+### 2. CrystalBridge (Gateway de Comandos)
+Implementa el patrón **Command Queue** para ejecutar acciones en el servidor de Minecraft de forma segura y asíncrona, sin exponer RCON.
+- **Flujo**: API -> Insert en Tabla SQL `pending_commands` -> Plugin CrystalCore (Polling) -> Ejecución -> Update Estado.
+- **Usos**: Entrega de premios Gacha, Sincronización de rangos, Mensajes de sistema.
 
-### Prerrequisitos
+### 3. Agregador de Estadísticas (Data Aggregator)
+Servicio optimizado que consulta múltiples fuentes para construir el perfil del jugador:
+- **CoreProtect DB**: Conteo masivo de bloques (raw SQL queries optimizadas).
+- **LuckPerms DB**: Obtención de grupos y pesos de rango.
+- **Vault/Economy DB**: Lectura de balances financieros.
 
-- Node.js 18+
-- npm o pnpm
+### 4. Integraciones Externas
+- **Pterodactyl**: Control de energía del servidor (Start/Stop/Restart) via Client API.
+- **Twitch**: Webhooks para alertas de stream y obtención de Clips.
+- **Google Calendar**: Sincronización de eventos del Staff.
 
-### Instalación
+## 🚀 Instalación y Desarrollo
 
 ```bash
+# Instalar dependencias
 npm install
-```
 
-### Variables de Entorno
+# Configuración
+# Copiar .env.example a .env y rellenar credenciales:
+# - SUPABASE_URL / KEY
+# - MYSQL_HOST / USER / PASS (Game Server)
+# - PTERODACTYL_API_KEY
+# - DISCORD_CLIENT_ID / SECRET
 
-Mira `.env.example` para las claves de configuración requeridas. Necesitarás credenciales para Supabase, Google Cloud y Twitch.
-
-### Desarrollo
-
-```bash
-# Iniciar servidor de desarrollo
+# Iniciar en modo desarrollo (Watch Mode)
+# Puerto default: 3000
 npm run dev
+
+# Compilar y ejecutar (Producción)
+npm run build
+npm start
 ```
 
-### Build
+## 📂 Estructura
 
-```bash
-npm run build
+```
+src/
+├── config/         # Configuración de DB, Swagger y Variables de Entorno
+├── controllers/    # Lógica de entrada HTTP (Req/Res)
+├── middleware/     # Auth, Validación (Zod), Error Handling
+├── routes/         # Definición de rutas API (v1/*)
+├── schemas/        # Validaciones Zod compartidas
+├── services/       # Lógica de negocio y Clientes Externos (Supabase, MySQL, Twitch)
+└── utils/          # Helpers y Loggers
 ```

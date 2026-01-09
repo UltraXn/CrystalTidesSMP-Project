@@ -1,51 +1,59 @@
 # 🚀 Documentación de CI/CD - CrystalTides SMP
 
-Este proyecto utiliza **GitHub Actions** para automatizar el ciclo de vida de desarrollo, asegurando que cada cambio sea validado, escaneado en busca de vulnerabilidades y desplegado de forma segura.
+Nuestro pipeline de integración y despliegue continuo (CI/CD) está diseñado para desplegar automáticamente nuestros servicios en **Google Cloud Run**, asegurando escalabilidad y alta disponibilidad.
 
 ## 🛠️ Flujo de Trabajo (Workflow)
 
-El archivo de configuración principal se encuentra en `.github/workflows/docker-publish.yml`. Este flujo se activa automáticamente en cada `push` a las ramas `main` o `master`.
+El archivo maestro es `.github/workflows/deploy.yml`. Se ejecuta en cada `push` a la rama `main`.
 
-### Pasos del Pipeline:
+### Arquitectura de Despliegue
 
-1.  **Checkout**: Descarga el código fuente del repositorio.
-2.  **Login**: Se autentica en GitHub Container Registry (GHCR).
-3.  **Build & Security Scan (Backend)**:
-    - **Caché**: Utiliza `type=gha` para acelerar builds subsiguientes reusando capas previas.
-    - Construye la imagen de Docker del servidor.
-    - **Docker Scout**: Escanea la imagen buscando vulnerabilidades Críticas o Altas.
-4.  **Build & Security Scan (Frontend)**:
-    - **Caché**: Utiliza `type=gha` para optimizar tiempos de construcción.
-    - Construye la imagen de Docker del cliente, inyectando variables de entorno necesarias.
-    - **Docker Scout**: Escanea la imagen.
-5.  **Push**: Si todos los escaneos pasan con éxito, las imágenes se suben a `ghcr.io/ultraxn/`.
+Utilizamos **Google Artifact Registry** para almacenar las imágenes Docker y **Cloud Run** para la ejecución.
 
-## 🛡️ Docker Scout
+1.  **Backend (API)**: Servicio HTTP con auto-scaling.
+2.  **Frontend (Web)**: Servido via Nginx en contenedor, optimizado para React SPA.
+3.  **Discord Bot**: Servicio persistente (`min-instances: 1`) para mantener la conexión WebSocket.
 
-Docker Scout está integrado en el pipeline para garantizar que no introduzcamos regresiones de seguridad.
+### Pasos del Pipeline
 
-- **Comando**: `cves` (analiza CVEs conocidos).
-- **Severidad**: Se enfoca en `critical` y `high`.
-- **Gatekeeping**: El flag `exit-code: true` asegura que el pipeline sea un "guardián" de la calidad.
+Para cada servicio (Backend, Frontend, Bot), el flujo es similar:
 
-## 🔑 Secretos Necesarios (GitHub Secrets)
+1.  **Checkout**: Clonado del repositorio (incluyendo subguías).
+2.  **Auth**: Autenticación en Google Cloud Platform usando `workload_identity_provider` o credenciales JSON.
+3.  **Docker Build**:
+    - Construcción de la imagen desde el `Dockerfile` correspondiente.
+    - Inyección de argumentos de construcción (`--build-arg`) para el frontend (Variables VITE públicas).
+4.  **Push**: Subida de la imagen a `us-central1-docker.pkg.dev/crystaltides-prod/...`.
+5.  **Deploy**: Actualización de la revisión en Cloud Run con las nuevas variables de entorno.
 
-Para que el CI/CD funcione correctamente, debes configurar los siguientes secretos en tu repositorio de GitHub (`Settings > Secrets and variables > Actions`):
+## 🔑 Secretos y Variables
 
-| Secreto                  | Descripción                                                        |
-| :----------------------- | :----------------------------------------------------------------- |
-| `VITE_SUPABASE_URL`      | URL de tu instancia de Supabase.                                   |
-| `VITE_SUPABASE_ANON_KEY` | Clave anónima de Supabase.                                         |
-| `VITE_API_URL`           | URL de la API del Backend (ej: `https://api.crystaltides.net`).    |
-| `DOCKERHUB_USERNAME`     | (Extra) Tu usuario de Docker Hub para evitar rate limits de Scout. |
-| `DOCKERHUB_TOKEN`        | (Extra) Token de acceso personal de Docker Hub.                    |
+Para que el despliegue funcione, Github Actions necesita estos secretos:
 
-## 📈 Recomendaciones Continuas
+### Infraestructura (Críticos)
+| Secreto | Descripción |
+| :--- | :--- |
+| `GCP_CREDENTIALS` | JSON de la cuenta de servicio de IAM con permisos `Cloud Run Admin` y `Artifact Registry Writer`. |
+| `PAT_TOKEN` | Token de acceso personal de GitHub para clonar submódulos privados (si los hubiera). |
 
-1.  **npm audit**: Ejecuta periódicamente `npm audit fix` localmente.
-2.  **Actualización de Bases**: Mantén las imágenes base (`golang:alpine`, `node:alpine`) actualizadas en los `Dockerfile`.
-3.  **Overrides**: Si una vulnerabilidad persiste en una dependencia indirecta, usa la sección `overrides` en `package.json` tal como hicimos con `glob`.
+### Aplicación (Runtime)
+| Secreto | Descripción |
+| :--- | :--- |
+| `ENV_FILE` | Contenido completo del `.env` de producción para el Backend (DB, Keys, etc). |
+| `VITE_SUPABASE_URL` | URL pública de Supabase. |
+| `VITE_SUPABASE_ANON_KEY` | Key pública de Supabase. |
+| `SUPABASE_SERVICE_ROLE_KEY` | Key administrativa (Solo Backend). |
 
----
+## 📦 Servicios Desplegados
 
-_Documentación generada el 25 de diciembre de 2025._
+| Servicio | Dockerfile Path | Cloud Run Service | Notas |
+| :--- | :--- | :--- | :--- |
+| **Backend** | `apps/web-server/Dockerfile` | `crystaltides-backend` | Expone puerto 3000. |
+| **Frontend** | `apps/web-client/Dockerfile` | `crystaltides-web` | Variables VITE se "queman" en build-time. |
+| **Bot** | `apps/discord-bot/Dockerfile` | `crystaltides-bot` | Requiere instancia siempre activa (no escala a 0). |
+
+## 🛡️ Notas de Seguridad
+
+- Las imágenes se almacenan en un registro privado de Google.
+- El Frontend se construye con los secretos de Supabase embebidos (son públicos por diseño), pero **nuevas** variables de entorno requieren re-deploy.
+- El Bot utiliza una instancia mínima reservada para no perder eventos de Discord.

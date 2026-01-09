@@ -1,16 +1,67 @@
-# React + Vite
+# 🌐 CrystalTides Web Client
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+El **Web Client** es el portal principal de interacción para los usuarios y la administración de CrystalTides. Construido con React 18 y Vite, enfocado en una experiencia visual premium ("High Fidelity UX") y rendimiento extremo.
 
-Currently, two official plugins are available:
+## 🛠️ Stack Tecnológico
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Core**: React 18, TypeScript, Vite.
+- **Estilos**: Vanilla CSS Modules (Glassmorphism), `framer-motion` (Animaciones).
+- **Gráficos**: `recharts` (Métricas), `skinview3d` (Renderizado 3D de Skins).
+- **Estado**: React Context API + Local Storage.
+- **Data Fetching**: Fetch nativo con interceptores JWT.
 
-## React Compiler
+## 🧩 Módulos Principales
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 1. 📢 Portal Público (`src/pages/Home`, `/PublicProfile`)
+- Landing page con diseño inmersivo.
+- **Perfil Público**: Visualización 3D interactiva de la skin del jugador, vitrina de medallas y estadísticas en tiempo real.
+- **Foros**: Sistema de comunidad con categorías, temas y respuestas enriquecidas.
+- **Wiki**: Guías y tutoriales del servidor (Renderizado Markdown).
 
-## Expanding the ESLint configuration
+### 2. 🔐 Dashboard de Usuario (`/account`)
+El panel de control personal para jugadores registrados.
+- **Autenticación Híbrida**: Login con Discord (OAuth2) y vinculación segura con Minecraft.
+- **Playstyle Radar**: Gráfico pentagonal que analiza el estilo de juego (Constructor, Luchador, Explorador, etc.) basado en datos del servidor.
+- **Gestión de Sesión**: Vinculación de redes sociales y ajustes de privacidad.
+- **Métricas**: Visualización de horas jugadas, economía (KilluCoins) y progreso.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### 3. 🛡️ Staff Hub (`/staff-hub`)
+*Acceso restringido a roles administativos.*
+- **Kanban Board**: Gestión de tareas y proyectos del equipo.
+- **Gestor de Contenido**: CMS integrado para Noticias, Eventos y Encuestas.
+- **Buscador Universal**: Command Palette (`Ctrl+K`) para acciones rápidas.
+
+## 🚀 Instalación y Desarrollo
+
+Este proyecto es parte del monorepo CrystalTides.
+
+```bash
+# Instalar dependencias (desde la raíz del monorepo)
+npm install
+
+# Iniciar en modo desarrollo (Hot Module Replacement)
+# Puerto default: 5173
+cd apps/web-client
+npm run dev
+
+# Construir para producción
+npm run build
+```
+
+## 📂 Estructura del Proyecto
+
+```
+src/
+├── assets/         # Imágenes, iconos y recursos estáticos
+├── components/     # Componentes Reutilizables
+│   ├── Account/    # Widgets del Dashboard (Radar, Stats)
+│   ├── Auth/       # Formularios de Login/Registro
+│   ├── Forum/      # Tarjetas y listas del foro
+│   ├── Layout/     # Navbar, Footer, Sidebar
+│   └── Widgets/    # UI Genérica (Botones, Inputs, Loaders)
+├── context/        # React Contexts (Auth, Theme)
+├── hooks/          # Custom Hooks (useAuth, useFetch)
+├── pages/          # Vistas principales (Rutas)
+├── services/       # Clientes API (Supabase, Backend)
+└── App.tsx         # Router principal
+```

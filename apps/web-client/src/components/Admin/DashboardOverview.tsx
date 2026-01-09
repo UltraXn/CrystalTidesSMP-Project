@@ -95,7 +95,7 @@ export default function DashboardOverview({ mockServerStats, mockStaffOnline, mo
                     
                     if (Array.isArray(staffList)) {
                         // Priority administrative roles
-                        const adminRoles = ['founder', 'owner', 'neroferno', 'killuwu', 'developer', 'admin', 'staff'];
+                        const adminRoles = ['neroferno', 'killuwu', 'developer', 'admin', 'staff'];
                         // Decorative/Other roles (fundador is decorative ONLY and should not be here)
                         const otherStaffRoles = ['moderator', 'mod', 'helper', 'staff'];
                         const allAllowed = [...adminRoles, ...otherStaffRoles];

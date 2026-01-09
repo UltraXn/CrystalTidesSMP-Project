@@ -13,28 +13,26 @@ El contenido se organiza mediante una jerarquía de etiquetas y categorías:
 
 ## 🖋️ Creación de Contenido
 
-- **Editor Rich Text**: Soporte nativo para **Markdown**, permitiendo formatear textos, listas y enlaces.
-- **Imágenes**: Integración con almacenamiento en la nube (vía Supabase Storage) para subir capturas de pantalla y evidencias.
-- **Encuestas**: Posibilidad de adjuntar una votación a cualquier tema para sondear la opinión de la comunidad.
+- **Soporte Markdown**: Los posts soportan formato **Markdown** (negritas, cursivas, listas, código), renderizado vía `MarkdownRenderer`.
+- **Imágenes**: Integración con almacenamiento en la nube (Supabase Storage) para subir capturas optimizadas a WebP.
+- **Encuestas**: Posibilidad de adjuntar una votación nativa o un enlace a encuesta de Discord.
 
 ## 💬 Interacción Social
 
-- **Respuestas**: Hilos de conversación dinámicos.
-- **Likes/Reacciones**: Sistema simple para valorar el contenido.
-- **Notificaciones**: Los usuarios reciben alertas en su campana de notificaciones cuando alguien responde a su tema.
+- **Respuestas**: Hilos lineales cronológicos.
+- **Notificaciones**: (En desarrollo) Alertas en la campana de notificaciones.
 
 ## 🛡️ Herramientas de Moderación (Staff)
 
-Los moderadores cuentan con acciones rápidas para mantener el orden:
+Los moderadores (Rango Admin/Helper) cuentan con acciones directas en el hilo:
 
-- **Pin (Anclar)**: Mantiene un tema en la parte superior de la categoría.
-- **Lock (Cerrar)**: Impide que se sigan añadiendo comentarios a un hilo.
-- **Delete (Eliminar)**: Borrado lógico de contenido inapropiado.
-- **Report System**: Los usuarios pueden reportar mensajes, los cuales aparecen en una cola de revisión dentro del Staff Hub.
+- **Pin (Fijar)**: Coloca el tema al inicio de la lista.
+- **Lock (Cerrar)**: Deshabilita el formulario de respuesta para usuarios no-staff.
+- **Delete (Eliminar)**: Elimina el tema o comentarios específicos.
 
 ## 🤖 Integración con Discord
 
-Cada vez que se crea un tema nuevo en categorías críticas (como Anuncios o Sugerencias), un **Webhook** envía automáticamente un resumen al servidor de Discord para maximizar el alcance de la publicación.
+El backend (`discordService.ts`) envía automáticamente un **Webhook** al canal configurado cuando se crea **cualquier nuevo tema**, maximizando la visibilidad de la actividad del foro.
 
 ---
 

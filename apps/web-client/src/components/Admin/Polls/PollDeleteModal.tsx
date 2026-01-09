@@ -1,4 +1,4 @@
-import { FaTrash, FaTimes } from 'react-icons/fa';
+import { FaTrash } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
 
 interface PollDeleteModalProps {

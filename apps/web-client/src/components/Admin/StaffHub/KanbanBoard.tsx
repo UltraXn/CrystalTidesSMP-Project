@@ -16,17 +16,18 @@ const COLUMNS = KANBAN_COLUMNS;
 interface KanbanBoardProps {
     mockTasks?: KanbanTask[];
     mockGoogleEvents?: GoogleEvent[];
-    mockNotionTasks?: any[];
+    mockNotionTasks?: Record<string, unknown>[];
 }
 
 export default function KanbanBoard({ mockTasks, mockGoogleEvents, mockNotionTasks }: KanbanBoardProps = {}) {
+
+
     const { t } = useTranslation();
     const [tasks, setTasks] = useState<KanbanTask[]>((mockTasks || []).map(t => ({...t, columnId: t.column_id || 'idea'})));
     const [loading, setLoading] = useState(!mockTasks);
     const [viewMode, setViewMode] = useState<'board' | 'calendar'>('board');
     const [googleEvents, setGoogleEvents] = useState<GoogleEvent[]>(mockGoogleEvents || []);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const [notionTasks, setNotionTasks] = useState<any[]>(mockNotionTasks || []);
+    const [notionTasks, setNotionTasks] = useState<Record<string, unknown>[]>(mockNotionTasks || []);
     const [syncing, setSyncing] = useState(false);
     const [notionSyncing, setNotionSyncing] = useState(false);
 
@@ -103,30 +104,30 @@ export default function KanbanBoard({ mockTasks, mockGoogleEvents, mockNotionTas
     const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
 
     useEffect(() => {
-        fetchTasks();
-    }, []);
-
-    const fetchTasks = async () => {
-        if (mockTasks) return;
-        try {
-            const { data: { session } } = await supabase.auth.getSession();
-            const res = await fetch(`${API_URL}/staff/tasks`, {
-               headers: getAuthHeaders(session?.access_token || null)
-            });
-            if (res.ok) {
-                const data = await res.json() as KanbanTask[];
-                const mappedData = data.map((task: KanbanTask) => ({
-                    ...task,
-                    columnId: task.column_id || 'idea'
-                }));
-                setTasks(mappedData);
+        const fetchTasks = async () => {
+            if (mockTasks) return;
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                const res = await fetch(`${API_URL}/staff/tasks`, {
+                   headers: getAuthHeaders(session?.access_token || null)
+                });
+                if (res.ok) {
+                    const data = await res.json() as KanbanTask[];
+                    const mappedData = data.map((task: KanbanTask) => ({
+                        ...task,
+                        columnId: task.column_id || 'idea'
+                    }));
+                    setTasks(mappedData);
+                }
+            } catch (error) {
+                console.error("Error fetching tasks:", error);
+            } finally {
+                setLoading(false);
             }
-        } catch (error) {
-            console.error("Error fetching tasks:", error);
-        } finally {
-            setLoading(false);
-        }
-    };
+        };
+
+        fetchTasks();
+    }, [mockTasks]);
 
     const handleCreateTask = async (e?: React.FormEvent) => {
         if (e) e.preventDefault();

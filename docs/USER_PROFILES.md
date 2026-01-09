@@ -38,3 +38,32 @@ Además de los datos del juego, el perfil permite:
 ---
 
 _Documentación generada el 25 de diciembre de 2025._
+
+## 🕸️ Gráfico de Estilo de Juego (Playstyle Radar)
+
+_Implementado en Enero 2026_
+
+El **Playstyle Radar** es una visualización hexagonal que categoriza el comportamiento del jugador en 5 ejes distintos. Permite identificar rápidamente si un jugador es más enfocado en la construcción, el combate, la economía o la interacción social.
+
+### Métricas y Cálculos
+
+Cada eje tiene un valor de 0 a 100, donde 100 representa haber alcanzado la "Meta" establecida para un jugador activo promedio-alto.
+
+| Estilo | Icono | Fuente de Datos | Meta (100%) | Fórmula de Cálculo |
+| :--- | :---: | :--- | :--- | :--- |
+| **Constructor** | 🛠️ | `blocksPlaced` + `blocksMined` | **300,000 bloques** | `(Bloques / 300k) * 100` |
+| **Luchador** | ⚔️ | `kills` (x10) + `mobKills` | **5,000 puntos** | `((Kills*10 + MobKills) / 5k) * 100` |
+| **Explorador** | 🗺️ | `playtime` (Horas) | **200 horas** | `(Horas / 200) * 100` |
+| **Mercader** | 💰 | `money` (KilluCoins) | **$1,000,000** | `(Dinero / 1M) * 100` |
+| **Social** | 👥 | `playtime` + `rank` | **100 puntos** | `(Horas * 0.2) + Bono Rango` |
+
+> **Nota sobre Explorador:** Se utiliza el *parsing* del string de tiempo ("64h 30m") para mayor precisión que el tick count crudo.
+
+### 🌟 Bonus Social
+
+La estadística **Social** premia la presencia en el servidor y el estatus en la comunidad:
+*   **Base:** 0.2 puntos por cada hora de juego (aprox. 500 horas para el 100% solo jugando).
+*   **Bono de Rango (+30 Puntos):** Se otorga automáticamente si el usuario posee alguno de los siguientes roles de soporte/staff:
+    *   *Donador, Fundador, Killuwu, Neroferno*
+    *   *Developer, Staff*
+

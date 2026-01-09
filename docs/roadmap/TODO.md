@@ -97,6 +97,7 @@ Este documento centraliza el roadmap completo del proyecto, organizando las tare
   - [/] Infraestructura base y Docker (Hecho).
   - [x] **Asignación de Roles**: Sincronización Web -> Discord.
 - [ ] **Mapa Dinámico**: Integración de Dynmap.
+- [ ] **Tope Dinámico para "Mercader"**: Ajustar el 100% del Playstyle Radar basado en la economía total del servidor (Inflación-aware).
 
 ### ☁️ Infraestructura Futura (VPS)
 
@@ -117,6 +118,13 @@ Este documento centraliza el roadmap completo del proyecto, organizando las tare
 - [ ] **Confirmación Destructiva**: Requerir 2FA o contraseña para comandos críticos (ban/stop/op) desde la web.
 - [x] **Whitelist de Comandos**: Lista blanca estricta para comandos web.
 - [x] **Auditoría Web**: Logs inmutables de acciones administrativas.
+
+### 🧹 Deuda Técnica (Post-Auditoría Context7)
+
+- [ ] **Migración a React Router v7**: Cambiar imports de `react-router-dom` a `react-router` y adoptar `createBrowserRouter` (40+ archivos afectados).
+- [ ] **Unificación de Íconos**: Reemplazar `react-icons` por `lucide-react` para reducir bundle size y tener consistencia visual.
+- [ ] **Limpieza de Animaciones**: Evaluar eliminación de `GSAP` en favor de `framer-motion` si no se usan timelines complejos.
+- [ ] **Soporte Nativo HTML Head**: Reemplazar `react-helmet` (si existe) por soporte nativo de React 19 (`<title>`, `<meta>`).
 
 ### 🧪 Futuro: Stack Tecnológico & "Wow" Features (2026)
 

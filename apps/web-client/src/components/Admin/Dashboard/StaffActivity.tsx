@@ -21,7 +21,6 @@ const getRoleImage = (role: string) => {
     const r = role.toLowerCase();
     if (r.includes('developer')) return '/ranks/developer.png';
     if (r.includes('killuwu')) return '/ranks/rank-killu.png';
-    if (r.includes('owner')) return '/ranks/rank-killu.png';
     if (r.includes('neroferno')) return '/ranks/rank-neroferno.png';
     if (r.includes('founder') || r.includes('fundador')) return '/ranks/rank-fundador.png'; 
     if (r.includes('admin')) return '/ranks/admin.png';

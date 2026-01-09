@@ -47,8 +47,10 @@ Para acciones administrativas inmediatas (Baneos, Kicks, Reinicios), la API se c
 
 ## 📖 Documentación de Funcionalidades
 
+- [🦋 CrystalLauncher (Cliente Híbrido)](./LAUNCHER.md)
+- [🧠 Game Bridge (Agente In-Game)](./GAME_BRIDGE.md)
 - [🛡️ Staff Hub (Gestión Interna)](./STAFF_HUB.md)
-- [🌉 CrystalBridge (Integración MC)](./CRYSTAL_BRIDGE.md)
+- [🌉 CrystalBridge (Integración Server)](./CRYSTAL_BRIDGE.md)
 - [🎰 Sistema Gacha (KilluCoin)](./GACHA_SYSTEM.md)
 - [🏛️ Foro y Comunidad](./FORUM_SYSTEM.md)
 - [👤 Perfiles y Estadísticas](./USER_PROFILES.md)
@@ -80,17 +82,17 @@ Para acciones administrativas inmediatas (Baneos, Kicks, Reinicios), la API se c
 
 ---
 
-## 📂 Estructura de Carpetas
+## 📂 Estructura de Carpetas (Monorepo)
 
 ```
 /
-├── client/                 # [Frontend React](../client/)
-│   ├── src/pages/          # [Vistas principales](../client/src/pages/)
-│   └── src/components/     # [UI Reutilizable](../client/src/components/) (Admin, Public, UI)
-├── server/                 # [Backend Express](../server/)
-│   ├── controllers/        # [Lógica de entrada/salida HTTP](../server/controllers/)
-│   ├── services/           # [Lógica de negocio pura](../server/services/) (DB calls)
-│   ├── routes/             # [Definición de endpoints](../server/routes/)
-│   └── config/             # [Conexiones a BD y Swagger](../server/config/)
-└── docs/                   # [Documentación del proyecto](../docs/)
+├── apps/
+│   ├── web-client/         # [Portal Web & Dashboard](../apps/web-client/)
+│   ├── web-server/         # [Backend API REST](../apps/web-server/)
+│   ├── discord-bot/        # [Bot de Moderación & Sync](../apps/discord-bot/)
+│   └── launcher/           # [CrystalLauncher (Flutter)](../apps/launcher/)
+├── plugins/
+│   └── crystalcore/        # [Plugin Spigot/Paper](../plugins/crystalcore/)
+├── packages/               # Librerías compartidas (UI, TS Config, etc)
+└── docs/                   # [Documentación Central](../docs/)
 ```

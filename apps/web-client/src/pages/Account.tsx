@@ -1,5 +1,5 @@
 import { useNavigate, Link, useSearchParams } from 'react-router-dom'
-import { FaMedal } from 'react-icons/fa'
+import { FaMedal, FaInfoCircle } from 'react-icons/fa'
 import { useAuth } from '../context/AuthContext'
 import { useEffect, useState } from 'react'
 import { supabase } from '../services/supabaseClient'
@@ -19,6 +19,9 @@ import ConnectionCards from '../components/Account/ConnectionCards'
 import ProfileSettings from '../components/Account/ProfileSettings'
 import AccountMobileNavbar from '../components/Account/AccountMobileNavbar'
 import SuccessModal from '../components/UI/SuccessModal'
+import PlaystyleRadar from '../components/Account/PlaystyleRadarFinal'
+import ShareableCard from '../components/Account/ShareableCard'
+
 
 interface Thread {
     id: string | number;
@@ -51,6 +54,7 @@ interface PlayerStatsData {
     raw_playtime?: string | number;
     raw_kills?: number;
     raw_blocks_mined?: number;
+    raw_blocks_placed?: number;
     raw_rank?: string;
 }
 
@@ -115,6 +119,8 @@ export default function Account() {
     const [isVerifyingDiscord, setIsVerifyingDiscord] = useState(false)
     const [isUnlinking, setIsUnlinking] = useState(false)
     const [showSuccessModal, setShowSuccessModal] = useState(false)
+    const [sharingAchievement, setSharingAchievement] = useState<{title: string, description: string, icon: React.ReactNode, unlocked: boolean} | null>(null)
+
 
     const API_URL = import.meta.env.VITE_API_URL
     
@@ -445,6 +451,23 @@ export default function Account() {
     const discordMetadata = user?.user_metadata?.discord_id || user?.user_metadata?.discord_name || user?.user_metadata?.discord_tag
     const isDiscordLinked = !!discordIdentity || !!discordMetadata
 
+    // Achievement Calculations
+    const hoursPlayed = statsData?.raw_playtime ? (Number(statsData.raw_playtime) / 1000 / 60 / 60) : 0;
+    const money = typeof statsData?.money === 'string' ? parseFloat(statsData.money.replace(/[^0-9.-]+/g,"")) : Number(statsData?.money || 0);
+    const blocksPlaced = Number(statsData?.raw_blocks_placed || 0);
+    const blocksMined = Number(statsData?.raw_blocks_mined || 0);
+    const kills = Number(statsData?.raw_kills || 0);
+    
+    const isDweller = !!user?.app_metadata?.discord_id || !!user?.user_metadata?.discord_id;
+    const isMagnate = money >= 5000;
+    const isArchitect = blocksPlaced >= 1000;
+    const isDeepMiner = blocksMined >= 1000;
+    const isGuardian = kills >= 10;
+    const isTimeTraveler = hoursPlayed >= 50;
+
+    const rankLower = (statsData?.raw_rank || "").toLowerCase();
+    const isPatron = rankLower.includes('donador') || rankLower.includes('fundador') || rankLower.includes('donor') || rankLower.includes('founder') || rankLower.includes('neroferno');
+
     useEffect(() => {
         if ((activeTab === 'overview' || activeTab === 'connections') && isLinked) {
             setLoadingStats(true)
@@ -563,7 +586,82 @@ export default function Account() {
                                     </button>
                                 </div>
                             )}
-                        </div>
+
+                        
+                        {isLinked && (
+                            <div style={{ marginTop: '2rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
+                                <div className="dashboard-card animate-slide-up" style={{ 
+                                    background: 'rgba(255,255,255,0.03)', 
+                                    padding: '1.5rem', 
+                                    borderRadius: '16px', 
+                                    border: '1px solid rgba(255,255,255,0.05)',
+                                    boxShadow: '0 4px 20px rgba(0,0,0,0.2)'
+                                }}>
+                                    <h3 style={{ color: '#fff', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.1rem', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '1rem' }}>
+                                        🎯 Estilo de Juego
+                                    </h3>
+                                    <PlaystyleRadar stats={{
+                                        blocksPlaced: Number(statsData?.raw_blocks_placed || 0),
+                                        blocksMined: Number(statsData?.raw_blocks_mined || 0),
+                                        kills: Number(statsData?.raw_kills || 0),
+                                        mobKills: Number(statsData?.mob_kills || 0),
+                                        playtimeHours: statsData?.playtime ? (parseInt(statsData.playtime.match(/(\d+)h/)?.[1] || '0') + (parseInt(statsData.playtime.match(/(\d+)m/)?.[1] || '0')/60)) : 0,
+                                        money: typeof statsData?.money === 'string' ? parseFloat(statsData.money.replace(/[^0-9.-]+/g,"")) : 0,
+                                        rank: statsData?.raw_rank || 'default'
+                                    }}/>
+                                </div>
+                                <div className="dashboard-card animate-slide-up" style={{ 
+                                    background: 'linear-gradient(135deg, rgba(88, 101, 242, 0.1), rgba(0,0,0,0))', 
+                                    padding: '2rem', 
+                                    borderRadius: '16px', 
+                                    border: '1px solid rgba(88, 101, 242, 0.2)', 
+                                    display: 'flex', 
+                                    flexDirection: 'column', 
+                                    justifyContent: 'center' 
+                                }}>
+                                    <h3 style={{ color: '#fff', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <FaInfoCircle color="var(--accent)" /> Métricas de Estilo
+                                    </h3>
+                                    
+                                    <div style={{ overflowX: 'auto', fontSize: '0.85rem' }}>
+                                        <table style={{ width: '100%', borderCollapse: 'collapse', color: '#bbb' }}>
+                                            <thead>
+                                                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', textAlign: 'left' }}>
+                                                    <th style={{ padding: '6px 0', color: 'var(--accent)' }}>Estilo</th>
+                                                    <th style={{ padding: '6px 0', color: 'var(--accent)' }}>Meta (100%)</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                                    <td style={{ padding: '6px 0', display: 'flex', alignItems: 'center', gap: '6px' }}><span style={{color:'#e67e22'}}>🛠️</span> Constructor</td>
+                                                    <td style={{ padding: '6px 0' }}>300,000 bloques</td>
+                                                </tr>
+                                                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                                    <td style={{ padding: '6px 0', display: 'flex', alignItems: 'center', gap: '6px' }}><span style={{color:'#e74c3c'}}>⚔️</span> Luchador</td>
+                                                    <td style={{ padding: '6px 0' }}>5,000 pts (Kill x10)</td>
+                                                </tr>
+                                                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                                    <td style={{ padding: '6px 0', display: 'flex', alignItems: 'center', gap: '6px' }}><span style={{color:'#3498db'}}>🗺️</span> Explorador</td>
+                                                    <td style={{ padding: '6px 0' }}>200 horas</td>
+                                                </tr>
+                                                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                                    <td style={{ padding: '6px 0', display: 'flex', alignItems: 'center', gap: '6px' }}><span style={{color:'#f1c40f'}}>💰</span> Mercader</td>
+                                                    <td style={{ padding: '6px 0' }}>$1,000,000</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style={{ padding: '6px 0', display: 'flex', alignItems: 'center', gap: '6px' }}><span style={{color:'#9b59b6'}}>👥</span> Social</td>
+                                                    <td style={{ padding: '6px 0' }}>100 pts (H x0.2 + Rango)</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        <div style={{ marginTop: '10px', fontSize: '0.75rem', color: '#666', fontStyle: 'italic' }}>
+                                            * Social: +30 pts por rango Donador, Fundador, Killuwu, Neroferno, Developer o Staff.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                     )}
 
                     {activeTab === 'posts' && (
@@ -650,63 +748,141 @@ export default function Account() {
 
                     {activeTab === 'achievements' && (
                         <div key="achievements" className="fade-in">
-                            <h2 style={{ color: '#fff', marginBottom: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem' }}>{t('account.achievements.title')}</h2>
-                            
-                            {(() => {
-                                const hoursPlayed = statsData?.raw_playtime ? (Number(statsData.raw_playtime) / 1000 / 60 / 60) : 0;
-                                const isVeteran = hoursPlayed > 50; 
-                                const isHunter = (statsData?.raw_kills || 0) > 50;
-                                const isMiner = (statsData?.raw_blocks_mined || 0) > 1000;
-                                
-                                const rank = (statsData?.raw_rank || "").toLowerCase();
-                                const isDonor = rank.includes('vip') || rank.includes('mvp') || rank.includes('donador') || rank.includes('founder') || rank.includes('owner') || rank.includes('killu') || rank.includes('nero');
+                    <h2 style={{ color: '#fff', marginBottom: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem' }}>{t('account.achievements.title')}</h2>
+                    
+                    {sharingAchievement && (
+                        <ShareableCard 
+                            achievement={sharingAchievement} 
+                            username={statsData?.username || user.user_metadata.full_name || 'Jugador'} 
+                            onClose={() => setSharingAchievement(null)} 
+                        />
+                    )}
 
-                                return (
-                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1.5rem' }}>
-                                        <AchievementCard 
-                                            title={t('account.achievements.items.welcome')} 
-                                            icon="👋" 
-                                            unlocked={true} 
-                                            description={t('account.achievements.items.welcome_desc')}
-                                        />
-                                        <AchievementCard 
-                                            title={t('account.achievements.items.first_post')} 
-                                            icon="📝" 
-                                            unlocked={userThreads.length > 0} 
-                                            description={t('account.achievements.items.first_post_desc')}
-                                            criteria={t('account.achievements.items.first_post_criteria')}
-                                        />
-                                        <AchievementCard 
-                                            title={t('account.achievements.items.veteran')} 
-                                            icon="⚔️" 
-                                            unlocked={isVeteran} 
-                                            description={t('account.achievements.items.veteran_desc')}
-                                            criteria={t('account.achievements.items.veteran_criteria')}
-                                        />
-                                        <AchievementCard 
-                                            title={t('account.achievements.items.donor')} 
-                                            icon="💎" 
-                                            unlocked={isDonor} 
-                                            description={t('account.achievements.items.donor_desc')}
-                                            criteria={t('account.achievements.items.donor_criteria')}
-                                        />
-                                        <AchievementCard 
-                                            title={t('account.achievements.items.hunter')} 
-                                            icon="🏹" 
-                                            unlocked={isHunter} 
-                                            description={t('account.achievements.items.hunter_desc')}
-                                            criteria={t('account.achievements.items.hunter_criteria')}
-                                        />
-                                        <AchievementCard 
-                                            title={t('account.achievements.items.miner')} 
-                                            icon="⛏️" 
-                                            unlocked={isMiner} 
-                                            description={t('account.achievements.items.miner_desc')}
-                                            criteria={t('account.achievements.items.miner_criteria')}
-                                        />
-                                    </div>
-                                )
-                            })()}
+                    {/* Season Timeline */}
+                    <div style={{ marginBottom: '2.5rem', background: 'rgba(255,255,255,0.02)', padding: '2rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                         <h3 style={{ color: 'var(--accent)', marginBottom: '1.5rem', fontSize: '1rem', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 'bold' }}>
+                            📅 Tu Travesía en CrystalTides
+                         </h3>
+                         <div style={{ display: 'flex', alignItems: 'center', gap: '0', position: 'relative', overflowX: 'auto', padding: '1rem 0' }}>
+                            {/* Line Background */}
+                            <div style={{ position: 'absolute', top: '24px', left: '50px', right: '50px', height: '2px', background: 'rgba(255,255,255,0.1)', zIndex: 0 }} />
+
+                            {/* Nodes */}
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '140px', position: 'relative', zIndex: 1 }}>
+                                <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: 'var(--accent)', marginBottom: '12px', boxShadow: '0 0 15px var(--accent)' }} />
+                                <span style={{ color: '#fff', fontSize: '0.9rem', fontWeight: 'bold' }}>Llegada</span>
+                                <span style={{ color: '#666', fontSize: '0.8rem', marginTop: '4px' }}>{statsData?.member_since || '???'}</span>
+                            </div>
+
+                             {statsData?.raw_rank && !['default'].includes(statsData.raw_rank.toLowerCase()) && (
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '140px', position: 'relative', zIndex: 1, marginLeft: 'auto', marginRight: 'auto' }}>
+                                    <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#fff', marginBottom: '12px' }} />
+                                    <span style={{ color: '#fff', fontSize: '0.9rem' }}>Ascenso</span>
+                                    <span style={{ color: 'var(--accent)', fontSize: '0.8rem', marginTop: '4px', textTransform: 'capitalize' }}>{statsData.raw_rank}</span>
+                                </div>
+                             )}
+
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '140px', position: 'relative', zIndex: 1, marginLeft: 'auto' }}>
+                                <div style={{ width: '16px', height: '16px', transform: 'rotate(45deg)', background: '#4CAF50', marginBottom: '12px', boxShadow: '0 0 15px #4CAF50' }} />
+                                <span style={{ color: '#fff', fontSize: '0.9rem', fontWeight: 'bold' }}>Hoy</span>
+                                <span style={{ color: '#888', fontSize: '0.8rem', marginTop: '4px' }}>{(statsData?.playtime ? (parseInt(statsData.playtime.match(/(\d+)h/)?.[1] || '0') + (parseInt(statsData.playtime.match(/(\d+)m/)?.[1] || '0')/60)) : 0).toFixed(1)}h jugadas</span>
+                            </div>
+                         </div>
+                    </div>
+                            
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1.5rem' }}>
+                                <AchievementCard 
+                                    title={t('account.achievements.items.dweller')} 
+                                    icon="🌊" 
+                                    unlocked={isDweller} 
+                                    description={t('account.achievements.items.dweller_desc')}
+                                    criteria={t('account.achievements.items.dweller_criteria')}
+                                    onShare={() => setSharingAchievement({
+                                        title: t('account.achievements.items.dweller'),
+                                        description: t('account.achievements.items.dweller_desc'),
+                                        icon: "🌊",
+                                        unlocked: true
+                                    })}
+                                />
+                                <AchievementCard 
+                                    title={t('account.achievements.items.magnate')} 
+                                    icon="💎" 
+                                    unlocked={isMagnate} 
+                                    description={t('account.achievements.items.magnate_desc')}
+                                    criteria={t('account.achievements.items.magnate_criteria')}
+                                    onShare={() => setSharingAchievement({
+                                        title: t('account.achievements.items.magnate'),
+                                        description: t('account.achievements.items.magnate_desc'),
+                                        icon: "💎",
+                                        unlocked: true
+                                    })}
+                                />
+                                <AchievementCard 
+                                    title={t('account.achievements.items.architect')} 
+                                    icon="🏗️" 
+                                    unlocked={isArchitect} 
+                                    description={t('account.achievements.items.architect_desc')}
+                                    criteria={t('account.achievements.items.architect_criteria')}
+                                    onShare={() => setSharingAchievement({
+                                        title: t('account.achievements.items.architect'),
+                                        description: t('account.achievements.items.architect_desc'),
+                                        icon: "🏗️",
+                                        unlocked: true
+                                    })}
+                                />
+                                <AchievementCard 
+                                    title={t('account.achievements.items.deep_miner')} 
+                                    icon="⛏️" 
+                                    unlocked={isDeepMiner} 
+                                    description={t('account.achievements.items.deep_miner_desc')}
+                                    criteria={t('account.achievements.items.deep_miner_criteria')}
+                                    onShare={() => setSharingAchievement({
+                                        title: t('account.achievements.items.deep_miner'),
+                                        description: t('account.achievements.items.deep_miner_desc'),
+                                        icon: "⛏️",
+                                        unlocked: true
+                                    })}
+                                />
+                                <AchievementCard 
+                                    title={t('account.achievements.items.guardian')} 
+                                    icon="⚔️" 
+                                    unlocked={isGuardian} 
+                                    description={t('account.achievements.items.guardian_desc')}
+                                    criteria={t('account.achievements.items.guardian_criteria')}
+                                    onShare={() => setSharingAchievement({
+                                        title: t('account.achievements.items.guardian'),
+                                        description: t('account.achievements.items.guardian_desc'),
+                                        icon: "⚔️",
+                                        unlocked: true
+                                    })}
+                                />
+                                <AchievementCard 
+                                    title={t('account.achievements.items.time_traveler')} 
+                                    icon="⏳" 
+                                    unlocked={isTimeTraveler} 
+                                    description={t('account.achievements.items.time_traveler_desc')}
+                                    criteria={t('account.achievements.items.time_traveler_criteria')}
+                                    onShare={() => setSharingAchievement({
+                                        title: t('account.achievements.items.time_traveler'),
+                                        description: t('account.achievements.items.time_traveler_desc'),
+                                        icon: "⏳",
+                                        unlocked: true
+                                    })}
+                                />
+                                <AchievementCard 
+                                    title={t('account.achievements.items.patron')} 
+                                    icon="👑" 
+                                    unlocked={isPatron} 
+                                    description={t('account.achievements.items.patron_desc')}
+                                    criteria={t('account.achievements.items.patron_criteria')}
+                                    onShare={() => setSharingAchievement({
+                                        title: t('account.achievements.items.patron'),
+                                        description: t('account.achievements.items.patron_desc'),
+                                        icon: "👑",
+                                        unlocked: true
+                                    })}
+                                />
+                            </div>
                         </div>
                     )}
 

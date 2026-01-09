@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { FaTrash, FaExclamationTriangle } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
 

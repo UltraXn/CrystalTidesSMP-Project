@@ -42,11 +42,15 @@ Sigue estos pasos para obtener las credenciales necesarias (Service Account) y c
    - Ve a Google Calendar -> Configuración de tu calendario -> **Compartir con personas específicas**.
    - Pega el email y dale permiso: **"Realizar cambios en eventos"**.
 
-## Paso 6: Configurar Servidor
+## Paso 6: Configurar Servidor (Producción)
 
-Si pusiste el archivo como `server/service-account.json`, asegúrate de que tu código lo lea (en `googleCalendarService.ts` a veces se configura para buscar ruta automática o variables de entorno).
+El código (`googleCalendarService.ts`) está optimizado para buscar **Variables de Entorno** primero, lo cual es ideal para Cloud Run.
 
-_Si prefieres usar variables de entorno (.env):_
-Copia el contenido del archivo JSON en tu `.env` (es más complejo por los saltos de línea en la clave privada). **Lo más fácil por ahora es poner el archivo JSON en la carpeta `server/` con el nombre `google-credentials.json` (o como lo tengas configurado).**
+Debes configurar los siguientes secretos en tu entorno de despliegue:
 
-> **Nota**: Verifica en `server/services/googleCalendarService.ts` qué nombre de archivo está esperando o si espera variables.
+- `GOOGLE_SERVICE_ACCOUNT_EMAIL`: El email de la cuenta de servicio (`xxx@project.iam.gserviceaccount.com`).
+- `GOOGLE_PRIVATE_KEY`: El contenido completo de `private_key` del JSON.
+- `GOOGLE_CALENDAR_ID`: El ID del calendario.
+
+**Para Desarrollo Local:**
+Puedes simplemente colocar el archivo `service-account.json` en la raíz del proyecto y el código lo detectará automáticamente como fallback.

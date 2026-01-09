@@ -10,33 +10,34 @@ El **KilluCoin Gacha** es el minijuego principal de gamificación en la web de C
 
 ## 🛠️ Integración Técnica
 
-El sistema funciona mediante una orquestación de tres capas:
+El sistema funciona mediante una orquestación de tres capas, actualmente implementada como una **Tirada Diaria Gratuita**:
 
 1.  **Frontend (React)**:
-
-    - Valida visualmente si el usuario tiene disponible su tirada diaria.
-    - Envía una petición `POST` segura al backend.
-    - [Renderiza el premio](../client/src/pages/Gacha.tsx) obtenido tras la validación (Logic: [`handleOpen`](../client/src/pages/Gacha.tsx#L91)).
+    - Muestra una interfaz de **Multi-Tier** (Bronze, Silver, Gold...) con costes visuales.
+    - *Nota*: Actualmente el backend ejecuta una lógica única de "Daily Reward", por lo que la selección de Tier es visualmente representativa en esta versión.
+    - Envía una petición `POST` segura al backend al girar la palanca.
 
 2.  **Backend (Node.js/Express)**:
-
     - **Servicio**: [`gachaService.ts`](../server/services/gachaService.ts).
-    - **Controlador**: [`gachaController.ts`](../server/controllers/gachaController.ts).
-    - **Lógica**:
-      - Recupera la lista de premios y sus probabilidades desde Supabase.
-      - Ejecuta un algoritmo de RNG (Random Number Generation) basado en pesos (Logic: [`rollGacha`](../server/services/gachaService.ts#L26)).
-      - Verifica en la base de datos que el usuario no haya tirado en las últimas 24h (Logic: [`checkCooldown`](../server/services/gachaService.ts#L87)).
-      - Registra el drop en `gacha_history` via [`saveDrop`](../server/services/gachaService.ts#L107).
+    - **Lógica Actual**:
+      - **Pool de Premios**: Hardcoded en `REWARDS_POOL` (no en BD), dividido por rarezas simples (XP, Monedas, Items).
+      - **RNG**: Algoritmo de peso ponderado (Common 70%, Rare 20%, Epic 8%, Legendary 2%).
+      - **Cooldown**: Verificación estricta de **24 horas** contra la tabla `gacha_history`.
+      - **Entrega**: Inserta comandos en la cola de **CrystalBridge**.
 
 3.  **Entrega (CrystalBridge)**:
-    - Tras generar el premio, el backend inserta el comando de entrega correspondiente (ej: `give {player} diamond 64`) en la cola de **CrystalBridge**.
-    - El jugador recibe sus items la próxima vez que entre al servidor.
+    - Ejecuta comandos nativos de Minecraft (`eco give`, `lp user`, `give`) basándose en el tipo de premio (`currency`, `rank`, `item`).
 
-## 💎 Configuración de Premios
+## 💎 Configuración de Premios (Pool Actual)
 
-Los premios se gestionan desde Supabase y se dividen por rareza:
+Los premios están definidos en código (`gachaService.ts`) y siguen esta distribución:
 
-> 🚧 **Próximamente**: Estamos trabajando en definir las categorías y tablas de loot definitivas. La lista oficial de recompensas se publicará pronto.
+- **Common (70%)**: XP, KilluCoins pequeñas.
+- **Rare (20%)**: KilluCoins medianas, Diamantes.
+- **Epic (8%)**: Rangos temporales (VIP), Manzanas de Oro.
+- **Legendary (2%)**: Rangos altos (MVP), Netherite, Llaves de Caja.
+
+> 🚧 **Roadmap**: La funcionalidad de "Tiers de Pago" (gastar KilluCoins por mejores premios) está presente en el Frontend pero pendiente de implementación en el Backend.
 
 ---
 

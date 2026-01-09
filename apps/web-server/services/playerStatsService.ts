@@ -13,6 +13,12 @@ interface PlayerStats {
     blocks_mined: string;
     blocks_placed: string;
     member_since: string;
+    raw_id?: number;
+    raw_playtime?: number;
+    raw_kills?: number;
+    raw_blocks_mined?: number;
+    raw_blocks_placed?: number;
+    raw_rank?: string;
 }
 
 // Map specific Unicode Groups found in DB to internal keys
@@ -87,7 +93,13 @@ export const getPlayerStats = async (usernameFragment: string): Promise<PlayerSt
         money: formatMoneyCompact(moneyStats),
         blocks_mined: (cpStats.mined || 0).toLocaleString('en-US'),
         blocks_placed: (cpStats.placed || 0).toLocaleString('en-US'),
-        member_since: new Date(user.registered).toLocaleDateString('es-ES')
+        member_since: new Date(user.registered).toLocaleDateString('es-ES'),
+        raw_id: planUserId, 
+        raw_playtime: playtimeMs,
+        raw_kills: killStats,
+        raw_blocks_mined: cpStats.mined || 0,
+        raw_blocks_placed: cpStats.placed || 0,
+        raw_rank: rankData.name
     };
 };
 

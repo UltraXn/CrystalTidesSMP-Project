@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FaDonate, FaTimes, FaUser, FaEnvelope, FaClock, FaCalendarAlt, FaCheckCircle, FaSpinner } from "react-icons/fa";
+import { FaDonate, FaTimes, FaUser, FaEnvelope, FaClock, FaCheckCircle, FaSpinner } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
 import { Donation } from "./types";
 

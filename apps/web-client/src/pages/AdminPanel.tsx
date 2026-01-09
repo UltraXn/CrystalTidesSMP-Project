@@ -115,7 +115,7 @@ export default function AdminPanel() {
     }, [user, loading])
 
     // Verificación Real de Permisos
-    const allowedRoles = ['admin', 'neroferno', 'killu', 'helper', 'developer', 'staff']
+    const allowedRoles = ['admin', 'neroferno', 'killu', 'killuwu', 'helper', 'developer', 'staff']
     const isAdmin = allowedRoles.includes(user?.user_metadata?.role?.toLowerCase())
     
     // Roles con acceso privilegiado (Configuración y Equipo)
@@ -360,6 +360,7 @@ function UserRoleDisplay({ role }: UserRoleDisplayProps) {
     const roles: Record<string, { label: string; color?: string; img: string; icon?: string }> = {
         neroferno: { label: t('account.roles.neroferno'), color: '#8b5cf6', img: '/ranks/rank-neroferno.png' },
         killu: { label: t('account.roles.killu'), color: '#ec4899', img: '/ranks/rank-killu.png' },
+        killuwu: { label: t('account.roles.killu'), color: '#ec4899', img: '/ranks/rank-killu.png' },
         founder: { label: t('account.roles.founder'), color: '#a855f7', img: '/ranks/rank-fundador.png' },
         admin: { label: t('account.roles.admin'), color: '#f59e0b', img: '/ranks/admin.png' },
         staff: { label: t('account.roles.staff', 'Staff'), color: '#ffd700', img: '/ranks/staff.png' },

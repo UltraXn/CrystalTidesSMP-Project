@@ -63,7 +63,9 @@ export default function CommandPalette() {
     ];
 
     // Admin Section
-    if (user?.user_metadata?.role === 'admin' || user?.user_metadata?.role === 'owner' || user?.user_metadata?.role === 'neroferno' || user?.user_metadata?.role === 'killu') {
+    const SUPER_ADMIN_ROLES = ['admin', 'neroferno', 'killu', 'killuwu', 'developer'];
+    
+    if (SUPER_ADMIN_ROLES.includes(user?.user_metadata?.role)) {
         actions.unshift({
             section: 'Administración',
             items: [

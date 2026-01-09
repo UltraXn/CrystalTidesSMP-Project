@@ -265,7 +265,8 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({
                                 <FaDiscord style={{ color: '#5865F2', fontSize: '1.2rem', minWidth: '24px' }} />
                                 <input 
                                     {...register('social_discord')}
-                                    placeholder="Usuario#0000"
+                                    autoComplete="off"
+                                    placeholder="nombredeusuario"
                                     style={{ flex: 1, padding: '14px', background: 'transparent', border: 'none', color: '#fff', outline: 'none', fontSize: '0.9rem' }}
                                 />
                             </div>
@@ -275,6 +276,7 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({
                                 <FaTwitter style={{ color: '#1da1f2', fontSize: '1.2rem', minWidth: '24px' }} />
                                 <input 
                                     {...register('social_twitter')}
+                                    autoComplete="off"
                                     placeholder="Twitter (ej: @miusuario)"
                                     style={{ flex: 1, padding: '14px', background: 'transparent', border: 'none', color: '#fff', outline: 'none', fontSize: '0.9rem' }}
                                 />
@@ -285,6 +287,7 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({
                                 <FaTwitch style={{ color: '#9146FF', fontSize: '1.2rem', minWidth: '24px' }} />
                                 <input 
                                     {...register('social_twitch')}
+                                    autoComplete="off"
                                     placeholder="Canal de Twitch"
                                     style={{ flex: 1, padding: '14px', background: 'transparent', border: 'none', color: '#fff', outline: 'none', fontSize: '0.9rem' }}
                                 />
@@ -295,6 +298,7 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({
                                 <SiKofi style={{ color: '#00AF96', fontSize: '1.2rem', minWidth: '24px' }} />
                                 <input 
                                     {...register('social_kofi')}
+                                    autoComplete="off"
                                     placeholder="URL de Ko-Fi"
                                     style={{ flex: 1, padding: '14px', background: 'transparent', border: 'none', color: '#fff', outline: 'none', fontSize: '0.9rem' }}
                                 />

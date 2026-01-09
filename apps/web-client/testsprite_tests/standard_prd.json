@@ -1,0 +1,132 @@
+{
+  "meta": {
+    "project": "Testsprite Frontend",
+    "date": "2025-12-30",
+    "prepared_by": "Software Development Manager"
+  },
+  "product_overview": "Testsprite is a dynamic web application platform integrating user authentication, gaming account linkage, community interaction, and administrative management to provide an engaging and seamless user experience for gamers and community members.",
+  "core_goals": [
+    "Provide secure and user-friendly authentication and profile management.",
+    "Enable integration and synchronization with popular gaming platforms like Minecraft and Discord.",
+    "Offer rich user dashboards showcasing statistics, achievements, and gameplay styles.",
+    "Facilitate community engagement via discussion forums with rich content support.",
+    "Support administrative control tools for user, content, and event management.",
+    "Implement a virtual economy including gacha mechanisms and donation management.",
+    "Deliver a robust, reusable UI component library for consistent design and development efficiency."
+  ],
+  "key_features": [
+    "Authentication & User Management using Supabase Auth for login, registration, and profile editing.",
+    "Game Integrations allowing linkage of web accounts to Minecraft and Discord identities with role synchronization and skin display.",
+    "Dashboard featuring user statistics, playstyle radar charts, achievements listings, and seasonal timelines.",
+    "Forum System enabling categorized discussions, threads creation, polls, and markdown support for content richness.",
+    "Admin Panel providing tools for managing users, support tickets, news publishing, and events orchestration.",
+    "Economy & Shop with a gacha system, virtual currency handling, and donation tracking.",
+    "Component Library bundled with Storybook for UI component visualization, testing, and development."
+  ],
+  "user_flow_summary": [
+    "User registers or logs in through secure authentication system.",
+    "User links their gaming identities from Minecraft and Discord.",
+    "User accesses personalized dashboard to view their gaming statistics and achievements.",
+    "User participates in forum discussions by creating threads, posting replies, and voting in polls.",
+    "Administrators manage users, tickets, news, and community events via the admin panel.",
+    "Users engage with the in-app economy by spending virtual currency and participating in gacha draws.",
+    "Developers utilize the component library and Storybook to build and test UI components effectively."
+  ],
+  "validation_criteria": [
+    "Successful user authentication and profile updates validated through Supabase integration.",
+    "Accurate linking and synchronization of Minecraft and Discord accounts verified by role and data consistency.",
+    "Dashboard data reflects real-time user statistics and displays correct gameplay analysis visually.",
+    "Forum supports markdown posts, polling functionality, and maintains responsive user interaction.",
+    "Admin panel functions correctly with role-restricted access and correct CRUD operations.",
+    "Economy features execute transactions properly including gacha draws and donation records.",
+    "UI components render correctly across supported browsers and pass Storybook visual testing and edge case scenarios."
+  ],
+  "code_summary": {
+    "tech_stack": [
+      "TypeScript",
+      "React",
+      "Vite",
+      "Supabase",
+      "TailwindCSS",
+      "shadcn/ui",
+      "React Router",
+      "Zod",
+      "React Hook Form",
+      "TanStack Query"
+    ],
+    "features": [
+      {
+        "name": "Authentication & User Management",
+        "description": "Handles user login, registration, and profile management using Supabase Auth.",
+        "files": [
+          "src/context/AuthContext.tsx",
+          "src/services/supabaseClient.ts",
+          "src/pages/Login.tsx",
+          "src/pages/Register.tsx",
+          "src/pages/Account.tsx",
+          "src/components/Account/ProfileEditModal.tsx"
+        ]
+      },
+      {
+        "name": "Game Integrations (Minecraft/Discord)",
+        "description": "Links web accounts to Minecraft and Discord identities, managing role synchronization and data display.",
+        "files": [
+          "src/pages/Verify.tsx",
+          "src/components/Account/ConnectionCards.tsx",
+          "src/components/Account/MinecraftSkinViewer.tsx",
+          "src/services/discordService.ts"
+        ]
+      },
+      {
+        "name": "Dashboard & Statistics",
+        "description": "Displays user statistics, playstyle analysis (radar chart), and achievements.",
+        "files": [
+          "src/pages/Dashboard.tsx",
+          "src/components/User/PlaystyleRadar.tsx",
+          "src/components/User/PlayerStatsGrid.tsx",
+          "src/components/User/AchievementsList.tsx",
+          "src/components/User/SeasonTimeline.tsx"
+        ]
+      },
+      {
+        "name": "Forum System",
+        "description": "A community forum with categories, threads, polls, and markdown support.",
+        "files": [
+          "src/pages/Forum.tsx",
+          "src/pages/ForumCategory.tsx",
+          "src/pages/ForumThread.tsx",
+          "src/components/Forum/PollDisplay.tsx",
+          "src/services/forumService.ts"
+        ]
+      },
+      {
+        "name": "Admin Panel",
+        "description": "Administrative interface for managing users, tickets, news, and events.",
+        "files": [
+          "src/pages/AdminPanel.tsx",
+          "src/components/Admin/UsersManager.tsx",
+          "src/components/Admin/TicketsManager.tsx",
+          "src/components/Admin/NewsForm.tsx"
+        ]
+      },
+      {
+        "name": "Economy & Shop",
+        "description": "Gacha system, donation management, and virtual currency handling.",
+        "files": [
+          "src/pages/Gacha.tsx",
+          "src/services/gachaService.ts",
+          "src/components/Admin/DonationsManager.tsx"
+        ]
+      },
+      {
+        "name": "Component Library / Storybook",
+        "description": "Extensive collection of UI components with defined stories for isolated testing and edge case validation.",
+        "files": [
+          "src/stories",
+          ".storybook/main.ts",
+          "src/components/UI"
+        ]
+      }
+    ]
+  }
+}

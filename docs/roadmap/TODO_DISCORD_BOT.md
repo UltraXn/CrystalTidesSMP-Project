@@ -6,9 +6,9 @@
   - [ ] **Discord -> Minecraft**: Permitir enviar mensajes desde un canal de staff en Discord al juego.
   - [ ] **Minecraft -> Discord**: Replicar el chat público del juego en un canal `#chat-global` (solo lectura o interactivo).
 
-- [ ] **Sistema de Verificación (Link)**
-  - [ ] Crear comando `/link` en Minecraft para generar código.
-  - [ ] Crear comando slash `/verificar <code>` en Discord.
+- [x] **Sistema de Verificación (Link)**
+  - [x] Crear comando `/link` en Minecraft para generar código (Backend/Web).
+  - [x] Crear comando slash `/link <code>` en Discord.
   - [ ] Sincronizar automáticamente roles (VIP, MVP, Staff) al verificar.
 
 ## 🛠️ Herramientas de Administración y Moderación
@@ -24,11 +24,14 @@
 ## 📊 Información y Estadísticas
 
 - [ ] **Comando de Estadísticas `/stats <jugador>`**
-  - [ ] Generar una "Player Card" (Embed imagen) con:
-    - [ ] K/D Ratio (Asesinatos/Muertes).
-    - [ ] Tiempo jugado.
-    - [ ] Dinero/Balance.
-    - [ ] Última conexión.
+  - [ ] **Sincronización Web**: Mostrar las mismas métricas que el Dashboard (`Account.tsx`).
+  - [ ] **Playstyle Radar**: Incluir los 5 atributos:
+    - [ ] 🛠️ Constructor (Bloques).
+    - [ ] ⚔️ Luchador (Kills/MobKills).
+    - [ ] 🗺️ Explorador (Tiempo Jugar).
+    - [ ] 💰 Mercader (Dinero).
+    - [ ] 👥 Social (Rango + Tiempo).
+  - [ ] Generar imagen/embed visual similar al diseño "Glassmorphism" de la web.
 
 - [ ] **Canal de Estado en Vivo (Live Status)**
   - [ ] Mensaje auto-actualizable (cada 60s) en canal `#estado`.

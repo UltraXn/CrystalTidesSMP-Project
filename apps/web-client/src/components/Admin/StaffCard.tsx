@@ -10,7 +10,7 @@ export interface StaffCardData {
     description: string;
     image: string;
     color: string;
-    socials: { twitter: string; discord: string; youtube: string; twitch: string; };
+    socials?: { twitter?: string; discord?: string; youtube?: string; twitch?: string; };
 }
 
 export interface StaffCardProps {

@@ -92,8 +92,11 @@ Los siguientes módulos ya operan bajo este estándar V2:
 ## 🚀 Próximos Pasos
 
 4.  **Autenticación**:
-    - Login: Validación de email/password.
-    - Register: Validación de coincidencia de contraseñas y unicidad de username.
+    - Login: Validación de email/password (`loginSchema`).
+    - Register: Validación de coincidencia de contraseñas y unicidad (`registerSchema`).
+
+## 🚀 Próximos Pasos
+
 5.  **Panel Admin**:
     - NewsForm: Gestión completa de noticias con validación y traducción.
 

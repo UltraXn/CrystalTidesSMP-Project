@@ -40,8 +40,7 @@ export interface GoogleEvent {
 interface CalendarViewProps {
   tasks: KanbanTask[];
   googleEvents?: GoogleEvent[];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  notionTasks?: any[];
+  notionTasks?: Record<string, unknown>[];
   onEditTask: (task: KanbanTask) => void;
   onUpdateEventDate?: (id: number | string, newStart: Date) => void;
   onUpdateEventDuration?: (id: number | string, newStart: Date, newEnd: Date) => void;
@@ -52,8 +51,7 @@ interface CalendarEvent {
   title: string;
   start: Date;
   end: Date;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  resource: any;
+  resource: unknown;
   hexColor?: string;
   isDraggable?: boolean;
   type?: 'task' | 'google' | 'notion';
@@ -166,10 +164,10 @@ export default function CalendarView({ tasks, googleEvents, notionTasks, onUpdat
 
   // Map NotionTasks
   const notionCalendarEvents: CalendarEvent[] = useMemo(() => (notionTasks || []).map(task => ({
-    id: task.id,
-    title: task.title,
-    start: new Date(task.created_at),
-    end: new Date(task.created_at),
+    id: (task.id as string | number) || 'unknown-id',
+    title: (task.title as string) || 'Untitled Notion Task',
+    start: new Date((task.created_at as string) || new Date()),
+    end: new Date((task.created_at as string) || new Date()),
     resource: { id: -2, ...task, columnId: 'notion' },
     hexColor: '#111827', // Deep Notion Black
     isDraggable: false,

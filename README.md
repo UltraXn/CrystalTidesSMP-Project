@@ -13,7 +13,7 @@ Este proyecto utiliza una estructura de **Monorepo** moderna para gestionar múl
 | **CrystalLauncher** | `apps/launcher`        | Launcher Premium con estética Glassmorphism.           | Flutter, Rust (Dart FFI)   |
 | **CrystalNative**   | `apps/launcher/native` | Núcleo nativo de alto rendimiento (DLL).               | Rust, Lua (Hot-patching)   |
 | **Web Portal**      | `apps/web-client`      | Portal de usuario y Dashboard Administrativo.          | React, Vite, TSX           |
-| **API Server**      | `apps/backend`         | API RESTful, Webhooks y agregadores.                   | Node.js, Express, Supabase |
+| **API Server**      | `apps/web-server`      | API RESTful, Webhooks y agregadores.                   | Node.js, Express, Supabase |
 | **CrystalCore**     | `plugins/crystalcore`  | Plugin de servidor para sincronización en tiempo real. | Java 21, Paper API         |
 | **Game-Bridge**     | `apps/game-bridge`     | Agente in-game para inyección de HUD y lógica.         | Java (Agent), Rust (JNI)   |
 

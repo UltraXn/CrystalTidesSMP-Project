@@ -206,13 +206,13 @@ export default function ForumThread() {
 
     const isOwnerOrAdmin = (targetUserId: string | null) => {
         if (!user) return false;
-        const isAdmin = ['admin', 'owner', 'neroferno', 'killu', 'helper'].includes(user.user_metadata?.role);
+        const isAdmin = ['admin','neroferno', 'killu', 'helper'].includes(user.user_metadata?.role);
         return isAdmin || (user.id === targetUserId);
     }
 
     const isAdmin = () => {
         if (!user) return false;
-        return ['admin', 'owner', 'neroferno', 'killu', 'helper'].includes(user.user_metadata?.role);
+        return ['admin', 'neroferno', 'killu', 'helper'].includes(user.user_metadata?.role);
     }
 
     const handleUpdateThread = async () => {

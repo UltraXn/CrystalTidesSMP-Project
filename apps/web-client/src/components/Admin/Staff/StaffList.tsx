@@ -1,7 +1,7 @@
-import React from 'react';
+
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { useTranslation } from 'react-i18next';
-import { FaUsers, FaSync, FaPlus } from 'react-icons/fa';
+import { FaUsers, FaSync } from 'react-icons/fa';
 import StaffCardComponent from '../StaffCard';
 import { StaffCardData } from './StaffFormModal';
 
@@ -67,7 +67,6 @@ export default function StaffList({ cards, onlineStatus, onDragEnd, onEdit, onDe
                                             roleBadge={getRoleBadge(card.role)}
                                             onEdit={() => onEdit(card)}
                                             onDelete={() => onDelete(card.id)}
-                                            t={t}
                                         />
                                     )}
                                 </Draggable>

@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { FaCrown, FaGripLines, FaEdit, FaTrash } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';

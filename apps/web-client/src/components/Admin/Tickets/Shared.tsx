@@ -1,6 +1,6 @@
 import { FaExclamationCircle, FaCheckCircle, FaExclamationTriangle } from "react-icons/fa"
 import { useTranslation } from 'react-i18next'
-import React from 'react'
+
 
 interface CustomAlertProps {
     message: string;

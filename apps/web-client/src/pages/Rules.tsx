@@ -56,7 +56,7 @@ export default function Rules() {
     })
     const [translating, setTranslating] = useState<string | null>(null);
 
-    const allowedRoles = ['admin', 'owner', 'developer', 'neroferno', 'killu', 'helper'];
+    const allowedRoles = ['admin','developer', 'neroferno', 'killu', 'helper'];
     const isStaff = allowedRoles.includes(user?.user_metadata?.role?.toLowerCase() || '');
 
     const fetchRules = async () => {

@@ -37,6 +37,13 @@ El objetivo del proyecto es mantener **cero advertencias (0 warnings)** en el bu
   - `Component Props`: Interfaces explícitas para todas las props.
   - `API Responses`: Mapeo de respuestas backend a interfaces frontend.
 
+## 🧪 Testing
+
+El proyecto utiliza **Vitest** como framework de pruebas unitarias y de integración, compatible con la sintaxis de Jest pero optimizado para Vite.
+
+- **Comando**: `npm run test`
+- **Ubicación**: Los tests deben estar coubicados con sus componentes/módulos (ej: `Componente.test.tsx`) o en `__tests__`.
+
 ## 🌍 Internacionalización (i18n)
 
 El proyecto utiliza `i18next` con soporte completo para Español (default) e Inglés.

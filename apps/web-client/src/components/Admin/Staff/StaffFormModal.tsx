@@ -56,10 +56,13 @@ export default function StaffFormModal({ userData, isNew, onClose, onSave, savin
     ], [t]);
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         if (userData) {
-            setFormData(userData);
+            // Only update if ID changed to avoid loops, or relying on parent to handle key
+            // Ideally parent should key on userData.id
+            setFormData(prev => prev.id === userData.id ? prev : userData);
         } else if (isNew) {
-            setFormData({
+            setFormData(prev => prev.id === 0 ? {
                 id: Date.now(),
                 name: '',
                 role: 'Usuario',
@@ -67,11 +70,11 @@ export default function StaffFormModal({ userData, isNew, onClose, onSave, savin
                 image: '',
                 color: '#db7700',
                 socials: { twitter: '', discord: '', youtube: '', twitch: '' }
-            });
+            } : prev);
         }
     }, [userData, isNew]);
 
-    const handleChange = (field: keyof StaffCardData, value: any) => {
+    const handleChange = (field: keyof StaffCardData, value: string | number | boolean | object) => {
         setFormData(prev => ({ ...prev, [field]: value }));
     };
 
@@ -81,7 +84,8 @@ export default function StaffFormModal({ userData, isNew, onClose, onSave, savin
             socials: { ...prev.socials, [network]: value }
         }));
     };
-
+    
+    // Helper for specific handle changes if needed
     const onRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const selectedRole = PRESET_ROLES.find(r => r.value === e.target.value);
         if (selectedRole) {

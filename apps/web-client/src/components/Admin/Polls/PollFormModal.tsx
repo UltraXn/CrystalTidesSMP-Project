@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { FaPoll, FaTimes, FaPlus, FaSpinner, FaLanguage, FaCheck } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
 import { Poll } from './types';
 
 interface PollFormModalProps {
     onClose: () => void;
-    onSubmit: (e: React.FormEvent, data: any) => Promise<void>;
+    onSubmit: (e: React.FormEvent, data: { title: string, titleEn: string, question: string, questionEn: string, options: {label: string, labelEn: string}[], daysDuration: number }) => Promise<void>;
     poll?: Poll | null;
     creating: boolean;
     buttonSuccess: boolean;
@@ -26,42 +26,48 @@ export default function PollFormModal({ onClose, onSubmit, poll, creating, butto
     const [options, setOptions] = useState<{label: string, labelEn: string}[]>([{label: '', labelEn: ''}, {label: '', labelEn: ''}]);
     const [daysDuration, setDaysDuration] = useState(7);
 
-    const updateOption = (idx: number, field: 'label' | 'labelEn', val: string) => {
-        const newOpts = [...options];
-        newOpts[idx] = { ...newOpts[idx], [field]: val };
-        setOptions(newOpts);
-    };
+    const updateOption = useCallback((idx: number, field: 'label' | 'labelEn', val: string) => {
+        setOptions(prev => {
+            const newOpts = [...prev];
+            newOpts[idx] = { ...newOpts[idx], [field]: val };
+            return newOpts;
+        });
+    }, []);
 
-    const removeOption = (idx: number) => {
-        const newOpts = options.filter((_, i) => i !== idx);
-        setOptions(newOpts);
-    };
+    const removeOption = useCallback((idx: number) => {
+        setOptions(prev => prev.filter((_, i) => i !== idx));
+    }, []);
 
     // Initial load
     useEffect(() => {
-        if(poll) {
-             setTitle(poll.title);
-             setTitleEn(poll.title_en || '');
-             setQuestion(poll.question);
-             setQuestionEn(poll.question_en || '');
+        if (poll) {
+             if (poll.title !== title) setTitle(poll.title);
+             if ((poll.title_en || '') !== titleEn) setTitleEn(poll.title_en || '');
+             if (poll.question !== question) setQuestion(poll.question);
+             if ((poll.question_en || '') !== questionEn) setQuestionEn(poll.question_en || '');
              
+             // Always reset options for simplicity when poll changes
              const mappedOptions = poll.options.map(o => ({
-                label: o.label,
-                labelEn: o.label_en || ''
+                 label: o.label,
+                 labelEn: o.label_en || ''
              }));
-             while(mappedOptions.length < 2) mappedOptions.push({label: '', labelEn: ''});
+             while (mappedOptions.length < 2) mappedOptions.push({ label: '', labelEn: '' });
+             
              setOptions(mappedOptions);
         }
-    }, [poll]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [poll]); 
 
     // Translation updates
     useEffect(() => {
-        if (translatedValues.title) setTitleEn(translatedValues.title);
-        if (translatedValues.question) setQuestionEn(translatedValues.question);
+        if (translatedValues.title && translatedValues.title !== titleEn) setTitleEn(translatedValues.title);
+        if (translatedValues.question && translatedValues.question !== questionEn) setQuestionEn(translatedValues.question);
         if (translatedValues.option) {
-            updateOption(translatedValues.option.idx, 'labelEn', translatedValues.option.val);
+             const { idx, val } = translatedValues.option;
+             updateOption(idx, 'labelEn', val);
         }
-    }, [translatedValues]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [translatedValues, updateOption]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();

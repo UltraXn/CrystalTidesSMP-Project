@@ -28,7 +28,7 @@ export const updateUserRole = async (req: Request, res: Response) => {
 
         // Security: Role Hierarchy Check
         // 1. Check if requester has authority
-        const requestorRole = (req as any).user?.role;
+        const requestorRole = (req as Request & { user?: { role: string } }).user?.role;
         const requestorPriority = getRolePriority(requestorRole);
         const newRolePriority = getRolePriority(role);
 

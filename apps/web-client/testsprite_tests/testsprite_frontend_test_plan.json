@@ -1,0 +1,550 @@
+[
+  {
+    "id": "TC001",
+    "title": "User Registration Success",
+    "description": "Verify that a new user can successfully register with valid credentials via Supabase Auth.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the registration page."
+      },
+      {
+        "type": "action",
+        "description": "Input valid username, email, and password."
+      },
+      {
+        "type": "action",
+        "description": "Submit the registration form."
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm that registration completes successfully and user is redirected to the dashboard."
+      }
+    ]
+  },
+  {
+    "id": "TC002",
+    "title": "User Registration with Invalid Email",
+    "description": "Verify that registration fails if the user inputs an invalid email format.",
+    "category": "error handling",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the registration page."
+      },
+      {
+        "type": "action",
+        "description": "Input username and password, and provide an invalid email format."
+      },
+      {
+        "type": "action",
+        "description": "Submit the registration form."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify that the system prevents submission and displays an appropriate error message about invalid email."
+      }
+    ]
+  },
+  {
+    "id": "TC003",
+    "title": "User Login Success",
+    "description": "Check that a registered user can successfully log in with correct credentials through Supabase Auth.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the login page."
+      },
+      {
+        "type": "action",
+        "description": "Input valid registered email and password."
+      },
+      {
+        "type": "action",
+        "description": "Click the login button."
+      },
+      {
+        "type": "assertion",
+        "description": "Ensure user is authenticated and redirected to the dashboard."
+      }
+    ]
+  },
+  {
+    "id": "TC004",
+    "title": "User Login Failure with Incorrect Password",
+    "description": "Ensure the system rejects login attempts with an incorrect password.",
+    "category": "error handling",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Go to the login page."
+      },
+      {
+        "type": "action",
+        "description": "Enter valid email and incorrect password."
+      },
+      {
+        "type": "action",
+        "description": "Attempt to log in."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify login fails and appropriate error message is shown."
+      }
+    ]
+  },
+  {
+    "id": "TC005",
+    "title": "Profile Editing and Saving Updates",
+    "description": "Test user can open profile edit modal, modify profile details, and save successfully with data validated by Supabase.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Log in and navigate to Account page."
+      },
+      {
+        "type": "action",
+        "description": "Open the ProfileEditModal."
+      },
+      {
+        "type": "action",
+        "description": "Modify profile information such as display name and avatar."
+      },
+      {
+        "type": "action",
+        "description": "Save changes."
+      },
+      {
+        "type": "assertion",
+        "description": "Ensure updates persist and are reflected correctly in user profile data."
+      }
+    ]
+  },
+  {
+    "id": "TC006",
+    "title": "Link Minecraft Account Successfully",
+    "description": "Validate that a user can link their Minecraft account with the web platform and skin displays correctly.",
+    "category": "integration",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Log in and navigate to Verify page."
+      },
+      {
+        "type": "action",
+        "description": "Initiate Minecraft account linking process."
+      },
+      {
+        "type": "action",
+        "description": "Complete verification steps for Minecraft identity."
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm Minecraft account is linked and skin viewer displays current skin."
+      }
+    ]
+  },
+  {
+    "id": "TC007",
+    "title": "Link Discord Account and Synchronize Roles",
+    "description": "Ensure Discord account linkage works and roles assigned in Discord synchronize properly with the platform.",
+    "category": "integration",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Access Verify page after login."
+      },
+      {
+        "type": "action",
+        "description": "Link Discord account via OAuth flow."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify roles on Discord are synchronized and displayed accurately in user profile."
+      }
+    ]
+  },
+  {
+    "id": "TC008",
+    "title": "Dashboard Displays Correct User Statistics",
+    "description": "Check that the dashboard accurately reflects real-time user statistics, achievements, and playstyle radar chart.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Log in and navigate to the Dashboard page."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify user statistics data correctness and that the PlaystyleRadar and AchievementsList components render with proper data."
+      }
+    ]
+  },
+  {
+    "id": "TC009",
+    "title": "Dashboard Seasonal Timeline Accuracy",
+    "description": "Ensure the SeasonalTimeline component on the dashboard reflects accurate seasonal events and timelines.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "On the Dashboard page, observe the SeasonalTimeline."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the timeline correctly displays season start/end dates and achievements unlocked during the season."
+      }
+    ]
+  },
+  {
+    "id": "TC010",
+    "title": "Forum Thread Creation with Markdown Content",
+    "description": "Validate that users can create new forum threads supporting markdown syntax without data loss.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Log in and navigate to a ForumCategory page."
+      },
+      {
+        "type": "action",
+        "description": "Create a new thread using markdown formatted text in the post editor."
+      },
+      {
+        "type": "action",
+        "description": "Submit the new thread."
+      },
+      {
+        "type": "assertion",
+        "description": "Check that the thread appears correctly with markdown rendered content."
+      }
+    ]
+  },
+  {
+    "id": "TC011",
+    "title": "Forum Poll Creation and Voting",
+    "description": "Ensure users can create polls within forum threads and that voting functions properly with accurate vote tally updates.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Create a new thread with a poll in the Forum."
+      },
+      {
+        "type": "action",
+        "description": "Cast votes from one or multiple users."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify poll updates votes count real-time and displays results accurately."
+      }
+    ]
+  },
+  {
+    "id": "TC012",
+    "title": "Forum Thread Pagination and Navigation",
+    "description": "Test pagination of forum threads within a category to ensure smooth navigation and loading of content.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to a ForumCategory page with many threads."
+      },
+      {
+        "type": "action",
+        "description": "Click through pagination controls to browse threads."
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm correct threads load with each pagination action without errors."
+      }
+    ]
+  },
+  {
+    "id": "TC013",
+    "title": "Admin Panel: User Management CRUD Operations",
+    "description": "Verify that administrator can perform create, read, update, and delete operations on user accounts through the UsersManager component.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Log in as admin and open AdminPanel."
+      },
+      {
+        "type": "action",
+        "description": "Access UsersManager and create a new user entry."
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm that the new user is added and visible in the users list."
+      },
+      {
+        "type": "action",
+        "description": "Edit details of an existing user."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify that user details update correctly."
+      },
+      {
+        "type": "action",
+        "description": "Delete a user."
+      },
+      {
+        "type": "assertion",
+        "description": "Ensure the user is removed from the list."
+      }
+    ]
+  },
+  {
+    "id": "TC014",
+    "title": "Admin Panel: Support Tickets Management",
+    "description": "Check admin’s ability to view, update status, assign, and resolve support tickets via TicketsManager.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Access TicketsManager through AdminPanel."
+      },
+      {
+        "type": "action",
+        "description": "Open a support ticket."
+      },
+      {
+        "type": "action",
+        "description": "Change ticket status and assign to a user."
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm updates are saved and visible in ticket details."
+      }
+    ]
+  },
+  {
+    "id": "TC015",
+    "title": "Admin Panel: News Publishing Workflow",
+    "description": "Verify the NewsForm allows admins to create, edit, and publish news articles with correct CRUD behavior.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Open NewsForm component."
+      },
+      {
+        "type": "action",
+        "description": "Create a new news article with title, body, and publication date."
+      },
+      {
+        "type": "action",
+        "description": "Save and publish the article."
+      },
+      {
+        "type": "assertion",
+        "description": "Ensure article appears correctly on public news feed."
+      },
+      {
+        "type": "action",
+        "description": "Edit the news article and save changes."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify updated article displays changes accurately."
+      }
+    ]
+  },
+  {
+    "id": "TC016",
+    "title": "Economy: Virtual Currency Purchase and Balance Update",
+    "description": "Confirm that users can purchase virtual currency using app payment methods and their account balance updates accordingly.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Log in and navigate to Economy section."
+      },
+      {
+        "type": "action",
+        "description": "Initiate purchase of virtual currency."
+      },
+      {
+        "type": "action",
+        "description": "Complete payment process."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify user virtual currency balance increases by purchased amount."
+      }
+    ]
+  },
+  {
+    "id": "TC017",
+    "title": "Economy: Gacha Draw Execution and Result Recording",
+    "description": "Test the gacha draw functionality works correctly, deducts virtual currency, and records obtained items properly.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Ensure user has sufficient virtual currency."
+      },
+      {
+        "type": "action",
+        "description": "Perform a gacha draw."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify currency deduction, draw result display, and update to user's inventory."
+      }
+    ]
+  },
+  {
+    "id": "TC018",
+    "title": "Economy: Donation Tracking and Reporting",
+    "description": "Ensure donation transactions are tracked accurately and reflected in user donation history and admin donation manager.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Make a donation via the app."
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm donation record updates in user history and visible in DonationsManager for admins."
+      }
+    ]
+  },
+  {
+    "id": "TC019",
+    "title": "Component Library: UI Components Render Correctly in Storybook",
+    "description": "Verify all UI components in the library render correctly in Storybook across supported browsers including edge case props and states.",
+    "category": "ui",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Open Storybook and browse all UI components."
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm components render visually without errors and match design for normal, hover, disabled, and error states."
+      }
+    ]
+  },
+  {
+    "id": "TC020",
+    "title": "Component Library: Responsive Behavior and Edge Case Testing",
+    "description": "Test key UI components handle edge cases such as extremely long texts, empty states, and responsiveness to different screen sizes.",
+    "category": "ui",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Use Storybook examples or manual tests to apply long strings, truncated content, and empty data to components."
+      },
+      {
+        "type": "action",
+        "description": "Resize window or simulate mobile viewports."
+      },
+      {
+        "type": "assertion",
+        "description": "Ensure components manage layout gracefully without breaking or overflowing and maintain usability."
+      }
+    ]
+  },
+  {
+    "id": "TC021",
+    "title": "Authentication: Session Expiry and Auto Logout",
+    "description": "Test that user sessions expire as expected and users are prompted or logged out automatically when session expires.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Log in and remain idle until session expiration threshold is met."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify user is either automatically logged out or prompted to reauthenticate."
+      }
+    ]
+  },
+  {
+    "id": "TC022",
+    "title": "Game Integrations: Handling Invalid or Expired Tokens",
+    "description": "Verify platform correctly handles errors when Minecraft or Discord tokens are invalid or expired during syncing.",
+    "category": "error handling",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Attempt to synchronize roles or skin data with an invalid or expired token."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify user receives a clear error message and is prompted to reauthenticate to renew tokens."
+      }
+    ]
+  },
+  {
+    "id": "TC023",
+    "title": "Forum: Markdown Injection and XSS Prevention",
+    "description": "Verify forum markdown rendering sanitizes input to prevent cross-site scripting vulnerabilities.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Create a forum post containing malicious script tags within markdown content."
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm that when rendered, the script does not execute and is either escaped or removed safely."
+      }
+    ]
+  },
+  {
+    "id": "TC024",
+    "title": "Admin Panel: Role-Based Access Control Enforcement",
+    "description": "Ensure only users with admin roles can access admin functionalities, and non-admins are blocked.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Attempt to access AdminPanel with an unauthorized user account."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify access is denied and redirected or shown an error message."
+      },
+      {
+        "type": "action",
+        "description": "Access AdminPanel with an admin user."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify full functionality is accessible and operational."
+      }
+    ]
+  }
+]
