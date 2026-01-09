@@ -19,7 +19,7 @@ type HeaderStory = StoryObj<typeof headerMeta>;
 const mockProfile = {
     id: '1',
     username: 'Killua_Zoldyck',
-    role: 'owner',
+    role: 'neroferno',
     reputation: 999,
     avatar_preference: 'minecraft' as const,
     created_at: '2024-01-01',

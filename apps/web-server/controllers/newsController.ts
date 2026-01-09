@@ -306,7 +306,7 @@ export const deleteComment = async (req: Request, res: Response) => {
         if (fetchError || !comment) return res.status(404).json({ error: "Comentario no encontrado" });
 
         // 2. Check Permissions (Owner OR Admin)
-        const isAdmin = ['admin', 'owner', 'neroferno', 'killu', 'helper'].includes(user.role);
+        const isAdmin = ['admin', 'neroferno', 'killu', 'killuwu', 'developer', 'helper'].includes(user.role);
         
         // Ownership check via username
         if (comment.user_name !== user.username && !isAdmin) {

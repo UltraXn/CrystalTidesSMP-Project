@@ -30,7 +30,7 @@ const MOCK_SERVER = {
 };
 
 const MOCK_STAFF = [
-    { username: 'AdminUser', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Admin', role: 'Owner', mc_status: 'online', discord_status: 'dnd', login_time: Date.now() - 3600000 },
+    { username: 'AdminUser', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Admin', role: 'Neroferno', mc_status: 'online', discord_status: 'dnd', login_time: Date.now() - 3600000 },
     { username: 'ModHelper', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Mod', role: 'Moderator', mc_status: 'offline', discord_status: 'online', login_time: null },
     { username: 'DevGuru', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Dev', role: 'Developer', mc_status: 'online', discord_status: 'online', login_time: Date.now() - 7200000 },
     { username: 'HelperNew', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Help', role: 'Helper', mc_status: 'offline', discord_status: 'idle', login_time: null }

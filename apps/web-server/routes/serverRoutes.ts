@@ -328,7 +328,7 @@ router.get('/staff', async (req: Request, res: Response) => {
             const uuid = dbRef?.uuid || '00000000-0000-0000-0000-000000000000';
             const groups = dbRef?.groups || ['default'];
             
-            const staffGroups = ['owner', 'founder', 'fundador', 'neroferno', 'killuwu', 'developer', 'admin', 'moderator', 'mod', 'helper', 'staff'];
+            const staffGroups = ['neroferno', 'killuwu', 'developer', 'admin', 'moderator', 'mod', 'helper', 'staff'];
             
             // Si el usuario está en las Staff Cards (supabase), podemos usar ese rol de fallback
             const panelInfo = Array.isArray(cards) ? cards.find((c: StaffCard) => c.name.toLowerCase() === lowName || (c.mc_nickname && c.mc_nickname.toLowerCase() === lowName)) : null;
@@ -360,7 +360,7 @@ router.get('/staff', async (req: Request, res: Response) => {
         });
 
         // Solo devolver Staff real
-        const allowedRoles = ['owner', 'neroferno', 'killuwu', 'developer', 'admin', 'moderator', 'mod', 'helper', 'staff'];
+        const allowedRoles = ['neroferno', 'killuwu', 'developer', 'admin', 'moderator', 'mod', 'helper', 'staff'];
         res.json(staff.filter(s => allowedRoles.includes(s.role.toLowerCase())));
 
     } catch (error) {

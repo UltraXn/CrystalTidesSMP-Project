@@ -21,7 +21,7 @@ export default meta;
 type Story = StoryObj<typeof UsersManager>;
 
 const MOCK_USERS = [
-    { id: 'u1', email: 'admin@crystal.com', username: 'SuperAdmin', role: 'owner', medals: [1, 2], created_at: new Date().toISOString() },
+    { id: 'u1', email: 'admin@crystal.com', username: 'SuperAdmin', role: 'neroferno', medals: [1, 2], created_at: new Date().toISOString() },
     { id: 'u2', email: 'mod@crystal.com', username: 'ModeratorOne', role: 'moderator', medals: [], created_at: new Date().toISOString() },
     { id: 'u3', email: 'gamer@crystal.com', username: 'ProGamer123', role: 'user', medals: [3], created_at: new Date().toISOString() },
     { id: 'u4', email: 'new@crystal.com', username: 'Newbie', role: 'user', medals: [], created_at: new Date().toISOString() }

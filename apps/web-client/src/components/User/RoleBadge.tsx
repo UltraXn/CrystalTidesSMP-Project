@@ -10,7 +10,7 @@ export default function RoleBadge({ role, username }: RoleBadgeProps) {
     const u = username ? username.toLowerCase() : ""
 
     // Ranks Específicos de Owner (Killu / Neroferno)
-    if (r === 'owner' || u.includes('killu') || u.includes('ultraxn') || u.includes('neroferno')) {
+    if (u.includes('killu') || u.includes('ultraxn') || u.includes('neroferno')) {
         if (u.includes('killu')) {
              return <img src="/ranks/rank-killu.png" alt="KILLU" style={{ verticalAlign: 'middle' }} />
         }

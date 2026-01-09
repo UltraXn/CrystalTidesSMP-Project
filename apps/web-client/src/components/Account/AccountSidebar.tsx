@@ -57,7 +57,7 @@ const AccountSidebar: React.FC<AccountSidebarProps> = ({
     const [newName, setNewName] = useState("");
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const isAdmin = user?.user_metadata?.role === 'admin' || user?.user_metadata?.role === 'owner';
+    const isAdmin = ['admin', 'neroferno', 'killu', 'killuwu', 'developer'].includes(user?.user_metadata?.role?.toLowerCase());
 
     const handleLogout = async () => {
         await logout();
