@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react"
+import { createPortal } from "react-dom"
 import { FaTimes, FaSpinner, FaPaperPlane, FaLock } from "react-icons/fa"
 import { useTranslation } from 'react-i18next'
 import { supabase } from "../../../services/supabaseClient"
@@ -170,7 +171,7 @@ export default function TicketDetailModal({ ticket, onClose, refreshTickets, moc
         }
     }
 
-    return (
+    return createPortal(
         <div className="modal-overlay">
             {showBanModal && (
                 <BanUserModal 
@@ -270,6 +271,7 @@ export default function TicketDetailModal({ ticket, onClose, refreshTickets, moc
                     onCancel={() => setConfirmAction(null)} 
                 />
             )}
-        </div>
+        </div>,
+        document.body
     )
 }
