@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import ProfileHeader from '../../components/User/ProfileHeader';
-import PlayerStatsGrid from '../../components/User/PlayerStatsGrid';
+
 
 // Meta for ProfileHeader
 const headerMeta = {

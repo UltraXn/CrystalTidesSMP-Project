@@ -54,7 +54,7 @@ export default function UsersManager({ mockUsers, mockMedals }: UsersManagerProp
                 }
             })
             .catch(console.warn);
-    }, []);
+    }, [mockMedals]);
 
     const handleSearch = async (e: React.FormEvent) => {
         e.preventDefault()

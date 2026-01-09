@@ -34,7 +34,7 @@ const MOCK_STAFF = [
     { username: 'ModHelper', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Mod', role: 'Moderator', mc_status: 'offline', discord_status: 'online', login_time: null },
     { username: 'DevGuru', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Dev', role: 'Developer', mc_status: 'online', discord_status: 'online', login_time: Date.now() - 7200000 },
     { username: 'HelperNew', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Help', role: 'Helper', mc_status: 'offline', discord_status: 'idle', login_time: null }
-] as any[];
+] as { username: string; avatar: string; role: string; mc_status: string; discord_status: string; login_time: number | null }[];
 
 export const Default: Story = {
     args: {

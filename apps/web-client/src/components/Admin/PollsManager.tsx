@@ -89,7 +89,16 @@ export default function PollsManager({ mockActivePoll, mockHistoryPolls }: Polls
         setShowModal(true);
     }
 
-    const handleFormSubmit = async (_e: React.FormEvent, data: any) => {
+    interface PollFormData {
+        title: string;
+        titleEn: string;
+        question: string;
+        questionEn: string;
+        options: { label: string; labelEn?: string }[];
+        daysDuration: number;
+    }
+
+    const handleFormSubmit = async (_e: React.FormEvent, data: PollFormData) => {
         setCreating(true)
         try {
             const validOptions = data.options.filter((o: { label: string }) => o.label.trim() !== '')

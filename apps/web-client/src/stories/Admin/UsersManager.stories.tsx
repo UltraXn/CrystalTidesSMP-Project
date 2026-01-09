@@ -25,13 +25,13 @@ const MOCK_USERS = [
     { id: 'u2', email: 'mod@crystal.com', username: 'ModeratorOne', role: 'moderator', medals: [], created_at: new Date().toISOString() },
     { id: 'u3', email: 'gamer@crystal.com', username: 'ProGamer123', role: 'user', medals: [3], created_at: new Date().toISOString() },
     { id: 'u4', email: 'new@crystal.com', username: 'Newbie', role: 'user', medals: [], created_at: new Date().toISOString() }
-] as any[];
+] as { id: number; username: string; email: string; role: string; avatar_url: string; medals: string }[];
 
 const MOCK_MEDALS = [
     { id: 1, name: 'Fundador', color: '#fbbf24', icon: '👑', description: 'Early supporter' },
     { id: 2, name: 'Bug Hunter', color: '#f87171', icon: '🐛', description: 'Found a bug' },
     { id: 3, name: 'VIP', color: '#c084fc', icon: '💎', description: 'Donated' }
-] as any[];
+] as { id: string; name: string; icon: string; description: string }[];
 
 export const Default: Story = {
     args: {
