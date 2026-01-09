@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FaSave, FaPlus, FaTrash, FaTrophy } from 'react-icons/fa';
+import { FaSave, FaPlus, FaTrash, FaTrophy, FaImage, FaCloudUploadAlt, FaSpinner } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
 import Loader from "../UI/Loader";
 import PremiumConfirm from "../UI/PremiumConfirm";
@@ -15,6 +15,7 @@ interface Medal {
     description: string;
     icon: string;
     color: string;
+    image_url?: string;
 }
 
 interface GamificationSettings {
@@ -28,6 +29,7 @@ export default function GamificationManager() {
     const [saving, setSaving] = useState<string | null>(null);
     const [medals, setMedals] = useState<Medal[]>([]);
     const [loading, setLoading] = useState(true);
+    const [uploading, setUploading] = useState<number | null>(null);
     
     // Modal state
     const [confirmDelete, setConfirmDelete] = useState<{ isOpen: boolean, medalId: number | null }>({
@@ -122,9 +124,72 @@ export default function GamificationManager() {
         onUpdate('medal_definitions', JSON.stringify(medals));
     };
 
-    // Helper to render icon component dynamically
-    const renderIcon = (iconName: string) => {
-        const Icon = MEDAL_ICONS[iconName as keyof typeof MEDAL_ICONS] || MEDAL_ICONS.FaMedal;
+    const handleImageUpload = async (medalId: number, file: File) => {
+        setUploading(medalId);
+        try {
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${medalId}-${Date.now()}.${fileExt}`;
+            const filePath = `items/${fileName}`;
+
+            const { error: uploadError } = await supabase.storage
+                .from('medals')
+                .upload(filePath, file);
+
+            if (uploadError) throw uploadError;
+
+            const { data: { publicUrl } } = supabase.storage
+                .from('medals')
+                .getPublicUrl(filePath);
+
+            setMedals(prev => prev.map(m => m.id === medalId ? { ...m, image_url: publicUrl, icon: 'FaImage' } : m));
+        } catch (error) {
+            console.error('Error uploading image:', error);
+            alert(t('common.error_uploading', 'Error al subir la imagen'));
+        } finally {
+            setUploading(null);
+        }
+    };
+
+    const removeImage = (medalId: number) => {
+        setMedals(prev => prev.map(m => m.id === medalId ? { ...m, image_url: undefined, icon: 'FaMedal' } : m));
+    };
+
+    // Helper to render icon or image component dynamically
+    const renderVisual = (medal: Medal) => {
+        if (medal.image_url) {
+            return (
+                <div style={{ position: 'relative', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <img 
+                        src={medal.image_url} 
+                        alt={medal.name} 
+                        style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '8px' }} 
+                    />
+                    <button 
+                        onClick={(e) => { e.stopPropagation(); removeImage(medal.id); }}
+                        style={{ 
+                            position: 'absolute', 
+                            top: '-8px', 
+                            right: '-8px', 
+                            background: '#ef4444', 
+                            color: '#fff', 
+                            border: 'none', 
+                            borderRadius: '50%', 
+                            width: '20px', 
+                            height: '20px', 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            fontSize: '10px',
+                            boxShadow: '0 2px 5px rgba(0,0,0,0.2)'
+                        }}
+                    >
+                        <FaTrash />
+                    </button>
+                </div>
+            );
+        }
+        const Icon = MEDAL_ICONS[medal.icon as keyof typeof MEDAL_ICONS] || MEDAL_ICONS.FaMedal;
         return <Icon />;
     };
 
@@ -165,8 +230,8 @@ export default function GamificationManager() {
                         </button>
 
                         <div className="medal-visual-section">
-                            <div className="medal-icon-preview-wrapper" style={{ color: medal.color, boxShadow: `0 10px 30px ${medal.color}20` }}>
-                                {renderIcon(medal.icon)}
+                            <div className="medal-icon-preview-wrapper" style={{ color: medal.color, boxShadow: `0 10px 30px ${medal.color}20`, position: 'relative' }}>
+                                {uploading === medal.id ? <FaSpinner className="spin" size={24} /> : renderVisual(medal)}
                                 <div className="medal-color-picker-wrapper" style={{ background: medal.color }}>
                                     <input 
                                         type="color" 
@@ -177,13 +242,26 @@ export default function GamificationManager() {
                             </div>
 
                             <div className="medal-info-section">
-                                <input 
-                                    className="admin-input-premium" 
-                                    value={medal.name} 
-                                    onChange={(e) => handleChange(medal.id, 'name', e.target.value)}
-                                    placeholder={t('admin.gamification.medals.name_placeholder')}
-                                    style={{ padding: '0.6rem 1rem', fontSize: '1rem', fontWeight: 800 }}
-                                />
+                                <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                                    <input 
+                                        className="admin-input-premium" 
+                                        value={medal.name} 
+                                        onChange={(e) => handleChange(medal.id, 'name', e.target.value)}
+                                        placeholder={t('admin.gamification.medals.name_placeholder')}
+                                        style={{ padding: '0.6rem 1rem', fontSize: '1rem', fontWeight: 800, flex: 1, marginBottom: 0 }}
+                                    />
+                                    <label className="btn-icon-premium" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '42px', height: '42px', background: 'rgba(255,255,255,0.05)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                                        <FaCloudUploadAlt color={medal.image_url ? '#10b981' : '#aaa'} />
+                                        <input 
+                                            type="file" 
+                                            accept="image/*" 
+                                            style={{ display: 'none' }} 
+                                            onChange={(e) => {
+                                                if (e.target.files?.[0]) handleImageUpload(medal.id, e.target.files[0]);
+                                            }}
+                                        />
+                                    </label>
+                                </div>
                                 <textarea 
                                     className="admin-textarea-premium" 
                                     value={medal.description} 
@@ -204,7 +282,11 @@ export default function GamificationManager() {
                                     className={`icon-select-btn ${medal.icon === iconKey ? 'active' : ''}`}
                                     title={iconKey}
                                 >
-                                    {renderIcon(iconKey)}
+                                    {/* Re-using renderVisual logic but locally for icons list */}
+                                    {(() => {
+                                        const Icon = MEDAL_ICONS[iconKey as keyof typeof MEDAL_ICONS] || MEDAL_ICONS.FaMedal;
+                                        return <Icon />;
+                                    })()}
                                 </button>
                             ))}
                         </div>
