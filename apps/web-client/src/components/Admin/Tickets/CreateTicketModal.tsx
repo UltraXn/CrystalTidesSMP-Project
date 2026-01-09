@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { createPortal } from "react-dom"
 import { FaTicketAlt, FaTimes, FaPaperPlane } from "react-icons/fa"
 import { useTranslation } from 'react-i18next'
 import { supabase } from "../../../services/supabaseClient"
@@ -65,7 +66,7 @@ export default function CreateTicketModal({ onClose, onSuccess, user }: CreateTi
         }
     }
 
-    return (
+    return createPortal(
         <div className="modal-overlay" style={{ backdropFilter: 'blur(10px)', background: 'rgba(0,0,0,0.7)' }}>
              <div className="admin-card modal-content" style={{ 
                 width: '500px', 
@@ -168,6 +169,7 @@ export default function CreateTicketModal({ onClose, onSuccess, user }: CreateTi
                 </form>
             </div>
             {alert && <CustomAlert message={alert.message} type={alert.type} onClose={() => setAlert(null)} />}
-        </div>
+        </div>,
+        document.body
     )
 }
