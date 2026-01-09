@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FaSave, FaPlus, FaTrash, FaTrophy, FaImage, FaCloudUploadAlt, FaSpinner } from 'react-icons/fa';
+import { FaSave, FaPlus, FaTrash, FaTrophy, FaCloudUploadAlt, FaSpinner } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
 import Loader from "../UI/Loader";
 import PremiumConfirm from "../UI/PremiumConfirm";
@@ -221,14 +221,6 @@ export default function GamificationManager() {
                     <div key={medal.id} className="medal-card-premium">
                         <div className="medal-card-accent" style={{ background: medal.color }}></div>
                         
-                        <button 
-                            onClick={() => handleDeleteClick(medal.id)}
-                            className="medal-delete-btn"
-                            title={t('common.delete', 'Eliminar')}
-                        >
-                            <FaTrash size={14} />
-                        </button>
-
                         <div className="medal-visual-section">
                             <div className="medal-icon-preview-wrapper" style={{ color: medal.color, boxShadow: `0 10px 30px ${medal.color}20`, position: 'relative' }}>
                                 {uploading === medal.id ? <FaSpinner className="spin" size={24} /> : renderVisual(medal)}
@@ -290,6 +282,31 @@ export default function GamificationManager() {
                                 </button>
                             ))}
                         </div>
+
+                        <button 
+                            onClick={() => handleDeleteClick(medal.id)}
+                            style={{ 
+                                position: 'absolute', 
+                                bottom: '1rem', 
+                                right: '1rem', 
+                                background: 'rgba(239, 68, 68, 0.1)', 
+                                border: '1px solid rgba(239, 68, 68, 0.2)',
+                                color: '#ef4444',
+                                width: '32px',
+                                height: '32px',
+                                borderRadius: '10px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease',
+                                zIndex: 5
+                            }}
+                            className="hover-lift"
+                            title={t('common.delete', 'Eliminar')}
+                        >
+                            <FaTrash size={14} />
+                        </button>
                     </div>
                 ))}
 
