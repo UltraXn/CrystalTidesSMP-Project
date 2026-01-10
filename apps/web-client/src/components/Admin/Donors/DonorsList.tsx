@@ -1,6 +1,6 @@
 
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
-import { FaCrown, FaGripLines, FaEdit, FaTrash } from 'react-icons/fa';
+import { Crown, GripVertical, Edit, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Donor } from './DonorFormModal';
 
@@ -26,7 +26,7 @@ export default function DonorsList({ donors, onDragEnd, onEdit, onDelete, onImpo
                     >
                         {donors.length === 0 && (
                             <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '6rem', background: 'rgba(255,255,255,0.02)', borderRadius: '32px', border: '2px dashed rgba(255,255,255,0.05)' }}>
-                                <FaCrown size={48} style={{ opacity: 0.1, marginBottom: '1.5rem', color: 'var(--accent)' }} />
+                                <Crown size={48} style={{ opacity: 0.1, marginBottom: '1.5rem', color: 'var(--accent)' }} />
                                 <p style={{ color: 'rgba(255,255,255,0.3)', marginBottom: '2rem' }}>{t('admin.donors.empty_msg')}</p>
                                 <button onClick={onImport} className="btn-secondary" style={{ padding: '0.8rem 2rem' }}>
                                     {t('admin.donors.import_btn')}
@@ -44,7 +44,7 @@ export default function DonorsList({ donors, onDragEnd, onEdit, onDelete, onImpo
                                     >
                                         <div className="donor-card-accent"></div>
                                         <div {...provided.dragHandleProps} className="donor-drag-handle">
-                                            <FaGripLines />
+                                            <GripVertical />
                                         </div>
                                         
                                         <div className="donor-card-header">
@@ -75,13 +75,13 @@ export default function DonorsList({ donors, onDragEnd, onEdit, onDelete, onImpo
                                                 onClick={() => onEdit(donor)} 
                                                 className="donor-btn-action edit"
                                             >
-                                                <FaEdit size={14} /> {t('admin.polls.edit_btn', 'Editar')}
+                                                <Edit size={14} /> {t('admin.polls.edit_btn', 'Editar')}
                                             </button>
                                             <button 
                                                 onClick={() => onDelete(donor.id)}
                                                 className="donor-btn-action delete"
                                             >
-                                                <FaTrash size={14} /> {t('admin.donors.delete_btn', 'Eliminar')}
+                                                <Trash2 size={14} /> {t('admin.donors.delete_btn', 'Eliminar')}
                                             </button>
                                         </div>
                                     </div>

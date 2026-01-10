@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { IconType } from 'react-icons';
+import { LucideIcon } from 'lucide-react';
 import { 
-    FaBook, FaBullhorn, FaUserShield, FaClipboardList, FaTerminal, 
-    FaGamepad, FaChevronDown, FaEdit, FaSave, FaTimes, FaListUl, FaUndo,
-    FaImage, FaSpinner
-} from 'react-icons/fa';
+    Book, Megaphone, Shield, ClipboardList, Terminal, 
+    Gamepad2, ChevronDown, Edit, Save, X, List, Undo2,
+    Image, Loader2
+} from 'lucide-react';
 import MarkdownRenderer from '../UI/MarkdownRenderer';
 import PremiumConfirm from '../UI/PremiumConfirm';
 import PremiumAlert from '../UI/PremiumAlert';
@@ -14,16 +14,16 @@ import { getAuthHeaders } from '../../services/adminAuth';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-const ICON_MAP: Record<string, IconType> = {
-    'intro': FaBook,
-    'security': FaUserShield,
-    'staff-hub': FaClipboardList,
-    'moderation': FaUserShield,
-    'discord': FaBullhorn,
-    'audit': FaListUl,
-    'console': FaTerminal,
-    'content': FaBullhorn,
-    'gamification': FaGamepad
+const ICON_MAP: Record<string, LucideIcon> = {
+    'intro': Book,
+    'security': Shield,
+    'staff-hub': ClipboardList,
+    'moderation': Shield,
+    'discord': Megaphone,
+    'audit': List,
+    'console': Terminal,
+    'content': Megaphone,
+    'gamification': Gamepad2
 };
 
 const useDocsDefaults = () => {
@@ -33,7 +33,7 @@ const useDocsDefaults = () => {
     {
         id: 'intro',
         title: t('admin.docs.titles.intro', 'Introducción'),
-        icon: FaBook,
+        icon: Book,
         content: `
 # ${t('admin.docs.titles.intro', 'Introducción')}
 
@@ -45,7 +45,7 @@ ${t('admin.docs.content.intro_msg', 'Bienvenido al centro de control. Desde aqu�
     {
         id: 'security',
         title: t('admin.docs.titles.security', 'Seguridad (2FA)'),
-        icon: FaUserShield,
+        icon: Shield,
         content: `
 # 🛡️ ${t('admin.docs.titles.security', 'Seguridad (2FA)')}
 
@@ -59,7 +59,7 @@ ${t('admin.docs.content.security_desc', 'Protección de acceso al panel administ
     {
         id: 'staff-hub',
         title: t('admin.docs.titles.staff_hub', 'Staff Hub'),
-        icon: FaClipboardList,
+        icon: ClipboardList,
         content: `
 # 📋 ${t('admin.docs.titles.staff_hub', 'Staff Hub')}
 
@@ -78,7 +78,7 @@ ${t('admin.docs.content.notes_desc', 'Un muro de post-its compartidos. Úsalo pa
     {
         id: 'moderation',
         title: t('admin.docs.titles.moderation', 'Moderación & Usuarios'),
-        icon: FaUserShield,
+        icon: Shield,
         content: `
 # 👮 ${t('admin.docs.titles.users_manage', 'Gestión de Usuarios')}
 
@@ -96,7 +96,7 @@ Centro de soporte avanzado para la comunidad.
     {
         id: 'discord',
         title: t('admin.docs.titles.discord', 'Integración Discord'),
-        icon: FaBullhorn,
+        icon: Megaphone,
         content: `
 # 🤖 ${t('admin.docs.titles.discord', 'Integración Discord')}
 
@@ -112,7 +112,7 @@ ${t('admin.docs.content.discord_desc', 'Sincronización entre la web y la comuni
     {
         id: 'audit',
         title: t('admin.docs.titles.audit', 'Logs de Auditoría'),
-        icon: FaListUl,
+        icon: List,
         content: `
 # 📝 ${t('admin.docs.titles.audit', 'Logs de Auditoría')}
 
@@ -125,7 +125,7 @@ ${t('admin.docs.content.audit_desc', 'Registro histórico de todas las acciones 
     {
         id: 'console',
         title: t('admin.docs.titles.console', 'Consola & Comandos'),
-        icon: FaTerminal,
+        icon: Terminal,
         content: `
 # 💻 ${t('admin.docs.titles.console_bridge', 'Consola Remota (Secure Bridge)')}
 
@@ -138,7 +138,7 @@ ${t('admin.docs.content.console_desc', 'Ejecuta comandos en el servidor de Minec
     {
         id: 'content',
         title: t('admin.docs.titles.content', 'Gestión de Contenido'),
-        icon: FaBullhorn,
+        icon: Megaphone,
         content: `
 # 📢 ${t('admin.docs.titles.content_web', 'Contenido Web')}
 
@@ -152,7 +152,7 @@ Mensajes emergentes globales en la parte superior de la web para avisos de mante
     {
         id: 'gamification',
         title: t('admin.docs.titles.gamification', 'Gamificación (Medallas)'),
-        icon: FaGamepad,
+        icon: Gamepad2,
         content: `
 # 🏆 Sistema de Medallas Premium
 
@@ -321,7 +321,7 @@ export default function AdminDocs({ mockDocs }: AdminDocsProps = {}) {
 
     if (loading) return <div style={{ color: '#aaa', padding: '2rem' }}>{t('admin.docs.loading')}</div>;
 
-    const ActiveIcon = ICON_MAP[activeDoc?.id] || FaBook;
+    const ActiveIcon = ICON_MAP[activeDoc?.id] || Book;
 
     return (
         <div className="admin-docs-container">
@@ -499,7 +499,7 @@ export default function AdminDocs({ mockDocs }: AdminDocsProps = {}) {
                 <h3 style={{ padding: '0 1rem 1rem', borderBottom: '1px solid rgba(255,255,255,0.05)', color: 'var(--muted)' }}>{t('admin.docs.index')}</h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', padding: '1rem 0' }}>
                     {docs.map(doc => {
-                        const Icon = ICON_MAP[doc.id] || FaBook;
+                        const Icon = ICON_MAP[doc.id] || Book;
                         return (
                             <button
                                 key={doc.id}
@@ -523,13 +523,13 @@ export default function AdminDocs({ mockDocs }: AdminDocsProps = {}) {
                     <span style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
                         <ActiveIcon color="var(--accent)" /> {activeDoc.title}
                     </span>
-                    <FaChevronDown style={{ transform: mobileMenuOpen ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s' }} />
+                    <ChevronDown style={{ transform: mobileMenuOpen ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s' }} />
                 </button>
                 
                 {mobileMenuOpen && (
                     <div className="mobile-dropdown-list">
                         {docs.map(doc => {
-                            const Icon = ICON_MAP[doc.id] || FaBook;
+                            const Icon = ICON_MAP[doc.id] || Book;
                             return (
                                 <div 
                                     key={doc.id}
@@ -561,18 +561,18 @@ export default function AdminDocs({ mockDocs }: AdminDocsProps = {}) {
                             {isEditing ? (
                                 <>
                                     <button onClick={handleReset} className="btn-secondary" style={{ padding: '0.5rem 1rem', background: 'rgba(255,255,255,0.05)' }} title={t('admin.docs.reset')}>
-                                        <FaUndo />
+                                        <Undo2 />
                                     </button>
                                     <button onClick={() => setIsEditing(false)} className="btn-secondary" style={{ color: '#ef4444' }}>
-                                        <FaTimes /> {t('admin.actions.cancel')}
+                                        <X /> {t('admin.actions.cancel')}
                                     </button>
                                     <button onClick={handleSave} className="btn-primary" disabled={saving}>
-                                        <FaSave /> {saving ? t('admin.docs.saving') : t('admin.actions.save')}
+                                        <Save /> {saving ? t('admin.docs.saving') : t('admin.actions.save')}
                                     </button>
                                 </>
                             ) : (
                                 <button onClick={() => setIsEditing(true)} className="btn-primary" style={{ background: 'rgba(22, 140, 128, 0.2)', border: '1px solid var(--accent)', color: 'var(--accent)' }}>
-                                    <FaEdit /> {t('admin.docs.edit_section')}
+                                    <Edit /> {t('admin.docs.edit_section')}
                                 </button>
                             )}
                         </div>
@@ -589,7 +589,7 @@ export default function AdminDocs({ mockDocs }: AdminDocsProps = {}) {
                                 borderRadius: '8px' 
                             }}>
                                 <label className="btn-icon-premium" style={{ cursor: 'pointer', padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
-                                    {uploading ? <FaSpinner className="spin" /> : <FaImage />}
+                                    {uploading ? <Loader2 className="spin" /> : <Image />}
                                     {uploading ? t('common.uploading', 'Subiendo...') : t('admin.docs.upload_image', 'Subir Imagen')}
                                     <input 
                                         type="file" 

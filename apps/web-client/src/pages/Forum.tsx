@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react"
-import { FaComments, FaBullhorn, FaTools, FaCoffee, FaUser, FaClock, FaFire, FaPoll } from 'react-icons/fa'
+import { MessageSquare, Megaphone, Wrench, Coffee, User, Clock, Flame, BarChart3 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import Section from "../components/Layout/Section"
 
 interface Poll {
     question: string;
@@ -49,7 +50,7 @@ const initialCategories: Category[] = [
         id: 1,
         slug: "announcements",
         translationKey: "announcements",
-        icon: <FaBullhorn />,
+        icon: <Megaphone />,
         topics: 0,
         posts: 0,
         lastPost: { user: "Staff", date: "-" }
@@ -58,7 +59,7 @@ const initialCategories: Category[] = [
         id: 2,
         slug: "general",
         translationKey: "general",
-        icon: <FaComments />,
+        icon: <MessageSquare />,
         topics: 0,
         posts: 0,
         lastPost: { user: "-", date: "-" }
@@ -67,7 +68,7 @@ const initialCategories: Category[] = [
         id: 3,
         slug: "support",
         translationKey: "support",
-        icon: <FaTools />,
+        icon: <Wrench />,
         topics: 0,
         posts: 0,
         lastPost: { user: "-", date: "-" }
@@ -76,7 +77,7 @@ const initialCategories: Category[] = [
         id: 4,
         slug: "off-topic",
         translationKey: "offtopic",
-        icon: <FaCoffee />,
+        icon: <Coffee />,
         topics: 0,
         posts: 0,
         lastPost: { user: "-", date: "-" }
@@ -140,129 +141,145 @@ export default function Forum() {
     }, [API_URL])
 
     return (
-        <div className="section" style={{ minHeight: '80vh', paddingTop: '8rem' }}>
-            <h2>{t('forum_page.title')}</h2>
-            <p style={{ color: 'var(--muted)', marginBottom: '3rem', maxWidth: '600px', margin: '0 auto 3rem' }}>
-                {t('forum_page.subtitle')}
-            </p>
+        <div className="pt-24 min-h-screen">
+            <Section title={t('forum_page.title')}>
+                {/* Intro */}
+                <div className="max-w-3xl mx-auto mb-16 text-center">
+                    <p className="text-gray-400 text-lg leading-relaxed">{t('forum_page.subtitle')}</p>
+                </div>
 
-            {/* Featured Section: Poll OR News */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2rem', maxWidth: '1000px', margin: '0 auto 4rem' }}>
-                
-                {/* Active Poll Column */}
-                <div style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column' }}>
-                    <div className="section-subtitle" style={{ color: '#fff', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <FaPoll color="var(--accent)" /> <span>{t('forum_page.official_poll_section')}</span>
-                    </div>
-                    {activePoll ? (
-                         <div className="poll-card" style={{ border: '1px solid var(--accent)', boxShadow: '0 0 15px rgba(109,165,192,0.1)', height: '100%', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                            <div style={{ marginBottom: '1rem', color: 'var(--accent)', fontSize: '0.9rem', fontWeight: 'bold', textTransform: 'uppercase', display: 'flex', justifyContent: 'space-between' }}>
-                                <span><FaPoll style={{ marginRight: '8px', verticalAlign: 'middle' }} />{t('forum_page.active_voting')}</span>
-                                <span style={{ color: '#ff4500', display: 'flex', alignItems: 'center', gap: '5px' }}><FaFire /> {t('forum_page.hot')}</span>
+                {/* Featured Section: Poll & News */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16 max-w-6xl mx-auto">
+                    
+                    {/* Poll Card */}
+                    <div className="bg-black/40 backdrop-blur-xl border border-white/5 rounded-3xl p-8 flex flex-col h-full hover:border-(--accent)/30 transition-colors">
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="flex items-center gap-2 text-white font-black uppercase tracking-widest text-sm">
+                                <BarChart3 className="text-(--accent) text-lg" />
+                                <span>{t('forum_page.official_poll_section')}</span>
                             </div>
-                            <h3 className="poll-question" style={{ fontSize: '1.2rem', marginBottom: '1.5rem', color: '#fff' }}>
-                                {i18n.language === 'en' && activePoll.question_en ? activePoll.question_en : activePoll.question}
-                            </h3>
+                            {activePoll && (
+                                <div className="flex items-center gap-2 text-red-500 font-bold uppercase text-xs animate-pulse">
+                                    <Flame /> {t('forum_page.hot')}
+                                </div>
+                            )}
+                        </div>
 
-                            <div className="poll-options" style={{ flex: 1 }}>
-                                {(activePoll.options || []).slice(0, 3).map((opt: PollOption) => (
-                                    <div key={opt.id} className="poll-option" style={{ marginBottom: '0.5rem' }}>
-                                        <div className="poll-bar-track" style={{ height: '30px', background: 'rgba(255,255,255,0.05)', borderRadius: '6px', position: 'relative', overflow: 'hidden' }}>
-                                            <div className="poll-bar-fill" style={{ width: `${opt.percent}%`, height: '100%', background: 'var(--accent)', opacity: 0.3, position: 'absolute', top: 0, left: 0 }}></div>
-                                            <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 0.8rem' }}>
-                                                <span className="poll-label" style={{ fontWeight: 500, color: '#fff', zIndex: 1, fontSize: '0.9rem' }}>
-                                                    {i18n.language === 'en' && opt.label_en ? opt.label_en : opt.label}
-                                                </span>
-                                                <span className="poll-percent" style={{ fontWeight: 'bold', color: 'var(--accent)', zIndex: 1, fontSize: '0.9rem' }}>{opt.percent}%</span>
+                        {activePoll ? (
+                            <div className="flex flex-col flex-1">
+                                <h3 className="text-xl md:text-2xl font-bold text-white mb-6 leading-tight">
+                                    {i18n.language === 'en' && activePoll.question_en ? activePoll.question_en : activePoll.question}
+                                </h3>
+                                <div className="space-y-4 flex-1">
+                                    {(activePoll.options || []).slice(0, 3).map((opt: PollOption) => (
+                                        <div key={opt.id} className="relative group">
+                                            <div className="h-12 bg-white/5 rounded-xl overflow-hidden relative">
+                                                <div 
+                                                    className="absolute inset-y-0 left-0 bg-(--accent) opacity-20 transition-all duration-1000 ease-out group-hover:opacity-30" 
+                                                    style={{ width: `${opt.percent}%` }}
+                                                />
+                                                <div className="absolute inset-0 flex items-center justify-between px-6">
+                                                    <span className="text-white font-bold text-sm z-10">
+                                                        {i18n.language === 'en' && opt.label_en ? opt.label_en : opt.label}
+                                                    </span>
+                                                    <span className="text-(--accent) font-black text-sm z-10">{opt.percent}%</span>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    ))}
+                                </div>
                             </div>
-
-                        </div>
-                    ) : (
-                        <div style={{ padding: '2rem', textAlign: 'center', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#888', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: '1rem', flex: 1 }}>
-                            <FaPoll size={30} style={{ opacity: 0.3 }} />
-                            <p>{t('forum_page.no_active_poll')}</p>
-                        </div>
-                    )}
-                </div>
-
-                {/* News Column */}
-                <div style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column' }}>
-                     <div className="section-subtitle" style={{ color: '#fff', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <FaBullhorn color="#f59e0b" /> <span>{t('forum_page.news_section')}</span>
+                        ) : (
+                            <div className="flex-1 flex flex-col items-center justify-center text-center gap-4 py-8 opacity-50">
+                                <BarChart3 className="text-4xl text-gray-500" />
+                                <p className="text-gray-400 font-medium uppercase tracking-widest text-sm">{t('forum_page.no_active_poll')}</p>
+                            </div>
+                        )}
                     </div>
-                    {latestNews ? (
-                        <Link to={`/forum/thread/news/${latestNews.slug || latestNews.id}`} style={{ textDecoration: 'none', flex: 1, display: 'block' }}>
-                            <div className="news-card-featured" style={{ 
-                                background: `linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.9)), url(${latestNews.image})`, 
-                                backgroundSize: 'cover', 
-                                backgroundPosition: 'center',
-                                border: '1px solid rgba(245, 158, 11, 0.3)', 
-                                borderRadius: '12px', 
-                                padding: '1.5rem',
-                                height: '100%',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                justifyContent: 'flex-end',
-                                minHeight: '200px',
-                                transition: 'transform 0.3s'
-                            }}>
-                                <span style={{ background: '#f59e0b', color: '#000', padding: '2px 8px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 'bold', width: 'fit-content', marginBottom: '0.5rem' }}>{t('forum_page.new_badge')}</span>
-                                <h3 style={{ color: '#fff', fontSize: '1.5rem', marginBottom: '0.5rem', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
-                                    {i18n.language === 'en' && latestNews.title_en ? latestNews.title_en : latestNews.title}
-                                </h3>
-                                <p style={{ color: '#ddd', fontSize: '0.9rem', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                                    {(i18n.language === 'en' && latestNews.content_en ? latestNews.content_en : (latestNews.content || "")).substring(0, 100)}...
-                                </p>
+
+                    {/* News Card */}
+                    <div className="h-full">
+                        {latestNews ? (
+                             <Link to={`/forum/thread/news/${latestNews.slug || latestNews.id}`} className="group block h-full relative rounded-3xl overflow-hidden border border-white/5 hover:border-(--accent) transition-colors">
+                                <div 
+                                    className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110"
+                                    style={{ backgroundImage: `url(${latestNews.image || '/img/placeholder.webp'})` }}
+                                />
+                                <div className="absolute inset-0 bg-linear-to-t from-black via-black/80 to-transparent" />
+                                
+                                <div className="relative h-full flex flex-col justify-end p-8">
+                                    <div className="flex items-center gap-2 mb-4">
+                                        <div className="bg-amber-500 text-black px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                                           <Megaphone /> {t('forum_page.new_badge')}
+                                        </div>
+                                        <span className="text-amber-500 font-bold text-xs uppercase tracking-wider">{t('forum_page.news_section')}</span>
+                                    </div>
+                                    <h3 className="text-2xl font-black text-white mb-2 leading-tight group-hover:text-(--accent) transition-colors">
+                                        {i18n.language === 'en' && latestNews.title_en ? latestNews.title_en : latestNews.title}
+                                    </h3>
+                                    <p className="text-gray-300 text-sm line-clamp-2">
+                                        {(i18n.language === 'en' && latestNews.content_en ? latestNews.content_en : (latestNews.content || "")).replace(/<[^>]*>?/gm, "")}
+                                    </p>
+                                </div>
+                            </Link>
+                        ) : (
+                             <div className="bg-black/40 backdrop-blur-xl border border-white/5 rounded-3xl p-8 flex flex-col items-center justify-center text-center gap-4 h-full">
+                                <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center text-gray-500 mb-2">
+                                    <Megaphone className="text-2xl" />
+                                </div>
+                                <p className="text-gray-400 font-medium uppercase tracking-widest text-sm">{t('forum_page.loading_news')}</p>
                             </div>
-                        </Link>
-                    ) : (
-                         <div style={{ padding: '2rem', textAlign: 'center', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#888', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: '1rem', flex: 1 }}>
-                            <FaBullhorn size={30} style={{ opacity: 0.3 }} />
-                            <p style={{ margin: 0 }}>{t('forum_page.loading_news')}</p> 
-                            {/* Actually we should check if loading finished and list is empty to say 'No news'. For MVP: 'Cargando' is safe default or 'No noticias' if we knew for sure. */}
-                            {/* Let's be smart: initialCategories has 0 topics. We can check category 1. */}
-                            <Link to="/forum/announcements" className="btn-secondary" style={{ marginTop: '1rem', fontSize: '0.8rem', padding: '0.5rem 1rem' }}>{t('forum_page.view_all_news')}</Link>
-                        </div>
-                    )}
+                        )}
+                    </div>
                 </div>
 
-            </div>
+                {/* Categories Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl mx-auto">
+                    {categories.map((cat) => (
+                        <Link 
+                            to={`/forum/${cat.slug}`} 
+                            key={cat.id} 
+                            className="bg-white/5 backdrop-blur-md border border-white/5 rounded-2xl p-6 flex flex-col sm:flex-row items-center sm:items-stretch gap-6 transition-all duration-300 hover:bg-white/10 hover:border-(--accent)/40 hover:-translate-y-1 hover:shadow-xl hover:shadow-(--accent)/5 group"
+                        >
+                            {/* Icon Box */}
+                            <div className="w-16 h-16 sm:w-20 sm:h-auto bg-black/40 rounded-xl flex items-center justify-center text-3xl text-gray-400 group-hover:text-(--accent) group-hover:bg-(--accent)/10 transition-all shrink-0">
+                                {cat.icon}
+                            </div>
 
-            <div className="forum-categories">
-                {categories.map((cat) => (
-                    <Link to={`/forum/${cat.slug}`} key={cat.id} className="forum-category-card" style={{ textDecoration: 'none', color: 'inherit' }}>
-                        <div className="cat-icon-wrapper">
-                            {cat.icon}
-                        </div>
-                        <div className="cat-info">
-                            <h3>{t(`forum_page.categories.${cat.translationKey}.title`)}</h3>
-                            <p>{t(`forum_page.categories.${cat.translationKey}.desc`)}</p>
-                        </div>
-                        <div className="cat-stats">
-                            <div className="stat-item">
-                                <span>{cat.topics}</span>
-                                <small>{t('forum_page.stats.topics')}</small>
+                            <div className="flex-1 text-center sm:text-left min-w-0">
+                                <h3 className="text-xl font-bold text-white mb-2 group-hover:text-(--accent) transition-colors uppercase tracking-tight">
+                                    {t(`forum_page.categories.${cat.translationKey}.title`)}
+                                </h3>
+                                <p className="text-sm text-gray-400 mb-4 line-clamp-2">
+                                    {t(`forum_page.categories.${cat.translationKey}.desc`)}
+                                </p>
+
+                                <div className="flex items-center justify-center sm:justify-start gap-6 border-t border-white/5 pt-4">
+                                    <div className="flex flex-col">
+                                        <span className="text-lg font-black text-white">{cat.topics}</span>
+                                        <span className="text-[10px] text-gray-500 uppercase tracking-widest">{t('forum_page.stats.topics')}</span>
+                                    </div>
+                                    <div className="w-px h-8 bg-white/10"></div>
+                                    <div className="flex flex-col">
+                                        <span className="text-lg font-black text-white">{cat.posts}</span>
+                                        <span className="text-[10px] text-gray-500 uppercase tracking-widest">{t('forum_page.stats.posts')}</span>
+                                    </div>
+                                </div>
                             </div>
-                            <div className="stat-item">
-                                <span>{cat.posts}</span>
-                                <small>{t('forum_page.stats.posts')}</small>
-                            </div>
-                        </div>
-                        <div className="cat-last-post">
-                            <div className="last-post-user">
-                                <FaUser size={12} style={{ marginRight: '5px' }} /> {cat.lastPost.user}
-                            </div>
-                            <div className="last-post-date">
-                                <FaClock size={12} style={{ marginRight: '5px' }} /> {cat.lastPost.date}
-                            </div>
-                        </div>
-                    </Link>
-                ))}
-            </div>
+
+                             {/* Last Post (Desktop styles can be enhanced, simplified here for mobile compat) */}
+                             <div className="hidden xl:flex flex-col justify-center items-end text-right min-w-[120px] text-xs text-gray-500 border-l border-white/5 pl-6 ml-2">
+                                <div className="flex items-center gap-2 mb-1 text-gray-300">
+                                    <User className="text-(--accent)/50 text-[10px]" /> {cat.lastPost.user}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Clock className="text-(--accent)/50 text-[10px]" /> {cat.lastPost.date}
+                                </div>
+                             </div>
+                        </Link>
+                    ))}
+                </div>
+            </Section>
         </div>
     )
 }

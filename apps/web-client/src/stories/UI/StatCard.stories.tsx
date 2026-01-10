@@ -1,7 +1,7 @@
 // eslint-disable-next-line
 import type { Meta, StoryObj } from '@storybook/react'
 import StatCard from '../../components/UI/StatCard'
-import { FaServer, FaUser, FaTicketAlt, FaMoneyBillWave } from 'react-icons/fa'
+import { Server, User, Ticket, Banknote } from 'lucide-react'
 
 const meta: Meta<typeof StatCard> = {
   title: 'UI/StatCard',
@@ -29,7 +29,7 @@ export const ServerStatus: Story = {
     value: 'ONLINE',
     percent: 'Running Smoothly',
     color: '#4ade80',
-    icon: <FaServer />
+    icon: <Server />
   }
 }
 
@@ -39,7 +39,7 @@ export const Players: Story = {
     value: '1,234',
     percent: 'Capacity: 2000',
     color: '#3b82f6',
-    icon: <FaUser />
+    icon: <User />
   }
 }
 
@@ -49,7 +49,7 @@ export const Tickets: Story = {
     value: '5',
     percent: '2 High Priority',
     color: '#facc15',
-    icon: <FaTicketAlt />
+    icon: <Ticket />
   }
 }
 
@@ -59,6 +59,6 @@ export const Revenue: Story = {
     value: '$4,320.50',
     percent: '+12% vs Prev Month',
     color: '#c084fc',
-    icon: <FaMoneyBillWave />
+    icon: <Banknote />
   }
 }

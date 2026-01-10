@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { FaGavel, FaSpinner } from "react-icons/fa"
+import { Gavel, Loader2 } from "lucide-react"
 import { useTranslation } from 'react-i18next'
 import { supabase } from "../../../services/supabaseClient"
 import { getAuthHeaders } from "../../../services/adminAuth"
@@ -59,7 +59,7 @@ export default function BanUserModal({ onClose, onSuccess }: BanUserModalProps) 
         <div className="modal-overlay" style={{backdropFilter: 'blur(5px)'}}>
             <div className="admin-card modal-content" style={{width: '450px', border: '1px solid #ef4444', boxShadow: '0 0 20px rgba(239, 68, 68, 0.2)'}}>
                 <div style={{display:'flex', alignItems:'center', gap:'0.5rem', marginBottom:'1.5rem', borderBottom:'1px solid #333', paddingBottom:'1rem'}}>
-                    <FaGavel color="#ef4444" size={20} />
+                    <Gavel color="#ef4444" size={20} />
                     <h3 style={{margin:0, color:'#fff'}}>{t('admin.tickets.ban_modal.title', 'Banear Usuario Importuno')}</h3>
                 </div>
 
@@ -142,7 +142,7 @@ export default function BanUserModal({ onClose, onSuccess }: BanUserModalProps) 
                             disabled={loading}
                             style={{background: '#ef4444', border: 'none', color: '#fff'}}
                         >
-                            {loading ? <FaSpinner className="spin"/> : <><FaGavel /> {t('admin.tickets.ban_modal.submit', 'Aplicar Martillo')}</>}
+                            {loading ? <Loader2 className="animate-spin"/> : <><Gavel /> {t('admin.tickets.ban_modal.submit', 'Aplicar Martillo')}</>}
                         </button>
                     </div>
                 </form>

@@ -1,7 +1,7 @@
 import { useState, useRef } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { FaImage, FaSpinner, FaExclamationTriangle, FaLanguage } from "react-icons/fa"
+import { Image, Loader2, AlertTriangle, Languages } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { supabase } from "../../services/supabaseClient"
 import { newsSchema, NewsFormValues } from "../../schemas/news"
@@ -187,7 +187,7 @@ export default function NewsForm({ initialData, onSave, onCancel }: NewsFormProp
                                     onClick={() => handleTranslate(title, 'en', 'title_en')}
                                     disabled={translating || !title}
                                 >
-                                    {translating ? <FaSpinner className="spin" /> : <FaLanguage />} {t('admin.news.translate_to_en_title')}
+                                    {translating ? <Loader2 className="spin" /> : <Languages />} {t('admin.news.translate_to_en_title')}
                                 </button>
                             </div>
                         </div>
@@ -208,7 +208,7 @@ export default function NewsForm({ initialData, onSave, onCancel }: NewsFormProp
                                     style={{ position: 'absolute', bottom: '1rem', right: '1rem', background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(10px)' }}
                                     disabled={uploading}
                                 >
-                                    <FaImage /> {t('admin.news.insert_image')}
+                                    <Image /> {t('admin.news.insert_image')}
                                 </button>
                                 <input 
                                     type="file" 
@@ -227,7 +227,7 @@ export default function NewsForm({ initialData, onSave, onCancel }: NewsFormProp
                                     onClick={() => handleTranslate(content, 'en', 'content_en')}
                                     disabled={translating || !content}
                                 >
-                                    {translating ? <FaSpinner className="spin" /> : <FaLanguage />} {t('admin.news.translate_to_en_content')}
+                                    {translating ? <Loader2 className="spin" /> : <Languages />} {t('admin.news.translate_to_en_content')}
                                 </button>
                             </div>
                         </div>
@@ -255,7 +255,7 @@ export default function NewsForm({ initialData, onSave, onCancel }: NewsFormProp
 
                     {/* RIGHT COLUMN: English & Image */}
                     <div className="news-form-section">
-                        <h4><FaLanguage /> {t('admin.news.form_extras.config_en', 'English Version')}</h4>
+                        <h4><Languages /> {t('admin.news.form_extras.config_en', 'English Version')}</h4>
 
                         <div className="form-group">
                             <label className="admin-label-premium">{t('admin.news.form.title')} {t('admin.news.english_suffix')}</label>
@@ -274,7 +274,7 @@ export default function NewsForm({ initialData, onSave, onCancel }: NewsFormProp
                                     onClick={() => handleTranslate(title_en || '', 'es', 'title')}
                                     disabled={translating || !title_en}
                                 >
-                                    {translating ? <FaSpinner className="spin" /> : <FaLanguage />} {t('admin.news.translate_to_es_title')}
+                                    {translating ? <Loader2 className="spin" /> : <Languages />} {t('admin.news.translate_to_es_title')}
                                 </button>
                             </div>
                         </div>
@@ -296,7 +296,7 @@ export default function NewsForm({ initialData, onSave, onCancel }: NewsFormProp
                                     onClick={() => handleTranslate(content_en || '', 'es', 'content')}
                                     disabled={translating || !content_en}
                                 >
-                                    {translating ? <FaSpinner className="spin" /> : <FaLanguage />} {t('admin.news.translate_to_es_content')}
+                                    {translating ? <Loader2 className="spin" /> : <Languages />} {t('admin.news.translate_to_es_content')}
                                 </button>
                             </div>
                         </div>
@@ -308,13 +308,13 @@ export default function NewsForm({ initialData, onSave, onCancel }: NewsFormProp
                                     <img src={watch("image")} className="news-img-preview" alt="Preview" />
                                 ) : (
                                     <div style={{ textAlign: 'center', opacity: 0.3 }}>
-                                        <FaImage size={40} style={{ marginBottom: '10px' }} />
+                                        <Image size={40} style={{ marginBottom: '10px' }} />
                                         <p style={{ fontSize: '0.8rem', fontWeight: 800 }}>SIN IMAGEN PORTADA</p>
                                     </div>
                                 )}
                                 {uploading && (
                                     <div className="news-upload-loading">
-                                        <FaSpinner className="spin" size={24} />
+                                        <Loader2 className="spin" size={24} />
                                         <span>SUBIENDO...</span>
                                     </div>
                                 )}
@@ -341,12 +341,12 @@ export default function NewsForm({ initialData, onSave, onCancel }: NewsFormProp
                                     }}
                                     disabled={uploading}
                                 >
-                                    <FaImage size={20} />
+                                    <Image size={20} />
                                 </button>
                             </div>
                             {uploadError && (
                                 <div style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', padding: '1rem', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 700, marginTop: '1rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                    <FaExclamationTriangle /> {uploadError}
+                                    <AlertTriangle /> {uploadError}
                                 </div>
                             )}
                         </div>
@@ -357,7 +357,7 @@ export default function NewsForm({ initialData, onSave, onCancel }: NewsFormProp
                             {t('admin.news.cancel')}
                         </button>
                         <button type="submit" className="modal-btn-primary" style={{ flex: '1 1 auto', minWidth: '140px', height: '54px', padding: '0 2rem' }} disabled={isSubmitting}>
-                            {isSubmitting ? <FaSpinner className="spin" /> : (initialData?.id ? t('admin.news.form.save') : t('admin.news.form.publish'))}
+                            {isSubmitting ? <Loader2 className="spin" /> : (initialData?.id ? t('admin.news.form.save') : t('admin.news.form.publish'))}
                         </button>
                     </div>
                 </form>

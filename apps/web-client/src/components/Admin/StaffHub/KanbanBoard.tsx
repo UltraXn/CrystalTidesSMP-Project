@@ -3,7 +3,13 @@ import { useTranslation } from 'react-i18next';
 import KanbanColumn from './KanbanColumn';
 import { KanbanTask, KANBAN_COLUMNS, TaskPriority } from '@crystaltides/shared';
 import CalendarView, { GoogleEvent } from './CalendarView';
-import { FaPlus, FaTimes, FaLayerGroup, FaTag, FaUser, FaCalendar, FaList, FaGoogle, FaBullseye, FaCalendarAlt, FaClock } from 'react-icons/fa';
+import { Plus, X, Layers, Tag, User, Calendar, List, Target, Clock } from 'lucide-react';
+
+const GoogleIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={16} height={16} fill="currentColor" viewBox="0 0 16 16">
+        <path d="M15.545 6.558a9.42 9.42 0 0 1 .139 1.626c0 2.434-.87 4.492-2.384 5.885h.002C11.978 15.292 10.158 16 8 16A8 8 0 1 1 8 0a7.689 7.689 0 0 1 5.352 2.082l-2.284 2.284A4.347 4.347 0 0 0 8 3.166c-2.087 0-3.86 1.408-4.492 3.304a4.792 4.792 0 0 0 0 3.063h.003c.635 1.893 2.405 3.301 4.492 3.301 1.078 0 2.004-.276 2.722-.764h-.003a3.702 3.702 0 0 0 1.599-2.431H8v-3.08h7.545z"/>
+    </svg>
+);
 import Loader from '../../UI/Loader';
 import ConfirmationModal from '../../UI/ConfirmationModal';
 import { supabase } from '../../../services/supabaseClient';
@@ -342,13 +348,13 @@ export default function KanbanBoard({ mockTasks, mockGoogleEvents, mockNotionTas
                             onClick={() => setViewMode('board')}
                             className={viewMode === 'board' ? 'active' : ''}
                         >
-                            <FaList /> {t('admin.staff_hub.kanban.view_board', 'Board')}
+                            <List /> {t('admin.staff_hub.kanban.view_board', 'Board')}
                         </button>
                         <button 
                             onClick={() => setViewMode('calendar')}
                             className={viewMode === 'calendar' ? 'active' : ''}
                         >
-                            <FaCalendar /> {t('admin.staff_hub.kanban.view_calendar', 'Calendar')}
+                            <Calendar /> {t('admin.staff_hub.kanban.view_calendar', 'Calendar')}
                         </button>
                     </div>
 
@@ -359,21 +365,21 @@ export default function KanbanBoard({ mockTasks, mockGoogleEvents, mockNotionTas
                                 disabled={syncing}
                                 className="sync-btn google"
                             >
-                                <FaGoogle /> {syncing ? t('admin.staff_hub.kanban.syncing', 'Syncing...') : t('admin.staff_hub.kanban.sync_calendar', 'Sync Calendar')}
+                                <GoogleIcon /> {syncing ? t('admin.staff_hub.kanban.syncing', 'Syncing...') : t('admin.staff_hub.kanban.sync_calendar', 'Sync Calendar')}
                             </button>
                             <button 
                                 onClick={subscribeToCalendar}
                                 className="sync-btn secondary"
                                 title="Add CrystalTides Calendar to your Google Calendar"
                             >
-                                <FaPlus /> {t('admin.staff_hub.kanban.add_to_calendar', 'Add to My Calendar')}
+                                <Plus /> {t('admin.staff_hub.kanban.add_to_calendar', 'Add to My Calendar')}
                             </button>
                             <button 
                                 onClick={fetchNotionTasks}
                                 disabled={notionSyncing}
                                 className="sync-btn notion"
                             >
-                                 <FaBullseye /> {notionSyncing ? t('admin.staff_hub.kanban.syncing', 'Syncing...') : t('admin.staff_hub.kanban.sync_notion', 'Sync Notion')}
+                                 <Target /> {notionSyncing ? t('admin.staff_hub.kanban.syncing', 'Syncing...') : t('admin.staff_hub.kanban.sync_notion', 'Sync Notion')}
                             </button>
                         </>
                     )}
@@ -382,7 +388,7 @@ export default function KanbanBoard({ mockTasks, mockGoogleEvents, mockNotionTas
                         onClick={() => setShowCreateModal(true)}
                         className="new-task-btn"
                     >
-                        <FaPlus /> {t('admin.staff_hub.kanban.new_task_btn', 'Nueva Tarea')}
+                        <Plus /> {t('admin.staff_hub.kanban.new_task_btn', 'Nueva Tarea')}
                     </button>
                 </div>
             </div>
@@ -421,7 +427,7 @@ export default function KanbanBoard({ mockTasks, mockGoogleEvents, mockNotionTas
                         <div className="modal-header-premium">
                             <div>
                                 <h2 style={{ margin: 0, fontSize: '1.75rem', fontWeight: '950', color: '#fff', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                    {editingTask ? <FaBullseye color="var(--accent)" /> : <FaPlus color="var(--accent)" />}
+                                    {editingTask ? <Target color="var(--accent)" /> : <Plus color="var(--accent)" />}
                                     {editingTask ? t('admin.staff_hub.kanban.create_modal.title_edit', 'Editar Tarea') : t('admin.staff_hub.kanban.create_modal.title_new', 'Nueva Tarea')}
                                 </h2>
                                 <p style={{ margin: '0.5rem 0 0', color: 'rgba(255,255,255,0.4)', fontSize: '0.9rem', fontWeight: 500 }}>
@@ -432,13 +438,13 @@ export default function KanbanBoard({ mockTasks, mockGoogleEvents, mockNotionTas
                                 onClick={() => { setShowCreateModal(false); setEditingTask(null); }}
                                 className="btn-close-premium"
                             >
-                                <FaTimes />
+                                <X />
                             </button>
                         </div>
 
                         <div className="modal-body-premium">
                             <div className="form-group">
-                                <label className="admin-label-premium"><FaBullseye size={12} /> {t('admin.staff_hub.kanban.create_modal.task_title', 'TÍTULO DE LA TAREA')}</label>
+                                <label className="admin-label-premium"><Target size={12} /> {t('admin.staff_hub.kanban.create_modal.task_title', 'TÍTULO DE LA TAREA')}</label>
                                 <input 
                                     className="admin-input-premium" 
                                     placeholder={t('admin.staff_hub.kanban.create_modal.task_placeholder', '¿En qué vamos a trabajar?')}
@@ -460,13 +466,13 @@ export default function KanbanBoard({ mockTasks, mockGoogleEvents, mockNotionTas
                                     alignItems: 'center',
                                     gap: '10px'
                                 }}>
-                                    <FaTimes /> {dateError}
+                                    <X /> {dateError}
                                 </div>
                             )}
 
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
                                 <div className="form-group">
-                                    <label className="admin-label-premium"><FaTag size={12} /> {t('admin.staff_hub.kanban.create_modal.priority', 'Prioridad')}</label>
+                                    <label className="admin-label-premium"><Tag size={12} /> {t('admin.staff_hub.kanban.create_modal.priority', 'Prioridad')}</label>
                                     <select 
                                         className="admin-select-premium"
                                         value={newTask.priority}
@@ -478,7 +484,7 @@ export default function KanbanBoard({ mockTasks, mockGoogleEvents, mockNotionTas
                                     </select>
                                 </div>
                                 <div className="form-group">
-                                    <label className="admin-label-premium"><FaLayerGroup size={12} /> {t('admin.staff_hub.kanban.create_modal.type', 'Tipo')}</label>
+                                    <label className="admin-label-premium"><Layers size={12} /> {t('admin.staff_hub.kanban.create_modal.type', 'Tipo')}</label>
                                     <select 
                                         className="admin-select-premium"
                                         value={newTask.type}
@@ -509,7 +515,7 @@ export default function KanbanBoard({ mockTasks, mockGoogleEvents, mockNotionTas
                                     </div>
                                 )}
                                 <div className="form-group">
-                                    <label className="admin-label-premium"><FaCalendarAlt size={12} /> {t('admin.staff_hub.kanban.create_modal.start_date', 'Inicio')}</label>
+                                    <label className="admin-label-premium"><Calendar size={12} /> {t('admin.staff_hub.kanban.create_modal.start_date', 'Inicio')}</label>
                                     <input 
                                         type="datetime-local"
                                         className="admin-input-premium" 
@@ -518,7 +524,7 @@ export default function KanbanBoard({ mockTasks, mockGoogleEvents, mockNotionTas
                                     />
                                 </div>
                                 <div className="form-group">
-                                    <label className="admin-label-premium"><FaClock size={12} /> {t('admin.staff_hub.kanban.create_modal.end_date', 'Fin')}</label>
+                                    <label className="admin-label-premium"><Clock size={12} /> {t('admin.staff_hub.kanban.create_modal.end_date', 'Fin')}</label>
                                     <input 
                                         type="datetime-local"
                                         className="admin-input-premium" 
@@ -531,7 +537,7 @@ export default function KanbanBoard({ mockTasks, mockGoogleEvents, mockNotionTas
                             </div>
 
                             <div className="form-group">
-                                <label className="admin-label-premium"><FaUser size={12} /> {t('admin.staff_hub.kanban.create_modal.assignee', 'Asignado a')}</label>
+                                <label className="admin-label-premium"><User size={12} /> {t('admin.staff_hub.kanban.create_modal.assignee', 'Asignado a')}</label>
                                 <input 
                                     className="admin-input-premium" 
                                     placeholder={t('admin.staff_hub.kanban.create_modal.assignee_placeholder', 'Nombre del staff...')}

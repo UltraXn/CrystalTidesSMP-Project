@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react"
 import { useParams, Link } from "react-router-dom"
-import { FaUser, FaComments, FaClock, FaPen, FaThumbtack } from "react-icons/fa"
+import { User, MessageSquare, Clock, Pen, Pin, ArrowLeft } from "lucide-react"
 import Loader from "../components/UI/Loader"
 import { useTranslation } from 'react-i18next'
+import Section from "../components/Layout/Section"
 
 interface ThreadSummary {
     id: string | number;
@@ -128,98 +129,105 @@ export default function ForumCategory() {
     }, [categoryId, slug, API_URL])
 
     return (
-        <div className="section" style={{ minHeight: '80vh', paddingTop: '8rem' }}>
-            <div className="forum-header" style={{ maxWidth: '900px', margin: '0 auto 2rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                    <Link to="/forum" style={{ color: 'var(--muted)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none', transition: 'color 0.2s' }}
-                        onMouseOver={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--accent)' }}
-                        onMouseOut={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--muted)' }}
-                    >
-                        &larr; {t('forum_category.back_link')}
-                    </Link>
-
-                    {String(categoryId) !== "1" && (
-                        <Link to="/forum/create" className="btn" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
-                            <FaPen /> {t('forum_category.new_thread')}
+        <div className="pt-24 min-h-screen">
+            <Section title={categoryTitle}>
+                <div className="max-w-4xl mx-auto">
+                    {/* Header Controls */}
+                    <div className="flex justify-between items-center mb-8 bg-black/40 backdrop-blur-md p-4 rounded-2xl border border-white/5">
+                        <Link 
+                            to="/forum" 
+                            className="flex items-center gap-2 text-gray-400 hover:text-(--accent) transition-colors text-sm font-bold uppercase tracking-widest"
+                        >
+                            <ArrowLeft /> {t('forum_category.back_link')}
                         </Link>
+
+                        {String(categoryId) !== "1" && (
+                            <Link 
+                                to="/forum/create" 
+                                className="flex items-center gap-2 px-6 py-3 bg-(--accent) text-black rounded-xl text-xs font-black uppercase tracking-widest hover:scale-105 transition-transform shadow-lg shadow-(--accent)/20"
+                            >
+                                <Pen /> {t('forum_category.new_thread')}
+                            </Link>
+                        )}
+                    </div>
+
+                    {/* Content */}
+                    {loading ? (
+                        <div className="py-20 flex flex-col items-center justify-center gap-4">
+                            <div className="w-12 h-12 border-4 border-white/10 border-t-(--accent) rounded-full animate-spin"></div>
+                            <Loader text={t('forum_category.loading')} />
+                        </div>
+                    ) : threads.length === 0 ? (
+                        <div className="py-20 flex flex-col items-center justify-center gap-6 bg-white/2 border border-dashed border-white/10 rounded-3xl">
+                            <MessageSquare className="text-6xl text-white/10" />
+                            <div className="text-center">
+                                <p className="text-gray-400 font-medium mb-4">{t('forum_category.no_threads')}</p>
+                                {String(categoryId) !== '1' && (
+                                    <Link 
+                                        to="/forum/create" 
+                                        className="text-(--accent) font-bold hover:underline"
+                                    >
+                                        {t('forum_category.be_first')}
+                                    </Link>
+                                )}
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="flex flex-col gap-4">
+                            {threads.map(thread => (
+                                <Link 
+                                    to={String(categoryId) === "1" ? `/forum/thread/news/${thread.slug || thread.id}` : `/forum/thread/${thread.slug || thread.id}`} 
+                                    key={thread.id} 
+                                    className="group block"
+                                >
+                                    <div className="bg-black/40 backdrop-blur-xl border border-white/5 rounded-2xl p-6 flex items-center gap-6 transition-all duration-300 hover:bg-white/5 hover:border-(--accent)/30 hover:-translate-y-1 hover:shadow-xl hover:shadow-(--accent)/5">
+                                        
+                                        {/* Icon */}
+                                        <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl shrink-0 ${thread.pinned ? 'bg-(--accent)/10 text-(--accent)' : 'bg-white/5 text-gray-500 group-hover:bg-white/10 group-hover:text-gray-300'}`}>
+                                            {thread.pinned ? <Pin className="rotate-45" /> : <MessageSquare />}
+                                        </div>
+
+                                        {/* Info */}
+                                        <div className="grow min-w-0">
+                                            <div className="flex items-center gap-3 mb-2">
+                                                {thread.tag && (
+                                                    <span className="bg-(--accent) text-black px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest shrink-0">
+                                                        {thread.tag}
+                                                    </span>
+                                                )}
+                                                <h3 className="text-lg font-bold text-white group-hover:text-(--accent) transition-colors truncate">
+                                                    {thread.title}
+                                                </h3>
+                                            </div>
+                                            
+                                            <div className="flex items-center gap-6 text-xs font-bold text-gray-500 uppercase tracking-widest">
+                                                <span className="flex items-center gap-2">
+                                                    <User className="text-(--accent)/50" /> {thread.author}
+                                                </span>
+                                                <span className="flex items-center gap-2">
+                                                    <Clock className="text-(--accent)/50" /> {thread.lastActivity}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {/* Stats */}
+                                        <div className="gap-8 text-center shrink-0 border-l border-white/5 pl-8 hidden sm:flex">
+                                            <div className="flex flex-col">
+                                                <span className="text-xl font-black text-white group-hover:text-(--accent) transition-colors">{thread.replies}</span>
+                                                <span className="text-[10px] text-gray-500 uppercase tracking-widest">{t('forum_category.replies')}</span>
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="text-xl font-black text-white group-hover:text-(--accent) transition-colors">{thread.views}</span>
+                                                <span className="text-[10px] text-gray-500 uppercase tracking-widest">{t('forum_category.views')}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </Link>
+                            ))}
+                        </div>
                     )}
                 </div>
-                
-                <div style={{ textAlign: 'center', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '1.5rem' }}>
-                    <h2 style={{ fontSize: '2.5rem', margin: 0, textTransform: 'uppercase', letterSpacing: '2px', color: 'var(--accent)', textShadow: '0 0 10px rgba(137, 217, 209, 0.3)' }}>{categoryTitle}</h2>
-                </div>
-            </div>
-
-            <div className="threads-list" style={{ maxWidth: '900px', margin: '0 auto' }}>
-                {loading ? (
-                    <div style={{ display: "flex", justifyContent: "center", padding: "3rem" }}>
-                        <Loader text={t('forum_category.loading')} />
-                    </div>
-                ) : threads.length === 0 ? (
-                    <div style={{ padding: '3rem', textAlign: 'center', background: 'var(--bg-alt)', borderRadius: '12px', border: '1px dashed #444' }}>
-                        <p style={{ color: 'var(--muted)' }}>{t('forum_category.no_threads')}</p>
-                        {String(categoryId) !== '1' && <Link to="/forum/create" style={{ color: 'var(--accent)', marginTop: '0.5rem', display: 'inline-block' }}>{t('forum_category.be_first')}</Link>}
-                    </div>
-                ) : (
-                    <div className="threads-container" style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                        {threads.map(thread => (
-                            <Link to={String(categoryId) === "1" ? `/forum/thread/news/${thread.slug || thread.id}` : `/forum/thread/${thread.slug || thread.id}`} key={thread.id} style={{ textDecoration: 'none', color: 'inherit' }}>
-                                <div className="thread-card" style={{
-                                    background: 'var(--bg-alt)',
-                                    padding: '1.2rem',
-                                    borderRadius: '8px',
-                                    border: '1px solid rgba(255,255,255,0.05)',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '1rem',
-                                    transition: 'all 0.2s',
-                                    cursor: 'pointer'
-                                }}>
-                                    <div className="thread-icon" style={{
-                                        minWidth: '40px',
-                                        color: thread.pinned ? 'var(--accent)' : 'var(--muted)',
-                                        display: 'flex',
-                                        justifyContent: 'center'
-                                    }}>
-                                        {thread.pinned ? <FaThumbtack style={{ transform: 'rotate(45deg)' }} /> : <FaComments />}
-                                    </div>
-
-                                    <div className="thread-info" style={{ flexGrow: 1 }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.3rem' }}>
-                                            {thread.tag && (
-                                                <span style={{
-                                                    fontSize: '0.7rem',
-                                                    background: 'var(--accent)',
-                                                    color: '#000',
-                                                    padding: '0.1rem 0.4rem',
-                                                    borderRadius: '4px',
-                                                    fontWeight: 'bold'
-                                                }}>{thread.tag}</span>
-                                            )}
-                                            <h3 style={{ fontSize: '1.1rem', margin: 0, fontWeight: 600, color: '#fff' }}>{thread.title}</h3>
-                                        </div>
-                                        <div style={{ fontSize: '0.85rem', color: 'var(--muted)', display: 'flex', gap: '1rem' }}>
-                                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><FaUser size={10} /> {thread.author}</span>
-                                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><FaClock size={10} /> {thread.lastActivity}</span>
-                                        </div>
-                                    </div>
-
-                                    <div className="thread-stats" style={{ display: 'flex', gap: '1.5rem', color: 'var(--muted)', fontSize: '0.9rem', textAlign: 'center' }}>
-                                        <div style={{ display: 'flex', flexDirection: 'column', minWidth: '50px' }}>
-                                            <span style={{ fontWeight: 'bold', color: '#ccc' }}>{thread.replies}</span>
-                                            <span style={{ fontSize: '0.7rem' }}>{t('forum_category.replies')}</span>
-                                        </div>
-                                        <div style={{ display: 'flex', flexDirection: 'column', minWidth: '50px' }}>
-                                            <span style={{ fontWeight: 'bold', color: '#ccc' }}>{thread.views}</span>
-                                            <span style={{ fontSize: '0.7rem' }}>{t('forum_category.views')}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </Link>
-                        ))}
-                    </div>
-                )}
-            </div>
+            </Section>
         </div>
     )
 }

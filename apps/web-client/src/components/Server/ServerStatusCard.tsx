@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { motion } from "framer-motion"
-import { FaCheckCircle, FaCopy } from "react-icons/fa"
+import { CheckCircle, Copy } from "lucide-react"
 import Confetti from "canvas-confetti"
 import { useTranslation } from 'react-i18next'
 
@@ -108,7 +108,7 @@ export default function ServerStatusCard({ status, serverIp = "mc.crystaltidesSM
                                         transition: 'all 0.2s'
                                     }}
                                 >
-                                    {copied ? <FaCheckCircle /> : <FaCopy />}
+                                    {copied ? <CheckCircle /> : <Copy />}
                                     <span style={{ fontWeight: 'bold' }}>{copied ? t('common.copied') : t('common.copy')}</span>
                                 </button>
                             </h2>
@@ -132,7 +132,7 @@ export default function ServerStatusCard({ status, serverIp = "mc.crystaltidesSM
                             initial={{ width: 0 }}
                             animate={{ width: `${percentage}%` }}
                             transition={{ duration: 1, ease: "easeOut" }}
-                            className="h-full bg-gradient-to-r from-teal-500 to-emerald-400"
+                            className="h-full bg-linear-to-r from-teal-500 to-emerald-400"
                         />
                     </div>
                     <div className="flex justify-between text-sm text-gray-400">

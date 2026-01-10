@@ -1,6 +1,7 @@
-import { FaTrophy, FaClock, FaSkull, FaHammer } from "react-icons/fa"
+import { Trophy } from "lucide-react"
 import Loader from "../UI/Loader"
 import { useTranslation } from "react-i18next"
+import PlaystyleRadar from "../Account/PlaystyleRadarFinal"
 
 interface PlayerStats {
     playtime: string;
@@ -10,6 +11,7 @@ interface PlayerStats {
     money: string;
     blocks_mined: string;
     blocks_placed: string;
+    rank?: string;
 }
 
 interface PlayerStatsGridProps {
@@ -22,93 +24,61 @@ interface PlayerStatsGridProps {
 export default function PlayerStatsGrid({ stats, loading, isPublic, isAdmin }: PlayerStatsGridProps) {
     const { t } = useTranslation()
 
+    // Helper to parse playtime "12h 30m"
+    const parsePlaytime = (ptStr: string): number => {
+        if (!ptStr) return 0;
+        const h = parseInt(ptStr.match(/(\d+)h/)?.[1] || "0");
+        const m = parseInt(ptStr.match(/(\d+)m/)?.[1] || "0");
+        return h + m / 60;
+    }
+
+    const parseMoney = (moneyStr: string): number => {
+        if (!moneyStr) return 0;
+        return parseFloat(moneyStr.replace(/[^0-9.-]+/g, ""));
+    }
+
     return (
-        <div className="premium-card">
-            <style>{`
-                .premium-card {
-                    background: rgba(255, 255, 255, 0.03);
-                    backdrop-filter: blur(12px);
-                    -webkit-backdrop-filter: blur(12px);
-                    border: 1px solid rgba(255, 255, 255, 0.06);
-                    border-radius: 24px;
-                    padding: 2rem;
-                    position: relative;
-                    transition: all 0.3s ease;
-                }
-                .premium-card:hover {
-                    border-color: rgba(255, 255, 255, 0.12);
-                    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
-                }
-                .premium-card h3 {
-                    font-size: 0.9rem;
-                    text-transform: uppercase;
-                    letter-spacing: 2px;
-                    color: rgba(255,255,255,0.4);
-                    margin-bottom: 1.5rem;
-                    display: flex;
-                    align-items: center;
-                    gap: 0.8rem;
-                }
-                 .stat-grid-premium {
-                    display: grid;
-                    grid-template-columns: repeat(2, 1fr);
-                    gap: 1rem;
-                }
-                .stat-item-premium {
-                    background: rgba(255,255,255,0.02);
-                    padding: 1.2rem;
-                    border-radius: 16px;
-                    border: 1px solid rgba(255,255,255,0.04);
-                    transition: transform 0.2s;
-                }
-                .stat-item-premium:hover {
-                    background: rgba(255,255,255,0.04);
-                    transform: translateY(-4px);
-                }
-                .stat-icon {
-                    width: 32px;
-                    height: 32px;
-                    border-radius: 8px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    margin-bottom: 0.8rem;
-                    font-size: 0.9rem;
-                }
-            `}</style>
-            <h3><FaTrophy /> {t('profile.stats')}</h3>
+        <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-8 shadow-xl transition-all hover:border-white/20 hover:shadow-2xl">
+            <h3 className="flex items-center gap-3 text-sm font-black uppercase tracking-widest text-white/40 mb-6">
+                <Trophy size={16} /> {t('profile.playstyle_title', 'Gráfico de Estilo')}
+            </h3>
+            
             {(isPublic || isAdmin) ? (
-                <div className="stat-grid-premium">
+                <div className="flex flex-col items-center">
                     {loading ? (
-                        <Loader text={t('profile.loading_stats')} />
+                        <div className="py-12"><Loader text={t('profile.loading_stats')} /></div>
                     ) : stats ? (
                         <>
-                            <div className="stat-item-premium">
-                                <div className="stat-icon" style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' }}><FaClock /></div>
-                                <div style={{ fontSize: '1.2rem', fontWeight: 800 }}>{stats?.playtime || '0h'}</div>
-                                <div style={{ fontSize: '0.7rem', color: '#666' }}>{t('profile.time', 'Tiempo Jugado')}</div>
+                            <div className="w-full relative z-10">
+                                <PlaystyleRadar 
+                                    stats={{
+                                        blocksPlaced: Number(stats.blocks_placed || 0),
+                                        blocksMined: Number(stats.blocks_mined || 0),
+                                        kills: Number(stats.kills || 0),
+                                        mobKills: Number(stats.mob_kills || 0),
+                                        playtimeHours: parsePlaytime(stats.playtime),
+                                        money: parseMoney(stats.money),
+                                        rank: stats.rank || "default"
+                                    }}
+                                />
                             </div>
-                            <div className="stat-item-premium">
-                                <div className="stat-icon" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}><FaSkull /></div>
-                                <div style={{ fontSize: '1.2rem', fontWeight: 800 }}>{stats?.deaths || 0}</div>
-                                <div style={{ fontSize: '0.7rem', color: '#666' }}>{t('profile.deaths', 'Muertes')}</div>
-                            </div>
-                            <div className="stat-item-premium" style={{ position: 'relative', overflow: 'hidden' }}>
-                                <div className="stat-icon" style={{ background: 'rgba(234, 179, 8, 0.1)', color: '#eab308' }}>
-                                    <img src="/images/killucoin.webp" alt="K" style={{ width: '24px', height: '24px', objectFit: 'contain' }} />
-                                </div>
-                                <div style={{ fontSize: '1.2rem', fontWeight: 800 }}>{stats?.money || 0}</div>
-                                <div style={{ fontSize: '0.7rem', color: '#666' }}>{t('profile.killucoins', 'Killucoins')}</div>
-                            </div>
-                            <div className="stat-item-premium">
-                                <div className="stat-icon" style={{ background: 'rgba(34, 197, 94, 0.1)', color: '#22c55e' }}><FaHammer /></div>
-                                <div style={{ fontSize: '1.2rem', fontWeight: 800 }}>{stats?.blocks_mined || 0}</div>
-                                <div style={{ fontSize: '0.7rem', color: '#666' }}>{t('profile.mined', 'Bloques Minados')}</div>
-                            </div>
+                            
+
                         </>
-                    ) : <p>{t('profile.error_stats')}</p>}
+                    ) : (
+                        <div className="text-center py-8 text-gray-500 font-bold text-xs italic">
+                            {t('profile.error_stats', 'No se pudieron cargar los datos de estilo.')}
+                        </div>
+                    )}
                 </div>
-            ) : <p>{t('profile.private_stats')}</p>}
+            ) : (
+                 <div className="text-center py-12 px-6 bg-black/20 rounded-2xl border border-dashed border-white/5">
+                    <div className="text-2xl mb-2 opacity-30">🔒</div>
+                    <p className="text-gray-500 font-bold text-xs">
+                        {t('profile.private_stats', 'Este usuario mantiene su estilo de juego en privado.')}
+                    </p>
+                </div>
+            )}
         </div>
     )
 }

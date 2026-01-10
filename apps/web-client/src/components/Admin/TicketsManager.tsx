@@ -1,9 +1,12 @@
-import { useState, useEffect, useCallback } from "react"
-import { FaSearch, FaPlus, FaTrash } from "react-icons/fa"
+import { useState } from "react"
+import { Search, Plus, Trash2 } from "lucide-react"
 import { useAuth } from "../../context/AuthContext"
 import { useTranslation } from 'react-i18next'
-import { supabase } from "../../services/supabaseClient"
-import { getAuthHeaders } from "../../services/adminAuth"
+
+import { 
+    useAdminTickets, 
+    useDeleteTicket 
+} from "../../hooks/useAdminData"
 
 // New Components
 import { Ticket, Message, AlertData } from "./Tickets/types"
@@ -20,53 +23,19 @@ interface TicketsManagerProps {
 export default function TicketsManager({ mockTickets, mockMessages }: TicketsManagerProps = {}) {
     const { t } = useTranslation()
     const { user } = useAuth() as { user: { id: string } | null }
-    const [tickets, setTickets] = useState<Ticket[]>([])
-    const [loading, setLoading] = useState(true)
+    
+    // TanStack Query Hooks
+    const { data: fetchTicketsData, isLoading: loading, refetch: fetchTickets } = useAdminTickets();
+    const deleteTicketMutation = useDeleteTicket();
+
     const [showCreateModal, setShowCreateModal] = useState(false)
     const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null)
     const [selectedTicketIds, setSelectedTicketIds] = useState<number[]>([])
     const [confirmBulkDelete, setConfirmBulkDelete] = useState(false)
     const [alert, setAlert] = useState<AlertData | null>(null)
 
-    const API_URL = import.meta.env.VITE_API_URL
-
-    const fetchTickets = useCallback(async () => {
-        if (mockTickets) {
-            setTickets(mockTickets)
-            setLoading(false)
-            return
-        }
-        try {
-            setLoading(true)
-            const { data: { session } } = await supabase.auth.getSession();
-            const headers: HeadersInit = getAuthHeaders(session?.access_token || null);
-
-            const res = await fetch(`${API_URL}/tickets`, { headers })
-            if (res.status === 429) {
-                console.warn("Rate limited fetching tickets. Retrying automatically in 5s.")
-                setTimeout(fetchTickets, 5000)
-                return
-            }
-            if (!res.ok) throw new Error("Error fetching tickets")
-            const data = await res.json()
-            if (data.success && Array.isArray(data.data)) {
-                setTickets(data.data)
-            } else if (Array.isArray(data)) {
-                setTickets(data)
-            } else {
-                setTickets([])
-            }
-        } catch (error) {
-            console.error("Failed to load tickets", error)
-            setAlert({ message: t('admin.alerts.error_title', 'Error') + ": " + (error instanceof Error ? error.message : "Unknown Error"), type: 'error' })
-        } finally {
-            setLoading(false)
-        }
-    }, [mockTickets, API_URL, t])
-
-    useEffect(() => {
-        fetchTickets()
-    }, [fetchTickets])
+    // Merge mock data or fetched data
+    const tickets = mockTickets || fetchTicketsData || [];
 
     const toggleSelectTicket = (id: number) => {
         setSelectedTicketIds(prev => 
@@ -78,7 +47,7 @@ export default function TicketsManager({ mockTickets, mockMessages }: TicketsMan
         if (selectedTicketIds.length === tickets.length) {
             setSelectedTicketIds([])
         } else {
-            setSelectedTicketIds(tickets.map(t => t.id))
+            setSelectedTicketIds(tickets.map((t: Ticket) => t.id))
         }
     }
 
@@ -86,28 +55,16 @@ export default function TicketsManager({ mockTickets, mockMessages }: TicketsMan
         if (selectedTicketIds.length === 0) return;
         
         try {
-            setLoading(true)
-            const { data: { session } } = await supabase.auth.getSession();
-            const headers = { 
-                'Content-Type': 'application/json',
-                ...getAuthHeaders(session?.access_token || null)
-            };
-
             await Promise.all(selectedTicketIds.map(id => 
-                fetch(`${API_URL}/tickets/${id}`, {
-                    method: 'DELETE',
-                    headers
-                })
+                deleteTicketMutation.mutateAsync(id)
             ));
 
             setAlert({ message: t('admin.tickets.bulk_delete_success', 'Tickets eliminados'), type: 'success' })
             setSelectedTicketIds([])
-            fetchTickets()
         } catch (error) {
             console.error(error)
             setAlert({ message: t('admin.alerts.error_title', 'Error'), type: 'error' })
         } finally {
-            setLoading(false)
             setConfirmBulkDelete(false)
         }
     }
@@ -124,7 +81,7 @@ export default function TicketsManager({ mockTickets, mockMessages }: TicketsMan
             {/* CARD HEADER */}
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2rem', flexWrap: 'wrap', gap: '1.5rem', alignItems: 'center' }}>
                 <div style={{ position: 'relative', width: '100%', maxWidth: '400px', flex: '1 1 auto' }}>
-                    <FaSearch style={{ position: 'absolute', left: '1.2rem', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.4)' }} />
+                    <Search style={{ position: 'absolute', left: '1.2rem', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.4)' }} />
                     <input 
                         type="text" 
                         placeholder={t('admin.tickets.search_placeholder', 'Buscar tickets...')} 
@@ -161,7 +118,7 @@ export default function TicketsManager({ mockTickets, mockMessages }: TicketsMan
                                 cursor: 'pointer'
                             }}
                         >
-                            <FaTrash size={14} /> {t('admin.tickets.delete_selected', 'Eliminar')} ({selectedTicketIds.length})
+                            <Trash2 size={14} /> {t('admin.tickets.delete_selected', 'Eliminar')} ({selectedTicketIds.length})
                         </button>
                     )}
                     <button
@@ -176,7 +133,7 @@ export default function TicketsManager({ mockTickets, mockMessages }: TicketsMan
                             borderRadius: '12px'
                         }}
                     >
-                        <FaPlus size={14} /> {t('admin.tickets.new_ticket', 'Nuevo Ticket')}
+                        <Plus size={14} /> {t('admin.tickets.new_ticket', 'Nuevo Ticket')}
                     </button>
                 </div>
             </div>
@@ -202,7 +159,7 @@ export default function TicketsManager({ mockTickets, mockMessages }: TicketsMan
             {showCreateModal && (
                 <CreateTicketModal 
                     onClose={() => setShowCreateModal(false)}
-                    onSuccess={fetchTickets}
+                    onSuccess={() => fetchTickets()}
                     user={user}
                 />
             )}
@@ -211,7 +168,7 @@ export default function TicketsManager({ mockTickets, mockMessages }: TicketsMan
                 <TicketDetailModal
                     ticket={selectedTicket}
                     onClose={() => setSelectedTicket(null)}
-                    refreshTickets={fetchTickets}
+                    refreshTickets={() => fetchTickets()}
                     mockMessages={mockMessages?.[selectedTicket.id]}
                     user={user}
                 />

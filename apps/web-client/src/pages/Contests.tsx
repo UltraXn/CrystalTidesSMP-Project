@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import Section from "../components/Layout/Section"
-import { FaHammer, FaDiceD20, FaMapMarkedAlt, FaRunning, FaCheckCircle, FaHourglassStart, FaFlagCheckered, FaSignInAlt } from "react-icons/fa"
+import { Hammer, Dices, MapPinned, Footprints, CheckCircle, Hourglass, Flag, LogIn } from "lucide-react"
 import { gsap } from "gsap"
 import { useTranslation } from 'react-i18next'
 import { useAuth } from "../context/AuthContext"
@@ -27,10 +27,10 @@ interface ContestCardProps {
 }
 
 const iconMap: Record<string, React.ReactElement> = {
-    'hammer': <FaHammer />,
-    'dice': <FaDiceD20 />,
-    'map': <FaMapMarkedAlt />,
-    'running': <FaRunning />
+    'hammer': <Hammer />,
+    'dice': <Dices />,
+    'map': <MapPinned />,
+    'running': <Footprints />
 }
 
 const ContestCard = ({ event, onRegister, registering, isRegistered }: ContestCardProps) => {
@@ -45,46 +45,55 @@ const ContestCard = ({ event, onRegister, registering, isRegistered }: ContestCa
     const displayTitle = (i18n.language === 'en' && title_en) ? title_en : title;
     const displayDescription = (i18n.language === 'en' && description_en) ? description_en : description;
 
+    const statusColors = {
+        active: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
+        soon: 'bg-amber-500/20 text-amber-500 border-amber-500/30',
+        finished: 'bg-red-500/20 text-red-500 border-red-500/30'
+    }
+
     return (
-        <div className="contest-card">
-            <div className="contest-bg-icon">{iconMap[type] || <FaHammer />}</div>
+        <div className="group relative bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl p-8 flex flex-col gap-6 overflow-hidden transition-all duration-500 hover:bg-white/5 hover:-translate-y-2 hover:shadow-2xl hover:shadow-(--accent)/20 hover:border-(--accent)/30">
+            {/* Background Icon Decoration */}
+            <div className="absolute -right-8 -bottom-8 text-white/5 text-[180px] rotate-12 group-hover:scale-110 group-hover:text-white/10 transition-all pointer-events-none">
+                {iconMap[type] || <Hammer />}
+            </div>
             
-            <div className="contest-card-header">
-                <div className={`contest-status-badge ${status}`}>
-                    {status === 'active' && <FaCheckCircle size={12} />}
-                    {status === 'soon' && <FaHourglassStart size={12} />}
-                    {status === 'finished' && <FaFlagCheckered size={12} />}
+            <div className="flex justify-between items-start">
+                <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${statusColors[status]}`}>
+                    {status === 'active' && <CheckCircle className="animate-pulse" />}
+                    {status === 'soon' && <Hourglass className="animate-spin-slow" />}
+                    {status === 'finished' && <Flag />}
                     <span>{statusText}</span>
                 </div>
             </div>
 
-            <div className="contest-card-body">
-                <div className="contest-main-icon">
-                    {iconMap[type] || <FaHammer />}
+            <div className="relative z-10 flex flex-col gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-3xl text-(--accent) group-hover:scale-110 group-hover:rotate-12 transition-all">
+                    {iconMap[type] || <Hammer />}
                 </div>
-                <h3 className="contest-title">{displayTitle}</h3>
-                <p className="contest-desc">{displayDescription}</p>
+                <h3 className="text-2xl font-black text-white group-hover:text-(--accent) transition-colors">{displayTitle}</h3>
+                <p className="text-gray-400 text-sm leading-relaxed font-medium line-clamp-4 italic">{displayDescription}</p>
             </div>
             
-            <div className="contest-card-footer">
+            <div className="mt-auto relative z-10">
                 {status === 'active' || status === 'soon' ? (
                      <button 
-                        className={`contest-action-btn ${registering || isRegistered ? 'disabled' : ''} ${isRegistered ? 'registered' : ''}`} 
+                        className={`w-full py-4 rounded-2xl font-black uppercase tracking-widest text-sm flex items-center justify-center gap-2 transition-all ${registering || isRegistered ? 'bg-white/10 text-white/40 cursor-not-allowed' : 'bg-white text-black hover:bg-(--accent) hover:scale-105 active:scale-95 shadow-xl shadow-black/50'}`} 
                         onClick={() => !isRegistered && onRegister(id)}
                         disabled={registering || isRegistered}
                     >
-                        {registering ? t('common.processing') : isRegistered ? (
+                        {registering ? <LogIn className="animate-bounce" /> : isRegistered ? (
                             <>
-                                <FaCheckCircle /> {t('contests.registered_btn')}
+                                <CheckCircle className="text-emerald-500" /> {t('contests.registered_btn')}
                             </>
                         ) : (
                             <>
-                                <FaSignInAlt /> {t('contests.register_btn')}
+                                <LogIn /> {t('contests.register_btn')}
                             </>
                         )}
                     </button>
                 ) : (
-                    <button className="contest-action-btn disabled" disabled>
+                    <button className="w-full py-4 rounded-2xl font-black uppercase tracking-widest text-sm bg-black/40 text-white/20 border border-white/5 cursor-not-allowed" disabled>
                         {t('contests.status.finished')}
                     </button>
                 )}
@@ -233,45 +242,49 @@ export default function Contests() {
     }
 
     return (
-        <Section title={t('contests.title')}>
-            <Section>
-                <div className="crystal-card">
-                    <p>{t('contests.intro')}</p>
+        <div className="pt-24 min-h-screen">
+            <Section title={t('contests.title')}>
+                <div className="max-w-3xl mx-auto mb-16 p-8 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl text-center">
+                    <p className="text-gray-300 text-lg leading-relaxed">{t('contests.intro')}</p>
                 </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 px-4">
+                    {loading ? (
+                        <div className="col-span-full py-20 flex justify-center">
+                            <span className="text-white/20 font-black uppercase tracking-tighter text-4xl animate-pulse">Cargando eventos...</span>
+                        </div>
+                    ) : events.length > 0 ? (
+                        events.map(event => (
+                            <ContestCard 
+                                key={event.id} 
+                                event={event} 
+                                onRegister={handleRegister} 
+                                registering={registering === event.id}
+                                isRegistered={myRegistrations.includes(event.id)}
+                            />
+                        ))
+                    ) : (
+                        <div className="col-span-full py-20 flex flex-col items-center justify-center border-2 border-dashed border-white/5 rounded-3xl bg-white/2">
+                            <span className="text-gray-500 font-black uppercase tracking-widest text-sm mb-4">{t('contests.no_events')}</span>
+                            <Hourglass className="text-4xl text-gray-700 animate-pulse" />
+                        </div>
+                    )}
+                </div>
+
+                <ConfirmationModal 
+                    isOpen={showLoginModal}
+                    onClose={() => setShowLoginModal(false)}
+                    onConfirm={() => {
+                        setShowLoginModal(false)
+                        navigate('/login')
+                    }}
+                    title={t('login.title')}
+                    message={t('contests.login_required')}
+                    confirmText={t('login.sign_in_verb')}
+                    cancelText="Cancelar"
+                />
             </Section>
-
-            <div className="contests-grid">
-                {loading ? (
-                    <div style={{ gridColumn: '1/-1', textAlign: 'center', color: '#666' }}>{t('common.loading')}</div>
-                ) : events.length > 0 ? (
-                    events.map(event => (
-                        <ContestCard 
-                            key={event.id} 
-                            event={event} 
-                            onRegister={handleRegister} 
-                            registering={registering === event.id}
-                            isRegistered={myRegistrations.includes(event.id)}
-                        />
-                    ))
-                ) : (
-                    <div style={{ gridColumn: '1/-1', textAlign: 'center', color: '#666', border: '1px dashed #333', padding: '2rem', borderRadius: '8px' }}>
-                        {t('contests.no_events')}
-                    </div>
-                )}
-            </div>
-
-            <ConfirmationModal 
-                isOpen={showLoginModal}
-                onClose={() => setShowLoginModal(false)}
-                onConfirm={() => {
-                    setShowLoginModal(false)
-                    navigate('/login')
-                }}
-                title={t('login.title')}
-                message={t('contests.login_required')}
-                confirmText={t('login.sign_in_verb')}
-                cancelText="Cancelar"
-            />
-        </Section>
+        </div>
     )
 }
+

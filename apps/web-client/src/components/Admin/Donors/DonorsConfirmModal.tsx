@@ -1,5 +1,5 @@
 
-import { FaTrash, FaExclamationTriangle } from 'react-icons/fa';
+import { Trash2, AlertTriangle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 interface ConfirmModalProps {
@@ -24,7 +24,7 @@ export default function DonorsConfirmModal({ isOpen, type, onClose, onConfirm }:
                     color: type === 'delete' ? '#ef4444' : 'var(--accent)', 
                     borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 2rem auto', fontSize: '2rem' 
                 }}>
-                    {type === 'delete' ? <FaTrash /> : <FaExclamationTriangle />}
+                    {type === 'delete' ? <Trash2 /> : <AlertTriangle />}
                 </div>
                 <h3 style={{ marginBottom: '1rem', color: '#fff', fontSize: '1.75rem', fontWeight: '900' }}>
                    {type === 'delete' ? t('admin.donors.delete_confirm.title') : t('admin.donors.import_confirm.title')}

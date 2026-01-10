@@ -51,4 +51,4 @@ Al lanzar el juego, el launcher añade automáticamente el argumento `-javaagent
 - Visual Studio C++ (Build Tools).
 
 ---
-*Ver también: [Game Bridge](./GAME_BRIDGE.md)*
+*Ver también: [Game Agent](./GAME_AGENT.md)*

@@ -1,6 +1,8 @@
 import express from 'express';
 import * as gachaController from '../controllers/gachaController.js';
 import { authenticateToken } from '../middleware/authMiddleware.js';
+import { validate } from '../middleware/validateResource.js';
+import { rollGachaSchema } from '../schemas/gachaSchemas.js';
 
 const router = express.Router();
 
@@ -32,7 +34,7 @@ const router = express.Router();
  *       429:
  *         description: Cooldown activo
  */
-router.post('/roll', authenticateToken, gachaController.roll);
+router.post('/roll', authenticateToken, validate(rollGachaSchema), gachaController.roll);
 
 /**
  * @swagger

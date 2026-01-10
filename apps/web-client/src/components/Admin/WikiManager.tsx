@@ -1,9 +1,15 @@
-import { useState, useEffect, useCallback } from "react"
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import { FaPlus, FaSearch } from "react-icons/fa"
-import { getWikiArticles, createWikiArticle, updateWikiArticle, deleteWikiArticle, WikiArticle } from "../../services/wikiService"
+import { Plus, Search } from "lucide-react"
+import { WikiArticle } from "../../services/wikiService"
 import WikiArticleList from "./Wiki/WikiArticleList"
 import WikiArticleFormModal from "./Wiki/WikiArticleFormModal"
+import { 
+    useWikiArticles, 
+    useCreateWikiArticle, 
+    useUpdateWikiArticle, 
+    useDeleteWikiArticle 
+} from "../../hooks/useAdminData"
 
 interface WikiManagerProps {
     mockArticles?: WikiArticle[];
@@ -11,61 +17,38 @@ interface WikiManagerProps {
 
 export default function WikiManager({ mockArticles }: WikiManagerProps = {}) {
     const { t } = useTranslation()
-    const [articles, setArticles] = useState<WikiArticle[]>(mockArticles || [])
-    const [loading, setLoading] = useState(!mockArticles)
     const [searchTerm, setSearchTerm] = useState("")
+
+    // TanStack Query Hooks
+    const { data: fetchArticlesData = [], isLoading: loading } = useWikiArticles();
+    const createMutation = useCreateWikiArticle();
+    const updateMutation = useUpdateWikiArticle();
+    const deleteMutation = useDeleteWikiArticle();
+
+    const articles = mockArticles || fetchArticlesData;
 
     // Form State
     const [isEditing, setIsEditing] = useState(false)
     const [currentArticle, setCurrentArticle] = useState<Partial<WikiArticle> | null>(null)
     const [editingId, setEditingId] = useState<number | null>(null)
-    const [saving, setSaving] = useState(false)
-
-    const fetchArticles = useCallback(async () => {
-        if (mockArticles) return;
-        setLoading(true)
-        try {
-            const data = await getWikiArticles()
-            setArticles(data)
-        } catch (error) {
-            console.error("Error loading wiki articles:", error)
-        } finally {
-            setLoading(false)
-        }
-    }, [mockArticles])
-
-    useEffect(() => {
-        fetchArticles()
-    }, [fetchArticles])
 
     const handleSave = async (formData: Partial<WikiArticle>) => {
         if (!formData.title || !formData.slug || !formData.content) return
 
-        setSaving(true)
-        try {
-            if (editingId) {
-                await updateWikiArticle(editingId, formData)
-            } else {
-                await createWikiArticle(formData)
-            }
-            setIsEditing(false)
-            fetchArticles()
-        } catch (error) {
-            console.error("Error saving article:", error)
-            alert("No se pudo guardar el artículo. Revisa el slug (debe ser único).")
-        } finally {
-            setSaving(false)
+        if (editingId) {
+            updateMutation.mutate({ id: editingId, payload: formData }, {
+                onSuccess: () => setIsEditing(false)
+            });
+        } else {
+            createMutation.mutate(formData, {
+                onSuccess: () => setIsEditing(false)
+            });
         }
     }
 
     const handleDelete = async (id: number) => {
         if (!confirm(t('admin.wiki.delete_confirm'))) return
-        try {
-            await deleteWikiArticle(id)
-            fetchArticles()
-        } catch (error) {
-            console.error("Error deleting article:", error)
-        }
+        deleteMutation.mutate(id);
     }
 
     const startEdit = (article: WikiArticle) => {
@@ -80,7 +63,7 @@ export default function WikiManager({ mockArticles }: WikiManagerProps = {}) {
         setIsEditing(true)
     }
 
-    const filteredArticles = articles.filter(a => 
+    const filteredArticles = articles.filter((a: WikiArticle) => 
         a.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
         a.slug.toLowerCase().includes(searchTerm.toLowerCase())
     )
@@ -103,7 +86,7 @@ export default function WikiManager({ mockArticles }: WikiManagerProps = {}) {
                         borderRadius: '8px', 
                         border: '1px solid rgba(255, 255, 255, 0.1)' 
                     }}>
-                        <FaSearch className="text-white/20" style={{ color: 'rgba(255,255,255,0.4)' }} />
+                        <Search className="text-white/20" style={{ color: 'rgba(255,255,255,0.4)' }} />
                         <input 
                             type="text" 
                             placeholder={t('admin.wiki.search_placeholder')} 
@@ -114,7 +97,7 @@ export default function WikiManager({ mockArticles }: WikiManagerProps = {}) {
                     </div>
                 </div>
                 <button className="btn-primary" onClick={startNew}>
-                    <FaPlus /> {t('admin.wiki.create_btn')}
+                    <Plus /> {t('admin.wiki.create_btn')}
                 </button>
             </div>
 
@@ -131,7 +114,7 @@ export default function WikiManager({ mockArticles }: WikiManagerProps = {}) {
                 onSave={handleSave}
                 initialData={currentArticle}
                 isEditing={!!editingId}
-                saving={saving}
+                saving={createMutation.isPending || updateMutation.isPending}
             />
         </div>
     )

@@ -1,14 +1,15 @@
 
-import { FaExclamationTriangle } from "react-icons/fa";
+import { AlertTriangle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 interface EventDeleteModalProps {
     isOpen: boolean;
     onClose: () => void;
     onConfirm: () => void;
+    deleting?: boolean;
 }
 
-export default function EventDeleteModal({ isOpen, onClose, onConfirm }: EventDeleteModalProps) {
+export default function EventDeleteModal({ isOpen, onClose, onConfirm, deleting }: EventDeleteModalProps) {
     const { t } = useTranslation();
 
     if (!isOpen) return null;
@@ -29,7 +30,7 @@ export default function EventDeleteModal({ isOpen, onClose, onConfirm }: EventDe
                     margin: '0 auto 2rem',
                     fontSize: '2.5rem'
                 }}>
-                    <FaExclamationTriangle />
+                    <AlertTriangle />
                 </div>
                 <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.75rem', fontWeight: '900', color: '#fff' }}>{t('admin.events.delete_modal.title')}</h3>
                 <p style={{ color: 'rgba(255,255,255,0.4)', marginBottom: '2.5rem', lineHeight: '1.6', fontSize: '1rem' }}>
@@ -46,6 +47,7 @@ export default function EventDeleteModal({ isOpen, onClose, onConfirm }: EventDe
                     <button 
                         className="modal-btn-primary" 
                         onClick={onConfirm}
+                        disabled={deleting}
                         style={{ 
                             flex: 1, 
                             background: '#ef4444', 
@@ -54,7 +56,7 @@ export default function EventDeleteModal({ isOpen, onClose, onConfirm }: EventDe
                             boxShadow: '0 10px 30px rgba(239, 68, 68, 0.3)'
                         }}
                     >
-                        {t('admin.events.delete_modal.confirm')}
+                        {deleting ? t('common.deleting') : t('admin.events.delete_modal.confirm')}
                     </button>
                 </div>
             </div>

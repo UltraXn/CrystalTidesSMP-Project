@@ -1,16 +1,17 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FaUsers } from 'react-icons/fa';
+import { Users } from 'lucide-react';
 import { DropResult } from '@hello-pangea/dnd';
 import Loader from "../UI/Loader";
-import { supabase } from '../../services/supabaseClient';
-
-const API_URL = import.meta.env.VITE_API_URL;
-
 import { StaffCardData as StaffCard } from './Staff/StaffFormModal';
 import StaffFormModal from './Staff/StaffFormModal';
 import StaffList from './Staff/StaffList';
 import StaffSyncModal from './Staff/StaffSyncModal';
+import { 
+    useAdminSettings, 
+    useUpdateSiteSetting,
+    useStaffOnlineStatus
+} from '../../hooks/useAdminData';
 
 interface ServerStaffUser {
     uuid?: string;
@@ -22,32 +23,31 @@ interface ServerStaffUser {
     twitch?: { username: string };
 }
 
-// Mock Data Removed
-
-// Mock Interfaces
-interface MockStaffCardsManagerProps {
+interface StaffCardsManagerProps {
     mockCards?: StaffCard[];
     mockOnlineStatus?: Record<string, { mc: string, discord: string }>;
 }
 
-export default function StaffCardsManager({ mockCards, mockOnlineStatus }: MockStaffCardsManagerProps = {}) {
+export default function StaffCardsManager({ mockCards, mockOnlineStatus }: StaffCardsManagerProps = {}) {
     const { t } = useTranslation();
-    const [cards, setCards] = useState<StaffCard[]>(mockCards || []);
-    const [saving, setSaving] = useState(false);
-    const [loading, setLoading] = useState(!mockCards);
-    const [syncing, setSyncing] = useState(false);
     
-    // Sync Modal State
+    // TanStack Query Hooks
+    const { data: adminSettings, isLoading: loading } = useAdminSettings();
+    const { data: onlineStaff = {} } = useStaffOnlineStatus();
+    const updateSettingMutation = useUpdateSiteSetting();
+
+    const cards = mockCards || adminSettings?.staff || [];
+    
+    // UI State
+    const [syncing, setSyncing] = useState(false);
     const [showSyncModal, setShowSyncModal] = useState(false);
-
     const [foundStaff, setFoundStaff] = useState<StaffCard[]>([]);
-
-    // Online Status State
-    const [onlineStaff, setOnlineStaff] = useState<Record<string, { mc: string, discord: string }>>(mockOnlineStatus || {});
 
     // Form State
     const [editingCard, setEditingCard] = useState<StaffCard | null>(null);
     const [isNew, setIsNew] = useState(false);
+
+    const API_URL = import.meta.env.VITE_API_URL || '/api';
 
     const PRESET_ROLES = useMemo(() => [
         { value: 'Neroferno', label: t('admin.staff.roles.neroferno'), color: '#8b5cf6' },
@@ -61,111 +61,29 @@ export default function StaffCardsManager({ mockCards, mockOnlineStatus }: MockS
         { value: 'Custom', label: t('admin.staff.roles.custom'), color: '#ffffff' }
     ], [t]);
 
-    useEffect(() => {
-        if (mockCards) {
-            setLoading(false);
-            return;
-        }
-
-        fetch(`${API_URL}/settings`)
-            .then(res => {
-                if(!res.ok) throw new Error("Fetch failed");
-                return res.json();
-            })
-            .then(data => {
-                const rawCards = data.staff_cards || (data.data?.staff_cards); 
-                
-                if(rawCards && rawCards !== "[]") {
-                    try {
-                        const parsed = typeof rawCards === 'string' ? JSON.parse(rawCards) : rawCards;
-                        setCards(Array.isArray(parsed) && parsed.length > 0 ? parsed : []);
-                    } catch { 
-                        setCards([]); 
-                    }
-                } else {
-                    setCards([]);
-                }
-            })
-            .catch(() => setCards([]))
-            .finally(() => setLoading(false));
-
-        // Initial Online Check
-            const fetchOnlineStatus = () => {
-                if (mockOnlineStatus) return;
-                fetch(`${API_URL}/server/staff`)
-                    .then(res => res.ok ? res.json() : [])
-                    .then(data => {
-                        if(Array.isArray(data)) {
-                            const statusMap: Record<string, { mc: string, discord: string }> = {};
-                            data.forEach((u: { username: string, mc_status?: string, discord_status?: string }) => {
-                                statusMap[u.username.toLowerCase()] = {
-                                    mc: u.mc_status || 'offline',
-                                    discord: u.discord_status || 'offline'
-                                };
-                            });
-                            setOnlineStaff(statusMap);
-                        }
-                    })
-                    .catch(err => console.error("Error fetching online staff:", err));
-            };
-
-            fetchOnlineStatus();
-            
-            // Poll every 60s
-            const interval = setInterval(fetchOnlineStatus, 60000);
-            return () => clearInterval(interval);
-
-    }, [mockCards, mockOnlineStatus]);
-
-
-
-
-    const handleSave = async (newCards: StaffCard[]) => {
-        setSaving(true);
-        try {
-            const { data: { session } } = await supabase.auth.getSession();
-            const res = await fetch(`${API_URL}/settings/staff_cards`, {
-                method: 'PUT',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${session?.access_token}`
-                },
-                body: JSON.stringify({ value: JSON.stringify(newCards) })
-            });
-
-            if (!res.ok) throw new Error('Failed to save');
-            setCards(newCards);
-        } catch (error) {
-            console.error(error);
-            alert(t('admin.staff.save_error'));
-        } finally {
-            setSaving(false);
-        }
+    const handleSaveList = async (newList: StaffCard[]) => {
+        updateSettingMutation.mutate({
+            key: 'staff_cards',
+            value: JSON.stringify(newList)
+        });
     };
 
     const startSync = async () => {
         setSyncing(true);
         try {
-            const res = await fetch(`${API_URL}/server/all-staff`);
-            if (!res.ok) {
-                const errText = await res.text();
-                throw new Error(`Error ${res.status}: ${errText.substring(0, 100)}`); // Show first 100 chars
-            }
+            const res = await fetch(`${API_URL}/users/staff`);
+            if (!res.ok) throw new Error(`Error ${res.status}`);
             const json = await res.json();
             const staffUsers = json.data || [];
             
             if (staffUsers.length === 0) {
                 alert(t('admin.staff.sync_no_users'));
-                setSyncing(false);
                 return;
             }
 
-            // Transform for Preview
             const mappedStaff = staffUsers.map((u: ServerStaffUser) => {
-                const existing = cards.find(c => c.name.toLowerCase() === u.username.toLowerCase());
+                const existing = cards.find((c: StaffCard) => c.name.toLowerCase() === u.username.toLowerCase());
                 const roleConfig = PRESET_ROLES.find(r => r.value.toLowerCase() === u.role.toLowerCase());
-                
-                // Use backend role directly but prioritize preset case
                 const finalRole = roleConfig ? roleConfig.value : u.role;
                 
                 return {
@@ -189,15 +107,14 @@ export default function StaffCardsManager({ mockCards, mockOnlineStatus }: MockS
             setShowSyncModal(true);
         } catch (error) {
             console.error("Sync error:", error);
-            const msg = error instanceof Error ? error.message : "Desconocido";
-            alert(`${t('admin.staff.sync_error')} ${msg}`);
+            alert(t('admin.staff.sync_error'));
         } finally {
             setSyncing(false);
         }
     };
 
     const confirmSync = async () => {
-        await handleSave(foundStaff);
+        await handleSaveList(foundStaff);
         setShowSyncModal(false);
     };
 
@@ -213,8 +130,8 @@ export default function StaffCardsManager({ mockCards, mockOnlineStatus }: MockS
 
     const handleDelete = (id: number | string) => {
         if(!confirm(t('admin.staff.confirm_delete_profile'))) return;
-        const newCards = cards.filter(c => c.id !== id);
-        handleSave(newCards);
+        const newCards = cards.filter((c: StaffCard) => c.id !== id);
+        handleSaveList(newCards);
     };
 
     const handleFormSave = (formData: StaffCard) => {
@@ -222,9 +139,9 @@ export default function StaffCardsManager({ mockCards, mockOnlineStatus }: MockS
         if (isNew) {
             newCards = [...cards, { ...formData, id: Date.now() }];
         } else {
-            newCards = cards.map(c => c.id === formData.id ? formData : c);
+            newCards = cards.map((c: StaffCard) => c.id === formData.id ? formData : c);
         }
-        handleSave(newCards);
+        handleSaveList(newCards);
         setEditingCard(null);
         setIsNew(false);
     };
@@ -236,17 +153,10 @@ export default function StaffCardsManager({ mockCards, mockOnlineStatus }: MockS
         const [reorderedItem] = items.splice(result.source.index, 1);
         items.splice(result.destination.index, 0, reorderedItem);
         
-        setCards(items);
-        handleSave(items);
+        handleSaveList(items);
     };
 
-    if (loading) {
-        return (
-            <div style={{ padding: '6rem 0' }}>
-                <Loader />
-            </div>
-        );
-    }
+    if (loading) return <div style={{ padding: '6rem 0' }}><Loader /></div>;
 
     return (
         <div className="staff-manager-container">
@@ -259,16 +169,8 @@ export default function StaffCardsManager({ mockCards, mockOnlineStatus }: MockS
 
             <div className="staff-manager-header">
                 <h3>
-                    <FaUsers style={{ color: '#fbbf24' }} /> {t('admin.staff.manager_title')}
+                    <Users style={{ color: '#fbbf24' }} /> {t('admin.staff.manager_title')}
                 </h3>
-                {(!editingCard && !isNew) && (
-                    <div className="staff-header-actions">
-                        {/* Sync Button Logic handled by StaffList buttons if empty, or here if not empty? 
-                            The original design had header actions. I will keep them here for consistency 
-                            if the list is not empty.
-                        */}
-                    </div>
-                )}
             </div>
 
             {(editingCard || isNew) && (
@@ -277,14 +179,14 @@ export default function StaffCardsManager({ mockCards, mockOnlineStatus }: MockS
                     isNew={isNew}
                     onClose={() => { setEditingCard(null); setIsNew(false); }}
                     onSave={handleFormSave}
-                    saving={saving}
+                    saving={updateSettingMutation.isPending}
                 />
             )}
 
             {!editingCard && !isNew && (
                 <StaffList 
                     cards={cards} 
-                    onlineStatus={onlineStaff}
+                    onlineStatus={mockOnlineStatus || onlineStaff}
                     onDragEnd={handleDragEnd}
                     onEdit={handleEdit}
                     onDelete={handleDelete}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FaDonate, FaTimes, FaUser, FaEnvelope, FaClock, FaCheckCircle, FaSpinner } from "react-icons/fa";
+import { CircleDollarSign, X, User, Mail, Clock, CheckCircle, Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Donation } from "./types";
 
@@ -8,9 +8,10 @@ interface DonationFormModalProps {
     onClose: () => void;
     onSave: (donation: Donation) => Promise<void>;
     initialData: Donation | null;
+    saving?: boolean;
 }
 
-export default function DonationFormModal({ isOpen, onClose, onSave, initialData }: DonationFormModalProps) {
+export default function DonationFormModal({ isOpen, onClose, onSave, initialData, saving }: DonationFormModalProps) {
     const { t } = useTranslation();
     const [formData, setFormData] = useState<Donation>({
         id: 0,
@@ -64,11 +65,11 @@ export default function DonationFormModal({ isOpen, onClose, onSave, initialData
                 
                 <div className="poll-form-header">
                     <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '12px', color: '#fff', fontSize: '1.5rem', fontWeight: '900' }}>
-                        <FaDonate style={{ color: 'var(--accent)' }} />
+                        <CircleDollarSign style={{ color: 'var(--accent)' }} />
                         {formData.id ? t('admin.donations.edit_title') : t('admin.donations.new_btn')}
                     </h3>
                     <button onClick={onClose} className="btn-close-mini">
-                        <FaTimes />
+                        <X />
                     </button>
                 </div>
                 
@@ -77,7 +78,7 @@ export default function DonationFormModal({ isOpen, onClose, onSave, initialData
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                             <div className="form-group">
                                 <label className="admin-label-premium">
-                                    <FaUser size={12} /> {t('admin.donations.form.donor_name')}
+                                    <User size={12} /> {t('admin.donations.form.donor_name')}
                                 </label>
                                 <input 
                                     className="admin-input-premium" 
@@ -89,7 +90,7 @@ export default function DonationFormModal({ isOpen, onClose, onSave, initialData
 
                             <div className="form-group">
                                 <label className="admin-label-premium">
-                                    <FaEnvelope size={12} /> {t('admin.donations.form.email_label')}
+                                    <Mail size={12} /> {t('admin.donations.form.email_label')}
                                 </label>
                                 <input 
                                     className="admin-input-premium" 
@@ -144,7 +145,7 @@ export default function DonationFormModal({ isOpen, onClose, onSave, initialData
                                     onClick={() => setFormData({...formData, is_public: !formData.is_public})}
                                 >
                                     <div className="checkbox-visual">
-                                        {formData.is_public && <FaCheckCircle />}
+                                        {formData.is_public && <CheckCircle />}
                                     </div>
                                     <label className="checkbox-label-text">
                                         {t('admin.donations.form.is_public')}
@@ -154,7 +155,7 @@ export default function DonationFormModal({ isOpen, onClose, onSave, initialData
 
                             <div className="form-group">
                                 <label className="admin-label-premium">
-                                    <FaClock size={12} /> {t('admin.tickets.table.date')}
+                                    <Clock size={12} /> {t('admin.tickets.table.date')}
                                 </label>
                                 <input 
                                     type="datetime-local"
@@ -168,8 +169,8 @@ export default function DonationFormModal({ isOpen, onClose, onSave, initialData
 
                     <div className="poll-form-footer">
                         <button type="button" className="modal-btn-secondary" onClick={onClose}>{t('admin.donations.form.cancel')}</button>
-                        <button type="submit" className="modal-btn-primary" disabled={isSubmitting}>
-                            {isSubmitting ? <FaSpinner className="spin" /> : <><FaCheckCircle /> {t('admin.donations.form.save')}</>}
+                        <button type="submit" className="modal-btn-primary" disabled={saving || isSubmitting}>
+                            {(saving || isSubmitting) ? <Loader2 className="spin" /> : <><CheckCircle /> {t('admin.donations.form.save')}</>}
                         </button>
                     </div>
                 </form>

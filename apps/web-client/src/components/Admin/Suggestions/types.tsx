@@ -1,4 +1,4 @@
-import { FaBug, FaCube, FaExclamationTriangle, FaPoll, FaLightbulb, FaQuestionCircle } from 'react-icons/fa';
+import { Bug, Box, AlertTriangle, BarChart3, Lightbulb, HelpCircle } from 'lucide-react';
 
 export interface Suggestion {
     id: number;
@@ -12,12 +12,12 @@ export interface Suggestion {
 
 export const getTypeIcon = (type: string) => {
     const t = type.toLowerCase();
-    if (t.includes('bug')) return <FaBug />;
-    if (t.includes('mod')) return <FaCube />;
-    if (t.includes('complaint') || t.includes('queja')) return <FaExclamationTriangle />;
-    if (t.includes('poll') || t.includes('encuesta')) return <FaPoll />;
-    if (t.includes('general')) return <FaLightbulb />;
-    return <FaQuestionCircle />;
+    if (t.includes('bug')) return <Bug size={14} />;
+    if (t.includes('mod')) return <Box size={14} />;
+    if (t.includes('complaint') || t.includes('queja')) return <AlertTriangle size={14} />;
+    if (t.includes('poll') || t.includes('encuesta')) return <BarChart3 size={14} />;
+    if (t.includes('general')) return <Lightbulb size={14} />;
+    return <HelpCircle size={14} />;
 }
 
 export const getTypeColor = (type: string) => {

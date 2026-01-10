@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { FaImage, FaPlus, FaTrash, FaEdit, FaCheck, FaLink, FaSpinner, FaCloudUploadAlt } from 'react-icons/fa';
+import { Image, Plus, Trash2, Edit2, Check, Link, Loader2, Upload } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../../../services/supabaseClient';
 
@@ -82,7 +82,7 @@ export default function HeroBannerManager({ settings, onUpdate, saving }: HeroBa
             setUploading(true);
             
             // Generate filename based on timestamp
-            const fileExt = 'webp'; // Force webp extension since we might want to convert locally or just assume upload
+            const fileExt = file.name.split('.').pop() || 'png';
             const fileName = `hero-banners/${Date.now()}.${fileExt}`;
 
             // Helper to convert to WebP (Simplified version without canvas for now if accept="image/*" or direct upload)
@@ -177,7 +177,7 @@ export default function HeroBannerManager({ settings, onUpdate, saving }: HeroBa
                                 disabled={uploading}
                                 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', whiteSpace: 'nowrap' }}
                             >
-                                {uploading ? <FaSpinner className="spin" /> : <FaCloudUploadAlt />} Subir
+                                {uploading ? <Loader2 className="spin" /> : <Upload />} Subir
                             </button>
                         </div>
                         {formData.image && <img src={formData.image} alt="Preview" style={{ width: '100%', height: '150px', objectFit: 'cover', marginTop: '0.5rem', borderRadius: '4px', opacity: 0.7 }} />}
@@ -203,7 +203,7 @@ export default function HeroBannerManager({ settings, onUpdate, saving }: HeroBa
 
                     <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem', flexWrap: 'wrap' }}>
                         <button className="btn-primary" onClick={handleFormSave} disabled={saving === 'hero_slides'}>
-                           <FaCheck /> {saving === 'hero_slides' ? t('admin.settings.saving') : t('admin.settings.hero.save_btn')}
+                           <Check /> {saving === 'hero_slides' ? t('admin.settings.saving') : t('admin.settings.hero.save_btn')}
                         </button>
                         <button className="btn-secondary" onClick={() => setIsEditing(false)} style={{ background: 'transparent', border: '1px solid #444' }}>
                            {t('admin.settings.hero.cancel_btn')}
@@ -218,10 +218,10 @@ export default function HeroBannerManager({ settings, onUpdate, saving }: HeroBa
         <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
                 <h3 style={{ margin: 0, display:'flex', alignItems:'center', gap:'0.5rem' }}>
-                    <FaImage /> {t('admin.settings.hero.title')}
+                    <Image /> {t('admin.settings.hero.title')}
                 </h3>
                 <button onClick={handleCreate} className="btn-primary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.9rem' }}>
-                    <FaPlus /> {t('admin.settings.hero.new_slide')}
+                    <Plus /> {t('admin.settings.hero.new_slide')}
                 </button>
             </div>
 
@@ -246,7 +246,7 @@ export default function HeroBannerManager({ settings, onUpdate, saving }: HeroBa
                             <p style={{ margin: 0, fontSize: '0.8rem', color: '#888' }}>{slide.text}</p>
                             {slide.buttonText && (
                                 <span style={{ fontSize: '0.75rem', marginTop: '0.5rem', color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                    <FaLink size={10} /> {slide.buttonText} ({slide.link})
+                                    <Link size={10} /> {slide.buttonText} ({slide.link})
                                 </span>
                             )}
                         </div>
@@ -254,10 +254,10 @@ export default function HeroBannerManager({ settings, onUpdate, saving }: HeroBa
                         {/* Actions */}
                         <div style={{ display: 'flex', flexDirection: 'column', borderLeft: '1px solid #333' }}>
                             <button onClick={() => handleEdit(i)} style={{ flex: 1, padding: '0 1rem', background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer', borderBottom: '1px solid #333' }}>
-                                <FaEdit />
+                                <Edit2 />
                             </button>
                             <button onClick={() => handleDelete(i)} style={{ flex: 1, padding: '0 1rem', background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer' }}>
-                                <FaTrash />
+                                <Trash2 />
                             </button>
                         </div>
                     </div>

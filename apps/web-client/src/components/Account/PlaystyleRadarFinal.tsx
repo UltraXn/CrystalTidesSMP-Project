@@ -52,22 +52,34 @@ const PlaystyleRadarFinal: React.FC<PlaystyleRadarProps> = ({ stats }) => {
     ];
 
     return (
-        <div style={{ width: '100%', height: '300px', position: 'relative' }}>
+        <div className="w-full h-[300px] relative">
              <ResponsiveContainer width="100%" height={300}>
                 <RadarChart cx="50%" cy="50%" outerRadius="80%" data={scores}>
-                    <PolarGrid stroke="rgba(255,255,255,0.1)" />
-                    <PolarAngleAxis dataKey="subject" tick={{ fill: '#ccc', fontSize: 12 }} />
+                    <PolarGrid stroke="rgba(255,255,255,0.05)" />
+                    <PolarAngleAxis 
+                        dataKey="subject" 
+                        tick={{ fill: '#666', fontSize: 10, fontWeight: 900, letterSpacing: '1px' }} 
+                    />
                     <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
                     <Radar
                         name="Playstyle"
                         dataKey="A"
                         stroke="var(--accent)"
                         fill="var(--accent)"
-                        fillOpacity={0.4}
+                        fillOpacity={0.2}
+                        animationBegin={500}
+                        animationDuration={1500}
                     />
                     <Tooltip 
-                        contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #333', borderRadius: '8px' }}
-                        itemStyle={{ color: '#fff' }}
+                        contentStyle={{ 
+                            backgroundColor: '#0a0a0a', 
+                            border: '1px solid rgba(255,255,255,0.1)', 
+                            borderRadius: '16px',
+                            padding: '12px',
+                            boxShadow: '0 10px 30px rgba(0,0,0,0.5)'
+                        }}
+                        itemStyle={{ color: '#fff', fontSize: '11px', fontWeight: '900', textTransform: 'uppercase' }}
+                        cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 1 }}
                     />
                 </RadarChart>
             </ResponsiveContainer>

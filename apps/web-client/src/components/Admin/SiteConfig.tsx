@@ -1,19 +1,20 @@
-import { useState, useEffect } from 'react'
-import { FaWater, FaGhost, FaTree, FaCheck, FaUsers, FaSave, FaChevronDown, FaCogs, FaBullhorn, FaImage, FaGavel, FaShieldAlt } from 'react-icons/fa'
+import { useState } from 'react'
+import { Waves, Ghost, TreePine, Check, Users, Save, ChevronDown, Settings, Megaphone, Image, Gavel, Shield } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import ConfirmationModal from '../UI/ConfirmationModal'
 import { useTranslation } from 'react-i18next'
 import Loader from "../UI/Loader"
-import { supabase } from '../../services/supabaseClient'
-import { getAuthHeaders } from '../../services/adminAuth'
+
+import { 
+    useSiteSettings, 
+    useUpdateSiteSetting 
+} from "../../hooks/useAdminData"
+
 import BroadcastManager from './Config/BroadcastManager'
 import HeroBannerManager from './Config/HeroBannerManager'
 import RulesEditor from './Config/RulesEditor'
-
 import DonorsManager from './DonorsManager'
 import PoliciesManager from './Config/PoliciesManager'
-
-const API_URL = import.meta.env.VITE_API_URL
 
 // Define the settings interface to cover all known keys
 interface Rule {
@@ -44,76 +45,58 @@ interface User {
 export default function SiteConfig() {
     const { t } = useTranslation()
     const { user } = useAuth() as { user: User | null }
-    const [settings, setSettings] = useState<SiteSettings>({
+    
+    // TanStack Query Hooks
+    const { data: fetchedSettings, isLoading: loading } = useSiteSettings();
+    const updateSettingMutation = useUpdateSiteSetting();
+
+    const [showMaintenanceModal, setShowMaintenanceModal] = useState(false)
+    const [maintenanceTarget, setMaintenanceTarget] = useState(false)
+    const [localSettings, setLocalSettings] = useState<Partial<SiteSettings>>({})
+
+    const settings: SiteSettings = {
         theme: 'default',
         maintenance_mode: 'false',
         broadcast_config: '',
         hero_slides: '',
         recruitment_status: 'false',
-        recruitment_link: ''
-    })
-    const [loading, setLoading] = useState(true)
-    const [saving, setSaving] = useState<string | null>(null)
-    const [showMaintenanceModal, setShowMaintenanceModal] = useState(false)
-    const [maintenanceTarget, setMaintenanceTarget] = useState(false)
-
-    // Fetch initial settings
-    useEffect(() => {
-        fetch(`${API_URL}/settings`)
-            .then(res => res.json())
-            .then(data => {
-                setSettings(data)
-                setLoading(false)
-            })
-            .catch(err => {
-                console.error("Error loading settings:", err)
-                setLoading(false)
-            })
-    }, [])
+        recruitment_link: '',
+        ...(fetchedSettings || {}),
+        ...localSettings
+    };
 
     const handleUpdate = async (key: string, value: string | boolean) => {
-        setSaving(key)
-        try {
-            const username = user?.user_metadata?.full_name || user?.email || 'Admin';
-            
-            const { data: { session } } = await supabase.auth.getSession();
-            const headers = { 
-                'Content-Type': 'application/json',
-                ...getAuthHeaders(session?.access_token || null)
-            };
+        const username = user?.user_metadata?.full_name || user?.email || 'Admin';
+        
+        updateSettingMutation.mutate({ 
+            key, 
+            value, 
+            username, 
+            userId: user?.id 
+        }, {
+            onSuccess: () => {
+                // Clear local override on success
+                setLocalSettings(prev => {
+                    const next = { ...prev };
+                    delete next[key];
+                    return next;
+                });
 
-            const res = await fetch(`${API_URL}/settings/${key}`, {
-                method: 'PUT',
-                headers,
-                body: JSON.stringify({ 
-                    value: String(value),
-                    username, 
-                    userId: user?.id 
-                })
-            })
-
-            if(res.ok) {
-                const newValue = String(value)
-                setSettings(prev => ({ ...prev, [key]: newValue }))
-                
                 // Dispatch event for App.jsx to react immediately
                 if(key === 'theme') {
-                    window.dispatchEvent(new CustomEvent('themeChanged', { detail: newValue }));
+                    window.dispatchEvent(new CustomEvent('themeChanged', { detail: String(value) }));
                 }
                 if(key === 'broadcast_config') {
-                    window.dispatchEvent(new CustomEvent('broadcastChanged', { detail: newValue }));
+                    window.dispatchEvent(new CustomEvent('broadcastChanged', { detail: String(value) }));
                 }
                 if(key === 'maintenance_mode') {
-                    window.dispatchEvent(new CustomEvent('maintenanceChanged', { detail: newValue }));
+                    window.dispatchEvent(new CustomEvent('maintenanceChanged', { detail: String(value) }));
                 }
-            } else {
+            },
+            onError: () => {
                 alert(t('admin.settings.error_save'))
             }
-        } catch(err) {
-            console.error(err)
-        } finally {
-            setSaving(null)
-        }
+        });
     }
 
     if (loading) return (
@@ -126,7 +109,7 @@ export default function SiteConfig() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', paddingBottom: '3rem' }}>
             
             {/* 1. SECCIÓN GENERAL (Tema, Mantenimiento, Reclutamiento) */}
-            <ConfigSection title={t('admin.settings.sections.general')} icon={<FaCogs />} defaultOpen={true}>
+            <ConfigSection title={t('admin.settings.sections.general')} icon={<Settings />} defaultOpen={true}>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem' }}>
                     {/* TEMA + MANTENIMIENTO */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -142,7 +125,7 @@ export default function SiteConfig() {
                                 <div style={{ flex: '1 1 200px' }}>
                                     <h3 style={{ marginBottom: '0.4rem', display:'flex', alignItems:'center', gap:'0.75rem', fontSize: '1.1rem', fontWeight: '800' }}>
                                         <div style={{ padding: '6px', background: 'rgba(0, 188, 212, 0.1)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                            <FaWater style={{ color: '#00bcd4' }} /> 
+                                            <Waves style={{ color: '#00bcd4' }} /> 
                                         </div>
                                         {t('admin.settings.theme.title')}
                                     </h3>
@@ -156,26 +139,26 @@ export default function SiteConfig() {
                                 <ThemeCard 
                                     active={settings.theme === 'default'} 
                                     onClick={() => handleUpdate('theme', 'default')}
-                                    icon={<FaWater size={24} color="#00bcd4" />}
+                                    icon={<Waves size={24} color="#00bcd4" />}
                                     title={t('admin.settings.theme.default')}
                                     color="#00bcd4"
-                                    loading={saving === 'theme'}
+                                    loading={updateSettingMutation.isPending && updateSettingMutation.variables?.key === 'theme'}
                                 />
                                 <ThemeCard 
                                     active={settings.theme === 'halloween'} 
                                     onClick={() => handleUpdate('theme', 'halloween')}
-                                    icon={<FaGhost size={24} color="#ff7518" />}
+                                    icon={<Ghost size={24} color="#ff7518" />}
                                     title={t('admin.settings.theme.halloween')}
                                     color="#ff7518"
-                                    loading={saving === 'theme'}
+                                    loading={updateSettingMutation.isPending && updateSettingMutation.variables?.key === 'theme'}
                                 />
                                 <ThemeCard 
                                     active={settings.theme === 'christmas'} 
                                     onClick={() => handleUpdate('theme', 'christmas')}
-                                    icon={<FaTree size={24} color="#ef4444" />}
+                                    icon={<TreePine size={24} color="#ef4444" />}
                                     title={t('admin.settings.theme.christmas')}
                                     color="#ef4444"
-                                    loading={saving === 'theme'}
+                                    loading={updateSettingMutation.isPending && updateSettingMutation.variables?.key === 'theme'}
                                 />
                             </div>
                         </div>
@@ -197,7 +180,7 @@ export default function SiteConfig() {
                              <div style={{ flex: '1' }}>
                                 <h3 style={{ marginBottom: '0.4rem', display:'flex', alignItems:'center', gap:'0.75rem', fontSize: '1rem', fontWeight: '800' }}>
                                     <div style={{ padding: '6px', background: settings.maintenance_mode === 'true' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(255,255,255,0.05)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                        <FaCogs style={{ color: settings.maintenance_mode === 'true' ? '#ef4444' : '#fff' }} /> 
+                                        <Settings style={{ color: settings.maintenance_mode === 'true' ? '#ef4444' : '#fff' }} /> 
                                     </div>
                                     {t('admin.settings.maintenance_label')}
                                 </h3>
@@ -237,7 +220,7 @@ export default function SiteConfig() {
                     }}>
                         <h3 style={{ marginBottom: '1.5rem', display:'flex', alignItems:'center', gap:'0.75rem', fontSize: '1.1rem', fontWeight: '800' }}>
                             <div style={{ padding: '6px', background: 'rgba(76, 175, 80, 0.1)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <FaUsers style={{ color: '#4CAF50' }} /> 
+                                <Users style={{ color: '#4CAF50' }} /> 
                             </div>
                             {t('admin.settings.recruitment.title')}
                         </h3>
@@ -266,17 +249,17 @@ export default function SiteConfig() {
                                     <input 
                                         className="admin-input-premium" 
                                         value={settings.recruitment_link || ''} 
-                                        onChange={(e) => setSettings({...settings, recruitment_link: e.target.value})}
+                                        onChange={(e) => setLocalSettings(prev => ({...prev, recruitment_link: e.target.value}))}
                                         placeholder={t('admin.settings.recruitment.link_ph')} 
                                         style={{ height: '48px', padding: '0 1rem', borderRadius: '12px' }}
                                     />
                                     <button 
                                         className="modal-btn-primary hover-lift" 
-                                        disabled={saving === 'recruitment_link'}
+                                        disabled={updateSettingMutation.isPending && updateSettingMutation.variables?.key === 'recruitment_link'}
                                         onClick={() => handleUpdate('recruitment_link', settings.recruitment_link || '')}
                                         style={{ width: '48px', padding: 0, height: '48px', borderRadius: '12px', minWidth: '48px', justifyContent: 'center' }}
                                     >
-                                        <FaSave />
+                                        <Save size={16} />
                                     </button>
                                 </div>
                             </div>
@@ -286,40 +269,38 @@ export default function SiteConfig() {
             </ConfigSection>
 
             {/* 2. BROADCAST (Alertas) */}
-            <ConfigSection title={t('admin.settings.sections.broadcast')} icon={<FaBullhorn />}>
+            <ConfigSection title={t('admin.settings.sections.broadcast')} icon={<Megaphone />}>
                 <BroadcastManager 
                     settings={settings} 
                     onUpdate={handleUpdate} 
-                    saving={saving}
+                    saving={updateSettingMutation.isPending ? updateSettingMutation.variables?.key : null}
                 />
             </ConfigSection>
 
             {/* 3. HERO BANNER */}
-            <ConfigSection title={t('admin.settings.sections.hero')} icon={<FaImage />}>
+            <ConfigSection title={t('admin.settings.sections.hero')} icon={<Image />}>
                 <HeroBannerManager 
                     settings={settings} 
                     onUpdate={handleUpdate} 
-                    saving={saving}
+                    saving={updateSettingMutation.isPending ? updateSettingMutation.variables?.key : null}
                 />
             </ConfigSection>
 
             {/* 4. REGLAS */}
-            <ConfigSection title={t('admin.settings.sections.rules')} icon={<FaGavel />}>
+            <ConfigSection title={t('admin.settings.sections.rules')} icon={<Gavel />}>
                 <RulesEditor />
             </ConfigSection>
 
             {/* 5. DONADORES */}
-            <ConfigSection title={t('admin.settings.sections.donors')} icon={<FaUsers />}>
+            <ConfigSection title={t('admin.settings.sections.donors')} icon={<Users />}>
                 <DonorsManager />
             </ConfigSection>
 
 
             {/* 8. POLÍTICAS LEGALES */}
-            <ConfigSection title={t('admin.settings.sections.policies', 'Políticas del Sitio')} icon={<FaShieldAlt />}>
+            <ConfigSection title={t('admin.settings.sections.policies', 'Políticas del Sitio')} icon={<Shield />}>
                 <PoliciesManager />
             </ConfigSection>
-
-
 
             <ConfirmationModal 
                 isOpen={showMaintenanceModal}
@@ -400,7 +381,7 @@ function ConfigSection({ title, icon, children, defaultOpen = false }: ConfigSec
                     transition: 'all 0.3s',
                     transform: isOpen ? 'rotate(180deg)' : 'rotate(0)'
                 }}>
-                    <FaChevronDown size={14} />
+                    <ChevronDown size={14} />
                 </div>
             </button>
             
@@ -452,7 +433,7 @@ function ThemeCard({ active, onClick, icon, title, color, loading }: ThemeCardPr
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: '0.8rem'
                 }}>
-                    <FaCheck />
+                    <Check />
                 </div>
             )}
             <div style={{ 

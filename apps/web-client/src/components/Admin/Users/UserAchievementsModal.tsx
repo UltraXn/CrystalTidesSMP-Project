@@ -1,4 +1,4 @@
-import { FaTimes, FaTrophy, FaCheck } from 'react-icons/fa';
+import { X, Trophy, Check } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { UserDefinition, AchievementDefinition } from './types';
 
@@ -23,7 +23,7 @@ export default function UserAchievementsModal({ user, availableAchievements, onC
                         <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '800' }}>{t('admin.users.achievements_of', 'Logros de')} <span style={{color: 'var(--accent)'}}>{user.username || user.email.split('@')[0]}</span></h3>
                         <p style={{ margin: '0.25rem 0 0', color: 'rgba(255,255,255,0.4)', fontSize: '0.85rem' }}>{t('admin.users.assign_achievements', 'Asigna logros especiales manuales')}</p>
                     </div>
-                    <button onClick={onClose} className="btn-close-premium"><FaTimes /></button>
+                    <button onClick={onClose} className="btn-close-premium"><X /></button>
                 </div>
 
                 <div className="modal-body-premium">
@@ -68,7 +68,7 @@ export default function UserAchievementsModal({ user, availableAchievements, onC
                                                 }} 
                                             />
                                         ) : (
-                                            <div style={{ fontSize: '2rem' }}>{achievement.icon || <FaTrophy />}</div>
+                                            <div style={{ fontSize: '2rem' }}>{achievement.icon || <Trophy />}</div>
                                         )}
                                     </div>
                                     <div style={{ fontSize: '0.8rem', fontWeight: '800', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: '4px' }}>{achievement.name}</div>
@@ -82,7 +82,7 @@ export default function UserAchievementsModal({ user, availableAchievements, onC
                                             display: 'flex', alignItems: 'center', justifyContent: 'center', 
                                             fontSize: '10px' 
                                         }}>
-                                            <FaCheck />
+                                            <Check size={10} />
                                         </div>
                                     )}
                                 </div>

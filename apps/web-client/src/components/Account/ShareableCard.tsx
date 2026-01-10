@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import html2canvas from 'html2canvas';
 import { useTranslation } from 'react-i18next';
-import { FaDownload, FaTimes } from 'react-icons/fa';
+import { Download, X } from 'lucide-react';
 
 
 interface ShareableCardProps {
@@ -53,7 +53,7 @@ const ShareableCard: React.FC<ShareableCardProps> = ({ achievement, username, on
                     onClick={onClose}
                     style={{ position: 'absolute', top: -40, right: 0, background: 'none', border: 'none', color: '#fff', fontSize: '1.5rem', cursor: 'pointer' }}
                 >
-                    <FaTimes />
+                    <X />
                 </button>
 
                 {/* The Exportable Area */}
@@ -122,7 +122,7 @@ const ShareableCard: React.FC<ShareableCardProps> = ({ achievement, username, on
                         className="btn-primary"
                         style={{ padding: '1rem 2rem', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.8rem' }}
                     >
-                        {generating ? t('common.generating', 'Generando...') : <><FaDownload /> {t('account.download_image', 'Descargar Imagen')}</>}
+                        {generating ? t('common.generating', 'Generando...') : <><Download /> {t('account.download_image', 'Descargar Imagen')}</>}
                     </button>
                 </div>
             </div>

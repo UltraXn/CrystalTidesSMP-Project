@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import './AmbientBubbles.css';
 
 const AmbientBubbles = () => {
@@ -13,7 +14,10 @@ const AmbientBubbles = () => {
         }));
     });
 
-    return (
+
+
+
+    return createPortal(
         <div className="ambient-bubbles-container">
             {bubbles.map((bubble) => (
                 <div
@@ -22,13 +26,14 @@ const AmbientBubbles = () => {
                     style={{
                         width: `${bubble.size}px`,
                         height: `${bubble.size}px`,
-                        left: `${bubble.left}%`,
+                        left: `${bubble.left}vw`,
                         animationDuration: `${bubble.animationDuration}s`,
                         animationDelay: `${bubble.animationDelay}s`,
                     }}
                 />
             ))}
-        </div>
+        </div>,
+        document.body
     );
 };
 

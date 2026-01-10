@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
-import { FaArrowRight, FaArrowLeft, FaTimes, FaKeyboard, FaUser, FaBell, FaCheck, FaUserPlus } from 'react-icons/fa';
+import { ArrowRight, ArrowLeft, X, Keyboard, User, Bell, Check, UserPlus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -54,25 +54,25 @@ export default function Tutorial() {
         {
             title: t('tutorial.step2_title'),
             content: t('tutorial.step2_content'),
-            icon: <FaKeyboard size={50} color="var(--accent)" />,
+            icon: <Keyboard size={50} color="var(--accent)" />,
             action: t('tutorial.step2_action')
         },
         {
             title: t('tutorial.step3_title'),
             content: t('tutorial.step3_content'),
-            icon: <FaUser size={50} color="#3b82f6" />,
+            icon: <User size={50} color="#3b82f6" />,
             action: t('tutorial.step3_action')
         },
         {
             title: t('tutorial.step4_title'),
             content: t('tutorial.step4_content'),
-            icon: <FaBell size={50} color="#facc15" />,
+            icon: <Bell size={50} color="#facc15" />,
             action: t('tutorial.step4_action')
         },
         {
             title: t('tutorial.step5_title'),
             content: t('tutorial.step5_content'),
-            icon: <FaCheck size={50} color="#4ade80" />,
+            icon: <Check size={50} color="#4ade80" />,
             action: t('tutorial.step5_action')
         }
     ];
@@ -164,7 +164,7 @@ export default function Tutorial() {
                                 fontSize: '1.2rem'
                             }}
                         >
-                            <FaTimes />
+                            <X />
                         </button>
 
                         {/* Progress Dots */}
@@ -229,7 +229,7 @@ export default function Tutorial() {
                                             letterSpacing: '0.5px'
                                         }}
                                     >
-                                        <FaArrowLeft size={10} /> {t('tutorial.back')}
+                                        <ArrowLeft size={10} /> {t('tutorial.back')}
                                     </button>
                                 )}
                                 
@@ -257,7 +257,7 @@ export default function Tutorial() {
                                         boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
                                     }}
                                 >
-                                    {STEPS[step].action} <FaArrowRight size={12} />
+                                    {STEPS[step].action} <ArrowRight size={12} />
                                 </button>
                             </div>
 
@@ -282,7 +282,7 @@ export default function Tutorial() {
                                         marginTop: '0.5rem'
                                     }}
                                 >
-                                    <FaUserPlus /> {t('navbar.register') || "Registrarse"}
+                                    <UserPlus /> {t('navbar.register') || "Registrarse"}
                                 </button>
                              )}
                         </div>

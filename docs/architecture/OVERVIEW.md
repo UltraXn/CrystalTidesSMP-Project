@@ -47,15 +47,15 @@ Para acciones administrativas inmediatas (Baneos, Kicks, Reinicios), la API se c
 
 ## 📖 Documentación de Funcionalidades
 
-- [🦋 CrystalLauncher (Cliente Híbrido)](./LAUNCHER.md)
-- [🧠 Game Bridge (Agente In-Game)](./GAME_BRIDGE.md)
-- [🛡️ Staff Hub (Gestión Interna)](./STAFF_HUB.md)
+- [🦋 CrystalLauncher (Cliente Híbrido)](../components/LAUNCHER.md)
+- [🧠 Game Bridge (Agente In-Game)](../components/GAME_AGENT.md)
+- [🛡️ Staff Hub (Gestión Interna)](../features/STAFF_HUB.md)
 - [🌉 CrystalBridge (Integración Server)](./CRYSTAL_BRIDGE.md)
-- [🎰 Sistema Gacha (KilluCoin)](./GACHA_SYSTEM.md)
-- [🏛️ Foro y Comunidad](./FORUM_SYSTEM.md)
-- [👤 Perfiles y Estadísticas](./USER_PROFILES.md)
-- [🎨 Arquitectura Frontend (Forms V2)](./FRONTEND_ARCHITECTURE.md)
-- [🛡️ Calidad de Código y Estándares](./CODE_QUALITY.md)
+- [🎰 Sistema Gacha (KilluCoin)](../features/GACHA_SYSTEM.md)
+- [🏛️ Foro y Comunidad](../features/FORUM_SYSTEM.md)
+- [👤 Perfiles y Estadísticas](../features/USER_PROFILES.md)
+- [🎨 Arquitectura Frontend](../components/WEB_CLIENT.md)
+- [🛡️ Calidad de Código y Estándares](../operations/CODE_QUALITY.md)
 
 ---
 

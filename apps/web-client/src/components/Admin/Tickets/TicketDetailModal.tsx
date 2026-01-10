@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react"
 import { createPortal } from "react-dom"
-import { FaTimes, FaSpinner, FaPaperPlane, FaLock } from "react-icons/fa"
+import { X, Loader2, Send, Lock } from "lucide-react"
 import { useTranslation } from 'react-i18next'
 import { supabase } from "../../../services/supabaseClient"
 import { getAuthHeaders } from "../../../services/adminAuth"
@@ -199,7 +199,7 @@ export default function TicketDetailModal({ ticket, onClose, refreshTickets, moc
                             </div>
                         </div>
                         <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: '#aaa', cursor: 'pointer', padding: '0.5rem' }}>
-                            <FaTimes size={22} />
+                            <X size={22} />
                         </button>
                     </div>
 
@@ -242,12 +242,12 @@ export default function TicketDetailModal({ ticket, onClose, refreshTickets, moc
                                     style={{flex: 1, marginBottom: 0}}
                                 />
                                 <button type="submit" className="btn-primary" disabled={sending} style={{padding: '0 1.5rem'}}>
-                                    {sending ? <FaSpinner className="spin"/> : <FaPaperPlane />}
+                                    {sending ? <Loader2 className="animate-spin"/> : <Send />}
                                 </button>
                             </form>
                         ) : (
                             <div style={{padding: '1rem', background: '#2a1a1a', color: '#888', textAlign: 'center', borderRadius: '8px', marginBottom: '1.5rem', border: '1px solid #442222'}}>
-                                <FaLock style={{marginRight: '0.5rem', width: '0.8rem'}}/> {t('admin.tickets.detail.closed_msg', 'Este ticket ha sido cerrado y no se pueden enviar más mensajes.')}
+                                <Lock style={{marginRight: '0.5rem', width: '0.8rem'}}/> {t('admin.tickets.detail.closed_msg', 'Este ticket ha sido cerrado y no se pueden enviar más mensajes.')}
                             </div>
                         )}
 

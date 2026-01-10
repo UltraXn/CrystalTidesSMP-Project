@@ -1,4 +1,4 @@
-import { FaUsers, FaEye, FaTicketAlt } from "react-icons/fa"
+import { Users, Eye, Ticket as TicketIcon } from "lucide-react"
 import { useTranslation } from 'react-i18next'
 import { Ticket } from "./types"
 import { PriorityBadge, StatusBadge } from "./Shared"
@@ -34,7 +34,7 @@ export default function TicketTable({
     if (tickets.length === 0) {
         return (
             <div style={{ padding: '4rem', textAlign: 'center', color: 'rgba(255,255,255,0.3)' }}>
-                <FaTicketAlt size={48} style={{ marginBottom: '1rem', opacity: 0.5 }} />
+                <TicketIcon size={48} style={{ marginBottom: '1rem', opacity: 0.5 }} />
                 <p style={{ fontSize: '1.1rem' }}>{t('admin.tickets.empty', 'No se encontraron tickets')}</p>
             </div>
         )
@@ -90,7 +90,7 @@ export default function TicketTable({
                                         <img src={ticketItem.profiles.avatar_url} alt="" style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', border: '1px solid rgba(255,255,255,0.1)' }} />
                                     ) : (
                                         <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                            <FaUsers size={14} color="#666" />
+                                            <Users size={14} color="#666" />
                                         </div>
                                     )}
                                     <span style={{ fontWeight: '500' }}>{ticketItem.profiles?.username || ticketItem.user_id?.substring(0, 8) || 'Anon'}</span>
@@ -114,7 +114,7 @@ export default function TicketTable({
                                     }}
                                     title={t('admin.tickets.view_details_tooltip', 'Ver detalles')}
                                 >
-                                    <FaEye size={16} />
+                                    <Eye size={16} />
                                 </button>
                             </td>
                         </tr>

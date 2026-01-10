@@ -2,7 +2,7 @@ import { useState, useEffect } from "react"
 import { useParams, Link } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { motion, AnimatePresence } from "framer-motion"
-import { FaBook, FaSearch, FaChevronRight, FaClock, FaTag } from "react-icons/fa"
+import { Book, Search, ChevronRight, Clock, Tag } from "lucide-react"
 import ReactMarkdown from "react-markdown"
 import { getWikiArticles, getWikiArticle, WikiArticle } from "../services/wikiService"
 import Loader from "../components/UI/Loader"
@@ -169,7 +169,7 @@ export default function Wiki() {
             {/* Sidebar */}
             <aside className="wiki-sidebar">
                 <div className="search-box">
-                    <FaSearch className="text-white/30" />
+                    <Search className="text-white/30" size={16} />
                     <input 
                         type="text" 
                         placeholder={t('wiki.search_placeholder', 'Buscar en la guía...')} 
@@ -184,7 +184,7 @@ export default function Wiki() {
                     ) : categories.map(cat => (
                         <div key={cat}>
                             <h4 className="flex items-center gap-2 text-xs uppercase tracking-widest text-white/30 mb-3 px-2">
-                                <FaTag size={10} /> {cat}
+                                <Tag size={10} /> {cat}
                             </h4>
                             <div className="space-y-1">
                                 {filteredArticles.filter(a => a.category === cat).map(article => (
@@ -193,7 +193,7 @@ export default function Wiki() {
                                         to={`/wiki/${article.slug}`}
                                         className={`wiki-nav-item ${slug === article.slug ? 'active' : ''}`}
                                     >
-                                        <FaChevronRight size={10} className={slug === article.slug ? 'text-accent' : 'opacity-0'} />
+                                        <ChevronRight size={14} className={slug === article.slug ? 'text-accent' : 'opacity-0'} />
                                         {article.title}
                                     </Link>
                                 ))}
@@ -225,10 +225,10 @@ export default function Wiki() {
                         >
                             <header className="mb-12 border-b border-white/10 pb-8">
                                 <div className="flex items-center gap-4 text-xs text-white/40 mb-4">
-                                    <span className="flex items-center gap-1"><FaClock size={12} /> {new Date(currentArticle.updated_at).toLocaleDateString()}</span>
-                                    <span className="flex items-center gap-1 capitalize"><FaTag size={12} /> {currentArticle.category}</span>
+                                    <span className="flex items-center gap-1"><Clock size={12} /> {new Date(currentArticle.updated_at).toLocaleDateString()}</span>
+                                    <span className="flex items-center gap-1 capitalize"><Tag size={12} /> {currentArticle.category}</span>
                                 </div>
-                                <h1 className="text-4xl font-black mb-4 bg-gradient-to-r from-white to-white/50 bg-clip-text text-transparent">
+                                <h1 className="text-4xl font-black mb-4 bg-linear-to-r from-white to-white/50 bg-clip-text text-transparent">
                                     {currentArticle.title}
                                 </h1>
                             </header>
@@ -246,7 +246,7 @@ export default function Wiki() {
                             animate={{ opacity: 1 }}
                             className="flex flex-col items-center justify-center h-full text-center py-20"
                         >
-                            <FaBook size={64} className="text-white/5 mb-6" />
+                            <Book size={64} className="text-white/5 mb-6" />
                             <h2 className="text-2xl font-bold mb-2">{t('wiki.welcome_title', 'Biblioteca de CrystalTides')}</h2>
                             <p className="text-white/40 max-w-md">
                                 {t('wiki.welcome_desc', 'Selecciona un artículo de la izquierda para comenzar a explorar los secretos de estas tierras.')}

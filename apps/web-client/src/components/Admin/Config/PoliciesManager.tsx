@@ -1,102 +1,102 @@
-import { useState, useEffect } from 'react'
-import { FaSave, FaExclamationTriangle, FaShieldAlt, FaFileContract, FaSync, FaCheck, FaGlobeAmericas } from 'react-icons/fa'
-import { getPolicies, getPolicy, updatePolicy, translateText, Policy } from '../../../services/policyService'
+import { useState, useEffect, useMemo } from 'react'
+import { Save, AlertTriangle, Shield, FileText, RefreshCw, Check, Globe } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import Loader from '../../UI/Loader'
+import { 
+    usePolicies, 
+    useUpdatePolicy, 
+    useTranslateText, 
+    Policy 
+} from '../../../hooks/useAdminData'
 
 export default function PoliciesManager() {
     const { t } = useTranslation()
-    const [policies, setPolicies] = useState<Policy[]>([])
+    
+    // TanStack Query Hooks
+    const { data: policiesRaw, isLoading: loading } = usePolicies()
+    const updatePolicyMutation = useUpdatePolicy()
+    const translateMutation = useTranslateText()
+
+    const policies = useMemo(() => policiesRaw || [], [policiesRaw])
     const [selectedSlug, setSelectedSlug] = useState<string>('privacy')
-    const [currentPolicy, setCurrentPolicy] = useState<Policy | null>(null)
-    const [loading, setLoading] = useState(true)
-    const [saving, setSaving] = useState(false)
-    const [translating, setTranslating] = useState(false)
+    const [editLang, setEditLang] = useState<'es' | 'en'>('es')
     const [message, setMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null)
 
     // Form state
-    const [editLang, setEditLang] = useState<'es' | 'en'>('es')
     const [title, setTitle] = useState('')
     const [content, setContent] = useState('')
     const [titleEn, setTitleEn] = useState('')
     const [contentEn, setContentEn] = useState('')
 
+    const currentPolicy = useMemo(() => 
+        policies.find((p: Policy) => p.slug === selectedSlug) || null
+    , [policies, selectedSlug])
+
+    // Sync form with selected policy
     useEffect(() => {
-        fetchPolicies()
-    }, [])
-    
-    // ... existing fetch functions ...
+        if (currentPolicy) {
+            // Defer state updates to avoid synchronous setState warning during render
+            Promise.resolve().then(() => {
+                setTitle(currentPolicy.title || '')
+                setContent(currentPolicy.content || '')
+                setTitleEn(currentPolicy.title_en || '')
+                setContentEn(currentPolicy.content_en || '')
+            });
+        }
+    }, [currentPolicy])
 
     const handleAutoTranslate = async () => {
-        if (!title || !content) return;
+        if (!title || !content) return
         try {
-            setTranslating(true);
+            setMessage(null)
             const [tTitle, tContent] = await Promise.all([
-                translateText(title),
-                translateText(content)
-            ]);
-            setTitleEn(tTitle);
-            setContentEn(tContent);
-            setMessage({ text: t('admin.settings.policies.translate_success', 'Traducido con éxito. Revisa el contenido.'), type: 'success' });
+                translateMutation.mutateAsync({ text: title, targetLang: 'en' }),
+                translateMutation.mutateAsync({ text: content, targetLang: 'en' })
+            ])
+            setTitleEn(tTitle)
+            setContentEn(tContent)
+            setMessage({ text: t('admin.settings.policies.translate_success', 'Traducido con éxito. Revisa el contenido.'), type: 'success' })
         } catch (error) {
-            console.error(error);
-            setMessage({ text: t('admin.settings.policies.translate_error', 'Error al traducir.'), type: 'error' });
-        } finally {
-            setTranslating(false);
-        }
-    };
-
-    useEffect(() => {
-        if (selectedSlug) {
-            fetchPolicyDetail(selectedSlug)
-        }
-    }, [selectedSlug])
-
-    const fetchPolicies = async () => {
-        try {
-            setLoading(true)
-            const data = await getPolicies()
-            setPolicies(data)
-        } catch (err) {
-            console.error(err)
-        } finally {
-            setLoading(false)
-        }
-    }
-
-    const fetchPolicyDetail = async (slug: string) => {
-        try {
-            setLoading(true)
-            const data = await getPolicy(slug)
-            setCurrentPolicy(data)
-            setTitle(data.title)
-            setContent(data.content)
-            setTitleEn(data.title_en || '')
-            setContentEn(data.content_en || '')
-        } catch (err) {
-            console.error(err)
-        } finally {
-            setLoading(false)
+            console.error(error)
+            setMessage({ text: t('admin.settings.policies.translate_error', 'Error al traducir.'), type: 'error' })
         }
     }
 
     const handleSave = async () => {
         if (!selectedSlug) return
-        try {
-            setSaving(true)
+        setMessage(null)
+        
+        const payload = {
+            title,
+            content,
+            title_en: titleEn,
+            content_en: contentEn
+        }
+
+        updatePolicyMutation.mutate({ slug: selectedSlug, payload }, {
+            onSuccess: () => {
+                setMessage({ text: t('admin.settings.policies.save_success', 'Política actualizada con éxito'), type: 'success' })
+            },
+            onError: () => {
+                setMessage({ text: t('admin.settings.policies.save_error', 'Error al guardar la política'), type: 'error' })
+            }
+        })
+    }
+
+    const handleReset = () => {
+        if (currentPolicy) {
+            setTitle(currentPolicy.title || '')
+            setContent(currentPolicy.content || '')
+            setTitleEn(currentPolicy.title_en || '')
+            setContentEn(currentPolicy.content_en || '')
             setMessage(null)
-            await updatePolicy(selectedSlug, title, content, titleEn, contentEn)
-            setMessage({ text: t('admin.settings.policies.save_success', 'Política actualizada con éxito'), type: 'success' })
-            fetchPolicies() // Refresh list
-        } catch (err) {
-            console.error(err)
-            setMessage({ text: t('admin.settings.policies.save_error', 'Error al guardar la política'), type: 'error' })
-        } finally {
-            setSaving(false)
         }
     }
 
-    if (loading && policies.length === 0) return <Loader />
+    if (loading && policies.length === 0) return <div style={{ padding: '2rem', textAlign: 'center' }}><Loader /></div>
+
+    const saving = updatePolicyMutation.isPending
+    const translating = translateMutation.isPending
 
     return (
         <div className="policies-manager">
@@ -116,7 +116,7 @@ export default function PoliciesManager() {
                         {t('admin.settings.policies.select_title', 'Documentos Legales')}
                     </h4>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                        {policies.map(p => (
+                        {policies.map((p: Policy) => (
                             <button
                                 key={p.slug}
                                 onClick={() => setSelectedSlug(p.slug)}
@@ -144,7 +144,7 @@ export default function PoliciesManager() {
                                     color: selectedSlug === p.slug ? 'var(--accent)' : 'inherit',
                                     display: 'flex'
                                 }}>
-                                    {p.slug === 'privacy' ? <FaShieldAlt size={18} /> : <FaFileContract size={18} />}
+                                    {p.slug === 'privacy' ? <Shield size={18} /> : <FileText size={18} />}
                                 </div>
                                 <span style={{ letterSpacing: '0.5px' }}>{p.slug.toUpperCase()}</span>
                                 {selectedSlug === p.slug && (
@@ -156,7 +156,7 @@ export default function PoliciesManager() {
                     
                     <div style={{ marginTop: '2rem', padding: '1.2rem', background: 'rgba(245, 158, 11, 0.08)', borderRadius: '16px', border: '1px solid rgba(245, 158, 11, 0.15)', textAlign: 'center' }}>
                         <div style={{ display: 'flex', gap: '10px', color: '#fbbf24', marginBottom: '0.8rem', alignItems: 'center', justifyContent: 'center' }}>
-                            <FaExclamationTriangle />
+                            <AlertTriangle />
                             <strong style={{ fontSize: '0.9rem', letterSpacing: '0.5px' }}>LIVE EDITING</strong>
                         </div>
                         <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.6)', margin: 0, lineHeight: '1.5' }}>
@@ -239,9 +239,9 @@ export default function PoliciesManager() {
                                             className="hover-lift"
                                         >
                                             {translating ? (
-                                                <span className="spinner-border spinner-border-sm" style={{ width: '12px', height: '12px' }}></span>
+                                                <RefreshCw size={16} className="infinite-rotate" />
                                             ) : (
-                                                <FaGlobeAmericas />
+                                                <Globe size={16} />
                                             )}
                                             {t('admin.settings.policies.auto_translate', 'Traducir con IA')}
                                         </button>
@@ -305,14 +305,14 @@ export default function PoliciesManager() {
                                             fontWeight: '600',
                                             animation: 'fadeIn 0.3s'
                                         }}>
-                                            {message.type === 'success' ? <FaCheck /> : <FaExclamationTriangle />} {message.text}
+                                            {message.type === 'success' ? <Check /> : <AlertTriangle />} {message.text}
                                         </div>
                                     )}
                                 </div>
                                 <div style={{ display: 'flex', gap: '1rem', width: '100%', order: 1 }}>
                                     <button 
                                         className="hover-lift" 
-                                        onClick={() => fetchPolicyDetail(selectedSlug)}
+                                        onClick={handleReset}
                                         disabled={loading || saving}
                                         style={{ 
                                             flex: 1,
@@ -326,7 +326,7 @@ export default function PoliciesManager() {
                                             fontWeight: '600'
                                         }}
                                     >
-                                        <FaSync className={loading ? 'infinite-rotate' : ''} /> {t('admin.common.reset', 'Restablecer')}
+                                        <RefreshCw className={loading ? 'infinite-rotate' : ''} size={18} /> {t('admin.common.reset', 'Restablecer')}
                                     </button>
                                     <button 
                                         className="modal-btn-primary hover-lift" 
@@ -341,7 +341,7 @@ export default function PoliciesManager() {
                                         {saving ? (
                                             <><span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" style={{ width: '14px', height: '14px', border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#000', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></span> Guardando...</>
                                         ) : (
-                                            <><FaSave /> {t('admin.common.save', 'Guardar Cambios')}</>
+                                            <><Save size={18} /> {t('admin.common.save', 'Guardar Cambios')}</>
                                         )}
                                     </button>
                                 </div>

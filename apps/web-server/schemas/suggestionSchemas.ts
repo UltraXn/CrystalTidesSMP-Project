@@ -7,3 +7,8 @@ export const createSuggestionSchema = z.object({
         type: z.string().optional()
     }),
 });
+export const updateSuggestionStatusSchema = z.object({
+    body: z.object({
+        status: z.enum(['pending', 'approved', 'rejected', 'implemented'])
+    })
+});

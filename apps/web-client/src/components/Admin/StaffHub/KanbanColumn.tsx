@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import KanbanCard from './KanbanCard';
 import { KanbanTask } from '@crystaltides/shared';
-import { FaChevronDown, FaChevronRight, FaLayerGroup } from 'react-icons/fa';
+import { ChevronDown, ChevronRight, Layers } from 'lucide-react';
 
 interface KanbanColumnData {
     id: string;
@@ -55,7 +55,7 @@ export default function KanbanColumn({ column, cards, onDragStart, onDrop, onDel
                 </div>
                 
                 <div className="toggle-icon-premium">
-                    {isExpanded ? <FaChevronDown size={12} /> : <FaChevronRight size={12} />}
+                    {isExpanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
                 </div>
             </div>
 
@@ -72,7 +72,7 @@ export default function KanbanColumn({ column, cards, onDragStart, onDrop, onDel
                     ))}
                     {cards.length === 0 && (
                         <div className="empty-column-placeholder">
-                            <FaLayerGroup />
+                            <Layers />
                             <span>{t('admin.staff_hub.kanban.empty', 'Vacío')}</span>
                         </div>
                     )}

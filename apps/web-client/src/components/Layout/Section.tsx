@@ -10,7 +10,16 @@ interface SectionProps {
     className?: string;
     id?: string;
     style?: React.CSSProperties;
+    separator?: boolean;
 }
+
+const Separator = () => (
+    <div className="w-full flex items-center justify-center gap-8 py-16 opacity-50 select-none pointer-events-none">
+        <div className="h-px w-32 sm:w-64 bg-linear-to-r from-transparent to-(--accent)"></div>
+        <div className="w-3 h-3 rotate-45 bg-(--accent) shadow-[0_0_15px_var(--accent)] animate-pulse"></div>
+        <div className="h-px w-32 sm:w-64 bg-linear-to-l from-transparent to-(--accent)"></div>
+    </div>
+);
 
 export default function Section({
     title,
@@ -19,7 +28,8 @@ export default function Section({
     direction = 'up',
     className = '',
     id,
-    style = {}
+    style = {},
+    separator = false
 }: SectionProps) {
     const [ref, isVisible] = useIntersectionObserver<HTMLElement>({ triggerOnce: true, threshold: 0.1 });
     const hasAnimated = useRef(false);
@@ -49,16 +59,21 @@ export default function Section({
         }
     }, [isVisible, delay, direction, ref]);
 
+
+
     if (title) {
         return (
             <section
                 ref={ref}
                 id={id}
-                className={`section ${className}`.trim()}
+                className={`w-full max-w-[1200px] mx-auto px-4 py-16 text-center ${className}`.trim()}
                 style={{ opacity: 0, ...style }}
             >
-                <h2>{title}</h2>
-                <div>{children}</div>
+                <h2 className="text-3xl md:text-4xl font-black mb-8 text-(--accent) uppercase tracking-widest drop-shadow-lg">
+                    {title}
+                </h2>
+                <div className="relative mb-8">{children}</div>
+                {separator && <Separator />}
             </section>
         )
     }
@@ -67,10 +82,11 @@ export default function Section({
         <div
             ref={ref as React.RefObject<HTMLDivElement>}
             id={id}
-            className={className}
+            className={`w-full max-w-[1200px] mx-auto ${className}`.trim()}
             style={{ opacity: 0, ...style }}
         >
             {children}
+            {separator && <Separator />}
         </div>
     )
 }

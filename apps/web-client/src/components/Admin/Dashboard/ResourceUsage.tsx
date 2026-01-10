@@ -1,4 +1,4 @@
-import { FaServer, FaMicrochip, FaMemory } from 'react-icons/fa';
+import { Server, Cpu, MemoryStick } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 interface ResourceUsageProps {
@@ -27,7 +27,7 @@ export default function ResourceUsage({ cpu, memory }: ResourceUsageProps) {
             <h3 style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '1.1rem', fontWeight: '800', color: '#fff' }}>
                     <div style={{ padding: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <FaServer style={{ color: 'var(--accent)' }} /> 
+                        <Server style={{ color: 'var(--accent)' }} /> 
                     </div>
                     {t('admin.dashboard.resources.title')}
                 </span>
@@ -38,7 +38,7 @@ export default function ResourceUsage({ cpu, memory }: ResourceUsageProps) {
                 <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
                         <span style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', color: 'rgba(255,255,255,0.6)', fontWeight: '600', fontSize: '0.9rem' }}>
-                            <FaMicrochip /> {t('admin.dashboard.resources.cpu')}
+                            <Cpu /> {t('admin.dashboard.resources.cpu')}
                         </span>
                         <span style={{ fontWeight: '800', color: '#fff', fontSize: '1.1rem' }}>{cpu}%</span>
                     </div>
@@ -50,7 +50,7 @@ export default function ResourceUsage({ cpu, memory }: ResourceUsageProps) {
                 <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
                         <span style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', color: 'rgba(255,255,255,0.6)', fontWeight: '600', fontSize: '0.9rem' }}>
-                            <FaMemory /> {t('admin.dashboard.resources.ram')}
+                            <MemoryStick /> {t('admin.dashboard.resources.ram')}
                         </span>
                         <span style={{ fontWeight: '800', color: '#fff', fontSize: '1.1rem', wordBreak: 'break-all' }}>
                             {memory.current} <span style={{color: '#666', fontSize: '0.9rem'}}>/</span> {memory.limit} <span style={{fontSize: '0.8rem', color: '#888'}}>MB</span>

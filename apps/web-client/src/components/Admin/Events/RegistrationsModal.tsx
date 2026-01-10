@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { FaUsers, FaTimes } from "react-icons/fa";
+import { Users, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import Loader from "../../UI/Loader";
 import { supabase } from "../../../services/supabaseClient";
@@ -43,11 +43,11 @@ export default function RegistrationsModal({ eventId, onClose, API_URL, mockRegi
                 
                 <div className="poll-form-header" style={{ padding: '2rem 2.5rem', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                     <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '12px', fontSize: '1.4rem', fontWeight: '900', color: '#fff' }}>
-                        <FaUsers style={{ color: 'var(--accent)' }} />
+                        <Users style={{ color: 'var(--accent)' }} />
                         {t('admin.events.registrations.title')} ({registrations.length})
                     </h3>
                     <button onClick={onClose} className="btn-close-mini">
-                        <FaTimes />
+                        <X />
                     </button>
                 </div>
 
@@ -60,7 +60,7 @@ export default function RegistrationsModal({ eventId, onClose, API_URL, mockRegi
                     ) : (
                         registrations.length === 0 ? (
                             <div className="poll-empty-state" style={{ padding: '3rem 1rem', marginTop: 0 }}>
-                                <FaUsers size={40} style={{ color: 'rgba(255,255,255,0.05)' }} />
+                                <Users size={40} style={{ color: 'rgba(255,255,255,0.05)' }} />
                                 <p style={{ color: 'rgba(255,255,255,0.2)', fontWeight: '800' }}>{t('admin.events.registrations.empty')}</p>
                             </div>
                         ) : (

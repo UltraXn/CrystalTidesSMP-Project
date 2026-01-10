@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { FaCheckCircle } from 'react-icons/fa'
+import { CheckCircle2 } from 'lucide-react'
 
 interface SuccessModalProps {
     isOpen: boolean;
@@ -68,7 +68,7 @@ export default function SuccessModal({ isOpen, onClose, title, message, buttonTe
                             justifyContent: 'center',
                             boxShadow: '0 4px 6px rgba(0,0,0,0.3)'
                         }}>
-                            <FaCheckCircle color="white" size={16} />
+                            <CheckCircle2 color="white" size={16} />
                         </div>
                     </div>
 

@@ -1,13 +1,18 @@
+@import "tailwindcss";
+@plugin "tailwindcss-animate";
+@config "../../tailwind.config.js";
+
 /* @import 'variables.css'; Moved into base.css */
-@import 'base.css';
-@import 'animations.css';
-@import 'layout.css';
-@import 'components.css';
-@import 'home.css';
-@import 'sections.css';
-@import 'pages.css';
-@import 'content.css';
-@import 'dashboard.css';
-@import 'account.css';
-@import 'admin-layout.css';
-@import 'admin.css';
+
+@import './base.css';
+@import './animations.css';
+@import './layout.css';
+@import './components.css';
+/* @import './home.css'; Consolidated into layout.css/components.css */
+/* @import './sections.css'; Consolidated into components.css */
+/* @import './pages.css'; Consolidated into layout.css */
+/* @import './content.css'; Consolidated into components.css */
+/* @import './dashboard.css'; Consolidated into layout.css */
+/* @import './account.css'; Consolidated into layout.css */
+@import './admin-layout.css';
+@import './admin.css';

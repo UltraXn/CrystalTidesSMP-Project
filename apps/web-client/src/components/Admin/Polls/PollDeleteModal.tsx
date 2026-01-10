@@ -1,4 +1,4 @@
-import { FaTrash } from 'react-icons/fa';
+import { Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 interface PollDeleteModalProps {
@@ -14,7 +14,7 @@ export default function PollDeleteModal({ onConfirm, onCancel }: PollDeleteModal
             <div className="sync-modal-content" style={{ maxWidth: '450px', textAlign: 'center', padding: '3rem' }}>
                 <div className="modal-accent-line" style={{ background: 'linear-gradient(90deg, transparent, #ef4444, transparent)' }}></div>
                 <div style={{ width: '80px', height: '80px', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 2rem auto', fontSize: '2rem' }}>
-                    <FaTrash />
+                    <Trash2 />
                 </div>
                 <h3 style={{ marginBottom: '1rem', color: '#fff', fontSize: '1.75rem', fontWeight: '900' }}>
                    {t('admin.polls.delete_confirm_title', '¿Eliminar Encuesta?')}

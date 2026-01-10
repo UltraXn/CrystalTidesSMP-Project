@@ -22,11 +22,14 @@ const router = express.Router();
  *       200:
  *         description: Lista de reglas ordenadas
  */
+import { validate } from '../middleware/validateResource.js';
+import { ruleSchema, updateRuleSchema } from '../schemas/ruleSchemas.js';
+
 router.get('/', ruleController.getRules);
 
 // Protected Routes (Admin/Staff only)
-router.post('/', authenticateToken, checkRole(STAFF_ROLES), ruleController.createRule);
-router.put('/:id', authenticateToken, checkRole(STAFF_ROLES), ruleController.updateRule);
+router.post('/', authenticateToken, checkRole(STAFF_ROLES), validate(ruleSchema), ruleController.createRule);
+router.put('/:id', authenticateToken, checkRole(STAFF_ROLES), validate(updateRuleSchema), ruleController.updateRule);
 router.delete('/:id', authenticateToken, checkRole(STAFF_ROLES), ruleController.deleteRule);
 
 export default router;

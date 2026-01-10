@@ -1,4 +1,4 @@
-import { FaChartPie, FaBriefcase, FaCog, FaBars, FaTimes } from "react-icons/fa";
+import { PieChart, Briefcase, Settings, Menu, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 
@@ -13,9 +13,9 @@ export default function AdminMobileNavbar({ activeTab, setActiveTab, sidebarOpen
     const { t } = useTranslation();
 
     const navItems = [
-        { id: 'overview', icon: <FaChartPie />, label: t('admin.tabs.general', 'Inicio') },
-        { id: 'staff_hub', icon: <FaBriefcase />, label: t('admin.tabs.staff_hub', 'StaffHub') },
-        { id: 'settings', icon: <FaCog />, label: t('admin.tabs.settings', 'Config') },
+        { id: 'overview', icon: <PieChart size={20} />, label: t('admin.tabs.general', 'Inicio') },
+        { id: 'staff_hub', icon: <Briefcase size={20} />, label: t('admin.tabs.staff_hub', 'StaffHub') },
+        { id: 'settings', icon: <Settings size={20} />, label: t('admin.tabs.settings', 'Config') },
     ];
 
     return (
@@ -46,7 +46,7 @@ export default function AdminMobileNavbar({ activeTab, setActiveTab, sidebarOpen
                 className={`mobile-nav-item ${sidebarOpen ? 'active' : ''}`}
                 onClick={() => setSidebarOpen(!sidebarOpen)}
             >
-                <span className="icon">{sidebarOpen ? <FaTimes /> : <FaBars />}</span>
+                <span className="icon">{sidebarOpen ? <X size={20} /> : <Menu size={20} />}</span>
                 <span className="label">{sidebarOpen ? t('admin.close', 'Cerrar') : t('admin.menu', 'Menú')}</span>
             </button>
         </div>

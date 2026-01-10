@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FaCrown, FaTimes, FaSpinner, FaGlobe, FaCheckCircle } from 'react-icons/fa';
+import { Crown, X, Loader2, Globe, CheckCircle } from 'lucide-react';
 import { supabase } from '../../../services/supabaseClient';
 import { getAuthHeaders } from '../../../services/adminAuth';
 
@@ -95,11 +95,11 @@ export default function DonorFormModal({ donor, isNew, onClose, onSave, saving }
                 
                 <div className="poll-form-header">
                     <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '12px', color: '#fff', fontSize: '1.5rem', fontWeight: '900' }}>
-                        <FaCrown style={{ color: 'var(--accent)' }} />
+                        <Crown style={{ color: 'var(--accent)' }} />
                         {isNew ? t('admin.donors.new_title') : t('admin.donors.edit_title')}
                     </h3>
                     <button onClick={onClose} className="btn-close-mini">
-                        <FaTimes />
+                        <X />
                     </button>
                 </div>
                 
@@ -183,7 +183,7 @@ export default function DonorFormModal({ donor, isNew, onClose, onSave, saving }
                                         onClick={() => handleTranslate(formData.description, 'en', 'description_en')}
                                         disabled={translating || !formData.description}
                                     >
-                                        {translating ? <FaSpinner className="spin" /> : <FaGlobe />} {t('admin.donors.form.translate_en')}
+                                        {translating ? <Loader2 className="spin" /> : <Globe />} {t('admin.donors.form.translate_en')}
                                     </button>
                                 </div>
                                 <textarea 
@@ -204,7 +204,7 @@ export default function DonorFormModal({ donor, isNew, onClose, onSave, saving }
                                         onClick={() => handleTranslate(formData.description_en || '', 'es', 'description')}
                                         disabled={translating || !formData.description_en}
                                     >
-                                        {translating ? <FaSpinner className="spin" /> : <FaGlobe />} {t('admin.donors.form.translate_es')}
+                                        {translating ? <Loader2 className="spin" /> : <Globe />} {t('admin.donors.form.translate_es')}
                                     </button>
                                 </div>
                                 <textarea 
@@ -246,7 +246,7 @@ export default function DonorFormModal({ donor, isNew, onClose, onSave, saving }
                     <div className="poll-form-footer" style={{ marginTop: '2rem' }}>
                         <button className="btn-secondary" onClick={onClose}>{t('admin.donors.form.cancel')}</button>
                         <button className="modal-btn-primary" onClick={handleSubmit} disabled={saving} style={{ height: '50px', padding: '0 2.5rem' }}>
-                            {saving ? <FaSpinner className="spin" /> : <><FaCheckCircle /> {t('admin.donors.form.save')}</>}
+                            {saving ? <Loader2 className="spin" /> : <><CheckCircle /> {t('admin.donors.form.save')}</>}
                         </button>
                     </div>
                 </div>

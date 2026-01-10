@@ -1,57 +1,39 @@
 import { useState } from 'react';
-import { FaTerminal, FaPaperPlane } from 'react-icons/fa';
+import { Terminal, Send } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import { useTranslation } from 'react-i18next';
 
-const API_URL = import.meta.env.VITE_API_URL;
+import { useSendCommand } from '../../../hooks/useAdminData';
 
 export default function SecureConsole() {
     useAuth(); // Hook still needed for context, but we don't need 'user' here directly as we get session later
     const { t } = useTranslation();
     const [command, setCommand] = useState('');
     const [output, setOutput] = useState<{ text: string, time: string }[]>([]);
-    const [loading, setLoading] = useState(false);
+    
+    // Mutation
+    const sendCommandMutation = useSendCommand();
+    const loading = sendCommandMutation.isPending;
 
     const handleSendCommand = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!command.trim()) return;
 
-        setLoading(true);
         const cmdToSend = command;
-        setCommand(''); 
+        setCommand('');
         const now = new Date().toLocaleTimeString();
 
         // Optimistic UI
         setOutput(prev => [...prev.slice(-9), { text: `> ${cmdToSend}`, time: now }]);
 
         try {
-            // Get session directly from AuthContext if possible, or usually Supabase client
-            // But here we might just need the session from local storage or context if exposed.
-            // Let's assume we import the client correctly now.
-            const { data: { session } } = await import('../../../services/supabaseClient').then(m => m.supabase.auth.getSession());
-            
             const twoFactorToken = sessionStorage.getItem('admin_2fa_token');
-            const res = await fetch(`${API_URL}/bridge/queue`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${session?.access_token}`,
-                    'x-admin-token': twoFactorToken || ''
-                },
-                body: JSON.stringify({ command: cmdToSend })
-            });
+            const data = await sendCommandMutation.mutateAsync({ command: cmdToSend, twoFactorToken });
 
-            if (res.ok) {
-                const data = await res.json();
-                setOutput(prev => [...prev, { text: `[System]: OK (ID: ${data.id}) - Queued for execution.`, time: new Date().toLocaleTimeString() }]);
-            } else {
-                const err = await res.json();
-                setOutput(prev => [...prev, { text: `[Error]: ${err.error || 'Failed to send command'}`, time: new Date().toLocaleTimeString() }]);
-            }
-        } catch {
-            setOutput(prev => [...prev, { text: `[Error]: Network or Server Error`, time: new Date().toLocaleTimeString() }]);
-        } finally {
-            setLoading(false);
+            setOutput(prev => [...prev, { text: `[System]: OK (ID: ${data.id}) - Queued for execution.`, time: new Date().toLocaleTimeString() }]);
+        } catch (error) {
+            const err = error as Error;
+            setOutput(prev => [...prev, { text: `[Error]: ${err.message || 'Network or Server Error'}`, time: new Date().toLocaleTimeString() }]);
         }
     };
 
@@ -59,7 +41,7 @@ export default function SecureConsole() {
         <div style={{ padding: '2rem' }}>
             <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '1.2rem', fontWeight: '800', color: '#fff' }}>
                 <div style={{ padding: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <FaTerminal style={{ color: 'var(--accent)' }} /> 
+                    <Terminal style={{ color: 'var(--accent)' }} />  
                 </div>
                 {t('admin.settings.console.title')}
             </h3>
@@ -124,7 +106,7 @@ export default function SecureConsole() {
                     {loading ? (
                         <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" style={{ width: '1rem', height: '1rem', border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#000', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></span>
                     ) : (
-                        <><FaPaperPlane /> {t('admin.settings.console.send_btn')}</>
+                        <><Send /> {t('admin.settings.console.send_btn')}</>
                     )}
                 </button>
             </form>

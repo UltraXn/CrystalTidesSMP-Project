@@ -1,4 +1,4 @@
-import { FaSearch, FaMedal, FaTrophy } from 'react-icons/fa';
+import { Search, Medal, Trophy } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { UserDefinition } from './types';
 import { UserRoleBadge } from './UserRoleBadge';
@@ -79,7 +79,7 @@ export default function UsersTable({ users, loading, hasSearched, canManageRoles
                                         }}
                                         className="hover-lift"
                                     >
-                                        <FaMedal /> {u.medals?.length || 0} {t('admin.users.medals', 'Medallas')}
+                                        <Medal size={14} /> {u.medals?.length || 0} {t('admin.users.medals', 'Medallas')}
                                     </button>
                                     <button 
                                         onClick={() => onEditAchievements(u)}
@@ -102,7 +102,7 @@ export default function UsersTable({ users, loading, hasSearched, canManageRoles
                                         }}
                                         className="hover-lift"
                                     >
-                                        <FaTrophy /> {u.achievements?.length || 0} {t('admin.users.achievements', 'Logros')}
+                                        <Trophy size={14} /> {u.achievements?.length || 0} {t('admin.users.achievements', 'Logros')}
                                     </button>
                                 </div>
                             </td>
@@ -135,14 +135,14 @@ export default function UsersTable({ users, loading, hasSearched, canManageRoles
             {/* Empty states */}
             {users.length === 0 && hasSearched && !loading && (
                 <div style={{ padding: '4rem', textAlign: 'center', color: 'rgba(255,255,255,0.4)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
-                    <FaSearch size={48} opacity={0.2} />
+                    <Search size={48} opacity={0.2} />
                     <div>{t('admin.users.no_results')}</div>
                 </div>
             )}
             {users.length === 0 && !hasSearched && (
                 <div style={{ padding: '4rem', textAlign: 'center', color: 'rgba(255,255,255,0.4)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
                     <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'rgba(255,255,255,0.03)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <FaSearch size={24} opacity={0.5} />
+                        <Search size={24} opacity={0.5} />
                     </div>
                     <div>{t('admin.users.initial_msg')}</div>
                 </div>

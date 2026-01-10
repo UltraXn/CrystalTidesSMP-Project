@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { FaPoll, FaTimes, FaPlus, FaSpinner, FaLanguage, FaCheck } from 'react-icons/fa';
+import { BarChart3, X, Plus, Loader2, Languages, Check } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Poll } from './types';
 
@@ -88,11 +88,11 @@ export default function PollFormModal({ onClose, onSubmit, poll, creating, butto
                 
                 <div className="poll-form-header">
                     <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '12px', color: '#fff', fontSize: '1.5rem', fontWeight: '900' }}>
-                        <FaPoll style={{ color: 'var(--accent)' }} />
+                        <BarChart3 style={{ color: 'var(--accent)' }} />
                         {isEdit ? t('admin.polls.edit_title', 'Editar Encuesta') : t('admin.polls.create_title')}
                     </h3>
                     <button onClick={onClose} className="btn-close-mini">
-                        <FaTimes />
+                        <X />
                     </button>
                 </div>
                 
@@ -108,7 +108,7 @@ export default function PollFormModal({ onClose, onSubmit, poll, creating, butto
                                 <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
                                      <label className="admin-label-premium">{t('admin.polls.form_extras.title_en')}</label>
                                      <button type="button" onClick={() => onTranslate(title, 'title')} className="btn-secondary" style={{fontSize:'0.7rem', padding:'0.2rem 0.6rem', marginBottom:'0.5rem'}} disabled={translatingField === 'title'}>
-                                         {translatingField === 'title' ? <FaSpinner className="spin"/> : <><FaLanguage /> {t('admin.polls.form_extras.translate')}</>}
+                                         {translatingField === 'title' ? <Loader2 className="spin"/> : <><Languages /> {t('admin.polls.form_extras.translate')}</>}
                                      </button>
                                 </div>
                                 <input className="admin-input-premium" value={titleEn} onChange={e => setTitleEn(e.target.value)} placeholder="Poll Title" />
@@ -124,7 +124,7 @@ export default function PollFormModal({ onClose, onSubmit, poll, creating, butto
                                 <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
                                      <label className="admin-label-premium">{t('admin.polls.form_extras.question_en')}</label>
                                      <button type="button" onClick={() => onTranslate(question, 'question')} className="btn-secondary" style={{fontSize:'0.7rem', padding:'0.2rem 0.6rem', marginBottom:'0.5rem'}} disabled={translatingField === 'question'}>
-                                         {translatingField === 'question' ? <FaSpinner className="spin"/> : <><FaLanguage /> {t('admin.polls.form_extras.translate')}</>}
+                                         {translatingField === 'question' ? <Loader2 className="spin"/> : <><Languages /> {t('admin.polls.form_extras.translate')}</>}
                                      </button>
                                 </div>
                                 <textarea className="admin-textarea-premium" value={questionEn} onChange={e => setQuestionEn(e.target.value)} placeholder="Poll Question" rows={3}></textarea>
@@ -154,7 +154,7 @@ export default function PollFormModal({ onClose, onSubmit, poll, creating, butto
                                                      placeholder={t('admin.polls.form_extras.option_en')}
                                                  />
                                                  <button type="button" onClick={() => onTranslate(opt.label, 'options', idx)} className="btn-secondary" style={{padding:'0 1rem', borderRadius: '12px'}} disabled={translatingField === `option-${idx}`}>
-                                                     {translatingField === `option-${idx}` ? <FaSpinner className="spin"/> : <FaLanguage size={18} />}
+                                                     {translatingField === `option-${idx}` ? <Loader2 className="spin"/> : <Languages size={18} />}
                                                  </button>
                                             </div>
                                         </div>
@@ -167,14 +167,14 @@ export default function PollFormModal({ onClose, onSubmit, poll, creating, butto
                                                 style={{ height: '42px' }}
                                                 title={t('admin.polls.form_extras.delete_option')}
                                             >
-                                                <FaTimes />
+                                                <X />
                                             </button>
                                         )}
                                     </div>
                                 ))}
                             </div>
                             <button type="button" onClick={() => setOptions([...options, {label: '', labelEn: ''}])} className="btn-secondary" style={{marginTop:'1.5rem', width:'100%', height: '50px', borderRadius: '16px', fontWeight: '800'}}>
-                                <FaPlus style={{ marginRight: '10px' }} /> {t('admin.polls.form.add_option')}
+                                <Plus style={{ marginRight: '10px' }} /> {t('admin.polls.form.add_option')}
                             </button>
                         </div>
 
@@ -197,10 +197,10 @@ export default function PollFormModal({ onClose, onSubmit, poll, creating, butto
                                 {t('admin.polls.form_extras.cancel')}
                             </button>
                             <button type="submit" className="modal-btn-primary" style={{ height: '50px', padding: '0 2.5rem', background: buttonSuccess ? '#22c55e' : ''}} disabled={creating || buttonSuccess}>
-                                {creating ? <FaSpinner className="spin" /> : buttonSuccess ? (
-                                    <><FaCheck /> {t('admin.polls.form.success')}</>
+                                {creating ? <Loader2 className="spin" /> : buttonSuccess ? (
+                                    <><Check /> {t('admin.polls.form.success')}</>
                                 ) : (
-                                    <><FaCheck /> {isEdit ? t('admin.polls.form.update', 'Actualizar') : t('admin.polls.form.submit')}</>
+                                    <><Check /> {isEdit ? t('admin.polls.form.update', 'Actualizar') : t('admin.polls.form.submit')}</>
                                 )}
                             </button>
                         </div>

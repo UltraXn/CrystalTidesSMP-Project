@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslation } from 'react-i18next'
-import { FaPlus } from 'react-icons/fa'
+import { Plus } from 'lucide-react'
 import { createTicketSchema, CreateTicketFormValues } from '../../schemas/ticket'
 
 interface TicketFormProps {
@@ -54,7 +54,7 @@ export default function TicketForm({ onClose, onSubmit }: TicketFormProps) {
         >
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
                 <div style={{ width: '3rem', height: '3rem', background: 'var(--accent-soft)', borderRadius: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <FaPlus style={{ color: 'var(--accent)' }} />
+                    <Plus style={{ color: 'var(--accent)' }} />
                 </div>
                 <h2 style={{ margin: 0, fontSize: '1.8rem' }}>{t('support.new_ticket_title')}</h2>
             </div>

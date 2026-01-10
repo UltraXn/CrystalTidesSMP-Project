@@ -7,7 +7,7 @@ import { addTicketMessageSchema, AddTicketMessageFormValues } from '../schemas/t
 import { motion } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../services/supabaseClient'
-import { FaPaperPlane, FaArrowLeft, FaShieldAlt } from 'react-icons/fa'
+import { Send, ArrowLeft, Shield } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 interface TicketDetailData {
@@ -145,7 +145,7 @@ export default function TicketDetail() {
             {/* Header */}
             <div style={{marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '1rem'}}>
                 <button onClick={() => navigate('/support')} style={{background: 'none', border: 'none', color: 'white', fontSize: '1.2rem', cursor: 'pointer'}}>
-                    <FaArrowLeft />
+                    <ArrowLeft />
                 </button>
                 <div>
                     <h2 style={{margin: 0}}>{ticket?.subject} <span style={{fontSize: '0.8rem', opacity: 0.7}}>#{id?.slice(0, 6)}</span></h2>
@@ -210,7 +210,7 @@ export default function TicketDetail() {
                                             fontSize: '0.6rem', fontWeight: 'bold',
                                             display: 'flex', alignItems: 'center', gap: '0.2rem'
                                         }}>
-                                            <FaShieldAlt /> STAFF
+                                            <Shield size={10} /> STAFF
                                         </div>
                                     )}
                                     {msg.message}
@@ -252,7 +252,7 @@ export default function TicketDetail() {
                             padding: 0
                         }}
                     >
-                        <FaPaperPlane />
+                        <Send size={18} />
                     </button>
                 </form>
             </div>

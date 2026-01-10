@@ -5,7 +5,10 @@ import { checkRole, ADMIN_ROLES } from '../utils/roleUtils.js';
 
 const router = express.Router();
 
-// Public routes
+import { validate } from '../middleware/validateResource.js';
+import { policySchemas } from '../schemas/policySchemas.js';
+
+// Get settings: uses optional auth to decide if we show full list or public whitelist
 router.get('/', policyController.getPolicies);
 router.get('/:slug', policyController.getPolicy);
 
@@ -13,6 +16,7 @@ router.get('/:slug', policyController.getPolicy);
 router.put('/:slug', 
     authenticateToken, 
     checkRole(ADMIN_ROLES), 
+    validate(policySchemas.updatePolicy),
     policyController.updatePolicy
 );
 

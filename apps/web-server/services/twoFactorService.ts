@@ -3,7 +3,9 @@ import QRCode from 'qrcode';
 import jwt from 'jsonwebtoken';
 import supabase from '../config/supabaseClient.js';
 
-const ADMIN_JWT_SECRET = process.env.ADMIN_JWT_SECRET || 'dev_secret_CHANGE_IN_PROD_12345';
+import crypto from 'crypto';
+
+const ADMIN_JWT_SECRET = process.env.ADMIN_JWT_SECRET || crypto.randomBytes(64).toString('hex');
 
 export const generateSecret = (email: string) => {
     const secret = speakeasy.generateSecret({
@@ -24,7 +26,15 @@ export const generateSecret = (email: string) => {
 };
 
 export const generateQRCode = async (otpauth_url: string) => {
-    return await QRCode.toDataURL(otpauth_url);
+    return await QRCode.toDataURL(otpauth_url, {
+        errorCorrectionLevel: 'H',
+        margin: 1,
+        width: 300,
+        color: {
+            dark: '#000000',
+            light: '#ffffff'
+        }
+    });
 };
 
 export const verifyToken = (token: string, secret: string) => {

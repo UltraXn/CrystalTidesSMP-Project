@@ -1,6 +1,7 @@
 import { defineConfig } from 'vitest/config';
 import type { PluginOption } from 'vite';
 import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
 import path from 'path';
 import { fileURLToPath } from 'url';
 // import { storybookTest } from '@storybook/addon-vitest/vitest-plugin'; // Temporarily disabled due to dep conflict
@@ -8,11 +9,12 @@ import { fileURLToPath } from 'url';
 
 export default defineConfig(() => {
   const dirname = path.dirname(fileURLToPath(import.meta.url));
+  // Force restart
 
 
   return {
     envDir: '../../',
-    plugins: [react() as unknown as PluginOption],
+    plugins: [react() as unknown as PluginOption, tailwindcss()],
     build: {
       outDir: 'dist',
       emptyOutDir: true,
@@ -21,7 +23,7 @@ export default defineConfig(() => {
         output: {
           manualChunks: {
             'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-            'ui-vendor': ['framer-motion', 'lucide-react', 'react-icons', '@hello-pangea/dnd'],
+            'ui-vendor': ['framer-motion', 'lucide-react', '@hello-pangea/dnd'],
             'three-vendor': ['three', 'skinview3d', 'react-skinview3d'],
             'utils-vendor': ['date-fns', 'zod', 'i18next', 'react-i18next'],
           },

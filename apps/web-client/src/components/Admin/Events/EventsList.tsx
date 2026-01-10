@@ -1,5 +1,5 @@
 
-import { FaPlus, FaDiceD20, FaHammer, FaUsers, FaEdit, FaTrash } from "react-icons/fa";
+import { Plus, Dices, Hammer, Users, Edit, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import Loader from "../../UI/Loader";
 import { Event, getIconMap, getStatusMap } from "./types";
@@ -30,7 +30,7 @@ export default function EventsList({ events, loading, onEdit, onDelete, onViewRe
         return (
             <div className="poll-empty-state">
                 <div className="poll-empty-icon-wrapper">
-                    <FaDiceD20 size={48} />
+                    <Dices size={48} />
                 </div>
                 <div>
                     <h3 style={{ fontSize: '1.75rem', fontWeight: '900', color: '#fff', marginBottom: '0.75rem' }}>{t('admin.events.no_events')}</h3>
@@ -38,7 +38,7 @@ export default function EventsList({ events, loading, onEdit, onDelete, onViewRe
                        Todavía no has programado ningún evento. ¡Empieza creando uno nuevo!
                     </p>
                     <button className="btn-primary" onClick={onNew} style={{ padding: '1rem 2.5rem', fontSize: '1rem' }}>
-                        <FaPlus style={{ marginRight: '10px' }} /> {t('admin.events.create_title')}
+                        <Plus style={{ marginRight: '10px' }} /> {t('admin.events.create_title')}
                     </button>
                 </div>
             </div>
@@ -51,7 +51,7 @@ export default function EventsList({ events, loading, onEdit, onDelete, onViewRe
                 <div key={event.id} className="event-card-premium">
                     <div className="event-card-top">
                         <div className="event-type-badge">
-                            {iconMap[event.type] || <FaHammer />}
+                            {iconMap[event.type] || <Hammer />}
                         </div>
                         <span className="event-status-badge" style={{
                             color: statusMap[event.status]?.color || '#fff',
@@ -72,7 +72,7 @@ export default function EventsList({ events, loading, onEdit, onDelete, onViewRe
 
                     <div className="event-card-footer">
                         <div className="event-stats">
-                            <FaUsers size={18} style={{ color: 'var(--accent)' }} />
+                            <Users size={18} style={{ color: 'var(--accent)' }} />
                             <span>{event.registrations?.length || 0} Registrados</span>
                         </div>
                         <div className="event-actions">
@@ -81,21 +81,21 @@ export default function EventsList({ events, loading, onEdit, onDelete, onViewRe
                                 className="event-btn-action"
                                 title={t('admin.events.registrations.view_tooltip')}
                             >
-                                <FaUsers />
+                                <Users />
                             </button>
                             <button
                                 onClick={() => onEdit(event)}
                                 className="event-btn-action"
                                 title={t('admin.events.edit_title')}
                             >
-                                <FaEdit />
+                                <Edit />
                             </button>
                             <button
                                 onClick={() => event.id && onDelete(event.id)}
                                 className="event-btn-action delete"
                                 title={t('admin.events.delete_tooltip')}
                             >
-                                <FaTrash />
+                                <Trash2 />
                             </button>
                         </div>
                     </div>

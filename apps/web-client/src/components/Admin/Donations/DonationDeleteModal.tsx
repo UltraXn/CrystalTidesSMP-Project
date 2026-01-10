@@ -1,14 +1,15 @@
 
-import { FaTrash } from "react-icons/fa";
+import { Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 interface DonationDeleteModalProps {
     isOpen: boolean;
     onClose: () => void;
     onConfirm: () => void;
+    deleting?: boolean;
 }
 
-export default function DonationDeleteModal({ isOpen, onClose, onConfirm }: DonationDeleteModalProps) {
+export default function DonationDeleteModal({ isOpen, onClose, onConfirm, deleting }: DonationDeleteModalProps) {
     const { t } = useTranslation();
 
     if (!isOpen) return null;
@@ -23,7 +24,7 @@ export default function DonationDeleteModal({ isOpen, onClose, onConfirm }: Dona
                     color: '#ef4444', 
                     borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 2rem auto', fontSize: '2rem' 
                 }}>
-                    <FaTrash />
+                    <Trash2 />
                 </div>
                 <h3 style={{ marginBottom: '1rem', color: '#fff', fontSize: '1.75rem', fontWeight: '900' }}>
                    {t('admin.donations.delete_confirm.title')}
@@ -38,13 +39,14 @@ export default function DonationDeleteModal({ isOpen, onClose, onConfirm }: Dona
                     <button 
                         onClick={onConfirm} 
                         className="modal-btn-primary" 
+                        disabled={deleting}
                         style={{ 
                             background: '#ef4444', 
                             color: '#fff', flex: 1, 
                             boxShadow: '0 10px 30px rgba(239, 68, 68, 0.3)' 
                         }}
                     >
-                        {t('admin.donations.delete_confirm.btn')}
+                        {deleting ? t('common.deleting') : t('admin.donations.delete_confirm.btn')}
                     </button>
                 </div>
             </div>

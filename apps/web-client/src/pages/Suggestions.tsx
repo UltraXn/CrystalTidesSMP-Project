@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { FaPaperPlane, FaPoll, FaCheckCircle, FaExclamationTriangle, FaSpinner } from "react-icons/fa"
+import { Send, BarChart2, CheckCircle, AlertTriangle, Loader2 } from "lucide-react"
 import Section from "../components/Layout/Section"
 import { useTranslation } from 'react-i18next'
 import { useForm } from 'react-hook-form'
@@ -122,120 +122,157 @@ export default function Suggestions() {
     return (
         <Section title={t('suggestions.title')}>
             <Section>
-                <div className="suggestions-layout">
+                <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 max-w-[1400px] mx-auto px-4">
 
-                    {/* IZQUIERDA: FORMULARIO */}
-                    <div className="suggestion-column">
-                        <h3 className="section-subtitle" style={{ color: '#fff', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <FaPaperPlane color="var(--accent)" /> {t('suggestions.form_title')}
-                        </h3>
-
-                        {formStatus === 'success' ? (
-                            <div style={{ padding: '3rem', textAlign: 'center', background: 'rgba(74, 222, 128, 0.1)', borderRadius: '12px', border: '1px solid #4ade80' }}>
-                                <FaCheckCircle size={50} color="#4ade80" style={{ marginBottom: '1rem' }} />
-                                <h4 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>{t('suggestions.form.received')}</h4>
-                                <p style={{ color: '#ccc' }}>{t('suggestions.form.success_msg')}</p>
-                                <button onClick={() => setFormStatus('idle')} className="btn-secondary" style={{ marginTop: '1.5rem' }}>{t('suggestions.form.send_another')}</button>
+                    {/* IZQUIERDA: FORMULARIO (3/5) */}
+                    <div className="lg:col-span-3">
+                        <div className="flex items-center gap-3 mb-8">
+                            <div className="w-12 h-12 rounded-2xl bg-(--accent)/10 flex items-center justify-center text-(--accent) text-xl border border-(--accent)/20">
+                                <Send />
                             </div>
-                        ) : (
-                            <form className="suggestion-form" onSubmit={handleSubmit(onSubmit)}>
-                                <div className="form-group">
-                                    <label className="form-label">{t('suggestions.form.nick')}</label>
-                                    <input 
-                                        type="text" 
-                                        className="form-input" 
-                                        placeholder={t('suggestions.form.nick_placeholder')} 
-                                        {...register('nickname')}
-                                    />
-                                    {errors.nickname && <span style={{color: '#ff6b6b', fontSize: '0.8rem'}}>{errors.nickname.message}</span>}
-                                </div>
-                                <div className="form-group">
-                                    <label className="form-label">{t('suggestions.form.type')}</label>
-                                    <select 
-                                        className="form-input" 
-                                        style={{ background: 'rgba(0,0,0,0.5)' }}
-                                        {...register('type')}
+                            <h3 className="text-3xl font-black text-white uppercase tracking-tighter">
+                                {t('suggestions.form_title')}
+                            </h3>
+                        </div>
+
+                        <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 md:p-12 backdrop-blur-sm">
+                            {formStatus === 'success' ? (
+                                <div className="text-center animate-scale-in py-10">
+                                    <CheckCircle size={60} className="text-emerald-400 mx-auto mb-6" />
+                                    <h4 className="text-3xl font-black text-white mb-3 uppercase tracking-tight">{t('suggestions.form.received')}</h4>
+                                    <p className="text-gray-400 font-medium leading-relaxed max-w-md mx-auto mb-8">{t('suggestions.form.success_msg')}</p>
+                                    <button 
+                                        onClick={() => setFormStatus('idle')} 
+                                        className="px-10 py-4 bg-white text-black rounded-full font-black uppercase tracking-widest text-sm transition-all hover:bg-(--accent) hover:scale-105 active:scale-95 shadow-xl"
                                     >
-                                        <option value="General">{t('suggestions.form.options.general')}</option>
-                                        <option value="Bug">{t('suggestions.form.options.bug')}</option>
-                                        <option value="Mod">{t('suggestions.form.options.mod')}</option>
-                                        <option value="Complaint">{t('suggestions.form.options.complaint')}</option>
-                                        <option value="Poll">{t('suggestions.form.options.poll')}</option>
-                                    </select>
+                                        {t('suggestions.form.send_another')}
+                                    </button>
                                 </div>
-                                <div className="form-group">
-                                    <label className="form-label">{t('suggestions.form.msg')}</label>
-                                    <textarea 
-                                        className="form-textarea" 
-                                        placeholder={t('suggestions.form.msg_placeholder')} 
-                                        {...register('message')}
-                                    ></textarea>
-                                    {errors.message && <span style={{color: '#ff6b6b', fontSize: '0.8rem'}}>{errors.message.message}</span>}
-                                </div>
-                                <button type="submit" className="btn-primary" style={{ width: '100%' }} disabled={isSubmitting}>
-                                    {isSubmitting ? (
-                                        <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-                                            <FaSpinner className="spin" /> {t('suggestions.form.sending')}
-                                        </span>
-                                    ) : t('suggestions.form.submit')}
-                                </button>
-                                {formStatus === 'error' && <p style={{color: '#ef4444', textAlign: 'center', marginTop: '1rem'}}>{t('suggestions.form.error_msg')}</p>}
-                            </form>
-                        )}
+                            ) : (
+                                <form className="flex flex-col gap-6" onSubmit={handleSubmit(onSubmit)}>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="flex flex-col gap-2">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-4">{t('suggestions.form.nick')}</label>
+                                            <input 
+                                                type="text" 
+                                                className="bg-black/20 border border-white/10 rounded-2xl px-6 py-4 text-white focus:outline-none focus:border-(--accent) transition-all placeholder:text-white/10" 
+                                                placeholder={t('suggestions.form.nick_placeholder')} 
+                                                {...register('nickname')}
+                                            />
+                                            {errors.nickname && <span className="text-red-500 text-[10px] font-bold uppercase ml-4">{errors.nickname.message}</span>}
+                                        </div>
+                                        <div className="flex flex-col gap-2">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-4">{t('suggestions.form.type')}</label>
+                                            <select 
+                                                className="bg-black/20 border border-white/10 rounded-2xl px-6 py-4 text-white focus:outline-none focus:border-(--accent) transition-all appearance-none cursor-pointer" 
+                                                {...register('type')}
+                                            >
+                                                <option value="General" className="bg-[#0a0a0a]">{t('suggestions.form.options.general')}</option>
+                                                <option value="Bug" className="bg-[#0a0a0a]">{t('suggestions.form.options.bug')}</option>
+                                                <option value="Mod" className="bg-[#0a0a0a]">{t('suggestions.form.options.mod')}</option>
+                                                <option value="Complaint" className="bg-[#0a0a0a]">{t('suggestions.form.options.complaint')}</option>
+                                                <option value="Poll" className="bg-[#0a0a0a]">{t('suggestions.form.options.poll')}</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col gap-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-4">{t('suggestions.form.msg')}</label>
+                                        <textarea 
+                                            className="bg-black/20 border border-white/10 rounded-3xl px-6 py-4 text-white focus:outline-none focus:border-(--accent) transition-all placeholder:text-white/10 min-h-[200px] resize-none" 
+                                            placeholder={t('suggestions.form.msg_placeholder')} 
+                                            {...register('message')}
+                                        ></textarea>
+                                        {errors.message && <span className="text-red-500 text-[10px] font-bold uppercase ml-4">{errors.message.message}</span>}
+                                    </div>
+                                    <button 
+                                        type="submit" 
+                                        className="bg-white text-black py-5 rounded-2xl font-black uppercase tracking-widest mt-4 transition-all hover:bg-(--accent) hover:scale-[1.02] active:scale-95 shadow-xl shadow-black disabled:opacity-50" 
+                                        disabled={isSubmitting}
+                                    >
+                                        {isSubmitting ? (
+                                            <span className="flex items-center justify-center gap-3">
+                                                <Loader2 className="animate-spin" /> {t('suggestions.form.sending')}
+                                            </span>
+                                        ) : (
+                                            <span className="flex items-center justify-center gap-3">
+                                                <Send className="text-xs" /> {t('suggestions.form.submit')}
+                                            </span>
+                                        )}
+                                    </button>
+                                    {formStatus === 'error' && <p className="text-red-500 text-center font-bold uppercase tracking-widest text-xs mt-4">{t('suggestions.form.error_msg')}</p>}
+                                </form>
+                            )}
+                        </div>
                     </div>
 
-                    {/* DERECHA: VOTACIONES */}
-                    <div className="polls-column">
-                        <h3 className="section-subtitle" style={{ color: '#fff', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <FaPoll color="var(--accent)" /> {t('suggestions.poll_title')}
-                        </h3>
+                    {/* DERECHA: VOTACIONES (2/5) */}
+                    <div className="lg:col-span-2">
+                        <div className="flex items-center gap-3 mb-8">
+                            <div className="w-12 h-12 rounded-2xl bg-(--accent)/10 flex items-center justify-center text-(--accent) text-xl border border-(--accent)/20">
+                                <BarChart2 />
+                            </div>
+                            <h3 className="text-3xl font-black text-white uppercase tracking-tighter">
+                                {t('suggestions.poll_title')}
+                            </h3>
+                        </div>
 
                         {loadingPoll ? (
-                            <div className="poll-card" style={{ textAlign: 'center', padding: '3rem' }}>
-                                <FaSpinner className="spin" size={24} style={{ marginBottom: '1rem' }} />
-                                <p>{t('suggestions.loading_poll')}</p>
+                            <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-12 flex flex-col items-center justify-center gap-4">
+                                <Loader2 className="animate-spin text-white/20" size={32} />
+                                <p className="text-gray-500 font-bold uppercase tracking-widest text-xs">{t('suggestions.loading_poll')}</p>
                             </div>
                         ) : !poll ? (
-                            <div className="poll-card" style={{ textAlign: 'center', padding: '3rem', opacity: 0.7 }}>
-                                <FaExclamationTriangle size={32} style={{ marginBottom: '1rem' }} />
-                                <p>{t('suggestions.no_active_poll')}</p>
+                            <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-12 flex flex-col items-center justify-center gap-6 text-center opacity-50">
+                                <AlertTriangle size={48} className="text-white/10" />
+                                <p className="text-gray-400 font-bold uppercase tracking-widest text-sm max-w-[200px] leading-relaxed">{t('suggestions.no_active_poll')}</p>
                             </div>
                         ) : (
-                            <div className="poll-card">
-                                <div style={{ marginBottom: '1rem', color: 'var(--accent)', fontSize: '0.8rem', fontWeight: 'bold', textTransform: 'uppercase' }}>
-                                    {poll.title}
+                            <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 md:p-10 backdrop-blur-xl flex flex-col gap-8">
+                                <div>
+                                    <div className="text-(--accent) text-[10px] font-black uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-(--accent) animate-pulse"></span>
+                                        {poll.title}
+                                    </div>
+                                    <h4 className="text-2xl font-black text-white leading-tight uppercase tracking-tight">
+                                        {poll.question}
+                                    </h4>
                                 </div>
-                                <h4 className="poll-question">
-                                    {poll.question}
-                                </h4>
 
-                                <div className="poll-options">
+                                <div className="flex flex-col gap-4">
                                     {(poll.options || []).map((option: PollOption) => (
                                         <div 
                                             key={option.id} 
-                                            className={`poll-option ${voted ? 'voted' : ''}`} 
+                                            className={`relative group h-14 bg-white/5 border border-white/5 rounded-2xl overflow-hidden transition-all ${voted ? 'cursor-default' : 'cursor-pointer hover:bg-white/10 hover:border-white/20 active:scale-95'}`} 
                                             onClick={() => handleVote(option.id)}
-                                            style={{ cursor: voted ? 'default' : 'pointer' }}
                                         >
-                                            <div className="poll-bar-track">
-                                                <div className="poll-bar-fill" style={{ width: `${option.percent}%`, background: voted ? '#aaa' : 'var(--accent)' }}></div>
-                                                <span className="poll-label">{option.label}</span>
-                                                <span className="poll-percent">{poll.totalVotes > 0 ? `${option.percent}%` : '0%'}</span>
+                                            {/* Bar Fill */}
+                                            <div 
+                                                className={`absolute left-0 inset-y-0 transition-all duration-1000 ease-out-expo ${voted ? 'bg-white/10 opacity-100' : 'bg-(--accent)/20 opacity-0 group-hover:opacity-100'}`} 
+                                                style={{ width: voted ? `${option.percent}%` : '0%' }}
+                                            ></div>
+                                            
+                                            <div className="relative z-10 h-full flex items-center justify-between px-6 pointer-events-none">
+                                                <span className={`text-sm font-black uppercase tracking-widest transition-colors ${voted ? 'text-white' : 'text-gray-400'}`}>{option.label}</span>
+                                                {voted && <span className="text-(--accent) font-mono font-bold">{poll.totalVotes > 0 ? `${option.percent}%` : '0%'}</span>}
                                             </div>
                                         </div>
                                     ))}
                                 </div>
 
-                                <div style={{ marginTop: '1.5rem', fontSize: '0.9rem', color: 'var(--muted)', textAlign: 'center' }}>
-                                    {t('suggestions.total_votes')}: {poll.totalVotes} • {poll.closesIn}
+                                <div className="pt-6 border-t border-white/5 flex flex-col gap-4">
+                                    <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-gray-500 px-2">
+                                        <span>Total: {poll.totalVotes} votos</span>
+                                        <span>Cierra en: {poll.closesIn}</span>
+                                    </div>
+                                    {voted && (
+                                        <p className="text-emerald-400 text-center text-xs font-black uppercase tracking-widest animate-bounce">
+                                            {t('suggestions.thanks_vote')}
+                                        </p>
+                                    )}
                                 </div>
-                                {voted && <p style={{textAlign:'center', marginTop:'1rem', color:'#4ade80', fontSize:'0.9rem'}}>{t('suggestions.thanks_vote')}</p>}
                             </div>
                         )}
-
-
                     </div>
-
                 </div>
             </Section>
         </Section>

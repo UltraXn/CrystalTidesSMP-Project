@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { FaMapPin, FaQuestion, FaTimes } from "react-icons/fa"
+import { MapPin, HelpCircle, X } from "lucide-react"
 import Section from "../components/Layout/Section"
 import { useTranslation } from 'react-i18next'
 import { motion, AnimatePresence } from "framer-motion"
@@ -32,8 +32,8 @@ export default function Stories() {
     return (
         <Section title={t('stories.title')}>
             <Section>
-                <div className="crystal-card">
-                    <p>{t('stories.intro')}</p>
+                <div className="max-w-3xl mx-auto p-8 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl text-center mb-16">
+                    <p className="text-gray-300 text-lg leading-relaxed">{t('stories.intro')}</p>
                 </div>
 
                 {loading ? (
@@ -41,33 +41,37 @@ export default function Stories() {
                         <Loader />
                     </div>
                 ) : (
-                    <div className="places-grid">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-4">
                         {locations.map(place => (
                             <div
                                 key={place.id}
-                                className="place-card"
+                                className="group relative bg-[#0a0a0a] border border-white/5 rounded-3xl overflow-hidden cursor-pointer transition-all duration-500 hover:bg-white/5 hover:-translate-y-2 hover:shadow-2xl hover:shadow-(--accent)/10 hover:border-(--accent)/30"
                                 onClick={() => setSelectedPlaceId(place.id)}
-                                style={{ cursor: "pointer" }}
                             >
-                                <div className="place-image-container">
+                                <div className="relative aspect-video w-full overflow-hidden bg-white/5">
                                     {place.is_coming_soon ? (
-                                        <div className="secret-placeholder">
-                                            <div className="secret-overlay"></div>
-                                            <FaQuestion className="secret-icon" />
+                                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm">
+                                            <div className="absolute inset-0 bg-linear-to-b from-transparent to-black/60"></div>
+                                            <HelpCircle className="text-6xl text-white/10 animate-pulse relative z-10" />
+                                            <span className="mt-4 text-[10px] font-black uppercase tracking-[0.3em] text-white/20 relative z-10">Clasificado</span>
                                         </div>
                                     ) : (
                                         <>
-                                            <span className="place-coords-badge">
-                                                <FaMapPin style={{ marginRight: '4px', verticalAlign: 'middle' }} />
-                                                {place.coords}
+                                            <span className="absolute top-4 left-4 z-20 flex items-center gap-2 px-3 py-1.5 bg-black/60 backdrop-blur-md rounded-full border border-white/10 text-[10px] font-black uppercase tracking-widest text-(--accent)">
+                                                <MapPin /> {place.coords}
                                             </span>
-                                            <img src={place.image_url || ''} alt={place.title} className="place-image" />
+                                            <img 
+                                                src={place.image_url || ''} 
+                                                alt={place.title} 
+                                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                                            />
+                                            <div className="absolute inset-0 bg-linear-to-t from-[#0a0a0a] via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity"></div>
                                         </>
                                     )}
                                 </div>
-                                <div className="place-content">
-                                    <h3 className="place-title" style={place.is_coming_soon ? { color: 'var(--muted)' } : {}}>{place.title}</h3>
-                                    <p className="place-desc">{place.description}</p>
+                                <div className="p-8 flex flex-col gap-3">
+                                    <h3 className={`text-2xl font-black transition-colors ${place.is_coming_soon ? 'text-gray-700' : 'text-white group-hover:text-(--accent)'}`}>{place.title}</h3>
+                                    <p className="text-gray-400 text-sm leading-relaxed font-medium line-clamp-2 italic">{place.description}</p>
                                 </div>
                             </div>
                         ))}
@@ -75,9 +79,9 @@ export default function Stories() {
                 )}
                 
                 {!loading && locations.length === 0 && (
-                    <div className="text-center p-10 opacity-30">
-                        <FaQuestion size={40} className="mx-auto mb-4" />
-                        <p>Aún no hay historias registradas en el servidor.</p>
+                    <div className="text-center py-20 flex flex-col items-center justify-center gap-6 border-2 border-dashed border-white/5 rounded-3xl bg-white/2">
+                        <HelpCircle size={40} className="text-white/10" />
+                        <p className="text-gray-500 font-bold uppercase tracking-widest text-sm">Aún no hay historias registradas en el servidor.</p>
                     </div>
                 )}
             </Section>
@@ -90,88 +94,72 @@ export default function Stories() {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={() => setSelectedPlaceId(null)}
-                        className="modal-overlay"
-                        style={{
-                            position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
-                            background: "rgba(0,0,0,0.85)", zIndex: 1000,
-                            display: "flex", alignItems: "center", justifyContent: "center",
-                            padding: "2rem", backdropFilter: "blur(5px)"
-                        }}
+                        className="fixed inset-0 z-1000 bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 md:p-8"
                     >
                         <motion.div
                             initial={{ scale: 0.9, y: 20 }}
                             animate={{ scale: 1, y: 0 }}
                             exit={{ scale: 0.9, y: 20 }}
                             onClick={(e) => e.stopPropagation()} 
-                            className="story-modal-content"
+                            className="relative w-full max-w-5xl max-h-[90vh] bg-[#0a0a0a] border border-white/10 rounded-[3rem] overflow-hidden shadow-2xl flex flex-col md:flex-row shadow-black"
                         >
                             <button
                                 onClick={() => setSelectedPlaceId(null)}
-                                style={{
-                                    position: "absolute", top: "20px", right: "20px",
-                                    background: "rgba(0,0,0,0.5)", border: "none",
-                                    color: "#fff", width: "40px", height: "40px", borderRadius: "50%",
-                                    cursor: "pointer", zIndex: 10, display: "flex", alignItems: "center", justifyContent: "center",
-                                    fontSize: "1.2rem"
-                                }}
+                                className="absolute top-6 right-6 w-12 h-12 bg-black/60 backdrop-blur-md text-white rounded-full flex items-center justify-center text-xl transition-all hover:bg-white hover:text-black hover:rotate-90 z-50 border border-white/10"
                             >
-                                <FaTimes />
+                                <X />
                             </button>
 
-                            <div style={{ height: "400px", position: "relative" }}>
+                            {/* Image Section */}
+                            <div className="w-full md:w-1/2 relative bg-white/5 h-[300px] md:h-auto">
                                 {selectedPlace.is_coming_soon ? (
-                                    <div className="secret-placeholder" style={{ height: "100%", width: "100%" }}>
-                                        <FaQuestion className="secret-icon" style={{ fontSize: "8rem" }} />
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <HelpCircle className="text-9xl text-white/5 animate-pulse" />
                                     </div>
                                 ) : (
                                     <img
                                         src={selectedPlace.image_url || ''}
                                         alt={selectedPlace.title}
-                                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                                        className="w-full h-full object-cover"
                                     />
                                 )}
-                                <div style={{
-                                    position: "absolute", bottom: 0, left: 0, right: 0,
-                                    background: "linear-gradient(to top, #1a1a20 0%, transparent 100%)",
-                                    height: "150px"
-                                }}></div>
+                                <div className="absolute inset-0 bg-linear-to-t md:bg-linear-to-r from-[#0a0a0a] via-transparent to-transparent"></div>
                             </div>
 
-                            <div className="story-inner-content">
-                                <div className="story-modal-header">
-                                    <div className="story-modal-title-group">
-                                        <h2 style={{ fontSize: "2.2rem", fontWeight: "800", marginBottom: "0.5rem", lineHeight: 1.1, textTransform: "uppercase", letterSpacing: "-1px" }}>
-                                            {selectedPlace.title}
-                                        </h2>
-                                        <span style={{ color: "var(--accent)", fontFamily: "monospace", fontSize: "1rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                                            <FaMapPin />
-                                            {selectedPlace.coords}
-                                        </span>
+                            {/* Content Section */}
+                            <div className="w-full md:w-1/2 p-8 md:p-12 overflow-y-auto flex flex-col gap-8">
+                                <div className="flex flex-col gap-4">
+                                    <div className="flex items-center gap-3 text-(--accent) font-mono text-sm tracking-widest">
+                                        <MapPin /> {selectedPlace.coords}
                                     </div>
-
-                                    {/* AUTORES TAGS (Lista) */}
-                                    <div className="story-modal-authors-group">
+                                    <h2 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tighter leading-none mb-2">
+                                        {selectedPlace.title}
+                                    </h2>
+                                    
+                                    {/* Authors */}
+                                    <div className="flex flex-wrap gap-3">
                                         {selectedPlace.authors && selectedPlace.authors.map((auth, idx) => (
-                                            <div key={idx} style={{ display: "flex", alignItems: "center", gap: "0.8rem", background: "rgba(255,255,255,0.05)", padding: "0.5rem 1rem", borderRadius: "50px", border: "1px solid rgba(255,255,255,0.1)" }}>
+                                            <div key={idx} className="flex items-center gap-3 bg-white/5 border border-white/10 px-4 py-2 rounded-2xl group/author transition-all hover:bg-white/10">
                                                 <img
                                                     src={`https://minotar.net/helm/${auth.name}/100.png`}
                                                     alt={auth.name}
-                                                    style={{ width: "32px", height: "32px", borderRadius: "50%" }}
+                                                    className="w-8 h-8 rounded-lg shadow-lg"
                                                 />
-                                                <div>
-                                                    <div style={{ fontSize: "0.6rem", color: "var(--muted)", textTransform: "uppercase", fontWeight: "bold" }}>{t(`stories.roles.${auth.role}`)}</div>
-                                                    <div style={{ fontWeight: "bold", color: "#fff", fontSize: "0.9rem" }}>{auth.name}</div>
+                                                <div className="flex flex-col">
+                                                    <span className="text-[8px] font-black uppercase tracking-widest text-gray-500">{t(`stories.roles.${auth.role}`)}</span>
+                                                    <span className="text-xs font-bold text-white transition-colors group-hover/author:text-(--accent)">{auth.name}</span>
                                                 </div>
                                             </div>
                                         ))}
                                     </div>
                                 </div>
 
-                                <p style={{ fontSize: "1.1rem", lineHeight: "1.8", color: "#ccc", whiteSpace: "pre-line" }}>
+                                <div className="w-full h-px bg-white/5"></div>
+
+                                <p className="text-gray-400 text-lg md:text-xl leading-relaxed font-medium whitespace-pre-line italic">
                                     {selectedPlace.long_description}
                                 </p>
                             </div>
-
                         </motion.div>
                     </motion.div>
                 )}

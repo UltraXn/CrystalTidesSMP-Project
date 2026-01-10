@@ -1,13 +1,17 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { FaPlus } from "react-icons/fa";
+import React, { useState } from "react";
+import { Plus } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { supabase } from "../../services/supabaseClient";
-import { getAuthHeaders } from "../../services/adminAuth";
 import { Event, Registration } from "./Events/types";
 import EventFormModal from "./Events/EventFormModal";
 import EventDeleteModal from "./Events/EventDeleteModal";
 import RegistrationsModal from "./Events/RegistrationsModal";
 import EventsList from "./Events/EventsList";
+import { 
+    useAdminEvents, 
+    useCreateEvent, 
+    useUpdateEvent, 
+    useDeleteEvent 
+} from "../../hooks/useAdminData";
 
 interface EventsManagerProps {
     mockEvents?: Event[];
@@ -16,35 +20,22 @@ interface EventsManagerProps {
 
 export default function EventsManager({ mockEvents, mockRegistrationsMap }: EventsManagerProps = {}) {
     const { t } = useTranslation();
-    const [events, setEvents] = useState<Event[]>(mockEvents || []);
-    const [loading, setLoading] = useState(true);
     
-    // CRUD State
+    // TanStack Query Hooks
+    const { data: fetchEventsData, isLoading: loading } = useAdminEvents();
+    const createMutation = useCreateEvent();
+    const updateMutation = useUpdateEvent();
+    const deleteMutation = useDeleteEvent();
+
+    const events = mockEvents || fetchEventsData || [];
+
+    // Local UI State
     const [isEditing, setIsEditing] = useState(false);
     const [currentEvent, setCurrentEvent] = useState<Event | null>(null);
     const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
     const [showRegistrationsModal, setShowRegistrationsModal] = useState<number | null>(null);
 
     const API_URL = import.meta.env.VITE_API_URL || '/api';
-
-    const fetchEvents = useCallback(async () => {
-        if (mockEvents) return;
-        try {
-            const res = await fetch(`${API_URL}/events`);
-            const data = await res.json();
-            if (Array.isArray(data)) {
-                setEvents(data);
-            }
-        } catch (error) {
-            console.error("Error cargando eventos:", error);
-        } finally {
-            setLoading(false);
-        }
-    }, [API_URL, mockEvents]);
-
-    useEffect(() => {
-        fetchEvents();
-    }, [fetchEvents]);
 
     const handleNew = () => {
         setCurrentEvent({ 
@@ -66,61 +57,23 @@ export default function EventsManager({ mockEvents, mockRegistrationsMap }: Even
 
     const executeDelete = async () => {
         if (!deleteConfirm) return;
-        try {
-            const { data: { session } } = await supabase.auth.getSession();
-            await fetch(`${API_URL}/events/${deleteConfirm}`, { 
-                method: 'DELETE',
-                headers: getAuthHeaders(session?.access_token || null)
-            });
-            setEvents(events.filter(e => e.id !== deleteConfirm));
-            setDeleteConfirm(null);
-        } catch (error) {
-            console.error("Error eliminando evento:", error);
-            alert(t('admin.events.error_delete'));
-        }
+        deleteMutation.mutate(deleteConfirm, {
+            onSuccess: () => setDeleteConfirm(null)
+        });
     };
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!currentEvent) return;
-        try {
-            const { data: { session } } = await supabase.auth.getSession();
-            
-            if (!session) {
-                alert("No active session. Please log in.");
-                return;
-            }
 
-            const headers = { 
-                'Content-Type': 'application/json',
-                ...getAuthHeaders(session.access_token)
-            };
-
-            let res;
-            
-            if (currentEvent.id) {
-                // UPDATE
-                res = await fetch(`${API_URL}/events/${currentEvent.id}`, {
-                    method: 'PUT',
-                    headers,
-                    body: JSON.stringify(currentEvent)
-                });
-            } else {
-                // CREATE
-                res = await fetch(`${API_URL}/events`, {
-                    method: 'POST',
-                    headers,
-                    body: JSON.stringify(currentEvent)
-                });
-            }
-
-            if (!res.ok) throw new Error('Error al guardar');
-
-            await fetchEvents();
-            setIsEditing(false);
-        } catch (error) {
-            console.error("Error guardando evento:", error);
-            alert(t('admin.events.error_save'));
+        if (currentEvent.id) {
+            updateMutation.mutate({ id: currentEvent.id, payload: currentEvent }, {
+                onSuccess: () => setIsEditing(false)
+            });
+        } else {
+            createMutation.mutate(currentEvent, {
+                onSuccess: () => setIsEditing(false)
+            });
         }
     };
 
@@ -132,6 +85,7 @@ export default function EventsManager({ mockEvents, mockRegistrationsMap }: Even
                 currentEvent={currentEvent}
                 setCurrentEvent={setCurrentEvent}
                 API_URL={API_URL}
+                saving={createMutation.isPending || updateMutation.isPending}
             />
         );
     }
@@ -141,7 +95,7 @@ export default function EventsManager({ mockEvents, mockRegistrationsMap }: Even
             <div className="event-header">
                 <h3>{t('admin.events.title')}</h3>
                 <button className="btn-primary poll-new-btn" onClick={handleNew}>
-                    <FaPlus size={14} /> {t('admin.events.create_title')}
+                    <Plus size={14} /> {t('admin.events.create_title')}
                 </button>
             </div>
 
@@ -158,6 +112,7 @@ export default function EventsManager({ mockEvents, mockRegistrationsMap }: Even
                 isOpen={!!deleteConfirm}
                 onClose={() => setDeleteConfirm(null)}
                 onConfirm={executeDelete}
+                deleting={deleteMutation.isPending}
             />
 
             {showRegistrationsModal && (

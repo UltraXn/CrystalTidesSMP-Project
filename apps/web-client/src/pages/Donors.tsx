@@ -162,26 +162,40 @@ export default function Donors() {
     }, [i18n.language, HARDCODED_DONORS, hardcodedDescs, t])
 
     return (
-        <Section title={<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}><img src="/skins/kiru.png" alt="icon" style={{ height: '1.5em', verticalAlign: 'middle' }} /> {t('donors.title')} ✨</div>}>
-            <Section>
-                <div className="crystal-card">
-                    <p>{t('donors.intro')}</p>
+        <div className="pt-24 min-h-screen">
+            <Section title={
+                <div className="flex items-center justify-center gap-3">
+                    <img src="/skins/kiru.png" alt="icon" className="h-[1.5em] w-auto animate-pulse" /> 
+                    <span className="uppercase tracking-widest">{t('donors.title')}</span>
                 </div>
-            </Section>
+            }>
+                {/* Intro */}
+                <div className="max-w-3xl mx-auto mb-16 text-center">
+                    <p className="text-gray-400 text-lg leading-relaxed">{t('donors.intro')}</p>
+                </div>
 
-            <Section delay={200}>
-                <div style={{ marginBottom: '3rem' }}>
-                    <h3 style={{ textAlign: 'center', marginBottom: '2rem', color: 'var(--accent)' }}>{t('donors.latest_title')}</h3>
+                {/* Latest Donations */}
+                <div className="mb-24">
+                    <div className="flex items-center justify-center gap-4 mb-8">
+                        <div className="h-px w-16 bg-linear-to-r from-transparent to-(--accent)"></div>
+                        <h3 className="text-2xl font-black uppercase tracking-widest text-white">{t('donors.latest_title')}</h3>
+                        <div className="h-px w-16 bg-linear-to-l from-transparent to-(--accent)"></div>
+                    </div>
                     <DonationFeed />
                 </div>
-            </Section>
 
-            <Section delay={400}>
-                <div style={{ marginBottom: "3rem", display: "flex", justifyContent: "center", gap: "1rem", flexWrap: "wrap" }}>
-                    <div style={{ transform: 'translateY(-2px)' }}><KoFiButton text={t('hero.kofi_text')} /></div>
+                {/* Carousel Section */}
+                <div className="relative">
+                    <div className="mb-12 flex justify-center w-full">
+                        <div className="transform transition-transform hover:scale-105 active:scale-95">
+                            <KoFiButton text={t('hero.kofi_text')} />
+                        </div>
+                    </div>
+                    <div className="w-full max-w-[1400px] mx-auto">
+                        <EmblaCarousel slides={finalDonors} options={OPTIONS} />
+                    </div>
                 </div>
-                <EmblaCarousel slides={finalDonors} options={OPTIONS} />
             </Section>
-        </Section>
+        </div>
     )
 }

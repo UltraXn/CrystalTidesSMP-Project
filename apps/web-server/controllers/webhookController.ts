@@ -18,11 +18,16 @@ export const handleKofiWebhook = async (req: Request, res: Response) => {
 
         console.log('Ko-Fi Payload received:', payload);
 
-        // Basic verification checks
-        // 1. Check for verification token if you set one in Ko-Fi dashboard (Recommended)
+        // 1. Mandatory verification checks
         const VERIFICATION_TOKEN = process.env.KOFI_VERIFICATION_TOKEN;
-        if (VERIFICATION_TOKEN && payload.verification_token !== VERIFICATION_TOKEN) {
-            console.warn('Invalid Ko-Fi verification token');
+        
+        if (!VERIFICATION_TOKEN) {
+            console.error('CRITICAL: KOFI_VERIFICATION_TOKEN is not set!');
+            return res.status(500).send('Server Configuration Error');
+        }
+
+        if (payload.verification_token !== VERIFICATION_TOKEN) {
+            console.warn('Invalid Ko-Fi verification token attempt');
             return res.status(403).send('Invalid token');
         }
 

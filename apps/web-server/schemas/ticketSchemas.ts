@@ -20,3 +20,9 @@ export const updateTicketStatusSchema = z.object({
         status: z.enum(['open', 'closed', 'in_progress']),
     }),
 });
+export const banUserSchema = z.object({
+    body: z.object({
+        userId: z.string().uuid("Invalid User ID"),
+        reason: z.string().min(5, "Reason too short").max(500),
+    }),
+});

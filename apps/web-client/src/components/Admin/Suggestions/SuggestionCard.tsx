@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { FaCheck, FaTimes, FaTrash } from 'react-icons/fa';
+import { Check, X, Trash2 } from 'lucide-react';
 import { Suggestion, getTypeColor, getStatusColor, getTypeIcon } from './types';
 
 interface SuggestionCardProps {
@@ -107,7 +107,7 @@ export default function SuggestionCard({ suggestion: s, isExpanded, onToggleExpa
                         onClick={() => onUpdateStatus(s.id, 'approved')}
                         style={{ width: '32px', height: '32px', padding: 0, borderRadius: '8px' }}
                     >
-                        <FaCheck size={14} />
+                        <Check size={14} />
                     </button>
                 )}
                 {(s.status !== 'rejected') && (
@@ -117,7 +117,7 @@ export default function SuggestionCard({ suggestion: s, isExpanded, onToggleExpa
                         onClick={() => onUpdateStatus(s.id, 'rejected')}
                         style={{ width: '32px', height: '32px', padding: 0, borderRadius: '8px' }}
                     >
-                        <FaTimes size={14} />
+                        <X size={14} />
                     </button>
                 )}
                 
@@ -127,7 +127,7 @@ export default function SuggestionCard({ suggestion: s, isExpanded, onToggleExpa
                     title="Eliminar"
                     style={{ width: '32px', height: '32px' }}
                 >
-                    <FaTrash size={14} />
+                    <Trash2 size={14} />
                 </button>
             </div>
         </div>

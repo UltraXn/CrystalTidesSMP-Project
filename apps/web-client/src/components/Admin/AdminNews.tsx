@@ -1,18 +1,22 @@
-import { useState, useEffect, useCallback } from "react"
-import { FaPlus, FaEdit, FaTrash, FaSearch, FaExclamationTriangle } from "react-icons/fa"
+import { useState } from "react"
+import { Plus, Edit, Trash2, Search, TriangleAlert } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import Loader from "../UI/Loader"
-import { supabase } from "../../services/supabaseClient"
-import { getAuthHeaders } from "../../services/adminAuth"
 import NewsForm from "./NewsForm"
 import { NewsFormValues } from "../../schemas/news"
+import { User } from "@supabase/supabase-js";
+import { 
+    useAdminNews, 
+    useCreateNews, 
+    useUpdateNews, 
+    useDeleteNews 
+} from "../../hooks/useAdminData"
 
 interface NewsPost extends NewsFormValues {
     id?: number;
     created_at?: string;
+    username?: string;
 }
-
-import { User } from "@supabase/supabase-js";
 
 interface AdminNewsProps {
     user: User | null;
@@ -20,31 +24,16 @@ interface AdminNewsProps {
 
 export default function AdminNews({ user }: AdminNewsProps) {
     const { t } = useTranslation()
-    const [news, setNews] = useState<NewsPost[]>([])
-    const [loading, setLoading] = useState(true)
+    const [searchTerm, setSearchTerm] = useState('')
     const [isEditing, setIsEditing] = useState(false)
     const [currentPost, setCurrentPost] = useState<NewsPost | null>(null)
-    const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null) // ID of news to delete
-    const [searchTerm, setSearchTerm] = useState('')
-    
-    const API_URL = import.meta.env.VITE_API_URL || '/api'; 
+    const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null)
 
-    const fetchNews = useCallback(async () => {
-        try {
-            const res = await fetch(`${API_URL}/news`)
-            const data = await res.json()
-            setNews(data)
-        } catch (error) {
-            console.error("Error cargando noticias:", error)
-        } finally {
-            setLoading(false)
-        }
-    }, [API_URL])
-
-    // Cargar noticias al montar
-    useEffect(() => {
-        fetchNews()
-    }, [fetchNews])
+    // TanStack Query Hooks
+    const { data: news = [], isLoading: loading } = useAdminNews();
+    const createMutation = useCreateNews();
+    const updateMutation = useUpdateNews();
+    const deleteMutation = useDeleteNews();
 
     const handleEdit = (post: NewsPost) => {
         setCurrentPost(post)
@@ -64,80 +53,46 @@ export default function AdminNews({ user }: AdminNewsProps) {
         setIsEditing(true)
     }
 
-    const confirmDelete = (id: number) => {
-        setDeleteConfirm(id)
-    }
-
     const executeDelete = async () => {
-        if (!deleteConfirm) return;
-        try {
-            const username = user?.user_metadata?.full_name || user?.email || 'Admin';
-            const { data: { session } } = await supabase.auth.getSession()
-            const token = session?.access_token
-            const headers = getAuthHeaders(token || null)
-
-            await fetch(`${API_URL}/news/${deleteConfirm}?userId=${user?.id}&username=${encodeURIComponent(username)}`, { 
-                method: 'DELETE',
-                headers
-            })
-            setNews(news.filter(n => n.id !== deleteConfirm))
-            setDeleteConfirm(null)
-        } catch (error) {
-            console.error("Error eliminando noticia:", error)
-            alert(t('admin.news.error_delete'))
-        }
+        if (!deleteConfirm || !user) return;
+        const username = user.user_metadata?.full_name || user.email || 'Admin';
+        
+        deleteMutation.mutate({ id: deleteConfirm, userId: user.id, username }, {
+            onSuccess: () => setDeleteConfirm(null)
+        });
     }
 
     const handleSave = async (data: NewsFormValues) => {
-        try {
-            const { data: { session } } = await supabase.auth.getSession()
-            const token = session?.access_token
-            const headers = { 
-                'Content-Type': 'application/json',
-                ...getAuthHeaders(token || null) 
-            }
-            
-            let res
-            const username = user?.user_metadata?.full_name || user?.email || 'Admin';
-
-            if (data.id) {
-                // UPDATE
-                res = await fetch(`${API_URL}/news/${data.id}`, {
-                    method: 'PUT',
-                    headers,
-                    body: JSON.stringify({ ...data, username, user_id: user?.id })
-                })
-            } else {
-                // CREATE
-                const postData = {
-                    ...data,
-                    author_id: user?.id,
-                    username // Send username for logs
+        const username = user?.user_metadata?.full_name || user?.email || 'Admin';
+        
+        if (data.id) {
+            updateMutation.mutate({ 
+                id: data.id, 
+                payload: { ...data, username, user_id: user?.id } 
+            }, {
+                onSuccess: () => {
+                    setIsEditing(false);
+                    setCurrentPost(null);
                 }
-                res = await fetch(`${API_URL}/news`, {
-                    method: 'POST',
-                    headers,
-                    body: JSON.stringify(postData)
-                })
-            }
-
-            if (!res.ok) throw new Error('Error al guardar')
-
-            await fetchNews() // Recargar lista
-            setIsEditing(false)
-            setCurrentPost(null)
-        } catch (error) {
-            console.error("Error guardando noticia:", error)
-            alert(t('admin.news.error_save'))
+            });
+        } else {
+            createMutation.mutate({
+                ...data,
+                author_id: user?.id,
+                username
+            }, {
+                onSuccess: () => {
+                    setIsEditing(false);
+                    setCurrentPost(null);
+                }
+            });
         }
     }
 
-    const filteredNews = news.filter(post => 
+    const filteredNews = news.filter((post: NewsPost) => 
         post.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
         post.category.toLowerCase().includes(searchTerm.toLowerCase())
     )
-
-
 
     if (isEditing && currentPost) {
         return (
@@ -157,7 +112,7 @@ export default function AdminNews({ user }: AdminNewsProps) {
         <div className="news-manager-container">
             <div className="news-header">
                 <div className="news-search-wrapper">
-                    <FaSearch className="news-search-icon" />
+                    <Search className="news-search-icon" />
                     <input 
                         type="text" 
                         placeholder={t('admin.news.search_ph')} 
@@ -167,7 +122,7 @@ export default function AdminNews({ user }: AdminNewsProps) {
                     />
                 </div>
                 <button className="btn-primary poll-new-btn" onClick={handleNew}>
-                    <FaPlus size={14} /> {t('admin.news.write_btn')}
+                    <Plus size={14} /> {t('admin.news.write_btn')}
                 </button>
             </div>
 
@@ -178,7 +133,7 @@ export default function AdminNews({ user }: AdminNewsProps) {
             ) : filteredNews.length === 0 ? (
                 <div className="poll-empty-state">
                     <div className="poll-empty-icon-wrapper">
-                        <FaSearch size={48} />
+                        <Search size={48} />
                     </div>
                     <div>
                         <h3 style={{ fontSize: '1.75rem', fontWeight: '900', color: '#fff', marginBottom: '0.75rem' }}>{t('admin.news.no_news')}</h3>
@@ -186,13 +141,13 @@ export default function AdminNews({ user }: AdminNewsProps) {
                            No se han encontrado noticias que coincidan con tu búsqueda o aún no hay entradas.
                         </p>
                         <button className="btn-primary" onClick={handleNew} style={{ padding: '1rem 2.5rem' }}>
-                            <FaPlus style={{ marginRight: '10px' }} /> {t('admin.news.write_btn')}
+                            <Plus style={{ marginRight: '10px' }} /> {t('admin.news.write_btn')}
                         </button>
                     </div>
                 </div>
             ) : (
                 <div className="news-cards-grid">
-                    {filteredNews.map(post => (
+                    {filteredNews.map((post: NewsPost) => (
                         <div key={post.id} className="news-card-premium">
                             <div className="news-card-image-wrapper">
                                 <img 
@@ -231,14 +186,14 @@ export default function AdminNews({ user }: AdminNewsProps) {
                                         className="event-btn-action"
                                         title={t('admin.news.edit_title')}
                                     >
-                                        <FaEdit />
+                                        <Edit />
                                     </button>
                                     <button
-                                        onClick={() => post.id && confirmDelete(post.id)}
+                                        onClick={() => post.id && setDeleteConfirm(post.id)}
                                         className="event-btn-action delete"
                                         title={t('admin.news.delete_tooltip')}
                                     >
-                                        <FaTrash />
+                                        <Trash2 />
                                     </button>
                                 </div>
                             </div>
@@ -264,7 +219,7 @@ export default function AdminNews({ user }: AdminNewsProps) {
                             margin: '0 auto 2rem',
                             fontSize: '2.5rem'
                         }}>
-                            <FaExclamationTriangle />
+                            <TriangleAlert />
                         </div>
                         <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.75rem', fontWeight: '900', color: '#fff' }}>{t('admin.news.delete_modal.title')}</h3>
                         <p style={{ color: 'rgba(255,255,255,0.4)', marginBottom: '2.5rem', lineHeight: '1.6', fontSize: '1rem' }}>
@@ -281,6 +236,7 @@ export default function AdminNews({ user }: AdminNewsProps) {
                             <button 
                                 className="modal-btn-primary" 
                                 onClick={executeDelete}
+                                disabled={deleteMutation.isPending}
                                 style={{ 
                                     flex: 1, 
                                     background: '#ef4444', 
@@ -289,7 +245,7 @@ export default function AdminNews({ user }: AdminNewsProps) {
                                     boxShadow: '0 10px 30px rgba(239, 68, 68, 0.3)'
                                 }}
                             >
-                                {t('admin.news.delete_modal.confirm')}
+                                {deleteMutation.isPending ? t('common.deleting') : t('admin.news.delete_modal.confirm')}
                             </button>
                         </div>
                     </div>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FaBullhorn, FaSave, FaInfoCircle, FaExclamationTriangle, FaTimesCircle } from 'react-icons/fa';
+import { Megaphone, Save, Info, AlertTriangle, XCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 interface BroadcastConfig {
@@ -77,7 +77,7 @@ export default function BroadcastManager({ settings, onUpdate, saving }: Broadca
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem' }}>
                     <div>
                         <h3 style={{ margin: 0, display:'flex', alignItems:'center', gap:'0.75rem', fontSize: '1.2rem', fontWeight: '800' }}>
-                           <FaBullhorn style={{ color: 'var(--accent)' }} /> {t('admin.settings.broadcast.title')}
+                           <Megaphone style={{ color: 'var(--accent)' }} /> {t('admin.settings.broadcast.title')}
                         </h3>
                     </div>
                 </div>
@@ -153,9 +153,9 @@ export default function BroadcastManager({ settings, onUpdate, saving }: Broadca
                                         fontWeight: config.type === type ? '700' : 'normal'
                                     }}
                                 >
-                                    {type === 'info' && <FaInfoCircle color={config.type === type ? '#3b82f6' : 'inherit'} />}
-                                    {type === 'alert' && <FaExclamationTriangle color={config.type === type ? '#facc15' : 'inherit'} />}
-                                    {type === 'error' && <FaTimesCircle color={config.type === type ? '#ef4444' : 'inherit'} />}
+                                    {type === 'info' && <Info color={config.type === type ? '#3b82f6' : 'inherit'} />}
+                                    {type === 'alert' && <AlertTriangle color={config.type === type ? '#facc15' : 'inherit'} />}
+                                    {type === 'error' && <XCircle color={config.type === type ? '#ef4444' : 'inherit'} />}
                                     <span style={{ textTransform: 'capitalize' }}>{type}</span>
                                 </button>
                             ))}
@@ -184,9 +184,9 @@ export default function BroadcastManager({ settings, onUpdate, saving }: Broadca
                                 fontSize: '1rem',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px'
                             }}>
-                                 {config.type === 'info' && <FaInfoCircle />}
-                                 {config.type === 'alert' && <FaExclamationTriangle />}
-                                 {config.type === 'error' && <FaTimesCircle />}
+                                 {config.type === 'info' && <Info />}
+                                 {config.type === 'alert' && <AlertTriangle />}
+                                 {config.type === 'error' && <XCircle />}
                                  {config.message || t('admin.settings.broadcast.empty_msg')}
                             </div>
                         ) : (
@@ -216,7 +216,7 @@ export default function BroadcastManager({ settings, onUpdate, saving }: Broadca
                             {saving === 'broadcast_config' ? (
                                 <><span className="spinner-border spinner-border-sm" style={{ width: '16px', height: '16px', border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#000', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></span> Guardando...</>
                             ) : (
-                                <><FaSave /> {t('admin.settings.broadcast.save_btn', 'GUARDAR CONFIGURACIÓN')}</>
+                                <><Save /> {t('admin.settings.broadcast.save_btn', 'GUARDAR CONFIGURACIÓN')}</>
                             )}
                         </button>
                     </div>

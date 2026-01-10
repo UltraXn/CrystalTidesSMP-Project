@@ -1,11 +1,11 @@
-import Menu from "./Menu"
+
 import NotificationCenter from "../../components/UI/NotificationCenter"
 import { Link, useNavigate, useLocation } from "react-router-dom"
 import { useAuth } from "../../context/AuthContext"
 import { isAdmin as checkAdmin } from "../../utils/roleUtils"
-import { FaTrophy, FaEdit, FaShieldAlt, FaSignOutAlt, FaCog, FaServer, FaLink } from "react-icons/fa"
+import { Trophy, Edit, Shield, LogOut, Settings, Server, Link as LinkIcon } from "lucide-react"
 import { useRef, useState, useEffect } from "react"
-import { gsap } from 'gsap'
+import { motion, AnimatePresence } from "framer-motion"
 
 import { useTranslation } from 'react-i18next'
 
@@ -13,8 +13,6 @@ export default function Navbar() {
     const { t, i18n } = useTranslation()
     const { user, logout } = useAuth()
     const navigate = useNavigate()
-    const logoRef = useRef<HTMLImageElement>(null)
-    const animationRef = useRef<gsap.core.Tween | null>(null)
     const [dropdownOpen, setDropdownOpen] = useState(false)
     const [scrolled, setScrolled] = useState(false)
 
@@ -44,87 +42,12 @@ export default function Navbar() {
     }, [])
 
     const dropdownRef = useRef<HTMLDivElement>(null)
-    const userDropdownRef = useRef<HTMLDivElement>(null)
-    const userItemsRef = useRef<(HTMLAnchorElement | HTMLButtonElement | HTMLDivElement)[]>([])
 
     const changeLanguage = (lng: string) => {
         i18n.changeLanguage(lng)
     }
 
     const closeUserDropdown = () => setDropdownOpen(false)
-
-    // Helper to add refs
-    const addToUserRefs = (el: HTMLAnchorElement | HTMLButtonElement | HTMLDivElement | null) => {
-        if (el && !userItemsRef.current.includes(el)) {
-            userItemsRef.current.push(el);
-        }
-    };
-
-    // ANIMATION LOGIC FOR USER DROPDOWN (Migrated to GSAP)
-    useEffect(() => {
-        if (dropdownOpen) {
-            // OPEN ANIMATION
-            if (userDropdownRef.current) {
-                gsap.killTweensOf(userDropdownRef.current);
-                gsap.set(userDropdownRef.current, { visibility: 'visible', opacity: 1 });
-
-                gsap.fromTo(userDropdownRef.current,
-                    { scale: 0.9, opacity: 0, y: 10 },
-                    {
-                        scale: 1,
-                        opacity: 1,
-                        y: 0,
-                        ease: 'elastic.out(1, 0.75)',
-                        duration: 0.8
-                    }
-                );
-            }
-
-            if (userItemsRef.current.length > 0) {
-                gsap.killTweensOf(userItemsRef.current);
-                gsap.fromTo(userItemsRef.current,
-                    { x: 20, opacity: 0 },
-                    {
-                        x: 0,
-                        opacity: 1,
-                        stagger: 0.05,
-                        delay: 0.1,
-                        ease: 'power3.out',
-                        duration: 0.5
-                    }
-                );
-            }
-        } else {
-            // CLOSE ANIMATION
-            if (userDropdownRef.current) {
-                gsap.killTweensOf(userDropdownRef.current);
-                gsap.to(userDropdownRef.current, {
-                    opacity: 0,
-                    y: 10,
-                    scale: 0.95,
-                    duration: 0.3,
-                    ease: 'power2.in',
-                    onComplete: () => {
-                        if (userDropdownRef.current) {
-                            gsap.set(userDropdownRef.current, { visibility: 'hidden' });
-                        }
-                    }
-                });
-            }
-        }
-    }, [dropdownOpen]);
-
-    const handleLogoHover = () => {
-        if (animationRef.current) animationRef.current.kill()
-
-        animationRef.current = gsap.to(logoRef.current, {
-            y: -10,
-            duration: 0.2,
-            ease: 'power2.out',
-            yoyo: true,
-            repeat: 3
-        });
-    }
 
     const handleLogout = async () => {
         try {
@@ -138,204 +61,169 @@ export default function Navbar() {
     }
 
     const location = useLocation()
-    const isHome = location.pathname === '/'
-
     const isAdmin = checkAdmin(user)
 
     // Hide navbar on policy pages if requested
     if (location.pathname.startsWith('/policies')) return null;
 
     return (
-        <header className={`navbar ${scrolled ? 'scrolled' : ''} ${isHome ? 'is-home' : ''}`}>
-            <div className="navbar-left-section" style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-                <div className="navbar-brand">
-                    <Link to="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
-                        <img
-                            ref={logoRef}
+        <header className={`fixed top-0 left-0 w-full z-100 transition-all duration-500 ${scrolled ? 'bg-black/90 backdrop-blur-xl border-b border-white/5 shadow-2xl py-2' : 'bg-transparent py-4'}`}>
+            <div className="w-full px-8 h-16 flex items-center relative">
+                
+                {/* 1. Logo Section (Left) */}
+                <div className="flex items-center">
+                    <Link 
+                        to="/" 
+                        className="flex items-center gap-3 group"
+                    >
+                        <motion.img
                             src="/images/ui/logo.webp"
-                            alt="CrystalTides SMP Logo"
-                            className="navbar-logo"
-                            onMouseEnter={handleLogoHover}
-                            width="40"
-                            height="40"
+                            alt="CrystalTides Logo"
+                            className="w-9 h-9 object-contain"
+                            whileHover={{ y: -5 }}
+                            transition={{ type: "spring", stiffness: 300 }}
                         />
-                        <span className="navbar-title">CrystalTides SMP</span>
+                        <span className="text-xl font-black uppercase tracking-tighter text-white group-hover:text-(--accent) transition-colors hidden 2xl:flex items-center">
+                            <span>Crystal</span>
+                            <span className="text-(--accent)">Tides</span> 
+                            <span className="text-gray-500 ml-2">SMP</span>
+                        </span>
                     </Link>
                 </div>
-                <div className="nav-links">
-                    {!location.pathname.startsWith('/admin') && (
-                        <div className="desktop-nav-items">
-                            <Link to="/#rules">{t('navbar.rules')}</Link>
-                            <Link to="/#donors" style={{ color: 'var(--accent)', fontWeight: 'bold' }}>{t('navbar.donors')}</Link>
-                            <Link to="/#news">{t('navbar.news')}</Link>
-                            <Link to="/#suggestions">{t('navbar.suggestions')}</Link>
-                            <Link to="/forum">{t('navbar.forum')}</Link>
-                            <Link to="/wiki">{t('navbar.wiki', 'Guía')}</Link>
-                            <Link to="/support">{t('navbar.support', 'Soporte')}</Link>
-                            <Link to="/map">{t('footer.online_map')}</Link>
-                        </div>
-                    )}
-                    <div className="mobile-menu-trigger">
-                        <Menu />
+
+                {/* 2. Desktop Navigation (Centered Absolutely) */}
+                <nav className="hidden xl:flex items-center gap-1 absolute left-1/2 -translate-x-1/2">
+                    {[
+                        { to: "/#rules", label: t('navbar.rules') },
+                        { to: "/#donors", label: t('navbar.donors') },
+                        { to: "/#news", label: t('navbar.news') },
+                        { to: "/#suggestions", label: t('navbar.suggestions') },
+                        { to: "/forum", label: t('navbar.forum') },
+                        { to: "/wiki", label: t('navbar.wiki', 'Guía') },
+                        { to: "/support", label: t('navbar.support', 'Soporte') },
+                        { to: "/map", label: t('footer.online_map') }
+                    ].map((link) => (
+                        <Link 
+                            key={link.to} 
+                            to={link.to} 
+                            className="px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 hover:text-white transition-all whitespace-nowrap"
+                        >
+                            {link.label}
+                        </Link>
+                    ))}
+                </nav>
+
+                {/* 3. Right Actions (Right) */}
+                <div className="ml-auto flex items-center gap-6">
+                    {/* Selector de Idioma */}
+                    <div className="hidden lg:flex items-center bg-black/40 p-1 rounded-xl border border-white/5 shadow-inner box-border">
+                        <button
+                            onClick={() => changeLanguage('es')}
+                            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-black transition-all ${i18n.resolvedLanguage === 'es' ? 'bg-(--accent) text-black shadow-lg shadow-(--accent)/20' : 'text-gray-500 hover:text-gray-300'}`}
+                        >
+                            <img src="/images/flags/es.svg" alt="ES" className="w-4 h-[10px] object-cover rounded-[1px] shrink-0" />
+                            ES
+                        </button>
+                        <div className="w-px h-3 bg-white/10 mx-1" />
+                        <button
+                            onClick={() => changeLanguage('en')}
+                            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-black transition-all ${i18n.resolvedLanguage === 'en' ? 'bg-(--accent) text-black shadow-lg shadow-(--accent)/20' : 'text-gray-500 hover:text-gray-300'}`}
+                        >
+                            <img src="/images/flags/us.svg" alt="EN" className="w-4 h-[10px] object-cover rounded-[1px] shrink-0" />
+                            EN
+                        </button>
                     </div>
-                </div>
-            </div>
 
-
-
-            <div className="nav-right-section">
-                {/* Selector de Idioma */}
-                <div className="language-selector">
-                    <button
-                        onClick={() => changeLanguage('es')}
-                        title="Español"
-                        className={`lang-btn ${i18n.resolvedLanguage === 'es' ? 'active' : ''}`}
-                    >
-                        <img src="/images/flags/es.svg" alt="Español" width="20" height="15" />
-                        ES
-                    </button>
-                    <div className="lang-divider"></div>
-                    <button
-                        onClick={() => changeLanguage('en')}
-                        title="English"
-                        className={`lang-btn ${i18n.resolvedLanguage === 'en' ? 'active' : ''}`}
-                    >
-                        <img src="/images/flags/us.svg" alt="English" width="20" height="15" />
-                        EN
-                    </button>
-                </div>
-
-                <div className="nav-auth">
-                    {user ? (
-                        <>
-                            <NotificationCenter />
-                            <div className="user-dropdown-container" ref={dropdownRef}>
-                            <button
-                                className="nav-btn user-menu-btn"
-                                onClick={() => setDropdownOpen(!dropdownOpen)}
-                            >
-                                {(() => {
-                                    const meta = user.user_metadata || {};
-                                    const prefersSocial = meta.avatar_preference === 'social' && meta.avatar_url;
-                                    
-                                    if (prefersSocial) {
-                                        return (
+                    {/* User Profile / Login */}
+                    <div className="flex items-center gap-4">
+                        {user ? (
+                            <div className="flex items-center gap-4">
+                                <NotificationCenter />
+                                <div className="relative" ref={dropdownRef}>
+                                    <button
+                                        className="flex items-center gap-3 bg-(--accent) px-4 py-2 rounded-xl cursor-pointer hover:brightness-110 active:scale-95 transition-all shadow-lg shadow-(--accent)/20 group"
+                                        onClick={() => setDropdownOpen(!dropdownOpen)}
+                                    >
+                                        <div className="w-6 h-6 rounded-lg overflow-hidden border border-black/10">
                                             <img 
-                                                src={meta.avatar_url} 
+                                                src={(() => {
+                                                    const meta = user.user_metadata || {};
+                                                    const mcNick = meta.minecraft_nick || meta.username || 'steve';
+                                                    return meta.avatar_preference === 'social' && meta.avatar_url 
+                                                        ? meta.avatar_url 
+                                                        : `https://mc-heads.net/avatar/${mcNick}/64`;
+                                                })()}
                                                 alt="Avatar" 
-                                                className="user-mini-avatar" 
-                                                onError={(e) => {
-                                                    e.currentTarget.onerror = null;
-                                                    e.currentTarget.src = `https://mc-heads.net/avatar/${meta.minecraft_nick || meta.username || 'steve'}/64`;
-                                                }}
+                                                className="w-full h-full object-cover" 
                                             />
-                                        );
-                                    }
+                                        </div>
+                                        <span className="text-[11px] font-black text-black uppercase tracking-widest truncate max-w-[120px]">
+                                            {user.user_metadata?.minecraft_nick || user.user_metadata?.username || 'User'}
+                                        </span>
+                                    </button>
 
-                                    // Default to Minecraft
-                                    const mcNick = meta.minecraft_nick || meta.username || 'steve';
-                                    return (
-                                        <img 
-                                            src={`https://mc-heads.net/avatar/${mcNick}/64`} 
-                                            alt="Avatar" 
-                                            className="user-mini-avatar" 
-                                        />
-                                    );
-                                })()}
-                                <span>{(() => {
-                                    const meta = user.user_metadata || {};
-                                    const identities = user.identities || [];
-                                    
-                                    // 1. Web Nick (Full Name > Display Name > Username)
-                                    // We prioritize full_name as it is the primary display name in settings.
-                                    if (meta.full_name) return meta.full_name;
-                                    if (meta.display_name) return meta.display_name;
-                                    if (meta.username) return meta.username;
-                                    
-                                    // 2. Discord
-                                    const discord = identities.find((id) => id.provider === 'discord');
-                                    if (discord?.identity_data) {
-                                        const data = discord.identity_data as { 
-                                            full_name?: string; 
-                                            custom_claims?: { global_name?: string };
-                                            name?: string;
-                                            user_name?: string;
-                                        };
-                                        return data.full_name || 
-                                               data.custom_claims?.global_name || 
-                                               data.name || 
-                                               data.user_name;
-                                    }
+                                    {/* Dropdown Menu */}
+                                    <AnimatePresence>
+                                        {dropdownOpen && (
+                                            <motion.div
+                                                className="absolute top-full right-0 mt-4 min-w-[260px] bg-[#0a0a0a] border border-white/10 rounded-4xl p-3 shadow-2xl backdrop-blur-2xl z-100 origin-top-right overflow-hidden shadow-black/80"
+                                                initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                                exit={{ opacity: 0, scale: 0.9, y: 10 }}
+                                                transition={{ type: "spring", duration: 0.5, bounce: 0.3 }}
+                                            >
+                                                <div className="px-4 py-4 mb-2 border-b border-white/5">
+                                                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest leading-none mb-1">Conectado como</p>
+                                                    <p className="text-sm font-black text-white truncate">{user.email}</p>
+                                                </div>
 
-                                    // 3. Twitch
-                                    const twitch = identities.find((id) => id.provider === 'twitch');
-                                    if (twitch?.identity_data) {
-                                        const data = twitch.identity_data as {
-                                            display_name?: string;
-                                            full_name?: string;
-                                            name?: string;
-                                        };
-                                        return data.display_name || 
-                                               data.full_name || 
-                                               data.name;
-                                    }
+                                                <div className="space-y-1">
+                                                    {[
+                                                        { to: "/account?tab=overview", icon: <Server size={18} />, label: t('account.nav.overview') },
+                                                        { to: "/account?tab=posts", icon: <Edit size={18} />, label: t('account.nav.posts') },
+                                                        { to: "/account?tab=achievements", icon: <Trophy size={18} />, label: t('navbar.achievements') },
+                                                        { to: "/account?tab=connections", icon: <LinkIcon size={18} />, label: t('account.nav.connections') },
+                                                        { to: "/account?tab=settings", icon: <Settings size={18} />, label: t('account.settings.title') }
+                                                    ].map((item, idx) => (
+                                                        <Link 
+                                                            key={idx}
+                                                            to={item.to} 
+                                                            className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-400 rounded-[1.25rem] hover:bg-white/5 hover:text-white group/item transition-all" 
+                                                            onClick={closeUserDropdown} 
+                                                        >
+                                                            <span className="text-gray-600 group-hover/item:text-(--accent) transition-colors">{item.icon}</span>
+                                                            {item.label}
+                                                        </Link>
+                                                    ))}
 
-                                    // 4. Minecraft
-                                    if (meta.minecraft_nick) return meta.minecraft_nick;
+                                                    {isAdmin && (
+                                                        <>
+                                                            <div className="h-px bg-white/5 my-2 mx-4"></div>
+                                                            <Link to="/admin" className="flex items-center gap-3 px-4 py-3 text-sm font-black text-(--accent) rounded-[1.25rem] hover:bg-(--accent)/10 transition-all" onClick={closeUserDropdown}>
+                                                                <Shield size={18} /> {t('account.admin_panel')}
+                                                            </Link>
+                                                        </>
+                                                    )}
 
-                                    return user.email?.split('@')[0] || 'User';
-                                })()}</span>
-                            </button>
-
-                            {/* Dropdown Menu - ALWAYS RENDERED but visibility controlled by anime.js */}
-                            <div
-                                className="menu-dropdown"
-                                ref={userDropdownRef}
-                                style={{
-                                    visibility: 'hidden', // Controlled by anime.js
-                                    opacity: 0,
-                                    display: 'block' // Ensure it's reachable for animation
-                                }}
-                            >
-
-                                <Link to="/account?tab=overview" className="menu-item" onClick={closeUserDropdown} ref={addToUserRefs}>
-                                    <FaServer /> {t('account.nav.overview', 'Resumen')}
-                                </Link>
-                                <Link to="/account?tab=posts" className="menu-item" onClick={closeUserDropdown} ref={addToUserRefs}>
-                                    <FaEdit /> {t('account.nav.posts', 'Mis Publicaciones')}
-                                </Link>
-                                <Link to="/account?tab=achievements" className="menu-item" onClick={closeUserDropdown} ref={addToUserRefs}>
-                                    <FaTrophy /> {t('navbar.achievements', 'Logros')}
-                                </Link>
-                                <Link to="/account?tab=connections" className="menu-item" onClick={closeUserDropdown} ref={addToUserRefs}>
-                                    <FaLink /> {t('account.nav.connections', 'Conexiones')}
-                                </Link>
-                                <Link to="/account?tab=settings" className="menu-item" onClick={closeUserDropdown} ref={addToUserRefs}>
-                                    <FaCog /> {t('account.settings.title', 'Configuración')}
-                                </Link>
-
-                                {isAdmin && (
-                                    <>
-                                        <div className="dropdown-divider"></div>
-                                        <Link to="/admin" className="menu-item admin-link" onClick={closeUserDropdown} ref={addToUserRefs}>
-                                            <FaShieldAlt /> {t('account.admin_panel')}
-                                        </Link>
-                                    </>
-                                )}
-
-                                <div className="dropdown-divider"></div>
-                                <button className="menu-item logout-link" onClick={handleLogout} ref={addToUserRefs}>
-                                    <FaSignOutAlt /> {t('account.nav.logout')}
-                                </button>
+                                                    <div className="h-px bg-white/5 my-2 mx-4"></div>
+                                                    <button className="w-full flex items-center gap-3 px-4 py-3 text-sm font-black text-red-500 rounded-[1.25rem] hover:bg-red-500/10 transition-all text-left" onClick={handleLogout}>
+                                                        <LogOut size={18} /> {t('account.nav.logout')}
+                                                    </button>
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </div>
                             </div>
-                        </div>
-                        </>
-                    ) : (
-                        <>
-                            <Link to="/login" className="nav-btn">{t('navbar.login')}</Link>
-                            <Link to="/register" className="nav-btn primary">{t('navbar.register')}</Link>
-                        </>
-                    )}
+                        ) : (
+                            <div className="flex items-center gap-2">
+                                <Link to="/login" className="px-6 py-2.5 text-xs font-black uppercase tracking-widest text-gray-400 hover:text-white transition-colors">{t('navbar.login')}</Link>
+                                <Link to="/register" className="px-6 py-2.5 bg-white text-black text-xs font-black uppercase tracking-widest rounded-xl shadow-xl hover:bg-(--accent) hover:scale-105 active:scale-95 transition-all">{t('navbar.register')}</Link>
+                            </div>
+                        )}
+                        
+
+                    </div>
                 </div>
             </div>
         </header>

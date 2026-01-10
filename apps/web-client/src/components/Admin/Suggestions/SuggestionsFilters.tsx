@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { FaInbox, FaLightbulb, FaBug, FaCube, FaExclamationTriangle, FaPoll } from 'react-icons/fa';
+import { Inbox, Lightbulb, Bug, Box, AlertTriangle, BarChart3 } from 'lucide-react';
 import { getTypeColor, getStatusColor } from './types';
 
 interface SuggestionsFiltersProps {
@@ -69,7 +69,7 @@ export default function SuggestionsFilters({ filterType, setFilterType, filterSt
         <div className="suggestions-sidebar" style={{ width: '320px', flexShrink: 0, position: 'sticky', top: '2rem' }}>
             <div style={{ marginBottom: '2rem' }}>
                 <h2 style={{ margin: 0, display:'flex', alignItems:'center', gap:'12px', fontSize: '1.8rem', background: 'linear-gradient(90deg, #fff, #aaa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                    <FaInbox style={{ color: 'var(--accent)' }} /> 
+                    <Inbox style={{ color: 'var(--accent)' }} /> 
                     {t('admin.suggestions.title')}
                 </h2>
                 <p style={{ margin: '5px 0 0 0', color: '#666', fontSize: '0.9rem' }}>
@@ -90,11 +90,11 @@ export default function SuggestionsFilters({ filterType, setFilterType, filterSt
                     </div>
                     <FilterButton type="All" label={t('admin.suggestions.filter_all')} isActive={filterType === 'All'} onClick={() => setFilterType('All')} />
                     <div style={{ height: '1px', background: 'rgba(255,255,255,0.1)', margin: '4px 0' }}></div>
-                    <FilterButton type="General" icon={<FaLightbulb />} label={t('admin.suggestions.types.general')} isActive={filterType === 'General'} onClick={() => setFilterType('General')} />
-                    <FilterButton type="Bug" icon={<FaBug />} label={t('admin.suggestions.types.bug')} isActive={filterType === 'Bug'} onClick={() => setFilterType('Bug')} />
-                    <FilterButton type="Mod" icon={<FaCube />} label={t('admin.suggestions.types.mod')} isActive={filterType === 'Mod'} onClick={() => setFilterType('Mod')} />
-                    <FilterButton type="Complaint" icon={<FaExclamationTriangle />} label={t('admin.suggestions.types.complaint')} isActive={filterType === 'Complaint'} onClick={() => setFilterType('Complaint')} />
-                    <FilterButton type="Poll" icon={<FaPoll />} label={t('admin.suggestions.types.poll')} isActive={filterType === 'Poll'} onClick={() => setFilterType('Poll')} />
+                    <FilterButton type="General" icon={<Lightbulb size={14} />} label={t('admin.suggestions.types.general')} isActive={filterType === 'General'} onClick={() => setFilterType('General')} />
+                    <FilterButton type="Bug" icon={<Bug size={14} />} label={t('admin.suggestions.types.bug')} isActive={filterType === 'Bug'} onClick={() => setFilterType('Bug')} />
+                    <FilterButton type="Mod" icon={<Box size={14} />} label={t('admin.suggestions.types.mod')} isActive={filterType === 'Mod'} onClick={() => setFilterType('Mod')} />
+                    <FilterButton type="Complaint" icon={<AlertTriangle size={14} />} label={t('admin.suggestions.types.complaint')} isActive={filterType === 'Complaint'} onClick={() => setFilterType('Complaint')} />
+                    <FilterButton type="Poll" icon={<BarChart3 size={14} />} label={t('admin.suggestions.types.poll')} isActive={filterType === 'Poll'} onClick={() => setFilterType('Poll')} />
                 </div>
 
                 {/* Status Filters */}

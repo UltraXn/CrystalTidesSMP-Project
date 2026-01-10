@@ -1,4 +1,5 @@
 import { lazy } from 'react'
+import { motion, Variants } from 'framer-motion'
 import Hero from "../components/Hero"
 import Section from "../components/Layout/Section"
 import SectionDivider from "../components/Layout/SectionDivider"
@@ -15,126 +16,111 @@ const Suggestions = lazy(() => import("./Suggestions"))
 import StaffShowcase from "../components/Home/StaffShowcase"
 
 import { useTranslation } from 'react-i18next'
-import DiscordButton from "../components/UI/DiscordButton"
-import TwitchButton from "../components/UI/TwitchButton"
-import TwitterButton from "../components/UI/TwitterButton"
-import { useEffect, useRef } from 'react'
-import { gsap } from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
-gsap.registerPlugin(ScrollTrigger)
+// Animation variant for reusing
+const fadeUpVariant: Variants = {
+    hidden: { opacity: 0, y: 50 },
+    visible: { 
+        opacity: 1, 
+        y: 0, 
+        transition: { duration: 0.8, ease: "easeOut" as const } 
+    }
+}
+
+const SectionWithScroll = ({ children, id, className }: { children: React.ReactNode, id?: string, className?: string }) => (
+    <motion.div 
+        id={id}
+        className={className}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
+        variants={fadeUpVariant}
+    >
+        {children}
+    </motion.div>
+)
 
 export default function Home() {
     const { t } = useTranslation()
-    const containerRef = useRef<HTMLDivElement>(null)
-
-    useEffect(() => {
-        const ctx = gsap.context(() => {
-            // Animate each section container
-            const sections = containerRef.current?.querySelectorAll('section, .SectionDivider, #rules, #donors, #staff, #contests, #news, #stories, #suggestions');
-            
-            sections?.forEach((section) => {
-                gsap.fromTo(section, 
-                    { opacity: 0, y: 50 },
-                    {
-                        opacity: 1,
-                        y: 0,
-                        duration: 1,
-                        ease: "power3.out",
-                        scrollTrigger: {
-                            trigger: section,
-                            start: "top 85%",
-                            toggleActions: "play none none none"
-                        }
-                    }
-                );
-            });
-        });
-
-        return () => ctx.revert();
-    }, []);
 
     return (
-        <div ref={containerRef}>
+        <div>
             <Hero />
             
             <Section title={t('home.title')}>
-                <Section>
-                    <div className="crystal-card">
-                        <p>{t('home.description')}</p>
+                <SectionWithScroll>
+                    <div className="relative p-8 bg-black/60 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl max-w-3xl mx-auto mb-16">
+                        <p className="text-lg text-gray-300 leading-relaxed">{t('home.description')}</p>
                     </div>
 
                     <ServerFeatures />
-                </Section>
+                </SectionWithScroll>
             </Section>
 
             <SectionDivider />
 
             <Section title={t('footer.community')} id="community">
-                <div className="crystal-card" style={{ maxWidth: '800px' }}>
-                    <p style={{ marginBottom: "1.5rem" }}>{t('home.join_us_twitch')}</p>
-                    <p>{t('home.join_us_discord')}</p>
-                </div>
-                <div className="flex flex-wrap justify-center gap-8 px-4 items-center">
-                    <DiscordButton />
-                    <TwitchButton />
-                    <TwitterButton />
-                </div>
+                <SectionWithScroll>
+                    <div className="relative p-8 bg-black/60 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl max-w-[800px] mx-auto">
+                        <p className="mb-6 text-xl text-gray-300">{t('home.join_us_twitch')}</p>
+                        <p className="text-xl text-gray-300">{t('home.join_us_discord')}</p>
+                    </div>
+                </SectionWithScroll>
             </Section>
 
             <SectionDivider />
 
-            <div id="rules">
+            <SectionWithScroll id="rules" className="w-full max-w-[1200px] mx-auto">
                 <LazyWrapper>
                     <Rules />
                 </LazyWrapper>
-            </div>
+            </SectionWithScroll>
 
             <SectionDivider />
 
-            <div id="donors">
+            <SectionWithScroll id="donors" className="w-full max-w-[1200px] mx-auto">
                 <LazyWrapper>
                     <Donors />
                 </LazyWrapper>
-            </div>
+            </SectionWithScroll>
 
             <SectionDivider />
 
-            <div id="staff">
+            <SectionWithScroll id="staff" className="w-full max-w-[1200px] mx-auto">
                 <StaffShowcase />
-            </div>
+            </SectionWithScroll>
 
             <SectionDivider />
 
-            <div id="contests">
+            <SectionWithScroll id="contests" className="w-full max-w-[1200px] mx-auto">
                 <LazyWrapper>
                     <Contests />
                 </LazyWrapper>
-            </div>
+            </SectionWithScroll>
 
             <SectionDivider />
 
-            <div id="news">
+            <SectionWithScroll id="news" className="w-full max-w-[1200px] mx-auto">
                 <LazyWrapper>
                     <Blog />
                 </LazyWrapper>
-            </div>
+            </SectionWithScroll>
 
             <SectionDivider />
 
-            <div id="stories">
+            <SectionWithScroll id="stories" className="w-full max-w-[1200px] mx-auto">
                 <LazyWrapper>
                     <Stories />
                 </LazyWrapper>
-            </div>
+            </SectionWithScroll>
 
             <SectionDivider />
 
-            <div id="suggestions">
+            <SectionWithScroll id="suggestions" className="w-full max-w-[1200px] mx-auto">
                 <LazyWrapper>
                     <Suggestions />
                 </LazyWrapper>
-            </div>
+            </SectionWithScroll>
         </div>
     )
 }

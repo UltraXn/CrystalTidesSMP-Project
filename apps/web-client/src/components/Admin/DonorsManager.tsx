@@ -1,21 +1,24 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FaCrown, FaPlus, FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
+import { Crown, Plus, CheckCircle, AlertCircle, X } from 'lucide-react';
 import { DropResult } from '@hello-pangea/dnd';
 import Loader from '../UI/Loader';
-import { supabase } from '../../services/supabaseClient';
-import { getAuthHeaders } from '../../services/adminAuth';
 import DonorFormModal, { Donor } from './Donors/DonorFormModal';
 import DonorsList from './Donors/DonorsList';
 import DonorsConfirmModal from './Donors/DonorsConfirmModal';
-
-const API_URL = import.meta.env.VITE_API_URL || '/api';
+import { 
+    useAdminSettings, 
+    useUpdateSiteSetting 
+} from '../../hooks/useAdminData';
 
 export default function DonorsManager() {
     const { t } = useTranslation();
-    const [donors, setDonors] = useState<Donor[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(false);
+    
+    // TanStack Query Hooks
+    const { data: adminSettings, isLoading: loading } = useAdminSettings();
+    const updateSettingMutation = useUpdateSiteSetting();
+
+    const donors = adminSettings?.donors || [];
     
     // Edit Modal State
     const [editingDonor, setEditingDonor] = useState<Donor | null>(null);
@@ -31,49 +34,20 @@ export default function DonorsManager() {
     // Custom Alert State
     const [alert, setAlert] = useState<{ message: string; type: 'error' | 'success' | 'warning' } | null>(null);
 
-    useEffect(() => {
-        const fetchDonors = async () => {
-             setLoading(true);
-             try {
-                const res = await fetch(`${API_URL}/settings`);
-                const data = await res.json();
-                if (data.donors_list) {
-                    const parsed = typeof data.donors_list === 'string' ? JSON.parse(data.donors_list) : data.donors_list;
-                    if (Array.isArray(parsed)) setDonors(parsed);
+    const handleUpdateDonors = async (newList: Donor[]) => {
+        updateSettingMutation.mutate({
+            key: 'donors_list',
+            value: JSON.stringify(newList)
+        }, {
+            onSuccess: () => {
+                if (!editingDonor) {
+                    setAlert({ message: t('admin.donors.validation.success_save', 'Lista de donadores actualizada'), type: "success" });
                 }
-             } catch (err) {
-                 console.error(err);
-             } finally {
-                 setLoading(false);
-             }
-        };
-        fetchDonors();
-    }, []);
-
-    const handleSaveList = async (newList: Donor[]) => {
-        setSaving(true);
-        try {
-            const { data: { session } } = await supabase.auth.getSession();
-            await fetch(`${API_URL}/settings/donors_list`, {
-                method: 'PUT',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    ...getAuthHeaders(session?.access_token || null)
-                },
-                body: JSON.stringify({ 
-                    value: JSON.stringify(newList),
-                })
-            });
-            setDonors(newList);
-            if (!editingDonor) {
-                 setAlert({ message: t('admin.donors.validation.success_save', 'Lista de donadores actualizada'), type: "success" });
+            },
+            onError: () => {
+                setAlert({ message: t('admin.donors.validation.save_error'), type: "error" });
             }
-        } catch (error) {
-            console.error("Error saving donors", error);
-            setAlert({ message: t('admin.donors.validation.save_error'), type: "error" });
-        } finally {
-            setSaving(false);
-        }
+        });
     };
 
     const handleImportDefaults = () => {
@@ -82,8 +56,8 @@ export default function DonorsManager() {
 
     const confirmAction = () => {
         if (confirmModal.type === 'delete' && confirmModal.payload) {
-             const newList = donors.filter(d => d.id !== confirmModal.payload);
-             handleSaveList(newList);
+             const newList = donors.filter((d: Donor) => d.id !== confirmModal.payload);
+             handleUpdateDonors(newList);
         } else if (confirmModal.type === 'import') {
              const defaults: Donor[] = [
                 {
@@ -150,7 +124,7 @@ export default function DonorsManager() {
                     ranks: ['donador']
                 }
             ];
-            handleSaveList(defaults);
+            handleUpdateDonors(defaults);
         }
         setConfirmModal({ isOpen: false, type: null });
     };
@@ -162,8 +136,7 @@ export default function DonorsManager() {
         const [reorderedItem] = items.splice(result.source.index, 1);
         items.splice(result.destination.index, 0, reorderedItem);
 
-        setDonors(items);
-        handleSaveList(items);
+        handleUpdateDonors(items);
     };
 
     const handleEditSave = (donorData: Donor) => {
@@ -195,7 +168,7 @@ export default function DonorsManager() {
             newList = newList.map(d => d.id === donorData.id ? finalDonor : d);
         }
         
-        handleSaveList(newList);
+        handleUpdateDonors(newList);
         setEditingDonor(null);
     };
 
@@ -220,7 +193,7 @@ export default function DonorsManager() {
                 <div>
                    <h3 style={{ margin: 0, display:'flex', alignItems:'center', gap:'1rem', fontSize: '1.5rem', fontWeight: 900, color: '#fff' }}>
                         <div style={{ padding: '8px', background: 'rgba(var(--accent-rgb), 0.1)', borderRadius: '12px', display: 'flex', color: 'var(--accent)' }}>
-                            <FaCrown />
+                            <Crown />
                         </div>
                         {t('admin.donors.manager_title')}
                     </h3>
@@ -229,7 +202,7 @@ export default function DonorsManager() {
                     </p>
                 </div>
                 <button className="btn-primary poll-new-btn" onClick={openNew}>
-                    <FaPlus /> {t('admin.donors.add_btn')}
+                    <Plus /> {t('admin.donors.add_btn')}
                 </button>
             </div>
 
@@ -246,7 +219,7 @@ export default function DonorsManager() {
                 isNew={isNew}
                 onClose={() => setEditingDonor(null)}
                 onSave={handleEditSave}
-                saving={saving}
+                saving={updateSettingMutation.isPending}
             />
 
             <DonorsConfirmModal 
@@ -270,10 +243,10 @@ export default function DonorsManager() {
                        gap: '12px',
                        boxShadow: '0 20px 40px rgba(0,0,0,0.4)'
                    }}>
-                       {alert.type === 'error' ? <FaExclamationCircle color="#ef4444" /> : <FaCheckCircle color="#10b981" />}
+                       {alert.type === 'error' ? <AlertCircle color="#ef4444" /> : <CheckCircle color="#10b981" />}
                        <span style={{ color: '#fff', fontWeight: 700, fontSize: '0.9rem' }}>{alert.message}</span>
                        <button onClick={() => setAlert(null)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer', padding: '4px' }}>
-                           <FaTimes />
+                           <X />
                        </button>
                    </div>
                 </div>

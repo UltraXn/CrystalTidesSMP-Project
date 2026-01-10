@@ -1,14 +1,13 @@
 import React, { useRef, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { FaMedal, FaTimes, FaSignOutAlt, FaTrophy, FaServer, FaCamera, FaPen, FaComment, FaShieldAlt, FaLink, FaCog } from 'react-icons/fa';
+import { Medal, X, LogOut, Trophy, Server, Camera, PenTool, MessageSquare, Shield, Link as LinkIcon, Settings } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../services/supabaseClient';
 import { compressImage } from '../../utils/imageOptimizer';
 import Loader from '../UI/Loader';
 import { User } from '@supabase/supabase-js';
 
-// Nav Button Component (Local)
 interface NavButtonProps {
     active: boolean;
     onClick: () => void;
@@ -19,10 +18,10 @@ interface NavButtonProps {
 const NavButton = ({ active, onClick, icon, label }: NavButtonProps) => (
     <button 
         onClick={onClick}
-        className={`nav-btn ${active ? 'active' : ''}`}
+        className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl transition-all group ${active ? 'bg-(--accent)/10 text-(--accent) shadow-lg shadow-(--accent)/5' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
     >
-        <span className="nav-icon">{icon}</span>
-        <span className="nav-text">{label}</span>
+        <span className={`text-lg transition-transform group-hover:scale-110 ${active ? 'text-(--accent)' : 'text-gray-500'}`}>{icon}</span>
+        <span className="text-xs font-black uppercase tracking-widest">{label}</span>
     </button>
 )
 
@@ -51,13 +50,12 @@ const AccountSidebar: React.FC<AccountSidebarProps> = ({
     const { logout, updateUser } = useAuth();
     const navigate = useNavigate();
     
-    // Local state for sidebar interactions
     const [uploading, setUploading] = useState(false);
     const [isEditingName, setIsEditingName] = useState(false);
     const [newName, setNewName] = useState("");
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const isAdmin = ['admin', 'neroferno', 'killu', 'killuwu', 'developer'].includes(user?.user_metadata?.role?.toLowerCase());
+    const isAdmin = ['admin', 'neroferno', 'killu', 'killuwu', 'developer', 'staff'].includes(user?.user_metadata?.role?.toLowerCase());
 
     const handleLogout = async () => {
         await logout();
@@ -71,31 +69,26 @@ const AccountSidebar: React.FC<AccountSidebarProps> = ({
     const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         try {
             setUploading(true);
-            if (!event.target.files || event.target.files.length === 0) {
-                throw new Error(t('account.avatar.error_select'));
-            }
+            if (!event.target.files || event.target.files.length === 0) return;
 
             const file = event.target.files[0];
             const compressedBlob = await compressImage(file);
-            const fileExt = 'webp';
-            const fileName = `${user.id}/${Date.now()}.${fileExt}`;
-            const filePath = `${fileName}`;
+            const fileName = `${user.id}/${Date.now()}.webp`;
 
             const { error: uploadError } = await supabase.storage
                 .from('avatars')
-                .upload(filePath, compressedBlob, {
+                .upload(fileName, compressedBlob, {
                     contentType: 'image/webp',
                     upsert: true
                 });
 
             if (uploadError) throw uploadError;
 
-            const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
+            const { data } = supabase.storage.from('avatars').getPublicUrl(fileName);
             await updateUser({ avatar_url: data.publicUrl });
 
         } catch (error) {
-            const message = error instanceof Error ? error.message : String(error);
-            alert(t('account.avatar.error_update') + message);
+            console.error("Avatar upload error:", error);
         } finally {
             setUploading(false);
         }
@@ -114,104 +107,98 @@ const AccountSidebar: React.FC<AccountSidebarProps> = ({
         }
     };
 
+    const handleNav = (tab: string) => {
+        setActiveTab(tab);
+        if (onClose) onClose();
+    };
+
     return (
-        <aside className={`dashboard-sidebar ${isOpen ? 'open' : ''}`} style={{ background: 'rgba(30,30,35,0.6)' }}>
-            <div className="drawer-handle" />
-            {/* Mobile Close Button */}
+        <aside className={`fixed inset-y-0 left-0 w-[300px] bg-[#0a0a0a] z-200 lg:z-50 transition-transform duration-500 lg:sticky lg:top-24 lg:h-[calc(100vh-120px)] lg:rounded-4xl lg:translate-x-0 ${isOpen ? 'translate-x-0 shadow-2xl shadow-black' : '-translate-x-full'}`}>
+            
             <button 
-                className="sidebar-close-btn-mobile"
+                className="absolute top-6 right-6 lg:hidden w-10 h-10 flex items-center justify-center bg-white/5 rounded-xl text-gray-500"
                 onClick={onClose}
-                style={{
-                    position: 'absolute',
-                    top: '1rem',
-                    right: '1rem',
-                    background: 'none',
-                    border: 'none',
-                    color: 'rgba(255,255,255,0.4)',
-                    fontSize: '1.2rem',
-                    display: 'none', // Shown via CSS
-                    cursor: 'pointer',
-                    zIndex: 10
-                }}
             >
-                <FaTimes />
+                <X />
             </button>
 
-            <div className="user-snippet">
-                <div className="user-avatar-premium-wrapper" style={{ position: 'relative', marginBottom: '1.2rem' }}>
-                    <div className="user-avatar-large" style={{ 
-                        width: '100px', 
-                        height: '100px', 
-                        border: '3px solid rgba(255,255,255,0.05)',
-                        background: 'rgba(255,255,255,0.02)',
-                        boxShadow: '0 10px 25px rgba(0,0,0,0.4)',
-                        position: 'relative',
-                        zIndex: 1,
-                        cursor: 'pointer',
-                        margin: '0 auto',
-                        borderRadius: '50%',
-                        overflow: 'hidden'
-                    }} onClick={handleAvatarClick}>
-                        {uploading ? (
-                            <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.5)' }}>
-                                <Loader minimal />
-                            </div>
-                        ) : (
-                            <>
+            <div className="flex flex-col h-full p-8">
+                {/* User Header */}
+                <div className="flex flex-col items-center text-center mb-10">
+                    <div className="relative group/avatar mb-6 cursor-pointer" onClick={handleAvatarClick}>
+                        <div className="relative w-24 h-24 rounded-full p-1 bg-linear-to-tr from-(--accent)/20 via-white/5 to-white/5 overflow-hidden shadow-2xl">
+                            {uploading ? (
+                                <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+                                    <Loader minimal />
+                                </div>
+                            ) : (
                                 <img 
                                     src={
                                         (user.user_metadata?.avatar_preference === 'social' && user.user_metadata?.avatar_url) 
                                             ? user.user_metadata.avatar_url 
-                                            : (isLinked ? `https://mc-heads.net/avatar/${statsData?.username || mcUsername}/100` : "https://ui-avatars.com/api/?name=" + (user.user_metadata?.full_name || "User"))
+                                            : (isLinked ? `https://mc-heads.net/avatar/${statsData?.username || mcUsername}/128` : "https://ui-avatars.com/api/?name=" + (user.user_metadata?.full_name || "User"))
                                     } 
                                     alt="Avatar" 
-                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                                    className="w-full h-full object-cover rounded-full" 
+                                
                                 />
-                                <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', opacity: 0, transition: '0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center' }} className="avatar-hover-overlay" onMouseOver={e => e.currentTarget.style.opacity = '1'} onMouseOut={e => e.currentTarget.style.opacity = '0'}><FaCamera /></div>
-                            </>
-                        )}
-                    </div>
-                    <div className="avatar-frame-placeholder" style={{ position: 'absolute', inset: '-8px', border: '2px dashed rgba(255,255,255,0.05)', borderRadius: '50%', pointerEvents: 'none', width: '116px', height: '116px', left: '50%', transform: 'translateX(-50%)' }}></div>
-                </div>
-                <input type="file" ref={fileInputRef} onChange={handleAvatarUpload} style={{ display: 'none' }} accept="image/*" />
-                
-                <div style={{ textAlign: 'center', width: '100%' }}>
-                    {isEditingName ? (
-                        <div style={{ display: 'flex', gap: '5px', justifyContent: 'center', marginBottom: '0.5rem' }}>
-                            <input 
-                                autoFocus 
-                                value={newName} 
-                                onChange={e => setNewName(e.target.value)}
-                                placeholder={user.user_metadata?.full_name}
-                                style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', padding: '6px 10px', borderRadius: '8px', width: '140px', outline: 'none' }}
-                            />
-                            <button onClick={handleNameUpdate} style={{ background: 'var(--accent)', border: 'none', borderRadius: '8px', cursor:'pointer', padding: '0 8px' }}>💾</button>
+                            )}
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover/avatar:opacity-100 transition-opacity">
+                                <Camera className="text-white text-xl" />
+                            </div>
                         </div>
-                    ) : (
-                        <h3 className="user-name" style={{ color: '#fff', fontSize: '1.2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontWeight: 800 }}>
-                            {user.user_metadata?.full_name || mcUsername}
-                            <FaPen size={12} style={{ cursor: 'pointer', color: 'rgba(255,255,255,0.3)' }} onClick={() => { setNewName(user.user_metadata?.full_name || ""); setIsEditingName(true); }} />
-                        </h3>
+                        <div className="absolute -inset-2 border border-dashed border-white/5 rounded-full pointer-events-none group-hover/avatar:border-(--accent)/30 transition-colors"></div>
+                    </div>
+                    
+                    <input type="file" ref={fileInputRef} onChange={handleAvatarUpload} className="hidden" accept="image/*" />
+                    
+                    <div className="space-y-1">
+                        {isEditingName ? (
+                            <div className="flex items-center gap-2">
+                                <input 
+                                    autoFocus 
+                                    value={newName} 
+                                    onChange={e => setNewName(e.target.value)}
+                                    // onBlur={handleNameUpdate}
+                                    className="bg-white/5 border border-white/10 text-white px-3 py-1.5 rounded-lg text-sm font-bold w-32 focus:outline-none focus:border-(--accent)/40"
+                                />
+                                <button onClick={handleNameUpdate} className="p-2 bg-(--accent) text-black rounded-lg text-[10px] font-black uppercase">Save</button>
+                            </div>
+                        ) : (
+                            <h3 className="text-lg font-black text-white uppercase tracking-tighter flex items-center justify-center gap-2 group/name">
+                                {user.user_metadata?.full_name || mcUsername}
+                                <PenTool className="text-[10px] text-gray-600 group-hover/name:text-white cursor-pointer transition-colors" onClick={() => { setNewName(user.user_metadata?.full_name || ""); setIsEditingName(true); }} />
+                            </h3>
+                        )}
+                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest truncate max-w-[200px]">{user.email}</p>
+                    </div>
+
+                    {isAdmin && (
+                        <Link to="/admin" className="mt-6 flex items-center gap-2 bg-red-500/10 border border-red-500/20 text-red-400 px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-500/20 transition-all">
+                            <Shield /> {t('account.admin_panel')}
+                        </Link>
                     )}
-                    <span className="user-email" style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem', display: 'block', wordBreak: 'break-all' }}>{user.email}</span>
-                    {isAdmin && <Link to="/admin" className="btn-small" style={{ marginTop: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(231, 76, 60, 0.1)', color: '#ff6b6b', border: '1px solid rgba(231, 76, 60, 0.2)', padding: '0.4rem 1rem', fontSize: '0.75rem', borderRadius: '8px', textDecoration: 'none', fontWeight: 700 }}><FaShieldAlt /> {t('account.admin_panel')}</Link>}
+                </div>
+
+                {/* Nav Links */}
+                <nav className="flex-1 space-y-1 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-white/5 pb-24 lg:pb-0">
+                    <NavButton active={activeTab === 'overview'} onClick={() => handleNav('overview')} icon={<Server />} label={t('account.nav.overview')} />
+                    <NavButton active={activeTab === 'posts'} onClick={() => handleNav('posts')} icon={<MessageSquare />} label={t('account.nav.posts')} />
+                    <NavButton active={activeTab === 'medals'} onClick={() => handleNav('medals')} icon={<Medal />} label={t('account.nav.medals', 'Medallas')} />
+                    <NavButton active={activeTab === 'achievements'} onClick={() => handleNav('achievements')} icon={<Trophy />} label={t('account.nav.achievements')} />
+                    <NavButton active={activeTab === 'connections'} onClick={() => handleNav('connections')} icon={<LinkIcon />} label={t('account.nav.connections')} />
+                    <NavButton active={activeTab === 'settings'} onClick={() => handleNav('settings')} icon={<Settings />} label={t('account.nav.settings', 'Configuración')} />
+                </nav>
+
+                <div className="pt-6 mt-6 border-t border-white/5">
+                    <button 
+                        onClick={handleLogout} 
+                        className="w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-red-500/50 hover:bg-red-500/5 hover:text-red-400 transition-all font-black uppercase tracking-widest text-[10px]"
+                    >
+                        <LogOut /> {t('account.nav.logout')}
+                    </button>
                 </div>
             </div>
-
-            <nav className="sidebar-nav">
-                <NavButton active={activeTab === 'overview'} onClick={() => setActiveTab('overview')} icon={<FaServer />} label={t('account.nav.overview')} />
-                <NavButton active={activeTab === 'posts'} onClick={() => setActiveTab('posts')} icon={<FaComment />} label={t('account.nav.posts')} />
-                <NavButton active={activeTab === 'medals'} onClick={() => setActiveTab('medals')} icon={<FaMedal />} label={t('account.nav.medals', 'Medallas')} />
-                <NavButton active={activeTab === 'achievements'} onClick={() => setActiveTab('achievements')} icon={<FaTrophy />} label={t('account.nav.achievements')} />
-                <NavButton active={activeTab === 'connections'} onClick={() => setActiveTab('connections')} icon={<FaLink />} label={t('account.nav.connections')} />
-                <NavButton active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} icon={<FaCog />} label={t('account.nav.settings', 'Configuración')} />
-                
-                <div style={{ height: '1px', background: 'rgba(255,255,255,0.1)', margin: '1rem 0' }}></div>
-                
-                <button onClick={handleLogout} style={{ background: 'transparent', border: 'none', color: '#ff6b6b', padding: '0.8rem', textAlign: 'left', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <FaSignOutAlt /> {t('account.nav.logout')}
-                </button>
-            </nav>
         </aside>
     );
 };

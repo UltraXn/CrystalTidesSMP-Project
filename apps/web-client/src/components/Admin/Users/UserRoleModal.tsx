@@ -1,4 +1,4 @@
-import { FaCheck } from 'react-icons/fa';
+import { Check } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { UserDefinition } from './types';
 
@@ -28,7 +28,7 @@ export default function UserRoleModal({ user, newRole, onClose, onConfirm }: Use
                         fontSize: '2rem',
                         boxShadow: '0 0 30px rgba(239, 68, 68, 0.2)'
                     }}>
-                        <FaCheck />
+                        <Check />
                     </div>
                     
                     <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.5rem', fontWeight: '900' }}>{t('admin.users.role_modal.title')}</h3>

@@ -1,5 +1,5 @@
 import { motion } from "framer-motion"
-import { FaHeart, FaPlus } from "react-icons/fa"
+import { Heart, Plus } from "lucide-react"
 import RoleBadge from "./RoleBadge"
 import { useTranslation } from "react-i18next"
 
@@ -148,7 +148,7 @@ export default function ProfileHeader({ profile, currentUser, onGiveKarma, givin
                                 border: '1px solid rgba(255,255,255,0.1)',
                                 backdropFilter: 'blur(10px)'
                             }}>
-                                <FaHeart style={{ color: '#ff4444' }} />
+                                <Heart style={{ color: '#ff4444' }} size={16} />
                                 <span style={{ fontWeight: 800 }}>{profile.reputation || 0}</span>
                                 {currentUser && currentUser.id !== profile.id && (
                                     <button 
@@ -165,7 +165,7 @@ export default function ProfileHeader({ profile, currentUser, onGiveKarma, givin
                                         }}
                                         title={t('profile.give_karma')}
                                     >
-                                        <FaPlus />
+                                        <Plus size={14} />
                                     </button>
                                 )}
                             </div>

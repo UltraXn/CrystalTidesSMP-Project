@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FaInfoCircle, FaExclamationTriangle, FaTimesCircle, FaTimes } from 'react-icons/fa';
+import { Info, AlertTriangle, XCircle, X } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -55,11 +55,11 @@ export default function BroadcastAlert() {
     const getStyles = () => {
         switch(config.type) {
             case 'alert':
-                return { bg: '#facc15', color: '#000', icon: <FaExclamationTriangle /> };
+                return { bg: '#facc15', color: '#000', icon: <AlertTriangle /> };
             case 'error':
-                return { bg: '#ef4444', color: '#fff', icon: <FaTimesCircle /> };
+                return { bg: '#ef4444', color: '#fff', icon: <XCircle /> };
             default: // info
-                return { bg: '#3b82f6', color: '#fff', icon: <FaInfoCircle /> };
+                return { bg: '#3b82f6', color: '#fff', icon: <Info /> };
         }
     };
 
@@ -99,7 +99,7 @@ export default function BroadcastAlert() {
                     opacity: 0.8
                 }}
             >
-                <FaTimes />
+                <X />
             </button>
         </div>
     );

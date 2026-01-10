@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { FaBell, FaInfoCircle, FaExclamationTriangle, FaCheckCircle, FaTimes } from 'react-icons/fa';
+import { Bell, Info, AlertTriangle, CheckCircle2, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface Notification {
@@ -43,9 +43,9 @@ export default function NotificationCenter() {
 
     const getIcon = (type: string) => {
         switch(type) {
-            case 'success': return <FaCheckCircle style={{ color: '#4CAF50' }} />;
-            case 'warning': return <FaExclamationTriangle style={{ color: '#FFC107' }} />;
-            default: return <FaInfoCircle style={{ color: '#2196F3' }} />;
+            case 'success': return <CheckCircle2 style={{ color: '#4CAF50' }} />;
+            case 'warning': return <AlertTriangle style={{ color: '#FFC107' }} />;
+            default: return <Info style={{ color: '#2196F3' }} />;
         }
     };
 
@@ -66,7 +66,7 @@ export default function NotificationCenter() {
                 }}
                 className={isOpen ? 'active' : ''}
             >
-                <FaBell />
+                <Bell />
                 {unreadCount > 0 && (
                     <span style={{
                         position: 'absolute',
@@ -184,7 +184,7 @@ export default function NotificationCenter() {
                                             }}
                                             title={t('admin.notifications.dismiss', 'Descartar')}
                                         >
-                                            <FaTimes />
+                                            <X />
                                         </button>
                                     </motion.div>
                                 ))

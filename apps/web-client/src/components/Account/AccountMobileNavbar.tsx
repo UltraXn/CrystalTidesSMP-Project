@@ -1,4 +1,4 @@
-import { FaServer, FaLink, FaCog, FaBars, FaTimes } from "react-icons/fa";
+import { Server, Link as LinkIcon, Settings, Menu, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 
@@ -13,9 +13,9 @@ export default function AccountMobileNavbar({ activeTab, setActiveTab, sidebarOp
     const { t } = useTranslation();
 
     const navItems = [
-        { id: 'overview', icon: <FaServer />, label: t('account.nav.overview', 'Inicio') },
-        { id: 'connections', icon: <FaLink />, label: t('account.nav.connections', 'Conexiones') },
-        { id: 'settings', icon: <FaCog />, label: t('account.nav.settings', 'Ajustes') },
+        { id: 'overview', icon: <Server />, label: t('account.nav.overview', 'Inicio') },
+        { id: 'connections', icon: <LinkIcon />, label: t('account.nav.connections', 'Conexiones') },
+        { id: 'settings', icon: <Settings />, label: t('account.nav.settings', 'Ajustes') },
     ];
 
     return (
@@ -46,7 +46,7 @@ export default function AccountMobileNavbar({ activeTab, setActiveTab, sidebarOp
                 className={`mobile-nav-item ${sidebarOpen ? 'active' : ''}`}
                 onClick={() => setSidebarOpen(!sidebarOpen)}
             >
-                <span className="icon">{sidebarOpen ? <FaTimes /> : <FaBars />}</span>
+                <span className="icon">{sidebarOpen ? <X /> : <Menu />}</span>
                 <span className="label text-menu-btn">{sidebarOpen ? t('admin.close', 'Cerrar') : t('navbar.menu', 'Menú')}</span>
             </button>
         </div>

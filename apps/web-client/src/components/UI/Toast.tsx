@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaCheckCircle, FaExclamationCircle, FaInfoCircle, FaTimes } from 'react-icons/fa';
+import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
 import { useEffect } from 'react';
 
 export type ToastType = 'success' | 'error' | 'info';
@@ -24,9 +24,9 @@ export default function Toast({ message, type = 'info', isVisible, onClose, dura
 
     const getIcon = () => {
         switch (type) {
-            case 'success': return <FaCheckCircle size={20} />;
-            case 'error': return <FaExclamationCircle size={20} />;
-            default: return <FaInfoCircle size={20} />;
+            case 'success': return <CheckCircle2 size={20} />;
+            case 'error': return <AlertCircle size={20} />;
+            default: return <Info size={20} />;
         }
     };
 
@@ -84,7 +84,7 @@ export default function Toast({ message, type = 'info', isVisible, onClose, dura
                             alignItems: 'center'
                         }}
                     >
-                        <FaTimes />
+                        <X />
                     </button>
                 </motion.div>
             )}

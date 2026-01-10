@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FaPlus, FaTrash } from 'react-icons/fa';
+import { Plus, Trash2 } from 'lucide-react';
 import Loader from '../../UI/Loader';
 import ConfirmationModal from '../../UI/ConfirmationModal';
 import { supabase } from '../../../services/supabaseClient';
@@ -135,7 +135,7 @@ export default function StaffNotes() {
                     className="new-task-btn"
                     style={{ padding: '8px 16px', fontSize: '0.75rem' }}
                 >
-                    <FaPlus /> {t('admin.staff_hub.notes.new_note_btn', 'Nueva Nota')}
+                    <Plus /> {t('admin.staff_hub.notes.new_note_btn', 'Nueva Nota')}
                 </button>
             </div>
 
@@ -160,7 +160,7 @@ export default function StaffNotes() {
                                     className="note-delete-btn"
                                     title={t('common.delete', 'Borrar')}
                                 >
-                                    <FaTrash size={12} />
+                                    <Trash2 size={12} />
                                 </button>
                             </div>
                         </div>
@@ -191,7 +191,7 @@ export default function StaffNotes() {
                                 alignItems: 'center',
                                 gap: '10px'
                             }}>
-                                <span style={{ color: 'var(--accent)', display:'flex' }}><FaPlus size={16}/></span> {t('admin.staff_hub.notes.create_modal.title', 'Nueva Nota')}
+                                <span style={{ color: 'var(--accent)', display:'flex' }}><Plus size={16}/></span> {t('admin.staff_hub.notes.create_modal.title', 'Nueva Nota')}
                             </h3>
                             
                             <textarea

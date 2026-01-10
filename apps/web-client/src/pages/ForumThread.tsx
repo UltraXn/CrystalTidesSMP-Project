@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { useParams, Link, useNavigate } from "react-router-dom"
-import { FaUser, FaCalendarAlt, FaArrowLeft, FaEye, FaReply, FaPaperPlane, FaEdit, FaTrash, FaCheck, FaTimes, FaImage, FaThumbtack, FaLock, FaUnlock } from "react-icons/fa"
+import { User, Calendar, ArrowLeft, Eye, Reply, Send, Edit, Trash2, Check, X, Image as ImageIcon, Pin, Lock, Unlock } from "lucide-react"
 import Loader from "../components/UI/Loader"
 import { useAuth } from "../context/AuthContext"
 import RoleBadge from "../components/User/RoleBadge"
@@ -460,7 +460,7 @@ export default function ForumThread() {
             <div style={{ maxWidth: '900px', margin: '0 auto', padding: '0 2rem' }}>
                 <div style={{ marginBottom: '2rem' }}>
                     <Link to={isTopic ? `/forum/${thread.category_id === 1 ? 'announcements' : thread.category_id === 2 ? 'general' : thread.category_id === 3 ? 'support' : 'off-topic'}` : '/forum/announcements'} style={{ color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none', marginBottom: '1rem' }}>
-                        <FaArrowLeft /> {t('forum_thread.back_link')}
+                        <ArrowLeft /> {t('forum_thread.back_link')}
                     </Link>
                 </div>
 
@@ -480,10 +480,10 @@ export default function ForumThread() {
                                     </span>
                                 )}
                                 <span style={{ color: 'var(--muted)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                    <FaCalendarAlt /> {thread.longDate}
+                                    <Calendar /> {thread.longDate}
                                 </span>
                                 <span style={{ color: 'var(--muted)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                    <FaEye /> {thread.views} {t('forum_thread.views')}
+                                    <Eye /> {thread.views} {t('forum_thread.views')}
                                 </span>
                             </div>
 
@@ -506,7 +506,7 @@ export default function ForumThread() {
                             <div style={{ marginTop: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
                                     <div style={{ width: '40px', height: '40px', background: '#333', borderRadius: '50%', overflow:'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                        {thread.author_avatar ? <img src={thread.author_avatar} alt="author" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <FaUser color="#ccc" />}
+                                        {thread.author_avatar ? <img src={thread.author_avatar} alt="author" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <User color="#ccc" />}
                                     </div>
                                     <div>
                                         <Link to={`/u/${thread.author}`} style={{ color: '#fff', fontWeight: 'bold', textDecoration: 'none' }} className="username-link">
@@ -523,29 +523,29 @@ export default function ForumThread() {
                                         {isAdmin() && (
                                             <>
                                                 <button onClick={togglePin} className="btn-icon" title={thread.pinned ? "Desfijar" : "Fijar"} style={{ background: 'transparent', border: 'none', color: thread.pinned ? 'var(--accent)' : '#888', cursor: 'pointer' }}>
-                                                    <FaThumbtack size={16} style={{ transform: thread.pinned ? 'rotate(0deg)' : 'rotate(45deg)', transition: 'all 0.3s' }} />
+                                                    <Pin size={16} style={{ transform: thread.pinned ? 'rotate(0deg)' : 'rotate(45deg)', transition: 'all 0.3s' }} />
                                                 </button>
                                                 <button onClick={toggleLock} className="btn-icon" title={thread.locked ? "Desbloquear" : "Bloquear"} style={{ background: 'transparent', border: 'none', color: thread.locked ? '#ef4444' : '#888', cursor: 'pointer' }}>
-                                                    {thread.locked ? <FaLock size={16} /> : <FaUnlock size={16} />}
+                                                    {thread.locked ? <Lock size={16} /> : <Unlock size={16} />}
                                                 </button>
                                             </>
                                         )}
                                         
                                         <button onClick={() => setIsEditingThread(true)} className="btn-icon" title="Editar" style={{ background: 'transparent', border: 'none', color: 'var(--accent)', cursor: 'pointer', marginLeft: '0.5rem' }}>
-                                            <FaEdit size={18} />
+                                            <Edit size={18} />
                                         </button>
                                         <button onClick={handleDeleteThread} className="btn-icon" title="Eliminar" style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer' }}>
-                                            <FaTrash size={18} />
+                                            <Trash2 size={18} />
                                         </button>
                                     </div>
                                 )}
                                 {isEditingThread && (
                                     <div style={{ display: 'flex', gap: '1rem' }}>
                                         <button onClick={handleUpdateThread} className="btn-primary" style={{ padding: '0.5rem 1rem', display: 'flex', gap: '0.5rem' }}>
-                                            <FaCheck /> Guardar
+                                            <Check /> Guardar
                                         </button>
                                         <button onClick={() => setIsEditingThread(false)} className="btn-secondary" style={{ padding: '0.5rem 1rem', display: 'flex', gap: '0.5rem' }}>
-                                            <FaTimes /> Cancelar
+                                            <X /> Cancelar
                                         </button>
                                     </div>
                                 )}
@@ -582,14 +582,14 @@ export default function ForumThread() {
 
                 <div style={{ padding: '2rem', background: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
                     <h3 style={{ color: '#fff', marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <FaReply /> {t('forum_thread.comments')} ({comments.length})
+                        <Reply /> {t('forum_thread.comments')} ({comments.length})
                     </h3>
 
                     <div className="comments-list" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginBottom: '3rem' }}>
                         {comments.map(comment => (
                             <div key={comment.id} style={{ display: 'flex', gap: '1rem' }}>
                                 <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#333', overflow: 'hidden', flexShrink: 0 }}>
-                                    {comment.avatar ? <img src={comment.avatar} alt="user" style={{width:'100%',height:'100%',objectFit:'cover'}}/> : <FaUser color="#888" style={{padding:'8px'}}/>}
+                                    {comment.avatar ? <img src={comment.avatar} alt="user" style={{width:'100%',height:'100%',objectFit:'cover'}}/> : <User color="#888" style={{padding:'8px'}}/>}
                                 </div>
                                 <div style={{ flexGrow: 1 }}>
                                     <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
@@ -635,14 +635,14 @@ export default function ForumThread() {
                     {user ? (
                         thread.locked && !isAdmin() ? (
                             <div style={{ textAlign: 'center', padding: '2rem', background: 'rgba(239, 68, 68, 0.05)', borderRadius: '8px', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
-                                <FaLock size={30} style={{ color: '#ef4444', marginBottom: '1rem' }} />
+                                <Lock size={30} style={{ color: '#ef4444', marginBottom: '1rem' }} />
                                 <h4 style={{ color: '#fff', margin: '0 0 0.5rem 0' }}>Tema Cerrado</h4>
                                 <p style={{ color: '#888', margin: 0 }}>Este tema ha sido bloqueado por un moderador y no admite más respuestas.</p>
                             </div>
                         ) : (
                             <form onSubmit={handlePostComment} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
                                 <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#333', overflow: 'hidden', flexShrink: 0 }}>
-                                     {user.user_metadata?.avatar_url ? <img src={user.user_metadata.avatar_url} style={{width:'100%',height:'100%',objectFit:'cover'}} alt="user"/> : <FaUser color="#888" style={{padding:'8px'}}/>}
+                                     {user.user_metadata?.avatar_url ? <img src={user.user_metadata.avatar_url} style={{width:'100%',height:'100%',objectFit:'cover'}} alt="user"/> : <User color="#888" style={{padding:'8px'}}/>}
                                 </div>
                                 <div style={{ flexGrow: 1, background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', overflow: 'hidden', transition: 'border-color 0.2s' }}
                                      onFocus={(e) => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)'}
@@ -674,7 +674,7 @@ export default function ForumThread() {
                                                 <div style={{ fontSize: '0.8rem', color: '#ccc' }}>
                                                     <div style={{ fontWeight: 'bold', color: '#fff' }}>Imagen lista</div>
                                                 </div>
-                                                <button type="button" onClick={clearReplImage} style={{background:'transparent', border:'none', color:'#ef4444', cursor:'pointer', padding: '0 0.5rem', fontSize:'1.1rem'}}><FaTimes /></button>
+                                                <button type="button" onClick={clearReplImage} style={{background:'transparent', border:'none', color:'#ef4444', cursor:'pointer', padding: '0 0.5rem', fontSize:'1.1rem'}}><X /></button>
                                             </div>
                                         </div>
                                     )}
@@ -702,7 +702,7 @@ export default function ForumThread() {
                                         onMouseEnter={(e) => {e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#fff'}}
                                         onMouseLeave={(e) => {e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = pendingImageRepl ? 'var(--accent)' : '#aaa'}}
                                         >
-                                            <FaImage />
+                                            <ImageIcon />
                                             <input type="file" accept="image/*" onChange={handleReplImageSelect} style={{ display: 'none' }} />
                                         </label>
 
@@ -720,7 +720,7 @@ export default function ForumThread() {
                                             gap: '0.5rem',
                                             transition: 'transform 0.1s'
                                         }}>
-                                            <FaPaperPlane size={12} /> {t('forum_thread.publish')}
+                                            <Send size={12} /> {t('forum_thread.publish')}
                                         </button>
                                     </div>
                                 </div>
@@ -771,7 +771,7 @@ export default function ForumThread() {
                                 margin: '0 auto 1.5rem',
                                 fontSize: '2rem'
                             }}>
-                                <FaTrash />
+                                <Trash2 />
                             </div>
                             <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.4rem', color: '#fff' }}>¿Estás seguro?</h3>
                             <p style={{ color: '#aaa', marginBottom: '2rem', lineHeight: '1.5' }}>

@@ -73,7 +73,7 @@ export default function Verify() {
   if (loading || status === "loading") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a] text-white">
-        <Loader2 className="w-10 h-10 animate-spin text-[var(--accent)]" />
+        <Loader2 className="w-10 h-10 animate-spin text-(--accent)" />
       </div>
     );
   }
@@ -81,13 +81,13 @@ export default function Verify() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a] p-4 text-white relative overflow-hidden">
       {/* Background Ambience */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[rgba(var(--accent-rgb),0.1)] to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-linear-to-br from-[rgba(var(--accent-rgb),0.1)] to-transparent pointer-events-none" />
 
       <div className="max-w-md w-full bg-[#151515] border border-[#333] rounded-2xl p-8 shadow-2xl relative z-10 text-center">
         
         {status === "processing" && (
           <div className="flex flex-col items-center gap-4">
-            <Loader2 className="w-16 h-16 animate-spin text-[var(--accent)]" />
+            <Loader2 className="w-16 h-16 animate-spin text-(--accent)" />
             <h2 className="text-2xl font-bold">Verificando...</h2>
             <p className="text-gray-400">Por favor espera un momento.</p>
           </div>
@@ -114,7 +114,7 @@ export default function Verify() {
             </p>
             <button 
               onClick={() => navigate('/account')}
-              className="mt-6 px-6 py-3 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-black font-bold rounded-xl transition-all w-full"
+              className="mt-6 px-6 py-3 bg-(--accent) hover:bg-(--accent-hover) text-black font-bold rounded-xl transition-all w-full"
             >
               Ir a mi Cuenta
             </button>

@@ -1,60 +1,117 @@
 import { useState, useEffect } from "react"
+import { Calendar, ArrowRight, Tag, Newspaper } from "lucide-react"
+import { Link } from "react-router-dom"
+import Section from "../components/Layout/Section"
+import { useTranslation } from 'react-i18next'
 
-interface NewsPiece {
+interface Article {
     id: string | number;
     title: string;
-    content: string;
     image?: string;
-    status: string;
+    category: string;
     created_at: string;
+    content?: string;
+    excerpt?: string;
+    status?: string;
+    slug?: string;
+    title_en?: string;
+    content_en?: string;
+}
+
+const NewsCard = ({ article }: { article: Article }) => {
+    const { t, i18n } = useTranslation()
+    const isEn = i18n.language === 'en'
+
+    const title = (isEn && article.title_en) ? article.title_en : article.title
+    const content = (isEn && article.content_en) ? article.content_en : (article.content || article.excerpt || t('blog.empty'))
+
+    return (
+        <div className="group bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl overflow-hidden flex flex-col transition-all duration-500 hover:bg-white/5 hover:-translate-y-2 hover:shadow-2xl hover:shadow-(--accent)/10 hover:border-(--accent)/30">
+            <div className="relative h-56 w-full overflow-hidden bg-white/5 flex items-center justify-center">
+                {article.image ? (
+                    <img src={article.image} alt={title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                ) : (
+                    <div className="text-7xl opacity-20 group-hover:opacity-40 transition-opacity">
+                        {article.category === 'Evento' ? '🐉' : article.category === 'Sistema' ? '⚙️' : '⚔️'}
+                    </div>
+                )}
+                <div className="absolute top-4 left-4 flex items-center gap-2 px-3 py-1 bg-black/60 backdrop-blur-md rounded-full border border-white/10 text-[10px] font-black uppercase tracking-widest text-(--accent)">
+                    <Tag size={10} /> {article.category}
+                </div>
+            </div>
+            
+            <div className="p-8 flex flex-col gap-6 grow">
+                <div className="flex items-center gap-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                    <Calendar /> {new Date(article.created_at).toLocaleDateString()}
+                </div>
+                
+                <h3 className="text-2xl font-black text-white group-hover:text-(--accent) transition-colors leading-tight">
+                    {title}
+                </h3>
+                
+                <p className="text-gray-400 text-sm leading-relaxed grow font-medium line-clamp-3">
+                    {content.substring(0, 150) + '...'}
+                </p>
+                
+                <Link 
+                    to={`/forum/thread/news/${article.slug || article.id}`} 
+                    className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-(--accent) group/link transition-all hover:translate-x-2"
+                >
+                    {t('blog.read_more')} 
+                    <ArrowRight className="transition-transform group-hover/link:translate-x-1" />
+                </Link>
+            </div>
+        </div>
+    )
 }
 
 export default function NewsPage() {
-    const [news, setNews] = useState<NewsPiece[]>([])
+    const { t } = useTranslation()
+    const [news, setNews] = useState<Article[]>([])
     const [loading, setLoading] = useState(true)
-
+    const API_URL = import.meta.env.VITE_API_URL
 
     useEffect(() => {
-        const apiUrl = import.meta.env.VITE_API_URL
-        if (!apiUrl) {
-            console.error("VITE_API_URL no está definida. Reinicia el servidor frontend.")
-            // Fallback para evitar pantalla negra si falta la env
-            setTimeout(() => setLoading(false), 0)
-            return
-        }
+        if (!API_URL) return
 
-        fetch(`${apiUrl}/news`)
-            .then(res => {
-                if (!res.ok) throw new Error("Error en la respuesta de red")
-                return res.json()
-            })
+        fetch(`${API_URL}/news`)
+            .then(res => res.json())
             .then(data => {
-                const published = Array.isArray(data) ? data.filter(n => n.status === 'Published') : []
-                setNews(published)
-                setLoading(false)
+                if (Array.isArray(data)) {
+                    const published = data.filter(n => n.status === 'Published')
+                    setNews(published)
+                }
             })
-            .catch((err: unknown) => {
-                console.error("Error fetching news:", err)
-                setLoading(false)
-            })
-    }, [])
-
-    if (loading) {
-        return (
-            <div style={{ paddingTop: "100px", minHeight: "100vh", background: "#050505", display: "flex", justifyContent: "center", alignItems: "center", color: "#fff" }}>
-                <h2>Cargando noticias...</h2>
-            </div>
-        )
-    }
+            .catch(err => console.error("Error fetching news:", err))
+            .finally(() => setLoading(false))
+    }, [API_URL])
 
     return (
-        <div style={{ paddingTop: "120px", color: "white", textAlign: "center" }}>
-            <h1>Debug Mode: NewsPage</h1>
-            <p>Si ves esto, la página renderiza.</p>
-            <p>Noticias encontradas: {news.length}</p>
-            <div style={{ textAlign: "left", margin: "20px" }}>
-                <pre>{JSON.stringify(news, null, 2)}</pre>
-            </div>
+        <div className="pt-24 min-h-screen">
+             <Section title={t('news.title', 'Novedades y Actualizaciones')}>
+                <Section>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 px-4">
+                        {loading ? (
+                            <div className="col-span-full py-40 flex flex-col items-center justify-center gap-4">
+                                <div className="w-12 h-12 border-4 border-white/10 border-t-(--accent) rounded-full animate-spin"></div>
+                                <span className="text-white/30 font-black uppercase tracking-widest animate-pulse">{t('blog.loading')}</span>
+                            </div>
+                        ) : news.length > 0 ? (
+                            news.map(article => (
+                                <NewsCard key={article.id} article={article} />
+                            ))
+                        ) : (
+                            <div className="col-span-full py-40 flex flex-col items-center justify-center gap-6 border border-dashed border-white/10 rounded-3xl bg-white/2">
+                                <Newspaper size={64} className="text-white/10" />
+                                <div className="text-center">
+                                    <h3 className="text-white font-black text-2xl mb-2">{t('blog.no_news')}</h3>
+                                    <p className="text-gray-500 font-medium">{t('blog.stay_tuned')}</p>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </Section>
+            </Section>
         </div>
     )
 }

@@ -1,6 +1,6 @@
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaExclamationTriangle } from 'react-icons/fa';
+import { AlertTriangle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 interface PremiumConfirmProps {
@@ -96,7 +96,7 @@ export default function PremiumConfirm({
                                     background: `${currentTheme.primary}15`,
                                     border: `1px solid ${currentTheme.primary}30`
                                 }}>
-                                    <FaExclamationTriangle size={40} color={currentTheme.primary} />
+                                    <AlertTriangle size={40} color={currentTheme.primary} />
                                 </div>
                             </div>
 

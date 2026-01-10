@@ -61,6 +61,7 @@
     "micromatch": "^4.0.8",
     "postcss": "^8.5.6",
     "prettier": "^3.7.4",
+    "prettier-plugin-tailwindcss": "^0.7.2",
     "sucrase": "^3.35.1",
     "tailwindcss": "^4.1.18",
     "turbo": "^2.7.2",

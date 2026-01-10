@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaGripVertical, FaUserCircle, FaClock, FaTrash, FaEdit } from 'react-icons/fa';
+import { GripVertical, UserCircle2, Clock, Trash2, Edit2 } from 'lucide-react';
 import { KanbanTask } from '@crystaltides/shared';
 import { useTranslation } from 'react-i18next';
 
@@ -30,7 +30,7 @@ export default function KanbanCard({ card, onDragStart, onDelete, onEdit }: Kanb
                             className="card-action-btn edit"
                             onClick={(e) => { e.stopPropagation(); onEdit(card); }}
                         >
-                            <FaEdit size={14} />
+                            <Edit2 size={14} />
                         </button>
                     )}
                     {onDelete && (
@@ -38,11 +38,11 @@ export default function KanbanCard({ card, onDragStart, onDelete, onEdit }: Kanb
                             className="card-action-btn delete"
                             onClick={(e) => { e.stopPropagation(); onDelete(card.id); }}
                         >
-                            <FaTrash size={14} />
+                            <Trash2 size={14} />
                         </button>
                     )}
                     <div className="card-grip">
-                        <FaGripVertical size={16} />
+                        <GripVertical size={16} />
                     </div>
                 </div>
             </div>
@@ -78,7 +78,7 @@ export default function KanbanCard({ card, onDragStart, onDelete, onEdit }: Kanb
                             }}
                         />
                      ) : (
-                         <FaUserCircle color="#333" size={18} />
+                         <UserCircle2 color="#333" size={18} />
                      )}
                      <span className="card-assignee-name">
                         {card.assignee === 'Unassigned' || !card.assignee 
@@ -88,12 +88,12 @@ export default function KanbanCard({ card, onDragStart, onDelete, onEdit }: Kanb
                 </div>
                 {card.columnId === 'idea' ? (
                     <div className="card-date-badge backlog">
-                        <FaClock size={10} color="#666" />
+                        <Clock size={10} color="#666" />
                         <span>{t('admin.staff_hub.kanban.card.backlog', 'Por confirmar')}</span>
                     </div>
                 ) : card.due_date ? (
                     <div className="card-date-badge">
-                        <FaClock size={10} color="var(--accent)" />
+                        <Clock size={10} color="var(--accent)" />
                         <span style={{ fontWeight: '800' }}>
                             {hasTime ? new Date(card.due_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : card.date}
                         </span>

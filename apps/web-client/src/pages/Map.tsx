@@ -1,4 +1,4 @@
-import { FaMapMarkedAlt } from "react-icons/fa"
+import { Map as MapIcon } from "lucide-react"
 
 export default function Map() {
     // Cuando tengas la URL real de tu Dynmap/BlueMap, ponla aquí
@@ -40,7 +40,7 @@ export default function Map() {
                     padding: '2rem',
                     textAlign: 'center'
                 }}>
-                    <FaMapMarkedAlt size={80} color="var(--accent)" style={{ marginBottom: '2rem' }} />
+                    <MapIcon size={80} color="var(--accent)" style={{ marginBottom: '2rem' }} />
                     <h1 style={{ fontSize: '3rem', fontWeight: '800', marginBottom: '1rem', textShadow: '0 4px 10px rgba(0,0,0,0.5)' }}>
                         Mapa en Tiempo Real
                     </h1>

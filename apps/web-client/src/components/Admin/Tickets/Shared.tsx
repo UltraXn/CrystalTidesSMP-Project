@@ -1,4 +1,4 @@
-import { FaExclamationCircle, FaCheckCircle, FaExclamationTriangle } from "react-icons/fa"
+import { AlertCircle, CheckCircle, AlertTriangle } from "lucide-react"
 import { useTranslation } from 'react-i18next'
 
 
@@ -11,7 +11,7 @@ interface CustomAlertProps {
 export function CustomAlert({ message, type = 'error', onClose }: CustomAlertProps) {
     const { t } = useTranslation()
     const colors: Record<string, string> = { error: '#ef4444', success: '#10b981', warning: '#facc15' }
-    const Icon = type === 'error' ? FaExclamationCircle : (type === 'success' ? FaCheckCircle : FaExclamationTriangle)
+    const Icon = type === 'error' ? AlertCircle : (type === 'success' ? CheckCircle : AlertTriangle)
     
     const titles: Record<string, string> = {
         error: t('admin.alerts.error_title', 'Error'),
@@ -53,7 +53,7 @@ export function CustomConfirm({ message, onConfirm, onCancel }: CustomConfirmPro
         <div className="modal-overlay" style={{ zIndex: 100000 }}>
             <div className="admin-card modal-content" style={{ width: '400px', maxWidth: '90%', textAlign: 'center', padding: '2rem', border: `1px solid #facc15`, boxShadow: `0 0 30px rgba(250, 204, 21, 0.2)` }}>
                 <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'center' }}>
-                    <FaExclamationTriangle size={48} color="#facc15" />
+                    <AlertTriangle size={48} color="#facc15" />
                 </div>
                 <h3 style={{ marginBottom: '1rem', color: '#fff', fontSize: '1.5rem' }}>
                     {t('admin.alerts.confirm_title', 'Confirmar Acción')}

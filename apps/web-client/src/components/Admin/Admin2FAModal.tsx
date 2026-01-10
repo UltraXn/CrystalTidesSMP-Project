@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FaShieldAlt, FaUnlock, FaTimes } from 'react-icons/fa';
-import { verify2FA } from '../../services/twoFactorService';
+import { Shield, Unlock, X } from 'lucide-react';
+import { useVerifyAdmin2FA } from '../../hooks/useAdminData';
 import { setAdminToken } from '../../services/adminAuth';
-import { supabase } from '../../services/supabaseClient';
 import Loader from '../UI/Loader';
 
 interface Admin2FAModalProps {
@@ -16,48 +15,28 @@ export default function Admin2FAModal({ isOpen, onVerified, onClose }: Admin2FAM
     const { t } = useTranslation();
     const [code, setCode] = useState('');
     const [error, setError] = useState<string | null>(null);
-    const [loading, setLoading] = useState(false);
+
+    const { mutate: verifyAdmin, isPending: loading } = useVerifyAdmin2FA();
 
     if (!isOpen) return null;
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session?.access_token || code.length < 6) return;
+        if (code.length < 6) return;
 
-        setLoading(true);
         setError(null);
 
-        try {
-            const res = await verify2FA(session.access_token, code);
-            if (res.success) {
-                setAdminToken(res.data.adminToken);
+        verifyAdmin(code, {
+            onSuccess: (data) => {
+                setAdminToken(data.adminToken);
                 onVerified();
-            } else {
-                // UX: Clear code to allow easy retry
+            },
+            onError: (err: Error) => {
                 setCode('');
-                
-                // UX: Friendly error message
-                const userMessage = t('admin.2fa.error_retry', 'Código incorrecto. Inténtalo de nuevo.');
-                
-                // Optional: Use server message if specific logic requires it, but general "Wrong Code" is better for security/UX usually.
-                if (res.error && typeof res.error === 'string') {
-                     // If the server sends a specific plain text error, maybe log it or use it if it helps (e.g. "Expired")
-                     // userMessage = res.error; 
-                }
-
-                setError(userMessage);
-                
-                // Shake effect or focus? Input is autoFocus, but let's ensure focus if we had a ref (optional, simple clear is good enough)
+                setError(t('admin.2fa.error_retry', 'Código incorrecto. Inténtalo de nuevo.'));
+                console.error(err);
             }
-        } catch (err: unknown) {
-             console.error(err);
-             setError(t('admin.2fa.error_generic', 'Error de verificación. Inténtalo de nuevo.'));
-             setCode('');
-        } finally {
-            setLoading(false);
-        }
+        });
     };
 
     return (
@@ -86,7 +65,7 @@ export default function Admin2FAModal({ isOpen, onVerified, onClose }: Admin2FAM
                     style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', transition: 'color 0.2s' }}
                     className="hover:text-white"
                 >
-                    <FaTimes size={20} />
+                    <X size={20} />
                 </button>
 
                 <div style={{ 
@@ -96,7 +75,7 @@ export default function Admin2FAModal({ isOpen, onVerified, onClose }: Admin2FAM
                     margin: '0 auto',
                     border: '1px solid rgba(239, 68, 68, 0.2)'
                 }}>
-                    <FaShieldAlt size={36} />
+                    <Shield size={36} />
                 </div>
 
                 <div>
@@ -149,10 +128,14 @@ export default function Admin2FAModal({ isOpen, onVerified, onClose }: Admin2FAM
                             className="btn-primary"
                             style={{ 
                                 width: '100%', padding: '1rem', justifyContent: 'center', display: 'flex', alignItems: 'center', gap: '10px',
-                                borderRadius: '12px', fontSize: '1rem', fontWeight: '700'
+                                borderRadius: '12px', fontSize: '1rem', fontWeight: '700',
+                                background: '#ef4444', color: 'white', border: 'none', 
+                                cursor: (loading || code.length !== 6) ? 'not-allowed' : 'pointer',
+                                opacity: (loading || code.length !== 6) ? 0.5 : 1,
+                                transition: 'all 0.2s ease'
                             }}
                         >
-                            {loading ? <Loader minimal size={20} /> : <><FaUnlock /> {t('admin.2fa.verify', 'Verificar Acceso')}</>}
+                            {loading ? <Loader minimal size={20} /> : <><Unlock /> {t('admin.2fa.verify', 'Verificar Acceso')}</>}
                         </button>
                         
                         <button

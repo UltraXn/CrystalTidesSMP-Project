@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { FaSave, FaTimes } from "react-icons/fa"
+import { Save, X } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { TFunction } from "i18next"
 import { WikiArticle } from "../../../services/wikiService"
@@ -101,7 +101,7 @@ function WikiArticleForm({
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '2rem' }}>
                 <button type="button" onClick={onClose} style={{ padding: '0.8rem 2rem', color: '#666', background: 'transparent', border: 'none', cursor: 'pointer' }}>{t('admin.wiki.cancel')}</button>
                 <button type="submit" disabled={saving} className="btn-primary" style={{ padding: '0.8rem 3rem' }}>
-                    {saving ? <Loader /> : <>{isEditing ? <><FaSave style={{marginRight: '8px'}} /> {t('admin.wiki.update_btn')}</> : <><FaSave style={{marginRight: '8px'}} /> {t('admin.wiki.publish_btn')}</>}</>}
+                    {saving ? <Loader /> : <>{isEditing ? <><Save style={{marginRight: '8px'}} /> {t('admin.wiki.update_btn')}</> : <><Save style={{marginRight: '8px'}} /> {t('admin.wiki.publish_btn')}</>}</>}
                 </button>
             </div>
         </form>
@@ -148,7 +148,7 @@ export default function WikiArticleFormModal({ isOpen, onClose, onSave, initialD
                     >
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
                             <h2 style={{color: '#fff', margin: 0}}>{isEditing ? t('admin.wiki.edit_title') : t('admin.wiki.new_title')}</h2>
-                            <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#555', cursor: 'pointer' }}><FaTimes size={20} /></button>
+                            <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#555', cursor: 'pointer' }}><X size={20} /></button>
                         </div>
 
                         {/* 

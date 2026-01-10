@@ -1,4 +1,4 @@
-import { FaTimes, FaMedal, FaCheck } from 'react-icons/fa';
+import { X, Medal, Check } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { UserDefinition, MedalDefinition } from './types';
 import { MEDAL_ICONS } from '../../../utils/MedalIcons';
@@ -24,7 +24,7 @@ export default function UserMedalsModal({ user, availableMedals, onClose, onSave
                         <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '800' }}>{t('admin.users.medals_of')} <span style={{color: 'var(--accent)'}}>{user.username || user.email.split('@')[0]}</span></h3>
                         <p style={{ margin: '0.25rem 0 0', color: 'rgba(255,255,255,0.4)', fontSize: '0.85rem' }}>Asigna medallas especiales a este usuario</p>
                     </div>
-                    <button onClick={onClose} className="btn-close-premium"><FaTimes /></button>
+                    <button onClick={onClose} className="btn-close-premium"><X /></button>
                 </div>
 
                 <div className="modal-body-premium">
@@ -68,7 +68,7 @@ export default function UserMedalsModal({ user, availableMedals, onClose, onSave
                                             />
                                         ) : (
                                             (() => {
-                                                const Icon = MEDAL_ICONS[medal.icon as keyof typeof MEDAL_ICONS] || FaMedal;
+                                                const Icon = MEDAL_ICONS[medal.icon as keyof typeof MEDAL_ICONS] || Medal;
                                                 return <Icon />;
                                             })()
                                         )} 
@@ -82,7 +82,7 @@ export default function UserMedalsModal({ user, availableMedals, onClose, onSave
                                             display: 'flex', alignItems: 'center', justifyContent: 'center', 
                                             fontSize: '10px' 
                                         }}>
-                                            <FaCheck />
+                                            <Check size={10} />
                                         </div>
                                     )}
                                 </div>

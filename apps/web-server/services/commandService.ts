@@ -1,5 +1,6 @@
 import pool from '../config/database.js';
 import { RowDataPacket } from 'mysql2';
+import { sendToAll } from './websocketService.js';
 
 interface CommandRow extends RowDataPacket {
     id: number;
@@ -21,6 +22,10 @@ export const queueCommand = async (command: string) => {
             [command]
         );
         console.log(`[Command Queue] Queued command: ${command}`);
+        
+        // Notify WebSocket clients (Plugin) to fetch immediately
+        sendToAll('REFRESH_COMMANDS');
+
         const insertId = (result as { insertId: number }).insertId;
         return { success: true, id: insertId };
     } catch (error) {

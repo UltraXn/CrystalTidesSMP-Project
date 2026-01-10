@@ -1,91 +1,52 @@
-
 import { useState, useRef, useEffect } from 'react'
-import { FaBars, FaUserCircle, FaShieldAlt } from 'react-icons/fa'
+import { UserCircle2, Shield, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { gsap } from 'gsap'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../context/AuthContext'
+import { isAdmin as checkAdmin } from '../../utils/roleUtils'
 
 export default function Menu() {
     const { t, i18n } = useTranslation()
     const { user } = useAuth()
     const [isOpen, setIsOpen] = useState(false)
-    const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 })
     const buttonRef = useRef<HTMLButtonElement>(null)
-    const dropdownRef = useRef<HTMLDivElement>(null)
+    const overlayRef = useRef<HTMLDivElement>(null)
+    const sidePanelRef = useRef<HTMLDivElement>(null)
     const itemsRef = useRef<(HTMLAnchorElement | HTMLDivElement)[]>([])
 
-    // Check if admin (Same logic as Navbar)
-    const allowedRoles = ['admin', 'neroferno', 'killu', 'helper', 'developer', 'staff']
-    const isAdmin = allowedRoles.includes(user?.user_metadata?.role?.toLowerCase())
+    const isAdmin = checkAdmin(user)
 
-    const toggleMenu = () => {
-        if (!isOpen && buttonRef.current) {
-            const rect = buttonRef.current.getBoundingClientRect()
-            setMenuPosition({
-                top: rect.bottom + 10,
-                left: Math.min(rect.left, window.innerWidth - 260) // Prevent going off screen (width ~240px + padding)
-            })
-        }
-        setIsOpen(!isOpen)
-    }
+    const toggleMenu = () => setIsOpen(!isOpen)
     const closeMenu = () => setIsOpen(false)
 
     useEffect(() => {
         if (isOpen) {
-            // OPEN ANIMATION
-            if (dropdownRef.current) {
-                gsap.killTweensOf(dropdownRef.current);
-                gsap.set(dropdownRef.current, { visibility: 'visible', opacity: 1 });
-
-                gsap.fromTo(dropdownRef.current,
-                    { scale: 0.9, opacity: 0, y: 10 },
-                    {
-                        scale: 1,
-                        opacity: 1,
-                        y: 0,
-                        ease: 'elastic.out(1, 0.75)',
-                        duration: 0.8
-                    }
-                );
-            }
-
+            document.body.style.overflow = 'hidden'
+            gsap.to(overlayRef.current, { opacity: 1, duration: 0.4, display: 'block' })
+            gsap.fromTo(sidePanelRef.current, 
+                { x: '100%' }, 
+                { x: '0%', duration: 0.6, ease: 'power4.out' }
+            )
+            
             if (itemsRef.current.length > 0) {
-                gsap.killTweensOf(itemsRef.current);
-                gsap.fromTo(itemsRef.current,
-                    { x: 20, opacity: 0 },
-                    {
-                        x: 0,
-                        opacity: 1,
-                        stagger: 0.05,
-                        delay: 0.1,
-                        ease: 'power3.out',
-                        duration: 0.5
-                    }
-                );
+                gsap.fromTo(itemsRef.current, 
+                    { x: 50, opacity: 0 }, 
+                    { x: 0, opacity: 1, stagger: 0.05, duration: 0.5, delay: 0.2, ease: 'power3.out' }
+                )
             }
-
         } else {
-            // CLOSE ANIMATION
-            if (dropdownRef.current) {
-                gsap.killTweensOf(dropdownRef.current);
-                gsap.to(dropdownRef.current, {
-                    opacity: 0,
-                    y: 10,
-                    scale: 0.95,
-                    duration: 0.3,
-                    ease: 'power2.in',
-                    onComplete: () => {
-                        if (dropdownRef.current) {
-                            gsap.set(dropdownRef.current, { visibility: 'hidden' });
-                        }
-                    }
-                });
-            }
+            document.body.style.overflow = ''
+            gsap.to(sidePanelRef.current, { x: '100%', duration: 0.4, ease: 'power4.in' })
+            gsap.to(overlayRef.current, { 
+                opacity: 0, 
+                duration: 0.4, 
+                display: 'none',
+                delay: 0.2
+            })
         }
     }, [isOpen]);
 
-    // Helper to add refs to array
     const addToRefs = (el: HTMLAnchorElement | HTMLDivElement | null) => {
         if (el && !itemsRef.current.includes(el)) {
             itemsRef.current.push(el);
@@ -93,124 +54,129 @@ export default function Menu() {
     };
 
     return (
-        <div className="menu-container">
+        <>
             <button
                 ref={buttonRef}
-                className="menu-trigger"
+                className="flex items-center justify-center w-11 h-11 bg-white/5 border border-white/5 rounded-xl cursor-pointer hover:bg-white/10 transition-all text-white group active:scale-95"
                 onClick={toggleMenu}
+                aria-label="Open Menu"
             >
-                <FaBars className="menu-icon" />
-                <span className="menu-text">{t('navbar.menu')}</span>
+                <div className="flex flex-col gap-1.5 items-end">
+                    <span className="w-6 h-0.5 bg-white rounded-full transition-all group-hover:w-8" />
+                    <span className="w-8 h-0.5 bg-(--accent) rounded-full shadow-[0_0_10px_var(--accent-color)]" />
+                    <span className="w-5 h-0.5 bg-white rounded-full transition-all group-hover:w-8" />
+                </div>
             </button>
 
-            <div
-                className="menu-dropdown"
-                ref={dropdownRef}
-                style={{
-                    position: 'fixed',
-                    top: `${menuPosition.top}px`,
-                    left: `${menuPosition.left}px`,
-                    width: 'calc(100vw - 40px)', // Full width minus margins
-                    maxWidth: '280px', // But capped at a reasonable size
-                    zIndex: 9999,
-                    visibility: 'hidden', // Controlled by anime.js
-                    opacity: 0,
-                    maxHeight: 'calc(100vh - 100px)', // Prevent overflow
-                    overflowY: 'auto'
-                }}
+            {/* Full Screen Menu */}
+            <div 
+                ref={overlayRef}
+                className="fixed inset-0 bg-[#060606]/98 backdrop-blur-2xl z-200 hidden opacity-0 overflow-hidden"
             >
-                {/* Clear refs via callback logic optimization if needed, but for now standard ref handling */}
-                
-                <Link to="/#rules" className="menu-item" onClick={closeMenu} ref={addToRefs}>{t('navbar.rules')}</Link>
-                <Link to="/#donors" className="menu-item" style={{ color: 'var(--accent)', fontWeight: 'bold' }} onClick={closeMenu} ref={addToRefs}>{t('navbar.donors')}</Link>
-                <div className="dropdown-divider"></div>
-                <Link to="/#contests" className="menu-item" onClick={closeMenu} ref={addToRefs}>{t('navbar.contests')}</Link>
-                <Link to="/#news" className="menu-item" onClick={closeMenu} ref={addToRefs}>{t('navbar.news')}</Link>
-                <Link to="/#stories" className="menu-item" onClick={closeMenu} ref={addToRefs}>{t('navbar.stories')}</Link>
-                <div className="dropdown-divider"></div>
-                <Link to="/#suggestions" className="menu-item" onClick={closeMenu} ref={addToRefs}>{t('navbar.suggestions')}</Link>
-                <Link to="/forum" className="menu-item" onClick={closeMenu} ref={addToRefs}>{t('navbar.forum')}</Link>
-                <Link to="/wiki" className="menu-item" onClick={closeMenu} ref={addToRefs}>{t('navbar.wiki', 'Guía')}</Link>
-                <Link to="/support" className="menu-item" onClick={closeMenu} ref={addToRefs}>{t('navbar.support', 'Soporte')}</Link>
-                <Link to="/map" className="menu-item" onClick={closeMenu} ref={addToRefs}>{t('footer.online_map')}</Link>
-
-                <div className="dropdown-divider"></div>
-                
-                {/* Mobile Auth & Lang - Visible inside menu for cleaner header */}
-                <div className="menu-section-mobile" ref={addToRefs}>
-                    <div className="mobile-lang-selector" style={{ display: 'flex', justifyContent: 'center', gap: '1.5rem', margin: '0.5rem 0' }}>
-                         <button onClick={() => i18n.changeLanguage('es')} className={`lang-btn-mobile ${i18n.resolvedLanguage === 'es' ? 'active' : ''}`} style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: i18n.resolvedLanguage === 'es' ? 1 : 0.5 }}>
-                            <img src="/images/flags/es.svg" alt="ES" width="24" height="18" />
-                         </button>
-                         <button onClick={() => i18n.changeLanguage('en')} className={`lang-btn-mobile ${i18n.resolvedLanguage === 'en' ? 'active' : ''}`} style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: i18n.resolvedLanguage === 'en' ? 1 : 0.5 }}>
-                            <img src="/images/flags/us.svg" alt="EN" width="24" height="18" />
-                         </button>
+                {/* Header inside menu */}
+                <div className="h-20 px-8 flex items-center justify-between border-b border-white/5">
+                    <div className="flex items-center gap-3">
+                        <img src="/images/ui/logo.webp" alt="Logo" className="w-8 h-8 object-contain" />
+                        <span className="text-xl font-black uppercase tracking-tighter text-white">
+                            Crystal<span className="text-(--accent)">Tides</span>
+                        </span>
                     </div>
+                    <button 
+                        onClick={closeMenu}
+                        className="w-11 h-11 flex items-center justify-center bg-white/5 border border-white/5 rounded-xl text-white hover:bg-white/10 active:scale-90 transition-all shadow-lg"
+                    >
+                        <X size={20} />
+                    </button>
+                </div>
 
-                    {!user ? (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                            <Link to="/login" className="menu-btn" onClick={closeMenu} style={{ textAlign: 'center', padding: '0.5rem', background: 'rgba(255,255,255,0.1)', borderRadius: '4px', textDecoration: 'none', color: '#fff' }}>
-                                {t('navbar.login')}
+                <div className="flex flex-col h-[calc(100vh-80px)] overflow-y-auto px-8 py-10">
+                    {/* Navigation Links */}
+                    <nav className="flex flex-col gap-2 mb-12">
+                        {[
+                            { to: "/#rules", label: t('navbar.rules') },
+                            { to: "/#donors", label: t('navbar.donors'), highlight: true },
+                            { to: "/#news", label: t('navbar.news') },
+                            { to: "/#suggestions", label: t('navbar.suggestions') },
+                            { to: "/forum", label: t('navbar.forum') },
+                            { to: "/wiki", label: t('navbar.wiki', 'Guía') },
+                            { to: "/support", label: t('navbar.support', 'Soporte') },
+                            { to: "/map", label: t('footer.online_map') }
+                        ].map((link, idx) => (
+                            <Link 
+                                key={idx}
+                                to={link.to} 
+                                className={`flex items-center justify-between px-6 py-5 rounded-3xl transition-all group ${link.highlight ? 'bg-(--accent) text-black shadow-2xl shadow-(--accent)/20' : 'text-gray-400 hover:text-white hover:bg-white/5'}`} 
+                                onClick={closeMenu} 
+                                ref={addToRefs}
+                            >
+                                <span className={`text-2xl font-black uppercase tracking-widest ${link.highlight ? 'text-black' : 'text-white/80 group-hover:text-white'}`}>
+                                    {link.label}
+                                </span>
+                                <div className={`w-8 h-px transition-all duration-500 origin-right group-hover:scale-x-150 ${link.highlight ? 'bg-black' : 'bg-white/20 group-hover:bg-(--accent)'}`} />
                             </Link>
-                            <Link to="/register" className="menu-btn primary" onClick={closeMenu} style={{ textAlign: 'center', padding: '0.5rem', background: 'var(--accent)', borderRadius: '4px', textDecoration: 'none', color: '#000', fontWeight: 'bold' }}>
-                                {t('navbar.register')}
-                            </Link>
+                        ))}
+                    </nav>
+
+                    {/* Bottom Section: Language & User */}
+                    <div className="mt-auto space-y-8" ref={addToRefs}>
+                        <div className="flex items-center gap-4 bg-white/5 p-2 rounded-2xl border border-white/5">
+                            <button 
+                                onClick={() => i18n.changeLanguage('es')} 
+                                className={`flex-1 flex items-center justify-center gap-3 py-4 rounded-xl text-xs font-black tracking-widest transition-all ${i18n.resolvedLanguage === 'es' ? 'bg-white text-black shadow-xl ring-4 ring-white/10' : 'text-gray-500 hover:text-white'}`}
+                            >
+                                <img src="/images/flags/es.svg" alt="ES" className="w-5 h-auto rounded-sm" />
+                                ESPAÑOL
+                            </button>
+                            <button 
+                                onClick={() => i18n.changeLanguage('en')} 
+                                className={`flex-1 flex items-center justify-center gap-3 py-4 rounded-xl text-xs font-black tracking-widest transition-all ${i18n.resolvedLanguage === 'en' ? 'bg-white text-black shadow-xl ring-4 ring-white/10' : 'text-gray-500 hover:text-white'}`}
+                            >
+                                <img src="/images/flags/us.svg" alt="EN" className="w-5 h-auto rounded-sm" />
+                                ENGLISH
+                            </button>
                         </div>
-                    ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                            {isAdmin && (
-                                <Link to="/admin" className="menu-item" onClick={closeMenu} style={{ color: '#ff6b6b', fontWeight: 'bold' }}>
-                                     <FaShieldAlt style={{ marginRight: '8px' }}/> {t('account.admin_panel')}
+
+                        {!user ? (
+                            <div className="grid grid-cols-2 gap-4">
+                                <Link to="/login" className="py-5 text-center text-xs font-black uppercase tracking-widest text-white bg-white/5 border border-white/10 rounded-2xl active:scale-95 transition-all" onClick={closeMenu}>
+                                    {t('navbar.login')}
                                 </Link>
-                            )}
-                            <Link to="/account" className="menu-item" onClick={closeMenu}>
-                                 <FaUserCircle style={{ marginRight: '8px' }}/> {(() => {
-                                    const meta = user.user_metadata || {};
-                                    const identities = user.identities || [];
-                                    
-                                    // 1. Web Nick (Full Name > Display Name > Username)
-                                    if (meta.full_name) return meta.full_name;
-                                    if (meta.display_name) return meta.display_name;
-                                    if (meta.username) return meta.username;
-                                    
-                                    // 2. Discord
-                                    const discord = identities.find((id) => id.provider === 'discord');
-                                    if (discord?.identity_data) {
-                                        const data = discord.identity_data as { 
-                                            full_name?: string; 
-                                            custom_claims?: { global_name?: string };
-                                            name?: string;
-                                            user_name?: string;
-                                        };
-                                        return data.full_name || 
-                                               data.custom_claims?.global_name || 
-                                               data.name || 
-                                               data.user_name;
-                                    }
+                                <Link to="/register" className="py-5 text-center text-xs font-black uppercase tracking-widest text-black bg-white rounded-2xl active:scale-95 transition-all shadow-[0_10px_30px_rgba(255,255,255,0.1)]" onClick={closeMenu}>
+                                    {t('navbar.register')}
+                                </Link>
+                            </div>
+                        ) : (
+                            <div className="flex flex-col gap-4">
+                                <Link to="/account" className="flex items-center justify-between w-full p-4 bg-white/5 border border-white/10 rounded-3xl hover:bg-white/10 transition-all group" onClick={closeMenu}>
+                                     <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 bg-(--accent) rounded-xl flex items-center justify-center text-black">
+                                            <UserCircle2 size={24} />
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest leading-none mb-1">Tu Cuenta</span>
+                                            <span className="text-sm font-black text-white">{user.user_metadata?.minecraft_nick || user.email}</span>
+                                        </div>
+                                     </div>
+                                     <div className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-gray-400 group-hover:text-(--accent) group-hover:border-(--accent)/50 transition-all">
+                                        →
+                                     </div>
+                                </Link>
+                                {isAdmin && (
+                                    <Link to="/admin" className="flex items-center justify-center gap-3 w-full py-5 text-center text-xs font-black uppercase tracking-widest text-black bg-(--accent) rounded-2xl hover:scale-105 transition-all shadow-xl shadow-(--accent)/20" onClick={closeMenu}>
+                                         <Shield size={18} /> {t('account.admin_panel')}
+                                    </Link>
+                                )}
+                            </div>
+                        )}
 
-                                    // 3. Twitch
-                                    const twitch = identities.find((id) => id.provider === 'twitch');
-                                    if (twitch?.identity_data) {
-                                        const data = twitch.identity_data as {
-                                            display_name?: string;
-                                            full_name?: string;
-                                            name?: string;
-                                        };
-                                        return data.display_name || 
-                                               data.full_name || 
-                                               data.name;
-                                    }
-
-                                    // 4. Minecraft
-                                    if (meta.minecraft_nick) return meta.minecraft_nick;
-
-                                    return user.email?.split('@')[0] || 'Mi Cuenta';
-                                })()}
-                            </Link>
+                        <div className="pt-8 text-center pb-10">
+                            <p className="text-[10px] font-black text-gray-700 uppercase tracking-[0.3em] italic">
+                                CRYSTALTIDES SMP — EXPLORE THE ABYSS
+                            </p>
                         </div>
-                    )}
+                    </div>
                 </div>
             </div>
-        </div>
+        </>
     )
 }

@@ -1,4 +1,4 @@
-import { FaTrash, FaStopCircle, FaHistory } from 'react-icons/fa';
+import { Trash2, Square, History } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import Loader from "../../UI/Loader";
 import { Poll } from './types';
@@ -19,7 +19,7 @@ export default function PollHistoryTable({ polls, loading, page, totalPages, onP
     return (
         <div className="poll-history-container">
             <div className="poll-table-header">
-                <FaHistory size={24} style={{ color: 'var(--accent)' }} />
+                <History size={24} style={{ color: 'var(--accent)' }} />
                 <h3>{t('admin.polls.history_title')}</h3>
             </div>
             
@@ -70,7 +70,7 @@ export default function PollHistoryTable({ polls, loading, page, totalPages, onP
                                                     title={t('admin.polls.close_btn')}
                                                     className="poll-btn-action"
                                                 >
-                                                    <FaStopCircle />
+                                                    <Square size={16} fill="currentColor" />
                                                 </button>
                                             )}
                                             <button 
@@ -78,7 +78,7 @@ export default function PollHistoryTable({ polls, loading, page, totalPages, onP
                                                 title={t('admin.polls.delete_tooltip')}
                                                 className="poll-btn-action delete"
                                             >
-                                                <FaTrash />
+                                                <Trash2 />
                                             </button>
                                         </div>
                                     </td>

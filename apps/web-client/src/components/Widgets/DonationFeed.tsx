@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../services/supabaseClient'
-import { FaHeart, FaUser } from 'react-icons/fa'
+import { Heart, User } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import '../../donation-feed.css'
 
@@ -40,7 +40,7 @@ export default function DonationFeed({ mockDonations }: DonationFeedProps = {}) 
         return () => {
             supabase.removeChannel(subscription)
         }
-    }, [])
+    }, [mockDonations])
 
     const fetchDonations = async () => {
         try {
@@ -78,7 +78,7 @@ export default function DonationFeed({ mockDonations }: DonationFeedProps = {}) 
             <div className="donation-header">
                 <div className="donation-user">
                     <div className="donation-avatar">
-                        <FaUser />
+                        <User size={16} />
                     </div>
                     <div className="donation-info">
                         <h4>{donation.from_name}</h4>
@@ -88,7 +88,7 @@ export default function DonationFeed({ mockDonations }: DonationFeedProps = {}) 
                     </div>
                 </div>
                 <div className="donation-amount-badge">
-                    <FaHeart size={12} />
+                    <Heart size={12} />
                     {donation.currency} {donation.amount}
                 </div>
             </div>

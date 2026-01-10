@@ -1,4 +1,4 @@
-import { FaPoll, FaStopCircle, FaEdit, FaTrash, FaChartBar, FaPlus } from 'react-icons/fa';
+import { BarChart3, Square, Edit2, Trash2, BarChart2, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Poll } from './types';
 
@@ -17,7 +17,7 @@ export default function PollActiveCard({ poll, onEdit, onDelete, onClose, onCrea
         return (
             <div className="poll-empty-state">
                 <div className="poll-empty-icon-wrapper">
-                    <FaPoll size={48} />
+                    <BarChart3 size={48} />
                 </div>
                 <div>
                     <h3 style={{ fontSize: '1.75rem', fontWeight: '900', color: '#fff', marginBottom: '0.75rem' }}>{t('admin.polls.no_active')}</h3>
@@ -26,7 +26,7 @@ export default function PollActiveCard({ poll, onEdit, onDelete, onClose, onCrea
                     </p>
                     {onCreate && (
                         <button onClick={onCreate} className="btn-primary" style={{ padding: '1rem 2.5rem', fontSize: '1rem' }}>
-                            <FaPlus style={{ marginRight: '10px' }} /> {t('admin.polls.create_now_btn')}
+                            <Plus style={{ marginRight: '10px' }} /> {t('admin.polls.create_now_btn')}
                         </button>
                     )}
                 </div>
@@ -62,14 +62,14 @@ export default function PollActiveCard({ poll, onEdit, onDelete, onClose, onCrea
                             className="poll-btn-action"
                             title={t('admin.polls.edit_btn')}
                         >
-                            <FaEdit size={18} />
+                            <Edit2 size={18} />
                         </button>
                         <button 
                             onClick={() => onDelete(poll.id)}
                             className="poll-btn-action delete"
                             title={t('admin.polls.delete_tooltip')}
                         >
-                            <FaTrash size={18} />
+                            <Trash2 size={18} />
                         </button>
                     </div>
                 </div>
@@ -101,14 +101,14 @@ export default function PollActiveCard({ poll, onEdit, onDelete, onClose, onCrea
 
                 <div className="poll-active-footer">
                     <div className="poll-total-votes">
-                        <FaChartBar size={20} />
+                        <BarChart2 size={20} />
                         {t('admin.polls.total_votes', {count: poll.totalVotes})}
                     </div>
                     <button 
                         onClick={() => onClose(poll.id)} 
                         className="poll-btn-close" 
                     >
-                        <FaStopCircle size={20} /> {t('admin.polls.close_btn')}
+                        <Square size={20} fill="currentColor" /> {t('admin.polls.close_btn')}
                     </button>
                 </div>
             </div>

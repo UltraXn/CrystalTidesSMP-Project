@@ -1,6 +1,6 @@
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaExclamationCircle, FaCheckCircle, FaExclamationTriangle, FaInfoCircle, FaTimes } from 'react-icons/fa';
+import { AlertCircle, CheckCircle2, AlertTriangle, Info, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 interface PremiumAlertProps {
@@ -26,25 +26,25 @@ export default function PremiumAlert({
         error: {
             primary: '#ef4444',
             glow: 'rgba(239, 68, 68, 0.2)',
-            icon: FaExclamationCircle,
+            icon: AlertCircle,
             defaultTitle: t('admin.alerts.error_title', 'Error')
         },
         success: {
             primary: '#10b981',
             glow: 'rgba(16, 185, 129, 0.2)',
-            icon: FaCheckCircle,
+            icon: CheckCircle2,
             defaultTitle: t('admin.alerts.success_title', 'Éxito')
         },
         warning: {
             primary: '#facc15',
             glow: 'rgba(250, 204, 21, 0.2)',
-            icon: FaExclamationTriangle,
+            icon: AlertTriangle,
             defaultTitle: t('admin.alerts.warning_title', 'Atención')
         },
         info: {
             primary: '#3b82f6',
             glow: 'rgba(59, 130, 246, 0.2)',
-            icon: FaInfoCircle,
+            icon: Info,
             defaultTitle: t('admin.alerts.info_title', 'Información')
         }
     };
@@ -90,7 +90,7 @@ export default function PremiumAlert({
                             }}
                             className="hover-scale"
                         >
-                            <FaTimes size={18} />
+                            <X size={18} />
                         </button>
 
                         <div style={{ position: 'relative', zIndex: 1 }}>

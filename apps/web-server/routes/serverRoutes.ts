@@ -2,7 +2,7 @@ import util from 'minecraft-server-util';
 import express, { Request, Response } from 'express';
 import fetch from 'node-fetch';
 import mysql from 'mysql2/promise';
-import * as userService from '../services/userService.js';
+
 import { authenticateToken } from '../middleware/authMiddleware.js';
 import { checkRole, STAFF_ROLES } from '../utils/roleUtils.js';
 import supabase from '../config/supabaseClient.js';
@@ -371,14 +371,6 @@ router.get('/staff', async (req: Request, res: Response) => {
     }
 });
 
-router.get('/all-staff', async (req: Request, res: Response) => {
-    try {
-        const staff = await userService.getStaffUsers();
-        res.json({ success: true, data: staff });
-    } catch (error: unknown) {
-        console.error("All Staff Route Error:", error);
-        res.status(500).json({ success: false, error: error instanceof Error ? error.message : String(error) });
-    }
-});
+
 
 export default router;

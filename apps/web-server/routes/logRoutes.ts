@@ -3,6 +3,8 @@ import * as logsController from '../controllers/logsController.js'; // CoreProte
 import * as logController from '../controllers/logController.js'; // Internal Logs
 import { authenticateToken } from '../middleware/authMiddleware.js';
 import { checkRole, STAFF_ROLES } from '../utils/roleUtils.js';
+import { validate } from '../middleware/validateResource.js';
+import { createLogSchema, reportSecuritySchema } from '../schemas/logSchemas.js';
 
 const router = express.Router();
 
@@ -45,7 +47,7 @@ router.use(checkRole(STAFF_ROLES));
  *         description: Lista de logs recuperada exitosamente
  */
 router.get('/', logController.getLogs);
-router.post('/', logController.createLog);
+router.post('/', validate(createLogSchema), logController.createLog);
 
 /**
  * @swagger
@@ -63,6 +65,6 @@ router.get('/commands', logsController.getCommandLogs);
 import { optionalAuthenticateToken } from '../middleware/authMiddleware.js';
 import { sensitiveActionLimiter } from '../middleware/rateLimitMiddleware.js';
 
-router.post('/security/report', sensitiveActionLimiter, optionalAuthenticateToken, logController.reportSecurityAlert);
+router.post('/security/report', sensitiveActionLimiter, optionalAuthenticateToken, validate(reportSecuritySchema), logController.reportSecurityAlert);
 
 export default router;

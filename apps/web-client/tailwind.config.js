@@ -50,6 +50,15 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // Custom Project Colors
+        void: "rgb(var(--ct-void) / <alpha-value>)",
+        deep: "rgb(var(--ct-deep) / <alpha-value>)",
+        tide: "rgb(var(--ct-tide) / <alpha-value>)",
+        crystal: "rgb(var(--ct-crystal) / <alpha-value>)",
+        // Background aliases
+        bg: "var(--bg)",
+        "bg-alt": "var(--bg-alt)",
+        "bg-soft": "var(--bg-soft)",
       },
       borderRadius: {
         lg: "var(--radius)",

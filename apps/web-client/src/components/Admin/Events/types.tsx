@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaCheckCircle, FaHourglassStart, FaFlagCheckered, FaHammer, FaDiceD20, FaMapMarkedAlt, FaRunning } from 'react-icons/fa';
+import { CheckCircle, Hourglass, Flag, Hammer, Dices, Map, Footprints } from 'lucide-react';
 
 export interface Event {
     id?: number;
@@ -24,14 +24,14 @@ export interface Registration {
 
 // Helper maps
 export const getIconMap = (): {[key: string]: React.ReactNode} => ({
-    'hammer': <FaHammer />,
-    'dice': <FaDiceD20 />,
-    'map': <FaMapMarkedAlt />,
-    'running': <FaRunning />
+    'hammer': <Hammer />,
+    'dice': <Dices />,
+    'map': <Map />,
+    'running': <Footprints />
 });
 
 export const getStatusMap = (t: (key: string) => string): {[key: string]: { label: string, icon: React.ReactNode, color: string }} => ({
-    'active': { label: t('admin.events.form.statuses.active'), icon: <FaCheckCircle />, color: '#4ade80' },
-    'soon': { label: t('admin.events.form.statuses.soon'), icon: <FaHourglassStart />, color: '#fbbf24' },
-    'finished': { label: t('admin.events.form.statuses.finished'), icon: <FaFlagCheckered />, color: '#ef4444' }
+    'active': { label: t('admin.events.form.statuses.active'), icon: <CheckCircle />, color: '#4ade80' },
+    'soon': { label: t('admin.events.form.statuses.soon'), icon: <Hourglass />, color: '#fbbf24' },
+    'finished': { label: t('admin.events.form.statuses.finished'), icon: <Flag />, color: '#ef4444' }
 });

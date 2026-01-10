@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FaPlus, FaTrash, FaSave, FaEdit, FaTimes, FaMapMarkerAlt, FaGhost, FaUsers } from 'react-icons/fa';
+import { Plus, Trash2, Save, Edit2, X, MapPin, Ghost, Users } from 'lucide-react';
 import ConfirmationModal from '../../UI/ConfirmationModal';
 import { getLocations, createLocation, updateLocation, deleteLocation, WorldLocation, LocationAuthor } from '../../../services/locationService';
 import { supabase } from '../../../services/supabaseClient';
@@ -211,7 +211,7 @@ export default function LocationsManager() {
             <div className="manager-header">
                 <div>
                     <h3 style={{ margin: 0, fontSize: '1.5rem', fontWeight: '900', color: '#fff', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                        <FaMapMarkerAlt style={{ color: 'var(--accent)' }} /> {t('locations_manager.title', 'Gestor de Lugares y Lore')}
+                        <MapPin style={{ color: 'var(--accent)' }} /> {t('locations_manager.title', 'Gestor de Lugares y Lore')}
                     </h3>
                     <p style={{ margin: '4px 0 0 0', fontSize: '0.9rem', color: 'rgba(255,255,255,0.4)' }}>{t('locations_manager.subtitle', 'Administra los puntos de interés y la historia del mundo.')}</p>
                 </div>
@@ -221,7 +221,7 @@ export default function LocationsManager() {
                         className="modal-btn-primary hover-lift"
                         style={{ padding: '0.8rem 1.5rem', borderRadius: '16px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '10px' }}
                     >
-                        <FaPlus /> {t('locations_manager.create_btn', 'Nuevo Lugar')}
+                        <Plus /> {t('locations_manager.create_btn', 'Nuevo Lugar')}
                     </button>
                 )}
             </div>
@@ -231,10 +231,10 @@ export default function LocationsManager() {
                 <div className="admin-card editor-card">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem' }}>
                         <h4 style={{ margin: 0, fontSize: '1.2rem', fontWeight: '800', color: '#fff', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            {editingId ? <><FaEdit style={{ color: '#facc15' }} /> {t('locations_manager.edit_title', 'Editar Registro')}</> : <><FaPlus style={{ color: 'var(--accent)' }} /> {t('locations_manager.create_title', 'Nuevo Registro')}</>}
+                            {editingId ? <><Edit2 style={{ color: '#facc15' }} /> {t('locations_manager.edit_title', 'Editar Registro')}</> : <><Plus style={{ color: 'var(--accent)' }} /> {t('locations_manager.create_title', 'Nuevo Registro')}</>}
                         </h4>
                         <button onClick={resetForm} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer' }}>
-                            <FaTimes size={20} />
+                            <X size={20} />
                         </button>
                     </div>
 
@@ -352,7 +352,7 @@ export default function LocationsManager() {
                         {/* Authors Section */}
                         <div style={{ background: 'rgba(255,255,255,0.02)', padding: '1.5rem', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.05)' }}>
                             <label style={{ display: 'block', marginBottom: '1rem', color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', fontWeight: '700' }}>
-                                <FaUsers style={{ marginRight: '8px' }} /> {t('locations_manager.form.authors', 'Arquitectos / Autores')}
+                                <Users style={{ marginRight: '8px' }} /> {t('locations_manager.form.authors', 'Arquitectos / Autores')}
                             </label>
                             
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.8rem', marginBottom: '1.5rem' }}>
@@ -370,7 +370,7 @@ export default function LocationsManager() {
                                         <span style={{ fontSize: '0.85rem', fontWeight: '700', color: '#fff' }}>{auth.name}</span>
                                         <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', color: '#60a5fa', fontWeight: '900' }}>{auth.role}</span>
                                         <button onClick={() => removeAuthor(idx)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer', display: 'flex' }}>
-                                            <FaTimes size={12} />
+                                            <X size={12} />
                                         </button>
                                     </div>
                                 ))}
@@ -393,7 +393,7 @@ export default function LocationsManager() {
                                     {AUTHOR_ROLES.map(r => <option key={r} value={r} style={{ background: '#0b0b10' }}>{r}</option>)}
                                 </select>
                                 <button onClick={addAuthor} className="modal-btn-primary hover-lift" style={{ padding: '0 1.2rem', borderRadius: '12px' }}>
-                                    <FaPlus />
+                                    <Plus />
                                 </button>
                             </div>
                         </div>
@@ -409,7 +409,7 @@ export default function LocationsManager() {
                             className="modal-btn-primary hover-lift"
                             style={{ padding: '1rem 3rem', borderRadius: '16px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '10px' }}
                         >
-                            {saving ? t('admin.locations.form.saving', 'Guardando...') : <><FaSave /> {t('admin.locations.form.save', 'Guardar Registro')}</>}
+                            {saving ? t('admin.locations.form.saving', 'Guardando...') : <><Save /> {t('admin.locations.form.save', 'Guardar Registro')}</>}
                         </button>
                     </div>
                 </div>
@@ -431,7 +431,7 @@ export default function LocationsManager() {
                         <div style={{ height: '180px', position: 'relative', overflow: 'hidden' }}>
                             {loc.is_coming_soon ? (
                                 <div style={{ height: '100%', background: 'rgba(0,0,0,0.4)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.2)' }}>
-                                    <FaGhost size={40} />
+                                    <Ghost size={40} />
                                     <span style={{ fontSize: '0.7rem', fontWeight: '900', textTransform: 'uppercase', marginTop: '10px' }}>Protocol Mystery</span>
                                 </div>
                             ) : (
@@ -439,10 +439,10 @@ export default function LocationsManager() {
                             )}
                             <div style={{ position: 'absolute', top: '15px', right: '15px', display: 'flex', gap: '8px' }}>
                                 <button onClick={() => handleEdit(loc)} style={{ padding: '8px', background: 'rgba(255,255,255,0.1)', color: '#fff', borderRadius: '10px', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer' }}>
-                                    <FaEdit size={14} />
+                                    <Edit2 size={14} />
                                 </button>
                                 <button onClick={() => setDeleteConfirmId(loc.id)} style={{ padding: '8px', background: 'rgba(239, 68, 68, 0.2)', color: '#ef4444', borderRadius: '10px', backdropFilter: 'blur(10px)', border: '1px solid rgba(239, 68, 68, 0.2)', cursor: 'pointer' }}>
-                                    <FaTrash size={14} />
+                                    <Trash2 size={14} />
                                 </button>
                             </div>
                             <div style={{ position: 'absolute', bottom: '15px', left: '15px', background: 'rgba(0,0,0,0.6)', padding: '4px 10px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 'bold', color: 'var(--accent)', border: '1px solid rgba(255,255,255,0.1)' }}>

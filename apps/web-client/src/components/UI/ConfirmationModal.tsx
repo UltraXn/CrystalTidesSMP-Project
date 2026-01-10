@@ -1,6 +1,6 @@
  
 import { motion, AnimatePresence } from 'framer-motion'
-import { FaExclamationTriangle } from 'react-icons/fa'
+import { AlertTriangle } from 'lucide-react'
 
 interface ConfirmationModalProps {
     isOpen: boolean;
@@ -79,7 +79,7 @@ export default function ConfirmationModal({
                         {isLoading ? (
                             <div className="spinner-border" style={{ width: '30px', height: '30px', border: `3px solid ${isDanger ? '#e74c3c' : '#f1c40f'}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
                         ) : (
-                            <FaExclamationTriangle size={30} color={isDanger ? '#e74c3c' : '#f1c40f'} />
+                            <AlertTriangle size={30} color={isDanger ? '#e74c3c' : '#f1c40f'} />
                         )}
                     </div>
 

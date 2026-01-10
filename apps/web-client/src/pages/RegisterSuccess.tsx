@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { FaPaperPlane } from 'react-icons/fa';
+import { Send } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 export default function RegisterSuccess() {
@@ -32,7 +32,7 @@ export default function RegisterSuccess() {
                     justifyContent: 'center',
                     margin: '0 auto 1.5rem auto'
                 }}>
-                    <FaPaperPlane size={35} color="var(--accent)" />
+                    <Send size={35} color="var(--accent)" />
                 </div>
 
                 <h1 style={{ marginBottom: '1rem', fontSize: '2rem' }}>{t('register.success_title', '¡Registro Exitoso!')}</h1>

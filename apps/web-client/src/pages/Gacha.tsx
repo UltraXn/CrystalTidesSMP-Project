@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { FaCoins, FaStar, FaGem, FaGift, FaLock, FaHistory, FaExclamationTriangle, FaClock, FaCheck } from 'react-icons/fa';
+import { Coins, Star, Gem, Gift, Lock, History, AlertTriangle, Clock, Check } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { IconType } from 'react-icons';
 import { useAuth } from '../context/AuthContext';
 import Loader from '../components/UI/Loader';
 import { useNavigate } from 'react-router-dom';
@@ -25,11 +24,11 @@ const RARITY_COLORS: Record<string, string> = {
     legendary: '#ff8000'
 };
 
-const RARITY_ICONS: Record<string, IconType> = {
-    common: FaStar,
-    rare: FaCoins,
-    epic: FaGem,
-    legendary: FaGift
+const RARITY_ICONS: Record<string, any> = {
+    common: Star,
+    rare: Coins,
+    epic: Gem,
+    legendary: Gift
 };
 
 interface GachaHistoryItem {
@@ -461,9 +460,9 @@ export default function Gacha() {
 
             <div className="gacha-container">
                 <header className="gacha-header">
-                    <span className="gacha-badge"><FaStar /> CRYSTAL SLOT</span>
+                    <span className="gacha-badge"><Star size={14} /> CRYSTAL SLOT</span>
                     <div className="balance-display" onClick={() => setKilluBalance(prev => prev + 100000)}>
-                        <FaCoins /> {killuBalance.toLocaleString()} <span>KC</span>
+                        <Coins size={18} /> {killuBalance.toLocaleString()} <span>KC</span>
                     </div>
                     <h1>{t('gacha.hero_title')}</h1>
                     <p>{t('gacha.hero_subtitle')}</p>
@@ -472,7 +471,7 @@ export default function Gacha() {
                 <div className="gacha-main">
                     {!isLinked ? (
                         <div className="link-bridge-panel">
-                            <FaExclamationTriangle size={48} color="#f59e0b" />
+                            <AlertTriangle size={48} color="#f59e0b" />
                             <div className="link-content">
                                 <h3>{t('gacha.account_not_linked')}</h3>
                                 <p>Para jugar en el Crystal Slot y sincronizar tus recompensas, debes conectar tu cuenta de Minecraft o Discord.</p>
@@ -517,7 +516,7 @@ export default function Gacha() {
                                                 )}
                                             </span>
                                         </div>
-                                        {isLocked && <FaLock className="lock-icon" />}
+                                        {isLocked && <Lock className="lock-icon" />}
                                     </button>
                                 );
                             })}
@@ -545,7 +544,7 @@ export default function Gacha() {
                                                         <div key={i} className={`slot-item rarity-${item.rarity}`}>
                                                             <div className="item-icon-wrapper" style={{ color: item.color }}>
                                                                 {(() => {
-                                                                    const Icon = RARITY_ICONS[item.rarity] || FaStar;
+                                                                    const Icon = RARITY_ICONS[item.rarity] || Star;
                                                                     return <Icon />;
                                                                 })()}
                                                             </div>
@@ -573,13 +572,13 @@ export default function Gacha() {
                                             ) : cooldown ? (
                                                 t('gacha.btn_cooldown')
                                             ) : (
-                                                <><FaCoins /> {t('gacha.btn_roll')}</>
+                                                <><Coins size={18} /> {t('gacha.btn_roll')}</>
                                             )}
                                         </button>
                                     </div>
                                     {cooldown && !isOpening && (
                                         <div className="cooldown-notice">
-                                            <FaClock /> {t('gacha.vuelve_mañana')}
+                                            <Clock size={16} /> {t('gacha.vuelve_mañana')}
                                         </div>
                                     )}
                                 </div>
@@ -587,7 +586,7 @@ export default function Gacha() {
                         </div>
                     )}
 
-                    {error && <div className="gacha-error"><FaExclamationTriangle /> {error}</div>}
+                    {error && <div className="gacha-error"><AlertTriangle size={16} /> {error}</div>}
                 </div>
 
                 {/* Winner Card */}
@@ -598,14 +597,14 @@ export default function Gacha() {
                             <div className="reward-rarity">{reward.rarity.toUpperCase()}</div>
                             <div className="reward-icon">
                                 {(() => {
-                                    const Icon = RARITY_ICONS[reward.rarity] || FaStar;
+                                    const Icon = RARITY_ICONS[reward.rarity] || Star;
                                     return <Icon />;
                                 })()}
                             </div>
                             <h3>{reward.name}</h3>
                             <p>{t('gacha.reward_delivered')}</p>
                             <button className="reward-close-btn" onClick={() => { setReward(null); setIsOpening(false); }}>
-                                {t('gacha.claim_btn')} <FaCheck />
+                                {t('gacha.claim_btn')} <Check size={18} />
                             </button>
                         </div>
                     </div>
@@ -619,7 +618,7 @@ export default function Gacha() {
                              <div key={r.id} className={`reward-grid-item rarity-${r.rarity}`}>
                                 <div className="r-icon">
                                     {(() => {
-                                        const Icon = RARITY_ICONS[r.rarity] || FaStar;
+                                        const Icon = RARITY_ICONS[r.rarity] || Star;
                                         return <Icon />;
                                     })()}
                                 </div>
@@ -632,7 +631,7 @@ export default function Gacha() {
                 {/* History Drawer */}
                 <div className={`history-drawer ${isHistoryOpen ? 'open' : ''}`}>
                     <button className="history-toggle" onClick={() => setIsHistoryOpen(!isHistoryOpen)}>
-                        <FaHistory /> {t('gacha.history_btn')}
+                        <History size={18} /> {t('gacha.history_btn')}
                     </button>
                     <div className="history-content">
                         {history.length > 0 ? (

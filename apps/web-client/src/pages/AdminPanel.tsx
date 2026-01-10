@@ -2,16 +2,15 @@ import { useState, useEffect } from "react"
 import { useAuth } from "../context/AuthContext"
 import { useNavigate } from "react-router-dom"
 import { 
-    FaShieldAlt, FaChartPie, FaUsers, FaTicketAlt, FaLightbulb, 
-    FaPoll, FaCalendarAlt, FaNewspaper, FaGamepad, FaIdCard, FaTimes, 
-    FaBriefcase, FaListUl, FaCog, FaArrowLeft, FaBook, FaDonate, FaGift, FaMapMarkerAlt
-} from "react-icons/fa"
+    Shield, PieChart, Users, Ticket, Lightbulb, 
+    BarChart3, Calendar, Newspaper, Gamepad2, IdCard, X, 
+    Briefcase, List, Settings, ArrowLeft, Book, CircleDollarSign, Gift, MapPin
+} from "lucide-react"
 import { useTranslation } from 'react-i18next'
 import Loader from "../components/UI/Loader"
-import { get2FAStatus } from '../services/twoFactorService'
+import { use2FAStatus } from '../hooks/useAccountData'
 import { getAdminToken } from '../services/adminAuth'
 import Admin2FAModal from '../components/Admin/Admin2FAModal'
-import { supabase } from '../services/supabaseClient'
 import { useScrollDirection } from "../hooks/useScrollDirection"
 import '../styles/admin-layout.css'
 import '../styles/admin.css'
@@ -45,7 +44,6 @@ import WikiManager from "../components/Admin/WikiManager"
 import LocationsManager from "../components/Admin/Config/LocationsManager"
 import AdminMobileNavbar from "../components/Admin/AdminMobileNavbar"
 
-
 export default function AdminPanel() {
     const { t, i18n } = useTranslation()
     const { user, loading } = useAuth()
@@ -55,8 +53,9 @@ export default function AdminPanel() {
     const [sidebarOpen, setSidebarOpen] = useState(!isMobile)
     const scrollDirection = useScrollDirection();
     
-    // 2FA Logic
-    const [show2FAModal, setShow2FAModal] = useState(false)
+    // 2FA Logic (TanStack Query)
+    const { data: status2FA } = use2FAStatus();
+    const [show2FAModal, setShow2FAModal] = useState(false);
 
     // Handle Resize
     useEffect(() => {
@@ -64,7 +63,7 @@ export default function AdminPanel() {
             const mobile = window.innerWidth < 1024
             setIsMobile(mobile)
             if (!mobile) setSidebarOpen(true)
-            else if (mobile && window.innerWidth < 1024) setSidebarOpen(false) // Auto-close on resize to mobile
+            else if (mobile && window.innerWidth < 1024) setSidebarOpen(false) 
         }
         window.addEventListener('resize', handleResize)
         return () => window.removeEventListener('resize', handleResize)
@@ -80,39 +79,17 @@ export default function AdminPanel() {
         return () => {
             document.body.style.overflow = 'unset'
         }
-        return () => {
-            document.body.style.overflow = 'unset'
-        }
     }, [isMobile, sidebarOpen])
 
-    // Check 2FA Status
     useEffect(() => {
-        if (loading) return
-        if (!user) {
-            return
-        }
-
-        const check2FA = async () => {
-            try {
-                const { data: { session } } = await supabase.auth.getSession()
-                if (!session?.access_token) {
-                    return
-                }
-
-                const res = await get2FAStatus(session.access_token)
-                if (res.success && res.data.enabled) {
-                    const adminToken = getAdminToken()
-                    if (!adminToken) {
-                        setShow2FAModal(true)
-                    }
-                }
-            } catch (err) {
-                console.error("Error checking 2FA:", err)
+        if (!loading && user && status2FA?.enabled && !show2FAModal) {
+            const adminToken = getAdminToken();
+            if (!adminToken) {
+                // Use Promise to move execution out of the sync effect flow to avoid cascading renders warning
+                Promise.resolve().then(() => setShow2FAModal(true));
             }
         }
-
-        check2FA()
-    }, [user, loading])
+    }, [user, loading, status2FA, show2FAModal]);
 
     // Verificación Real de Permisos
     const allowedRoles = ['admin', 'neroferno', 'killu', 'killuwu', 'helper', 'developer', 'staff']
@@ -155,7 +132,7 @@ export default function AdminPanel() {
                 gap: '1rem',
                 zIndex: 9999
             }}>
-                <FaShieldAlt size={64} />
+                <Shield size={64} />
                 <h1 style={{fontSize: '2rem'}}>{t('admin.access_denied.title')}</h1>
                 <p style={{color: '#aaa'}}>{t('admin.access_denied.msg')}</p>
                 <button onClick={() => navigate('/')} className="btn-primary" style={{marginTop: '1rem'}}>
@@ -185,12 +162,12 @@ export default function AdminPanel() {
                             Crystal Panel
                         </h3>
                         <div className="admin-version-tag">
-                            v1.2.0 Beta
+                            v2.6.4 Stable
                         </div>
                     </div>
                     {isMobile && (
                         <button onClick={() => setSidebarOpen(false)} className="admin-sidebar-close">
-                            <FaTimes />
+                            <X size={20} />
                         </button>
                     )}
                 </div>
@@ -201,37 +178,37 @@ export default function AdminPanel() {
                         className="xp-sidebar-btn back-btn"
                         onClick={() => navigate('/')}
                     >
-                        <span className="icon"><FaArrowLeft /></span>
+                        <span className="icon"><ArrowLeft size={20} /></span>
                         {t('admin.back_home', 'Volver al Inicio')}
                     </button>
 
                     <div className="xp-sidebar-header">{t('admin.sidebar.general')}</div>
-                    <SidebarItem active={activeTab === 'overview'} onClick={() => { setActiveTab('overview'); if(isMobile) setSidebarOpen(false); }} icon={<FaChartPie />} label={t('admin.tabs.general')} />
+                    <SidebarItem active={activeTab === 'overview'} onClick={() => { setActiveTab('overview'); if(isMobile) setSidebarOpen(false); }} icon={<PieChart size={18} />} label={t('admin.tabs.general')} />
                     {hasSecureAccess && (
-                        <SidebarItem active={activeTab === 'settings'} onClick={() => { setActiveTab('settings'); if(isMobile) setSidebarOpen(false); }} icon={<FaCog />} label={t('admin.tabs.settings')} />
+                        <SidebarItem active={activeTab === 'settings'} onClick={() => { setActiveTab('settings'); if(isMobile) setSidebarOpen(false); }} icon={<Settings size={18} />} label={t('admin.tabs.settings')} />
                     )}
-                    <SidebarItem active={activeTab === 'logs'} onClick={() => { setActiveTab('logs'); if(isMobile) setSidebarOpen(false); }} icon={<FaListUl />} label={t('admin.tabs.logs')} />
+                    <SidebarItem active={activeTab === 'logs'} onClick={() => { setActiveTab('logs'); if(isMobile) setSidebarOpen(false); }} icon={<List size={18} />} label={t('admin.tabs.logs')} />
 
-                    <SidebarItem active={activeTab === 'docs'} onClick={() => { setActiveTab('docs'); if(isMobile) setSidebarOpen(false); }} icon={<FaBook />} label={t('admin.tabs.docs')} />
+                    <SidebarItem active={activeTab === 'docs'} onClick={() => { setActiveTab('docs'); if(isMobile) setSidebarOpen(false); }} icon={<Book size={18} />} label={t('admin.tabs.docs')} />
 
                     <div className="xp-sidebar-header">{t('admin.sidebar.community')}</div>
-                    <SidebarItem active={activeTab === 'users'} onClick={() => { setActiveTab('users'); if(isMobile) setSidebarOpen(false); }} icon={<FaUsers />} label={t('admin.tabs.users')} />
-                    <SidebarItem active={activeTab === 'donations'} onClick={() => { setActiveTab('donations'); if(isMobile) setSidebarOpen(false); }} icon={<FaDonate />} label={t('admin.tabs.donations')} /> 
-                    <SidebarItem active={activeTab === 'news'} onClick={() => { setActiveTab('news'); if(isMobile) setSidebarOpen(false); }} icon={<FaNewspaper />} label={t('admin.tabs.news')} />
-                    <SidebarItem active={activeTab === 'events'} onClick={() => { setActiveTab('events'); if(isMobile) setSidebarOpen(false); }} icon={<FaCalendarAlt />} label={t('admin.tabs.events')} />
-                    <SidebarItem active={activeTab === 'gamification'} onClick={() => { setActiveTab('gamification'); if(isMobile) setSidebarOpen(false); }} icon={<FaGamepad />} label={t('admin.tabs.gamification')} />
-                    <SidebarItem active={activeTab === 'suggestions'} onClick={() => { setActiveTab('suggestions'); if(isMobile) setSidebarOpen(false); }} icon={<FaLightbulb />} label={t('admin.tabs.suggestions')} />
-                    <SidebarItem active={activeTab === 'polls'} onClick={() => { setActiveTab('polls'); if(isMobile) setSidebarOpen(false); }} icon={<FaPoll />} label={t('admin.tabs.polls')} />
-                    <SidebarItem active={activeTab === 'wiki'} onClick={() => { setActiveTab('wiki'); if(isMobile) setSidebarOpen(false); }} icon={<FaBook />} label={t('admin.tabs.wiki', 'Wiki / Gamepedia')} />
-                    <SidebarItem active={activeTab === 'locations'} onClick={() => { setActiveTab('locations'); if(isMobile) setSidebarOpen(false); }} icon={<FaMapMarkerAlt />} label={t('admin.tabs.locations', 'Lugares y Lore')} />
-                    <SidebarItem active={activeTab === 'gacha_dev'} onClick={() => { navigate('/gacha'); if(isMobile) setSidebarOpen(false); }} icon={<FaGift style={{ color: '#ff8000' }} />} label="Gacha (Dev/Internal)" />
+                    <SidebarItem active={activeTab === 'users'} onClick={() => { setActiveTab('users'); if(isMobile) setSidebarOpen(false); }} icon={<Users size={18} />} label={t('admin.tabs.users')} />
+                    <SidebarItem active={activeTab === 'donations'} onClick={() => { setActiveTab('donations'); if(isMobile) setSidebarOpen(false); }} icon={<CircleDollarSign size={18} />} label={t('admin.tabs.donations')} /> 
+                    <SidebarItem active={activeTab === 'news'} onClick={() => { setActiveTab('news'); if(isMobile) setSidebarOpen(false); }} icon={<Newspaper size={18} />} label={t('admin.tabs.news')} />
+                    <SidebarItem active={activeTab === 'events'} onClick={() => { setActiveTab('events'); if(isMobile) setSidebarOpen(false); }} icon={<Calendar size={18} />} label={t('admin.tabs.events')} />
+                    <SidebarItem active={activeTab === 'gamification'} onClick={() => { setActiveTab('gamification'); if(isMobile) setSidebarOpen(false); }} icon={<Gamepad2 size={18} />} label={t('admin.tabs.gamification')} />
+                    <SidebarItem active={activeTab === 'suggestions'} onClick={() => { setActiveTab('suggestions'); if(isMobile) setSidebarOpen(false); }} icon={<Lightbulb size={18} />} label={t('admin.tabs.suggestions')} />
+                    <SidebarItem active={activeTab === 'polls'} onClick={() => { setActiveTab('polls'); if(isMobile) setSidebarOpen(false); }} icon={<BarChart3 size={18} />} label={t('admin.tabs.polls')} />
+                    <SidebarItem active={activeTab === 'wiki'} onClick={() => { setActiveTab('wiki'); if(isMobile) setSidebarOpen(false); }} icon={<Book size={18} />} label={t('admin.tabs.wiki', 'Wiki / Gamepedia')} />
+                    <SidebarItem active={activeTab === 'locations'} onClick={() => { setActiveTab('locations'); if(isMobile) setSidebarOpen(false); }} icon={<MapPin size={18} />} label={t('admin.tabs.locations', 'Lugares y Lore')} />
+                    <SidebarItem active={activeTab === 'gacha_dev'} onClick={() => { navigate('/gacha'); if(isMobile) setSidebarOpen(false); }} icon={<Gift size={18} style={{ color: '#ff8000' }} />} label="Gacha (Dev/Internal)" />
 
                     <div className="xp-sidebar-header">{t('admin.sidebar.staff_management')}</div>
-                    <SidebarItem active={activeTab === 'staff_hub'} onClick={() => { setActiveTab('staff_hub'); if(isMobile) setSidebarOpen(false); }} icon={<FaBriefcase />} label={t('admin.tabs.staff_hub')} />
+                    <SidebarItem active={activeTab === 'staff_hub'} onClick={() => { setActiveTab('staff_hub'); if(isMobile) setSidebarOpen(false); }} icon={<Briefcase size={18} />} label={t('admin.tabs.staff_hub')} />
                     {hasSecureAccess && (
-                        <SidebarItem active={activeTab === 'team'} onClick={() => { setActiveTab('team'); if(isMobile) setSidebarOpen(false); }} icon={<FaIdCard />} label={t('admin.tabs.team')} />
+                        <SidebarItem active={activeTab === 'team'} onClick={() => { setActiveTab('team'); if(isMobile) setSidebarOpen(false); }} icon={<IdCard size={18} />} label={t('admin.tabs.team')} />
                     )}
-                    <SidebarItem active={activeTab === 'tickets'} onClick={() => { setActiveTab('tickets'); if(isMobile) setSidebarOpen(false); }} icon={<FaTicketAlt />} label={t('admin.tabs.tickets')} />
+                    <SidebarItem active={activeTab === 'tickets'} onClick={() => { setActiveTab('tickets'); if(isMobile) setSidebarOpen(false); }} icon={<Ticket size={18} />} label={t('admin.tabs.tickets')} />
 
 
                 </div>

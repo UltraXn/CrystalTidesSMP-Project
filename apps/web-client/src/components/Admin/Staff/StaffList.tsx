@@ -1,7 +1,7 @@
 
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { useTranslation } from 'react-i18next';
-import { FaUsers, FaSync } from 'react-icons/fa';
+import { Users, RefreshCw } from 'lucide-react';
 import StaffCardComponent from '../StaffCard';
 import { StaffCardData } from './StaffFormModal';
 
@@ -79,13 +79,13 @@ export default function StaffList({ cards, onlineStatus, onDragEnd, onEdit, onDe
             
             {cards.length === 0 && (
                 <div style={{ textAlign: 'center', padding: '4rem 1rem', opacity: 0.5 }}>
-                    <FaUsers size={48} style={{ marginBottom: '1rem' }} />
+                    <Users size={48} style={{ marginBottom: '1rem' }} />
                     <p>{t('admin.staff.empty')}</p>
                     <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1rem' }}>
                         <button onClick={onSync} className="btn-secondary" disabled={syncing} style={{ minWidth: '160px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                              {syncing ? (
                                 <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <FaSync className="spin-icon" /> {t('admin.staff.syncing')}
+                                    <RefreshCw className="spin-icon" size={16} /> {t('admin.staff.syncing')}
                                 </span>
                              ) : (
                                 t('admin.staff.sync_btn')

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FaDiceD20, FaLanguage, FaSpinner, FaEdit, FaCheckCircle } from "react-icons/fa";
+import { Dices, Languages, Loader2, Edit, CheckCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { supabase } from "../../../services/supabaseClient";
 import { getAuthHeaders } from "../../../services/adminAuth";
@@ -11,9 +11,10 @@ interface EventFormModalProps {
     currentEvent: Event;
     setCurrentEvent: React.Dispatch<React.SetStateAction<Event | null>>;
     API_URL: string;
+    saving?: boolean;
 }
 
-export default function EventFormModal({ onClose, onSave, currentEvent, setCurrentEvent, API_URL }: EventFormModalProps) {
+export default function EventFormModal({ onClose, onSave, currentEvent, setCurrentEvent, API_URL, saving }: EventFormModalProps) {
     const { t } = useTranslation();
     const [translating, setTranslating] = useState<string | null>(null);
 
@@ -59,7 +60,7 @@ export default function EventFormModal({ onClose, onSave, currentEvent, setCurre
                 <form onSubmit={onSave} className="event-form-grid">
                     
                     <div className="event-form-section">
-                        <h4><FaDiceD20 /> {t('admin.events.form_extras.info_basic', 'Información Básica')}</h4>
+                        <h4><Dices /> {t('admin.events.form_extras.info_basic', 'Información Básica')}</h4>
                         
                         <div className="form-group">
                             <label className="admin-label-premium">{t('admin.events.form_extras.title_es')}</label>
@@ -76,7 +77,7 @@ export default function EventFormModal({ onClose, onSave, currentEvent, setCurre
                             <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap: 'wrap', gap: '0.5rem'}}>
                                 <label className="admin-label-premium">{t('admin.events.form_extras.title_en')}</label>
                                 <button type="button" className="btn-secondary" style={{fontSize:'0.7rem', padding:'0.3rem 0.8rem', height: 'auto'}} onClick={() => handleTranslate(currentEvent.title, 'title')} disabled={translating === 'title'}>
-                                    {translating === 'title' ? <FaSpinner className="spin"/> : <><FaLanguage /> {t('admin.events.form_extras.translate_btn')}</>}
+                                    {translating === 'title' ? <Loader2 className="spin"/> : <><Languages /> {t('admin.events.form_extras.translate_btn')}</>}
                                 </button>
                             </div>
                             <input
@@ -118,7 +119,7 @@ export default function EventFormModal({ onClose, onSave, currentEvent, setCurre
                     </div>
 
                     <div className="event-form-section">
-                        <h4><FaEdit /> {t('admin.events.form_extras.description', 'Descripción Detallada')}</h4>
+                        <h4><Edit /> {t('admin.events.form_extras.description', 'Descripción Detallada')}</h4>
                         
                         <div className="form-group">
                             <label className="admin-label-premium">{t('admin.events.form_extras.desc_es')}</label>
@@ -135,7 +136,7 @@ export default function EventFormModal({ onClose, onSave, currentEvent, setCurre
                             <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap: 'wrap', gap: '0.5rem'}}>
                                 <label className="admin-label-premium">{t('admin.events.form_extras.desc_en')}</label>
                                 <button type="button" className="btn-secondary" style={{fontSize:'0.7rem', padding:'0.3rem 0.8rem', height: 'auto'}} onClick={() => handleTranslate(currentEvent.description, 'description')} disabled={translating === 'description'}>
-                                    {translating === 'description' ? <FaSpinner className="spin"/> : <><FaLanguage /> {t('admin.events.form_extras.translate_btn')}</>}
+                                    {translating === 'description' ? <Loader2 className="spin"/> : <><Languages /> {t('admin.events.form_extras.translate_btn')}</>}
                                 </button>
                             </div>
                             <textarea
@@ -152,8 +153,8 @@ export default function EventFormModal({ onClose, onSave, currentEvent, setCurre
                         <button type="button" onClick={onClose} className="modal-btn-secondary" style={{ flex: '1 1 auto', minWidth: '140px', height: '54px', padding: '0 2rem' }}>
                             {t('admin.events.cancel')}
                         </button>
-                        <button type="submit" className="modal-btn-primary" style={{ flex: '1 1 auto', minWidth: '140px', height: '54px', padding: '0 2rem' }}>
-                            <FaCheckCircle size={18} /> {currentEvent.id ? t('admin.events.form.save') : t('admin.events.form.create')}
+                        <button type="submit" className="modal-btn-primary" disabled={saving} style={{ flex: '1 1 auto', minWidth: '140px', height: '54px', padding: '0 2rem' }}>
+                            {saving ? <Loader2 className="spin" /> : <><CheckCircle size={18} /> {currentEvent.id ? t('admin.events.form.save') : t('admin.events.form.create')}</>}
                         </button>
                     </div>
                 </form>

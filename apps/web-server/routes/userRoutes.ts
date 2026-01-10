@@ -98,10 +98,13 @@ router.get('/profile/:username/full', userController.getFullProfile);
  *         description: Rol actualizado
  */
 import { validate } from '../middleware/validateResource.js';
-import { updateUserSchema } from '../schemas/userSchemas.js';
+import { 
+    updateUserMetadataSchema, 
+    updateUserRoleSchema 
+} from '../schemas/userSchemas.js';
 
-router.patch('/:id/role', authenticateToken, checkRole(ADMIN_ROLES), userController.updateUserRole);
-router.patch('/:id/metadata', authenticateToken, checkRole(ADMIN_ROLES), validate(updateUserSchema), userController.updateUserMetadata);
+router.patch('/:id/role', authenticateToken, checkRole(ADMIN_ROLES), validate(updateUserRoleSchema), userController.updateUserRole);
+router.patch('/:id/metadata', authenticateToken, checkRole(ADMIN_ROLES), validate(updateUserMetadataSchema), userController.updateUserMetadata);
 router.post('/:id/karma', authenticateToken, userController.giveKarma);
 
 export default router;

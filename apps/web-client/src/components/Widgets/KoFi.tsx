@@ -69,21 +69,25 @@ const KoFiButton = ({ kofiId = "G2G03Y8FL", text = "¡Dona por Ko-Fi!" }: KoFiBu
         });
     };
 
+    const handleMouseLeave = () => {
+        if (animationRef.current) animationRef.current.kill();
+        
+        gsap.to(iconRef.current, {
+            y: 0,
+            duration: 0.2,
+            ease: 'power2.out'
+        });
+    };
+
     return (
         <a
             href={`https://ko-fi.com/${kofiId}`}
             target="_blank"
             rel="noreferrer"
-            className='btn-donate-hero'
+            className='flex items-center gap-2 mt-6 px-6 py-2 bg-(--accent) text-black font-black uppercase tracking-widest rounded-xl hover:scale-105 transition-transform shadow-lg shadow-(--accent)/20 btn-donate-hero'
             onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
             style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                marginTop: '1.5rem',
-                backgroundColor: '#29abe0',
-                borderColor: '#29abe0',
-                color: '#fff',
                 overflow: 'visible' // Ensure jump doesn't get clipped
             }}
         >

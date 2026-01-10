@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { FaUsers, FaMicrochip } from "react-icons/fa"
+import { Users, Cpu } from "lucide-react"
 import Loader from "../components/UI/Loader"
 import { useTranslation } from 'react-i18next'
 import ServerStatusCard, { ServerStatusData } from "../components/Server/ServerStatusCard"
@@ -81,7 +81,7 @@ export default function Status() {
                             padding: '1.5rem',
                          }}>
                             <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                                <FaUsers className="text-accent" /> {t('status.online_players')}
+                                <Users className="text-accent" /> {t('status.online_players')}
                             </h3>
                             
                             {status?.players.sample && status.players.sample.length > 0 ? (
@@ -117,7 +117,7 @@ export default function Status() {
                              display: 'flex', flexDirection: 'column', gap: '1rem'
                          }}>
                             <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                                <FaMicrochip className="text-blue-400" /> {t('status.tech_info')}
+                                <Cpu className="text-blue-400" /> {t('status.tech_info')}
                             </h3>
                             <div className="space-y-3">
                                 <div className="flex justify-between p-3 rounded-lg bg-black/20">

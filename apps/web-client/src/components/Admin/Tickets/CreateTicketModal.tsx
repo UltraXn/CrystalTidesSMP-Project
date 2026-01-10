@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { createPortal } from "react-dom"
-import { FaTicketAlt, FaTimes, FaPaperPlane } from "react-icons/fa"
+import { Ticket as TicketIcon, X, Send } from "lucide-react"
 import { useTranslation } from 'react-i18next'
 import { supabase } from "../../../services/supabaseClient"
 import { getAuthHeaders } from "../../../services/adminAuth"
@@ -87,14 +87,14 @@ export default function CreateTicketModal({ onClose, onSuccess, user }: CreateTi
                     background: 'rgba(255,255,255,0.02)'
                 }}>
                     <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.8rem', fontSize: '1.2rem', color: '#fff' }}>
-                        <FaTicketAlt style={{ color: 'var(--accent)' }} /> {t('admin.tickets.create_modal.title', 'Nuevo Ticket')}
+                        <TicketIcon style={{ color: 'var(--accent)' }} /> {t('admin.tickets.create_modal.title', 'Nuevo Ticket')}
                     </h3>
                     <button 
                         onClick={onClose} 
                         className="hover-rotate"
                         style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', fontSize: '1.2rem' }}
                     >
-                        <FaTimes />
+                        <X />
                     </button>
                 </div>
                 
@@ -163,7 +163,7 @@ export default function CreateTicketModal({ onClose, onSuccess, user }: CreateTi
                             disabled={isSubmitting}
                             style={{ padding: '1rem 3rem', borderRadius: '12px' }}
                         >
-                            {isSubmitting ? <Loader minimal size={20} /> : <><FaPaperPlane /> {t('admin.tickets.create_modal.submit', 'Crear Ticket')}</>}
+                            {isSubmitting ? <Loader minimal size={20} /> : <><Send /> {t('admin.tickets.create_modal.submit', 'Crear Ticket')}</>}
                         </button>
                     </div>
                 </form>

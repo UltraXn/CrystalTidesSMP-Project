@@ -1,5 +1,5 @@
 
-import { FaEdit, FaTrash, FaGlobe, FaTimes, FaDonate, FaCalendarAlt, FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { Edit2, Trash2, Globe, X, CircleDollarSign, Calendar, ChevronLeft, ChevronRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import Loader from "../../UI/Loader";
 import { Donation } from "./types";
@@ -37,7 +37,7 @@ export default function DonationsTable({
         return (
             <div className="empty-donations">
                 <div className="empty-icon-pulse">
-                    <FaDonate />
+                    <CircleDollarSign />
                 </div>
                 <h4 style={{ color: '#fff', margin: 0 }}>{t('admin.donations.empty')}</h4>
                 <p style={{ color: 'rgba(255,255,255,0.3)', maxWidth: '300px', margin: 0 }}>
@@ -87,23 +87,23 @@ export default function DonationsTable({
                                 </td>
                                 <td>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: 'rgba(255,255,255,0.4)', fontSize: '0.85rem', fontWeight: 600 }}>
-                                        <FaCalendarAlt size={12} />
+                                        <Calendar size={12} />
                                         {donation.created_at ? new Date(donation.created_at).toLocaleDateString() : '---'}
                                     </div>
                                 </td>
                                 <td>
                                     <span className={`visibility-badge ${donation.is_public ? 'public' : 'private'}`}>
-                                        {donation.is_public ? <FaGlobe size={10} /> : <FaTimes size={10} />}
+                                        {donation.is_public ? <Globe size={10} /> : <X size={10} />}
                                         {donation.is_public ? t('admin.donations.public') : t('admin.donations.private')}
                                     </span>
                                 </td>
                                 <td style={{ textAlign: 'right' }}>
                                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.6rem' }}>
                                         <button onClick={() => onEdit(donation)} className="donor-btn-action edit" title={t('admin.polls.edit_btn')}>
-                                            <FaEdit size={14} />
+                                            <Edit2 size={14} />
                                         </button>
                                         <button onClick={() => onDelete(donation.id)} className="donor-btn-action delete" title={t('admin.donors.delete_btn')}>
-                                            <FaTrash size={14} />
+                                            <Trash2 size={14} />
                                         </button>
                                     </div>
                                 </td>
@@ -120,7 +120,7 @@ export default function DonationsTable({
                         onClick={() => setPage(p => Math.max(1, p - 1))}
                         disabled={page === 1}
                     >
-                        <FaChevronLeft size={12} />
+                        <ChevronLeft size={12} />
                     </button>
                     <div className="page-info">
                         PAGINA <span>{page}</span> DE <span>{totalPages}</span>
@@ -130,7 +130,7 @@ export default function DonationsTable({
                         onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                         disabled={page === totalPages}
                     >
-                        <FaChevronRight size={12} />
+                        <ChevronRight size={12} />
                     </button>
                 </div>
             )}

@@ -38,8 +38,8 @@ COPY --from=builder /app/apps/web-server/dist ./dist
 # Credentials for Google Calendar
 # Credentials for Google Calendar handled via ENV vars now
 
-# Copy .env file generated during build
-COPY --from=builder /app/apps/web-server/.env ./.env
+# Credentials and env vars should be handled via Platform Environment Variables (GCP, etc.)
+# DELETED: COPY --from=builder /app/apps/web-server/.env ./.env
 
 EXPOSE 3001
 

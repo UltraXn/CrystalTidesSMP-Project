@@ -1,14 +1,16 @@
-import { useState, useEffect, useCallback, useMemo } from "react"
-import { FaSearch, FaDollarSign, FaChartBar, FaFilter, FaPlus, FaDonate } from "react-icons/fa"
+import { useState, useMemo } from "react"
+import { Search, DollarSign, BarChart3, Filter, Plus, HandCoins } from "lucide-react"
 import { useTranslation } from "react-i18next"
-import { supabase } from "../../services/supabaseClient"
-import { getAuthHeaders } from "../../services/adminAuth"
 import { Donation } from "./Donations/types"
 import DonationsTable from "./Donations/DonationsTable"
 import DonationFormModal from "./Donations/DonationFormModal"
 import DonationDeleteModal from "./Donations/DonationDeleteModal"
-
-const API_URL = import.meta.env.VITE_API_URL || '/api'
+import { 
+    useAdminDonations, 
+    useCreateDonation, 
+    useUpdateDonation, 
+    useDeleteDonation 
+} from "../../hooks/useAdminData"
 
 interface DonationsManagerProps {
     mockDonations?: Donation[];
@@ -16,69 +18,27 @@ interface DonationsManagerProps {
 
 export default function DonationsManager({ mockDonations }: DonationsManagerProps = {}) {
     const { t } = useTranslation() 
-    const [donations, setDonations] = useState<Donation[]>(mockDonations || [])
-    const [loading, setLoading] = useState(!mockDonations)
     const [search, setSearch] = useState('')
     const [page, setPage] = useState(1)
-    const [totalPages, setTotalPages] = useState(1)
     
     // CRUD State
     const [showModal, setShowModal] = useState(false)
     const [currentDonation, setCurrentDonation] = useState<Donation | null>(null)
     const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null)
-    const [, setAlert] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
 
-    const fetchDonations = useCallback(async () => {
-        if (mockDonations) return;
-        setLoading(true)
-        try {
-            const { data: { session } } = await supabase.auth.getSession()
-            const res = await fetch(`${API_URL}/donations?page=${page}&limit=20&search=${search}`, {
-                headers: getAuthHeaders(session?.access_token || null)
-            })
-            if(res.ok) {
-                const rawData = await res.json()
-                const payload = rawData.success ? rawData.data : rawData
-                setDonations(payload.data || [])
-                setTotalPages(payload.totalPages || 1)
-            }
-        } catch (error) {
-            console.error(error)
-        } finally {
-            setLoading(false)
-        }
-    }, [page, search, mockDonations])
+    // TanStack Query Hooks
+    const { data: donationsData, isLoading: loading } = useAdminDonations(page, 20, search);
+    const createMutation = useCreateDonation();
+    const updateMutation = useUpdateDonation();
+    const deleteMutation = useDeleteDonation();
 
-    // Debounce search
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            fetchDonations()
-        }, 500)
-        return () => clearTimeout(timer)
-    }, [fetchDonations])
-
-    // Real-time subscription
-    useEffect(() => {
-        const channel = supabase
-            .channel('public:donations')
-            .on(
-                'postgres_changes',
-                { event: '*', table: 'donations', schema: 'public' },
-                () => {
-                    fetchDonations()
-                }
-            )
-            .subscribe()
-
-        return () => {
-            supabase.removeChannel(channel)
-        }
-    }, [fetchDonations])
+    const donations = useMemo(() => mockDonations || donationsData?.data || [], [mockDonations, donationsData?.data]);
+    const totalPages = donationsData?.totalPages || 1;
 
     // Stats calculation
     const stats = useMemo(() => {
-        if (!donations.length) return { total: 0, count: 0, avg: 0 };
-        const total = donations.reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0);
+        if (!donations.length) return { total: "0.00", count: 0, avg: "0.00" };
+        const total = donations.reduce((acc: number, curr: Donation) => acc + (Number(curr.amount) || 0), 0);
         return {
             total: total.toFixed(2),
             count: donations.length,
@@ -87,7 +47,7 @@ export default function DonationsManager({ mockDonations }: DonationsManagerProp
     }, [donations]);
 
     const handleNew = () => {
-        setCurrentDonation(null) // Null indicates new
+        setCurrentDonation(null) 
         setShowModal(true)
     }
 
@@ -98,63 +58,29 @@ export default function DonationsManager({ mockDonations }: DonationsManagerProp
 
     const handleDelete = async () => {
         if (!deleteConfirm) return
-        try {
-            const { data: { session } } = await supabase.auth.getSession()
-            const res = await fetch(`${API_URL}/donations/${deleteConfirm}`, { 
-                method: 'DELETE',
-                headers: getAuthHeaders(session?.access_token || null)
-            })
-            if (res.ok) {
-                setDonations(donations.filter(d => d.id !== deleteConfirm))
-                setDeleteConfirm(null)
-                setAlert({ message: t('admin.donations.success_delete', 'Donación eliminada'), type: 'success' })
-            } else {
-                setAlert({ message: t('admin.donations.error_delete'), type: 'error' })
-            }
-        } catch (error) {
-            console.error(error)
-            setAlert({ message: t('admin.donations.error_conn'), type: 'error' })
-        }
+        deleteMutation.mutate(deleteConfirm, {
+            onSuccess: () => setDeleteConfirm(null)
+        });
     }
 
     const handleSave = async (donationData: Donation) => {
-        const method = donationData.id ? 'PUT' : 'POST'
-        const url = donationData.id 
-            ? `${API_URL}/donations/${donationData.id}` 
-            : `${API_URL}/donations`
-
-        try {
-            const { data: { session } } = await supabase.auth.getSession()
-            const res = await fetch(url, {
-                method,
-                headers: { 
-                    'Content-Type': 'application/json',
-                    ...getAuthHeaders(session?.access_token || null)
-                },
-                body: JSON.stringify(donationData)
-            })
-
-            if (res.ok) {
-                fetchDonations()
-                setAlert({ message: t('admin.donations.success_save', 'Cambios guardados correctamente'), type: 'success' })
-            } else {
-                setAlert({ message: t('admin.donations.error_save'), type: 'error' })
-                throw new Error("Failed to save")
-            }
-        } catch (error) {
-            console.error(error)
-            setAlert({ message: t('admin.donations.error_conn'), type: 'error' })
-            throw error; 
+        if (donationData.id) {
+            updateMutation.mutate({ id: donationData.id, payload: donationData }, {
+                onSuccess: () => setShowModal(false)
+            });
+        } else {
+            createMutation.mutate(donationData, {
+                onSuccess: () => setShowModal(false)
+            });
         }
     }
 
     return (
         <div className="donations-manager-container">
-            {/* Header / Actions Bar */}
             <div className="donations-header" style={{ marginBottom: '1.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
                      <div style={{ padding: '12px', background: 'rgba(var(--accent-rgb), 0.1)', borderRadius: '16px', color: 'var(--accent)', fontSize: '1.2rem', display: 'flex', flexShrink: 0 }}>
-                        <FaDonate />
+                        <HandCoins />
                     </div>
                     <div style={{ flex: '1', minWidth: '0' }}>
                         <p className="donations-subtitle" style={{ margin: 0, fontSize: 'clamp(0.7rem, 2vw, 0.8rem)', textTransform: 'uppercase', letterSpacing: '0.1em', opacity: 0.6 }}>
@@ -168,7 +94,7 @@ export default function DonationsManager({ mockDonations }: DonationsManagerProp
                 
                 <div className="donations-actions" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', width: '100%' }}>
                     <div className="poll-search-wrapper" style={{ flex: '1 1 100%', minWidth: '200px', maxWidth: '100%' }}>
-                        <FaSearch className="search-icon" />
+                        <Search className="search-icon" />
                         <input 
                             type="text" 
                             placeholder={t('admin.donations.search_ph')}
@@ -178,16 +104,15 @@ export default function DonationsManager({ mockDonations }: DonationsManagerProp
                         />
                     </div>
                     <button className="btn-primary poll-new-btn" onClick={handleNew} style={{ flex: '1 1 auto', minWidth: '160px', height: '52px', padding: '0 2rem', borderRadius: '18px', boxShadow: '0 10px 20px rgba(var(--accent-rgb), 0.2)' }}>
-                        <FaPlus /> {t('admin.donations.new_btn')}
+                        <Plus /> {t('admin.donations.new_btn')}
                     </button>
                 </div>
             </div>
 
-            {/* Stats Summary */}
             <div className="donations-stats-grid">
                 <div className="donation-stat-card">
                     <div className="stat-icon-wrapper" style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>
-                        <FaDollarSign />
+                        <DollarSign />
                     </div>
                     <div className="stat-info">
                         <span className="stat-value">${stats.total}</span>
@@ -196,7 +121,7 @@ export default function DonationsManager({ mockDonations }: DonationsManagerProp
                 </div>
                 <div className="donation-stat-card">
                     <div className="stat-icon-wrapper" style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' }}>
-                        <FaChartBar />
+                        <BarChart3 />
                     </div>
                     <div className="stat-info">
                         <span className="stat-value">{stats.count}</span>
@@ -205,7 +130,7 @@ export default function DonationsManager({ mockDonations }: DonationsManagerProp
                 </div>
                 <div className="donation-stat-card">
                     <div className="stat-icon-wrapper" style={{ background: 'rgba(250, 204, 21, 0.1)', color: '#facc15' }}>
-                        <FaFilter />
+                        <Filter />
                     </div>
                     <div className="stat-info">
                         <span className="stat-value">${stats.avg}</span>
@@ -214,7 +139,6 @@ export default function DonationsManager({ mockDonations }: DonationsManagerProp
                 </div>
             </div>
 
-            {/* Table Area */}
             <DonationsTable 
                 donations={donations}
                 loading={loading}
@@ -225,18 +149,19 @@ export default function DonationsManager({ mockDonations }: DonationsManagerProp
                 setPage={setPage}
             />
 
-            {/* Modals */}
             <DonationFormModal 
                 isOpen={showModal}
                 onClose={() => setShowModal(false)}
                 onSave={handleSave}
                 initialData={currentDonation}
+                saving={createMutation.isPending || updateMutation.isPending}
             />
 
             <DonationDeleteModal 
                 isOpen={!!deleteConfirm}
                 onClose={() => setDeleteConfirm(null)}
                 onConfirm={handleDelete}
+                deleting={deleteMutation.isPending}
             />
         </div>
     )

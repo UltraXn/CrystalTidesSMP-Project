@@ -1,54 +1,29 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Loader from "../UI/Loader"
-import { supabase } from "../../services/supabaseClient"
-import { getAuthHeaders } from "../../services/adminAuth"
+
+import { 
+    useAdminSuggestions, 
+    useUpdateSuggestionStatus, 
+    useDeleteSuggestion 
+} from "../../hooks/useAdminData"
+
 import { Suggestion } from './Suggestions/types';
 import SuggestionCard from './Suggestions/SuggestionCard';
 import SuggestionDeleteModal from './Suggestions/SuggestionDeleteModal';
 import SuggestionsFilters from './Suggestions/SuggestionsFilters';
 
-const API_URL = import.meta.env.VITE_API_URL || '/api'
-
 export default function SuggestionsManager() {
-    const [suggestions, setSuggestions] = useState<Suggestion[]>([])
-    const [loading, setLoading] = useState(true)
-    const [expandedCard, setExpandedCard] = useState<number | null>(null)
+    const { data: suggestionsData, isLoading: loading } = useAdminSuggestions();
+    const updateStatusMutation = useUpdateSuggestionStatus();
+    const deleteMutation = useDeleteSuggestion();
 
+    const [expandedCard, setExpandedCard] = useState<number | null>(null)
     const [filterType, setFilterType] = useState('All')
     const [filterStatus, setFilterStatus] = useState('All')
-
-    const fetchSuggestions = async () => {
-        setLoading(true)
-        try {
-            const res = await fetch(`${API_URL}/suggestions`)
-            if(res.ok) {
-                const data = await res.json()
-                setSuggestions(data)
-            }
-        } catch(err) {
-            console.error(err)
-        } finally {
-            setLoading(false)
-        }
-    }
-
-    useEffect(() => {
-        fetchSuggestions()
-
-        // Real-time subscription for suggestions
-        const channel = supabase.channel('public:suggestions')
-            .on('postgres_changes', { event: '*', table: 'suggestions', schema: 'public' }, () => {
-                fetchSuggestions();
-            })
-            .subscribe();
-
-        return () => {
-            supabase.removeChannel(channel);
-        };
-    }, [])
-
     const [showDeleteModal, setShowDeleteModal] = useState(false)
     const [selectedId, setSelectedId] = useState<number | null>(null)
+
+    const suggestions = suggestionsData || [];
 
     const handleDelete = (id: number) => {
         setSelectedId(id)
@@ -57,39 +32,19 @@ export default function SuggestionsManager() {
 
     const confirmDelete = async () => {
         if (selectedId === null) return
-        try {
-            const { data: { session } } = await supabase.auth.getSession()
-            await fetch(`${API_URL}/suggestions/${selectedId}`, { 
-                method: 'DELETE',
-                headers: getAuthHeaders(session?.access_token || null)
-            })
-            fetchSuggestions()
-            setShowDeleteModal(false)
-            setSelectedId(null)
-        } catch(err) { console.error(err) }
+        deleteMutation.mutate(selectedId, {
+            onSuccess: () => {
+                setShowDeleteModal(false)
+                setSelectedId(null)
+            }
+        });
     }
 
     const handleUpdateStatus = async (id: number, status: string) => {
-        try {
-            const { data: { session } } = await supabase.auth.getSession()
-            const res = await fetch(`${API_URL}/suggestions/${id}/status`, {
-                method: 'PATCH',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    ...getAuthHeaders(session?.access_token || null)
-                },
-                body: JSON.stringify({ status })
-            });
-
-            if (res.ok) {
-                setSuggestions(prev => prev.map(s => s.id === id ? { ...s, status: status as Suggestion['status'] } : s));
-            }
-        } catch (err) {
-            console.error('Failed to update status', err);
-        }
+        updateStatusMutation.mutate({ id, status });
     }
 
-    const filteredSuggestions = suggestions.filter(s => {
+    const filteredSuggestions = suggestions.filter((s: Suggestion) => {
         const typeMatch = filterType === 'All' ? true : s.type.toLowerCase() === filterType.toLowerCase();
         const statusMatch = filterStatus === 'All' ? true : s.status?.toLowerCase() === filterStatus.toLowerCase();
         return typeMatch && statusMatch;
@@ -105,7 +60,6 @@ export default function SuggestionsManager() {
                 setFilterStatus={setFilterStatus}
             />
             
-            {/* Right Column: Content */}
             <div style={{ flex: 1 }}>
                 {loading ? (
                     <div style={{ padding: '5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
@@ -113,14 +67,13 @@ export default function SuggestionsManager() {
                     </div>
                 ) : (
                 <>
-                    {/* Grid Layout */}
                     {filteredSuggestions.length > 0 ? (
                         <div style={{ 
                             display: 'flex', 
                             flexDirection: 'column', 
                             gap: '12px'
                         }}>
-                            {filteredSuggestions.map(s => (
+                            {filteredSuggestions.map((s: Suggestion) => (
                                 <SuggestionCard 
                                     key={s.id}
                                     suggestion={s}
@@ -137,7 +90,6 @@ export default function SuggestionsManager() {
                             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                             border: '2px dashed rgba(255,255,255,0.05)'
                         }}>
-                            {/* Can extract this empty state too if needed, but it's small */}
                             <h3 style={{ margin: 0, color: '#888' }}>No hay sugerencias</h3>
                             <p style={{ color: '#555', fontSize: '0.9rem' }}>No hay sugerencias que coincidan con los filtros actuales.</p>
                         </div>
@@ -145,13 +97,6 @@ export default function SuggestionsManager() {
                 </>
             )}
 
-            {/* Modal Styles Injection - Kept for responsiveness if not moved to global CSS, 
-                but ideally should be moved. For now, SuggestionCard has inline styles or relies on global. 
-                The CSS block in original file handled .suggestions-wrapper responsiveness. 
-                I will include the minimal responsive styles here or assume global.
-                Actually, the original file had a <style> block. The new components rely on some classes.
-                I will re-add the style block for responsiveness to ensure nothing breaks.
-            */}
             <style>{`
                 .suggestions-wrapper {
                     display: flex;
@@ -163,14 +108,6 @@ export default function SuggestionsManager() {
                         flex-direction: column;
                         gap: 1rem;
                     }
-                    /* ... other responsive styles passed to components or global */
-                    /* Since I moved most styles to inline in components, 
-                       I only need the wrapper layout here. 
-                       The sub-components have their own responsive checks or styles?
-                       Wait, SuggestionCard had responsive styles in a string export.
-                       I should probably inject that string or just rely on this block.
-                       Let's include the critical responsive parts here.
-                    */
                 }
             `}</style>
             

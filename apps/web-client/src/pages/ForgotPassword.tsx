@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { FaEnvelope } from 'react-icons/fa'
+import { Mail } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../services/supabaseClient'
 
@@ -51,7 +51,7 @@ export default function ForgotPassword() {
                             )}
 
                             <div className="form-group">
-                                <label><FaEnvelope /> Correo Electrónico</label>
+                                <label><Mail size={16} /> Correo Electrónico</label>
                                 <input
                                     type="email"
                                     placeholder="correo@ejemplo.com"

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FaPoll, FaDiscord, FaTimes, FaPlus, FaCheckCircle, FaImage } from 'react-icons/fa'
+import { BarChart3, X, Plus, CheckCircle2, Image as ImageIcon } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../services/supabaseClient'
 import Section from '../components/Layout/Section'
@@ -238,7 +238,7 @@ export default function CreateThread() {
                             {t('create_thread.form.content')}
                             { !pendingImage && (
                                 <label className="btn-secondary" style={{ padding: '0.2rem 0.5rem', fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                                    <FaImage /> {t('create_thread.form.attach_image')}
+                                    <ImageIcon size={14} /> {t('create_thread.form.attach_image')}
                                     <input type="file" accept="image/*" onChange={handleImageSelection} style={{ display: 'none' }} />
                                 </label>
                             )}
@@ -264,7 +264,7 @@ export default function CreateThread() {
                                     </div>
                                 </div>
                                 <button type="button" onClick={clearPendingImage} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                    <FaTimes /> {t('create_thread.form.remove_image')}
+                                    <X size={16} /> {t('create_thread.form.remove_image')}
                                 </button>
                             </div>
                         )}
@@ -274,10 +274,10 @@ export default function CreateThread() {
                     <div style={{ marginBottom: '2rem', padding: '1.5rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', border: showPoll ? '1px solid var(--accent)' : '1px dashed #444' }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }} onClick={() => setShowPoll(!showPoll)}>
                             <h4 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', color: showPoll ? 'var(--accent)' : '#aaa' }}>
-                                <FaPoll /> {t('create_thread.form.add_poll')}
+                                <BarChart3 size={18} /> {t('create_thread.form.add_poll')}
                             </h4>
                             <div className={`checkbox ${showPoll ? 'active' : ''}`} style={{ width: '20px', height: '20px', border: '1px solid #666', borderRadius: '4px', background: showPoll ? 'var(--accent)' : 'transparent' }}>
-                                {showPoll && <FaCheckCircle size={14} color="#000" style={{ margin: '2px' }} />}
+                                {showPoll && <CheckCircle2 size={14} color="#000" style={{ margin: '2px' }} />}
                             </div>
                         </div>
 
@@ -288,7 +288,7 @@ export default function CreateThread() {
                                 <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                     <input type="checkbox" checked={isDiscordPoll} onChange={e => setIsDiscordPoll(e.target.checked)} id="discordCheck" />
                                     <label htmlFor="discordCheck" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', color: isDiscordPoll ? '#5865F2' : '#ccc' }}>
-                                        <FaDiscord /> {t('create_thread.form.discord_poll')}
+                                        <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128c.125-.094.249-.192.37-.291a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.37.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg> {t('create_thread.form.discord_poll')}
                                     </label>
                                 </div>
 
@@ -326,14 +326,14 @@ export default function CreateThread() {
                                                         style={{ flexGrow: 1, padding: '0.6rem', background: '#222', border: '1px solid #555', color: '#fff', borderRadius: '4px' }}
                                                     />
                                                     {pollOptions.length > 2 && (
-                                                        <button type="button" onClick={() => setPollOptions(pollOptions.filter((_, i) => i !== idx))} className="btn-icon delete" style={{ background: '#333', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0 1rem' }}>
-                                                            <FaTimes />
+                                                    <button type="button" onClick={() => setPollOptions(pollOptions.filter((_, i) => i !== idx))} className="btn-icon delete" style={{ background: '#333', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0 1rem' }}>
+                                                            <X size={16} />
                                                         </button>
                                                     )}
                                                 </div>
                                             ))}
                                             <button type="button" onClick={() => setPollOptions([...pollOptions, ''])} className="btn-secondary" style={{ fontSize: '0.8rem', padding: '0.4rem' }}>
-                                                <FaPlus /> {t('create_thread.form.add_option')}
+                                                <Plus size={14} /> {t('create_thread.form.add_option')}
                                             </button>
                                         </div>
                                     </div>

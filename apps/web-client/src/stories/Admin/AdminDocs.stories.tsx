@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import AdminDocs from '../../components/Admin/AdminDocs';
-import { FaBook } from 'react-icons/fa';
+import { Book } from 'lucide-react';
 
 const meta: Meta<typeof AdminDocs> = {
   title: 'Admin/AdminDocs',
@@ -25,7 +25,7 @@ const MOCK_DOCS = [
     {
         id: 'intro',
         title: 'Introducción',
-        icon: FaBook,
+        icon: Book,
         content: `
 # Introducción
 
@@ -39,7 +39,7 @@ Esta es una versión de prueba de la documentación cargada desde Storybook.
     {
         id: 'guide',
         title: 'Guía de Estilo',
-        icon: FaBook,
+        icon: Book,
         content: `
 # Guía de Estilo
 

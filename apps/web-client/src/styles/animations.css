@@ -13,17 +13,14 @@
     }
 }
 
-/* Jump */
+/* Jump Animation */
 @keyframes jump {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+}
 
-    0%,
-    100% {
-        transform: translateY(0);
-    }
-
-    50% {
-        transform: translateY(-10px);
-    }
+.animate-jump:hover {
+    animation: jump 0.4s ease-out;
 }
 
 /* Spin */
@@ -36,7 +33,7 @@
 /* Helper Class for Spin */
 .spin {
     animation: spin 1s linear infinite;
-    display: inline-block; /* Required for transform to work on spans/icons sometimes */
+    display: inline-block;
 }
 
 /* Fade In */
@@ -72,4 +69,23 @@
 /* Pulse Glow (Reusable class) */
 .pulse-glow {
     animation: glow-pulse 1.5s infinite alternate;
+}
+
+/* Premium Hero Animations */
+@keyframes slow-zoom {
+    from { transform: scale(1.05); }
+    to { transform: scale(1.2); }
+}
+
+@keyframes fade-in-up {
+    from { opacity: 0; transform: translateY(40px); filter: blur(10px); }
+    to { opacity: 1; transform: translateY(0); filter: blur(0px); }
+}
+
+.animate-slow-zoom {
+    animation: slow-zoom 20s linear infinite alternate;
+}
+
+.animate-fade-in-up {
+    animation: fade-in-up 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }

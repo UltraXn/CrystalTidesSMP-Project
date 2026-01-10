@@ -1,4 +1,4 @@
-import { FaEdit, FaTrash, FaBook, FaGlobe, FaTag } from "react-icons/fa"
+import { Edit, Trash2, Book, Globe, Tag } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { WikiArticle } from "../../../services/wikiService"
 import Loader from "../../UI/Loader"
@@ -20,7 +20,7 @@ export default function WikiArticleList({ articles, loading, onEdit, onDelete }:
     if (articles.length === 0) {
         return (
             <div style={{ textAlign: 'center', padding: '4rem', opacity: 0.3 }}>
-                <FaBook size={48} style={{ marginBottom: '1rem' }} />
+                <Book size={48} style={{ marginBottom: '1rem' }} />
                 <p>{t('admin.wiki.no_articles')}</p>
             </div>
         );
@@ -57,18 +57,18 @@ export default function WikiArticleList({ articles, loading, onEdit, onDelete }:
                         </span>
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
                             <button onClick={() => onEdit(article)} style={{ padding: '0.5rem', background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer', opacity: 0.7 }} className="hover:text-amber-400">
-                                <FaEdit size={14} />
+                                <Edit size={14} />
                             </button>
                             <button onClick={() => onDelete(article.id)} style={{ padding: '0.5rem', background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer', opacity: 0.7 }} className="hover:text-red-400">
-                                <FaTrash size={14} />
+                                <Trash2 size={14} />
                             </button>
                         </div>
                     </div>
                     <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '0.5rem', color: '#fff' }}>{article.title}</h3>
                     <p style={{ fontSize: '0.8rem', color: '#888', marginBottom: '1rem' }}>/{article.slug}</p>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', fontSize: '0.75rem', color: '#666' }}>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><FaGlobe /> {t('admin.wiki.public')}</span>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><FaTag /> {article.content.length} {t('admin.wiki.char_count')}</span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Globe /> {t('admin.wiki.public')}</span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Tag /> {article.content.length} {t('admin.wiki.char_count')}</span>
                     </div>
                 </div>
             ))}

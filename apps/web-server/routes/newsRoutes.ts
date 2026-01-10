@@ -45,7 +45,7 @@ const router = express.Router();
  *         description: Noticia creada
  */
 import { validate } from '../middleware/validateResource.js';
-import { createNewsSchema, updateNewsSchema, createCommentSchema } from '../schemas/newsSchemas.js';
+import { createNewsSchema, updateNewsSchema, createCommentSchema, updateCommentSchema } from '../schemas/newsSchemas.js';
 
 router.get('/', newsController.getAllNews);
 router.post('/', authenticateToken, checkRole(ADMIN_ROLES), validate(createNewsSchema), newsController.createNews);
@@ -53,7 +53,7 @@ router.post('/', authenticateToken, checkRole(ADMIN_ROLES), validate(createNewsS
 router.get('/:id', newsController.getNewsById);
 router.get('/:id/comments', newsController.getCommentsByNewsId);
 router.post('/:id/comments', authenticateToken, validate(createCommentSchema), newsController.createComment);
-router.put('/comments/:id', authenticateToken, newsController.updateComment);
+router.put('/comments/:id', authenticateToken, validate(updateCommentSchema), newsController.updateComment);
 router.delete('/comments/:id', authenticateToken, newsController.deleteComment);
 
 router.put('/:id', authenticateToken, checkRole(ADMIN_ROLES), validate(updateNewsSchema), newsController.updateNews);

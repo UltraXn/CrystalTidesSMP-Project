@@ -1,21 +1,58 @@
-# Task: Redocumentación del Ecosistema CrystalTides
+# Crystaltides Roadmap & Tasks
 
-## Estado Actual
-- El repositorio es un monorepo con `apps/`, `packages/` y `plugins/`.
-- El stack tecnológico es moderno (React 19, Tailwind 4, Vite 6, Turbo 2).
-- Existe documentación dispersa en el repo y en un vault de Obsidian.
+## 📦 Infraestructura y Mantenimiento (Logros 10 Enero)
 
-## Roadmap de Redocumentación
-- [x] Crear/Actualizar `task.md` (Fuente de verdad). <!-- id: 0 -->
-- [x] Corregir incoherencias tecnológicas (Vite vs Next.js) en Obsidian. <!-- id: 6 -->
-- [x] Mapear estructura completa del monorepo y dependencias entre paquetes. <!-- id: 1 -->
-- [x] Sincronizar y mejorar archivos de documentación en Obsidian (`f:\Abyssal Throughts\...`). <!-- id: 2 -->
-- [x] Generar un PRD estandarizado para el sistema completo. <!-- id: 3 -->
-- [x] Actualizar el `README.md` principal con la información más reciente del stack y arquitectura. <!-- id: 4 -->
-- [x] Crear guías de desarrollo específicas para los componentes nuevos (Edge Functions, Scripts, etc.). <!-- id: 5 -->
+- [x] **Reorganización Masiva de Documentación**:
+  - [x] Estructuración de carpeta `docs/` (architecture, components, operations, etc.).
+  - [x] Script de automatización `reorganize-docs.ps1` creado y ejecutado.
+  - [x] Creación de `README.md` maestro de documentación.
+- [x] **Infraestructura IA (MCP)**:
+  - [x] Fix crítico en `tools.yaml` (Soporte SQL Dinámico con `templateParameters`).
+  - [x] Documentación de arquitectura: `Arquitectura MCP de Agente IA.md`.
+- [x] **Gestión de Conocimiento (Obsidian)**:
+  - [x] Extracción de Snippets clave (Rust JNI, React Query, Zod).
+  - [x] Creación de Backlog de Conceptos (Game Director, TOON Integration).
 
-## Deuda Técnica Identificada
-- [ ] **Tailwind Mismatch**: El código usa v3.4 pero la documentación apunta a v4.
-- [ ] **Polling Latency**: Los 2s de espera en el Bridge pueden sentirse lentos. Evaluar WebSockets.
-- [ ] **Thread Safety**: Verificar comportamiento de caché asíncrona en el plugin Java.
-- [ ] **Diagramas de Flujo**: Falta documentación visual del flujo de datos entre Launcher (Rust) y el Servidor.
+## 🚀 Migración a TanStack Query (Admin Panel)
+
+- [x] Migrar `UsersManager.tsx` a TanStack Query.
+- [x] Migrar `AdminNews.tsx` a TanStack Query.
+- [x] Migrar `WikiManager.tsx` a TanStack Query.
+- [x] Migrar `DonationsManager.tsx` a TanStack Query.
+- [x] Migrar `GamificationManager.tsx` a TanStack Query.
+- [x] Migrar `EventsManager.tsx` a TanStack Query.
+- [x] Migrar `DonorsManager.tsx` a TanStack Query.
+- [x] Migrar `StaffCardsManager.tsx` a TanStack Query.
+- [x] Refinar tipos en `useAdminData.ts` (Payloads y Retornos).
+- [x] Resolver errores de tipos y `any` en `SuggestionsManager.tsx`, `TicketsManager.tsx`, `GamificationManager.tsx`, `PollsManager.tsx` y `AuditLog.tsx`.
+- [x] Documentar API en Swagger/OpenAPI (Wiki, Polls, Donations, Tickets, Suggestions, Events).
+- [x] Migrar `DashboardOverview.tsx` a TanStack Query.
+- [x] Migrar `SiteConfig.tsx` a TanStack Query.
+- [x] Implementar validación Zod en TODAS las rutas restantes (Discord, Gacha, Logs, Settings).
+
+## 🛡️ Seguridad y Validación
+
+- [x] Implementar middleware de validación Zod.
+- [x] Asegurar rutas de administración con `checkRole`.
+- [x] Validar esquemas de Tickets y Sugerencias.
+- [x] Validar esquemas de Noticias y Wiki.
+- [x] Validar esquemas de Donaciones, Eventos y Logs.
+- [x] Validar esquemas de Discord y Gacha.
+
+## 📄 Documentación API
+
+- [x] Configurar Swagger UI en `/api/docs`.
+- [x] Documentar rutas de Usuarios y Perfiles.
+- [x] Documentar rutas de Noticias y Wiki.
+- [x] Documentar rutas de Tickets y Sugerencias.
+- [x] Documentar rutas de Eventos y Donaciones.
+- [x] Documentar rutas de Encuestas (Polls).
+
+## 🛠️ Deuda Técnica y Futuro (Pendiente)
+
+- [x] **Auditoría de Secretos**: Verificado con `rg` que no hay secretos activos expuestos en archivos trackeados (10 Enero).
+- [ ] **Infraestructura**: Integrar sistema de analítica y reporte de crasheos (DuckDB).
+- [ ] **Discord**: Bridge Chat bidireccional y logs avanzados.
+
+- [ ] Implementar Error Boundaries para el panel.
+- [ ] Limpiar componentes UI de lógica de negocio (mover a hooks).

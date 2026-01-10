@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { FaCalendarAlt, FaArrowRight, FaTag } from "react-icons/fa"
+import { Calendar, ArrowRight, Tag } from "lucide-react"
 import { Link } from "react-router-dom"
 import Section from "../components/Layout/Section"
 import { useTranslation } from 'react-i18next'
@@ -30,25 +30,39 @@ const NewsCard = ({ article }: NewsCardProps) => {
     const content = (isEn && article.content_en) ? article.content_en : (article.content || article.excerpt || t('blog.empty'))
 
     return (
-        <div className="news-card">
-            <div className="news-image">
-                {article.image ? <img src={article.image} alt={title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> :
-                    <div style={{ fontSize: '3rem', color: 'rgba(255,255,255,0.2)' }}>
+        <div className="group bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl overflow-hidden flex flex-col transition-all duration-500 hover:bg-white/5 hover:-translate-y-2 hover:shadow-2xl hover:shadow-(--accent)/10 hover:border-(--accent)/30">
+            <div className="relative h-48 w-full overflow-hidden bg-white/5 flex items-center justify-center">
+                {article.image ? (
+                    <img src={article.image} alt={title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                ) : (
+                    <div className="text-6xl opacity-20 group-hover:opacity-40 transition-opacity">
                         {article.category === 'Evento' ? '🐉' : article.category === 'Sistema' ? '⚙️' : '⚔️'}
-                    </div>}
-            </div>
-            <div className="news-content">
-                <div className="news-date">
-                    <FaCalendarAlt /> {new Date(article.created_at).toLocaleDateString()}
-                    <span style={{ margin: '0 0.5rem' }}>•</span>
-                    <FaTag /> {article.category}
+                    </div>
+                )}
+                <div className="absolute top-4 left-4 flex items-center gap-2 px-3 py-1 bg-black/60 backdrop-blur-md rounded-full border border-white/10 text-[10px] font-black uppercase tracking-widest text-(--accent)">
+                    <Tag size={10} /> {article.category}
                 </div>
-                <h3 className="news-title">{title}</h3>
-                <p className="news-excerpt">
+            </div>
+            
+            <div className="p-6 flex flex-col gap-4 grow">
+                <div className="flex items-center gap-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                    <Calendar /> {new Date(article.created_at).toLocaleDateString()}
+                </div>
+                
+                <h3 className="text-xl font-black text-white group-hover:text-(--accent) transition-colors leading-tight">
+                    {title}
+                </h3>
+                
+                <p className="text-gray-400 text-sm leading-relaxed grow font-medium line-clamp-3">
                     {content.substring(0, 100) + '...'}
                 </p>
-                <Link to={`/forum/thread/news/${article.slug || article.id}`} className="read-more">
-                    {t('blog.read_more')} <FaArrowRight />
+                
+                <Link 
+                    to={`/forum/thread/news/${article.slug || article.id}`} 
+                    className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-(--accent) group/link transition-all hover:translate-x-2"
+                >
+                    {t('blog.read_more')} 
+                    <ArrowRight className="transition-transform group-hover/link:translate-x-1" />
                 </Link>
             </div>
         </div>
@@ -81,59 +95,29 @@ export default function Blog() {
     return (
         <Section title={t('blog.title')}>
             <Section>
-                <div className="news-grid" style={{ minHeight: '200px' }}>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 min-h-[200px]">
                     {loading ? (
-                         <div style={{ 
-                            gridColumn: '1 / -1', 
-                            display: 'flex', 
-                            flexDirection: 'column', 
-                            alignItems: 'center', 
-                            justifyContent: 'center',
-                            gap: '1rem',
-                            padding: '3rem',
-                            background: 'rgba(255,255,255,0.02)',
-                            borderRadius: '12px',
-                            border: '1px dashed rgba(255,255,255,0.1)'
-                        }}>
-                             <div className="loader" style={{width:'30px', height:'30px', border:'3px solid rgba(255,255,255,0.1)', borderTopColor:'var(--accent)', borderRadius:'50%', animation:'spin 1s linear infinite'}}></div>
-                             <p style={{ color: "var(--muted)" }}>{t('blog.loading')}</p>
+                         <div className="col-span-full py-20 flex flex-col items-center justify-center gap-4 bg-white/5 border border-dashed border-white/10 rounded-3xl">
+                             <div className="w-10 h-10 border-4 border-white/10 border-t-(--accent) rounded-full animate-spin"></div>
+                             <p className="text-gray-500 font-bold uppercase tracking-widest text-xs">{t('blog.loading')}</p>
                          </div>
                     ) : news.length > 0 ? (
                         news.map(article => (
                             <NewsCard key={article.id} article={article} />
                         ))
                     ) : (
-                         <div style={{ 
-                            gridColumn: '1 / -1', 
-                            display: 'flex', 
-                            flexDirection: 'column', 
-                            alignItems: 'center', 
-                            justifyContent: 'center',
-                            gap: '1rem',
-                            padding: '3rem',
-                            background: 'rgba(22, 27, 34, 0.5)',
-                            borderRadius: '12px',
-                            border: '1px solid rgba(255, 255, 255, 0.05)',
-                            backdropFilter: 'blur(10px)'
-                        }}>
-                            <img src="/images/ui/barrier.png" alt="No News" style={{ width: '64px', opacity: 0.5, marginBottom: '0.5rem' }} 
-                                onError={(e) => {
-                                    const target = e.currentTarget as HTMLImageElement;
-                                    target.style.display = 'none';
-                                    const next = target.nextElementSibling as HTMLElement;
-                                    if (next) next.style.display = 'block';
-                                }} />
-                            <FaTag size={40} style={{ display: 'none', color: '#6b7280', marginBottom: '1rem' }} /> {/* Fallback Icon */}
-                            
-                            <h3 style={{ color: '#fff', fontSize: '1.2rem' }}>{t('blog.no_news')}</h3>
-                            <p style={{ color: 'var(--muted)' }}>{t('blog.stay_tuned')}</p>
+                         <div className="col-span-full py-20 flex flex-col items-center justify-center gap-6 bg-white/2 border border-white/5 rounded-3xl backdrop-blur-xl">
+                            <Tag size={48} className="text-white/10" />
+                            <div className="text-center">
+                                <h3 className="text-white font-black text-xl mb-2">{t('blog.no_news')}</h3>
+                                <p className="text-gray-500 font-medium">{t('blog.stay_tuned')}</p>
+                            </div>
                         </div>
                     )}
                 </div>
 
-
-                <div style={{ textAlign: 'center', marginTop: '3rem' }}>
-                    <Link to="/forum/announcements" className="btn-primary">
+                <div className="text-center mt-12">
+                    <Link to="/forum/announcements" className="inline-flex items-center px-10 py-4 bg-white text-black rounded-full font-black uppercase tracking-widest text-sm transition-all hover:bg-(--accent) hover:scale-105 active:scale-95 shadow-xl">
                         {t('blog.view_all')}
                     </Link>
                 </div>

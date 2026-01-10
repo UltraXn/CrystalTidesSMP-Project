@@ -1,8 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FaShieldAlt, FaTrash, FaCopy, FaKey } from 'react-icons/fa';
-import { setup2FA, enable2FA, disable2FA, get2FAStatus } from '../../../services/twoFactorService';
-import { supabase } from '../../../services/supabaseClient';
+import { Shield, Trash2, Copy, Key } from 'lucide-react';
+import { use2FAStatus, useSetup2FA, useEnable2FA, useDisable2FA } from '../../../hooks/useAccountData';
 import Loader from '../../UI/Loader';
 
 interface TwoFactorSetupProps {
@@ -23,39 +22,26 @@ export default function TwoFactorSetup({
     onDisable 
 }: TwoFactorSetupProps = {}) {
     const { t } = useTranslation();
-    const [enabled, setEnabled] = useState(mockEnabled ?? false);
-    const [loading, setLoading] = useState(mockLoading ?? true);
+    
+    // TanStack Query
+    const { data: statusData, isLoading: loadingStatus } = use2FAStatus();
+    const { mutate: setup2FAMutation, isPending: isSettingUp } = useSetup2FA();
+    const { mutate: enable2FAMutation, isPending: isVerifying } = useEnable2FA();
+    const { mutate: disable2FAMutation, isPending: isDisabling } = useDisable2FA();
+
+    // Local state for transitions and UI feedback
     const [setupData, setSetupData] = useState<{ secret: string; qrCode: string } | null>(mockSetupData ?? null);
     const [token, setToken] = useState('');
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
-    const [confirming, setConfirming] = useState(false);
 
-    useEffect(() => {
-        if (mockLoading !== undefined) {
-             setLoading(mockLoading);
-             return;
-        }
-        checkStatus();
-    }, [mockLoading]);
-
-    const checkStatus = async () => {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) return;
-        try {
-            const res = await get2FAStatus(session.access_token);
-            if (res.success) {
-                setEnabled(res.data.enabled);
-            }
-        } catch {
-            // ignore error
-        } finally {
-            setLoading(false);
-        }
-    };
+    // Derived values
+    const isActuallyEnabled = statusData?.enabled ?? false;
+    const enabled = mockEnabled !== undefined ? mockEnabled : isActuallyEnabled;
+    const loading = mockLoading !== undefined ? mockLoading : (loadingStatus || isSettingUp || isDisabling);
+    const confirming = isVerifying;
 
     const handleSetup = async () => {
-        setLoading(true);
         setError('');
         
         if (onSetup) {
@@ -63,90 +49,61 @@ export default function TwoFactorSetup({
                 const res = await onSetup();
                 if (res.success && res.data) setSetupData(res.data);
                 else setError(res.error || 'Failed');
-            } finally { setLoading(false); }
+            } catch { setError('Error'); }
             return;
         }
 
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) return;
-
-        try {
-            const res = await setup2FA(session.access_token);
-            if (res.success) {
-                setSetupData(res.data); // { secret, qrCode }
-            } else {
-                setError(t('account.security.setup_failed', 'Failed to start setup'));
-            }
-        } catch {
-            setError(t('account.security.secret_error', 'Error generating secret'));
-        } finally {
-            setLoading(false);
-        }
+        setup2FAMutation(undefined, {
+            onSuccess: (data) => setSetupData(data),
+            onError: (err: Error) => setError(err.message)
+        });
     };
 
     const handleEnable = async () => {
         if(!setupData) return;
-        setConfirming(true);
         setError('');
         
         if (onEnable) {
             try {
                 const res = await onEnable(token, setupData.secret);
                 if (res.success) {
-                    setEnabled(true);
                     setSetupData(null);
                     setSuccess(t('account.security.2fa_enabled', '2FA Enabled Successfully!'));
                 } else setError(res.error || 'Invalid code');
-            } finally { setConfirming(false); }
+            } catch { setError('Error'); }
             return;
         }
 
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) return;
-
-        try {
-            const res = await enable2FA(session.access_token, token, setupData.secret);
-            if (res.success) {
-                setEnabled(true);
+        enable2FAMutation({ token, secret: setupData.secret }, {
+            onSuccess: () => {
                 setSetupData(null);
+                setToken('');
                 setSuccess(t('account.security.2fa_enabled', '2FA Enabled Successfully!'));
-            } else {
-                setError(res.error || t('account.security.invalid_code', 'Invalid code'));
-            }
-        } catch {
-            setError(t('account.security.verify_failed', 'Verification failed'));
-        } finally {
-            setConfirming(false);
-        }
+            },
+            onError: (err: Error) => setError(err.message)
+        });
     };
 
     const handleDisable = async () => {
         if(!confirm(t('account.security.2fa_disable_confirm', 'Are you sure you want to disable 2FA?'))) return;
-        setLoading(true);
+        setError('');
         
         if (onDisable) {
             try {
                 const res = await onDisable();
                 if (res.success) {
-                    setEnabled(false);
                     setSuccess(t('account.security.2fa_disabled', '2FA Disabled'));
                 } else setError(res.error || 'Failed');
-            } finally { setLoading(false); }
+            } catch { setError('Error'); }
             return;
         }
 
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) return;
-
-        try {
-            await disable2FA(session.access_token);
-            setEnabled(false);
-            setSuccess(t('account.security.2fa_disabled', '2FA Disabled'));
-        } catch {
-            setError(t('account.security.disable_failed', 'Failed to disable'));
-        } finally {
-            setLoading(false);
-        }
+        disable2FAMutation(undefined, {
+            onSuccess: () => {
+                setSuccess(t('account.security.2fa_disabled', '2FA Disabled'));
+            },
+            onError: (err: Error) => setError(err.message)
+        });
     };
 
     if (loading) return <Loader />;
@@ -155,7 +112,7 @@ export default function TwoFactorSetup({
         <div className="security-card" style={{ background: 'rgba(255,255,255,0.03)', padding: '1.5rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
                 <div style={{ background: 'rgba(59, 130, 246, 0.2)', color: '#3b82f6', padding: '10px', borderRadius: '50%' }}>
-                    <FaShieldAlt size={20} />
+                    <Shield size={20} />
                 </div>
                 <div>
                     <h3 style={{ margin: 0, color: '#fff' }}>{t('account.security.2fa_title', 'Two-Factor Authentication')}</h3>
@@ -175,7 +132,21 @@ export default function TwoFactorSetup({
                     onClick={handleSetup}
                     disabled={loading}
                     className="btn-primary"
-                    style={{ background: 'var(--accent)', color: '#000', fontWeight: 'bold', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+                    style={{ 
+                        background: 'var(--accent)', 
+                        color: '#000', 
+                        fontWeight: 'bold', 
+                        display: 'flex', 
+                        justifyContent: 'center', 
+                        alignItems: 'center',
+                        padding: '0.8rem 1.5rem',
+                        borderRadius: '8px',
+                        border: 'none',
+                        cursor: loading ? 'not-allowed' : 'pointer',
+                        width: '100%',
+                        transition: 'all 0.2s',
+                        opacity: loading ? 0.7 : 1
+                    }}
                 >
                     {loading ? <Loader minimal /> : t('account.security.setup_2fa', 'Setup 2FA')}
                 </button>
@@ -184,13 +155,44 @@ export default function TwoFactorSetup({
             {!enabled && setupData && (
                 <div className="setup-box animate-fade-in" style={{ marginTop: '1rem', background: 'rgba(0,0,0,0.2)', padding: '1.5rem', borderRadius: '8px' }}>
                     <h4 style={{ color: '#fff', marginBottom: '1rem' }}>1. {t('account.security.scan_qr', 'Scan QR Code')}</h4>
-                    <div style={{ background: '#fff', padding: '10px', borderRadius: '8px', width: 'fit-content', marginBottom: '1.5rem' }}>
-                        <img src={setupData.qrCode} alt="2FA QR" style={{ width: '150px', height: '150px' }} />
+                    <div style={{ 
+                        position: 'relative', 
+                        background: '#fff', 
+                        padding: '10px', 
+                        borderRadius: '12px', 
+                        width: 'fit-content', 
+                        marginBottom: '1.5rem',
+                        boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
+                        margin: '0 auto'
+                    }}>
+                        <img src={setupData.qrCode} alt="2FA QR" style={{ width: '180px', height: '180px', display: 'block' }} />
+                        {/* Centered Logo Overlay */}
+                        <div style={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            width: '44px',
+                            height: '44px',
+                            background: '#fff',
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            boxShadow: '0 0 10px rgba(0,0,0,0.1)',
+                            border: '2px solid #fff'
+                        }}>
+                            <img 
+                                src="/images/ui/logo.webp" 
+                                alt="LT" 
+                                style={{ width: '32px', height: '32px', objectFit: 'contain' }} 
+                            />
+                        </div>
                     </div>
 
                     <div style={{ marginTop: '1.5rem', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1rem' }}>
                         <p style={{ color: '#aaa', fontSize: '0.85rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <FaKey size={12} /> {t('account.security.cant_scan', "Can't scan the QR code?")}
+                            <Key size={12} /> {t('account.security.cant_scan', "Can't scan the QR code?")}
                         </p>
                         
                         <div 
@@ -215,7 +217,7 @@ export default function TwoFactorSetup({
                             <code style={{ color: 'var(--accent)', fontSize: '0.9rem', fontFamily: 'monospace', wordBreak: 'break-all' }}>
                                 {setupData.secret}
                             </code>
-                            <FaCopy size={12} style={{ color: '#666' }} className="group-hover:text-white transition-colors" />
+                            <Copy size={12} style={{ color: '#666' }} className="group-hover:text-white transition-colors" />
                         </div>
                     </div>
                     
@@ -233,6 +235,17 @@ export default function TwoFactorSetup({
                             onClick={handleEnable}
                             disabled={confirming || token.length !== 6}
                             className="btn-primary"
+                            style={{ 
+                                background: 'var(--accent)', 
+                                color: '#000', 
+                                fontWeight: 'bold',
+                                padding: '0.8rem 1.5rem',
+                                borderRadius: '8px',
+                                border: 'none',
+                                cursor: (confirming || token.length !== 6) ? 'not-allowed' : 'pointer',
+                                transition: 'all 0.2s',
+                                opacity: (confirming || token.length !== 6) ? 0.6 : 1
+                            }}
                         >
                             {confirming ? <Loader minimal /> : t('account.security.activate', 'Activate')}
                         </button>
@@ -246,7 +259,7 @@ export default function TwoFactorSetup({
                     disabled={loading}
                     style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '0.8rem 1.5rem', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center' }}
                 >
-                    {loading ? <Loader minimal /> : <><FaTrash size={14} /> {t('account.security.disable_2fa', 'Disable 2FA')}</>}
+                    {loading ? <Loader minimal /> : <><Trash2 size={14} /> {t('account.security.disable_2fa', 'Disable 2FA')}</>}
                 </button>
             )}
         </div>
