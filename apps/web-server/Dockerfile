@@ -25,21 +25,33 @@ ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN turbo run build --filter=@crystaltides/server...
 
 # Stage 2: Production
+# ... (Keep Builder stage as is)
+# Start of Runner Stage
 FROM node:22-alpine
 
 WORKDIR /app
 
-# En modo monorepo, a veces es más seguro copiar lo que ya se instaló en builder 
-# o hacer un prune. Para simplificar y asegurar que funciona:
+# Optimize: Copy only production dependencies
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/apps/web-server/package*.json ./apps/web-server/
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/apps/web-server/dist ./dist
-# Credentials for Google Calendar
-# Credentials for Google Calendar handled via ENV vars now
 
-# Credentials and env vars should be handled via Platform Environment Variables (GCP, etc.)
-# DELETED: COPY --from=builder /app/apps/web-server/.env ./.env
+# Copy only node_modules cleaned for production
+# We need to replicate the prune structure or just copy the pruned version.
+# Since builder has all, let's do a prune step in a middle stage or here.
+# Easier method: Install only prod deps here or copy and prune.
+# Let's use a "pruner" stage to be cleaner.
+# Actually, since we use workspaces, 'npm prune' in root might be tricky without full context.
+# Let's try: Copy node_modules from builder, then prune.
+COPY --from=builder /app/node_modules ./node_modules
+# Prune dev dependencies to save space
+RUN npm prune --production
+
+COPY --from=builder /app/apps/web-server/dist ./dist
+
+# Security: Run as non-root user
+# 'node' user exists in alpine image
+RUN chown -R node:node /app
+USER node
 
 EXPOSE 3001
 

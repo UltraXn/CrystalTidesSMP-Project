@@ -52,7 +52,27 @@
 
 - [x] **Auditoría de Secretos**: Verificado con `rg` que no hay secretos activos expuestos en archivos trackeados (10 Enero).
 - [ ] **Infraestructura**: Integrar sistema de analítica y reporte de crasheos (DuckDB).
+- [x] **Docker Optimization**: Aplicar prácticas "Lightweight" (Non-root user, Prune dev deps) en todos los Dockerfiles (10 Enero).
 - [ ] **Discord**: Bridge Chat bidireccional y logs avanzados.
+
+## 🎮 Launcher Development
+
+- [x] **Supabase Integration**:
+  - [x] Añadir dependencias `supabase_flutter` y `flutter_dotenv`.
+  - [x] Implementar `AuthService.loginSupabase`.
+  - [x] Crear UI de Login con Email/Password en `LoginPage`.
+  - [x] Configurar carga de variables de entorno desde `.env`.
+  - [x] Pasar credenciales de Account a `LaunchService`.
+- [ ] **Game Bridge Integration**:
+  - [x] Verificar funcionamiento del flag `enableBridge` (Verified via `test/bridge_test.dart`).
+  - [x] Testear lanzamiento con `game-bridge/test-env` (Verified paths in `test/path_resolution_test.dart`).
+- [x] **3D Skin Manager**:
+  - [x] Implementar visor WebGL (MineRender) en WebView.
+  - [x] Crear controles de capas y animaciones.
+  - [x] Integrar con el servicio de perfiles.
+
+## 🛠️ Deuda Técnica y Futuro (Pendiente)
 
 - [ ] Implementar Error Boundaries para el panel.
 - [ ] Limpiar componentes UI de lógica de negocio (mover a hooks).
+- [x] **Mantenimiento UI**: Resolver advertencias de compatibilidad CSS (`background-clip`).

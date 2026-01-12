@@ -13,6 +13,6 @@
 /* @import './pages.css'; Consolidated into layout.css */
 /* @import './content.css'; Consolidated into components.css */
 /* @import './dashboard.css'; Consolidated into layout.css */
-/* @import './account.css'; Consolidated into layout.css */
+@import './account.css';
 @import './admin-layout.css';
 @import './admin.css';

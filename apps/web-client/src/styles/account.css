@@ -1,0 +1,175 @@
+/* Account / Login Pages */
+.account-page {
+    position: relative;
+    min-height: 100vh;
+    padding-top: 120px; /* More space for navbar */
+    padding-bottom: 80px; /* Space for footer */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column; /* Allow stacking */
+    background: radial-gradient(circle at center, #1b262c 0%, #0b0c10 100%);
+    overflow: hidden; /* Restore this to clip the ::before 200% height */
+    box-sizing: border-box;
+}
+
+/* Background Particles (Pseudo) */
+.account-page::before {
+    content: "";
+    position: absolute;
+    width: 200%;
+    height: 200%;
+    top: -50%;
+    left: -50%;
+    background: url('/images/ui/noise.png'); /* If available */
+    opacity: 0.05;
+    pointer-events: none;
+    animation: spin 100s linear infinite;
+}
+
+
+.account-container {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    max-width: 480px; /* Slimmer, not too wide */
+    padding: 2rem;
+}
+
+.account-card {
+    background: rgba(14, 18, 22, 0.7); /* Slightly darker/more opaque for less noise */
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.05); /* More subtle border */
+    border-radius: 20px;
+    padding: 2rem 2.5rem; /* Less vertical padding */
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.4);
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.account-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.account-header h2 {
+    font-size: 2rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #fff 0%, #a5f3fc 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 0.5rem;
+}
+
+.account-header p {
+    color: var(--muted-foreground);
+    font-size: 0.95rem;
+}
+
+.account-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-group label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--muted-foreground);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.form-group input {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 0.85rem 1rem;
+    color: white;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px rgba(137, 217, 209, 0.1);
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.btn-submit {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 0.9rem;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    margin-top: 1rem;
+}
+
+.btn-submit:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px -5px rgba(22, 140, 128, 0.4);
+    background: var(--bg-alt);
+}
+
+.btn-submit:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.account-footer {
+    text-align: center;
+    margin-top: 1.5rem;
+}
+
+.account-footer p {
+    font-size: 0.9rem;
+    color: var(--muted-foreground);
+    margin-bottom: 1rem;
+}
+
+.btn-text {
+    color: var(--accent);
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.btn-text:hover {
+    color: #fff;
+    text-decoration: underline;
+}
+
+.back-link {
+    display: inline-block;
+    color: var(--muted-foreground);
+    font-size: 0.85rem;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.back-link:hover {
+    color: white;
+}

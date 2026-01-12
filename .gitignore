@@ -45,3 +45,6 @@ apps/web-server/crystaltides-prod-*.json
 AGENTS.md
 
 tools.yaml
+
+# Local Server Dev Environment
+CrystalTidesSMP SV DEV/

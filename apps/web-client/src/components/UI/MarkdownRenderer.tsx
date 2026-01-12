@@ -45,10 +45,17 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
                 if (part.startsWith('[')) {
                     const match = part.match(/\[(.*?)\]\((.*?)\)/);
                     if (match) {
+                        let url = match[2];
+                        // 🛡️ Security: Block javascript: protocol to prevent XSS
+                        if (url.trim().toLowerCase().startsWith('javascript:')) {
+                            console.warn('Blocked potentially malicious URL:', url);
+                            url = '#'; 
+                        }
+
                         return (
                             <a 
                                 key={index} 
-                                href={match[2]} 
+                                href={url} 
                                 target="_blank" 
                                 rel="noopener noreferrer" 
                                 style={{ color: 'var(--accent)', textDecoration: 'underline' }}

@@ -7,6 +7,7 @@ import { Provider } from '@supabase/supabase-js'
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { loginSchema, LoginFormValues } from '../schemas/user'
+import Footer from '../components/Layout/Footer'
 
 export default function Login() {
     const { t } = useTranslation()
@@ -49,12 +50,13 @@ export default function Login() {
     }
 
     return (
+    <>
         <div className="account-page">
             <div className="account-container">
                 <div className="account-card animate-pop-up">
                     <div className="account-header">
                         <h2>{t('login.title')}</h2>
-                        <p>{t('login.welcome')}</p>
+
                     </div>
 
                     {generalError && <div className="error-message" style={{ color: '#ff6b6b', background: 'rgba(255, 107, 107, 0.1)', padding: '0.75rem', borderRadius: '8px', marginBottom: '1.5rem', textAlign: 'center', fontSize: '0.9rem', border: '1px solid rgba(255, 107, 107, 0.2)' }}>{generalError}</div>}
@@ -144,6 +146,7 @@ export default function Login() {
                         </button>
                     </div>
 
+
                     <div className="account-footer">
                         <p>
                             {t('login.no_account')} <Link to="/register" className="btn-text">{t('login.register')}</Link>
@@ -153,5 +156,7 @@ export default function Login() {
                 </div>
             </div>
         </div>
+        <Footer />
+    </>
     )
 }

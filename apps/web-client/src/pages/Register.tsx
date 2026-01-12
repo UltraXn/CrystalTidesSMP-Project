@@ -7,6 +7,7 @@ import { Provider } from '@supabase/supabase-js'
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { registerSchema, RegisterFormValues } from '../schemas/user'
+import Footer from '../components/Layout/Footer'
 
 export default function Register() {
     const { t } = useTranslation()
@@ -56,13 +57,14 @@ export default function Register() {
     }
 
     return (
+    <>
         <div className="account-page">
 
             <div className="account-container">
                 <div className="account-card animate-pop-up">
                     <div className="account-header">
                         <h2>{t('register.title')}</h2>
-                        <p>{t('register.subtitle')}</p>
+
                     </div>
 
                     {generalError && <div style={{ color: 'red', textAlign: 'center', marginBottom: '1rem', background: 'rgba(255,0,0,0.1)', padding: '0.5rem', borderRadius: '4px' }}>{generalError}</div>}
@@ -198,5 +200,7 @@ export default function Register() {
                 </div>
             </div>
         </div>
+        <Footer />
+    </>
     )
 }
