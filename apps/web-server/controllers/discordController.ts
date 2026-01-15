@@ -1,13 +1,7 @@
 import { Request, Response } from 'express';
-import db from '../config/database.js';
-import { updateUserMetadata } from '../services/userService.js';
-import { RowDataPacket } from 'mysql2';
+import supabase_internal from '../services/supabaseService.js';
 
-interface VerificationCode extends RowDataPacket {
-    code: string;
-    discord_id: string;
-    discord_username: string;
-}
+const supabase = supabase_internal;
 
 export const linkAccount = async (req: Request, res: Response) => {
     try {
@@ -22,31 +16,67 @@ export const linkAccount = async (req: Request, res: Response) => {
             return res.status(400).json({ message: 'Falta el código' });
         }
 
-        // 1. Verify Code in MySQL
-        const [rows] = await db.query<VerificationCode[]>(
-            'SELECT * FROM verification_codes WHERE code = ?',
-            [code]
-        );
+        if (!supabase) return res.status(503).json({ message: 'Error de configuración del servidor' });
 
-        if (rows.length === 0) {
-            return res.status(404).json({ message: 'Código inválido o expirado' });
+        // 1. Verify Code in Supabase (universal_links)
+        const { data: results, error: fetchError } = await supabase
+            .from('universal_links')
+            .select('*')
+            .eq('code', code.toUpperCase());
+
+        if (fetchError) throw fetchError;
+
+        if (!results || results.length === 0) {
+            return res.status(404).json({ message: 'Código inválido o inexistente.' });
         }
 
-        const verification = rows[0];
+        const verification = results[0];
+        if (Date.now() > Number(verification.expires_at)) {
+            await supabase.from('universal_links').delete().eq('code', code.toUpperCase());
+            return res.status(400).json({ message: 'El código ha expirado.' });
+        }
 
-        // 2. Update Supabase User Profile
-        await updateUserMetadata(userId, {
-            discord: {
-                id: verification.discord_id,
-                username: verification.discord_username
-            },
-            social_discord: verification.discord_username // Legacy support
-        });
+        // 2. Link account logic (Supabase Profiles)
+        // If the code came from Discord bot or Minecraft plugin
+        if (verification.source === 'discord') {
+             // In this case, source_id is the Discord ID
+             await supabase
+                .from('profiles')
+                .update({ social_discord: null, discord_tag: null, social_avatar_url: null })
+                .eq('social_discord', verification.source_id);
+
+             const { error: linkError } = await supabase
+                .from('profiles')
+                .update({ 
+                    social_discord: verification.source_id, 
+                    discord_tag: verification.player_name,
+                    social_avatar_url: verification.avatar_url
+                })
+                .eq('id', userId);
+
+             if (linkError) throw linkError;
+        } else if (verification.source === 'minecraft') {
+             // In this case, source_id is the Minecraft UUID
+             await supabase
+                .from('profiles')
+                .update({ minecraft_uuid: null, minecraft_name: null })
+                .eq('minecraft_uuid', verification.source_id);
+
+             const { error: linkError } = await supabase
+                .from('profiles')
+                .update({ 
+                    minecraft_uuid: verification.source_id, 
+                    minecraft_name: verification.player_name 
+                })
+                .eq('id', userId);
+
+             if (linkError) throw linkError;
+        }
 
         // 3. Delete Code
-        await db.query('DELETE FROM verification_codes WHERE code = ?', [code]);
+        await supabase.from('universal_links').delete().eq('code', code.toUpperCase());
 
-        res.json({ success: true, message: 'Cuenta vinculada exitosamente', discord: verification.discord_username });
+        res.json({ success: true, message: 'Cuenta vinculada exitosamente', source: verification.source });
 
     } catch (error) {
         console.error('Link Error:', error);

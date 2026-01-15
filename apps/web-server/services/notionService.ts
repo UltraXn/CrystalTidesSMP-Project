@@ -17,7 +17,7 @@ export const getNotionTasks = async () => {
 
     try {
         /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-        const response = await (notion.databases as any).query({
+        const response: any = await (notion.databases as any).query({
             database_id: DATABASE_ID,
             // You can add filters here, e.g., status != 'Done'
         });
@@ -25,7 +25,11 @@ export const getNotionTasks = async () => {
         // Simplified mapping - adjusts based on user's actual DB schema
         /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
         return response.results.map((page: any) => {
-            const props = page.properties;
+             // Type guard to ensure we have a full PageObjectResponse with properties
+             if (!('properties' in page)) return null;
+             
+            const props = page.properties as Record<string, any>; // Casting properties to Record<string, any> is a practical compromise for dynamic Notion schemas, but we could be stricter.
+            
             // Robustly try to find 'Name' or 'Title' property
             /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
             const titleProp = props.Name || props.Title || props.Task || Object.values(props).find((p: any) => p.id === 'title');
@@ -44,7 +48,7 @@ export const getNotionTasks = async () => {
                 source: 'notion',
                 url: page.url
             };
-        });
+        }).filter((item: any) => item !== null);
     } catch (error) {
         console.error('Error fetching Notion tasks:', error);
         throw error;
