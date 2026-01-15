@@ -140,18 +140,15 @@ jobs:
         with:
           bun-version: latest
 
+      - name: Create .env file
+        run: echo "${{ secrets.ENV_FILE }}" > apps/discord-bot/.env
+
       - name: Install Dependencies (Bot)
         working-directory: ./apps/discord-bot
         run: bun install
 
       - name: Register Slash Commands
         working-directory: ./apps/discord-bot
-        env:
-          DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
-          DISCORD_CLIENT_ID: ${{ secrets.DISCORD_CLIENT_ID }}
-          DISCORD_GUILD_ID: ${{ secrets.DISCORD_GUILD_ID }}
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: bun run src/deploy-commands.ts
 
       - name: Set up Cloud SDK
@@ -159,9 +156,6 @@ jobs:
 
       - name: Authorize Docker push
         run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
-
-      - name: Create .env file
-        run: echo "${{ secrets.ENV_FILE }}" > apps/discord-bot/.env
 
       - name: Build and Push Container
         run: |-
