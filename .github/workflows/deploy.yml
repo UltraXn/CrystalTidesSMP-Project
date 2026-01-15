@@ -56,7 +56,7 @@ jobs:
           service: crystaltides-backend
           region: ${{ env.REGION }}
           image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/backend:latest
-          flags: '--memory=256Mi --cpu=0.5 --max-instances=5'
+          flags: '--memory=256Mi --cpu=0.5 --max-instances=5 --concurrency=1'
           env_vars: |
             NODE_ENV=production
             MC_SERVER_HOST=147.135.9.233
@@ -113,7 +113,7 @@ jobs:
           service: crystaltides-web
           region: ${{ env.REGION }}
           image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/frontend:latest
-          flags: '--memory=128Mi --cpu=0.2 --max-instances=5'
+          flags: '--memory=128Mi --cpu=0.2 --max-instances=5 --concurrency=1'
 
   deploy-bot:
     name: Deploy Discord Bot
@@ -160,6 +160,6 @@ jobs:
           region: ${{ env.REGION }}
           image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/bot:latest
           # Bot needs to be always on, but with minimal resources
-          flags: '--min-instances=1 --memory=256Mi --cpu=0.2 --max-instances=5 --no-cpu-throttling'
+          flags: '--min-instances=1 --memory=256Mi --cpu=0.2 --max-instances=5 --no-cpu-throttling --concurrency=1'
           env_vars: |
             NODE_ENV=production
