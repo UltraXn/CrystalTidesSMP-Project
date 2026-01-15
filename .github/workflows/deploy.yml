@@ -43,8 +43,12 @@ jobs:
 
       - name: Build and Push Container
         run: |-
-          docker build -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/backend:latest -f apps/web-server/Dockerfile .
-          docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/backend:latest
+          IMAGE_NAME=${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/backend
+          docker build -t $IMAGE_NAME:latest -f apps/web-server/Dockerfile .
+          docker push $IMAGE_NAME:latest
+          
+          # Clean up untagged images to save on storage and scanning costs
+          gcloud artifacts docker images list $IMAGE_NAME --filter="NOT tags:*" --format="get(digest)" --limit=20 | xargs -r gcloud artifacts docker images delete --quiet
 
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v2
@@ -91,13 +95,17 @@ jobs:
 
       - name: Build and Push Container
         run: |-
+          IMAGE_NAME=${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/frontend
           docker build \
             --build-arg VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }} \
             --build-arg VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }} \
             --build-arg VITE_API_URL=https://api.crystaltidessmp.net/api \
-            -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/frontend:latest \
+            -t $IMAGE_NAME:latest \
             -f apps/web-client/Dockerfile .
-          docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/frontend:latest
+          docker push $IMAGE_NAME:latest
+
+          # Clean up untagged images
+          gcloud artifacts docker images list $IMAGE_NAME --filter="NOT tags:*" --format="get(digest)" --limit=20 | xargs -r gcloud artifacts docker images delete --quiet
 
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v2
@@ -138,8 +146,12 @@ jobs:
 
       - name: Build and Push Container
         run: |-
-          docker build -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/bot:latest -f apps/discord-bot/Dockerfile .
-          docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/bot:latest
+          IMAGE_NAME=${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/bot
+          docker build -t $IMAGE_NAME:latest -f apps/discord-bot/Dockerfile .
+          docker push $IMAGE_NAME:latest
+
+          # Clean up untagged images
+          gcloud artifacts docker images list $IMAGE_NAME --filter="NOT tags:*" --format="get(digest)" --limit=20 | xargs -r gcloud artifacts docker images delete --quiet
 
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v2
