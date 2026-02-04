@@ -11,7 +11,12 @@ import {
     useUpdateSiteSetting 
 } from '../../hooks/useAdminData';
 
+import { useHasPermission } from "../../utils/rolePermissions"
+import PermissionDenied from "./PermissionDenied"
+
 export default function DonorsManager() {
+    const hasPermission = useHasPermission('MANAGE_DONATIONS');
+
     const { t } = useTranslation();
     
     // TanStack Query Hooks
@@ -184,6 +189,16 @@ export default function DonorsManager() {
         });
         setIsNew(true);
     };
+
+
+    if (!hasPermission) {
+        return (
+            <PermissionDenied 
+                message="No tienes permiso para gestionar la lista de donadores."
+                requiredRole="admin"
+            />
+        );
+    }
 
     if (loading) return <div style={{ padding: '8rem', display: 'flex', justifyContent: 'center' }}><Loader /></div>;
 

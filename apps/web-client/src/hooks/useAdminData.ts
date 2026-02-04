@@ -462,9 +462,15 @@ export interface NewsPayload {
     title_en?: string;
     content: string;
     content_en?: string;
-    image_url: string;
+    image_url?: string; // Made optional to match usage
+    image?: string; // Add image alias used in form
     category: string;
-    author: string;
+    author?: string; // Made optional
+    author_id?: string;
+    username?: string;
+    user_id?: string;
+    status?: string | "Draft" | "Published";
+    created_at?: string;
 }
 
 export const useAdminNews = () => {

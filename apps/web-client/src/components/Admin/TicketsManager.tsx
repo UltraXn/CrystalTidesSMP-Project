@@ -20,7 +20,13 @@ interface TicketsManagerProps {
     mockMessages?: Record<number, Message[]>;
 }
 
+import { useHasPermission } from "../../utils/rolePermissions"
+import PermissionDenied from "./PermissionDenied"
+
 export default function TicketsManager({ mockTickets, mockMessages }: TicketsManagerProps = {}) {
+    // RBAC
+    const hasPermission = useHasPermission('MANAGE_TICKETS');
+
     const { t } = useTranslation()
     const { user } = useAuth() as { user: { id: string } | null }
     
@@ -67,6 +73,16 @@ export default function TicketsManager({ mockTickets, mockMessages }: TicketsMan
         } finally {
             setConfirmBulkDelete(false)
         }
+    }
+
+
+    if (!hasPermission) {
+        return (
+            <PermissionDenied 
+                message="No tienes permiso para gestionar tickets."
+                requiredRole="moderator"
+            />
+        );
     }
 
     return (

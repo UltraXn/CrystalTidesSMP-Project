@@ -5,11 +5,13 @@ import { useTranslation } from 'react-i18next';
 import Loader from "../UI/Loader";
 import PremiumConfirm from "../UI/PremiumConfirm";
 import ImageUploader from "../UI/ImageUploader";
+import PermissionDenied from "./PermissionDenied";
 import { MEDAL_ICONS } from '../../utils/MedalIcons';
 import { 
     useAdminSettings, 
     useUpdateSiteSetting 
 } from '../../hooks/useAdminData';
+import { useHasPermission } from '../../utils/rolePermissions';
 
 
 interface Medal {
@@ -438,6 +440,7 @@ const AchievementCard = ({ achievement, onSave, onDelete }: { achievement: Achie
 
 export default function GamificationManager() {
     const { t } = useTranslation();
+    const hasPermission = useHasPermission('MANAGE_GAMIFICATION');
     const [activeTab, setActiveTab] = useState<'medals' | 'achievements'>('medals');
     const [confirmDelete, setConfirmDelete] = useState<{ isOpen: boolean, medalId: number | string | null, type: 'medal' | 'achievement' | null }>({
         isOpen: false,
@@ -513,6 +516,15 @@ export default function GamificationManager() {
             <Loader />
         </div>
     );
+
+    if (!hasPermission) {
+        return (
+            <PermissionDenied 
+                message="Necesitas rol Developer o superior para gestionar medallas y logros."
+                requiredRole="developer"
+            />
+        );
+    }
 
     return (
         <div className="gamification-container">

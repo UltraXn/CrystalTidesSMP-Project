@@ -18,7 +18,13 @@ interface EventsManagerProps {
     mockRegistrationsMap?: Record<number, Registration[]>;
 }
 
+import { useHasPermission } from "../../utils/rolePermissions"
+import PermissionDenied from "./PermissionDenied"
+
 export default function EventsManager({ mockEvents, mockRegistrationsMap }: EventsManagerProps = {}) {
+    // RBAC
+    const hasPermission = useHasPermission('MANAGE_EVENTS');
+
     const { t } = useTranslation();
     
     // TanStack Query Hooks
@@ -76,6 +82,16 @@ export default function EventsManager({ mockEvents, mockRegistrationsMap }: Even
             });
         }
     };
+
+
+    if (!hasPermission) {
+        return (
+            <PermissionDenied 
+                message="No tienes permiso para gestionar eventos."
+                requiredRole="moderator"
+            />
+        );
+    }
 
     if (isEditing && currentEvent) {
         return (

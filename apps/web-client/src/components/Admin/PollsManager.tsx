@@ -24,7 +24,13 @@ interface PollsManagerProps {
     mockHistoryPolls?: Poll[];
 }
 
+import { useHasPermission } from "../../utils/rolePermissions"
+import PermissionDenied from "./PermissionDenied"
+
 export default function PollsManager({ mockActivePoll, mockHistoryPolls }: PollsManagerProps = {}) {
+    // RBAC
+    const hasPermission = useHasPermission('MANAGE_POLLS');
+
     const { t } = useTranslation()
     const [tab, setTab] = useState<'active' | 'history'>('active')
     const [page, setPage] = useState(1)
@@ -141,6 +147,16 @@ export default function PollsManager({ mockActivePoll, mockHistoryPolls }: Polls
             },
             onSettled: () => setTranslatingField(null)
         });
+    }
+
+
+    if (!hasPermission) {
+        return (
+            <PermissionDenied 
+                message="No tienes permiso para gestionar votaciones."
+                requiredRole="moderator"
+            />
+        );
     }
 
     return (

@@ -1,7 +1,5 @@
 import { useState } from 'react'
-
 import { useAuth } from "../../context/AuthContext"
-
 import { useTranslation } from 'react-i18next'
 import { supabase } from '../../services/supabaseClient'
 import { sendDiscordLog } from '../../services/discordService'
@@ -19,6 +17,8 @@ import UserMedalsModal from './Users/UserMedalsModal'
 import UserAchievementsModal from './Users/UserAchievementsModal'
 import UserRoleModal from './Users/UserRoleModal'
 import { UserDefinition, MedalDefinition, AchievementDefinition } from './Users/types'
+import { useHasPermission } from "../../utils/rolePermissions"
+import PermissionDenied from "./PermissionDenied"
 
 interface UsersManagerProps {
     mockUsers?: UserDefinition[];
@@ -28,6 +28,10 @@ interface UsersManagerProps {
 
 export default function UsersManager({ mockUsers }: UsersManagerProps = {}) {
     const { t } = useTranslation()
+    // RBAC Permissions
+    const hasAccess = useHasPermission('VIEW_USERS');
+    const canManageRoles = useHasPermission('EDIT_USER_ROLE');
+
     const [users, setUsers] = useState<UserDefinition[]>(mockUsers || [])
     const [searchQuery, setSearchQuery] = useState('')
     const [hasSearched, setHasSearched] = useState(!!mockUsers) // Assume searched if mocks provided
@@ -145,7 +149,14 @@ export default function UsersManager({ mockUsers }: UsersManagerProps = {}) {
         setEditingUser({ ...editingUser, achievements: newAchievements });
     };
 
-    const canManageRoles = ['neroferno', 'killu', 'killuwu', 'developer'].includes(user?.user_metadata?.role || '');
+    if (!hasAccess) {
+        return (
+            <PermissionDenied 
+                message="No tienes permiso para gestionar usuarios."
+                requiredRole="moderator"
+            />
+        );
+    }
 
     return (
         <div className="admin-card" style={{ background: 'rgba(10, 10, 15, 0.6)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255, 255, 255, 0.05)', borderRadius: '24px', padding: '1.5rem' }}>

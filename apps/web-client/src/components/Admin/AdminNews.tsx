@@ -9,8 +9,11 @@ import {
     useAdminNews, 
     useCreateNews, 
     useUpdateNews, 
-    useDeleteNews 
+    useDeleteNews,
+    NewsPayload 
 } from "../../hooks/useAdminData"
+import { useHasPermission } from "../../utils/rolePermissions"
+import PermissionDenied from "./PermissionDenied"
 
 interface NewsPost extends NewsFormValues {
     id?: number;
@@ -28,6 +31,7 @@ export default function AdminNews({ user }: AdminNewsProps) {
     const [isEditing, setIsEditing] = useState(false)
     const [currentPost, setCurrentPost] = useState<NewsPost | null>(null)
     const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null)
+    const hasPermission = useHasPermission('MANAGE_NEWS');
 
     // TanStack Query Hooks
     const { data: news = [], isLoading: loading } = useAdminNews();
@@ -54,10 +58,10 @@ export default function AdminNews({ user }: AdminNewsProps) {
     }
 
     const executeDelete = async () => {
-        if (!deleteConfirm || !user) return;
-        const username = user.user_metadata?.full_name || user.email || 'Admin';
+        if (!deleteConfirm || !user?.id) return;
         
-        deleteMutation.mutate({ id: deleteConfirm, userId: user.id, username }, {
+        // deleteMutation only takes ID
+        deleteMutation.mutate(deleteConfirm, {
             onSuccess: () => setDeleteConfirm(null)
         });
     }
@@ -65,10 +69,28 @@ export default function AdminNews({ user }: AdminNewsProps) {
     const handleSave = async (data: NewsFormValues) => {
         const username = user?.user_metadata?.full_name || user?.email || 'Admin';
         
+        // Map form values to payload with required fields
+        const payload: NewsPayload = {
+            title: data.title || '',
+            title_en: data.title_en || '',
+            content: data.content || '',
+            content_en: data.content_en || '',
+            category: data.category || 'General',
+            status: data.status || 'Draft',
+            image_url: data.image || '',
+            image: data.image || '',
+            author: username,
+            username: username,
+            // Ensure compatibility with partial updates
+            created_at: undefined,
+            user_id: undefined,
+            author_id: undefined
+        };
+
         if (data.id) {
             updateMutation.mutate({ 
                 id: data.id, 
-                payload: { ...data, username, user_id: user?.id } 
+                payload: { ...payload, user_id: user?.id } 
             }, {
                 onSuccess: () => {
                     setIsEditing(false);
@@ -77,9 +99,9 @@ export default function AdminNews({ user }: AdminNewsProps) {
             });
         } else {
             createMutation.mutate({
-                ...data,
+                ...payload,
                 author_id: user?.id,
-                username
+                created_at: new Date().toISOString()
             }, {
                 onSuccess: () => {
                     setIsEditing(false);
@@ -106,6 +128,15 @@ export default function AdminNews({ user }: AdminNewsProps) {
                 user={user}
             />
         )
+    }
+
+    if (!hasPermission) {
+        return (
+            <PermissionDenied 
+                message="Necesitas rol Moderator o superior para gestionar noticias."
+                requiredRole="moderator"
+            />
+        );
     }
 
     return (

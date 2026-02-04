@@ -43,7 +43,11 @@ function History({ size = 24, ...props }: HistoryProps) {
     )
 }
 
+import { useHasPermission } from "../../utils/rolePermissions"
+import PermissionDenied from "./PermissionDenied"
+
 export default function AuditLog({ mockLogs, mockTotal }: AuditLogProps = {}) {
+    const hasPermission = useHasPermission('VIEW_SYSTEM_LOGS');
     const { t } = useTranslation()
     const [filterSource, setFilterSource] = useState('all')
     const [page, setPage] = useState(1)
@@ -79,6 +83,15 @@ export default function AuditLog({ mockLogs, mockTotal }: AuditLogProps = {}) {
     const formatDate = (date: number | string) => {
         const d = new Date(date)
         return d.toLocaleString()
+    }
+
+    if (!hasPermission) {
+        return (
+            <PermissionDenied 
+                message="No tienes permiso para ver los registros del sistema."
+                requiredRole="admin"
+            />
+        );
     }
 
     return (

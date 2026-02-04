@@ -11,11 +11,17 @@ import {
     useDeleteWikiArticle 
 } from "../../hooks/useAdminData"
 
+import { useHasPermission } from "../../utils/rolePermissions"
+import PermissionDenied from "./PermissionDenied"
+
 interface WikiManagerProps {
     mockArticles?: WikiArticle[];
 }
 
 export default function WikiManager({ mockArticles }: WikiManagerProps = {}) {
+    // RBAC
+    const hasPermission = useHasPermission('MANAGE_WIKI');
+
     const { t } = useTranslation()
     const [searchTerm, setSearchTerm] = useState("")
 
@@ -77,6 +83,15 @@ export default function WikiManager({ mockArticles }: WikiManagerProps = {}) {
         a.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
         a.slug.toLowerCase().includes(searchTerm.toLowerCase())
     )
+
+    if (!hasPermission) {
+        return (
+            <PermissionDenied 
+                message="No tienes permiso para gestionar la wiki."
+                requiredRole="helper"
+            />
+        );
+    }
 
     return (
         <div className="wiki-manager">

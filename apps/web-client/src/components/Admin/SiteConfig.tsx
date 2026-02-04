@@ -61,9 +61,14 @@ export default function SiteConfig() {
         hero_slides: '',
         recruitment_status: 'false',
         recruitment_link: '',
-        ...(fetchedSettings || {}),
+        ...(fetchedSettings as unknown as Partial<SiteSettings> || {}),
         ...localSettings
     };
+
+    // Correct types for possibly complex objects coming from API
+    if (typeof settings.broadcast_config !== 'string') settings.broadcast_config = JSON.stringify(settings.broadcast_config || '');
+    if (typeof settings.hero_slides !== 'string') settings.hero_slides = JSON.stringify(settings.hero_slides || []);
+    if (typeof settings.server_rules !== 'string' && settings.server_rules) settings.server_rules = JSON.stringify(settings.server_rules);
 
     const handleUpdate = async (key: string, value: string | boolean) => {
         const username = user?.user_metadata?.full_name || user?.email || 'Admin';

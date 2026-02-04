@@ -9,8 +9,11 @@ import {
     useAdminDonations, 
     useCreateDonation, 
     useUpdateDonation, 
-    useDeleteDonation 
+    useDeleteDonation,
+    DonationPayload 
 } from "../../hooks/useAdminData"
+import { useHasPermission } from "../../utils/rolePermissions"
+import PermissionDenied from "./PermissionDenied"
 
 interface DonationsManagerProps {
     mockDonations?: Donation[];
@@ -20,6 +23,9 @@ export default function DonationsManager({ mockDonations }: DonationsManagerProp
     const { t } = useTranslation() 
     const [search, setSearch] = useState('')
     const [page, setPage] = useState(1)
+    
+    // RBAC
+    const hasPermission = useHasPermission('MANAGE_DONATIONS');
     
     // CRUD State
     const [showModal, setShowModal] = useState(false)
@@ -64,15 +70,34 @@ export default function DonationsManager({ mockDonations }: DonationsManagerProp
     }
 
     const handleSave = async (donationData: Donation) => {
+        // Map Donation to DonationPayload
+        const payload: DonationPayload = {
+            donor_name: donationData.from_name || 'Anonymous',
+            amount: Number(donationData.amount),
+            currency: donationData.currency || 'USD',
+            message: donationData.message || '',
+            source: 'Manual',
+            status: 'completed'
+        };
+
         if (donationData.id) {
-            updateMutation.mutate({ id: donationData.id, payload: donationData }, {
+            updateMutation.mutate({ id: donationData.id, payload }, {
                 onSuccess: () => setShowModal(false)
             });
         } else {
-            createMutation.mutate(donationData, {
+            createMutation.mutate(payload, {
                 onSuccess: () => setShowModal(false)
             });
         }
+    }
+
+    if (!hasPermission) {
+        return (
+            <PermissionDenied 
+                message="Solo administradores pueden gestionar donaciones manualmente."
+                requiredRole="admin"
+            />
+        );
     }
 
     return (

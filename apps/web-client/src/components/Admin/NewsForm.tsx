@@ -1,7 +1,7 @@
 import { useState, useRef } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Image, Loader2, AlertTriangle, Languages } from "lucide-react"
+import { Image as ImageIcon, Loader2, AlertTriangle, Languages } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { supabase } from "../../services/supabaseClient"
 import { newsSchema, NewsFormValues } from "../../schemas/news"
@@ -208,7 +208,7 @@ export default function NewsForm({ initialData, onSave, onCancel }: NewsFormProp
                                     style={{ position: 'absolute', bottom: '1rem', right: '1rem', background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(10px)' }}
                                     disabled={uploading}
                                 >
-                                    <Image /> {t('admin.news.insert_image')}
+                                    <ImageIcon /> {t('admin.news.insert_image')}
                                 </button>
                                 <input 
                                     type="file" 
@@ -308,7 +308,7 @@ export default function NewsForm({ initialData, onSave, onCancel }: NewsFormProp
                                     <img src={watch("image")} className="news-img-preview" alt="Preview" />
                                 ) : (
                                     <div style={{ textAlign: 'center', opacity: 0.3 }}>
-                                        <Image size={40} style={{ marginBottom: '10px' }} />
+                                        <ImageIcon size={40} style={{ marginBottom: '10px' }} />
                                         <p style={{ fontSize: '0.8rem', fontWeight: 800 }}>SIN IMAGEN PORTADA</p>
                                     </div>
                                 )}
@@ -341,7 +341,7 @@ export default function NewsForm({ initialData, onSave, onCancel }: NewsFormProp
                                     }}
                                     disabled={uploading}
                                 >
-                                    <Image size={20} />
+                                    <ImageIcon size={20} />
                                 </button>
                             </div>
                             {uploadError && (

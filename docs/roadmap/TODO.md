@@ -97,6 +97,7 @@ Este documento centraliza el roadmap completo del proyecto, organizando las tare
   - [/] Infraestructura base y Docker (Hecho).
   - [x] **Asignación de Roles**: Sincronización Web -> Discord.
 - [ ] **Mapa Dinámico**: Integración de Dynmap.
+- [ ] **Porteo de Mods (1.21.1)**: Ver lista detallada en [`MODS_PORTING.md`](./MODS_PORTING.md)
 - [ ] **Tope Dinámico para "Mercader"**: Ajustar el 100% del Playstyle Radar basado en la economía total del servidor (Inflación-aware).
 
 ### ☁️ Infraestructura Futura (VPS)

@@ -12,7 +12,13 @@ import SuggestionCard from './Suggestions/SuggestionCard';
 import SuggestionDeleteModal from './Suggestions/SuggestionDeleteModal';
 import SuggestionsFilters from './Suggestions/SuggestionsFilters';
 
+import { useHasPermission } from "../../utils/rolePermissions"
+import PermissionDenied from "./PermissionDenied"
+
 export default function SuggestionsManager() {
+    // RBAC
+    const hasPermission = useHasPermission('MANAGE_SUGGESTIONS');
+
     const { data: suggestionsData, isLoading: loading } = useAdminSuggestions();
     const updateStatusMutation = useUpdateSuggestionStatus();
     const deleteMutation = useDeleteSuggestion();
@@ -49,6 +55,16 @@ export default function SuggestionsManager() {
         const statusMatch = filterStatus === 'All' ? true : s.status?.toLowerCase() === filterStatus.toLowerCase();
         return typeMatch && statusMatch;
     })
+
+
+    if (!hasPermission) {
+        return (
+            <PermissionDenied 
+                message="No tienes permiso para gestionar sugerencias."
+                requiredRole="moderator"
+            />
+        );
+    }
 
     return (
         <div className="admin-container suggestions-wrapper" style={{ maxWidth: '1600px', margin: '0 auto' }}>

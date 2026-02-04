@@ -28,7 +28,12 @@ interface StaffCardsManagerProps {
     mockOnlineStatus?: Record<string, { mc: string, discord: string }>;
 }
 
+import { useHasPermission } from "../../utils/rolePermissions"
+import PermissionDenied from "./PermissionDenied"
+
 export default function StaffCardsManager({ mockCards, mockOnlineStatus }: StaffCardsManagerProps = {}) {
+    const hasPermission = useHasPermission('EDIT_USER_ROLE');
+
     const { t } = useTranslation();
     
     // TanStack Query Hooks
@@ -155,6 +160,16 @@ export default function StaffCardsManager({ mockCards, mockOnlineStatus }: Staff
         
         handleSaveList(items);
     };
+
+
+    if (!hasPermission) {
+        return (
+            <PermissionDenied 
+                message="No tienes permiso para gestionar el equipo."
+                requiredRole="admin"
+            />
+        );
+    }
 
     if (loading) return <div style={{ padding: '6rem 0' }}><Loader /></div>;
 
