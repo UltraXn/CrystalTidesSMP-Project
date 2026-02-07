@@ -1,0 +1,97 @@
+name: Release Installer
+
+# Trigger on new tags starting with v (e.g., v1.0.0)
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # --- SETUP ---
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          flutter-version: '3.27.1' # Pin version for stability
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          targets: x86_64-pc-windows-msvc
+
+      # --- PHASE 1: BUILD GAME CLIENT ---
+      - name: Build Game Client (Flutter)
+        working-directory: apps/launcher
+        run: |
+          flutter pub get
+          flutter build windows --release
+
+      - name: Rename Game Exe
+        working-directory: apps/launcher
+        run: |
+          # PowerShell command to rename if exists
+          if (Test-Path "build/windows/x64/runner/Release/launcher.exe") {
+            Rename-Item "build/windows/x64/runner/Release/launcher.exe" "build/windows/x64/runner/Release/crystal_launcher.exe" -Force
+          }
+
+      - name: Create Game Payload Zip
+        working-directory: apps/launcher
+        run: |
+          New-Item -ItemType Directory -Force -Path "installer/assets/payload"
+          Compress-Archive -Path "build/windows/x64/runner/Release/*" -DestinationPath "installer/assets/payload/game_payload.zip" -Force
+
+      # --- PHASE 2: BUILD INSTALLER UI ---
+      - name: Build Installer UI (Flutter)
+        working-directory: apps/launcher/installer
+        run: |
+          flutter pub get
+          flutter build windows --release
+
+      # --- PHASE 2.5: BUILD RUST DLL ---
+      - name: Build Rust Native DLL
+        working-directory: apps/launcher/native
+        run: cargo build --release --lib
+
+      - name: Copy DLL to Installer Distribution
+        working-directory: apps/launcher
+        run: |
+          Copy-Item "native/target/release/CrystalNative.dll" "installer/build/windows/x64/runner/Release/installer_native.dll" -Force
+
+      # --- PHASE 3: BUILD BOOTSTRAPPER ---
+      - name: Create Installer Payload Zip
+        working-directory: apps/launcher
+        run: |
+          Compress-Archive -Path "installer/build/windows/x64/runner/Release/*" -DestinationPath "bootstrapper/installer_payload.zip" -Force
+
+      - name: Copy Bootstrapper Icon
+        working-directory: apps/launcher
+        run: |
+          Copy-Item "native/app_icon.ico" "bootstrapper/app_icon.ico" -Force
+
+      - name: Build Bootstrapper (Rust)
+        working-directory: apps/launcher/bootstrapper
+        run: cargo build --release
+
+      - name: Prepare Release Artifact
+        working-directory: apps/launcher
+        run: |
+          Copy-Item "bootstrapper/target/release/crystal_bootstrapper.exe" "CTSMP_Installer.exe" -Force
+
+      # --- PHASE 4: RELEASE ---
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: apps/launcher/CTSMP_Installer.exe
+          draft: false
+          prerelease: false
