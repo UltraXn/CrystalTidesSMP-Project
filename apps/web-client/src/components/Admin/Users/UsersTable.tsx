@@ -3,6 +3,44 @@ import { useTranslation } from 'react-i18next';
 import { UserDefinition } from './types';
 import { UserRoleBadge } from './UserRoleBadge';
 import Loader from "../../UI/Loader";
+import { usePermissionsContext } from '../../../context/PermissionsContext';
+
+/**
+ * Shared Role Selector component to keep things clean
+ */
+function RoleSelector({ currentRole, onRoleChange }: { currentRole: string, onRoleChange: (r: string) => void }) {
+    const { t } = useTranslation();
+    const { roleLevels } = usePermissionsContext();
+    
+    // Sort roles by level descending
+    const availableRoles = Object.entries(roleLevels)
+        .sort(([, a], [, b]) => (b as number) - (a as number))
+        .map(([role]) => role);
+
+    return (
+        <select 
+            className="admin-select-premium" 
+            style={{ padding: '0.6rem 2.5rem 0.6rem 1rem', fontSize: '0.85rem', minWidth: '140px', width: '100%', backgroundPosition: 'right 0.8rem center' }}
+            value={currentRole}
+            onChange={(e) => onRoleChange(e.target.value)}
+        >
+            {availableRoles.length > 0 ? (
+                availableRoles.map(role => (
+                    <option key={role} value={role}>
+                        {t(`account.roles.${role}`, role.charAt(0).toUpperCase() + role.slice(1))}
+                    </option>
+                ))
+            ) : (
+                // Fallback while loading or if empty
+                ['neroferno', 'killu', 'developer', 'admin', 'moderator', 'helper', 'staff', 'founder', 'donor', 'user'].map(role => (
+                    <option key={role} value={role}>
+                        {t(`account.roles.${role}`, role.charAt(0).toUpperCase() + role.slice(1))}
+                    </option>
+                ))
+            )}
+        </select>
+    );
+}
 
 interface UsersTableProps {
     users: UserDefinition[];
@@ -109,23 +147,10 @@ export default function UsersTable({ users, loading, hasSearched, canManageRoles
                             {canManageRoles && (
                                 <td className="user-cell-actions" style={{ border: '1px solid rgba(255,255,255,0.05)', borderLeft: 'none', borderRadius: '0 16px 16px 0', paddingRight: '1.25rem' }}>
                                     <div style={{ position: 'relative' }}>
-                                        <select 
-                                            className="admin-select-premium" 
-                                            style={{ padding: '0.6rem 2.5rem 0.6rem 1rem', fontSize: '0.85rem', minWidth: '140px', width: '100%', backgroundPosition: 'right 0.8rem center' }}
-                                            value={u.role || 'user'}
-                                            onChange={(e) => onRoleChange(u.id, e.target.value)}
-                                        >
-                                            <option value="neroferno">{t('account.roles.neroferno')}</option>
-                                            <option value="killu">{t('account.roles.killu')}</option>
-                                            <option value="developer">{t('account.roles.developer')}</option>
-                                            <option value="admin">{t('account.roles.admin')}</option>
-                                            <option value="moderator">{t('account.roles.moderator', 'Moderator')}</option>
-                                            <option value="helper">{t('account.roles.helper')}</option>
-                                            <option value="staff">{t('account.roles.staff', 'Staff')}</option>
-                                            <option value="founder">{t('account.roles.founder')}</option>
-                                            <option value="donor">{t('account.roles.donor')}</option>
-                                            <option value="user">{t('account.roles.user')}</option>
-                                        </select>
+                                        <RoleSelector 
+                                            currentRole={u.role || 'user'} 
+                                            onRoleChange={(role) => onRoleChange(u.id, role)} 
+                                        />
                                     </div>
                                 </td>
                             )}

@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, Save, UserPen } from 'lucide-react';
+import { usePermissionsContext } from '../../../context/PermissionsContext';
 
 const DiscordIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width={16} height={16} fill="currentColor" viewBox="0 0 16 16">
@@ -72,17 +73,48 @@ export default function StaffFormModal({ userData, isNew, onClose, onSave, savin
         };
     });
 
-    const PRESET_ROLES = useMemo(() => [
-        { value: 'Neroferno', label: t('admin.staff.roles.neroferno', 'Neroferno'), color: '#8b5cf6', badge: '/ranks/rank-neroferno.png' },
-        { value: 'Killuwu', label: t('admin.staff.roles.killuwu', 'Killuwu'), color: '#0ea5e9', badge: '/ranks/rank-killu.png' },
-        { value: 'Developer', label: t('admin.staff.roles.developer', 'Developer'), color: '#ec4899', badge: '/ranks/developer.png' },
-        { value: 'Admin', label: t('admin.staff.roles.admin', 'Admin'), color: '#ef4444', badge: '/ranks/admin.png' },
-        { value: 'Moderator', label: t('admin.staff.roles.moderator', 'Moderator'), color: '#21cb20', badge: '/ranks/moderator.png' },
-        { value: 'Helper', label: t('admin.staff.roles.helper', 'Helper'), color: '#6bfa16', badge: '/ranks/helper.png' },
-        { value: 'Staff', label: 'Staff', color: '#89c606', badge: '/ranks/staff.png' },
-        { value: 'Usuario', label: t('admin.staff.roles.user', 'Usuario'), color: '#db7700', badge: '/ranks/user.png' },
-        { value: 'Custom', label: t('admin.staff.roles.custom', 'Custom'), color: '#ffffff', badge: null }
-    ], [t]);
+    const { roleLevels } = usePermissionsContext();
+
+    const PRESET_ROLES = useMemo(() => {
+        // Aesthetic mapping for known roles
+        const metadata: Record<string, { color: string; badge: string | null }> = {
+            neroferno: { color: '#8b5cf6', badge: '/ranks/rank-neroferno.png' },
+            killu: { color: '#0ea5e9', badge: '/ranks/rank-killu.png' },
+            developer: { color: '#ec4899', badge: '/ranks/developer.png' },
+            admin: { color: '#ef4444', badge: '/ranks/admin.png' },
+            moderator: { color: '#21cb20', badge: '/ranks/moderator.png' },
+            helper: { color: '#6bfa16', badge: '/ranks/helper.png' },
+            staff: { color: '#89c606', badge: '/ranks/staff.png' },
+            donor: { color: '#db7700', badge: '/ranks/rank-donador.png' },
+            user: { color: '#db7700', badge: '/ranks/user.png' },
+            founder: { color: '#f59e0b', badge: '/ranks/rank-fundador.png' }
+        };
+
+        const roles = Object.entries(roleLevels)
+            .sort(([, a], [, b]) => (b as number) - (a as number))
+            .map(([role]) => {
+                const meta = metadata[role.toLowerCase()] || { color: '#ffffff', badge: null };
+                return {
+                    value: role,
+                    label: t(`account.roles.${role.toLowerCase()}`, role.charAt(0).toUpperCase() + role.slice(1)),
+                    color: meta.color,
+                    badge: meta.badge
+                };
+            });
+
+        // If no roles from context yet, fallback to essentials
+        if (roles.length === 0) {
+            return [
+                { value: 'Neroferno', label: 'Neroferno', color: '#8b5cf6', badge: '/ranks/rank-neroferno.png' },
+                { value: 'Killu', label: 'Killu', color: '#0ea5e9', badge: '/ranks/rank-killu.png' },
+                { value: 'Admin', label: 'Admin', color: '#ef4444', badge: '/ranks/admin.png' },
+                { value: 'User', label: 'User', color: '#db7700', badge: '/ranks/user.png' },
+                { value: 'Custom', label: 'Custom', color: '#ffffff', badge: null }
+            ];
+        }
+
+        return [...roles, { value: 'Custom', label: t('admin.staff.roles.custom', 'Custom'), color: '#ffffff', badge: null }];
+    }, [t, roleLevels]);
 
     // Track the last ID we synced with to support "Reset State on Prop Change" pattern
     // Reference: https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
