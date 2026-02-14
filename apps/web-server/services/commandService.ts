@@ -1,13 +1,14 @@
 import pool from '../config/database.js';
-import { RowDataPacket } from 'mysql2';
+
 import { sendToAll } from './websocketService.js';
 
-interface CommandRow extends RowDataPacket {
+interface CommandRow {
     id: number;
     command: string;
     executed: number;
     executed_at: string;
     created_at: string;
+    [key: string]: any;
 }
 
 /**
@@ -40,7 +41,7 @@ export const queueCommand = async (command: string) => {
  */
 export const checkCommandStatus = async (id: number) => {
     try {
-        const [rows] = await pool.query<CommandRow[]>(
+        const [rows] = await pool.query<CommandRow[] & any[]>(
             'SELECT * FROM web_pending_commands WHERE id = ?',
             [id]
         );

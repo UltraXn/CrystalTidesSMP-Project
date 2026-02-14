@@ -7,7 +7,7 @@ import minecraftRoutes from './routes/minecraftRoutes.js';
 import ticketRoutes from './routes/ticketRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import discordRoutes from './routes/discordRoutes.js';
-import logRoutes from './routes/logRoutes.js';
+
 import donationRoutes from './routes/donationRoutes.js';
 import suggestionRoutes from './routes/suggestionRoutes.js';
 import pollRoutes from './routes/pollRoutes.js';
@@ -91,7 +91,7 @@ app.use('/api/tickets', ticketRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/discord', sensitiveActionLimiter, discordRoutes);
-app.use('/api/logs', logRoutes);
+
 app.use('/api/donations', donationRoutes);
 app.use('/api/suggestions', sensitiveActionLimiter, suggestionRoutes);
 app.use('/api/polls', pollRoutes);

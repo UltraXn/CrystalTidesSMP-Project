@@ -74,7 +74,6 @@
     "jsonwebtoken": "^9.0.3",
     "minecraft-server-util": "^5.4.4",
     "multer": "^2.0.2",
-    "mysql2": "^3.15.3",
     "node-cron": "^4.2.1",
     "node-fetch": "^3.3.2",
     "qrcode": "^1.5.4",
