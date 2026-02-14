@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useMemo } from 'react';
-import { supabaseClient } from '../supabaseClient';
+import { supabase } from '../services/supabaseClient';
 
 interface PermissionsContextType {
     roleLevels: Record<string, number>;
@@ -22,23 +22,23 @@ export const PermissionsProvider: React.FC<{ children: React.ReactNode }> = ({ c
                 setLoading(true);
                 
                 // Fetch Roles
-                const { data: rolesData, error: rolesError } = await supabaseClient
+                const { data: rolesData, error: rolesError } = await supabase
                     .from('app_roles')
                     .select('role_name, level');
                 
                 if (rolesError) throw rolesError;
 
                 // Fetch Permissions
-                const { data: permsData, error: permsError } = await supabaseClient
+                const { data: permsData, error: permsError } = await supabase
                     .from('app_permissions')
                     .select('permission_key, min_role_level');
 
                 if (permsError) throw permsError;
 
-                // Process Roles
+                // Process Roles (normalize to lowercase for consistent matching)
                 const newRoleLevels: Record<string, number> = {};
                 rolesData?.forEach((r: { role_name: string; level: number }) => {
-                    newRoleLevels[r.role_name] = r.level;
+                    newRoleLevels[r.role_name.toLowerCase()] = r.level;
                 });
 
                 // Process Permissions

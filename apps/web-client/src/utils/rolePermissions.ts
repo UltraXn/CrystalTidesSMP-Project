@@ -30,7 +30,9 @@ import { usePermissionsContext } from '../context/PermissionsContext';
  */
 export const useIsStaff = (): boolean => {
     const { user } = useAuth();
-    return user ? isStaffRole((user.user_metadata?.role || '') as Role) : false;
+    if (!user) return false;
+    const userRole = (user.user_metadata?.role || '').toLowerCase();
+    return isStaffRole(userRole);
 };
 
 /**

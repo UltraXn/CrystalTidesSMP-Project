@@ -48,10 +48,10 @@ const ROLE_LEVELS: Record<Role, number> = {
 };
 
 /**
- * Get the privilege level of a role
+ * Get the privilege level of a role (normalized to lowercase)
  */
 export const getRoleLevel = (role: string): number => {
-    return ROLE_LEVELS[role as Role] ?? -1;
+    return ROLE_LEVELS[role.toLowerCase() as Role] ?? -1;
 };
 
 /**
