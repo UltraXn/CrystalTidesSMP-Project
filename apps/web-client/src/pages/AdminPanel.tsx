@@ -7,6 +7,7 @@ import {
     Briefcase, List, Settings, ArrowLeft, Book, CircleDollarSign, Gift, MapPin
 } from "lucide-react"
 import { useTranslation } from 'react-i18next'
+import { useHasMinRole, ROLES } from '../utils/rolePermissions'
 import Loader from "../components/UI/Loader"
 import { use2FAStatus } from '../hooks/useAccountData'
 import { getAdminToken } from '../services/adminAuth'
@@ -92,13 +93,13 @@ export default function AdminPanel() {
         }
     }, [user, loading, status2FA, show2FAModal]);
 
-    // Verificación Real de Permisos
-    const allowedRoles = ['admin', 'neroferno', 'killu', 'helper', 'developer', 'staff']
-    const isAdmin = allowedRoles.includes(user?.user_metadata?.role?.toLowerCase())
-    
+    // Verificación Real de Permisos - Sistema Jerárquico
+    // Nivel mínimo: HELPER (1) -> incluye Moderator, Admin, Dev, etc.
+    const isAdmin = useHasMinRole(ROLES.HELPER);
+
     // Roles con acceso privilegiado (Configuración y Equipo)
-    const superAdminRoles = ['neroferno', 'killu', 'developer'];
-    const hasSecureAccess = superAdminRoles.some(role => user?.user_metadata?.role?.toLowerCase().includes(role));
+    // Nivel mínimo: DEVELOPER (4) -> incluye Killu (5) y Neroferno (6)  
+    const hasSecureAccess = useHasMinRole(ROLES.DEVELOPER);
 
     useEffect(() => {
         if (!loading && !user) navigate('/login')

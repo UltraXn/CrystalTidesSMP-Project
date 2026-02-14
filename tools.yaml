@@ -1,0 +1,54 @@
+# MCP Toolbox for Databases Configuration
+# Fixed: Flattened connection parameters as 'config' was rejected
+
+sources:
+  Base-General:
+    kind: mysql
+    host: 147.135.31.144
+    port: 3306
+    user: u41940_4IK2yBjoeK
+    password: uC1JJyme=Kx.yWm=fMfJ=F@q
+    database: s41940_Base-General
+
+  Base-Especializada:
+    kind: mysql
+    host: 147.135.31.144
+    port: 3306
+    user: u41940_sZah3jZrcn
+    password: sXKJC@Ed!zcNzWiHrklV9omJ
+    database: s41940_Base-Especializada
+    
+tools:
+  general_list_tables:
+    kind: mysql-sql
+    source: Base-General
+    description: 'Lista las tablas de la base de datos General (LuckPerms, Skins).'
+    statement: 'SHOW TABLES;'
+    parameters: []
+
+  general_query:
+    kind: mysql-sql
+    source: Base-General
+    description: 'Ejecuta una consulta SQL personalizada en la base de datos General.'
+    statement: '{{.query}}'
+    templateParameters:
+      - name: query
+        type: string
+        description: 'Consulta SQL a ejecutar'
+
+  specialized_list_tables:
+    kind: mysql-sql
+    source: Base-Especializada
+    description: 'Lista las tablas de la base de datos Especializada (Mundos, Economía).'
+    statement: 'SHOW TABLES;'
+    parameters: []
+
+  specialized_query:
+    kind: mysql-sql
+    source: Base-Especializada
+    description: 'Ejecuta una consulta SQL personalizada en la base de datos Especializada.'
+    statement: '{{.query}}'
+    templateParameters:
+      - name: query
+        type: string
+        description: 'Consulta SQL a ejecutar'

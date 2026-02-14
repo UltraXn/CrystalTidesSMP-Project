@@ -8,8 +8,12 @@
 // Role hierarchy (matches backend staffAuth.ts)
 export const ROLES = {
     USER: 'user',
+    DONOR: 'donor',
+    HELPER: 'helper',
     MODERATOR: 'moderator',
+    STAFF: 'staff',
     ADMIN: 'admin',
+    FOUNDER: 'founder',
     DEVELOPER: 'developer',
     KILLU: 'killu',
     NEROFERNO: 'neroferno'
@@ -19,8 +23,11 @@ export type Role = typeof ROLES[keyof typeof ROLES];
 
 // Staff roles (administrative access)
 export const STAFF_ROLES: Role[] = [
+    ROLES.HELPER,
     ROLES.MODERATOR,
+    ROLES.STAFF,
     ROLES.ADMIN,
+    ROLES.FOUNDER,
     ROLES.DEVELOPER,
     ROLES.KILLU,
     ROLES.NEROFERNO
@@ -29,11 +36,15 @@ export const STAFF_ROLES: Role[] = [
 // Role hierarchy levels (higher = more privileges)
 const ROLE_LEVELS: Record<Role, number> = {
     [ROLES.USER]: 0,
-    [ROLES.MODERATOR]: 1,
-    [ROLES.ADMIN]: 2,
-    [ROLES.DEVELOPER]: 3,
-    [ROLES.KILLU]: 4,
-    [ROLES.NEROFERNO]: 5
+    [ROLES.DONOR]: 0,     // Donors are users with perks, not staff authority
+    [ROLES.HELPER]: 1,    // Entry level staff
+    [ROLES.MODERATOR]: 2, // Moderation
+    [ROLES.STAFF]: 2,     // Generic Staff (equivalent to Mod)
+    [ROLES.ADMIN]: 3,     // Administrative
+    [ROLES.FOUNDER]: 4,   // High level but maybe not dev
+    [ROLES.DEVELOPER]: 4, // Technical control
+    [ROLES.KILLU]: 5,     // Specific High Role
+    [ROLES.NEROFERNO]: 6  // Highest Role
 };
 
 /**

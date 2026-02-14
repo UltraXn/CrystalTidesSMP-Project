@@ -5,7 +5,8 @@ import {
     type Permission, 
     PERMISSIONS, 
     hasAnyRole, 
-    hasMinRole 
+    hasMinRole,
+    getRoleLevel
 } from '../../utils/rolePermissionsCore';
 
 interface RoleGateProps {
@@ -28,10 +29,16 @@ export const RoleGate: React.FC<RoleGateProps> = ({
     if (!user) return <>{fallback}</>;
     
     let hasAccess = false;
-    const userRole = (user.role || '') as Role;
+    const userRole = (user.user_metadata?.role || '') as Role;
     
     if (permission) {
-        hasAccess = hasAnyRole(userRole, PERMISSIONS[permission] as readonly Role[]);
+        // HIERARCHICAL CHECK for Permissions
+        const allowedRoles = PERMISSIONS[permission] as readonly Role[];
+        const validLevels = allowedRoles.map(r => getRoleLevel(r)).filter(l => l >= 0);
+        const minLevel = validLevels.length > 0 ? Math.min(...validLevels) : 999;
+        
+        const userLevel = getRoleLevel(userRole);
+        hasAccess = userLevel >= minLevel;
     } else if (minRole) {
         hasAccess = hasMinRole(userRole, minRole);
     } else if (allowedRoles) {

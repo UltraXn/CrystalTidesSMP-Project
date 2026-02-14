@@ -1,0 +1,68 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "launcher",
+            "cwd": "apps\\launcher",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "launcher (profile mode)",
+            "cwd": "apps\\launcher",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "launcher (release mode)",
+            "cwd": "apps\\launcher",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "video_player_win",
+            "cwd": "apps\\launcher\\dev_plugins\\video_player_win",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "video_player_win (profile mode)",
+            "cwd": "apps\\launcher\\dev_plugins\\video_player_win",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "video_player_win (release mode)",
+            "cwd": "apps\\launcher\\dev_plugins\\video_player_win",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "webview_windows",
+            "cwd": "apps\\launcher\\dev_plugins\\webview_windows",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "webview_windows (profile mode)",
+            "cwd": "apps\\launcher\\dev_plugins\\webview_windows",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "webview_windows (release mode)",
+            "cwd": "apps\\launcher\\dev_plugins\\webview_windows",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        }
+    ]
+}
