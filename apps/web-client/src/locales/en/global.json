@@ -501,7 +501,7 @@
                 "pts_kill": "pts (Kill x10)",
                 "hours": "hours",
                 "pts_formula": "pts (H x0.2 + Rank)",
-                "social_note": "* Social: +30 pts per Donor, Founder, Killuwu, Neroferno, Developer, or Staff rank."
+                "social_note": "* Social: +30 pts for Donor, Founder, Killu, Neroferno, Developer or Staff rank."
             }
         },
         "medals_title": "My Medals",

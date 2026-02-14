@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 
 // Centralized role definitions based on project requirements
-export const ADMIN_ROLES = ['admin', 'neroferno', 'killu', 'killuwu', 'developer', 'staff'];
+export const ADMIN_ROLES = ['admin', 'neroferno', 'killu', 'developer', 'staff'];
 export const STAFF_ROLES = [...ADMIN_ROLES, 'moderator', 'mod', 'helper'];
 
 /**
@@ -24,16 +24,15 @@ export const isAdmin = (role: string) => ADMIN_ROLES.includes(role);
 
 export const ROLE_PRIORITY: Record<string, number> = {
     'neroferno': 100,
-    'killu': 100,
-    'killuwu': 100,
+    'killu': 95,
     'developer': 90,
     'admin': 80,
     'moderator': 50,
     'mod': 50,
-    'staff': 40,
     'helper': 30,
+    'staff': 20,
     'founder': 10,
-    'donor': 10,
+    'donor': 5,
     'user': 0
 };
 

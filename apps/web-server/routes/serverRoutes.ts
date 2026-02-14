@@ -328,7 +328,7 @@ router.get('/staff', async (req: Request, res: Response) => {
             const uuid = dbRef?.uuid || '00000000-0000-0000-0000-000000000000';
             const groups = dbRef?.groups || ['default'];
             
-            const staffGroups = ['neroferno', 'killuwu', 'developer', 'admin', 'moderator', 'mod', 'helper', 'staff'];
+            const staffGroups = ['neroferno', 'killu', 'developer', 'admin', 'moderator', 'mod', 'helper', 'staff'];
             
             // Si el usuario está en las Staff Cards (supabase), podemos usar ese rol de fallback
             const panelInfo = Array.isArray(cards) ? cards.find((c: StaffCard) => c.name.toLowerCase() === lowName || (c.mc_nickname && c.mc_nickname.toLowerCase() === lowName)) : null;
@@ -338,7 +338,7 @@ router.get('/staff', async (req: Request, res: Response) => {
 
             if (username.toLowerCase() === 'ultraxn') { role = 'Neroferno'; roleImage = '/ranks/rank-neroferno.png'; }
             if (role === 'neroferno') { role = 'Neroferno'; roleImage = '/ranks/rank-neroferno.png'; }
-            if (role === 'killuwu') { role = 'Killuwu'; roleImage = '/ranks/rank-killu.png'; }
+            if (role === 'killu') { role = 'Killu'; roleImage = '/ranks/rank-killu.png'; }
             if (role === 'developer') { role = 'Developer'; roleImage = '/ranks/developer.png'; }
 
             const skinName = skinMap[uuid];
@@ -360,7 +360,7 @@ router.get('/staff', async (req: Request, res: Response) => {
         });
 
         // Solo devolver Staff real
-        const allowedRoles = ['neroferno', 'killuwu', 'developer', 'admin', 'moderator', 'mod', 'helper', 'staff'];
+        const allowedRoles = ['neroferno', 'killu', 'developer', 'admin', 'moderator', 'mod', 'helper', 'staff'];
         res.json(staff.filter(s => allowedRoles.includes(s.role.toLowerCase())));
 
     } catch (error) {

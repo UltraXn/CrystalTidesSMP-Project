@@ -12,6 +12,7 @@ import donationRoutes from './routes/donationRoutes.js';
 import suggestionRoutes from './routes/suggestionRoutes.js';
 import pollRoutes from './routes/pollRoutes.js';
 import forumRoutes from './routes/forumRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
 import eventRoutes from './routes/eventRoutes.js';
 import settingsRoutes from './routes/settingsRoutes.js';
 import playerStatsRoutes from './routes/playerStats.js';
@@ -82,6 +83,7 @@ app.use(hpp()); // Protect against HTTP Parameter Pollution attacks
 
 // Routes
 app.use('/api/system', systemRoutes);
+app.use('/api/admin', adminRoutes); // Admin Mod Uploads
 app.use('/api/webhooks', webhookRoutes);
 app.use('/api/news', newsRoutes);
 app.use('/api/minecraft', minecraftRoutes);
