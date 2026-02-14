@@ -117,11 +117,12 @@ export default function UsersTable({ users, loading, hasSearched, canManageRoles
                                         >
                                             <option value="neroferno">{t('account.roles.neroferno')}</option>
                                             <option value="killu">{t('account.roles.killu')}</option>
-                                            <option value="founder">{t('account.roles.founder')}</option>
                                             <option value="developer">{t('account.roles.developer')}</option>
                                             <option value="admin">{t('account.roles.admin')}</option>
-                                            <option value="staff">{t('account.roles.staff', 'Staff')}</option>
+                                            <option value="moderator">{t('account.roles.moderator', 'Moderator')}</option>
                                             <option value="helper">{t('account.roles.helper')}</option>
+                                            <option value="staff">{t('account.roles.staff', 'Staff')}</option>
+                                            <option value="founder">{t('account.roles.founder')}</option>
                                             <option value="donor">{t('account.roles.donor')}</option>
                                             <option value="user">{t('account.roles.user')}</option>
                                         </select>

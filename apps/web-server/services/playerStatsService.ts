@@ -1,5 +1,4 @@
 import db from '../config/database.js';
-import cpDb from '../config/coreProtectDb.js';
 
 interface PlayerStats {
     username: string;
@@ -56,7 +55,7 @@ export const getPlayerStats = async (usernameFragment: string): Promise<PlayerSt
          return null; 
     }
 
-    if (users.length === 0) return null;
+    if (!users || users.length === 0) return null;
 
     const user = users[0];
     const uuid = user.uuid;
@@ -64,12 +63,11 @@ export const getPlayerStats = async (usernameFragment: string): Promise<PlayerSt
     const planUserId = user.id;
 
     // 2. Parallel Fetching for Performance
-    const [sessionStats, killStats, moneyStats, lpGroups, cpStats] = await Promise.all([
+    const [sessionStats, killStats, moneyStats, lpGroups] = await Promise.all([
         getSessionStats(planUserId),
         getPvpKills(uuid),
         getMoney(uuid),
-        getLuckPermsGroups(uuid),
-        getCoreProtectStats(resolvedName) // CP uses name usually
+        getLuckPermsGroups(uuid)
     ]);
 
     // 3. Process Rank
@@ -91,14 +89,14 @@ export const getPlayerStats = async (usernameFragment: string): Promise<PlayerSt
         mob_kills: sessionStats.mobs || 0,
         deaths: sessionStats.deaths || 0,
         money: formatMoneyCompact(moneyStats),
-        blocks_mined: (cpStats.mined || 0).toLocaleString('en-US'),
-        blocks_placed: (cpStats.placed || 0).toLocaleString('en-US'),
+        blocks_mined: "0",
+        blocks_placed: "0",
         member_since: new Date(user.registered).toLocaleDateString('es-ES'),
         raw_id: planUserId, 
         raw_playtime: playtimeMs,
         raw_kills: killStats,
-        raw_blocks_mined: cpStats.mined || 0,
-        raw_blocks_placed: cpStats.placed || 0,
+        raw_blocks_mined: 0,
+        raw_blocks_placed: 0,
         raw_rank: rankData.name
     };
 };
@@ -160,19 +158,6 @@ const getLuckPermsGroups = async (uuid: string) => {
     } catch { return ['default']; }
 };
 
-const getCoreProtectStats = async (username: string) => {
-    try {
-        if (!process.env.CP_DB_HOST) return { mined: 0, placed: 0 };
-        const [users] = await cpDb.query<RowDataPacket[]>('SELECT rowid FROM co_user WHERE user = ? LIMIT 1', [username]);
-        if (users.length === 0) return { mined: 0, placed: 0 };
-        
-        const cpUserId = users[0].rowid;
-        const [mined] = await cpDb.query<RowDataPacket[]>('SELECT COUNT(*) as count FROM co_block WHERE user = ? AND action = 0', [cpUserId]);
-        const [placed] = await cpDb.query<RowDataPacket[]>('SELECT COUNT(*) as count FROM co_block WHERE user = ? AND action = 1', [cpUserId]);
-        
-        return { mined: mined[0].count, placed: placed[0].count };
-    } catch (e) { console.error("CP Error", e); return { mined: 0, placed: 0 }; }
-};
 
 const processRank = (groups: string[]) => {
     const normalizedGroups = groups.map(g => GROUP_MAP[g] || g.toLowerCase());

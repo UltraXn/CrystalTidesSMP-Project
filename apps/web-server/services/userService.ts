@@ -1,23 +1,5 @@
 import supabase from './supabaseService.js';
-import db from '../config/database.js';
-import { RowDataPacket } from 'mysql2';
 import { User } from '@supabase/supabase-js';
-
-interface LuckPermsPlayer extends RowDataPacket {
-    uuid: string;
-    username: string;
-    role: string;
-}
-
-interface LuckPermsPermission extends RowDataPacket {
-    uuid: string;
-    permission: string;
-}
-
-interface PlanUser extends RowDataPacket {
-    uuid: string;
-    name: string;
-}
 
 export interface WebUser {
     id: string;
@@ -33,86 +15,10 @@ export interface WebUser {
 }
 
 /**
- * Get Staff Users from Database (LuckPerms + Web Users)
- * Queries LP tables for specific groups and merges with web profiles.
+ * Get Staff Users from Database (Stubbed - Legacy)
  */
 export const getStaffUsers = async () => {
-    try {
-        const targetGroups = ['neroferno', 'killuwu', 'killu', 'developer', 'admin', 'moderator', 'helper']; 
-        
-        // 1. Fetch UUIDs from LuckPerms Players (Primary Group)
-        const groupsPlaceholder = targetGroups.map(() => '?').join(',');
-        const [lpPlayers] = await db.query<LuckPermsPlayer[]>(`
-            SELECT uuid, username, primary_group as role FROM luckperms_players 
-            WHERE primary_group IN (${groupsPlaceholder})
-        `, targetGroups);
-
-        // 2. Fetch UUIDs from Permissions (Secondary Groups)
-        const groupPerms = targetGroups.map(g => `group.${g}`);
-        const permsPlaceholder = groupPerms.map(() => '?').join(',');
-        const [lpPermissions] = await db.query<LuckPermsPermission[]>(`
-            SELECT uuid, permission FROM luckperms_user_permissions 
-            WHERE permission IN (${permsPlaceholder})
-        `, groupPerms);
-        
-        // Merge results (Map UUID -> Role)
-        const staffMap = new Map<string, { role: string, name?: string }>();
-        
-        lpPlayers.forEach((row) => {
-            staffMap.set(row.uuid, { role: row.role, name: row.username });
-        });
-        
-        lpPermissions.forEach((row) => {
-            if (!staffMap.has(row.uuid)) {
-                staffMap.set(row.uuid, { role: row.permission.replace('group.', ''), name: undefined });
-            }
-        });
-        
-        const uuids = Array.from(staffMap.keys());
-        if (uuids.length === 0) return [];
-
-        // 3. Resolve Names (if missing) from PLAN
-        const missingNameUUIDs = uuids.filter(uuid => !staffMap.get(uuid)?.name);
-        
-        if (missingNameUUIDs.length > 0) {
-            const [planUsers] = await db.query<PlanUser[]>(`
-                SELECT uuid, name FROM plan_users WHERE uuid IN (${missingNameUUIDs.map(() => '?').join(',')})
-            `, missingNameUUIDs);
-            
-            planUsers.forEach((u) => {
-                const manual = staffMap.get(u.uuid);
-                if (manual) manual.name = u.name;
-            });
-        }
-        
-        // 4. Fetch Supabase Users for Web Socials
-        const sbUsers = await getAllUsers('');
-        
-        // 5. Build Final List
-        const finalStaff = [];
-        for (const [uuid, data] of staffMap.entries()) {
-            if (!data.name) continue; // Skip if name unresolved
-            
-            // Match Supabase User
-            const sbMatch = sbUsers.find((sb) => sb.username.toLowerCase() === data.name!.toLowerCase());
-            
-            finalStaff.push({
-                uuid: uuid, // Minecraft UUID
-                username: data.name,
-                role: data.role.charAt(0).toUpperCase() + data.role.slice(1), // Capitalize
-                avatar_url: sbMatch?.avatar_url, // Web Avatar
-                discord: sbMatch?.discord,
-                twitch: sbMatch?.twitch,
-                web_id: sbMatch?.id
-            });
-        }
-        
-        return finalStaff;
-
-    } catch (error) {
-        console.error("Error fetching staff from LP:", error);
-        throw new Error("Failed to fetch staff users");
-    }
+    return [];
 };
 
 /**

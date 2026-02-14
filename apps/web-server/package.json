@@ -21,6 +21,7 @@
     "@types/express": "^5.0.6",
     "@types/hpp": "^0.2.7",
     "@types/jsonwebtoken": "^9.0.10",
+    "@types/multer": "^2.0.0",
     "@types/node": "^25.0.3",
     "@types/node-cron": "^3.0.11",
     "@types/node-fetch": "^2.6.13",
@@ -53,6 +54,7 @@
     }
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.990.0",
     "@crystaltides/shared": "^1.0.0",
     "@notionhq/client": "^5.6.0",
     "@supabase/supabase-js": "^2.87.1",
@@ -71,6 +73,7 @@
     "hpp": "^0.2.3",
     "jsonwebtoken": "^9.0.3",
     "minecraft-server-util": "^5.4.4",
+    "multer": "^2.0.2",
     "mysql2": "^3.15.3",
     "node-cron": "^4.2.1",
     "node-fetch": "^3.3.2",
