@@ -141,7 +141,7 @@ jobs:
           bun-version: latest
 
       - name: Create .env file
-        run: echo "${{ secrets.ENV_FILE }}" > apps/discord-bot/.env
+        run: echo "${{ secrets.DISCORD_BOT }}" > apps/discord-bot/.env
 
       - name: Install Dependencies (Bot)
         working-directory: ./apps/discord-bot
