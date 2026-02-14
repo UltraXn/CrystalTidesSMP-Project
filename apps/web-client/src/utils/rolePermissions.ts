@@ -13,8 +13,7 @@ import {
     type Role,
     type Permission,
     getRoleLevel,
-    isStaffRole,
-    hasAnyRole
+    isStaffRole
 } from './rolePermissionsCore';
 
 // Re-export types and constants for convenience
@@ -39,17 +38,18 @@ export const useIsStaff = (): boolean => {
  */
 export const useHasMinRole = (minRole: Role): boolean => {
     const { user } = useAuth();
-    const { roleLevels } = usePermissionsContext(); // Get dynamic levels
+    const { roleLevels } = usePermissionsContext();
 
     if (!user) return false;
 
-    const userRole = (user.user_metadata?.role || '') as Role;
+    // Normalize user role to lowercase
+    const userRole = (user.user_metadata?.role || '').toLowerCase();
     
     // Dynamic Level or Fallback
     const dynamicUserLevel = roleLevels[userRole];
     const userLevel = dynamicUserLevel !== undefined ? dynamicUserLevel : getRoleLevel(userRole);
 
-    const dynamicMinLevel = roleLevels[minRole];
+    const dynamicMinLevel = roleLevels[minRole.toLowerCase()];
     const targetLevel = dynamicMinLevel !== undefined ? dynamicMinLevel : getRoleLevel(minRole);
 
     return userLevel >= targetLevel;
@@ -60,7 +60,12 @@ export const useHasMinRole = (minRole: Role): boolean => {
  */
 export const useHasAnyRole = (allowedRoles: Role[]): boolean => {
     const { user } = useAuth();
-    return user ? hasAnyRole((user.user_metadata?.role || '') as Role, allowedRoles) : false;
+    if (!user) return false;
+    
+    // Normalize user role and allowed roles for comparison
+    const userRole = (user.user_metadata?.role || '').toLowerCase();
+    const normalizedAllowed = allowedRoles.map(r => r.toLowerCase());
+    return normalizedAllowed.includes(userRole);
 };
 
 /**
@@ -72,7 +77,7 @@ export const useRoleLevel = (): number => {
 
     if (!user) return -1;
     
-    const userRole = (user.user_metadata?.role || '') as Role;
+    const userRole = (user.user_metadata?.role || '').toLowerCase();
     const dynamicLevel = roleLevels[userRole];
     
     return dynamicLevel !== undefined ? dynamicLevel : getRoleLevel(userRole);
@@ -87,7 +92,7 @@ export const useHasPermission = (permission: Permission): boolean => {
 
     if (!user) return false;
     
-    const userRole = (user.user_metadata?.role || '') as Role;
+    const userRole = (user.user_metadata?.role || '').toLowerCase();
 
     // 1. Determine User Level (Dynamic -> Fallback)
     const dynamicUserLevel = roleLevels[userRole];
@@ -103,11 +108,10 @@ export const useHasPermission = (permission: Permission): boolean => {
         // Fallback to PERMISSIONS array from core
         const allowedRoles = PERMISSIONS[permission] as readonly Role[];
         if (allowedRoles) {
-            // Calculate min level based on the hardcoded allowed roles
-            // We use the *current* role levels (dynamic or static) to check the allowed roles
             const validLevels = allowedRoles.map(r => {
-                const l = roleLevels[r];
-                return l !== undefined ? l : getRoleLevel(r);
+                const normalizedR = r.toLowerCase();
+                const l = roleLevels[normalizedR];
+                return l !== undefined ? l : getRoleLevel(normalizedR);
             }).filter(l => l >= 0);
             
             if (validLevels.length > 0) {
