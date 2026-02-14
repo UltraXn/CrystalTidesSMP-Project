@@ -160,7 +160,7 @@ jobs:
       - name: Build and Push Container
         run: |-
           IMAGE_NAME=${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/bot
-          docker build --no-cache -t $IMAGE_NAME:latest -f apps/discord-bot/Dockerfile .
+          docker build -t $IMAGE_NAME:latest -f apps/discord-bot/Dockerfile .
           docker push $IMAGE_NAME:latest
 
           # Clean up untagged images
