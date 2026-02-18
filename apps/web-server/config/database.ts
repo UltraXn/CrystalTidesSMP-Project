@@ -2,8 +2,8 @@
 // This mock prevents the application from crashing when services attempt to query the defunct database.
 
 const mockPool = {
-    query: async <T = any>(_sql: string, _params?: any[]) => [[] as unknown as T, []],
-    execute: async <T = any>(_sql: string, _params?: any[]) => [[] as unknown as T, []],
+    query: async <T = unknown>(_sql: string, _params?: unknown[]) => [[] as unknown as T, []],
+    execute: async <T = unknown>(_sql: string, _params?: unknown[]) => [[] as unknown as T, []],
     end: async () => {},
     promise: () => mockPool,
     on: () => {},

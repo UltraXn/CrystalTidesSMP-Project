@@ -3,7 +3,10 @@ import pool from '../config/database.js';
 
 interface SkinRow {
     Value: string;
-    [key: string]: any;
+}
+
+interface ShowTableResult {
+    [key: string]: string;
 }
 
 let cachedTableName: string | null = null;
@@ -12,7 +15,7 @@ const findSkinTable = async () => {
     if (cachedTableName) return cachedTableName;
 
     try {
-        const [rows] = await pool.query<any[]>('SHOW TABLES');
+        const [rows] = await pool.query<ShowTableResult[]>('SHOW TABLES');
         // Rows is [{ Tables_in_dbname: 'tablename' }, ...]
         // We look for 'skins' case insensitive
         for (const row of rows) {

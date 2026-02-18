@@ -20,6 +20,36 @@ interface PlayerStats {
     raw_rank?: string;
 }
 
+interface PlanUserRow {
+    uuid: string;
+    name: string;
+    id: number;
+    registered: string | number | Date;
+}
+
+interface SessionStatsRow {
+    playtime: number;
+    mobs: number;
+    deaths: number;
+}
+
+interface KillCountRow {
+    count: number;
+}
+
+interface MoneyRow {
+    vault_balance: number | string | null;
+    vault_balance_str: string | null;
+}
+
+interface LuckPermsUserRow {
+    primary_group: string;
+}
+
+interface LuckPermsPermRow {
+    permission: string;
+}
+
 // Map specific Unicode Groups found in DB to internal keys
 
 
@@ -46,7 +76,7 @@ export const getPlayerStats = async (usernameFragment: string): Promise<PlayerSt
         ? `SELECT uuid, name, id, registered FROM plan_users WHERE uuid = ? LIMIT 1`
         : `SELECT uuid, name, id, registered FROM plan_users WHERE name = ? ORDER BY registered DESC LIMIT 1`;
 
-    const [users] = await db.query<any[]>(query, [cleanUsername]);
+    const [users] = await db.query<PlanUserRow[]>(query, [cleanUsername]);
 
     // Fallback logic for compacted/dashed UUIDs
     if (users.length === 0 && isUUID) {
@@ -111,27 +141,27 @@ interface SessionStats {
 
 const getSessionStats = async (planUserId: number): Promise<SessionStats> => {
     try {
-        const [rows] = await db.query<any[]>(`
+        const [rows] = await db.query<SessionStatsRow[]>(`
             SELECT 
                 SUM(CASE WHEN session_end IS NOT NULL THEN (session_end - session_start) ELSE (UNIX_TIMESTAMP(NOW()) * 1000 - session_start) END) as playtime,
                 SUM(mob_kills) as mobs,
                 SUM(deaths) as deaths
             FROM plan_sessions WHERE user_id = ?
         `, [planUserId]);
-        return (rows[0] as SessionStats) || { playtime: 0, mobs: 0, deaths: 0 };
+        return rows[0] || { playtime: 0, mobs: 0, deaths: 0 };
     } catch (e) { console.error("SessionStats Error", e); return { playtime: 0, mobs: 0, deaths: 0 }; }
 };
 
 const getPvpKills = async (uuid: string) => {
     try {
-        const [rows] = await db.query<any[]>(`SELECT COUNT(*) as count FROM plan_kills WHERE killer_uuid = ?`, [uuid]);
+        const [rows] = await db.query<KillCountRow[]>(`SELECT COUNT(*) as count FROM plan_kills WHERE killer_uuid = ?`, [uuid]);
         return rows[0]?.count || 0;
     } catch { return 0; }
 };
 
 export const getMoney = async (uuid: string) => {
     try {
-         const [rows] = await db.query<any[]>(`
+         const [rows] = await db.query<MoneyRow[]>(`
             SELECT 
                 (SELECT uv.double_value FROM plan_extension_user_values uv JOIN plan_extension_providers ep ON uv.provider_id = ep.id JOIN plan_extension_plugins pl ON ep.plugin_id = pl.id WHERE (pl.name LIKE '%Economy%' OR pl.name LIKE '%Vault%') AND (ep.name LIKE '%Balance%' OR ep.text LIKE '%Balance%') AND uv.uuid = ? ORDER BY uv.id DESC LIMIT 1) as vault_balance,
                 (SELECT uv.string_value FROM plan_extension_user_values uv JOIN plan_extension_providers ep ON uv.provider_id = ep.id JOIN plan_extension_plugins pl ON ep.plugin_id = pl.id WHERE (pl.name LIKE '%Economy%' OR pl.name LIKE '%Vault%') AND (ep.name LIKE '%Balance%' OR ep.text LIKE '%Balance%' OR ep.name LIKE '%vault_eco_balance%') AND uv.uuid = ? ORDER BY uv.id DESC LIMIT 1) as vault_balance_str
@@ -147,11 +177,11 @@ export const getMoney = async (uuid: string) => {
 
 const getLuckPermsGroups = async (uuid: string) => {
     try {
-        const [lpUsers] = await db.query<any[]>(`SELECT primary_group FROM luckperms_players WHERE uuid = ?`, [uuid]);
+        const [lpUsers] = await db.query<LuckPermsUserRow[]>(`SELECT primary_group FROM luckperms_players WHERE uuid = ?`, [uuid]);
         const groups: string[] = [];
         if (lpUsers.length > 0 && lpUsers[0].primary_group) groups.push(lpUsers[0].primary_group);
         
-        const [lpPerms] = await db.query<any[]>(`SELECT permission FROM luckperms_user_permissions WHERE uuid = ? AND permission LIKE 'group.%'`, [uuid]);
+        const [lpPerms] = await db.query<LuckPermsPermRow[]>(`SELECT permission FROM luckperms_user_permissions WHERE uuid = ? AND permission LIKE 'group.%'`, [uuid]);
         // Typed row instead of any
         lpPerms.forEach((row) => groups.push(row.permission.replace('group.', '')));
         return groups;

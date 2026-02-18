@@ -1,7 +1,6 @@
 import express from 'express';
 import * as taskController from '../controllers/taskController.js';
 import * as calendarController from '../controllers/calendarController.js';
-import * as notionController from '../controllers/notionController.js';
 import { authenticateToken } from '../middleware/authMiddleware.js';
 import { checkRole, STAFF_ROLES } from '../utils/roleUtils.js';
 
@@ -21,10 +20,6 @@ router.get('/calendar', calendarController.getCalendarEvents);
 
 // POST /api/staff/tasks/calendar/sync
 router.post('/calendar/sync', calendarController.syncTaskToCalendar);
-
-// Notion Integration
-router.get('/notion', notionController.getTasks);
-router.post('/notion/sync', notionController.syncTask);
 
 // --- Standard CRUD (Generic paths last) ---
 

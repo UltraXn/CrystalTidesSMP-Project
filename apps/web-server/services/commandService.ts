@@ -8,7 +8,6 @@ interface CommandRow {
     executed: number;
     executed_at: string;
     created_at: string;
-    [key: string]: any;
 }
 
 /**
@@ -41,7 +40,7 @@ export const queueCommand = async (command: string) => {
  */
 export const checkCommandStatus = async (id: number) => {
     try {
-        const [rows] = await pool.query<CommandRow[] & any[]>(
+        const [rows] = await pool.query<CommandRow[]>(
             'SELECT * FROM web_pending_commands WHERE id = ?',
             [id]
         );
