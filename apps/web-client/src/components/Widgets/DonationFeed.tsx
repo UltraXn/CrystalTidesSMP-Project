@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { Heart, User } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { motion, useAnimationControls } from 'framer-motion'
 import { supabase } from '../../services/supabaseClient'
 import { fetchPublicDonations, PublicDonation } from '../../services/apiService'
 import '../../donation-feed.css'
@@ -14,6 +15,7 @@ interface DonationFeedProps {
 
 export default function DonationFeed({ mockDonations }: DonationFeedProps = {}) {
     const { t, i18n } = useTranslation()
+    const controls = useAnimationControls()
 
     const queryClient = useQueryClient()
     const { data: fetchedDonations = [], isLoading } = useQuery({
@@ -21,8 +23,11 @@ export default function DonationFeed({ mockDonations }: DonationFeedProps = {}) 
         queryFn: () => fetchPublicDonations('all'),
         enabled: !mockDonations,
         staleTime: 1000 * 15,
-        refetchInterval: 1000 * 60 // Increased interval as we have real-time now
+        refetchInterval: 1000 * 60
     })
+
+    const donations = mockDonations || fetchedDonations
+    const loading = !mockDonations && isLoading
 
     // Real-time updates
     useEffect(() => {
@@ -45,8 +50,19 @@ export default function DonationFeed({ mockDonations }: DonationFeedProps = {}) 
         }
     }, [mockDonations, queryClient])
 
-    const donations = mockDonations || fetchedDonations
-    const loading = !mockDonations && isLoading
+    // Restart animation when donations change
+    useEffect(() => {
+        if (donations.length > 0) {
+            controls.start({
+                y: ["0%", "-50%"],
+                transition: {
+                    duration: Math.max(20, donations.length * 4), // Dynamic speed based on items
+                    ease: "linear",
+                    repeat: Infinity
+                }
+            })
+        }
+    }, [donations.length, controls])
 
     const renderDonationCard = (donation: Donation, index: string | number) => (
         <div className="donation-card" key={`${donation.id || donation.message_id}-${index}`}>
@@ -93,10 +109,16 @@ export default function DonationFeed({ mockDonations }: DonationFeedProps = {}) 
                     <p>{t('donors.no_donations')}</p>
                 </div>
             ) : (
-                <div className="donation-scroll-track">
+                <motion.div 
+                    className="donation-scroll-track"
+                    animate={controls}
+                    whileHover={{ animationPlayState: 'paused' }} // CSS integration
+                >
+                    {/* Render triple to ensure it covers 400px height even with few donations */}
                     {donations.map((d, i) => renderDonationCard(d, `A-${i}`))}
                     {donations.map((d, i) => renderDonationCard(d, `B-${i}`))}
-                </div>
+                    {donations.map((d, i) => renderDonationCard(d, `C-${i}`))}
+                </motion.div>
             )}
         </div>
     )
