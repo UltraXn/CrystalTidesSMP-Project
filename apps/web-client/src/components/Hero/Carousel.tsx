@@ -24,9 +24,14 @@ interface HeroBackgroundCarouselProps {
 
 const HeroBackgroundCarousel = ({ slides = [] }: HeroBackgroundCarouselProps) => {
     const [emblaRef] = useEmblaCarousel(
-        { loop: true, watchDrag: false, duration: 40 },
+        { 
+            loop: true, 
+            watchDrag: true, 
+            duration: 60,
+            dragFree: true
+        },
         [
-            Autoplay({ delay: 6000, stopOnInteraction: false }),
+            Autoplay({ delay: 8000, stopOnInteraction: false }),
             Fade()
         ]
     )

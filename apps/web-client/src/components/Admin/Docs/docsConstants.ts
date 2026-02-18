@@ -3,6 +3,7 @@ import {
     Gamepad2, List
 } from 'lucide-react';
 import { LucideIcon } from 'lucide-react';
+import { TFunction } from 'i18next';
 
 export const ICON_MAP: Record<string, LucideIcon> = {
     'intro': Book,
@@ -22,7 +23,7 @@ export interface AdminDoc {
     content: string;
 }
 
-export const getDefaults = (t: any) => [
+export const getDefaults = (t: TFunction) => [
     {
         id: 'intro',
         title: t('admin.docs.titles.intro', 'Introducción'),

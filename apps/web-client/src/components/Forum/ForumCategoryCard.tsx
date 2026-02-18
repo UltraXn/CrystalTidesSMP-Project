@@ -1,4 +1,4 @@
-import { User, Clock } from "lucide-react"
+import { User, Clock, LucideProps } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
 import React from "react"
@@ -27,7 +27,7 @@ export default function ForumCategoryCard({ category }: ForumCategoryCardProps) 
         >
             {/* Icon Box */}
             <div className="w-16 h-16 sm:w-24 sm:h-auto bg-black/40 rounded-2xl flex items-center justify-center text-4xl text-gray-500 group-hover:text-(--accent) group-hover:bg-(--accent)/10 group-hover:scale-105 transition-all duration-500 shrink-0 border border-white/5 group-hover:border-(--accent)/20 shadow-inner">
-                {React.cloneElement(category.icon as React.ReactElement<any>, { size: 32, strokeWidth: 2.5 })}
+                {React.cloneElement(category.icon as React.ReactElement<LucideProps>, { size: 32, strokeWidth: 2.5 })}
             </div>
 
             <div className="flex-1 text-center sm:text-left min-w-0 flex flex-col justify-center">

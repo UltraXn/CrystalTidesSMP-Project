@@ -126,13 +126,21 @@ export default function Donors() {
     const finalDonors = useMemo(() => {
         if (!settingsData?.donors_list) return HARDCODED_DONORS;
 
+        interface DonorData {
+            name: string;
+            skinUrl?: string;
+            description?: string;
+            description_en?: string;
+            ranks?: string[];
+        }
+
         try {
             const parsed = typeof settingsData.donors_list === 'string' 
                 ? JSON.parse(settingsData.donors_list) 
                 : settingsData.donors_list;
 
             if (Array.isArray(parsed) && parsed.length > 0) {
-                return parsed.map((d: any) => ({
+                return parsed.map((d: DonorData) => ({
                     name: d.name,
                     image: d.skinUrl || `https://mc-heads.net/avatar/${d.name}/128`,
                     description: hardcodedDescs[d.name.toLowerCase()] || 

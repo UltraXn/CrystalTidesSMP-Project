@@ -63,7 +63,7 @@ export default function KanbanBoard({ mockTasks, mockGoogleEvents, mockNotionTas
     });
 
     const updateMutation = useMutation({
-        mutationFn: ({ id, data }: { id: string | number, data: any }) => updateTask(id, data),
+        mutationFn: ({ id, data }: { id: string | number, data: Partial<KanbanTask> }) => updateTask(id, data),
         onSuccess: () => queryClient.invalidateQueries({ queryKey: ['staff-tasks'] })
     });
 
@@ -96,7 +96,14 @@ export default function KanbanBoard({ mockTasks, mockGoogleEvents, mockNotionTas
     // --- UI State ---
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [editingTask, setEditingTask] = useState<KanbanTask | null>(null);
-    const [newTask, setNewTask] = useState({
+    const [newTask, setNewTask] = useState<{
+        title: string;
+        priority: TaskPriority;
+        type: string;
+        assignee: string;
+        due_date: string;
+        end_date: string;
+    }>({
         title: '',
         priority: 'Medium',
         type: 'General',

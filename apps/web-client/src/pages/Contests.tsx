@@ -120,7 +120,7 @@ export default function Contests() {
             triggerConfetti()
             queryClient.invalidateQueries({ queryKey: ['events', 'registrations', user?.id] })
         },
-        onError: (error: any) => {
+        onError: (error: Error) => {
             console.error("Registration error:", error)
             alert(error.message || t('contests.registration_error'))
         }

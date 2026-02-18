@@ -110,7 +110,6 @@ export default function DonationFeed({ mockDonations }: DonationFeedProps = {}) 
                 <motion.div 
                     className="donation-scroll-track"
                     animate={controls}
-                    whileHover={{ animationPlayState: 'paused' }} // CSS integration
                 >
                     {/* Render triple to ensure it covers 400px height even with few donations */}
                     {donations.map((d, i) => renderDonationCard(d, `A-${i}`))}

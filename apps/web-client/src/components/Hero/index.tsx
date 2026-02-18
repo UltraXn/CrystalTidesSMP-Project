@@ -74,6 +74,7 @@ export default function Hero({ mockSlides, mockPlayerCount, mockIsOnline }: Hero
     
     const displayPlayerCount = prefersReducedMotion ? (mockPlayerCount !== undefined ? mockPlayerCount : (serverStatus?.players?.online ?? 0)) : playerCount;
 
+    // GSAP Initialization
     useEffect(() => {
         const ctx = gsap.context(() => {
             if (prefersReducedMotion) {
@@ -110,23 +111,27 @@ export default function Hero({ mockSlides, mockPlayerCount, mockIsOnline }: Hero
             );
         });
 
-        // Handle Player Count Animation
-        const targetCount = mockPlayerCount !== undefined ? mockPlayerCount : (serverStatus?.players?.online ?? 0);
-
-        if (isOnline && !prefersReducedMotion) {
-            const counter = { val: playerCount };
-            gsap.to(counter, {
-                val: targetCount,
-                roundProps: "val",
-                duration: 2.5,
-                delay: 0.2,
-                ease: "power2.out",
-                onUpdate: () => setPlayerCount(Math.floor(counter.val))
-            });
-        }
-
         return () => ctx.revert();
-    }, [serverStatus, mockIsOnline, mockPlayerCount, isOnline, prefersReducedMotion, playerCount])
+    }, [prefersReducedMotion]) // Only run once on mount or when motion preference changes
+
+    // Player Count Animation Effect
+    useEffect(() => {
+        if (!isOnline || prefersReducedMotion) return;
+
+        const targetCount = mockPlayerCount !== undefined ? mockPlayerCount : (serverStatus?.players?.online ?? 0);
+        const counter = { val: playerCount };
+
+        const anim = gsap.to(counter, {
+            val: targetCount,
+            roundProps: "val",
+            duration: 2.5,
+            delay: 0.2,
+            ease: "power2.out",
+            onUpdate: () => setPlayerCount(Math.floor(counter.val))
+        });
+
+        return () => { anim.kill(); };
+    }, [serverStatus?.players?.online, mockPlayerCount, isOnline, prefersReducedMotion]);
 
     const handleCopy = () => {
         navigator.clipboard.writeText(ip)

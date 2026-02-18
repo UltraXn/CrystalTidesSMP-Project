@@ -2,6 +2,7 @@ import { Trash2, MessageCircle } from "lucide-react"
 import { m } from "framer-motion"
 import { ProfileComment } from "../../services/profileCommentService"
 import { useTranslation } from "react-i18next"
+import { User as SupabaseUser } from "@supabase/supabase-js"
 
 const RANK_IMAGES: Record<string, string> = {
     'admin': '/ranks/admin.png',
@@ -18,7 +19,7 @@ const RANK_IMAGES: Record<string, string> = {
 
 interface ProfileCommentItemProps {
     comment: ProfileComment;
-    currentUser: any;
+    currentUser: SupabaseUser | null;
     profileOwnerId: string;
     isAdmin?: boolean;
     onDelete: (id: number) => void;
@@ -58,7 +59,7 @@ export default function ProfileCommentItem({ comment, currentUser, profileOwnerI
 
     const displayName = String((useMinecraft && mcNick)
         ? mcNick 
-        : (authorMetadata?.full_name || authorMetadata?.username || comment.author?.username || t('common.anonymous', 'Anónimo')));
+        : (authorMetadata?.full_name || authorMetadata?.username || comment.author?.username || t('common.anonymous')));
 
     const roleRaw = isMe ? currentUser?.user_metadata?.role : comment.author?.role;
     const role = String(roleRaw || 'user').toLowerCase();

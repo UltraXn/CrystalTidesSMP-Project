@@ -1,4 +1,4 @@
-import { Coins, Star, Gem, Gift } from 'lucide-react';
+import { LucideIcon, Coins, Star, Gem, Gift } from 'lucide-react';
 
 export interface Reward {
     id: string;
@@ -15,7 +15,7 @@ export const RARITY_COLORS: Record<string, string> = {
     legendary: '#ff8000'
 };
 
-export const RARITY_ICONS: Record<string, any> = {
+export const RARITY_ICONS: Record<string, LucideIcon> = {
     common: Star,
     rare: Coins,
     epic: Gem,

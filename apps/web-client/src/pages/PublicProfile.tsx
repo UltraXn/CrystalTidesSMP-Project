@@ -18,7 +18,8 @@ import {
     fetchUserProfile, 
     fetchMedalDefinitions, 
     fetchPlayerStats, 
-    giveKarma 
+    giveKarma,
+    Profile
 } from "../services/userService"
 
 export default function PublicProfile() {
@@ -74,13 +75,16 @@ export default function PublicProfile() {
     const karmaMutation = useMutation({
         mutationFn: (targetId: string) => giveKarma(targetId),
         onSuccess: (data) => {
-            queryClient.setQueryData(['profile', username], (old: any) => ({
-                ...old,
-                reputation: data.newReputation
-            }))
+            queryClient.setQueryData(['profile', username], (old: Profile | undefined) => {
+                if (!old) return old;
+                return {
+                    ...old,
+                    reputation: data.newReputation
+                };
+            })
             showToast(t('profile.karma_success'), "success")
         },
-        onError: (error: any) => {
+        onError: (error: Error) => {
             showToast(error.message || t('profile.karma_error'), "error")
         }
     })

@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useEffect, useState, useMemo } from 'react';
 import { supabase } from '../services/supabaseClient';
 
@@ -49,9 +50,9 @@ export const PermissionsProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
                 setRoleLevels(newRoleLevels);
                 setPermissionRequirements(newPermRequirements);
-            } catch (err: any) {
+            } catch (err: unknown) {
                 console.error('Failed to load permissions:', err);
-                setError(err.message);
+                setError(err instanceof Error ? err.message : String(err));
             } finally {
                 setLoading(false);
             }
