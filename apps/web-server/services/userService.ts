@@ -19,63 +19,91 @@ export interface WebUser {
  */
 export const getStaffUsers = async () => {
     try {
-        // 1. Fetch Staff Profiles from Supabase
-        // We look for profiles with staff roles in metadata
-        // In a real production environment, this would be a join with an 'app_roles' table
-        const { data: { users }, error } = await supabase.auth.admin.listUsers();
-        if (error) throw error;
+        // 1. Fetch Staff Configuration from Site Settings
+        // The frontend uses 'staff_cards' as the source of truth
+        const { data: settings, error: settingsError } = await supabase
+            .from('site_settings')
+            .select('value')
+            .eq('key', 'staff_cards')
+            .single();
 
-        const staffRoles = ['admin', 'moderator', 'helper', 'owner'];
-        const staffProfiles = users.filter(u => staffRoles.includes(u.user_metadata?.role))
-            .map(u => ({
-                id: u.id,
-                username: u.user_metadata?.username || u.user_metadata?.full_name || 'Staff Member',
-                role: u.user_metadata?.role,
-                avatar_url: u.user_metadata?.avatar_url || u.user_metadata?.picture,
-                minecraft_uuid: u.user_metadata?.minecraft_uuid,
-                social_discord: u.user_metadata?.social_discord || u.user_metadata?.discord
-            }));
+        if (settingsError) throw settingsError;
 
-        // 2. Fetch Minecraft Server Status (for Online Players)
+        const staffCards = typeof settings.value === 'string' 
+            ? JSON.parse(settings.value) 
+            : settings.value;
+
+        if (!Array.isArray(staffCards)) return [];
+
+        // 2. Fetch all profiles to resolve UUIDs and Discord IDs
+        // We match by username or name to find the corresponding profile
+        const { data: profiles, error: profilesError } = await supabase
+            .from('profiles')
+            .select('id, username, minecraft_uuid, social_discord, avatar_url, role');
+
+        if (profilesError) throw profilesError;
+
+        // 3. Prepare Staff Profiles with combined data
+        const staffProfiles = staffCards.map(card => {
+            // Find profile by name or nickname
+            const profile = profiles.find(p => 
+                (p.username && p.username.toLowerCase() === card.name.toLowerCase()) ||
+                (p.username && p.username.toLowerCase() === (card.mc_nickname || "").toLowerCase())
+            );
+
+            // Extract Discord ID from "username, id" format
+            let discordId = card.socials?.discord;
+            if (discordId && discordId.includes(',')) {
+                discordId = discordId.split(',')[1].trim();
+            }
+
+            return {
+                id: profile?.id || card.id,
+                username: card.name,
+                role: card.role,
+                avatar_url: profile?.avatar_url || card.image,
+                minecraft_uuid: profile?.minecraft_uuid,
+                social_discord: discordId || profile?.social_discord
+            };
+        });
+
+        // 4. Fetch Minecraft Server Status (for Online Players)
         let minecraftOnlinePlayers: string[] = [];
         try {
             const host = process.env.MC_SERVER_HOST || 'localhost';
             const port = parseInt(process.env.MC_SERVER_PORT || '25565');
             const { getServerStatus } = await import('./minecraftService.js');
             const status = await getServerStatus(host, port);
-            interface MinecraftStatus {
-                players?: {
-                    sample?: Array<{ id: string; name: string }>;
-                };
-            }
-            minecraftOnlinePlayers = (status as MinecraftStatus).players?.sample?.map(p => p.id) || [];
+            minecraftOnlinePlayers = (status as any).players?.sample?.map((p: any) => p.id) || [];
         } catch (mcError) {
-            console.warn("[User Service] Failed to fetch Minecraft status for staff presence:", mcError);
+            console.warn("[User Service] Failed to fetch Minecraft status:", mcError);
         }
 
         const discordIds = staffProfiles
             .map(s => s.social_discord)
-            .filter((id): id is string => !!id);
+            .filter((id): id is string => !!id && /^\d+$/.test(id)); // Only numeric IDs
 
-        // 3. Fetch Discord Presence from Bot
+        // 5. Fetch Discord Presence from Bot
         let discordPresence: Record<string, string> = {};
-        try {
-            const botApiUrl = process.env.BOT_API_URL || 'http://localhost:3002';
-            const botApiKey = process.env.BOT_API_KEY;
+        if (discordIds.length > 0) {
+            try {
+                const botApiUrl = process.env.BOT_API_URL || 'https://crystaltidessmp.net/api/bot';
+                const botApiKey = process.env.BOT_API_KEY;
 
-            const botRes = await fetch(`${botApiUrl}/presence?ids=${discordIds.join(',')}`, {
-                headers: {
-                    'Authorization': `Bearer ${botApiKey}`
+                const botRes = await fetch(`${botApiUrl}/presence?ids=${discordIds.join(',')}`, {
+                    headers: {
+                        'Authorization': `Bearer ${botApiKey}`
+                    }
+                });
+                if (botRes.ok) {
+                    discordPresence = await botRes.json();
                 }
-            });
-            if (botRes.ok) {
-                discordPresence = await botRes.json();
+            } catch (botError) {
+                console.warn("[User Service] Failed to fetch Discord presence:", botError);
             }
-        } catch (botError) {
-            console.warn("[User Service] Failed to fetch Discord presence from bot:", botError);
         }
 
-        // 4. Merge Data
+        // 6. Merge Data
         return staffProfiles.map(staff => {
             const isOnlineMC = staff.minecraft_uuid && minecraftOnlinePlayers.includes(staff.minecraft_uuid);
             const discordStatus = staff.social_discord ? (discordPresence[staff.social_discord] || 'offline') : 'offline';
