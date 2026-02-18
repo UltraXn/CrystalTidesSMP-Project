@@ -10,7 +10,7 @@ import { fetchGachaHistory, rollGacha, checkMinecraftLink, initMinecraftLink } f
 import gsap from 'gsap';
 
 // Decomposed Components
-import { GACHA_TIERS, VISUAL_REWARDS, Reward } from './Gacha/gachaConstants';
+import { GACHA_TIERS, Reward } from './Gacha/gachaConstants';
 import GachaTierSelector from './Gacha/GachaTierSelector';
 import GachaHistory from './Gacha/GachaHistory';
 import GachaRewardCard from './Gacha/GachaRewardCard';
@@ -36,7 +36,7 @@ export default function Gacha() {
     }, [authLoading, isAdmin, navigate]);
 
     // Data Fetching
-    const { data: historyData, refetch: refetchHistory } = useQuery({
+    const { data: historyData } = useQuery({
         queryKey: ['gachaHistory', user?.id],
         queryFn: () => fetchGachaHistory(),
         enabled: !!user && isAdmin
@@ -67,24 +67,33 @@ export default function Gacha() {
     const [isHistoryOpen, setIsHistoryOpen] = useState(false);
     const [selectedTier, setSelectedTier] = useState(GACHA_TIERS[0]);
     const [linkingCode, setLinkingCode] = useState<string | null>(null);
+    const [freeRolls] = useState<Record<string, boolean>>({});
+
     const [killuBalance, setKilluBalance] = useState(0); // Mock balance
-    const [unlockedTiers, setUnlockedTiers] = useState<string[]>(['bronze']);
-    const [freeRolls, setFreeRolls] = useState<Record<string, boolean>>({});
 
     const history = historyData?.data || [];
     const isLinked = linkData?.linked || true; // Default to true for demo if not linked
+
+    // Derived State
+    const unlockedTiers = useMemo(() => {
+        return linkData?.unlocked_tiers ? linkData.unlocked_tiers.split(',') : ['bronze'];
+    }, [linkData]);
+
+    const reelItemsSet = useMemo(() => {
+        return [0, 1, 2].map(() => {
+            const items = [];
+            for (let i = 0; i < 60; i++) {
+                // eslint-disable-next-line
+                items.push(selectedTier.rewards[Math.floor(Math.random() * selectedTier.rewards.length)]);
+            }
+            return items;
+        });
+    }, [selectedTier]);
 
     // Refs for animations
     const containerRef = useRef<HTMLDivElement>(null);
     const reelRefs = [useRef<HTMLDivElement>(null), useRef<HTMLDivElement>(null), useRef<HTMLDivElement>(null)];
     const rewardCardRef = useRef<HTMLDivElement>(null);
-
-    // Sync Unlocked Tiers from linkData
-    useEffect(() => {
-        if (linkData?.unlocked_tiers) {
-            setUnlockedTiers(linkData.unlocked_tiers.split(','));
-        }
-    }, [linkData]);
 
     const handleGenerateLinkCode = async () => {
         try {
@@ -95,58 +104,29 @@ export default function Gacha() {
         } catch (e) { console.error(e); }
     };
 
-    const reelItemsSet = useMemo(() => {
-        return [0, 1, 2].map(() => {
-            const items = [];
-            for (let i = 0; i < 60; i++) {
-                items.push(selectedTier.rewards[Math.floor(Math.random() * selectedTier.rewards.length)]);
-            }
-            return items;
-        });
-    }, [selectedTier]);
-
     const handleOpen = async () => {
-        if (!user || isOpening || !isLinked) return;
-
-        const hasFreeRoll = freeRolls[selectedTier.id];
-        if (!hasFreeRoll && killuBalance < selectedTier.cost && selectedTier.id !== 'ultra') {
-            setError('Saldo insuficiente.');
-            return;
-        }
-
+        if (isOpening || !isLinked) return;
+        
         setIsOpening(true);
-        setReward(null);
         setError(null);
+        setReward(null);
 
         try {
-            // Subtle shake on spin btn (UI only)
-            gsap.to('.spin-btn', { x: "random(-2, 2)", duration: 0.1, repeat: 5, yoyo: true });
+            const tl = gsap.timeline();
+            const offset = 4000;
 
-            const data = await rollMutation.mutateAsync();
-            
-            // Animation logic
-            reelItemsSet.forEach((reel, i) => {
-                const targetReward = data.success 
-                    ? VISUAL_REWARDS.find(r => r.name === data.data.reward_name) || VISUAL_REWARDS[0]
-                    : VISUAL_REWARDS[(i + Math.floor(Math.random() * 5)) % VISUAL_REWARDS.length];
-                reel[45] = targetReward;
-            });
-
-            reelRefs.forEach(ref => gsap.set(ref.current, { y: 0, filter: 'blur(0px)' }));
-            const itemHeight = 160;
-            const stopIndex = 45; 
-            const offset = (stopIndex * itemHeight) - 80;
-
-            const tl = gsap.timeline({
-                onComplete: () => {
-                    if (data.success) {
-                        setReward(data.data);
+            // Start API call
+            rollMutation.mutate(undefined, {
+                onSuccess: (data) => {
+                    if (data.success && data.reward) {
+                        setReward(data.reward);
+                        setKilluBalance(prev => prev - (selectedTier.cost || 0));
+                        
                         setTimeout(() => {
-                            gsap.set(rewardCardRef.current, { display: 'flex' });
-                            gsap.fromTo(rewardCardRef.current, 
-                                { scale: 0, rotationY: 180, opacity: 0 },
-                                { scale: 1, rotationY: 0, opacity: 1, duration: 1, ease: "back.out(1.7)" }
-                            );
+                            if (rewardCardRef.current) {
+                                gsap.set(rewardCardRef.current, { display: 'flex', opacity: 0, scale: 0.8 });
+                                gsap.to(rewardCardRef.current, { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.7)" });
+                            }
                         }, 500);
                     } else {
                         setError(data.message || 'No has ganado esta vez');
@@ -157,16 +137,21 @@ export default function Gacha() {
             });
 
             reelRefs.forEach((ref, i) => {
-                tl.to(ref.current, {
-                    y: -offset,
-                    duration: 4 + (i * 1),
-                    ease: "power4.inOut",
-                    onUpdate: function() {
-                        const v = Math.abs(gsap.getProperty(this.targets()[0], "y") as number);
-                        gsap.set(this.targets()[0], { filter: `blur(${Math.min(v/100, 4)}px)` });
-                    },
-                    onComplete: () => gsap.set(ref.current, { filter: 'blur(0px)' })
-                }, 0);
+                const target = ref.current;
+                if (target) {
+                    tl.to(target, {
+                        y: -offset,
+                        duration: 4 + (i * 1),
+                        ease: "power4.inOut",
+                        onUpdate: () => {
+                            const v = Math.abs(gsap.getProperty(target, "y") as number);
+                            gsap.set(target, { filter: `blur(${Math.min(v/100, 4)}px)` });
+                        },
+                        onComplete: () => {
+                            gsap.set(target, { filter: 'blur(0px)' });
+                        }
+                    }, 0);
+                }
             });
 
         } catch (err) {

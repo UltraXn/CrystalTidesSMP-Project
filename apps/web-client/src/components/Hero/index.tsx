@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useMemo } from "react"
 import { Link } from "react-router-dom"
 import { Copy, Check, Coffee } from "lucide-react"
 import HeroBackgroundCarousel from "./Carousel"
@@ -37,9 +37,7 @@ export default function Hero({ mockSlides, mockPlayerCount, mockIsOnline }: Hero
     const prefersReducedMotion = usePrefersReducedMotion()
 
     const [playerCount, setPlayerCount] = useState(0)
-    const [isOnline, setIsOnline] = useState<boolean | null>(null)
-    const [slides, setSlides] = useState<Slide[]>([])
-
+    
     // Query for Settings (Slides)
     const { data: settings } = useQuery({
         queryKey: ['settings'],
@@ -47,23 +45,21 @@ export default function Hero({ mockSlides, mockPlayerCount, mockIsOnline }: Hero
         staleTime: 60000, // Settings don't change often
     });
 
-    useEffect(() => {
-        if (mockSlides) {
-            setSlides(mockSlides);
-            return;
-        }
-
+    // Compute slides during render
+    const slides = useMemo(() => {
+        if (mockSlides) return mockSlides;
         if (settings?.hero_slides) {
             try {
                 const parsed = typeof settings.hero_slides === 'string'
                     ? JSON.parse(settings.hero_slides)
                     : settings.hero_slides;
-                setSlides((parsed || []) as Slide[]);
+                return (parsed || []) as Slide[];
             } catch (e) {
                 console.error("Error parsing hero slides", e);
             }
         }
-    }, [settings, mockSlides]);
+        return [];
+    }, [settings?.hero_slides, mockSlides]);
 
     // Query for Minecraft Status
     const { data: serverStatus } = useQuery({
@@ -72,6 +68,11 @@ export default function Hero({ mockSlides, mockPlayerCount, mockIsOnline }: Hero
         refetchInterval: 30000, 
         enabled: mockIsOnline === undefined, // Don't fetch if mocking
     });
+
+    // Compute isOnline during render
+    const isOnline = mockIsOnline !== undefined ? mockIsOnline : (serverStatus?.online ?? null);
+    
+    const displayPlayerCount = prefersReducedMotion ? (mockPlayerCount !== undefined ? mockPlayerCount : (serverStatus?.players?.online ?? 0)) : playerCount;
 
     useEffect(() => {
         const ctx = gsap.context(() => {
@@ -110,17 +111,9 @@ export default function Hero({ mockSlides, mockPlayerCount, mockIsOnline }: Hero
         });
 
         // Handle Player Count Animation
-        const targetOnline = mockIsOnline !== undefined ? mockIsOnline : (serverStatus?.online ?? false);
         const targetCount = mockPlayerCount !== undefined ? mockPlayerCount : (serverStatus?.players?.online ?? 0);
 
-        setIsOnline(targetOnline);
-
-        if (targetOnline) {
-            if (prefersReducedMotion) {
-                setPlayerCount(targetCount);
-                return;
-            }
-
+        if (isOnline && !prefersReducedMotion) {
             const counter = { val: playerCount };
             gsap.to(counter, {
                 val: targetCount,
@@ -133,7 +126,7 @@ export default function Hero({ mockSlides, mockPlayerCount, mockIsOnline }: Hero
         }
 
         return () => ctx.revert();
-    }, [serverStatus, mockIsOnline, mockPlayerCount])
+    }, [serverStatus, mockIsOnline, mockPlayerCount, isOnline, prefersReducedMotion, playerCount])
 
     const handleCopy = () => {
         navigator.clipboard.writeText(ip)
@@ -195,7 +188,7 @@ export default function Hero({ mockSlides, mockPlayerCount, mockIsOnline }: Hero
                             {isOnline === false ? (
                                 t('status.offline')
                             ) : (
-                                <><span ref={countRef} className="font-black text-(--accent)">{playerCount}</span> {t('hero.players_online')}</>
+                                <><span ref={countRef} className="font-black text-(--accent)">{displayPlayerCount}</span> {t('hero.players_online')}</>
                             )}
                         </span>
                     </Link>

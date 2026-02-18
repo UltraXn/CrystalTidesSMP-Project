@@ -7,10 +7,8 @@ import { supabase } from '../../services/supabaseClient'
 import { fetchPublicDonations, PublicDonation } from '../../services/apiService'
 import '../../donation-feed.css'
 
-interface Donation extends PublicDonation {}
-
 interface DonationFeedProps {
-    mockDonations?: Donation[];
+    mockDonations?: PublicDonation[];
 }
 
 export default function DonationFeed({ mockDonations }: DonationFeedProps = {}) {
@@ -64,7 +62,7 @@ export default function DonationFeed({ mockDonations }: DonationFeedProps = {}) 
         }
     }, [donations.length, controls])
 
-    const renderDonationCard = (donation: Donation, index: string | number) => (
+    const renderDonationCard = (donation: PublicDonation, index: string | number) => (
         <div className="donation-card" key={`${donation.id || donation.message_id}-${index}`}>
             <div className="donation-header">
                 <div className="donation-user">

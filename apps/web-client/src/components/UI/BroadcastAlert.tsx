@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Info, AlertTriangle, XCircle, X } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { fetchSettings } from '../../services/apiService';
@@ -10,7 +10,7 @@ interface BroadcastConfig {
 }
 
 export default function BroadcastAlert() {
-    const [visible, setVisible] = useState(true);
+    const [dismissedId, setDismissedId] = useState<string | null>(null);
     const queryClient = useQueryClient();
 
     const { data: settings } = useQuery({
@@ -19,21 +19,17 @@ export default function BroadcastAlert() {
         staleTime: 30000,
     });
 
-    const [config, setConfig] = useState<BroadcastConfig | null>(null);
-
-    useEffect(() => {
-        if (settings?.broadcast_config) {
-            try {
-                const parsed = typeof settings.broadcast_config === 'string'
-                    ? JSON.parse(settings.broadcast_config)
-                    : settings.broadcast_config;
-                setConfig(parsed);
-                setVisible(true); // Show if new config arrives
-            } catch (e) {
-                console.warn("BroadcastAlert: Failed to parse broadcast_config", e);
-            }
+    const config = useMemo<BroadcastConfig | null>(() => {
+        if (!settings?.broadcast_config) return null;
+        try {
+            return typeof settings.broadcast_config === 'string'
+                ? JSON.parse(settings.broadcast_config)
+                : settings.broadcast_config;
+        } catch (e) {
+            console.warn("BroadcastAlert: Failed to parse broadcast_config", e);
+            return null;
         }
-    }, [settings]);
+    }, [settings?.broadcast_config]);
 
     useEffect(() => {
         // Listen for real-time updates from Admin Panel
@@ -45,7 +41,10 @@ export default function BroadcastAlert() {
         return () => window.removeEventListener('broadcastChanged', handleUpdate);
     }, [queryClient]);
 
-    if (!config || !config.active || !visible) return null;
+    const currentId = config ? `${config.type}-${config.message}` : null;
+    const isVisible = config?.active && dismissedId !== currentId;
+
+    if (!config || !isVisible) return null;
 
     const getStyles = () => {
         switch(config.type) {
@@ -79,7 +78,7 @@ export default function BroadcastAlert() {
             {style.icon}
             <span>{config.message}</span>
             <button 
-                onClick={() => setVisible(false)}
+                onClick={() => setDismissedId(currentId)}
                 style={{
                     position: 'absolute',
                     right: '1rem',

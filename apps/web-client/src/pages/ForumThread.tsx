@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useParams, Link, useNavigate } from "react-router-dom"
 import { User, Calendar, ArrowLeft, Eye, Reply, Send, Edit, Trash2, Check, X, Image as ImageIcon, Pin, Lock, Unlock } from "lucide-react"
 import Loader from "../components/UI/Loader"
@@ -165,7 +165,7 @@ export default function ForumThread() {
                     tag: categoryNames[data.category_id as number] || "General",
                     category_id: data.category_id as number,
                     views: data.views || 0,
-                    poll: (data as any).poll || null,
+                    poll: (data as { poll?: Poll }).poll || null,
                     pinned: data.pinned || false,
                     locked: data.locked || false,
                     author_data_fresh: data.author_data_fresh
@@ -230,12 +230,7 @@ export default function ForumThread() {
     const loading = threadLoading || commentsLoading
     const error = threadError ? t('forum_thread.thread_error') : null
 
-    // Setting edit data when thread is loaded
-    useEffect(() => {
-        if (thread) {
-            setEditThreadData({ title: thread.title, content: thread.content })
-        }
-    }, [thread])
+    // Initial edit data is now set in the click handler to avoid synchronous state updates in effects
 
     const isAdmin = () => {
         if (!user) return false;
@@ -560,7 +555,12 @@ export default function ForumThread() {
                                         )}
                                         
                                         <div className="flex items-center gap-2">
-                                            <button onClick={() => setIsEditingThread(true)} className="p-2 bg-(--accent)/10 hover:bg-(--accent)/20 text-(--accent) rounded-xl transition-all" title="Editar">
+                                            <button onClick={() => {
+                                                if (thread) {
+                                                    setEditThreadData({ title: thread.title, content: thread.content });
+                                                }
+                                                setIsEditingThread(true);
+                                            }} className="p-2 bg-(--accent)/10 hover:bg-(--accent)/20 text-(--accent) rounded-xl transition-all" title="Editar">
                                                 <Edit size={16} />
                                             </button>
                                             <button onClick={() => setDeleteModal({ type: 'thread', id: thread.id })} className="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl transition-all" title="Eliminar">

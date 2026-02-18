@@ -5,7 +5,7 @@ import { Reward, RARITY_ICONS } from './gachaConstants';
 
 interface GachaSlotMachineProps {
     reelItemsSet: Reward[][];
-    reelRefs: React.RefObject<HTMLDivElement>[];
+    reelRefs: React.RefObject<HTMLDivElement | null>[];
     isOpening: boolean;
     cooldown: boolean;
     onOpen: () => void;

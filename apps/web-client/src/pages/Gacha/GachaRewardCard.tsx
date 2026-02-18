@@ -7,7 +7,7 @@ interface GachaRewardCardProps {
     reward: Reward | null;
     selectedTierId: string;
     onClose: () => void;
-    innerRef: React.RefObject<HTMLDivElement>;
+    innerRef: React.RefObject<HTMLDivElement | null>;
 }
 
 const GachaRewardCard: React.FC<GachaRewardCardProps> = ({ reward, selectedTierId, onClose, innerRef }) => {

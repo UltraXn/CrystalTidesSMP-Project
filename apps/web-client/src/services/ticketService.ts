@@ -1,20 +1,4 @@
 import { supabase } from './supabaseClient';
-import { getAuthHeaders } from './adminAuth';
-
-const API_URL = import.meta.env.VITE_API_URL || '/api';
-
-const getHeaders = async (isJson = true) => {
-    const { data: { session } } = await supabase.auth.getSession();
-    const authHeaders = getAuthHeaders(session?.access_token || null);
-    
-    if (isJson) {
-        return {
-            'Content-Type': 'application/json',
-            ...authHeaders
-        };
-    }
-    return authHeaders;
-};
 
 export interface Ticket {
     id: string;
@@ -55,7 +39,7 @@ export const fetchTickets = async () => {
     return data || [];
 };
 
-export const createTicket = async (data: any) => {
+export const createTicket = async (data: { title: string, category: string, priority: string, description: string }) => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) throw new Error("Not authenticated");
 
