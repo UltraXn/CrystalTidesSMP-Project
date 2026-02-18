@@ -113,7 +113,7 @@ const AccountSidebar: React.FC<AccountSidebarProps> = ({
     };
 
     return (
-        <aside className={`fixed inset-y-0 left-0 w-[300px] bg-[#0a0a0a] z-200 lg:z-50 transition-transform duration-500 lg:sticky lg:top-24 lg:h-[calc(100vh-120px)] lg:rounded-4xl lg:translate-x-0 ${isOpen ? 'translate-x-0 shadow-2xl shadow-black' : '-translate-x-full'}`}>
+        <aside className={`fixed inset-y-0 left-0 w-[300px] bg-[#0a0a0a] z-200 lg:z-50 transition-transform duration-300 lg:sticky lg:top-24 lg:h-[calc(100vh-120px)] lg:rounded-4xl lg:translate-x-0 ${isOpen ? 'translate-x-0 shadow-2xl shadow-black' : '-translate-x-full'}`}>
             
             <button 
                 className="absolute top-6 right-6 lg:hidden w-10 h-10 flex items-center justify-center bg-white/5 rounded-xl text-gray-500"

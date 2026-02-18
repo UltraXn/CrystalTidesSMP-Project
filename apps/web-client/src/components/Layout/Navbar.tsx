@@ -67,7 +67,7 @@ export default function Navbar() {
     if (location.pathname.startsWith('/policies')) return null;
 
     return (
-        <header className={`fixed top-0 left-0 w-full z-100 transition-all duration-500 ${scrolled ? 'bg-black/90 backdrop-blur-xl border-b border-white/5 shadow-2xl py-2' : 'bg-transparent py-4'}`}>
+        <header className={`fixed top-0 left-0 w-full z-100 transition-all duration-300 ${scrolled ? 'bg-black/90 backdrop-blur-xl border-b border-white/5 shadow-2xl py-2' : 'bg-transparent py-4'}`}>
             <div className="w-full px-8 h-16 flex items-center relative">
                 
                 {/* 1. Logo Section (Left) */}
@@ -80,8 +80,8 @@ export default function Navbar() {
                             src="/images/ui/logo.webp"
                             alt="CrystalTides Logo"
                             className="w-9 h-9 object-contain"
-                            whileHover={{ y: -5 }}
-                            transition={{ type: "spring", stiffness: 300 }}
+                            whileHover={{ y: -5, rotate: 5, scale: 1.1 }}
+                            transition={{ type: "spring", stiffness: 400, damping: 10 }}
                         />
                         <span className="text-xl font-black uppercase tracking-tighter text-white group-hover:text-(--accent) transition-colors hidden 2xl:flex items-center">
                             <span>Crystal</span>
