@@ -47,6 +47,7 @@ COPY --from=builder /app/node_modules ./node_modules
 RUN npm prune --production
 
 COPY --from=builder /app/apps/web-server/dist ./dist
+COPY --from=builder /app/apps/web-server/.env ./.env
 
 # Security: Run as non-root user
 # 'node' user exists in alpine image
