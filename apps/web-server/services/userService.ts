@@ -53,13 +53,17 @@ export const getStaffUsers = async () => {
             console.warn("[User Service] Failed to fetch Minecraft status for staff presence:", mcError);
         }
 
+        const discordIds = staffProfiles
+            .map(s => s.social_discord)
+            .filter((id): id is string => !!id);
+
         // 3. Fetch Discord Presence from Bot
         let discordPresence: Record<string, string> = {};
         try {
             const botApiUrl = process.env.BOT_API_URL || 'http://localhost:3002';
             const botApiKey = process.env.BOT_API_KEY;
 
-            const botRes = await fetch(`${botApiUrl}/presence`, {
+            const botRes = await fetch(`${botApiUrl}/presence?ids=${discordIds.join(',')}`, {
                 headers: {
                     'Authorization': `Bearer ${botApiKey}`
                 }
