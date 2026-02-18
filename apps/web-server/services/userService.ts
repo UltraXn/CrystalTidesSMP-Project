@@ -15,10 +15,78 @@ export interface WebUser {
 }
 
 /**
- * Get Staff Users from Database (Stubbed - Legacy)
+ * Get Staff Users with real-time status from Minecraft and Discord
  */
 export const getStaffUsers = async () => {
-    return [];
+    try {
+        // 1. Fetch Staff Profiles from Supabase
+        // We look for profiles with staff roles in metadata
+        // In a real production environment, this would be a join with an 'app_roles' table
+        const { data: { users }, error } = await supabase.auth.admin.listUsers();
+        if (error) throw error;
+
+        const staffRoles = ['admin', 'moderator', 'helper', 'owner'];
+        const staffProfiles = users.filter(u => staffRoles.includes(u.user_metadata?.role))
+            .map(u => ({
+                id: u.id,
+                username: u.user_metadata?.username || u.user_metadata?.full_name || 'Staff Member',
+                role: u.user_metadata?.role,
+                avatar_url: u.user_metadata?.avatar_url || u.user_metadata?.picture,
+                minecraft_uuid: u.user_metadata?.minecraft_uuid,
+                social_discord: u.user_metadata?.social_discord || u.user_metadata?.discord
+            }));
+
+        // 2. Fetch Minecraft Server Status (for Online Players)
+        let minecraftOnlinePlayers: string[] = [];
+        try {
+            const host = process.env.MC_SERVER_HOST || 'localhost';
+            const port = parseInt(process.env.MC_SERVER_PORT || '25565');
+            const { getServerStatus } = await import('./minecraftService.js');
+            const status = await getServerStatus(host, port);
+            interface MinecraftStatus {
+                players?: {
+                    sample?: Array<{ id: string; name: string }>;
+                };
+            }
+            minecraftOnlinePlayers = (status as MinecraftStatus).players?.sample?.map(p => p.id) || [];
+        } catch (mcError) {
+            console.warn("[User Service] Failed to fetch Minecraft status for staff presence:", mcError);
+        }
+
+        // 3. Fetch Discord Presence from Bot
+        let discordPresence: Record<string, string> = {};
+        try {
+            const botApiUrl = process.env.BOT_API_URL || 'http://localhost:3002';
+            const botApiKey = process.env.BOT_API_KEY;
+
+            const botRes = await fetch(`${botApiUrl}/presence`, {
+                headers: {
+                    'Authorization': `Bearer ${botApiKey}`
+                }
+            });
+            if (botRes.ok) {
+                discordPresence = await botRes.json();
+            }
+        } catch (botError) {
+            console.warn("[User Service] Failed to fetch Discord presence from bot:", botError);
+        }
+
+        // 4. Merge Data
+        return staffProfiles.map(staff => {
+            const isOnlineMC = staff.minecraft_uuid && minecraftOnlinePlayers.includes(staff.minecraft_uuid);
+            const discordStatus = staff.social_discord ? (discordPresence[staff.social_discord] || 'offline') : 'offline';
+
+            return {
+                ...staff,
+                mc_status: isOnlineMC ? 'online' : 'offline',
+                discord_status: discordStatus
+            };
+        });
+
+    } catch (error) {
+        console.error("[User Service] Error in getStaffUsers:", error);
+        return [];
+    }
 };
 
 /**
