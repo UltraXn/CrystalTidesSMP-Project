@@ -66,6 +66,8 @@ jobs:
             VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}
             VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}
             KOFI_VERIFICATION_TOKEN=${{ secrets.KOFI_VERIFICATION_TOKEN }}
+            BOT_API_URL=${{ secrets.BOT_API_URL }}
+            BOT_API_KEY=${{ secrets.BOT_API_KEY }}
 
   deploy-frontend:
     name: Deploy Frontend
@@ -176,3 +178,4 @@ jobs:
           flags: '--min-instances=1 --memory=512Mi --cpu=1 --max-instances=5 --concurrency=1'
           env_vars: |
             NODE_ENV=production
+            BOT_API_KEY=${{ secrets.BOT_API_KEY }}
