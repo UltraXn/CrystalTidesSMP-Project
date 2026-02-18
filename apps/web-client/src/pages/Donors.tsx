@@ -5,7 +5,7 @@ import Section from "../components/Layout/Section"
 import EmblaCarousel from "../components/UI/EmblaCarousel"
 import { KoFiButton } from "../components/Widgets/KoFi"
 import DonationFeed from "../components/Widgets/DonationFeed"
-import { fetchPublicDonations, fetchSettings, PublicDonation } from '../services/apiService'
+import { fetchSettings } from '../services/apiService'
 
 const OPTIONS = { loop: true }
 
@@ -36,13 +36,6 @@ export default function Donors() {
         queryKey: ['settings'],
         queryFn: fetchSettings,
         staleTime: 1000 * 60 * 5,
-    });
-
-    const { data: latestDonations = [] } = useQuery({
-        queryKey: ['public-latest-donations', 'all'],
-        queryFn: (): Promise<PublicDonation[]> => fetchPublicDonations('all'),
-        staleTime: 1000 * 30,
-        refetchInterval: 1000 * 30
     });
 
     const HARDCODED_DONORS: DonorProfile[] = useMemo(() => [
@@ -159,40 +152,6 @@ export default function Donors() {
         return HARDCODED_DONORS;
     }, [settingsData, HARDCODED_DONORS, hardcodedDescs, i18n.language, t]);
 
-    const donationCarouselSlides = useMemo(() => {
-        const uniqueByName = new Set<string>();
-
-        return latestDonations
-            .filter((d) => !!d.from_name)
-            .filter((d) => {
-                const key = d.from_name.toLowerCase();
-                if (uniqueByName.has(key)) return false;
-                uniqueByName.add(key);
-                return true;
-            })
-            .map((d) => {
-                const amount = Number(d.amount || 0).toFixed(2);
-                return {
-                    name: d.from_name,
-                    image: `https://minotar.net/skin/${encodeURIComponent(d.from_name)}`,
-                    description: d.message?.trim() || `${d.currency} ${amount} via Ko-Fi`,
-                    rank: (
-                        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', alignItems: 'center' }}>
-                            <img src="/ranks/rank-donador.png" alt={t('donors.ranks.donador')} title={t('donors.ranks.donador')} />
-                        </div>
-                    )
-                };
-            });
-    }, [latestDonations, t]);
-
-    const carouselSlides = useMemo(() => {
-        if (donationCarouselSlides.length === 0) return finalDonors;
-
-        const seen = new Set(donationCarouselSlides.map((d) => d.name.toLowerCase()));
-        const curatedFallback = finalDonors.filter((d) => !seen.has(d.name.toLowerCase()));
-        return [...donationCarouselSlides, ...curatedFallback];
-    }, [donationCarouselSlides, finalDonors]);
-
     return (
         <div className="pt-24 min-h-screen">
             <Section title={
@@ -224,7 +183,7 @@ export default function Donors() {
                         </div>
                     </div>
                     <div className="w-full max-w-[1400px] mx-auto">
-                        <EmblaCarousel slides={carouselSlides} options={OPTIONS} />
+                        <EmblaCarousel slides={finalDonors} options={OPTIONS} />
                     </div>
                 </div>
             </Section>
