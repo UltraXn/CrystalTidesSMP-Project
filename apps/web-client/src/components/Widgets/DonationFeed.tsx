@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect } from 'react'
 import { Heart, User } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -45,21 +45,8 @@ export default function DonationFeed({ mockDonations }: DonationFeedProps = {}) 
         }
     }, [mockDonations, queryClient])
 
-    const donations = useMemo(() => mockDonations || fetchedDonations, [mockDonations, fetchedDonations])
+    const donations = mockDonations || fetchedDonations
     const loading = !mockDonations && isLoading
-
-    if (loading) return (
-        <div style={{
-            textAlign: 'center',
-            height: '400px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'var(--muted)'
-        }}>
-            {t('donors.loading_donations')}
-        </div>
-    )
 
     const renderDonationCard = (donation: Donation, index: string | number) => (
         <div className="donation-card" key={`${donation.id || donation.message_id}-${index}`}>
@@ -90,7 +77,18 @@ export default function DonationFeed({ mockDonations }: DonationFeedProps = {}) 
 
     return (
         <div className="donation-feed">
-            {donations.length === 0 ? (
+            {loading ? (
+                <div style={{
+                    textAlign: 'center',
+                    height: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'var(--muted)'
+                }}>
+                    {t('donors.loading_donations')}
+                </div>
+            ) : donations.length === 0 ? (
                 <div style={{ textAlign: 'center', color: 'var(--muted)', padding: '2rem', background: 'rgba(0,0,0,0.2)', borderRadius: '12px' }}>
                     <p>{t('donors.no_donations')}</p>
                 </div>
