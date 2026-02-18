@@ -1,6 +1,8 @@
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { Search, DollarSign, BarChart3, Filter, Plus, HandCoins } from "lucide-react"
 import { useTranslation } from "react-i18next"
+import { useQueryClient } from "@tanstack/react-query"
+import { supabase } from "../../services/supabaseClient"
 import { Donation } from "./Donations/types"
 import DonationsTable from "./Donations/DonationsTable"
 import DonationFormModal from "./Donations/DonationFormModal"
@@ -23,6 +25,7 @@ export default function DonationsManager({ mockDonations }: DonationsManagerProp
     const { t } = useTranslation() 
     const [search, setSearch] = useState('')
     const [page, setPage] = useState(1)
+    const queryClient = useQueryClient()
     
     // RBAC
     const hasPermission = useHasPermission('MANAGE_DONATIONS');
@@ -37,6 +40,27 @@ export default function DonationsManager({ mockDonations }: DonationsManagerProp
     const createMutation = useCreateDonation();
     const updateMutation = useUpdateDonation();
     const deleteMutation = useDeleteDonation();
+
+    // Real-time updates
+    useEffect(() => {
+        if (mockDonations) return
+
+        const channel = supabase
+            .channel('admin_donations_realtime')
+            .on('postgres_changes', {
+                event: '*',
+                schema: 'public',
+                table: 'donations'
+            }, () => {
+                queryClient.invalidateQueries({ queryKey: ['admin', 'donations'] })
+                queryClient.invalidateQueries({ queryKey: ['admin', 'donations', 'stats'] })
+            })
+            .subscribe()
+
+        return () => {
+            supabase.removeChannel(channel)
+        }
+    }, [mockDonations, queryClient])
 
     const donations = useMemo(() => mockDonations || donationsData?.data || [], [mockDonations, donationsData?.data]);
     const totalPages = donationsData?.totalPages || 1;

@@ -5,6 +5,10 @@ import HeroBackgroundCarousel from "./Carousel"
 import HeroParticles from "./Particles"
 import { gsap } from "gsap"
 import { useTranslation } from 'react-i18next'
+import { useQuery } from "@tanstack/react-query"
+import { fetchSettings } from "../../services/apiService"
+import { getServerStatus } from "../../services/serverService"
+import { usePrefersReducedMotion } from "../../hooks/usePrefersReducedMotion"
 
 interface Slide {
     image: string;
@@ -30,12 +34,18 @@ export default function Hero({ mockSlides, mockPlayerCount, mockIsOnline }: Hero
     const containerRef = useRef<HTMLDivElement>(null)
     const countRef = useRef<HTMLSpanElement>(null)
     const actionGroupRef = useRef<HTMLDivElement>(null)
+    const prefersReducedMotion = usePrefersReducedMotion()
 
     const [playerCount, setPlayerCount] = useState(0)
     const [isOnline, setIsOnline] = useState<boolean | null>(null)
-    
     const [slides, setSlides] = useState<Slide[]>([])
-    const API_URL = import.meta.env.VITE_API_URL
+
+    // Query for Settings (Slides)
+    const { data: settings } = useQuery({
+        queryKey: ['settings'],
+        queryFn: fetchSettings,
+        staleTime: 60000, // Settings don't change often
+    });
 
     useEffect(() => {
         if (mockSlides) {
@@ -43,25 +53,36 @@ export default function Hero({ mockSlides, mockPlayerCount, mockIsOnline }: Hero
             return;
         }
 
-        fetch(`${API_URL}/settings`)
-            .then(res => res.json())
-            .then(data => {
-                if(data.hero_slides) {
-                    try {
-                        const parsed = typeof data.hero_slides === 'string' 
-                            ? JSON.parse(data.hero_slides) 
-                            : data.hero_slides;
-                        setSlides((parsed || []) as Slide[]);
-                    } catch (e) {
-                         console.error("Error parsing hero slides", e);
-                    }
-                }
-            })
-            .catch(err => console.error("Error fetching settings for hero", err));
-    }, [API_URL, mockSlides]);
+        if (settings?.hero_slides) {
+            try {
+                const parsed = typeof settings.hero_slides === 'string'
+                    ? JSON.parse(settings.hero_slides)
+                    : settings.hero_slides;
+                setSlides((parsed || []) as Slide[]);
+            } catch (e) {
+                console.error("Error parsing hero slides", e);
+            }
+        }
+    }, [settings, mockSlides]);
+
+    // Query for Minecraft Status
+    const { data: serverStatus } = useQuery({
+        queryKey: ['serverStatus'],
+        queryFn: getServerStatus,
+        refetchInterval: 30000, 
+        enabled: mockIsOnline === undefined, // Don't fetch if mocking
+    });
 
     useEffect(() => {
         const ctx = gsap.context(() => {
+            if (prefersReducedMotion) {
+                // Instantly show everything if reduced motion is preferred
+                gsap.set([welcomeRef.current, '.hero-brand-char', descRef.current, containerRef.current], { 
+                    opacity: 1, y: 0, filter: 'blur(0px)', scale: 1 
+                });
+                return;
+            }
+
             const tl = gsap.timeline({
                 defaults: { ease: "power4.out", duration: 1.2 }
             });
@@ -88,49 +109,31 @@ export default function Hero({ mockSlides, mockPlayerCount, mockIsOnline }: Hero
             );
         });
 
-        const fetchPlayerCount = async () => {
-            if (mockIsOnline !== undefined && mockPlayerCount !== undefined) {
-                 setIsOnline(mockIsOnline);
-                 const counter = { val: 0 };
-                 gsap.to(counter, {
-                    val: mockPlayerCount,
-                    roundProps: "val",
-                    duration: 2.5,
-                    delay: 0.5,
-                    ease: "power2.out",
-                    onUpdate: () => setPlayerCount(Math.floor(counter.val))
-                });
+        // Handle Player Count Animation
+        const targetOnline = mockIsOnline !== undefined ? mockIsOnline : (serverStatus?.online ?? false);
+        const targetCount = mockPlayerCount !== undefined ? mockPlayerCount : (serverStatus?.players?.online ?? 0);
+
+        setIsOnline(targetOnline);
+
+        if (targetOnline) {
+            if (prefersReducedMotion) {
+                setPlayerCount(targetCount);
                 return;
             }
 
-            try {
-                const res = await fetch(`${API_URL}/minecraft/status`)
-                if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-                const data = await res.json()
+            const counter = { val: playerCount };
+            gsap.to(counter, {
+                val: targetCount,
+                roundProps: "val",
+                duration: 2.5,
+                delay: 0.2,
+                ease: "power2.out",
+                onUpdate: () => setPlayerCount(Math.floor(counter.val))
+            });
+        }
 
-                if (data && data.online) {
-                    setIsOnline(true)
-                    const counter = { val: 0 };
-                    gsap.to(counter, {
-                        val: data.players.online,
-                        roundProps: "val",
-                        duration: 2.5,
-                        delay: 0.5,
-                        ease: "power2.out",
-                        onUpdate: () => setPlayerCount(Math.floor(counter.val))
-                    });
-                } else {
-                    setIsOnline(false)
-                }
-            } catch (err) {
-                console.warn("Hero: Failed to fetch server status", err instanceof Error ? err.message : err)
-                setIsOnline(false)
-            }
-        };
-
-        fetchPlayerCount();
         return () => ctx.revert();
-    }, [API_URL, mockIsOnline, mockPlayerCount])
+    }, [serverStatus, mockIsOnline, mockPlayerCount])
 
     const handleCopy = () => {
         navigator.clipboard.writeText(ip)

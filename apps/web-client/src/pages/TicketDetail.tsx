@@ -1,260 +1,211 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useRef, useCallback, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { addTicketMessageSchema, AddTicketMessageFormValues } from '../schemas/ticket'
- 
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../services/supabaseClient'
-import { Send, ArrowLeft, Shield } from 'lucide-react'
+import { Send, ArrowLeft, Shield, Clock, Hash } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-
-interface TicketDetailData {
-    id: string;
-    subject: string;
-    status: string;
-    category: string;
-    created_at: string;
-}
-
-interface TicketMessage {
-    id: string;
-    user_id: string;
-    message: string;
-    is_staff: boolean;
-    created_at: string;
-}
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { fetchTicketDetail, fetchTicketMessages, sendTicketMessage } from '../services/ticketService'
+import Loader from '../components/UI/Loader'
 
 export default function TicketDetail() {
     const { id } = useParams()
     const { user } = useAuth()
     const { t } = useTranslation()
     const navigate = useNavigate()
+    const queryClient = useQueryClient()
     const messagesEndRef = useRef<HTMLDivElement | null>(null)
 
-    const [ticket, setTicket] = useState<TicketDetailData | null>(null)
-    const [messages, setMessages] = useState<TicketMessage[]>([])
-    const [loading, setLoading] = useState(true)
-
-    const { register, handleSubmit, reset, formState: { isSubmitting } } = useForm<AddTicketMessageFormValues>({
+    const { register, handleSubmit, reset } = useForm<AddTicketMessageFormValues>({
         resolver: zodResolver(addTicketMessageSchema)
     })
 
     const scrollToBottom = useCallback(() => {
-        setTimeout(() => {
-            if (messagesEndRef.current) {
-                messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
-            }
-        }, 100)
+        if (messagesEndRef.current) {
+            messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
+        }
     }, [])
 
-    const fetchTicketData = useCallback(async () => {
-        if (!id) return
-        try {
-            // Fetch Ticket Info
-            const { data: ticketData, error: ticketError } = await supabase
-                .from('tickets')
-                .select('*')
-                .eq('id', id)
-                .single()
-            
-            if (ticketError) throw ticketError
-            setTicket(ticketData)
+    // Query: Ticket Details
+    const { data: ticket, isLoading: loadingTicket } = useQuery({
+        queryKey: ['ticket', id],
+        queryFn: () => fetchTicketDetail(id!),
+        enabled: !!id,
+    })
 
-            // Fetch Messages
-            const { data: msgs, error: msgsError } = await supabase
-                .from('ticket_messages')
-                .select('*')
-                .eq('ticket_id', id)
-                .order('created_at', { ascending: true })
+    // Query: Ticket Messages
+    const { data: messages = [], isLoading: loadingMessages } = useQuery({
+        queryKey: ['ticket_messages', id],
+        queryFn: () => fetchTicketMessages(id!),
+        enabled: !!id,
+    })
 
-            if (msgsError) throw msgsError
-            setMessages(msgs || [])
-            setLoading(false)
-            // scrollToBottom()
-        } catch (error) {
-            console.error('Error fetching details:', error)
-            navigate('/support') // Fallback if not authorized or not found
+    // Mutation: Send Message
+    const sendMutation = useMutation({
+        mutationFn: (message: string) => sendTicketMessage(id!, message),
+        onSuccess: () => {
+            reset()
+            queryClient.invalidateQueries({ queryKey: ['ticket_messages', id] })
+            scrollToBottom()
         }
-    }, [id, navigate])
+    })
 
+    // Real-time Subscription
     useEffect(() => {
-        if (id && user) {
-            fetchTicketData()
-            
-            // Subscribe to real-time messages
-            const channel = supabase
-                .channel(`ticket_chat_${id}`)
-                .on('postgres_changes', { 
-                    event: 'INSERT', 
-                    schema: 'public', 
-                    table: 'ticket_messages',
-                    filter: `ticket_id=eq.${id}`
-                }, (payload: { new: TicketMessage }) => {
-                    setMessages(prev => {
-                        if (prev.some(m => m.id === payload.new.id)) return prev;
-                        return [...prev, payload.new as TicketMessage];
-                    })
-                    // scrollToBottom() - User requested removal
-                })
-                .subscribe()
+        if (!id) return
 
-            return () => {
-                supabase.removeChannel(channel)
-            }
+        const channel = supabase
+            .channel(`ticket_chat_${id}`)
+            .on('postgres_changes', { 
+                event: 'INSERT', 
+                schema: 'public', 
+                table: 'ticket_messages',
+                filter: `ticket_id=eq.${id}`
+            }, () => {
+                queryClient.invalidateQueries({ queryKey: ['ticket_messages', id] })
+                scrollToBottom()
+            })
+            .subscribe()
+
+        return () => {
+            supabase.removeChannel(channel)
         }
-    }, [id, user, fetchTicketData, scrollToBottom])
+    }, [id, queryClient, scrollToBottom])
 
-    const handleSendMessage = async (data: AddTicketMessageFormValues) => {
-        if (!user || !id) return
-
-        try {
-            const { data: messageData, error } = await supabase
-                .from('ticket_messages')
-                .insert([{
-                    ticket_id: id,
-                    user_id: user.id,
-                    message: data.message,
-                    is_staff: false
-                }])
-                .select()
-                .single()
-
-            if (error) throw error
-            
-            reset() // Clear input
-            
-            // Optimistic update (or rather, immediate post-request update)
-            if (messageData) {
-                setMessages(prev => {
-                    if (prev.some(m => m.id === messageData.id)) return prev
-                    return [...prev, messageData as TicketMessage]
-                })
-            }
-        } catch (error) {
-            console.error('Error sending message:', error)
-        }
+    const handleSendMessage = (data: AddTicketMessageFormValues) => {
+        sendMutation.mutate(data.message)
     }
 
-    if (loading) return <div className="container" style={{paddingTop: '6rem'}}>{t('common.loading')}</div>
+    if (loadingTicket || loadingMessages) return <Loader fullScreen />
 
-    return (
-        <div className="container" style={{paddingTop: '6rem', minHeight: '90vh', display: 'flex', flexDirection: 'column'}}>
-            
-            {/* Header */}
-            <div style={{marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '1rem'}}>
-                <button onClick={() => navigate('/support')} style={{background: 'none', border: 'none', color: 'white', fontSize: '1.2rem', cursor: 'pointer'}}>
-                    <ArrowLeft />
-                </button>
-                <div>
-                    <h2 style={{margin: 0}}>{ticket?.subject} <span style={{fontSize: '0.8rem', opacity: 0.7}}>#{id?.slice(0, 6)}</span></h2>
-                    <span className={`badge ${ticket?.status}`} style={{
-                        padding: '0.2rem 0.6rem', 
-                        borderRadius: '1rem', 
-                        fontSize: '0.7rem',
-                        background: ticket?.status === 'open' ? '#2ecc71' : '#95a5a6',
-                        color: '#000',
-                        fontWeight: 'bold',
-                        marginTop: '0.3rem',
-                        display: 'inline-block'
-                    }}>
-                        {ticket?.status.toUpperCase()}
-                    </span>
+    if (!ticket) {
+        return (
+            <div className="min-h-screen flex items-center justify-center pt-24">
+                <div className="text-center space-y-4">
+                    <h2 className="text-2xl font-bold text-white">Ticket no encontrado</h2>
+                    <button onClick={() => navigate('/support')} className="text-(--accent) hover:underline flex items-center gap-2 justify-center">
+                        <ArrowLeft size={16} /> Volver a Soporte
+                    </button>
                 </div>
             </div>
+        )
+    }
 
-            {/* Chat Area */}
-            <div className="chat-window" style={{
-                flex: 1,
-                background: 'rgba(0,0,0,0.3)',
-                borderRadius: '1rem',
-                border: '1px solid var(--border)',
-                display: 'flex',
-                flexDirection: 'column',
-                overflow: 'hidden'
-            }}>
-                {/* Messages List */}
-                <div style={{flex: 1, padding: '1.5rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1rem'}}>
-                    {messages.map((msg) => {
-                        const isMe = user && msg.user_id === user.id
-                        // If is_staff is true OR the message is not from me (assuming admin response)
-                        // In reality, staff messages might come from bot (user_id specific) or dashboard
-                        
-                        return (
-                            <motion.div 
-                                key={msg.id}
-                                initial={{opacity: 0, scale: 0.9}}
-                                animate={{opacity: 1, scale: 1}}
-                                style={{
-                                    alignSelf: isMe ? 'flex-end' : 'flex-start',
-                                    maxWidth: '70%',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    alignItems: isMe ? 'flex-end' : 'flex-start'
-                                }}
-                            >
-                                <div style={{
-                                    background: isMe ? 'var(--accent)' : '#2c3e50',
-                                    color: 'white',
-                                    padding: '0.8rem 1.2rem',
-                                    borderRadius: isMe ? '1rem 1rem 0 1rem' : '1rem 1rem 1rem 0',
-                                    position: 'relative',
-                                    boxShadow: '0 2px 5px rgba(0,0,0,0.2)'
-                                }}>
-                                    {msg.is_staff && (
-                                        <div style={{
-                                            position: 'absolute', top: '-10px', left: '-10px',
-                                            background: '#e74c3c', color: 'white', 
-                                            padding: '0.2rem 0.5rem', borderRadius: '0.5rem',
-                                            fontSize: '0.6rem', fontWeight: 'bold',
-                                            display: 'flex', alignItems: 'center', gap: '0.2rem'
-                                        }}>
-                                            <Shield size={10} /> STAFF
-                                        </div>
-                                    )}
-                                    {msg.message}
-                                </div>
-                                <span style={{fontSize: '0.65rem', color: 'var(--muted)', marginTop: '0.3rem'}}>
-                                    {new Date(msg.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+    return (
+        <div className="min-h-screen bg-[#0a0a0a] text-white pt-24 pb-12 flex flex-col">
+            <div className="container max-w-4xl mx-auto px-4 flex-1 flex flex-col">
+                
+                {/* Header */}
+                <header className="flex items-center justify-between mb-8 animate-in fade-in slide-in-from-top-4 duration-500">
+                    <div className="flex items-center gap-4">
+                        <button 
+                            onClick={() => navigate('/support')} 
+                            className="p-2 hover:bg-white/5 rounded-full transition-colors group"
+                        >
+                            <ArrowLeft className="text-white/60 group-hover:text-white transition-colors" />
+                        </button>
+                        <div>
+                            <div className="flex items-center gap-2 text-white/40 mb-1">
+                                <Hash size={14} />
+                                <span className="text-xs font-mono uppercase tracking-wider">{ticket.id.slice(0, 8)}</span>
+                                <span className="mx-1">•</span>
+                                <Clock size={14} />
+                                <span className="text-xs uppercase tracking-wider">
+                                    {new Date(ticket.created_at).toLocaleDateString()}
                                 </span>
-                            </motion.div>
-                        )
-                    })}
-                    <div ref={messagesEndRef} />
-                </div>
+                            </div>
+                            <h2 className="text-2xl font-bold tracking-tight">{ticket.subject}</h2>
+                        </div>
+                    </div>
+                    
+                    <div className="flex flex-col items-end gap-2">
+                        <span className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest border ${
+                            ticket.status === 'open' 
+                            ? 'bg-green-500/10 text-green-400 border-green-500/20' 
+                            : 'bg-white/5 text-white/40 border-white/10'
+                        }`}>
+                            {ticket.status}
+                        </span>
+                        <span className="text-xs text-white/40 uppercase tracking-widest font-medium">
+                            {ticket.category}
+                        </span>
+                    </div>
+                </header>
 
-                {/* Input Area */}
-                <form onSubmit={handleSubmit(handleSendMessage)} style={{
-                    padding: '1rem', 
-                    background: 'var(--card-bg)', 
-                    borderTop: '1px solid var(--border)',
-                    display: 'flex',
-                    gap: '1rem'
-                }}>
-                    <input 
-                        type="text" 
-                        placeholder={ticket?.status === 'closed' ? t('support.ticket_closed') : t('support.type_message')}
-                        {...register('message')}
-                        disabled={ticket?.status === 'closed' || isSubmitting}
-                        style={{
-                            flex: 1, padding: '0.8rem', borderRadius: '2rem', 
-                            background: '#0f0f1a', border: '1px solid #333', color: 'white'
-                        }}
-                    />
-                    <button 
-                        type="submit" 
-                        disabled={ticket?.status === 'closed' || isSubmitting}
-                        className="cta-button"
-                        style={{
-                            width: '45px', height: '45px', borderRadius: '50%', 
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            padding: 0
-                        }}
-                    >
-                        <Send size={18} />
-                    </button>
-                </form>
+                {/* Chat Area */}
+                <main className="flex-1 flex flex-col bg-[#111111] border border-white/5 rounded-3xl overflow-hidden shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-700">
+                    {/* Messages List */}
+                    <div className="flex-1 p-6 overflow-y-auto space-y-6 custom-scrollbar">
+                        <AnimatePresence initial={false}>
+                            {messages.map((msg: any) => {
+                                const isMe = user && msg.user_id === user.id
+                                
+                                return (
+                                    <motion.div 
+                                        key={msg.id}
+                                        initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                                        className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}
+                                    >
+                                        <div className={`group relative max-w-[80%] ${isMe ? 'items-end' : 'items-start'}`}>
+                                            {!isMe && (
+                                                <div className="flex items-center gap-2 mb-1.5 px-1">
+                                                    <span className="text-xs font-bold text-white/40 uppercase tracking-wider">
+                                                        {msg.author?.username || 'Sistema'}
+                                                    </span>
+                                                    {msg.is_staff && (
+                                                        <span className="flex items-center gap-1 bg-red-500/10 text-red-500 text-[10px] font-black px-1.5 py-0.5 rounded-md border border-red-500/20 uppercase tracking-tighter">
+                                                            <Shield size={10} strokeWidth={3} /> Staff
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            )}
+
+                                            <div className={`px-5 py-3.5 rounded-2xl text-sm leading-relaxed shadow-lg border ${
+                                                isMe 
+                                                ? 'bg-(--accent) text-black font-medium rounded-tr-none border-white/10 shadow-(--accent)/10' 
+                                                : 'bg-white/5 text-white/90 rounded-tl-none border-white/10'
+                                            }`}>
+                                                {msg.message}
+                                            </div>
+                                            
+                                            <span className={`block mt-1.5 px-1 text-[10px] font-medium uppercase tracking-widest ${
+                                                isMe ? 'text-right text-white/20' : 'text-left text-white/20'
+                                            }`}>
+                                                {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            </span>
+                                        </div>
+                                    </motion.div>
+                                )
+                            })}
+                        </AnimatePresence>
+                        <div ref={messagesEndRef} />
+                    </div>
+
+                    {/* Input Area */}
+                    <footer className="p-4 bg-white/2 border-t border-white/5">
+                        <form onSubmit={handleSubmit(handleSendMessage)} className="relative flex items-center gap-3">
+                            <input 
+                                type="text" 
+                                placeholder={ticket.status === 'closed' ? t('support.ticket_closed') : t('support.type_message')}
+                                {...register('message')}
+                                disabled={ticket.status === 'closed' || sendMutation.isPending}
+                                className="flex-1 bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-(--accent)/30 focus:border-(--accent)/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                            />
+                            <button 
+                                type="submit" 
+                                disabled={ticket.status === 'closed' || sendMutation.isPending}
+                                className="w-14 h-14 bg-(--accent) hover:bg-(--accent)/90 text-black rounded-2xl flex items-center justify-center transition-all active:scale-95 disabled:opacity-50 disabled:grayscale shadow-lg shadow-(--accent)/20 group"
+                            >
+                                <Send size={20} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                            </button>
+                        </form>
+                    </footer>
+                </main>
             </div>
         </div>
     )

@@ -1,8 +1,10 @@
-import { useState, useEffect } from "react"
+import {  } from "react"
 import { Calendar, ArrowRight, Tag } from "lucide-react"
 import { Link } from "react-router-dom"
 import Section from "../components/Layout/Section"
 import { useTranslation } from 'react-i18next'
+import { useQuery } from "@tanstack/react-query"
+import { getLatestNews } from "../services/newsService"
 
 interface Article {
     id: string | number;
@@ -71,32 +73,19 @@ const NewsCard = ({ article }: NewsCardProps) => {
 
 export default function Blog() {
     const { t } = useTranslation()
-    const [news, setNews] = useState<Article[]>([])
-    const API_URL = import.meta.env.VITE_API_URL
-
-    const [loading, setLoading] = useState(true)
-
-    useEffect(() => {
-        if (!API_URL) return
-
-        fetch(`${API_URL}/news`)
-            .then(res => res.json())
-            .then(data => {
-                if (Array.isArray(data)) {
-                    // Filtramos publicadas y tomamos las primeras 3
-                    const published = data.filter(n => n.status === 'Published').slice(0, 3)
-                    setNews(published)
-                }
-            })
-            .catch(err => console.error("Error cargando noticias home:", err))
-            .finally(() => setLoading(false))
-    }, [API_URL])
+    const { data: news = [], isLoading } = useQuery({
+        queryKey: ['news', 'latest'],
+        queryFn: async () => {
+            const data = await getLatestNews();
+            return data.filter(n => n.status === 'Published').slice(0, 3);
+        }
+    })
 
     return (
         <Section title={t('blog.title')}>
             <Section>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 min-h-[200px]">
-                    {loading ? (
+                    {isLoading ? (
                          <div className="col-span-full py-20 flex flex-col items-center justify-center gap-4 bg-white/5 border border-dashed border-white/10 rounded-3xl">
                              <div className="w-10 h-10 border-4 border-white/10 border-t-(--accent) rounded-full animate-spin"></div>
                              <p className="text-gray-500 font-bold uppercase tracking-widest text-xs">{t('blog.loading')}</p>

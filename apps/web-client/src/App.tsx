@@ -1,4 +1,5 @@
 import { lazy } from "react"
+import { MotionConfig } from "framer-motion"
 import { createBrowserRouter, RouterProvider } from "react-router-dom"
 import LazyWrapper from "./components/Utils/LazyWrapper"
 import { SidebarProvider } from "./context/SidebarContext"
@@ -75,8 +76,10 @@ const router = createBrowserRouter([
 
 export default function App() {
   return (
-    <SidebarProvider>
-        <RouterProvider router={router} />
-    </SidebarProvider>
+    <MotionConfig reducedMotion="user">
+        <SidebarProvider>
+            <RouterProvider router={router} />
+        </SidebarProvider>
+    </MotionConfig>
   )
 }

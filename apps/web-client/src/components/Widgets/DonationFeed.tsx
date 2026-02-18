@@ -1,7 +1,8 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { Heart, User } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { supabase } from '../../services/supabaseClient'
 import { fetchPublicDonations, PublicDonation } from '../../services/apiService'
 import '../../donation-feed.css'
 
@@ -14,13 +15,35 @@ interface DonationFeedProps {
 export default function DonationFeed({ mockDonations }: DonationFeedProps = {}) {
     const { t, i18n } = useTranslation()
 
+    const queryClient = useQueryClient()
     const { data: fetchedDonations = [], isLoading } = useQuery({
         queryKey: ['public-donations-feed', 'all'],
         queryFn: () => fetchPublicDonations('all'),
         enabled: !mockDonations,
         staleTime: 1000 * 15,
-        refetchInterval: 1000 * 30
+        refetchInterval: 1000 * 60 // Increased interval as we have real-time now
     })
+
+    // Real-time updates
+    useEffect(() => {
+        if (mockDonations) return
+
+        const channel = supabase
+            .channel('public_donations_realtime')
+            .on('postgres_changes', {
+                event: 'INSERT',
+                schema: 'public',
+                table: 'donations',
+                filter: 'is_public=eq.true'
+            }, () => {
+                queryClient.invalidateQueries({ queryKey: ['public-donations-feed', 'all'] })
+            })
+            .subscribe()
+
+        return () => {
+            supabase.removeChannel(channel)
+        }
+    }, [mockDonations, queryClient])
 
     const donations = useMemo(() => mockDonations || fetchedDonations, [mockDonations, fetchedDonations])
     const loading = !mockDonations && isLoading

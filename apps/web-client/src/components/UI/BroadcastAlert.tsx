@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Info, AlertTriangle, XCircle, X } from 'lucide-react';
-
-const API_URL = import.meta.env.VITE_API_URL;
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { fetchSettings } from '../../services/apiService';
 
 interface BroadcastConfig {
     active: boolean;
@@ -10,45 +10,40 @@ interface BroadcastConfig {
 }
 
 export default function BroadcastAlert() {
-    const [config, setConfig] = useState<BroadcastConfig | null>(null);
     const [visible, setVisible] = useState(true);
+    const queryClient = useQueryClient();
 
-    const fetchConfig = () => {
-        fetch(`${API_URL}/settings`)
-            .then(res => res.ok ? res.json() : null)
-            .then(data => {
-                if(data && data.broadcast_config) {
-                    try {
-                        const parsed = typeof data.broadcast_config === 'string' 
-                            ? JSON.parse(data.broadcast_config) 
-                            : data.broadcast_config;
-                        setConfig(parsed);
-                    } catch (e) { 
-                        console.warn("BroadcastAlert: Failed to parse broadcast_config", e); 
-                    }
-                }
-            })
-            .catch(err => {
-                // Only log warning to avoid console noise on expected dev hiccups
-                console.warn("BroadcastAlert: Failed to fetch settings", err.message);
-            });
-    };
+    const { data: settings } = useQuery({
+        queryKey: ['settings'],
+        queryFn: fetchSettings,
+        staleTime: 30000,
+    });
+
+    const [config, setConfig] = useState<BroadcastConfig | null>(null);
 
     useEffect(() => {
-        fetchConfig();
-
-        // Listen for real-time updates from Admin Panel
-        const handleUpdate = (e: CustomEvent) => {
+        if (settings?.broadcast_config) {
             try {
-                const parsed = JSON.parse(e.detail);
+                const parsed = typeof settings.broadcast_config === 'string'
+                    ? JSON.parse(settings.broadcast_config)
+                    : settings.broadcast_config;
                 setConfig(parsed);
-                setVisible(true); // Re-show if updated
-            } catch (err) { console.error(err); }
+                setVisible(true); // Show if new config arrives
+            } catch (e) {
+                console.warn("BroadcastAlert: Failed to parse broadcast_config", e);
+            }
+        }
+    }, [settings]);
+
+    useEffect(() => {
+        // Listen for real-time updates from Admin Panel
+        const handleUpdate = () => {
+            queryClient.invalidateQueries({ queryKey: ['settings'] });
         };
 
-        window.addEventListener('broadcastChanged', handleUpdate as EventListener);
-        return () => window.removeEventListener('broadcastChanged', handleUpdate as EventListener);
-    }, []);
+        window.addEventListener('broadcastChanged', handleUpdate);
+        return () => window.removeEventListener('broadcastChanged', handleUpdate);
+    }, [queryClient]);
 
     if (!config || !config.active || !visible) return null;
 

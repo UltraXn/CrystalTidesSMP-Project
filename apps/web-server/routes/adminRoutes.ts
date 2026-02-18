@@ -1,7 +1,7 @@
 import express from 'express';
 import multer from 'multer';
 import * as adminController from '../controllers/adminController.js';
-import { authenticateToken } from '../middleware/authMiddleware.js';
+import { authenticateToken, require2FA } from '../middleware/authMiddleware.js';
 import { checkRole, ADMIN_ROLES } from '../utils/roleUtils.js';
 
 const router = express.Router();
@@ -13,6 +13,6 @@ const upload = multer({
 });
 
 // POST /api/admin/upload-mod
-router.post('/upload-mod', authenticateToken, checkRole(ADMIN_ROLES), upload.single('file'), adminController.uploadMod);
+router.post('/upload-mod', authenticateToken, checkRole(ADMIN_ROLES), require2FA, upload.single('file'), adminController.uploadMod);
 
 export default router;

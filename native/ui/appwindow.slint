@@ -1,0 +1,76 @@
+import { Button, VerticalBox, HorizontalBox } from "std-widgets.slint";
+
+export component MainWindow inherits Window {
+    title: "CrystalTides Lite";
+    width: 600px;
+    height: 400px;
+    background: #020817; // CrystalTides Dark Background (hsl 222.2 84% 4.9%)
+
+    in-out property <string> status_text: "Ready to Launch";
+    in-out property <float> progress: 0.0;
+    callback launch-game();
+
+    VerticalBox {
+        padding: 40px;
+        spacing: 20px;
+        alignment: center;
+
+        // Header
+        Text {
+            text: "🔮 CrystalTides";
+            font-size: 32px;
+            font-weight: 700;
+            color: #f8fafc; // Foreground (hsl 210 40% 98%)
+            horizontal-alignment: center;
+        }
+
+        Text {
+            text: "Lite Edition";
+            font-size: 14px;
+            color: #94a3b8; // Muted Foreground (Slate-400 approx)
+            horizontal-alignment: center;
+        }
+
+        Rectangle {
+            height: 50px;
+        }
+
+        // Status Text
+        Text {
+            text: root.status_text;
+            color: #e2e8f0; // Slate-200
+            font-size: 16px;
+            horizontal-alignment: center;
+        }
+
+        // Progress Bar
+        Rectangle {
+            height: 8px;
+            background: #1e293b; // Slate-800 for track
+            width: 100%;
+            border-radius: 4px;
+
+            Rectangle {
+                x: 0;
+                y: 0;
+                height: 100%;
+                width: parent.width * root.progress;
+                background: #3b82f6; // Blue-500 for Crystal Accent
+                border-radius: 4px;
+                
+                // Glow effect (Simulated via drop-shadow if supported, simplified here)
+            }
+        }
+
+        // Action Button
+        Button {
+            text: "PLAY NOW";
+            height: 45px;
+            width: 160px;
+            primary: true;
+            clicked => {
+                root.launch-game();
+            }
+        }
+    }
+}

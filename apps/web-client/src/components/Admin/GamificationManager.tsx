@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Plus, Trash2, Trophy, Medal as MedalIcon, Pencil, Check, X, Languages } from 'lucide-react';
 
 import { useTranslation } from 'react-i18next';
@@ -59,9 +59,8 @@ const MedalCard = ({ medal, onSave, onDelete }: { medal: Medal, onSave: (m: Meda
     const [isTranslating, setIsTranslating] = useState(false); // Loading state
     const [formData, setFormData] = useState<Medal>(medal);
 
-    useEffect(() => {
-        setFormData(medal);
-    }, [medal]);
+    // Simplified state: formData is only relevant when editing.
+    // We update it when entering edit mode.
 
 
 
@@ -165,7 +164,7 @@ const MedalCard = ({ medal, onSave, onDelete }: { medal: Medal, onSave: (m: Meda
                         </>
                     ) : (
                         <>
-                            <button className="edit-btn" onClick={() => setIsEditing(true)} title="Editar">
+                            <button className="edit-btn" onClick={() => { setFormData(medal); setIsEditing(true); }} title="Editar">
                                 <Pencil size={18} />
                             </button>
                             <button className="delete-btn" onClick={onDelete} title="Eliminar">
@@ -256,9 +255,7 @@ const AchievementCard = ({ achievement, onSave, onDelete }: { achievement: Achie
     const [isTranslating, setIsTranslating] = useState(false);
     const [formData, setFormData] = useState<Achievement>(achievement);
 
-    useEffect(() => {
-        setFormData(achievement);
-    }, [achievement]);
+    // Simplified state: formData is only relevant when editing.
 
 
     const handleSave = () => {
@@ -423,7 +420,7 @@ const AchievementCard = ({ achievement, onSave, onDelete }: { achievement: Achie
                     </>
                 ) : (
                     <>
-                        <button className="edit-btn" onClick={() => setIsEditing(true)} title="Editar">
+                        <button className="edit-btn" onClick={() => { setFormData(achievement); setIsEditing(true); }} title="Editar">
                             <Pencil size={18} />
                         </button>
                         <button className="delete-btn" onClick={onDelete} title="Eliminar">

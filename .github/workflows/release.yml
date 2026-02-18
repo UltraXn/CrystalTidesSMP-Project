@@ -1,0 +1,125 @@
+name: Release Installer
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          flutter-version: '3.27.1'
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          targets: x86_64-pc-windows-msvc
+
+      # --- PHASE 0: BUILD RUST NATIVE DLL ---
+      - name: Build Rust Native DLL
+        working-directory: native
+        run: cargo build --release --lib
+
+      - name: Prepare Native DLL for Flutter
+        run: |
+          $dllSource = "native/target/release/crystal_native.dll"
+          # Target for Main Launcher
+          New-Item -ItemType Directory -Force -Path "windows/runner/native"
+          Copy-Item $dllSource "windows/runner/native/crystal_native.dll" -Force
+          # Target for Installer (CMake expectations)
+          New-Item -ItemType Directory -Force -Path "installer/native/target/release"
+          Copy-Item $dllSource "installer/native/target/release/crystal_native.dll" -Force
+
+      # --- PHASE 1: BUILD MAIN LAUNCHER ---
+      - name: Build Main Launcher (Flutter)
+        run: |
+          if (-not (Test-Path ".env")) {
+            $content = "SUPABASE_URL=${{ secrets.SUPABASE_URL }}`nSUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}`nAPI_URL=${{ secrets.API_URL }}`nCURSEFORGE_API_KEY=${{ secrets.CURSEFORGE_API_KEY }}"
+            Set-Content -Path ".env" -Value $content
+          }
+          flutter build windows --release
+          $gameDist = "build/windows/x64/runner/Release"
+          Rename-Item "$gameDist/launcher.exe" "crystal_launcher.exe" -Force
+          Copy-Item "native/target/release/crystal_native.dll" "$gameDist/crystal_native.dll" -Force
+
+      # --- PHASE 2: BUILD UNINSTALLER ---
+      - name: Build Uninstaller UI (Flutter)
+        working-directory: uninstaller
+        run: |
+          if (-not (Test-Path ".env")) {
+            $content = "SUPABASE_URL=${{ secrets.SUPABASE_URL }}`nSUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}`nAPI_URL=${{ secrets.API_URL }}`nCURSEFORGE_API_KEY=${{ secrets.CURSEFORGE_API_KEY }}"
+            Set-Content -Path ".env" -Value $content
+          }
+          flutter build windows --release
+          $unDist = "build/windows/x64/runner/Release"
+          Copy-Item "../native/target/release/crystal_native.dll" "$unDist/installer_native.dll" -Force
+          # Note: The exe is already named crystal_uninstaller.exe because of pubspec.yaml name
+
+      - name: Build Uninstaller Bootstrapper (Rust)
+        run: |
+          Compress-Archive -Path "uninstaller/build/windows/x64/runner/Release/*" -DestinationPath "uninstaller_bootstrapper/uninstaller_payload.zip" -Force
+          cd uninstaller_bootstrapper
+          cargo build --release
+          cd ..
+          # Include uninstaller bootstrapper in main launcher dist
+          Copy-Item "uninstaller_bootstrapper/target/release/crystal_uninstaller_boot.exe" "build/windows/x64/runner/Release/crystal_uninstaller.exe" -Force
+
+      # --- PHASE 3: BUILD INSTALLER ---
+      - name: Build Installer UI (Flutter)
+        run: |
+          if (-not (Test-Path "installer/.env")) {
+            $content = "SUPABASE_URL=${{ secrets.SUPABASE_URL }}`nSUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}`nAPI_URL=${{ secrets.API_URL }}`nCURSEFORGE_API_KEY=${{ secrets.CURSEFORGE_API_KEY }}"
+            Set-Content -Path "installer/.env" -Value $content
+          }
+          $payloadDir = "installer/assets/payload"
+          New-Item -ItemType Directory -Force -Path $payloadDir
+          Compress-Archive -Path "build/windows/x64/runner/Release/*" -DestinationPath "$payloadDir/game_payload.zip" -Force
+          cd installer
+          flutter build windows --release
+          $instDist = "build/windows/x64/runner/Release"
+          Copy-Item "../native/target/release/crystal_native.dll" "$instDist/installer_native.dll" -Force
+
+      - name: Build Final Bootstrapper (Rust)
+        run: |
+          Compress-Archive -Path "installer/build/windows/x64/runner/Release/*" -DestinationPath "bootstrapper/installer_payload.zip" -Force
+          Copy-Item "native/app_icon.ico" "bootstrapper/app_icon.ico" -Force
+          cd bootstrapper
+          cargo build --release
+          cd ..
+          Copy-Item "bootstrapper/target/release/crystal_bootstrapper.exe" "CTSMP_Installer.exe" -Force
+
+      # --- PHASE 4: SIGNING (Optional but good) ---
+      - name: Sign Installer (Self-Signed)
+        shell: powershell
+        run: |
+          $cert = New-SelfSignedCertificate -Type CodeSigningCert -Subject "CN=CrystalTidesSMP Project" -CertStoreLocation Cert:\CurrentUser\My
+          $certPath = "cert.pfx"
+          $certPassword = ConvertTo-SecureString -String "CrystalPass123" -Force -AsPlainText
+          Export-PfxCertificate -Cert $cert -FilePath $certPath -Password $certPassword
+          $signtool = Get-ChildItem -Path "C:\Program Files (x86)\Windows Kits" -Recurse -Filter "signtool.exe" | Sort-Object FullName -Descending | Select-Object -First 1
+          if ($signtool) {
+            & $signtool.FullName sign /f $certPath /p "CrystalPass123" /fd SHA256 /t http://timestamp.digicert.com /q "CTSMP_Installer.exe"
+          }
+          $hash = (Get-FileHash -Path "CTSMP_Installer.exe" -Algorithm SHA256).Hash.ToLower()
+          echo "INSTALLER_HASH=$hash" >> $env:GITHUB_ENV
+          Write-Host ">>> INSTALLER SHA-256: $hash"
+
+      # --- PHASE 5: RELEASE ---
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: CTSMP_Installer.exe
+          draft: false
+          prerelease: true

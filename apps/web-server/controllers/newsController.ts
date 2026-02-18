@@ -1,6 +1,7 @@
 import supabase from '../services/supabaseService.js';
 import * as logService from '../services/logService.js';
 import { translateText } from '../services/translationService.js';
+import { isAdmin as checkIsAdmin } from '../utils/roleUtils.js';
 
 import { Request, Response } from 'express';
 import { WebhookClient, EmbedBuilder } from 'discord.js';
@@ -326,7 +327,7 @@ export const deleteComment = async (req: Request, res: Response) => {
         if (fetchError || !comment) return res.status(404).json({ error: "Comentario no encontrado" });
 
         // 2. Check Permissions (Owner OR Admin)
-        const isAdmin = ['admin', 'neroferno', 'killu', 'killuwu', 'developer', 'helper'].includes(user.role);
+        const isAdmin = checkIsAdmin(user.role);
         
         // Ownership check via username
         if (comment.user_name !== user.username && !isAdmin) {

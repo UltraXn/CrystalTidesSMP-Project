@@ -1,0 +1,315 @@
+﻿react-doctor v0.0.17
+
+[2mScanning C:\Users\nacho\Desktop\Portafolio\crystaltides\apps\web-client...[22m
+
+
+[31mError: Error loading C:/Users/nacho/Desktop/Portafolio/crystaltides/apps/web-client/eslint.config.js[39m
+  [31mÔ£ù[39m fetch() inside useEffect ÔÇö use a data fetching library (react-query, SWR) or server component[31m (7)[39m
+[2m    Use `useQuery()` from @tanstack/react-query, `useSWR()`, or fetch in a Server Component instead[22m
+[2m    src/components/Admin/Events/RegistrationsModal.tsx: 21[22m
+[2m    src/pages/Contests.tsx: 119[22m
+[2m    src/pages/Blog.tsx: 79[22m
+[2m    src/pages/ForumThread.tsx: 159[22m
+[2m    src/pages/ForumCategory.tsx: 73[22m
+[2m    src/components/Hero/index.tsx: 40, 63[22m
+
+  [31mÔ£ù[39m Missing `alt` attribute.
+[2m    Must have `alt` prop, either with meaningful text, or an empty string for decorative images.[22m
+[2m    src/components/Admin/NewsForm.tsx: 171[22m
+
+  [31mÔ£ù[39m Derived state in useEffect ÔÇö compute during render instead[31m (2)[39m
+[2m    Compute during render: `const derived = computeFrom(dep1, dep2)` ÔÇö no useEffect needed[22m
+[2m    src/components/Admin/GamificationManager.tsx: 62, 259[22m
+
+  [31mÔ£ù[39m Project uses a motion library but has no prefers-reduced-motion handling ÔÇö required for accessibility (WCAG 2.3.3)
+[2m    Add `useReducedMotion()` from your animation library, or a `@media (prefers-reduced-motion: reduce)` CSS query[22m
+[2m    package.json[22m
+
+  [33mÔÜá[39m Enforce a clickable non-interactive element has at least one keyboard event listener.[33m (23)[39m
+[2m    Visible, non-interactive elements with click handlers must have one of `keyup`, `keydown`, or `keypress` listener.[22m
+[2m    src/components/Profile/Security/TwoFactorSetup.tsx: 198[22m
+[2m    src/components/Admin/StaffHub/KanbanColumn.tsx: 44[22m
+[2m    src/components/Admin/Donors/DonorFormModal.tsx: 156[22m
+[2m    src/pages/Account.tsx: 318[22m
+[2m    src/pages/Gacha.tsx: 191[22m
+[2m    src/components/Admin/Events/RegistrationsModal.tsx: 40, 41[22m
+[2m    src/components/Admin/SiteConfig.tsx: 413[22m
+[2m    src/pages/CreateThread.tsx: 282[22m
+[2m    src/components/Admin/Suggestions/SuggestionCard.tsx: 76[22m
+[2m    src/components/Account/AccountSidebar.tsx: 128[22m
+[2m    src/pages/ForumThread.tsx: 919, 932[22m
+[2m    src/components/UI/ImageUploader.tsx: 97[22m
+[2m    src/components/Admin/Config/RulesEditor.tsx: 249[22m
+[2m    src/components/Forum/PollDisplay.tsx: 76[22m
+[2m    src/components/Admin/Users/UserMedalsModal.tsx: 35[22m
+[2m    src/components/Admin/Users/UserAchievementsModal.tsx: 34[22m
+[2m    src/components/UI/CommandPalette.tsx: 115, 193[22m
+[2m    src/components/Admin/Docs/MobileDocsDropdown.tsx: 44[22m
+[2m    src/pages/AdminPanel.tsx: 152[22m
+[2m    src/components/Admin/Donations/DonationFormModal.tsx: 143[22m
+
+  [33mÔÜá[39m Static HTML elements with event handlers require a role.[33m (23)[39m
+[2m    Add a role attribute to this element, or use a semantic HTML element instead.[22m
+[2m    src/components/Profile/Security/TwoFactorSetup.tsx: 198[22m
+[2m    src/components/Admin/StaffHub/KanbanColumn.tsx: 44[22m
+[2m    src/components/Admin/Donors/DonorFormModal.tsx: 156[22m
+[2m    src/pages/Account.tsx: 318[22m
+[2m    src/pages/Gacha.tsx: 191[22m
+[2m    src/components/Admin/Events/RegistrationsModal.tsx: 40, 41[22m
+[2m    src/components/Admin/SiteConfig.tsx: 413[22m
+[2m    src/pages/CreateThread.tsx: 282[22m
+[2m    src/components/Admin/Suggestions/SuggestionCard.tsx: 76[22m
+[2m    src/components/Account/AccountSidebar.tsx: 128[22m
+[2m    src/pages/ForumThread.tsx: 919, 932[22m
+[2m    src/components/UI/ImageUploader.tsx: 97[22m
+[2m    src/components/Admin/Config/RulesEditor.tsx: 249[22m
+[2m    src/components/Forum/PollDisplay.tsx: 76[22m
+[2m    src/components/Admin/Users/UserMedalsModal.tsx: 35[22m
+[2m    src/components/Admin/Users/UserAchievementsModal.tsx: 34[22m
+[2m    src/components/UI/CommandPalette.tsx: 115, 193[22m
+[2m    src/components/Admin/Docs/MobileDocsDropdown.tsx: 44[22m
+[2m    src/pages/AdminPanel.tsx: 152[22m
+[2m    src/components/Admin/Donations/DonationFormModal.tsx: 143[22m
+
+  [33mÔÜá[39m transition: "all" animates every property including layout ÔÇö list only the properties you animate[33m (39)[39m
+[2m    List specific properties: `transition: "opacity 200ms, transform 200ms"` ÔÇö or in Tailwind use `transition-colors`, `transition-opacity`, or `transition-transform`[22m
+[2m    src/components/Profile/Security/TwoFactorSetup.tsx: 147, 213, 246[22m
+[2m    src/components/Admin/TicketsManager.tsx: 113[22m
+[2m    src/components/Admin/SiteConfig.tsx: 346, 363, 386, 422[22m
+[2m    src/components/Admin/Suggestions/SuggestionsFilters.tsx: 27, 55[22m
+[2m    src/components/Admin/Suggestions/SuggestionCard.tsx: 29[22m
+[2m    src/components/UI/Tutorial.tsx: 131, 147, 227[22m
+[2m    src/pages/ForumThread.tsx: 626, 880[22m
+[2m    src/components/Admin/Dashboard/StaffActivity.tsx: 86[22m
+[2m    src/components/Admin/Admin2FAModal.tsx: 108, 135[22m
+[2m    src/pages/PolicyPage.tsx: 58, 105, 115, 148[22m
+[2m    src/components/Admin/Users/UsersTable.tsx: 114, 137[22m
+[2m    src/components/Admin/Users/UserMedalsModal.tsx: 46, 56[22m
+[2m    src/components/Admin/Users/UserAchievementsModal.tsx: 45, 55[22m
+[2m    src/components/Support/TicketList.tsx: 54, 108[22m
+[2m    src/components/UI/ConfirmationModal.tsx: 111[22m
+[2m    src/components/Admin/Config/BroadcastManager.tsx: 96, 151[22m
+[2m    src/components/Admin/Wiki/WikiArticleList.tsx: 41[22m
+[2m    src/components/Admin/Config/PoliciesManager.tsx: 137, 195, 211, 236[22m
+
+  [33mÔÜá[39m Import "m" with LazyMotion instead of "motion" ÔÇö saves ~30kb in bundle size[33m (25)[39m
+[2m    Use `import { LazyMotion, m } from "framer-motion"` with `domAnimation` features ÔÇö saves ~30kb[22m
+[2m    src/components/Widgets/PlayerStats.tsx: 1[22m
+[2m    src/components/Support/SupportHero.tsx: 1[22m
+[2m    src/components/Account/AccountMobileNavbar.tsx: 3[22m
+[2m    src/components/UI/Tutorial.tsx: 2[22m
+[2m    src/components/Support/TicketEmptyState.tsx: 1[22m
+[2m    src/components/Support/TicketForm.tsx: 2[22m
+[2m    src/components/UI/NotificationCenter.tsx: 3[22m
+[2m    src/components/Layout/Navbar.tsx: 8[22m
+[2m    src/components/UI/PremiumConfirm.tsx: 2[22m
+[2m    src/components/UI/PremiumAlert.tsx: 2[22m
+[2m    src/components/UI/SuccessModal.tsx: 1[22m
+[2m    src/components/Admin/Wiki/WikiArticleFormModal.tsx: 2[22m
+[2m    src/components/Home/StatsRow.tsx: 4[22m
+[2m    src/components/Home/StaffShowcase.tsx: 2[22m
+[2m    src/pages/Maintenance.tsx: 1[22m
+[2m    src/pages/Home.tsx: 2[22m
+[2m    src/pages/TicketDetail.tsx: 6[22m
+[2m    src/pages/Support.tsx: 2[22m
+[2m    src/pages/Wiki.tsx: 4[22m
+[2m    src/components/UI/CommandPalette.tsx: 3[22m
+[2m    src/components/Support/TicketList.tsx: 1[22m
+[2m    src/components/UI/ConfirmationModal.tsx: 2[22m
+[2m    src/components/UI/Toast.tsx: 1[22m
+[2m    src/components/Admin/AdminMobileNavbar.tsx: 3[22m
+[2m    src/components/User/ProfileHeader.tsx: 1[22m
+
+  [33mÔÜá[39m Component "SuggestionsManager" has 5 useState calls ÔÇö consider useReducer for related state[33m (21)[39m
+[2m    Group related state: `const [state, dispatch] = useReducer(reducer, { field1, field2, ... })`[22m
+[2m    src/components/Admin/SuggestionsManager.tsx: 18[22m
+[2m    src/components/Admin/StaffCardsManager.tsx: 34[22m
+[2m    src/components/Admin/TicketsManager.tsx: 26[22m
+[2m    src/components/Admin/StaffHub/StaffNotes.tsx: 25[22m
+[2m    src/components/Admin/Config/LocationsManager.tsx: 18[22m
+[2m    src/pages/Account.tsx: 48[22m
+[2m    src/pages/Gacha.tsx: 22[22m
+[2m    src/components/Admin/AuditLog.tsx: 49[22m
+[2m    src/pages/CreateThread.tsx: 17[22m
+[2m    src/pages/Contests.tsx: 107[22m
+[2m    src/components/Admin/DonationsManager.tsx: 22[22m
+[2m    src/components/Admin/PollsManager.tsx: 30[22m
+[2m    src/pages/ForumThread.tsx: 133[22m
+[2m    src/components/Admin/Config/RulesEditor.tsx: 25[22m
+[2m    src/components/Admin/Tickets/TicketDetailModal.tsx: 20[22m
+[2m    src/components/Admin/Config/HeroBannerManager.tsx: 45[22m
+[2m    src/components/Admin/StaffHub/KanbanBoard.tsx: 29[22m
+[2m    src/components/Admin/Tickets/BanUserModal.tsx: 15[22m
+[2m    src/components/Admin/Config/PoliciesManager.tsx: 12[22m
+[2m    src/components/Admin/UsersManager.tsx: 29[22m
+[2m    src/components/Admin/Polls/PollFormModal.tsx: 19[22m
+
+  [33mÔÜá[39m 5 setState calls in a single useEffect ÔÇö consider using useReducer or deriving state[33m (13)[39m
+[2m    Combine into useReducer: `const [state, dispatch] = useReducer(reducer, initialState)`[22m
+[2m    src/context/PermissionsContext.tsx: 19[22m
+[2m    src/context/AuthContext.tsx: 27[22m
+[2m    src/pages/Account.tsx: 90[22m
+[2m    src/components/Admin/AuditLog.tsx: 66[22m
+[2m    src/pages/Contests.tsx: 119[22m
+[2m    src/components/Effects/TypingBubbles.tsx: 14[22m
+[2m    src/pages/ForumThread.tsx: 159[22m
+[2m    src/pages/ForumCategory.tsx: 73[22m
+[2m    src/components/Hero/index.tsx: 63[22m
+[2m    src/components/UI/CommandPalette.tsx: 85[22m
+[2m    src/pages/AdminPanel.tsx: 63[22m
+[2m    src/components/Admin/Config/PoliciesManager.tsx: 36[22m
+[2m    src/components/Admin/Polls/PollFormModal.tsx: 43[22m
+
+  [33mÔÜá[39m blur(20px) is expensive ÔÇö cost escalates with radius and layer size, can exceed GPU memory on mobile[33m (19)[39m
+[2m    Keep blur radius under 10px, or apply blur to a smaller element. Large blurs multiply GPU memory usage with layer size[22m
+[2m    src/components/Admin/TicketsManager.tsx: 91[22m
+[2m    src/components/Admin/Config/LocationsManager.tsx: 425[22m
+[2m    src/components/Admin/SiteConfig.tsx: 123, 174, 217[22m
+[2m    src/components/Admin/PermissionDenied.tsx: 24[22m
+[2m    src/components/Admin/DonorsManager.tsx: 252[22m
+[2m    src/components/Admin/Dashboard/StaffActivity.tsx: 54[22m
+[2m    src/components/Admin/Dashboard/ResourceUsage.tsx: 19[22m
+[2m    src/components/UI/StatCard.tsx: 15[22m
+[2m    src/components/UI/PremiumConfirm.tsx: 55, 83[22m
+[2m    src/components/Admin/Config/RulesEditor.tsx: 257[22m
+[2m    src/components/UI/PremiumAlert.tsx: 58[22m
+[2m    src/pages/PolicyPage.tsx: 134[22m
+[2m    src/components/Admin/DashboardOverview.tsx: 130[22m
+[2m    src/components/Admin/Config/BroadcastManager.tsx: 73[22m
+[2m    src/components/Admin/Config/PoliciesManager.tsx: 172[22m
+[2m    src/components/Admin/UsersManager.tsx: 162[22m
+
+  [33mÔÜá[39m The `autoFocus` attribute is found here, which can cause usability issues for sighted and non-sighted users.[33m (7)[39m
+[2m    Remove the `autoFocus` attribute.[22m
+[2m    src/components/Admin/StaffHub/StaffNotes.tsx: 198[22m
+[2m    src/stories/Effects/TypingBubbles.stories.tsx: 20[22m
+[2m    src/components/Account/AccountSidebar.tsx: 159[22m
+[2m    src/components/Admin/Admin2FAModal.tsx: 91[22m
+[2m    src/components/UI/CommandPalette.tsx: 157[22m
+[2m    src/components/Admin/Tickets/CreateTicketModal.tsx: 109[22m
+[2m    src/components/Admin/Tickets/BanUserModal.tsx: 74[22m
+
+  [33mÔÜá[39m A form label must have accessible text.[33m (7)[39m
+[2m    Ensure the label either has text inside it or is accessibly labelled using an attribute such as `aria-label`, or `aria-labelledby`. You can mark more attributes as accessible labels by configuring the `labelAttributes` option.[22m
+[2m    src/components/Admin/Config/LocationsManager.tsx: 313[22m
+[2m    src/components/Admin/SiteConfig.tsx: 197, 241[22m
+[2m    src/pages/ForgotPassword.tsx: 54[22m
+[2m    src/components/Admin/GamificationManager.tsx: 204, 370[22m
+[2m    src/components/Admin/Config/BroadcastManager.tsx: 106[22m
+
+  [33mÔÜá[39m Component "LocationsManager" is 473 lines ÔÇö consider breaking it into smaller focused components[33m (10)[39m
+[2m    Extract logical sections into focused components: `<UserHeader />`, `<UserActions />`, etc.[22m
+[2m    src/components/Admin/Config/LocationsManager.tsx: 18[22m
+[2m    src/pages/Account.tsx: 48[22m
+[2m    src/pages/CreateThread.tsx: 17[22m
+[2m    src/components/Admin/NewsForm.tsx: 18[22m
+[2m    src/pages/ForumThread.tsx: 133[22m
+[2m    src/components/Admin/Config/RulesEditor.tsx: 25[22m
+[2m    src/components/Account/ProfileSettings.tsx: 21[22m
+[2m    src/components/Admin/Staff/StaffFormModal.tsx: 60[22m
+[2m    src/components/Admin/StaffHub/KanbanBoard.tsx: 29[22m
+[2m    src/components/Admin/Config/PoliciesManager.tsx: 12[22m
+
+  [33mÔÜá[39m Array index "idx" used as key ÔÇö causes bugs when list is reordered or filtered[33m (26)[39m
+[2m    Use a stable unique identifier: `key={item.id}` or `key={item.slug}` ÔÇö index keys break on reorder/filter[22m
+[2m    src/components/Admin/Config/LocationsManager.tsx: 360, 461[22m
+[2m    src/components/Stories/StoryDetailsModal.tsx: 69[22m
+[2m    src/components/Server/OnlinePlayersList.tsx: 22[22m
+[2m    src/pages/CreateThread.tsx: 328[22m
+[2m    src/components/UI/Tutorial.tsx: 174[22m
+[2m    src/components/Admin/Dashboard/StaffActivity.tsx: 78[22m
+[2m    src/components/Layout/Navbar.tsx: 189[22m
+[2m    src/components/Layout/MobileBottomNav.tsx: 201[22m
+[2m    src/components/UI/MarkdownRenderer.tsx: 35, 57, 71, 76, 81[22m
+[2m    src/components/Layout/Menu.tsx: 106[22m
+[2m    src/components/Widgets/DonationFeed.tsx: 77[22m
+[2m    src/components/Home/ServerFeatures.tsx: 115[22m
+[2m    src/components/Hero/index.tsx: 144[22m
+[2m    src/components/Hero/Carousel.tsx: 41[22m
+[2m    src/components/Admin/Staff/StaffSyncModal.tsx: 48[22m
+[2m    src/components/UI/EmblaCarousel.tsx: 37[22m
+[2m    src/pages/Gacha/GachaSlotMachine.tsx: 27, 36, 51[22m
+[2m    src/components/Admin/Config/SecureConsole.tsx: 74[22m
+[2m    src/components/Admin/Polls/PollFormModal.tsx: 139[22m
+
+  [33mÔÜá[39m useEffect simulating an event handler ÔÇö move logic to an actual event handler instead[33m (12)[39m
+[2m    Move the conditional logic into onClick, onChange, or onSubmit handlers directly[22m
+[2m    src/components/Admin/Donors/DonorFormModal.tsx: 52[22m
+[2m    src/components/Layout/MobileBottomNav.tsx: 129[22m
+[2m    src/components/Layout/Menu.tsx: 23[22m
+[2m    src/components/Admin/Tickets/TicketDetailModal.tsx: 63[22m
+[2m    src/components/Utils/ScrollToHash.tsx: 8[22m
+[2m    src/components/Admin/AdminDocs.tsx: 111[22m
+[2m    src/components/Home/StatsRow.tsx: 91[22m
+[2m    src/components/Admin/Config/BroadcastManager.tsx: 32[22m
+[2m    src/components/UI/Toast.tsx: 16[22m
+[2m    src/components/Admin/Config/PoliciesManager.tsx: 36[22m
+[2m    src/components/Admin/Donations/DonationFormModal.tsx: 28[22m
+[2m    src/components/Admin/Polls/PollFormModal.tsx: 43[22m
+
+  [33mÔÜá[39m setPage(page - ...) ÔÇö use functional update to avoid stale closures[33m (2)[39m
+[2m    Use the callback form: `setState(prev => prev + 1)` to always read the latest value[22m
+[2m    src/components/Admin/AuditLog.tsx: 211, 241[22m
+
+  [33mÔÜá[39m useState initialized from prop "defaultOpen" ÔÇö if this value should stay in sync with the prop, derive it during render instead[33m (4)[39m
+[2m    Remove useState and compute the value inline: `const value = transform(propName)`[22m
+[2m    src/components/Admin/SiteConfig.tsx: 337[22m
+[2m    src/components/Admin/GamificationManager.tsx: 60, 257[22m
+[2m    src/components/UI/AnimatedCounter.tsx: 18[22m
+
+  [33mÔÜá[39m "scroll" listener without { passive: true } ÔÇö blocks scrolling performance[33m (2)[39m
+[2m    Add `{ passive: true }` as the third argument: `addEventListener('scroll', handler, { passive: true })`[22m
+[2m    src/components/Layout/Navbar.tsx: 29[22m
+[2m    src/components/Layout/Footer.tsx: 14[22m
+
+  [33mÔÜá[39m Default prop value {} creates a new object reference every render ÔÇö extract to a module-level constant[33m (5)[39m
+[2m    Move to module scope: `const EMPTY_ITEMS: Item[] = []` then use as the default value[22m
+[2m    src/components/UI/MinecraftAvatar.tsx: 23[22m
+[2m    src/components/Layout/Section.tsx: 31[22m
+[2m    src/components/Hero/Carousel.tsx: 25[22m
+[2m    src/components/Admin/StaffHub/CalendarView.tsx: 15, 21[22m
+
+  [33mÔÜá[39m "recharts" is a heavy library ÔÇö use React.lazy() or next/dynamic for code splitting
+[2m    Use `const Component = dynamic(() => import('library'), { ssr: false })` from next/dynamic or React.lazy()[22m
+[2m    src/components/Account/PlaystyleRadarFinal.tsx: 2[22m
+
+  [33mÔÜá[39m Headings must have content and the content must be accessible by a screen reader.[33m (3)[39m
+[2m    Provide screen reader accessible content when using heading elements.[22m
+[2m    src/pages/PolicyPage.tsx: 141, 142, 143[22m
+
+  [33mÔÜá[39m Inline render function "renderBrandText()" ÔÇö extract to a separate component for proper reconciliation
+[2m    Extract to a named component: `const ListItem = ({ item }) => <div>{item.name}</div>`[22m
+[2m    src/components/Hero/index.tsx: 175[22m
+
+  [33mÔÜá[39m Unknown property found
+[2m    Remove unknown property[22m
+[2m    src/components/Hero/Carousel.tsx: 46[22m
+
+  [33mÔÜá[39m Do not use `dangerouslySetInnerHTML` prop
+[2m    `dangerouslySetInnerHTML` is a way to inject HTML into your React component. This is dangerous because it can easily lead to XSS vulnerabilities.[22m
+[2m    src/components/Admin/Staff/StaffSyncModal.tsx: 41[22m
+
+  [2mÔöîÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÉ[22m
+  [2mÔöé[22m [32mÔöîÔöÇÔöÇÔöÇÔöÇÔöÇÔöÉ[39m                                                    [2mÔöé[22m
+  [2mÔöé[22m [32mÔöé Ôùá Ôùá Ôöé[39m                                                    [2mÔöé[22m
+  [2mÔöé[22m [32mÔöé  Ôû¢  Ôöé[39m                                                    [2mÔöé[22m
+  [2mÔöé[22m [32mÔööÔöÇÔöÇÔöÇÔöÇÔöÇÔöÿ[39m                                                    [2mÔöé[22m
+  [2mÔöé[22m React Doctor [2m(www.react.doctor)[22m                            [2mÔöé[22m
+  [2mÔöé[22m                                                            [2mÔöé[22m
+  [2mÔöé[22m [32m78[39m / 100  [32mGreat[39m                                            [2mÔöé[22m
+  [2mÔöé[22m                                                            [2mÔöé[22m
+  [2mÔöé[22m [32mÔûêÔûêÔûêÔûêÔûêÔûêÔûêÔûêÔûêÔûêÔûêÔûêÔûêÔûêÔûêÔûêÔûêÔûêÔûêÔûêÔûêÔûêÔûêÔûêÔûêÔûêÔûêÔûêÔûêÔûêÔûêÔûêÔûêÔûêÔûêÔûêÔûêÔûêÔûê[39m[2mÔûæÔûæÔûæÔûæÔûæÔûæÔûæÔûæÔûæÔûæÔûæ[22m         [2mÔöé[22m
+  [2mÔöé[22m                                                            [2mÔöé[22m
+  [2mÔöé[22m [31mÔ£ù 11 errors[39m  [33mÔÜá 245 warnings[39m  [2macross 106/324 files[22m  [2min 5.0s[22m [2mÔöé[22m
+  [2mÔööÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÿ[22m
+
+[2m  Full diagnostics written to C:\Users\nacho\AppData\Local\Temp\react-doctor-93203977-7395-4d56-8e73-3ebb1f4af996[22m
+
+[2m  Share your results: [36mhttps://www.react.doctor/share?p=%40crystaltides%2Fclient&s=78&e=11&w=245&f=106[39m[22m
+
+
+Fix these issues with [36mAmi[39m?
+[2m   Ami is a coding agent built to understand your codebase and fix issues[22m
+[2m   automatically. Learn more at [36mhttps://ami.dev[39m[22m
+
+[2mDownload Ami at [36mhttps://github.com/millionco/ami-releases/releases[39m[22m

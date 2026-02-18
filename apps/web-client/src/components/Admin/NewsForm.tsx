@@ -168,7 +168,7 @@ export default function NewsForm({ initialData, onSave, onCancel }: NewsFormProp
                     
                     {/* LEFT COLUMN: Spanish & Settings */}
                     <div className="news-form-section">
-                        <h4><img src="/images/ui/logo.webp" width="20" style={{ verticalAlign: 'middle', marginRight: '8px' }} /> {t('admin.news.form_extras.config_es', 'Contenido en Español')}</h4>
+                        <h4><img src="/images/ui/logo.webp" width="20" alt="Logo" style={{ verticalAlign: 'middle', marginRight: '8px' }} /> {t('admin.news.form_extras.config_es', 'Contenido en Español')}</h4>
                         
                         <div className="form-group">
                             <label className="admin-label-premium">{t('admin.news.form.title')}</label>

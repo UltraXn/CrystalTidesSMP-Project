@@ -42,21 +42,15 @@ export const require2FA = async (req: Request, res: Response, next: NextFunction
     const user = req.user;
     if (!user) return res.status(401).json({ error: 'Authentication required' });
 
-    // 2FA Check
-    const is2FAEnabled = user.app_metadata?.two_factor_enabled;
-    if (is2FAEnabled) {
-        const adminToken = req.headers['x-admin-token'] as string;
-        
-        if (!adminToken) {
-             return res.status(403).json({ error: '2FA Verification Required', code: '2FA_REQUIRED' });
-        }
+    const adminToken = req.headers['x-admin-token'] as string;
+    if (!adminToken) {
+        return res.status(403).json({ error: '2FA Verification Required', code: '2FA_REQUIRED' });
+    }
 
-        const twoFactorService = await import('../services/twoFactorService.js');
-        
-        const payload = twoFactorService.verifyAdminToken(adminToken);
-        if (!payload || payload.sub !== user.id) {
-             return res.status(403).json({ error: 'Invalid or Expired 2FA Session', code: '2FA_REQUIRED' });
-        }
+    const twoFactorService = await import('../services/twoFactorService.js');
+    const payload = twoFactorService.verifyAdminToken(adminToken);
+    if (!payload || payload.sub !== user.id) {
+        return res.status(403).json({ error: 'Invalid or Expired 2FA Session', code: '2FA_REQUIRED' });
     }
 
     next();
@@ -78,11 +72,19 @@ export const optionalAuthenticateToken = async (req: Request, res: Response, nex
         const { data: { user }, error } = await supabase.auth.getUser(token);
 
         if (!error && user) {
+            // Fetch profile to get real username and role (preventing stale JWT data)
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('username, role')
+                .eq('id', user.id)
+                .single();
+
             req.user = {
                 id: user.id,
                 email: user.email,
-                username: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Unknown',
-                role: user.user_metadata?.role || 'user'
+                username: profile?.username || user.user_metadata?.full_name || user.email?.split('@')[0] || 'Unknown',
+                role: profile?.role || user.user_metadata?.role || 'user',
+                app_metadata: user.app_metadata
             };
         }
         next();

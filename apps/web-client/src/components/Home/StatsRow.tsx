@@ -1,8 +1,10 @@
-import { useRef, useEffect, useMemo, useState } from "react";
+import { useRef, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { UserPlus, Calendar, Shield } from "lucide-react";
 import { motion as Motion, useInView } from "framer-motion";
 import { gsap } from "gsap";
+import { useQuery } from '@tanstack/react-query';
+import { fetchServerResources, fetchDiscordCount, fetchStaffList } from "../../services/apiService";
 
 interface StatsRowProps {
     mockStats?: {
@@ -18,54 +20,40 @@ export default function StatsRow({ mockStats }: StatsRowProps) {
     const ref = useRef(null);
     const isInView = useInView(ref, { once: true, margin: "-100px" });
 
-    const [statsData, setStatsData] = useState(mockStats || {
-        discord: 200,
-        registered: 0,
-        years: 1,
-        staff: 0
-    });
-    const API_URL = import.meta.env.VITE_API_URL;
+	// Minecraft Resources (Players Online)
+	const { data: resources } = useQuery({
+		queryKey: ['server-resources'],
+		queryFn: fetchServerResources,
+		enabled: !mockStats,
+		staleTime: 1000 * 60, // 1 minute
+	});
 
-    useEffect(() => {
-        if (mockStats) return;
+	// Discord Count
+	const { data: discordCount } = useQuery({
+		queryKey: ['discord-count'],
+		queryFn: fetchDiscordCount,
+		enabled: !mockStats,
+		staleTime: 1000 * 60 * 5, // 5 minutes
+	});
 
-        const fetchStats = async () => {
-            try {
-                // Fetch Minecraft Status (Players Online)
-                // Note: The previous Hero.jsx used /minecraft/status, let's use that for online or registered if available
-                // Actually serverRoutes.js has /resources which returns total_players (registered)
-                // Let's try to fetch resources for registered count
-                const resResources = await fetch(`${API_URL}/server/resources`);
-                const dataResources = await resResources.json();
-                
-                // Fetch Discord Count (using public invite API)
-                try {
-                    const resDiscord = await fetch('https://discord.com/api/v9/invites/TDmwYNnvyT?with_counts=true');
-                    const dataDiscord = await resDiscord.json();
-                    if (dataDiscord.approximate_member_count) {
-                        setStatsData(prev => ({ ...prev, discord: dataDiscord.approximate_member_count }));
-                    }
-                } catch (err) {
-                    console.error("Error fetching Discord stats:", err);
-                }
+	// Staff Count
+	const { data: staffList } = useQuery({
+		queryKey: ['staff-list'],
+		queryFn: fetchStaffList,
+		enabled: !mockStats,
+		staleTime: 1000 * 60 * 10, // 10 minutes
+	});
 
-                // Fetch Staff
-                const resStaff = await fetch(`${API_URL}/server/staff`);
-                const dataStaff = await resStaff.json();
+	const statsData = useMemo(() => {
+		if (mockStats) return mockStats;
 
-                setStatsData(prev => ({
-                    ...prev,
-                    registered: dataResources.total_players || prev.registered,
-                    staff: Array.isArray(dataStaff) ? dataStaff.length : prev.staff
-                    // Years remains static for now
-                }));
-            } catch (error) {
-                console.error("Error fetching stats:", error);
-            }
-        };
-
-        fetchStats();
-    }, [API_URL, mockStats]);
+		return {
+			discord: discordCount || 200,
+			registered: resources?.total_players || 0,
+			years: 1,
+			staff: Array.isArray(staffList) ? staffList.length : 0
+		};
+	}, [mockStats, resources, discordCount, staffList]);
 
     const stats = useMemo(() => [
         {

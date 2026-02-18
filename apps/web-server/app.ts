@@ -13,6 +13,7 @@ import suggestionRoutes from './routes/suggestionRoutes.js';
 import pollRoutes from './routes/pollRoutes.js';
 import forumRoutes from './routes/forumRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import logRoutes from './routes/logRoutes.js';
 import eventRoutes from './routes/eventRoutes.js';
 import settingsRoutes from './routes/settingsRoutes.js';
 import playerStatsRoutes from './routes/playerStats.js';
@@ -96,6 +97,7 @@ app.use('/api/donations', donationRoutes);
 app.use('/api/suggestions', sensitiveActionLimiter, suggestionRoutes);
 app.use('/api/polls', pollRoutes);
 app.use('/api/forum', forumRoutes);
+app.use('/api/logs', logRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/rules', ruleRoutes); // Interactive Rules
 app.use('/api/policies', policyRoutes);

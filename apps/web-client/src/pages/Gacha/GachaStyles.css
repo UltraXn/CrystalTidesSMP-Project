@@ -1,0 +1,207 @@
+.gacha-page {
+    min-height: 100vh;
+    position: relative;
+    padding: 80px 20px;
+    display: flex;
+    justify-content: center;
+    color: #fff;
+    overflow: hidden;
+    font-family: 'Outfit', sans-serif;
+}
+.gacha-background {
+    position: fixed;
+    inset: 0;
+    background: #050508;
+    z-index: -1;
+}
+.gradient-sphere {
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: 0.15;
+}
+.sphere-1 { top: -100px; right: -100px; background: #8b5cf6; }
+.sphere-2 { bottom: -100px; left: -100px; background: #0ea5e9; }
+
+.gacha-container {
+    width: 100%;
+    max-width: 1000px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 1;
+}
+
+.gacha-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+.gacha-badge {
+    background: rgba(139, 92, 246, 0.1);
+    color: #a78bfa;
+    padding: 6px 16px;
+    border-radius: 100px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 1.5rem;
+}
+.gacha-header h1 {
+    font-size: 4rem;
+    font-weight: 950;
+    margin: 0;
+    background: linear-gradient(to bottom, #fff, #94a3b8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -2px;
+    text-transform: uppercase;
+}
+.gacha-header p {
+    color: #94a3b8;
+    font-size: 1.2rem;
+    margin-top: 1rem;
+    max-width: 600px;
+}
+
+/* Tier Selector */
+.tier-selector {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+    width: 100%;
+    max-width: 1200px;
+    padding: 0 1rem;
+}
+
+.tier-btn {
+    padding: 0.8rem 1.2rem;
+    background: rgba(15, 15, 25, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 14px;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(12px);
+    text-align: left;
+}
+
+.tier-btn:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+.tier-btn.active {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--tier-color);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 15px rgba(139, 92, 246, 0.2);
+}
+
+.tier-btn.locked {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.tier-btn-ultra {
+    background: linear-gradient(to top, rgba(0, 100, 255, 0.1), rgba(150, 0, 255, 0.1), rgba(0, 0, 0, 0.8)) !important;
+}
+
+.gacha-game-layout {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    align-items: center;
+}
+
+.slot-machine-case {
+    background: #1a1a2e;
+    padding: 2rem;
+    border-radius: 20px;
+    border: 2px solid #333;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.slot-machine-container {
+    background: #000;
+    height: 160px;
+    overflow: hidden;
+    border-radius: 10px;
+    position: relative;
+    flex: 1;
+}
+
+.slot-reels-container {
+    display: flex;
+    height: 100%;
+}
+
+.slot-reel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.slot-item {
+    height: 160px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+}
+
+.balance-display {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255, 215, 0, 0.1);
+    color: #ffd700;
+    padding: 0.5rem 1rem;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+    cursor: pointer;
+}
+
+.history-drawer {
+    position: fixed;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%) translateX(100%);
+    background: #1a1a2e;
+    width: 300px;
+    height: 80vh;
+    transition: transform 0.3s ease;
+    z-index: 100;
+}
+
+.history-drawer.open {
+    transform: translateY(-50%) translateX(0);
+}
+
+.history-toggle {
+    position: absolute;
+    left: -40px;
+    top: 50%;
+    transform: translateY(-50%) rotate(-90deg);
+    background: #1a1a2e;
+    border: none;
+    color: #fff;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+}

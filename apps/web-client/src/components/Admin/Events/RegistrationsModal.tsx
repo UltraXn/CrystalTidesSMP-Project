@@ -1,10 +1,9 @@
-import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Users, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import Loader from "../../UI/Loader";
-import { supabase } from "../../../services/supabaseClient";
-import { getAuthHeaders } from "../../../services/adminAuth";
 import { Registration } from "./types";
+import { getEventRegistrations } from "../../../services/eventService";
 
 interface RegistrationsModalProps {
     eventId: number;
@@ -13,28 +12,15 @@ interface RegistrationsModalProps {
     mockRegistrations?: Registration[];
 }
 
-export default function RegistrationsModal({ eventId, onClose, API_URL, mockRegistrations }: RegistrationsModalProps) {
+export default function RegistrationsModal({ eventId, onClose, mockRegistrations }: RegistrationsModalProps) {
     const { t } = useTranslation();
-    const [registrations, setRegistrations] = useState<Registration[]>(mockRegistrations || []);
-    const [loading, setLoading] = useState(!mockRegistrations);
-    
-    useEffect(() => {
-        const fetchReg = async () => {
-            if (mockRegistrations) return;
-            try {
-                const { data: { session } } = await supabase.auth.getSession();
-                const res = await fetch(`${API_URL}/events/${eventId}/registrations`, {
-                    headers: getAuthHeaders(session?.access_token || null)
-                });
-                if (res.ok) {
-                    const data = await res.json();
-                    setRegistrations(data);
-                }
-            } catch (e) { console.error(e) } 
-            finally { setLoading(false) }
-        }
-        fetchReg();
-    }, [eventId, API_URL, mockRegistrations]);
+
+    const { data: registrations = [], isLoading: loading } = useQuery({
+        queryKey: ['eventRegistrations', eventId],
+        queryFn: () => getEventRegistrations(eventId),
+        enabled: !mockRegistrations,
+        initialData: mockRegistrations,
+    });
 
     return (
         <div className="sync-modal-overlay" onClick={onClose}>

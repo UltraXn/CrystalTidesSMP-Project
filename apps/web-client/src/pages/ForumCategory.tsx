@@ -1,43 +1,12 @@
-import { useState, useEffect } from "react"
+import {  } from "react"
 import { useParams, Link } from "react-router-dom"
 import { User, MessageSquare, Clock, Pen, Pin, ArrowLeft } from "lucide-react"
 import Loader from "../components/UI/Loader"
 import { useTranslation } from 'react-i18next'
 import Section from "../components/Layout/Section"
-
-interface ThreadSummary {
-    id: string | number;
-    title: string;
-    author: string;
-    replies: number;
-    views: number;
-    lastActivity: string;
-    pinned: boolean;
-    tag: string | null;
-    slug?: string;
-}
-
-interface NewsResponse {
-    id: string | number;
-    title: string;
-    replies?: number;
-    views?: number;
-    created_at: string;
-    category: string | null;
-    status: string;
-    slug?: string;
-}
-
-interface ThreadResponse {
-    id: string | number;
-    title: string;
-    author_name?: string;
-    reply_count?: number;
-    views?: number;
-    created_at: string;
-    pinned?: boolean;
-    slug?: string;
-}
+import { useQuery } from "@tanstack/react-query"
+import { getCategoryThreads } from "../services/forumService"
+import { getLatestNews } from "../services/newsService"
 
 const categorySlugs = {
     "announcements": 1,
@@ -61,72 +30,47 @@ const categoryTranslationKeys: Record<string, string> = {
 export default function ForumCategory() {
     const { id: slug } = useParams<{ id: string }>()
     const { t } = useTranslation()
-    const [threads, setThreads] = useState<ThreadSummary[]>([])
-    const [loading, setLoading] = useState(true)
 
     // Fallback if slug not found - try to map slug to ID, or use it as ID if it is one
     const categoryId = slug ? (categorySlugs[slug as keyof typeof categorySlugs] || slug) : null;
     const translationKey = slug ? categoryTranslationKeys[slug] : null;
     const categoryTitle = translationKey ? t(`forum_page.categories.${translationKey}.title`) : t('forum_page.categories.general.title')
-    const API_URL = import.meta.env.VITE_API_URL
 
-    useEffect(() => {
-        const fetchData = async () => {
-            setLoading(true)
-            if (!categoryId) {
-                setLoading(false)
-                return
-            }
+    const { data: threads = [], isLoading } = useQuery({
+        queryKey: ['forum', 'category', categoryId],
+        queryFn: async () => {
+            if (!categoryId) return [];
 
             if (String(categoryId) === "1") {
-                try {
-                    // Fetch real news for "Anuncios"
-                    const res = await fetch(`${API_URL}/news`)
-                    const data = await res.json()
-                    const mappedNews: ThreadSummary[] = Array.isArray(data) ? (data as NewsResponse[]).filter(n => n.status === 'Published').map(n => ({
-                        id: n.id,
-                        title: n.title,
-                        author: "Staff",
-                        replies: n.replies || 0,
-                        views: n.views || 0,
-                        lastActivity: new Date(n.created_at).toLocaleDateString(),
-                        pinned: true,
-                        tag: n.category,
-                        slug: n.slug
-                    })) : []
-                    setThreads(mappedNews)
-                } catch (err) {
-                    console.error("Error loading forum news:", err)
-                } finally {
-                    setLoading(false)
-                }
+                const data = await getLatestNews();
+                return data.filter(n => n.status === 'Published').map(n => ({
+                    id: n.id,
+                    title: n.title,
+                    author: "Staff",
+                    replies: n.replies || 0,
+                    views: n.views || 0,
+                    lastActivity: new Date(n.created_at).toLocaleDateString(),
+                    pinned: true,
+                    tag: n.category,
+                    slug: n.slug
+                }));
             } else {
-                try {
-                    // Fetch real user threads
-                    const res = await fetch(`${API_URL}/forum/category/${categoryId}`)
-                    const data = await res.json()
-                    const mappedThreads: ThreadSummary[] = Array.isArray(data) ? (data as ThreadResponse[]).map(t => ({
-                        id: t.id,
-                        title: t.title,
-                        author: t.author_name || "Anónimo",
-                        replies: t.reply_count || 0,
-                        views: t.views || 0,
-                        lastActivity: new Date(t.created_at).toLocaleDateString(),
-                        pinned: t.pinned || false,
-                        tag: null,
-                        slug: t.slug
-                    })) : []
-                    setThreads(mappedThreads)
-                } catch (err) {
-                    console.error(err)
-                } finally {
-                    setLoading(false)
-                }
+                const data = await getCategoryThreads(categoryId);
+                return data.map(t => ({
+                    id: t.id,
+                    title: t.title,
+                    author: t.author_name || "Anónimo",
+                    replies: t.reply_count || 0,
+                    views: t.views || 0,
+                    lastActivity: new Date(t.created_at).toLocaleDateString(),
+                    pinned: t.pinned || false,
+                    tag: null,
+                    slug: t.slug
+                }));
             }
-        }
-
-        fetchData()
-    }, [categoryId, slug, API_URL])
+        },
+        enabled: !!categoryId
+    })
 
     return (
         <div className="pt-24 min-h-screen">
@@ -152,7 +96,7 @@ export default function ForumCategory() {
                     </div>
 
                     {/* Content */}
-                    {loading ? (
+                    {isLoading ? (
                         <div className="py-20 flex flex-col items-center justify-center gap-4">
                             <div className="w-12 h-12 border-4 border-white/10 border-t-(--accent) rounded-full animate-spin"></div>
                             <Loader text={t('forum_category.loading')} />

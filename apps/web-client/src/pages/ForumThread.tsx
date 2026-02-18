@@ -9,6 +9,8 @@ import { useTranslation } from "react-i18next"
 import { supabase } from '../services/supabaseClient'
 import MarkdownRenderer from "../components/UI/MarkdownRenderer"
 import { slugify } from "../utils/slugify"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { getThread, getThreadPosts, getNewsThread, getNewsComments } from "../services/forumService"
 
 interface ForumAuthorData {
     username: string;
@@ -136,109 +138,104 @@ export default function ForumThread() {
     const id = params.id || params.type // This is the slug or ID from the URL
     const { user } = useAuth()
     const navigate = useNavigate()
-    const [thread, setThread] = useState<Thread | null>(null)
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState<string | null>(null)
+    const { t, i18n } = useTranslation()
+    const API_URL = import.meta.env.VITE_API_URL
+    const queryClient = useQueryClient()
+    const isTopic = type === 'topic'
 
-    // Editing State
+    // Query Data (renamed to avoid conflict with state or previously defined vars)
+    const { data: threadData, isLoading: threadLoading, error: threadError } = useQuery({
+        queryKey: ['forum', 'thread', type, id],
+        queryFn: async () => {
+            if (isTopic) {
+                const data = await getThread(id as string | number);
+                return {
+                    id: data.id,
+                    title: data.title,
+                    content: data.content || "",
+                    title_en: data.title_en,
+                    content_en: data.content_en,
+                    author: data.author_name || "Anónimo",
+                    author_id: data.user_id || "",
+                    author_avatar: data.author_avatar || "/images/ui/logo.webp",
+                    author_role: data.author_role || "user",
+                    date: new Date(data.created_at).toLocaleDateString(),
+                    longDate: new Date(data.created_at).toLocaleDateString() + " " + new Date(data.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                    image: null,
+                    tag: categoryNames[data.category_id as number] || "General",
+                    category_id: data.category_id as number,
+                    views: data.views || 0,
+                    poll: (data as any).poll || null,
+                    pinned: data.pinned || false,
+                    locked: data.locked || false,
+                    author_data_fresh: data.author_data_fresh
+                } as Thread;
+            } else {
+                const data = await getNewsThread(id as string | number);
+                return {
+                    id: data.id,
+                    title: data.title,
+                    content: data.content || "",
+                    title_en: data.title_en,
+                    content_en: data.content_en,
+                    author: "CrystalTidesSMP",
+                    author_id: data.author_id || "",
+                    author_avatar: "/images/ui/logo.webp",
+                    author_role: "staff",
+                    date: new Date(data.created_at).toLocaleDateString(),
+                    longDate: new Date(data.created_at).toLocaleDateString() + " " + new Date(data.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                    image: data.image || null,
+                    tag: data.category || "General",
+                    category_id: 0,
+                    views: data.views || 0,
+                    poll: null,
+                    pinned: true,
+                    locked: false,
+                    author_data_fresh: data.author_data_fresh
+                } as Thread;
+            }
+        },
+        enabled: !!id
+    })
+
+    const { data: commentsData = [], isLoading: commentsLoading } = useQuery({
+        queryKey: ['forum', 'comments', type, id],
+        queryFn: async () => {
+            const data = isTopic ? await getThreadPosts(id as string | number) : await getNewsComments(id as string | number);
+            return data.map(c => ({
+                id: c.id,
+                user: (isTopic ? c.author_name : c.user_name) || "Anónimo",
+                user_id: c.user_id || null,
+                avatar: (isTopic ? c.author_avatar : c.user_avatar) || null,
+                role: (isTopic ? c.author_role : c.user_role) || "user",
+                date: new Date(c.created_at).toLocaleDateString() + " " + new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                content: c.content,
+                author_data_fresh: c.author_data_fresh
+            } as Comment))
+        },
+        enabled: !!id
+    })
+
+    // States for local editing
     const [isEditingThread, setIsEditingThread] = useState(false)
     const [editThreadData, setEditThreadData] = useState({ title: "", content: "" })
-
-    // Estado para comentarios
-    const [comments, setComments] = useState<Comment[]>([])
     const [newComment, setNewComment] = useState("")
     const [editingPostId, setEditingPostId] = useState<string | number | null>(null)
     const [editPostContent, setEditPostContent] = useState("")
-
-    const API_URL = import.meta.env.VITE_API_URL
-    const isTopic = type === 'topic'
-    const { t, i18n } = useTranslation()
-
     const [deleteModal, setDeleteModal] = useState<{ type: 'thread' | 'post', id: string | number } | null>(null)
 
+    // Bridge for legacy code (until full refactor of usages)
+    const thread = threadData || null
+    const comments = commentsData
+    const loading = threadLoading || commentsLoading
+    const error = threadError ? t('forum_thread.thread_error') : null
+
+    // Setting edit data when thread is loaded
     useEffect(() => {
-        const fetchAllData = async () => {
-            setLoading(true)
-            try {
-                // Fetch Thread
-                const threadPromise = isTopic 
-                    ? fetch(`${API_URL}/forum/thread/${id}`)
-                    : fetch(`${API_URL}/news/${id}`)
-
-                const threadRes = await threadPromise
-                if (!threadRes.ok) throw new Error("Not Found")
-                const threadData = await threadRes.json()
-
-                setThread({
-                    id: threadData.id,
-                    title: threadData.title,
-                    content: threadData.content,
-                    title_en: threadData.title_en,
-                    content_en: threadData.content_en,
-                    author: isTopic ? (threadData.author_name || "Anónimo") : "CrystalTidesSMP",
-                    author_id: isTopic ? threadData.user_id : threadData.author_id, // Important for ownership check
-                    author_avatar: isTopic ? threadData.author_avatar : "/images/ui/logo.webp", // Add avatar
-                    author_role: isTopic ? threadData.author_role : "staff",
-                    date: new Date(threadData.created_at).toLocaleDateString(),
-                    longDate: new Date(threadData.created_at).toLocaleDateString() + " " + new Date(threadData.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                    image: isTopic ? null : threadData.image,
-                    tag: isTopic ? (categoryNames[threadData.category_id] || "General") : threadData.category,
-                    category_id: threadData.category_id,
-                    views: threadData.views || 0,
-                    poll: threadData.poll || null,
-                    pinned: threadData.pinned || false,
-                    locked: threadData.locked || false,
-                    author_data_fresh: threadData.author_data_fresh
-                })
-
-                setEditThreadData({ title: threadData.title, content: threadData.content })
-
-                // Fetch Comments
-                const commentsPromise = isTopic
-                     ? fetch(`${API_URL}/forum/thread/${id}/posts`)
-                     : fetch(`${API_URL}/news/${id}/comments`)
-                
-                const commentsRes = await commentsPromise
-                const commentsData = await commentsRes.json()
-                
-                if (Array.isArray(commentsData)) {
-                    setComments(commentsData.map((c: { 
-                        id: string | number, 
-                        author_name?: string, 
-                        user_name?: string, 
-                        user_id?: string, 
-                        author_avatar?: string, 
-                        user_avatar?: string, 
-                        author_role?: string, 
-                        user_role?: string, 
-                        created_at: string, 
-                        content: string,
-                        author_data_fresh?: ForumAuthorData
-                    }) => ({
-                        id: c.id,
-                        user: (isTopic ? c.author_name : c.user_name) || "Anónimo",
-                        user_id: c.user_id || null, // Include for both types
-                        avatar: (isTopic ? c.author_avatar : c.user_avatar) || null,
-                        role: (isTopic ? c.author_role : c.user_role) || "user",
-                        date: new Date(c.created_at).toLocaleDateString() + " " + new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                        content: c.content,
-                        author_data_fresh: c.author_data_fresh
-                    })))
-                } else {
-                    setComments([])
-                }
-
-                setLoading(false)
-
-            } catch (err: unknown) {
-                console.error(err)
-                setError(t('forum_thread.thread_error'))
-                setLoading(false)
-            }
+        if (thread) {
+            setEditThreadData({ title: thread.title, content: thread.content })
         }
-
-        fetchAllData()
-    }, [id, type, isTopic, API_URL, t])
+    }, [thread])
 
     const isAdmin = () => {
         if (!user) return false;
@@ -253,9 +250,36 @@ export default function ForumThread() {
         return isAdmin() || (user.id === targetUserId);
     }
 
-    const handleUpdateThread = async () => {
-        if (!editThreadData.title.trim() || !editThreadData.content.trim()) return;
-        try {
+    // Mutations
+    const postCommentMutation = useMutation({
+        mutationFn: async ({ content, imageBlob }: { content: string, imageBlob?: Blob }) => {
+            const { data: { session } } = await supabase.auth.getSession();
+            const token = session?.access_token;
+            
+            const formData = new FormData();
+            formData.append('content', content);
+            if (imageBlob) formData.append('image', imageBlob, 'reply.webp');
+
+            const url = isTopic ? `${API_URL}/forum/thread/${id}/posts` : `${API_URL}/news/${id}/comments`;
+            
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: formData
+            });
+
+            if (!res.ok) throw new Error("Error posting comment");
+            return await res.json();
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['forum', 'comments', type, id] });
+            setNewComment("");
+            clearReplImage();
+        }
+    });
+
+    const updateThreadMutation = useMutation({
+        mutationFn: async (data: { title: string, content: string, pinned?: boolean, locked?: boolean }) => {
             const { data: { session } } = await supabase.auth.getSession();
             const token = session?.access_token;
             
@@ -265,122 +289,98 @@ export default function ForumThread() {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify(editThreadData)
+                body: JSON.stringify(data)
             });
-            if (res.ok) {
-                setThread(prev => prev ? { ...prev, title: editThreadData.title, content: editThreadData.content } : null);
-                setIsEditingThread(false);
-            } else {
-                alert("Error al actualizar");
-            }
-        } catch (e: unknown) { console.error(e); }
-    }
+            if (!res.ok) throw new Error("Error updating thread");
+            return await res.json();
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['forum', 'thread', type, id] });
+            setIsEditingThread(false);
+        }
+    });
 
-    const togglePin = async () => {
-        if (!thread) return;
-        try {
+    const updatePostMutation = useMutation({
+        mutationFn: async ({ postId, content }: { postId: string | number, content: string }) => {
             const { data: { session } } = await supabase.auth.getSession();
             const token = session?.access_token;
-
-            const newValue = !thread.pinned;
-            const res = await fetch(`${API_URL}/forum/thread/${id}`, {
-                method: 'PUT',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}` 
-                },
-                body: JSON.stringify({ pinned: newValue })
-            });
-            if (res.ok) setThread({ ...thread, pinned: newValue });
-        } catch (e: unknown) { console.error(e); }
-    }
-
-    const toggleLock = async () => {
-        if (!thread) return;
-        try {
-            const { data: { session } } = await supabase.auth.getSession();
-            const token = session?.access_token;
-
-            const newValue = !thread.locked;
-            const res = await fetch(`${API_URL}/forum/thread/${id}`, {
-                method: 'PUT',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}` 
-                },
-                body: JSON.stringify({ locked: newValue })
-            });
-            if (res.ok) setThread({ ...thread, locked: newValue });
-        } catch (e: unknown) { console.error(e); }
-    }
-
-    const handleDeleteThread = () => {
-        if (thread?.id) setDeleteModal({ type: 'thread', id: thread.id });
-    }
-
-    const handleUpdatePost = async (postId: string | number) => {
-         if (!editPostContent.trim()) return;
-         try {
-            const { data: { session } } = await supabase.auth.getSession();
-            const token = session?.access_token;
-
             const url = isTopic ? `${API_URL}/forum/posts/${postId}` : `${API_URL}/news/comments/${postId}`;
-
+            
             const res = await fetch(url, {
                 method: 'PUT',
                 headers: { 
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}` 
                 },
-                body: JSON.stringify({ content: editPostContent })
+                body: JSON.stringify({ content })
             });
-            if (res.ok) {
-                setComments(comments.map(c => c.id === postId ? { ...c, content: editPostContent } : c));
-                setEditingPostId(null);
-            }
-         } catch (e: unknown) { console.error(e); }
-    }
+            if (!res.ok) throw new Error("Error updating post");
+            return await res.json();
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['forum', 'comments', type, id] });
+            setEditingPostId(null);
+        }
+    });
 
-    const handleDeletePost = (postId: string | number) => {
-        setDeleteModal({ type: 'post', id: postId });
-    }
-
-    const executeDelete = async () => {
-        if (!deleteModal) return;
-        
-        try {
+    const deleteMutation = useMutation({
+        mutationFn: async ({ type, deleteId }: { type: 'thread' | 'post', deleteId: string | number }) => {
             const { data: { session } } = await supabase.auth.getSession();
             const token = session?.access_token;
-            const authHeaders = { 'Authorization': `Bearer ${token}` };
-
-            if (deleteModal.type === 'thread') {
-                const res = await fetch(`${API_URL}/forum/thread/${deleteModal.id}`, { 
-                    method: 'DELETE',
-                    headers: authHeaders 
-                });
-                if (res.ok) {
-                    navigate('/forum');
-                } else {
-                    alert("Error al eliminar el tema");
-                }
-            } else if (deleteModal.type === 'post') {
-                const url = isTopic ? `${API_URL}/forum/posts/${deleteModal.id}` : `${API_URL}/news/comments/${deleteModal.id}`;
-                const res = await fetch(url, { 
-                    method: 'DELETE',
-                    headers: authHeaders 
-                });
-                if (res.ok) {
-                    setComments(comments.filter(c => c.id !== deleteModal.id));
-                } else {
-                    alert("Error al eliminar el comentario");
-                }
+            
+            let url = "";
+            if (type === 'thread') {
+                url = `${API_URL}/forum/thread/${deleteId}`;
+            } else {
+                url = isTopic ? `${API_URL}/forum/posts/${deleteId}` : `${API_URL}/news/comments/${deleteId}`;
             }
-        } catch (e: unknown) { 
-            console.error(e); 
-            alert("Error de conexión");
-        } finally {
+
+            const res = await fetch(url, { 
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` } 
+            });
+            if (!res.ok) throw new Error("Error deleting");
+            return { type, deleteId };
+        },
+        onSuccess: (data) => {
+            if (data.type === 'thread') {
+                navigate('/forum');
+            } else {
+                queryClient.invalidateQueries({ queryKey: ['forum', 'comments', type, id] });
+            }
             setDeleteModal(null);
         }
+    });
+
+    const handleUpdateThread = () => {
+        if (!editThreadData.title.trim() || !editThreadData.content.trim()) return;
+        updateThreadMutation.mutate(editThreadData);
+    }
+
+    const togglePin = () => {
+        if (!thread) return;
+        updateThreadMutation.mutate({ title: thread.title, content: thread.content, pinned: !thread.pinned });
+    }
+
+    const toggleLock = () => {
+        if (!thread) return;
+        updateThreadMutation.mutate({ title: thread.title, content: thread.content, locked: !thread.locked });
+    }
+
+    const handleUpdatePost = (postId: string | number) => {
+         if (!editPostContent.trim()) return;
+         updatePostMutation.mutate({ postId, content: editPostContent });
+    }
+
+    const executeDelete = () => {
+        if (!deleteModal) return;
+        deleteMutation.mutate({ type: deleteModal.type, deleteId: deleteModal.id });
+    }
+
+    const handlePostComment = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newComment.trim() && !pendingImageRepl) return;
+        postCommentMutation.mutate({ content: newComment, imageBlob: pendingImageRepl?.blob });
     }
 
 
@@ -407,78 +407,6 @@ export default function ForumThread() {
         setPendingImageRepl(null)
     }
 
-    const handlePostComment = async (e: React.FormEvent) => {
-        e.preventDefault()
-        const currentUser = user;
-        if (!currentUser || (!newComment.trim() && !pendingImageRepl)) return
-
-        let finalContent = newComment
-
-        try {
-             // 1. Upload Image (Deferred)
-             if (pendingImageRepl) {
-                const fileName = `repl_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.webp`
-                const { error } = await supabase.storage.from('forum-uploads').upload(fileName, pendingImageRepl.blob, { contentType: 'image/webp' })
-                if (error) throw error
-                const { data: { publicUrl } } = supabase.storage.from('forum-uploads').getPublicUrl(fileName)
-                
-                finalContent += `\n\n![Imagen](${publicUrl})`
-             }
-
-            const currentRole = currentUser?.user_metadata?.role || 'user'
-            const username = currentUser?.user_metadata?.username || currentUser?.email?.split('@')[0] || "Usuario"
-            
-            // Payload logic
-            const body = isTopic ? {
-                 content: finalContent,
-                 user_data: { 
-                     id: currentUser.id, 
-                     name: username, 
-                     avatar: currentUser?.user_metadata?.avatar_url, 
-                     role: currentRole 
-                 }
-            } : ({
-                 user_name: username,
-                 user_avatar: currentUser?.user_metadata?.avatar_url,
-                 content: finalContent,
-                 user_role: currentRole
-            })
-            
-            const url = isTopic ? `${API_URL}/forum/thread/${id}/posts` : `${API_URL}/news/${id}/comments`
-
-            const { data: { session } } = await supabase.auth.getSession();
-            const token = session?.access_token;
-
-            const res = await fetch(url, {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify(body)
-            })
-
-            if (res.ok) {
-                const savedComment = await res.json()
-                // Normalize response to add locally
-                const newC: Comment = {
-                    id: savedComment.id,
-                    user: isTopic ? savedComment.author_name : savedComment.user_name,
-                    user_id: currentUser.id,
-                    avatar: isTopic ? savedComment.author_avatar : savedComment.user_avatar,
-                    role: isTopic ? savedComment.author_role : savedComment.user_role,
-                    date: t('forum_thread.just_now'),
-                    content: savedComment.content
-                }
-                setComments([...comments, newC])
-                setNewComment("")
-            clearReplImage()
-            }
-        } catch (error: unknown) {
-            console.error("Error posting comment:", error)
-            alert(t('forum_thread.comment_error'))
-        }
-    }
 
     if (loading) return (
         <div style={{ minHeight: '80vh', paddingTop: '100px', display: 'flex', justifyContent: 'center' }}>
@@ -635,7 +563,7 @@ export default function ForumThread() {
                                             <button onClick={() => setIsEditingThread(true)} className="p-2 bg-(--accent)/10 hover:bg-(--accent)/20 text-(--accent) rounded-xl transition-all" title="Editar">
                                                 <Edit size={16} />
                                             </button>
-                                            <button onClick={handleDeleteThread} className="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl transition-all" title="Eliminar">
+                                            <button onClick={() => setDeleteModal({ type: 'thread', id: thread.id })} className="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl transition-all" title="Eliminar">
                                                 <Trash2 size={16} />
                                             </button>
                                         </div>
@@ -783,7 +711,7 @@ export default function ForumThread() {
                                         {isOwnerOrAdmin(comment.user_id) && editingPostId !== comment.id && (
                                             <div className="flex items-center gap-2">
                                                 <button onClick={() => { setEditingPostId(comment.id); setEditPostContent(comment.content); }} className="text-[11px] font-black uppercase tracking-tighter text-gray-500 hover:text-(--accent) transition-colors">Editar</button>
-                                                <button onClick={() => handleDeletePost(comment.id)} className="text-[11px] font-black uppercase tracking-tighter text-red-500/70 hover:text-red-500 transition-colors">Eliminar</button>
+                                                <button onClick={() => setDeleteModal({ type: 'post', id: comment.id })} className="text-[11px] font-black uppercase tracking-tighter text-red-500/70 hover:text-red-500 transition-colors">Eliminar</button>
                                             </div>
                                         )}
                                     </div>
