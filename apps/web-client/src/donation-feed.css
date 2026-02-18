@@ -1,120 +1,184 @@
+/* --- Premium Donation Feed (Cyber-Ethereal Edition) --- */
+
 .donation-feed {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
-    max-width: 600px;
+    gap: 1.5rem;
+    max-width: 650px;
     width: 100%;
     margin: 0 auto;
-    height: 400px;
-    /* Altura fija para la "ventana" de la ruleta */
+    height: 450px;
     overflow: hidden;
-    /* Ocultar lo que sale de la ventana */
     position: relative;
-    mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
-    -webkit-mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
+    /* Deeper mask for smoother transition */
+    mask-image: linear-gradient(to bottom, transparent, black 15%, black 85%, transparent);
+    -webkit-mask-image: linear-gradient(to bottom, transparent, black 15%, black 85%, transparent);
+    padding: 1rem 0;
 }
 
 .donation-scroll-track {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 1.2rem;
 }
 
-/* Pausar animación al pasar el mouse para leer */
-.donation-feed:hover .donation-scroll-track {
-    animation-play-state: paused;
-}
-
+/* --- Base Premium Card --- */
 .donation-card {
-    background: rgba(22, 27, 34, 0.8);
-    border: 1px solid rgba(48, 54, 61, 0.8);
-    border-radius: 12px;
-    padding: 1.25rem;
+    background: rgba(15, 15, 25, 0.4);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    padding: 1.5rem;
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.8rem;
     position: relative;
-    backdrop-filter: blur(10px);
-    transition: transform 0.2s ease, border-color 0.2s ease;
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
     flex-shrink: 0;
-    /* Evitar que se aplasten */
+    overflow: hidden;
 }
 
+.donation-card:hover {
+    transform: translateX(10px) scale(1.02);
+    border-color: rgba(255, 255, 255, 0.15);
+    background: rgba(25, 25, 40, 0.6);
+}
+
+/* --- Card Tiers --- */
+
+/* Epic Tier (10 - 50) - Ethereal Purple/Blue */
+.donation-card-epic {
+    border-color: rgba(139, 92, 246, 0.3);
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.05);
+}
+
+.donation-card-epic::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(45deg, transparent, rgba(139, 92, 246, 0.05), transparent);
+    pointer-events: none;
+}
+
+/* Legendary Tier (> 50) - Golden Godlike */
+.donation-card-legendary {
+    border-color: rgba(245, 158, 11, 0.4);
+    box-shadow: 0 0 30px rgba(245, 158, 11, 0.1);
+    background: rgba(30, 20, 10, 0.4);
+}
+
+.donation-card-legendary .donation-avatar {
+    border-color: #f59e0b;
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.5);
+}
+
+.donation-card-legendary::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: conic-gradient(
+        from 0deg,
+        transparent,
+        rgba(245, 158, 11, 0.1),
+        transparent 30%
+    );
+    animation: rotate-glow 6s linear infinite;
+    pointer-events: none;
+}
+
+/* --- Card Header --- */
 .donation-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 0.5rem;
+    z-index: 2;
 }
 
 .donation-user {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 1rem;
 }
 
 .donation-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: var(--bg-alt);
+    width: 48px;
+    height: 48px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.05);
     border: 2px solid var(--accent);
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
+    transition: transform 0.3s ease;
 }
 
-.donation-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+.donation-card:hover .donation-avatar {
+    transform: rotate(5deg) scale(1.1);
 }
 
 .donation-info h4 {
     margin: 0;
-    font-size: 1rem;
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.1rem;
     color: #fff;
-    font-weight: 700;
+    font-weight: 800;
+    letter-spacing: -0.02em;
 }
 
 .donation-date {
     font-size: 0.75rem;
-    color: var(--muted);
+    color: rgba(255, 255, 255, 0.4);
+    font-weight: 500;
 }
 
+/* --- Badge Styling --- */
 .donation-amount-badge {
-    background: rgba(12, 112, 117, 0.2);
-    color: var(--accent);
-    padding: 0.25rem 0.75rem;
-    border-radius: 20px;
-    font-weight: bold;
-    font-size: 0.9rem;
-    border: 1px solid rgba(12, 112, 117, 0.4);
+    background: rgba(255, 255, 255, 0.03);
+    color: #fff;
+    padding: 0.5rem 1rem;
+    border-radius: 12px;
+    font-weight: 900;
+    font-size: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     display: flex;
     align-items: center;
-    gap: 0.4rem;
+    gap: 0.6rem;
+    font-family: 'Inter', sans-serif;
 }
 
+.donation-card-epic .donation-amount-badge {
+    background: rgba(139, 92, 246, 0.1);
+    border-color: rgba(139, 92, 246, 0.3);
+    color: #a78bfa;
+}
+
+.donation-card-legendary .donation-amount-badge {
+    background: rgba(245, 158, 11, 0.1);
+    border-color: rgba(245, 158, 11, 0.3);
+    color: #fbbf24;
+}
+
+/* --- Message Styling --- */
 .donation-message {
-    background: rgba(0, 0, 0, 0.2);
-    padding: 1rem;
-    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.02);
+    padding: 1.2rem;
+    border-radius: 16px;
     font-size: 0.95rem;
-    color: #e0e0e0;
-    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.6;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    font-style: italic;
     position: relative;
+    z-index: 2;
 }
 
-/* Triángulo "bocadillo" para el mensaje */
-.donation-message::before {
-    content: '';
-    position: absolute;
-    top: -6px;
-    left: 20px;
-    width: 0;
-    height: 0;
-    border-left: 6px solid transparent;
-    border-right: 6px solid transparent;
-    border-bottom: 6px solid rgba(0, 0, 0, 0.2);
+/* --- Global Animations --- */
+@keyframes rotate-glow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }

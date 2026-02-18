@@ -1,6 +1,7 @@
 import { useRef, useState, MouseEvent } from "react"
 import { Gem, Handshake, Calendar } from "lucide-react"
 import { useTranslation } from 'react-i18next'
+import { motion } from "framer-motion"
 
 interface Feature {
     icon: React.ReactNode;
@@ -109,11 +110,42 @@ export default function ServerFeatures() {
         }
     ]
 
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: {
+                staggerChildren: 0.2
+            }
+        }
+    }
+
+    const itemVariants: import('framer-motion').Variants = {
+        hidden: { opacity: 0, y: 30 },
+        visible: {
+            opacity: 1,
+            y: 0,
+            transition: {
+                type: "spring",
+                stiffness: 100,
+                damping: 15
+            }
+        }
+    }
+
     return (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16 px-4 max-w-7xl mx-auto">
+        <motion.div 
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={containerVariants}
+            className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16 px-4 max-w-7xl mx-auto"
+        >
             {features.map((feature, index) => (
-                <TiltCard key={index} feature={feature} />
+                <motion.div key={index} variants={itemVariants}>
+                    <TiltCard feature={feature} />
+                </motion.div>
             ))}
-        </div>
+        </motion.div>
     )
 }

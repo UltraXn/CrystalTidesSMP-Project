@@ -23,7 +23,7 @@ export default function Suggestions() {
 
     // Mutation: Vote
     const voteMutation = useMutation({
-        mutationFn: (optionId: number) => {
+        mutationFn: (optionId: string | number) => {
             if (!poll?.id) throw new Error("No active poll");
             return voteInPoll(poll.id, optionId);
         },
@@ -52,7 +52,7 @@ export default function Suggestions() {
         );
     }, [])
 
-    const handleVote = async (optionId: number) => {
+    const handleVote = async (optionId: string | number) => {
         if (voteMutation.isIdle || !poll) {
             await voteMutation.mutateAsync(optionId)
         }

@@ -27,26 +27,43 @@ export default function Loader({ text, style, size, minimal, fullScreen }: Loade
     return (
         <div className={`premium-loader-container ${fullScreen ? 'loader-fullscreen' : ''}`} style={style}>
             <div className="loader-visual-wrapper">
-                {/* Orbital Rings */}
-                <div className="loader-ring loader-ring-1"></div>
-                <div className="loader-ring loader-ring-2"></div>
-                <div className="loader-ring loader-ring-3"></div>
-                
-                {/* Glow & Shine */}
-                <div className="loader-shine"></div>
-                
-                {/* Logo */}
-                <div className="loader-logo-glow">
-                    <img
-                        src="/images/ui/logo.webp"
-                        alt="Loading..."
-                    />
+                {/* Prism Body */}
+                <div className="prism-container">
+                    <div className="prism-glass">
+                        <div className="loader-logo-wrapper">
+                            <img
+                                src="/images/ui/logo.webp"
+                                alt="Crystal Tides"
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Effect Layers */}
+                <div className="prism-rays">
+                    <div className="ray ray-1"></div>
+                    <div className="ray ray-2"></div>
+                    <div className="ray ray-3"></div>
+                    <div className="ray ray-4"></div>
+                    <div className="ray ray-5"></div>
+                </div>
+
+                <div className="particles">
+                    <div className="particle p1"></div>
+                    <div className="particle p2"></div>
+                    <div className="particle p3"></div>
+                    <div className="particle p4"></div>
                 </div>
             </div>
 
             {displayText && (
-                <div className="loader-text-premium">
-                    {displayText}
+                <div className="loader-text-wrapper">
+                    <div className="loader-text-premium">
+                        {displayText}
+                    </div>
+                    <div className="loader-subtitle">
+                        {t('common.please_wait', 'Please wait...')}
+                    </div>
                 </div>
             )}
         </div>

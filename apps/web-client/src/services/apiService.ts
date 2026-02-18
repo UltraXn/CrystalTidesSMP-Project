@@ -49,6 +49,7 @@ export interface PublicDonation {
     id?: number;
     message_id?: string;
     from_name: string;
+    from_avatar?: string;
     created_at: string;
     currency: string;
     amount: number | string;
@@ -74,7 +75,21 @@ export const fetchTasks = async () => {
     return res.json();
 };
 
-export const createTask = async (task: any) => {
+export interface AdminDoc {
+    id: string;
+    title: string;
+    content: string;
+    [key: string]: unknown;
+}
+
+export interface TaskPayload {
+    title: string;
+    description?: string;
+    status?: string;
+    [key: string]: unknown;
+}
+
+export const createTask = async (task: TaskPayload) => {
     const headers = await getHeaders();
     const res = await fetch(`${API_URL}/staff/tasks`, {
         method: 'POST',
@@ -85,7 +100,7 @@ export const createTask = async (task: any) => {
     return res.json();
 };
 
-export const updateTask = async (id: number | string, task: any) => {
+export const updateTask = async (id: number | string, task: Record<string, unknown>) => {
     const headers = await getHeaders();
     const res = await fetch(`${API_URL}/staff/tasks/${id}`, {
         method: 'PUT',
@@ -139,7 +154,7 @@ export const fetchAdminDocs = async () => {
     return data && data.value ? (typeof data.value === 'string' ? JSON.parse(data.value) : data.value) : null;
 };
 
-export const updateAdminDocs = async (docs: any[], userId: string, username: string) => {
+export const updateAdminDocs = async (docs: AdminDoc[], userId: string, username: string) => {
     const headers = await getHeaders();
     const res = await fetch(`${API_URL}/settings/admin_docs`, {
         method: 'PUT',
@@ -151,7 +166,7 @@ export const updateAdminDocs = async (docs: any[], userId: string, username: str
         })
     });
     if (!res.ok) throw new Error('Failed to update admin docs');
-    return res.json();
+    return res.json() as Promise<{ success: boolean; [key: string]: unknown }>;
 };
 
 export const uploadAdminAsset = async (file: File, path: string) => {

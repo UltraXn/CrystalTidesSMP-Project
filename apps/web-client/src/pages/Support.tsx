@@ -42,7 +42,12 @@ export default function Support() {
     })
 
     const handleCreateTicket = async (data: CreateTicketFormValues) => {
-        createMutation.mutate(data)
+        createMutation.mutate({
+            title: data.title,
+            description: data.description,
+            category: data.category || 'general',
+            priority: data.priority || 'medium'
+        })
     }
 
     if (isLoading) return <Loader fullScreen text={t('common.loading')} />

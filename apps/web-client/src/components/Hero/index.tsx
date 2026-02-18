@@ -4,6 +4,7 @@ import { Copy, Check, Coffee } from "lucide-react"
 import HeroBackgroundCarousel from "./Carousel"
 import HeroParticles from "./Particles"
 import { gsap } from "gsap"
+import { motion } from "framer-motion"
 import { useTranslation } from 'react-i18next'
 import { useQuery } from "@tanstack/react-query"
 import { fetchSettings } from "../../services/apiService"
@@ -93,17 +94,17 @@ export default function Hero({ mockSlides, mockPlayerCount, mockIsOnline }: Hero
 
             tl.fromTo(welcomeRef.current, 
                 { opacity: 0, y: 30 },
-                { opacity: 1, y: 0, duration: 1 }
+                { opacity: 1, y: 0, duration: 1, ease: "back.out(1.7)" }
             )
             .to('.hero-brand-char', {
                 opacity: 1,
                 y: 0,
                 filter: 'blur(0px)',
                 scale: 1,
-                stagger: 0.03,
-                duration: 1.5,
-                ease: "elastic.out(1, 0.75)"
-            }, "-=0.7")
+                stagger: 0.04,
+                duration: 1.2,
+                ease: "elastic.out(1, 0.5)"
+            }, "-=0.6")
             .fromTo([descRef.current, containerRef.current],
                 { opacity: 0, y: 40 },
                 { opacity: 1, y: 0, stagger: 0.2, duration: 1 },
@@ -131,6 +132,7 @@ export default function Hero({ mockSlides, mockPlayerCount, mockIsOnline }: Hero
         });
 
         return () => { anim.kill(); };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [serverStatus?.players?.online, mockPlayerCount, isOnline, prefersReducedMotion]);
 
     const handleCopy = () => {
@@ -183,24 +185,35 @@ export default function Hero({ mockSlides, mockPlayerCount, mockIsOnline }: Hero
                     </div>
                 )}
 
-                <div
+                <motion.div
                     className="flex flex-col items-center gap-10"
                     ref={containerRef}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 1, duration: 0.8 }}
                 >
-                    <Link to="/status" className="group flex items-center gap-3 bg-[#0a0a0a]/80 backdrop-blur-xl border border-(--accent)/30 shadow-[0_0_15px_rgba(137,217,209,0.1)] px-6 py-2.5 rounded-full no-underline transition-all hover:bg-black/90 hover:border-(--accent) hover:shadow-[0_0_25px_rgba(137,217,209,0.4)] hover:scale-105 active:scale-95">
-                        <span className={`w-2.5 h-2.5 rounded-full shadow-[0_0_10px] ${isOnline === false ? 'bg-red-500 shadow-red-500' : 'bg-(--accent) shadow-(--accent) animate-pulse'}`}></span>
-                        <span className="text-sm font-bold text-white tracking-wide group-hover:text-(--accent) transition-colors">
-                            {isOnline === false ? (
-                                t('status.offline')
-                            ) : (
-                                <><span ref={countRef} className="font-black text-(--accent)">{displayPlayerCount}</span> {t('hero.players_online')}</>
-                            )}
-                        </span>
+                    <Link to="/status" className="no-underline">
+                        <motion.button 
+                            whileHover={{ scale: 1.05, y: -2 }}
+                            whileTap={{ scale: 0.98 }}
+                            className="group flex items-center gap-3 bg-[#0a0a0a]/80 backdrop-blur-xl border border-(--accent)/30 shadow-[0_0_15px_rgba(137,217,209,0.1)] px-6 py-2.5 rounded-full transition-all hover:bg-black/90 hover:border-(--accent) hover:shadow-[0_0_25px_rgba(137,217,209,0.4)]"
+                        >
+                            <span className={`w-2.5 h-2.5 rounded-full shadow-[0_0_10px] ${isOnline === false ? 'bg-red-500 shadow-red-500' : 'bg-(--accent) shadow-(--accent) animate-pulse'}`}></span>
+                            <span className="text-sm font-bold text-white tracking-wide group-hover:text-(--accent) transition-colors">
+                                {isOnline === false ? (
+                                    t('status.offline')
+                                ) : (
+                                    <><span ref={countRef} className="font-black text-(--accent)">{displayPlayerCount}</span> {t('hero.players_online')}</>
+                                )}
+                            </span>
+                        </motion.button>
                     </Link>
 
-                    <button 
+                    <motion.button 
                         onClick={handleCopy}
-                        className="w-full max-w-2xl bg-black/50 backdrop-blur-2xl border border-(--accent)/20 rounded-3xl p-4 flex flex-col sm:flex-row items-center gap-6 shadow-2xl group/ip transition-all hover:bg-black/70 hover:border-(--accent)/50 hover:shadow-[0_0_30px_rgba(137,217,209,0.1)] active:scale-[0.99] cursor-pointer"
+                        whileHover={{ scale: 1.01, y: -2 }}
+                        whileTap={{ scale: 0.99 }}
+                        className="w-full max-w-2xl bg-black/50 backdrop-blur-2xl border border-(--accent)/20 rounded-3xl p-4 flex flex-col sm:flex-row items-center gap-6 shadow-2xl group/ip transition-all hover:bg-black/70 hover:border-(--accent)/50 hover:shadow-[0_0_30px_rgba(137,217,209,0.1)] cursor-pointer"
                     >
                         <div className="flex-1 flex flex-col items-center sm:items-start text-center sm:text-left pl-0 sm:pl-4">
                             <span className="text-[10px] font-black text-(--accent) uppercase tracking-[0.2em] mb-1 opacity-80">
@@ -213,18 +226,31 @@ export default function Hero({ mockSlides, mockPlayerCount, mockIsOnline }: Hero
                             {copied ? <Check size={16} /> : <Copy size={16} />}
                             <span className="text-xs">{copied ? t('hero.copied') : t('hero.copy_ip')}</span>
                         </div>
-                    </button>
+                    </motion.button>
 
                     <div className="flex flex-wrap justify-center gap-5 mt-4" ref={actionGroupRef}>
-                        <a href="https://ko-fi.com/G2G03Y8FL" target="_blank" rel="noreferrer" className="flex items-center gap-4 bg-(--accent) px-10 py-5 rounded-2xl no-underline transition-all hover:bg-white hover:scale-110 active:scale-95 group/kofi shadow-[0_0_20px_rgba(137,217,209,0.3)]">
+                        <motion.a 
+                            href="https://ko-fi.com/G2G03Y8FL" 
+                            target="_blank" 
+                            rel="noreferrer" 
+                            whileHover={{ scale: 1.08, y: -5 }}
+                            whileTap={{ scale: 0.95 }}
+                            className="flex items-center gap-4 bg-(--accent) px-10 py-5 rounded-2xl no-underline transition-all hover:bg-white group/kofi shadow-[0_0_20px_rgba(137,217,209,0.3)]"
+                        >
                             <Coffee size={22} className="text-[#181C1B] group-hover/kofi:rotate-12 transition-transform" />
                             <span className="text-[#181C1B] font-black uppercase tracking-widest text-sm">{t('hero.kofi_btn', 'Ko-Fi')}</span>
-                        </a>
-                        <Link to="/#donors" className="flex items-center gap-4 bg-transparent border-2 border-(--accent) px-10 py-5 rounded-2xl no-underline transition-all hover:bg-(--accent) hover:scale-110 active:scale-95 shadow-2xl group/donors">
-                            <span className="text-(--accent) font-black uppercase tracking-widest text-sm leading-none group-hover/donors:text-[#181C1B] transition-colors">{t('navbar.donors')}</span>
+                        </motion.a>
+                        <Link to="/#donors" className="no-underline">
+                            <motion.button 
+                                whileHover={{ scale: 1.08, y: -5 }}
+                                whileTap={{ scale: 0.95 }}
+                                className="flex items-center gap-4 bg-transparent border-2 border-(--accent) px-10 py-5 rounded-2xl transition-all hover:bg-(--accent) shadow-2xl group/donors"
+                            >
+                                <span className="text-(--accent) font-black uppercase tracking-widest text-sm leading-none group-hover/donors:text-[#181C1B] transition-colors">{t('navbar.donors')}</span>
+                            </motion.button>
                         </Link>
                     </div>
-                </div>
+                </motion.div>
             </div>
         </section>
     )
