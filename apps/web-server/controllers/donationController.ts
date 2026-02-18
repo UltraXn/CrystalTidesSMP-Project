@@ -84,12 +84,43 @@ export const getDonations = async (req: Request, res: Response) => {
 
 export const getPublicDonations = async (req: Request, res: Response) => {
     try {
+        const selectFields = 'id, message_id, from_name, created_at, currency, amount, message, message_en, is_public';
+        const limitParam = typeof req.query.limit === 'string' ? req.query.limit.trim().toLowerCase() : '';
+
+        if (limitParam === 'all') {
+            const pageSize = 1000;
+            let start = 0;
+            let allRows: Record<string, unknown>[] = [];
+
+            while (true) {
+                const { data, error } = await supabase
+                    .from('donations')
+                    .select(selectFields)
+                    .eq('is_public', true)
+                    .order('created_at', { ascending: false })
+                    .range(start, start + pageSize - 1);
+
+                if (error) throw error;
+                if (!data || data.length === 0) break;
+
+                allRows = allRows.concat(data);
+                if (data.length < pageSize) break;
+
+                start += pageSize;
+            }
+
+            return res.json({
+                data: allRows,
+                total: allRows.length
+            });
+        }
+
         const rawLimit = Number.parseInt(String(req.query.limit ?? '20'), 10);
-        const limit = Number.isNaN(rawLimit) ? 20 : Math.min(Math.max(rawLimit, 1), 100);
+        const limit = Number.isNaN(rawLimit) ? 20 : Math.min(Math.max(rawLimit, 1), 1000);
 
         const { data, error } = await supabase
             .from('donations')
-            .select('id, message_id, from_name, created_at, currency, amount, message, message_en, is_public')
+            .select(selectFields)
             .eq('is_public', true)
             .order('created_at', { ascending: false })
             .limit(limit);

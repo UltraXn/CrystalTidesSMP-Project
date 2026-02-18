@@ -15,8 +15,8 @@ export default function DonationFeed({ mockDonations }: DonationFeedProps = {}) 
     const { t, i18n } = useTranslation()
 
     const { data: fetchedDonations = [], isLoading } = useQuery({
-        queryKey: ['public-donations-feed', 20],
-        queryFn: () => fetchPublicDonations(20),
+        queryKey: ['public-donations-feed', 'all'],
+        queryFn: () => fetchPublicDonations('all'),
         enabled: !mockDonations,
         staleTime: 1000 * 15,
         refetchInterval: 1000 * 30

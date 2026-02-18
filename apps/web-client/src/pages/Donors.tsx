@@ -39,8 +39,8 @@ export default function Donors() {
     });
 
     const { data: latestDonations = [] } = useQuery({
-        queryKey: ['public-latest-donations'],
-        queryFn: (): Promise<PublicDonation[]> => fetchPublicDonations(30),
+        queryKey: ['public-latest-donations', 'all'],
+        queryFn: (): Promise<PublicDonation[]> => fetchPublicDonations('all'),
         staleTime: 1000 * 30,
         refetchInterval: 1000 * 30
     });

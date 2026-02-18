@@ -57,8 +57,9 @@ export interface PublicDonation {
     is_public: boolean;
 }
 
-export const fetchPublicDonations = async (limit = 20): Promise<PublicDonation[]> => {
-    const res = await fetch(`${API_URL}/donations/public?limit=${limit}`);
+export const fetchPublicDonations = async (limit: number | 'all' = 20): Promise<PublicDonation[]> => {
+    const qsLimit = limit === 'all' ? 'all' : String(limit);
+    const res = await fetch(`${API_URL}/donations/public?limit=${qsLimit}`);
     if (!res.ok) throw new Error('Failed to fetch public donations');
     const data = await res.json();
     return Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : []);
