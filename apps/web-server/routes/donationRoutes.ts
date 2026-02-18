@@ -1,5 +1,5 @@
 import express from 'express';
-import { testDonation, getDonations, createDonation, updateDonation, deleteDonation, getDonationStats } from '../controllers/donationController.js';
+import { testDonation, getDonations, getPublicDonations, createDonation, updateDonation, deleteDonation, getDonationStats } from '../controllers/donationController.js';
 import { authenticateToken } from '../middleware/authMiddleware.js';
 import { validate } from '../middleware/validateResource.js';
 import { createDonationSchema, updateDonationSchema } from '../schemas/donationSchemas.js';
@@ -47,6 +47,15 @@ const router = express.Router();
  *       - bearerAuth: []
  */
 router.post('/test', authenticateToken, testDonation);
+
+/**
+ * @swagger
+ * /donations/public:
+ *   get:
+ *     summary: Obtener últimas donaciones públicas
+ *     tags: [Donations]
+ */
+router.get('/public', getPublicDonations);
 
 /**
  * @swagger

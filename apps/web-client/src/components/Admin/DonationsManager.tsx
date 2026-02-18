@@ -72,12 +72,12 @@ export default function DonationsManager({ mockDonations }: DonationsManagerProp
     const handleSave = async (donationData: Donation) => {
         // Map Donation to DonationPayload
         const payload: DonationPayload = {
-            donor_name: donationData.from_name || 'Anonymous',
+            from_name: donationData.from_name || 'Anonymous',
             amount: Number(donationData.amount),
             currency: donationData.currency || 'USD',
             message: donationData.message || '',
-            source: 'Manual',
-            status: 'completed'
+            is_public: donationData.is_public ?? true,
+            buyer_email: donationData.buyer_email || ''
         };
 
         if (donationData.id) {

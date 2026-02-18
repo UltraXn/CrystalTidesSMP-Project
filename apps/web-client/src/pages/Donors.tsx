@@ -1,12 +1,12 @@
+import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
+import { useQuery } from '@tanstack/react-query'
 import Section from "../components/Layout/Section"
 import EmblaCarousel from "../components/UI/EmblaCarousel"
 import { KoFiButton } from "../components/Widgets/KoFi"
 import DonationFeed from "../components/Widgets/DonationFeed"
-import { useTranslation } from 'react-i18next'
-import { useState, useEffect, useMemo } from 'react'
+import { fetchPublicDonations, fetchSettings, PublicDonation } from '../services/apiService'
 
-
-const API_URL = import.meta.env.VITE_API_URL
 const OPTIONS = { loop: true }
 
 const RANK_IMAGES: Record<string, string> = {
@@ -30,6 +30,20 @@ interface DonorProfile {
 
 export default function Donors() {
     const { t, i18n } = useTranslation()
+
+    // 1. Fetch Settings
+    const { data: settingsData } = useQuery({
+        queryKey: ['settings'],
+        queryFn: fetchSettings,
+        staleTime: 1000 * 60 * 5,
+    });
+
+    const { data: latestDonations = [] } = useQuery({
+        queryKey: ['public-latest-donations'],
+        queryFn: (): Promise<PublicDonation[]> => fetchPublicDonations(30),
+        staleTime: 1000 * 30,
+        refetchInterval: 1000 * 30
+    });
 
     const HARDCODED_DONORS: DonorProfile[] = useMemo(() => [
         {
@@ -109,8 +123,6 @@ export default function Donors() {
         }
     ], [t]);
 
-    const [finalDonors, setFinalDonors] = useState<DonorProfile[]>(HARDCODED_DONORS)
-
     const hardcodedDescs = useMemo(() => {
         return HARDCODED_DONORS.reduce((acc, curr) => {
             acc[curr.name.toLowerCase()] = curr.description
@@ -118,48 +130,68 @@ export default function Donors() {
         }, {} as Record<string, string>)
     }, [HARDCODED_DONORS])
 
-    useEffect(() => {
-        let isMounted = true;
-        fetch(`${API_URL}/settings`)
-            .then(res => res.json())
-            .then(data => {
-                if (!isMounted) return;
-                if (data.donors_list) {
-                    try {
-                        const parsed = typeof data.donors_list === 'string' ? JSON.parse(data.donors_list) : data.donors_list
-                        if (Array.isArray(parsed) && parsed.length > 0) {
-                            const mapped = parsed.map((d: { name: string; skinUrl?: string; description?: string; description_en?: string; ranks?: string[] }) => ({
-                                name: d.name,
-                                image: d.skinUrl || `https://mc-heads.net/avatar/${d.name}/128`,
-                                description: hardcodedDescs[d.name.toLowerCase()] || ((i18n.language === 'en' && d.description_en) ? d.description_en : d.description) || "",
-                                rank: (
-                                   <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', alignItems: 'center' }}>
-                                       {(d.ranks || []).map((r: string) => (
-                                           RANK_IMAGES[r] ? <img key={r} src={RANK_IMAGES[r]} alt={t(`donors.ranks.${r}`)} title={t(`donors.ranks.${r}`)} /> : null
-                                       ))}
-                                   </div>
-                                )
-                            }))
-                            setFinalDonors(mapped)
-                        } else {
-                            setFinalDonors(HARDCODED_DONORS)
-                        }
-                    } catch (e) {
-                         console.error("Error parsing dynamic donors", e)
-                         setFinalDonors(HARDCODED_DONORS)
-                    }
-                } else {
-                    setFinalDonors(HARDCODED_DONORS)
-                }
+    const finalDonors = useMemo(() => {
+        if (!settingsData?.donors_list) return HARDCODED_DONORS;
+
+        try {
+            const parsed = typeof settingsData.donors_list === 'string' 
+                ? JSON.parse(settingsData.donors_list) 
+                : settingsData.donors_list;
+
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                return parsed.map((d: any) => ({
+                    name: d.name,
+                    image: d.skinUrl || `https://mc-heads.net/avatar/${d.name}/128`,
+                    description: hardcodedDescs[d.name.toLowerCase()] || 
+                                ((i18n.language === 'en' && d.description_en) ? d.description_en : d.description) || "",
+                    rank: (
+                        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', alignItems: 'center' }}>
+                            {(d.ranks || []).map((r: string) => (
+                                RANK_IMAGES[r] ? <img key={r} src={RANK_IMAGES[r]} alt={t(`donors.ranks.${r}`)} title={t(`donors.ranks.${r}`)} /> : null
+                            ))}
+                        </div>
+                    )
+                }));
+            }
+        } catch (e) {
+            console.error("Error parsing dynamic donors", e);
+        }
+        return HARDCODED_DONORS;
+    }, [settingsData, HARDCODED_DONORS, hardcodedDescs, i18n.language, t]);
+
+    const donationCarouselSlides = useMemo(() => {
+        const uniqueByName = new Set<string>();
+
+        return latestDonations
+            .filter((d) => !!d.from_name)
+            .filter((d) => {
+                const key = d.from_name.toLowerCase();
+                if (uniqueByName.has(key)) return false;
+                uniqueByName.add(key);
+                return true;
             })
-            .catch(err => {
-                if (!isMounted) return;
-                console.error(err)
-                setFinalDonors(HARDCODED_DONORS)
-            })
-        
-        return () => { isMounted = false; };
-    }, [i18n.language, HARDCODED_DONORS, hardcodedDescs, t])
+            .map((d) => {
+                const amount = Number(d.amount || 0).toFixed(2);
+                return {
+                    name: d.from_name,
+                    image: `https://minotar.net/skin/${encodeURIComponent(d.from_name)}`,
+                    description: d.message?.trim() || `${d.currency} ${amount} via Ko-Fi`,
+                    rank: (
+                        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', alignItems: 'center' }}>
+                            <img src="/ranks/rank-donador.png" alt={t('donors.ranks.donador')} title={t('donors.ranks.donador')} />
+                        </div>
+                    )
+                };
+            });
+    }, [latestDonations, t]);
+
+    const carouselSlides = useMemo(() => {
+        if (donationCarouselSlides.length === 0) return finalDonors;
+
+        const seen = new Set(donationCarouselSlides.map((d) => d.name.toLowerCase()));
+        const curatedFallback = finalDonors.filter((d) => !seen.has(d.name.toLowerCase()));
+        return [...donationCarouselSlides, ...curatedFallback];
+    }, [donationCarouselSlides, finalDonors]);
 
     return (
         <div className="pt-24 min-h-screen">
@@ -179,7 +211,7 @@ export default function Donors() {
                     <div className="flex items-center justify-center gap-4 mb-8">
                         <div className="h-px w-16 bg-linear-to-r from-transparent to-(--accent)"></div>
                         <h3 className="text-2xl font-black uppercase tracking-widest text-white">{t('donors.latest_title')}</h3>
-                        <div className="h-px w-16 bg-linear-to-l from-transparent to-(--accent)"></div>
+                        <div className="h-px w-16 bg-linear-to-l from-transparent to-(--accent) text-(--accent)"></div>
                     </div>
                     <DonationFeed />
                 </div>
@@ -192,7 +224,7 @@ export default function Donors() {
                         </div>
                     </div>
                     <div className="w-full max-w-[1400px] mx-auto">
-                        <EmblaCarousel slides={finalDonors} options={OPTIONS} />
+                        <EmblaCarousel slides={carouselSlides} options={OPTIONS} />
                     </div>
                 </div>
             </Section>

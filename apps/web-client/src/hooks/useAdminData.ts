@@ -636,12 +636,17 @@ export const useDeleteWikiArticle = () => {
 // --- Donations Management ---
 
 export interface DonationPayload {
-    donor_name: string;
+    from_name?: string;
+    donor_name?: string;
     amount: number;
     currency: string;
     message?: string;
-    source: string;
-    status: string;
+    type?: string;
+    source?: string;
+    status?: string;
+    is_public?: boolean;
+    buyer_email?: string;
+    email?: string;
 }
 
 export const useAdminDonations = (page: number, limit: number, search: string) => {
@@ -656,6 +661,7 @@ export const useAdminDonations = (page: number, limit: number, search: string) =
             return await res.json();
         },
         placeholderData: (previousData) => previousData,
+        refetchInterval: 1000 * 30,
     });
 };
 

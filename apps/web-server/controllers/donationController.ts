@@ -82,19 +82,54 @@ export const getDonations = async (req: Request, res: Response) => {
     }
 };
 
+export const getPublicDonations = async (req: Request, res: Response) => {
+    try {
+        const rawLimit = Number.parseInt(String(req.query.limit ?? '20'), 10);
+        const limit = Number.isNaN(rawLimit) ? 20 : Math.min(Math.max(rawLimit, 1), 100);
+
+        const { data, error } = await supabase
+            .from('donations')
+            .select('id, message_id, from_name, created_at, currency, amount, message, message_en, is_public')
+            .eq('is_public', true)
+            .order('created_at', { ascending: false })
+            .limit(limit);
+
+        if (error) throw error;
+
+        res.json({
+            data: data || [],
+            total: data?.length || 0
+        });
+    } catch (error) {
+        console.error('Error fetching public donations:', error);
+        res.status(500).json({ message: 'Error fetching public donations' });
+    }
+};
+
 export const createDonation = async (req: Request, res: Response) => {
     try {
-        const { from_name, amount, currency, message, is_public, email } = req.body;
+        const fallbackName = typeof req.body?.donor_name === 'string' ? req.body.donor_name : undefined;
+        const fromName = typeof req.body?.from_name === 'string' ? req.body.from_name : fallbackName;
+        const amount = Number(req.body?.amount);
+        const currency = typeof req.body?.currency === 'string' ? req.body.currency : 'USD';
+        const message = typeof req.body?.message === 'string' ? req.body.message : '';
+        const isPublic = req.body?.is_public ?? true;
+        const fallbackEmail = typeof req.body?.email === 'string' ? req.body.email : undefined;
+        const buyerEmail = typeof req.body?.buyer_email === 'string' ? req.body.buyer_email : fallbackEmail;
+
+        if (!Number.isFinite(amount) || amount <= 0) {
+            return res.status(400).json({ message: 'Invalid donation amount' });
+        }
         
         const { data, error } = await supabase
             .from('donations')
             .insert([{ 
-                from_name, 
+                from_name: fromName || 'Anonymous',
                 amount, 
-                currency: currency || 'USD', 
+                currency: currency || 'USD',
                 message, 
-                is_public: is_public ?? true, 
-                buyer_email: email,
+                is_public: isPublic, 
+                buyer_email: buyerEmail,
                 created_at: new Date()
             }])
             .select()
@@ -115,9 +150,40 @@ export const createDonation = async (req: Request, res: Response) => {
 export const updateDonation = async (req: Request, res: Response) => {
     try {
         const id = parseInt(req.params.id);
+        if (Number.isNaN(id)) {
+            return res.status(400).json({ message: 'Invalid donation id' });
+        }
+
+        const updates: Record<string, unknown> = {};
+        const fallbackName = typeof req.body?.donor_name === 'string' ? req.body.donor_name : undefined;
+        const fromName = typeof req.body?.from_name === 'string' ? req.body.from_name : fallbackName;
+        if (fromName !== undefined) updates.from_name = fromName;
+
+        if (req.body?.amount !== undefined) {
+            const amount = Number(req.body.amount);
+            if (!Number.isFinite(amount) || amount <= 0) {
+                return res.status(400).json({ message: 'Invalid donation amount' });
+            }
+            updates.amount = amount;
+        }
+
+        if (typeof req.body?.currency === 'string') updates.currency = req.body.currency;
+        if (typeof req.body?.message === 'string') updates.message = req.body.message;
+        if (typeof req.body?.type === 'string') updates.type = req.body.type;
+        if (typeof req.body?.source === 'string') updates.type = req.body.source;
+        if (req.body?.is_public !== undefined) updates.is_public = Boolean(req.body.is_public);
+
+        const fallbackEmail = typeof req.body?.email === 'string' ? req.body.email : undefined;
+        const buyerEmail = typeof req.body?.buyer_email === 'string' ? req.body.buyer_email : fallbackEmail;
+        if (buyerEmail !== undefined) updates.buyer_email = buyerEmail;
+
+        if (Object.keys(updates).length === 0) {
+            return res.status(400).json({ message: 'No valid donation fields to update' });
+        }
+
         const { data, error } = await supabase
             .from('donations')
-            .update(req.body)
+            .update(updates)
             .eq('id', id)
             .select()
             .single();

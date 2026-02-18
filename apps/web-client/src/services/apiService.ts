@@ -45,6 +45,25 @@ export const fetchSettings = async () => {
     return res.json();
 };
 
+export interface PublicDonation {
+    id?: number;
+    message_id?: string;
+    from_name: string;
+    created_at: string;
+    currency: string;
+    amount: number | string;
+    message?: string;
+    message_en?: string;
+    is_public: boolean;
+}
+
+export const fetchPublicDonations = async (limit = 20): Promise<PublicDonation[]> => {
+    const res = await fetch(`${API_URL}/donations/public?limit=${limit}`);
+    if (!res.ok) throw new Error('Failed to fetch public donations');
+    const data = await res.json();
+    return Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : []);
+};
+
 // --- Staff/Admin Hub (Tasks) ---
 
 export const fetchTasks = async () => {

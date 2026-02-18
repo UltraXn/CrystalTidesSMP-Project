@@ -1,71 +1,36 @@
-import { useEffect, useState } from 'react'
-import { supabase } from '../../services/supabaseClient'
+import { useMemo } from 'react'
 import { Heart, User } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { useQuery } from '@tanstack/react-query'
+import { fetchPublicDonations, PublicDonation } from '../../services/apiService'
 import '../../donation-feed.css'
 
-interface Donation {
-    id?: string;
-    message_id?: string;
-    from_name: string;
-    created_at: string;
-    currency: string;
-    amount: string | number;
-    message?: string;
-    message_en?: string;
-    is_public: boolean;
-}
+interface Donation extends PublicDonation {}
 
 interface DonationFeedProps {
     mockDonations?: Donation[];
 }
 
 export default function DonationFeed({ mockDonations }: DonationFeedProps = {}) {
-    const [donations, setDonations] = useState<Donation[]>(mockDonations || [])
-    const [loading, setLoading] = useState(!mockDonations)
     const { t, i18n } = useTranslation()
 
-    useEffect(() => {
-        if (mockDonations) return;
-        fetchDonations()
+    const { data: fetchedDonations = [], isLoading } = useQuery({
+        queryKey: ['public-donations-feed', 20],
+        queryFn: () => fetchPublicDonations(20),
+        enabled: !mockDonations,
+        staleTime: 1000 * 15,
+        refetchInterval: 1000 * 30
+    })
 
-        // Suscribirse a cambios en tiempo real (NUEVAS donaciones aparecen al instante)
-        const subscription = supabase
-            .channel('public:donations')
-            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'donations' }, (payload: { new: Donation }) => {
-                setDonations(prev => [payload.new, ...prev])
-            })
-            .subscribe()
-
-        return () => {
-            supabase.removeChannel(subscription)
-        }
-    }, [mockDonations])
-
-    const fetchDonations = async () => {
-        try {
-            const { data, error } = await supabase
-                .from('donations')
-                .select('*')
-                .eq('is_public', true)
-                .order('created_at', { ascending: false })
-                .limit(20)
-
-            if (error) throw error
-            setDonations(data)
-        } catch (error) {
-            console.error('Error fetching donations:', error)
-        } finally {
-            setLoading(false)
-        }
-    }
+    const donations = useMemo(() => mockDonations || fetchedDonations, [mockDonations, fetchedDonations])
+    const loading = !mockDonations && isLoading
 
     if (loading) return (
-        <div style={{ 
-            textAlign: 'center', 
-            height: '400px', 
-            display: 'flex', 
-            alignItems: 'center', 
+        <div style={{
+            textAlign: 'center',
+            height: '400px',
+            display: 'flex',
+            alignItems: 'center',
             justifyContent: 'center',
             color: 'var(--muted)'
         }}>
@@ -108,7 +73,6 @@ export default function DonationFeed({ mockDonations }: DonationFeedProps = {}) 
                 </div>
             ) : (
                 <div className="donation-scroll-track">
-                    {/* Renderizamos la lista dos veces para el efecto infinito */}
                     {donations.map((d, i) => renderDonationCard(d, `A-${i}`))}
                     {donations.map((d, i) => renderDonationCard(d, `B-${i}`))}
                 </div>
