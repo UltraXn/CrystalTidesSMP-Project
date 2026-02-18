@@ -829,7 +829,7 @@ export const useStaffOnlineStatus = () => {
     return useQuery({
         queryKey: ['admin', 'staff-online'],
         queryFn: async () => {
-            const res = await fetch(`${API_URL}/server/staff`);
+            const res = await fetch(`${API_URL}/users/staff`);
             if (!res.ok) throw new Error('Staff online status fetch failed');
             const data = await res.json();
             return Array.isArray(data) ? data : (data.data || []);

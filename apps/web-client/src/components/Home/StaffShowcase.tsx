@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Briefcase, Users, CheckCircle2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import Section from '../Layout/Section';
 import Loader from '../UI/Loader';
 import MinecraftAvatar from '../UI/MinecraftAvatar';
+import { useQuery } from '@tanstack/react-query';
+import { fetchSettings, fetchStaffList } from '../../services/apiService';
 
 // Pixel Art Bubble SVG Data URI
 const BUBBLE_SVG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath d='M2 0h4v1H2zM1 1h1v1H1zM6 1h1v1H6zM0 2h1v4H0zM7 2h1v4H7zM1 6h1v1H1zM6 6h1v1H6zM2 7h4v1H2z'/%3E%3C/svg%3E";
@@ -69,7 +71,7 @@ const CardBubbles = ({ color }: { color: string }) => {
 interface StaffMember {
     id: string | number;
     name: string;
-    mc_nickname?: string; // Added field
+    mc_nickname?: string;
     role: string;
     role_en?: string;
     image: string;
@@ -84,7 +86,12 @@ interface StaffMember {
     };
 }
 
-const API_URL = import.meta.env.VITE_API_URL || '/api';
+interface StaffPresenceEntry {
+    username?: string;
+    mc_nickname?: string;
+    mc_status?: string;
+    discord_status?: string;
+}
 
 const RANK_BADGES: Record<string, string> = {
     'Neroferno': '/ranks/rank-neroferno.png',
@@ -105,19 +112,29 @@ interface StaffShowcaseProps {
 
 export default function StaffShowcase({ mockStaff, mockOnlineStatus, mockRecruitment }: StaffShowcaseProps) {
     const { t, i18n } = useTranslation();
-    const [staff, setStaff] = useState<StaffMember[]>(mockStaff || []);
-    
-    // Helper to get badge
+
+    // Queries
+    const { data: settingsData, isLoading: settingsLoading } = useQuery({
+        queryKey: ['settings'],
+        queryFn: fetchSettings,
+        enabled: !mockStaff,
+        staleTime: 1000 * 60 * 5,
+    });
+
+    const { data: onlineStaffList } = useQuery({
+        queryKey: ['staff-status'],
+        queryFn: fetchStaffList,
+        enabled: !mockStaff,
+        refetchInterval: 30000,
+    });
+
+    const [hoveredDiscord, setHoveredDiscord] = useState<string | null>(null);
+
     const getBadge = (role: string) => {
         if (!role) return null;
         const key = Object.keys(RANK_BADGES).find(k => k.toLowerCase() === role.toLowerCase());
         return key ? RANK_BADGES[key] : null;
     };
-    const [recruitment, setRecruitment] = useState<{ status: string; link: string }>(mockRecruitment || { status: 'false', link: '' });
-    const [loading, setLoading] = useState(!mockStaff);
-    // Store separated statuses
-    const [onlineStaff, setOnlineStaff] = useState<Record<string, { mc: string, discord: string }>>(mockOnlineStatus || {});
-    const [hoveredDiscord, setHoveredDiscord] = useState<string | null>(null);
 
     const resolveUrl = (url: string, platform: 'twitter' | 'youtube' | 'twitch') => {
         if (!url) return '#';
@@ -128,60 +145,50 @@ export default function StaffShowcase({ mockStaff, mockOnlineStatus, mockRecruit
         return url;
     };
 
-    useEffect(() => {
-        if (mockStaff) return;
+    // 3. Derived State (replacing useEffect + setState to avoid cascading renders)
+	const staff = useMemo(() => {
+		if (mockStaff) return mockStaff; // Use mockStaff directly if provided
+		if (!settingsData?.staff_cards) return [];
+		try {
+			const parsed = typeof settingsData.staff_cards === 'string' 
+				? JSON.parse(settingsData.staff_cards) 
+				: settingsData.staff_cards;
+			return Array.isArray(parsed) ? parsed : [];
+		} catch {
+			return [];
+		}
+	}, [settingsData, mockStaff]);
 
-        // Fetch Settings (Staff Cards & Recruitment)
-        fetch(`${API_URL}/settings?t=${new Date().getTime()}`)
-            .then(res => {
-                if(!res.ok) throw new Error(`Fetch settings failed with status: ${res.status}`);
-                return res.json();
-            })
-            .then(data => {
-                if(data && data.staff_cards) {
-                    try {
-                        const parsed = typeof data.staff_cards === 'string' ? JSON.parse(data.staff_cards) : data.staff_cards;
-                        setStaff(Array.isArray(parsed) ? parsed : []);
-                    } catch { setStaff([]); }
-                }
-                if (data) {
-                    setRecruitment({
-                        status: data.recruitment_status || 'false',
-                        link: data.recruitment_link || ''
-                    });
-                }
-            })
-            .catch(err => {
-                console.warn("StaffShowcase: Settings fetch error:", err.message);
-                setStaff([]);
-            })
-            .finally(() => setLoading(false));
+	const recruitment = useMemo(() => {
+		if (mockRecruitment) return mockRecruitment; // Use mockRecruitment directly if provided
+		return {
+			status: settingsData?.recruitment_status || 'false',
+			link: settingsData?.recruitment_link || ''
+		};
+	}, [settingsData, mockRecruitment]);
 
-        // Fetch Online Staff
-        const fetchStatus = () => {
-            fetch(`${API_URL}/server/staff`)
-                .then(res => res.ok ? res.json() : [])
-                .then(data => {
-                    if(Array.isArray(data)) {
-                        const statusMap: Record<string, { mc: string, discord: string }> = {};
-                        data.forEach((u: { username: string; mc_status?: string; discord_status?: string }) => {
-                             statusMap[u.username.toLowerCase()] = {
-                                 mc: u.mc_status || 'offline',
-                                 discord: u.discord_status || 'offline'
-                             };
-                        });
-                        setOnlineStaff(statusMap);
-                    }
-                })
-                .catch(() => {});
-        };
+	const onlineStaffMap = useMemo(() => {
+		if (mockOnlineStatus) return mockOnlineStatus; // Use mockOnlineStatus directly if provided
+		if (!Array.isArray(onlineStaffList)) return {};
+		
+		const statusMap: Record<string, { mc: string, discord: string }> = {};
+		onlineStaffList.forEach((u: StaffPresenceEntry) => {
+			const status = {
+				mc: u.mc_status || 'offline',
+				discord: u.discord_status || 'offline'
+			};
 
-        if (!mockStaff) fetchStatus();
-        const interval = setInterval(fetchStatus, 30000); // 30s refresh
-        return () => clearInterval(interval);
-    }, [mockStaff]);
+			const usernameKey = typeof u.username === 'string' ? u.username.toLowerCase() : '';
+			if (usernameKey) statusMap[usernameKey] = status;
 
-    if (loading) return (
+			const nicknameKey = typeof u.mc_nickname === 'string' ? u.mc_nickname.toLowerCase() : '';
+			if (nicknameKey) statusMap[nicknameKey] = status;
+		});
+		return statusMap;
+	}, [onlineStaffList, mockOnlineStatus]);
+
+
+    if (!mockStaff && settingsLoading) return (
         <Section><div style={{ display: 'flex', justifyContent: 'center', padding: '2rem' }}><Loader /></div></Section>
     );
 
@@ -233,7 +240,10 @@ export default function StaffShowcase({ mockStaff, mockOnlineStatus, mockRecruit
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 px-4">
                 {staff.map((member) => {
-                    const status = onlineStaff[(member.mc_nickname || member.name).toLowerCase()] || { mc: 'offline', discord: 'offline' };
+                    const status = [member.mc_nickname, member.name]
+                        .filter((value): value is string => !!value)
+                        .map((value) => onlineStaffMap[value.toLowerCase()])
+                        .find((value): value is { mc: string; discord: string } => !!value) || { mc: 'offline', discord: 'offline' };
                     const discordColor = getStatusColor(status.discord);
                     
                     return (
@@ -356,7 +366,7 @@ export default function StaffShowcase({ mockStaff, mockOnlineStatus, mockRecruit
                                 {member.socials?.twitch && (
                                     <a href={resolveUrl(member.socials.twitch, 'twitch')} target="_blank" rel="noopener noreferrer" className="text-white/40 hover:text-[#9146FF] relative hover:scale-125 transition-all">
                                         <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z"/></svg>
-                                        {onlineStaff[member.name.toLowerCase()]?.mc === 'online' && (
+                                        {status.mc === 'online' && (
                                             <CheckCircle2 
                                                 size={10} 
                                                 className="absolute -bottom-1 -right-1 text-emerald-500 bg-[#18181b] rounded-full border border-[#18181b]"
@@ -386,4 +396,3 @@ export default function StaffShowcase({ mockStaff, mockOnlineStatus, mockRecruit
         </Section>
     );
 }
-

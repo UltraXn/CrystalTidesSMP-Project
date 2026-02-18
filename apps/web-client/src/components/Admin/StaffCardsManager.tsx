@@ -23,6 +23,13 @@ interface ServerStaffUser {
     twitch?: { username: string };
 }
 
+interface OnlineStaffEntry {
+    username?: string;
+    mc_nickname?: string;
+    mc_status?: string;
+    discord_status?: string;
+}
+
 interface StaffCardsManagerProps {
     mockCards?: StaffCard[];
     mockOnlineStatus?: Record<string, { mc: string, discord: string }>;
@@ -38,7 +45,7 @@ export default function StaffCardsManager({ mockCards, mockOnlineStatus }: Staff
     
     // TanStack Query Hooks
     const { data: adminSettings, isLoading: loading } = useAdminSettings();
-    const { data: onlineStaff = {} } = useStaffOnlineStatus();
+    const { data: onlineStaff = [] } = useStaffOnlineStatus();
     const updateSettingMutation = useUpdateSiteSetting();
 
     const cards = mockCards || adminSettings?.staff || [];
@@ -65,6 +72,26 @@ export default function StaffCardsManager({ mockCards, mockOnlineStatus }: Staff
         { value: 'Usuario', label: t('admin.staff.roles.user'), color: '#db7700' },
         { value: 'Custom', label: t('admin.staff.roles.custom'), color: '#ffffff' }
     ], [t]);
+
+    const onlineStaffMap = useMemo(() => {
+        if (!Array.isArray(onlineStaff)) return {};
+
+        const map: Record<string, { mc: string; discord: string }> = {};
+        onlineStaff.forEach((staff: OnlineStaffEntry) => {
+            const status = {
+                mc: staff?.mc_status || 'offline',
+                discord: staff?.discord_status || 'offline'
+            };
+
+            const usernameKey = typeof staff?.username === 'string' ? staff.username.toLowerCase() : '';
+            if (usernameKey) map[usernameKey] = status;
+
+            const nicknameKey = typeof staff?.mc_nickname === 'string' ? staff.mc_nickname.toLowerCase() : '';
+            if (nicknameKey) map[nicknameKey] = status;
+        });
+
+        return map;
+    }, [onlineStaff]);
 
     const handleSaveList = async (newList: StaffCard[]) => {
         updateSettingMutation.mutate({
@@ -201,7 +228,7 @@ export default function StaffCardsManager({ mockCards, mockOnlineStatus }: Staff
             {!editingCard && !isNew && (
                 <StaffList 
                     cards={cards} 
-                    onlineStatus={mockOnlineStatus || onlineStaff}
+                    onlineStatus={mockOnlineStatus || onlineStaffMap}
                     onDragEnd={handleDragEnd}
                     onEdit={handleEdit}
                     onDelete={handleDelete}

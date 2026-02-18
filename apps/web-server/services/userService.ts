@@ -14,6 +14,17 @@ export interface WebUser {
     last_sign_in?: string;
 }
 
+interface MinecraftPlayerEntry {
+    id?: string;
+    name?: string;
+}
+
+interface MinecraftStatusPayload {
+    players?: {
+        list?: Array<string | MinecraftPlayerEntry>;
+    };
+}
+
 /**
  * Get Staff Users with real-time status from Minecraft and Discord
  */
@@ -60,6 +71,7 @@ export const getStaffUsers = async () => {
             return {
                 id: profile?.id || card.id,
                 username: card.name,
+                mc_nickname: card.mc_nickname,
                 role: card.role,
                 avatar_url: profile?.avatar_url || card.image,
                 minecraft_uuid: profile?.minecraft_uuid,
@@ -68,13 +80,28 @@ export const getStaffUsers = async () => {
         });
 
         // 4. Fetch Minecraft Server Status (for Online Players)
-        let minecraftOnlinePlayers: string[] = [];
+        const minecraftOnlineIds = new Set<string>();
+        const minecraftOnlineNames = new Set<string>();
         try {
             const host = process.env.MC_SERVER_HOST || 'localhost';
             const port = parseInt(process.env.MC_SERVER_PORT || '25565');
             const { getServerStatus } = await import('./minecraftService.js');
-            const status = await getServerStatus(host, port);
-            minecraftOnlinePlayers = (status as any).players?.sample?.map((p: any) => p.id) || [];
+            const status = await getServerStatus(host, port) as MinecraftStatusPayload;
+            const players = status.players?.list || [];
+
+            players.forEach((player) => {
+                if (typeof player === 'string') {
+                    minecraftOnlineNames.add(player.toLowerCase());
+                    return;
+                }
+
+                if (typeof player?.id === 'string') {
+                    minecraftOnlineIds.add(player.id);
+                }
+                if (typeof player?.name === 'string') {
+                    minecraftOnlineNames.add(player.name.toLowerCase());
+                }
+            });
         } catch (mcError) {
             console.warn("[User Service] Failed to fetch Minecraft status:", mcError);
         }
@@ -105,7 +132,10 @@ export const getStaffUsers = async () => {
 
         // 6. Merge Data
         return staffProfiles.map(staff => {
-            const isOnlineMC = staff.minecraft_uuid && minecraftOnlinePlayers.includes(staff.minecraft_uuid);
+            const isOnlineMC = !!(
+                (staff.minecraft_uuid && minecraftOnlineIds.has(staff.minecraft_uuid)) ||
+                (staff.mc_nickname && minecraftOnlineNames.has(staff.mc_nickname.toLowerCase()))
+            );
             const discordStatus = staff.social_discord ? (discordPresence[staff.social_discord] || 'offline') : 'offline';
 
             return {
