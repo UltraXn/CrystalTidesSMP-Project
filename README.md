@@ -1,82 +1,106 @@
+<p align="center">
+  <img src="docs/images/logo.png" width="200" alt="CrystalTides Logo" />
+</p>
 
-# 🌊 CrystalTides Ecosystem
+# <p align="center">💎 CrystalTides 🌊</p>
 
-> **The High-Performance Minecraft SMP Middleware & Web Suite**
+<p align="center">
+  <strong>The Ultimate Minecraft SMP Ecosystem</strong><br/>
+  <i>High-fidelity Web Portal • Scalable Express API • Native Flutter Launcher • Seamless Game Integration</i>
+</p>
 
-Bienvenido a **CrystalTides**, un ecosistema de software de grado industrial diseñado para fusionar la experiencia de juego en Minecraft con interfaces web modernas y núcleos nativos de alto rendimiento.
-
-[![Ecosystem Status](https://img.shields.io/badge/Status-Active-brightgreen?style=for-the-badge)](./docs/MASTER_PRD.md)
-[![Tech Stack](https://img.shields.io/badge/Stack-Bleeding%20Edge-blueviolet?style=for-the-badge)](./docs/MASTER_PRD.md)
-
----
-
-
-## 🏗️ Arquitectura del Monorepo (Turbo-powered)
-
-Este proyecto utiliza una estructura de **Monorepo** moderna con `Turbo` para gestionar múltiples aplicaciones y servicios con máxima coherencia tecnológica.
-
-| Componente | Directorio | Status | Stack |
-| :--- | :--- | :--- | :--- |
-| **CrystalLauncher** | `apps/launcher` | 🚀 Beta | Flutter + Rust (Core DLL) |
-| **Web Portal** | `apps/web-client` | 🎨 Dev | React 19 + Vite 6 + Tailwind 4 |
-| **API Server** | `apps/web-server` | ⚡ Stable | Node.js + Express 5 + Supabase |
-| **Discord Bot** | `apps/discord-bot` | 🤖 Dev | TypeScript + Bun |
-| **CrystalCore** | `plugins/crystalcore` | 💎 Active | Java 21 + Paper API |
-
+<p align="center">
+  <a href="./package.json"><img src="https://img.shields.io/badge/Monorepo-npm%20workspaces%20%2B%20Turbo-111827?style=for-the-badge&logo=turborepo&logoColor=white" /></a>
+  <a href="./apps/web-client/README.md"><img src="https://img.shields.io/badge/Web-React%2019%20%2B%20Vite%206-0ea5e9?style=for-the-badge&logo=react&logoColor=white" /></a>
+  <a href="./apps/web-server/README.md"><img src="https://img.shields.io/badge/API-Express%205%20%2B%20TS-0f766e?style=for-the-badge&logo=nodedotjs&logoColor=white" /></a>
+</p>
 
 ---
 
-## ✨ Características de "Alto Nivel"
+## ✨ Features Highlights
 
-### 🦋 CrystalLauncher (The Commander)
-- **Glassmorphism UI**: Interfaz fluida con animaciones a 144Hz y soporte para fondos dinámicos.
-- **Hybrid Security**: Interfaz en Flutter comunicada con un núcleo en **Rust** (Pure Performance).
-- **Insta-Update**: Lógica hot-patchable mediante scripts Lua incrustados.
+| | |
+| :--- | :--- |
+| 🌐 **Modern Web Experience** | React 19 + Vite 6 + Tailwind 4. Premium UI with Glassmorphism, 3D skin previews, and micro-animations. |
+| 🌉 **CrystalBridge V2** | Real-time command execution (<50ms) using a hybrid WebSocket/SQL queue architecture. No RCON required. |
+| 🎰 **Secure Gacha System** | Advanced visual gacha with server-side validation and secure roll logic. |
+| 🛡️ **Staff Master Hub** | Interactive Kanban boards, task synchronization, and staff management tools. |
+| 🦋 **Native Launcher** | Cross-platform desktop client built with Flutter and Rust for maximum safety and performance. |
 
-### 🖥️ Ecosistema Web & Social
-- **Real-Time Synergy**: Sincronización instantánea de skins 3D, estadísticas y rangos vía Supabase.
-- **Staff Control Hub**: Administración integral con auditoría en tiempo real y Bridge de comandos.
-- **Security-First**: Sanitización de nicks, mitigación IDOR y validación de tokens JWE.
+## 🛠️ Tech Stack
 
+<p align="center">
+  <img src="https://skillicons.dev/icons?i=react,ts,nodejs,express,supabase,mysql,redis,tailwind,vite,figma,postman,docker" alt="Tech Stack" />
+</p>
 
 ---
 
-## 🛠️ Guía de Desarrollo Rápido
+## 🏗️ Architecture Overview
 
-### 1. Prerrequisitos
-- **Node.js 20+** & **npm 10+**
-- **Rust Up** (Toolchain `stable-x86_64-pc-windows-msvc`)
-- **JDK 21** (Para el plugin CrystalCore)
-- **Flutter SDK** (Canal Stable)
+```mermaid
+flowchart TB
+    subgraph Cloud ["☁️ Cloud Layer (Supabase + Cloudflare)"]
+        WC[web-client]
+        WS[web-server]
+        DB[discord-bot]
+        SB[(Supabase Auth/Realtime)]
+    end
 
-### 2. Inicialización
-```bash
-# Instalar dependencias del monorepo
-npm install
+    subgraph Bridge ["🌉 CrystalBridge V2"]
+        SQL_QUEUE[(MySQL Command Queue)]
+        WS_SIGNAL{WebSocket Signal}
+    end
 
-# Compilar dependencias nativas
-turbo run build
+    subgraph BareMetal ["🛡️ Game Layer (Bare Metal)"]
+        MC[Minecraft Server]
+        CC[CrystalCore Plugin]
+        RD[Redis L2 Cache]
+    end
+
+    WC <--> WS
+    WS <--> SB
+    WS --> SQL_QUEUE
+    WS --> WS_SIGNAL
+    CC --> SQL_QUEUE
+    CC --> WS_SIGNAL
+    CC <--> MC
+    CC <--> RD
 ```
 
-### 3. Ejecución en Desarrollo
-```bash
-# Web Client & API Server simultáneamente
-npm run dev
-```
+## 🧩 Repo Structure
 
+- **`apps/web-client`**: Modern dashboard for users & staff.
+- **`apps/web-server`**: Cloud orchestrator & command bridge.
+- **`apps/launcher`**: Native desktop client.
+- **`plugins/crystalcore`**: Java plugin for the Minecraft core.
+- **`packages/shared`**: Shared types and utilities across the monorepo.
+
+## 🚀 Getting Started
+
+1. **Clone the repo with submodules**:
+   ```bash
+   git clone --recurse-submodules https://github.com/UltraXn/crystaltides.git
+   ```
+2. **Setup environment**:
+   Install root dependencies and start the dev environment:
+   ```bash
+   npm install
+   npm run dev
+   ```
+3. **Configure Submodules**:
+   Ensure all submodules are updated:
+   ```bash
+   git submodule update --init --recursive
+   ```
 
 ---
 
-## 📘 Documentación Centralizada
+## 🗺️ Roadmap 2026
+- [x] **CrystalBridge V2** (WebSocket + SQL)
+- [x] **KilluCoin Gacha** (Secure Backend)
+- [/] **Live Activity Feed** ("The Pulse")
+- [ ] **3D Integrated Map** (BlueMap Dashboard)
 
-Toda la documentación estratégica y técnica se encuentra en la carpeta `/docs`:
-
-- 📜 **[Master PRD (Estrategia)](./docs/MASTER_PRD.md)** - Visión global y arquitectura.
-- 🏗️ **[Arquitectura Detallada](./docs/ARCHITECTURE.md)** - Flujos de datos y Bridge.
-- ☁️ **[Guía de Despliegue GCP](./docs/GCP_DEPLOYMENT.md)** - DevOps y Serverless.
-- 🛡️ **[Calidad y Estándares](./docs/CODE_QUALITY.md)** - Guía de estilo y testing.
-
----
-
-Desarrollado con 💜 por el equipo de **CrystalTides**.
-*"Bridging the gap between Minecraft and the Modern Web."*
+<p align="center">
+  <i>Built with ❤️ for the CrystalTides Community. Powered by Turbo & Supabase.</i>
+</p>
