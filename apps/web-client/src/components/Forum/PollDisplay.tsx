@@ -53,11 +53,23 @@ export default function PollDisplay({ poll, refreshPoll, onVote }: PollDisplayPr
             if (onVote) {
                 await onVote(optionId);
             } else {
-                await fetch(`${API_URL}/polls/vote`, {
+                // Get the session token for the new secure voting backend
+                const { supabase } = await import('../../services/supabaseClient');
+                const { data: { session } } = await supabase.auth.getSession();
+                
+                const response = await fetch(`${API_URL}/polls/vote`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${session?.access_token}`
+                    },
                     body: JSON.stringify({ pollId: poll.id, optionId })
-                })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Error al votar');
+                }
             }
             setVoted(true)
             if (refreshPoll) refreshPoll()
