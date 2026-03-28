@@ -1,0 +1,37 @@
+/* Theme definitions for CrystalTides */
+
+/* Halloween Theme */
+body.theme-halloween {
+    --bg: #0a0510;
+    --bg-alt: #2d1b4d;
+    --bg-soft: #3c2a5e;
+    --accent: #ff7518;
+    --accent-soft: rgba(255, 117, 24, 0.15);
+    
+    /* CrystalTides Specific RGB overrides */
+    --ct-void: 10 5 16;
+    --ct-deep: 45 27 77;
+    --ct-tide: 60 42 94;
+    --ct-crystal: 255 117 24;
+}
+
+/* Christmas Theme */
+body.theme-christmas {
+    --bg: #05100a;
+    --bg-alt: #0c3d22;
+    --bg-soft: #145a32;
+    --accent: #ef4444;
+    --accent-soft: rgba(239, 68, 68, 0.15);
+    
+    /* CrystalTides Specific RGB overrides */
+    --ct-void: 5 16 10;
+    --ct-deep: 12 61 34;
+    --ct-tide: 20 90 50;
+    --ct-crystal: 239 68 68;
+}
+
+/* Ensure glassmorphism effects use these variables */
+.theme-halloween .glass-morphism,
+.theme-christmas .glass-morphism {
+    border-color: var(--accent-soft);
+}

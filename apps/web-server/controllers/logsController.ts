@@ -1,18 +1,17 @@
-import * as coreProtectService from '../services/coreProtectService.js';
 import { Request, Response } from 'express';
 
+// Stubbed for now as CoreProtect is no longer used
 export const getCommandLogs = async (req: Request, res: Response) => {
     try {
-        const page = parseInt(req.query.page as string) || 1;
-        const limit = parseInt(req.query.limit as string) || 20;
-        const search = (req.query.search as string) || '';
-
-        const logs = await coreProtectService.getCommandLogs({ page, limit, search });
-        
-        res.json(logs);
+        // Returning empty list to prevent 500s and "Module not found" errors
+        res.json({
+            data: [],
+            total: 0,
+            page: 1,
+            totalPages: 0
+        });
     } catch (error) {
-        console.error('CoreProtect Error:', error);
-        const message = error instanceof Error ? error.message : String(error);
-        res.status(500).json({ error: 'Failed to fetch command logs', details: message });
+        console.error('Logs Controller Error:', error);
+        res.status(500).json({ error: 'Failed to fetch command logs' });
     }
 };

@@ -193,7 +193,8 @@ export default function Rules() {
     const categories = Array.from(new Set(rules.map(r => r.category || 'General')));
 
     return (
-        <Section title={t('rules.title') || "Normas del Servidor"}>
+        <>
+            <Section title={t('rules.title') || "Normas del Servidor"}>
             <div className="flex flex-col items-center w-full pb-20 relative z-10">
                 {/* Header Section */}
                 <div className="w-full max-w-3xl mx-auto text-center mb-16">
@@ -390,7 +391,7 @@ export default function Rules() {
                         <Loader text={t('rules.loading') || "Cargando normativas..."} />
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full max-w-[1400px] mx-auto">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full max-w-[1280px] mx-auto">
                         {filteredRules.map((rule) => {
                             const config = CATEGORY_CONFIG[rule.category || 'General'] || DEFAULT_ICON_CONFIG;
                             const accent = rule.color || config.color;
@@ -447,18 +448,14 @@ export default function Rules() {
                     </div>
                 )}
 
-                {!loading && filteredRules.length === 0 && (
-                    <div className="py-20 text-gray-500 font-bold uppercase tracking-widest">
-                        {t('rules.no_results', 'No se encontraron normas en esta categoría.')}
-                    </div>
-                )}
-            </div>
+                </div>
+            </Section>
 
             {/* Background Decorations */}
             <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
                 <div className="absolute top-[20%] -right-[5%] w-[600px] h-[600px] rounded-full bg-indigo-500/5 blur-[120px]"></div>
                 <div className="absolute bottom-[10%] -left-[5%] w-[500px] h-[500px] rounded-full bg-(--accent)/5 blur-[100px]"></div>
             </div>
-        </Section>
+        </>
     )
 }

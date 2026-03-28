@@ -18,6 +18,10 @@
     --ct-tide: 22 140 128;
     --ct-crystal: 137 217 209;
     --ct-text: 255 255 255;
+
+    /* Status Colors */
+    --success: #4ade80;
+    --error: #ef4444;
   }
 
   html {

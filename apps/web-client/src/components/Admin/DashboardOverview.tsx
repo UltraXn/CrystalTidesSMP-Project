@@ -1,6 +1,5 @@
 import { useMemo } from 'react'
 import { useAuth } from '../../context/AuthContext'
-import SecureConsole from './Config/SecureConsole'
 import Loader from "../UI/Loader"
 import KPIStats from './Dashboard/KPIStats';
 import ResourceUsage from './Dashboard/ResourceUsage';
@@ -30,7 +29,7 @@ interface DashboardOverviewProps {
 }
 
 export default function DashboardOverview({ mockServerStats, mockStaffOnline, mockTicketStats, mockDonationStats }: DashboardOverviewProps = {}) {
-    const { user } = useAuth()
+    useAuth()
     
     // TanStack Query Hooks
     const { data: resources, isLoading: loadingResources } = useServerResources();
@@ -122,12 +121,6 @@ export default function DashboardOverview({ mockServerStats, mockStaffOnline, mo
                 />
             </div>
 
-            {/* Secure Console (Super Admin Only) */}
-            {['neroferno', 'killu', 'developer'].some(role => user?.user_metadata?.role?.toLowerCase().includes(role)) && (
-                <div style={{ marginTop: '0', background: 'rgba(10, 10, 15, 0.6)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255, 255, 255, 0.05)', borderRadius: '24px', overflow: 'hidden' }}>
-                    <SecureConsole />
-                </div>
-            )}
         </div>
     )
 }

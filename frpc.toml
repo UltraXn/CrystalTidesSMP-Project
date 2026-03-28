@@ -1,0 +1,19 @@
+serverAddr = "205.209.111.190"
+serverPort = 50960
+auth.token = "CrystalTidesFRP2026"
+
+
+
+[[proxies]]
+name = "wings-http"
+type = "tcp"
+localIP = "127.0.0.1"
+localPort = 8080
+remotePort = 8080
+
+[[proxies]]
+name = "minecraft"
+type = "tcp"
+localIP = "127.0.0.1"
+localPort = 25565
+remotePort = 25565

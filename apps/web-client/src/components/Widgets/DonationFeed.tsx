@@ -23,17 +23,33 @@ interface DonationFeedProps {
 export default function DonationFeed({ mockDonations }: DonationFeedProps = {}) {
     const [donations, setDonations] = useState<Donation[]>(mockDonations || [])
     const [loading, setLoading] = useState(!mockDonations)
+    const [newDonationIds, setNewDonationIds] = useState<Set<string>>(new Set())
     const { t, i18n } = useTranslation()
 
     useEffect(() => {
         if (mockDonations) return;
         fetchDonations()
 
-        // Suscribirse a cambios en tiempo real (NUEVAS donaciones aparecen al instante)
+        // Suscribirse a cambios en tiempo real
         const subscription = supabase
             .channel('public:donations')
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'donations' }, (payload: { new: Donation }) => {
-                setDonations(prev => [payload.new, ...prev])
+                const donation = payload.new;
+                const id = donation.id || donation.message_id || `new-${Date.now()}`;
+                
+                // Marcar como "nueva" temporalmente para la animación
+                setNewDonationIds(prev => new Set(prev).add(id));
+                
+                setDonations(prev => [donation, ...prev]);
+
+                // Quitar el estado "nuevo" después de que pase la animación (600ms en CSS, damos un margen)
+                setTimeout(() => {
+                    setNewDonationIds(prev => {
+                        const next = new Set(prev);
+                        next.delete(id);
+                        return next;
+                    });
+                }, 5000);
             })
             .subscribe()
 
@@ -73,32 +89,42 @@ export default function DonationFeed({ mockDonations }: DonationFeedProps = {}) 
         </div>
     )
 
-    const renderDonationCard = (donation: Donation, index: string | number) => (
-        <div className="donation-card" key={`${donation.id || donation.message_id}-${index}`}>
-            <div className="donation-header">
-                <div className="donation-user">
-                    <div className="donation-avatar">
-                        <User size={16} />
+    const renderDonationCard = (donation: Donation, index: string | number) => {
+        const id = donation.id || donation.message_id || `card-${index}`;
+        const isNew = newDonationIds.has(id);
+        const amount = Number(donation.amount);
+        const isPremium = amount >= 20; // Brillo dorado para donaciones >= 20
+
+        return (
+            <div 
+                className={`donation-card ${isNew ? 'new-donation' : ''} ${isPremium ? 'premium-glow' : ''}`} 
+                key={`${id}-${index}`}
+            >
+                <div className="donation-header">
+                    <div className="donation-user">
+                        <div className="donation-avatar">
+                            <User size={20} />
+                        </div>
+                        <div className="donation-info">
+                            <h4>{donation.from_name}</h4>
+                            <span className="donation-date">
+                                {new Date(donation.created_at).toLocaleDateString()}
+                            </span>
+                        </div>
                     </div>
-                    <div className="donation-info">
-                        <h4>{donation.from_name}</h4>
-                        <span className="donation-date">
-                            {new Date(donation.created_at).toLocaleDateString()}
-                        </span>
+                    <div className="donation-amount-badge">
+                        <Heart size={14} fill="currentColor" />
+                        {donation.currency} {amount.toFixed(2)}
                     </div>
                 </div>
-                <div className="donation-amount-badge">
-                    <Heart size={12} />
-                    {donation.currency} {donation.amount}
-                </div>
+                {donation.message && (
+                    <div className="donation-message">
+                        "{i18n.language === 'en' && donation.message_en ? donation.message_en : donation.message}"
+                    </div>
+                )}
             </div>
-            {donation.message && (
-                <div className="donation-message">
-                    "{i18n.language === 'en' && donation.message_en ? donation.message_en : donation.message}"
-                </div>
-            )}
-        </div>
-    )
+        );
+    }
 
     return (
         <div className="donation-feed">

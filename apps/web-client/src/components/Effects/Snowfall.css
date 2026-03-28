@@ -1,0 +1,43 @@
+.snow-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 9999;
+    overflow: hidden;
+}
+
+.snowflake {
+    position: absolute;
+    top: -100px;
+    color: rgba(255, 255, 255, 0.9);
+    animation: fall linear infinite;
+    will-change: transform;
+}
+
+@keyframes fall {
+    0% {
+        transform: translateY(-100px);
+    }
+    100% {
+        transform: translateY(calc(100vh + 100px));
+    }
+}
+
+@keyframes sway {
+    0% {
+        transform: translateX(-30px) rotate(0deg);
+    }
+    100% {
+        transform: translateX(30px) rotate(20deg);
+    }
+}
+
+/* Optimization for mobile: fewer flakes or simpler animations */
+@media (max-width: 768px) {
+    .snowflake:nth-child(even) {
+        display: none;
+    }
+}

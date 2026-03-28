@@ -1,0 +1,55 @@
+.halloween-pop-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 9998;
+    overflow: hidden;
+}
+
+.pumpkin-pop {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: pumpkin-pop-animation 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards,
+               pumpkin-float 3s ease-in-out infinite alternate;
+    will-change: transform, opacity;
+}
+
+@keyframes pumpkin-pop-animation {
+    0% {
+        transform: scale(0) rotate(-20deg);
+        opacity: 0;
+    }
+    70% {
+        transform: scale(1.2) rotate(10deg);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+    }
+}
+
+@keyframes pumpkin-fade-out {
+    to {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+}
+
+@keyframes pumpkin-float {
+    from {
+        translate: 0 0;
+    }
+    to {
+        translate: 0 -20px;
+    }
+}
+
+.pumpkin-pop.exiting {
+    animation: pumpkin-fade-out 0.4s ease-in forwards;
+}

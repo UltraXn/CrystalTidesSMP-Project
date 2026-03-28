@@ -1,17 +1,21 @@
 import * as logService from '../services/logService.js';
 import { Request, Response } from 'express';
+import { ensureString } from '../utils/typeUtils.js';
 
 export const getLogs = async (req: Request, res: Response) => {
     try {
-        const { page = '1', limit = '50', source = 'web', search = '' } = req.query;
-        const offset = (parseInt(page as string) - 1) * parseInt(limit as string);
+        const page = ensureString(req.query.page, '1');
+        const limit = ensureString(req.query.limit, '50');
+        const source = ensureString(req.query.source, 'web');
+        const search = ensureString(req.query.search, '');
+        const offset = (parseInt(page) - 1) * parseInt(limit);
 
         if (source === 'game') {
-            const data = await logService.getGameLogs({ limit: parseInt(limit as string), offset, search: search as string });
+            const data = await logService.getGameLogs({ limit: parseInt(limit), offset, search });
             return res.json(data);
         }
-
-        const data = await logService.getLogs({ limit: parseInt(limit as string), offset, source: source as string, search: search as string });
+    
+        const data = await logService.getLogs({ limit: parseInt(limit), offset, source, search });
         res.json(data);
     } catch (error) {
         const message = error instanceof Error ? error.message : 'Unknown error';

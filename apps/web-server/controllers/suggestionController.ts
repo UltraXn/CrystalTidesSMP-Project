@@ -1,5 +1,6 @@
 import * as suggestionService from '../services/suggestionService.js';
 import { Request, Response } from 'express';
+import { ensureString } from '../utils/typeUtils.js';
 
 export const createSuggestion = async (req: Request, res: Response) => {
     try {
@@ -23,7 +24,7 @@ export const getSuggestions = async (req: Request, res: Response) => {
 
 export const deleteSuggestion = async (req: Request, res: Response) => {
     try {
-        await suggestionService.deleteSuggestion(parseInt(req.params.id));
+        await suggestionService.deleteSuggestion(parseInt(ensureString(req.params.id)));
         res.json({ success: true });
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
@@ -33,7 +34,7 @@ export const deleteSuggestion = async (req: Request, res: Response) => {
 
 export const updateStatus = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const id = ensureString(req.params.id);
         const { status } = req.body;
         
         if (!['pending', 'approved', 'rejected', 'implemented'].includes(status)) {

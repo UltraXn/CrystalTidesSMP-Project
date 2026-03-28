@@ -68,10 +68,14 @@ export default function ServerStatusCard({ status, serverIp = "mc.crystaltidesSM
             {/* Glow Effect based on status */}
             <div style={{
                 position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)',
-                width: '60%', height: '5px',
+                width: '40%', height: '2.5px',
                 background: isOnline ? 'var(--success)' : 'var(--error)',
-                boxShadow: isOnline ? '0 0 50px 20px rgba(74, 222, 128, 0.2)' : '0 0 50px 20px rgba(239, 68, 68, 0.2)',
-                opacity: 0.8
+                borderRadius: '0 0 12px 12px',
+                boxShadow: isOnline 
+                    ? '0 1px 15px 4px rgba(74, 222, 128, 0.35)' 
+                    : '0 1px 15px 4px rgba(239, 68, 68, 0.35)',
+                opacity: 0.9,
+                zIndex: 2
             }} />
 
             <div className="flex flex-col md:flex-row items-center md:items-start gap-8 z-10 relative w-full">
@@ -127,12 +131,22 @@ export default function ServerStatusCard({ status, serverIp = "mc.crystaltidesSM
                     </div>
 
                     {/* Player Bar */}
-                    <div className="w-full bg-gray-800 h-4 rounded-full overflow-hidden relative mb-2">
+                    <div 
+                        className="w-full h-3 rounded-full overflow-hidden relative mb-2 border"
+                        style={{
+                            background: isOnline ? 'rgba(74, 222, 128, 0.05)' : 'rgba(239, 68, 68, 0.05)',
+                            borderColor: isOnline ? 'rgba(74, 222, 128, 0.1)' : 'rgba(239, 68, 68, 0.1)'
+                        }}
+                    >
                             <motion.div 
                             initial={{ width: 0 }}
                             animate={{ width: `${percentage}%` }}
-                            transition={{ duration: 1, ease: "easeOut" }}
-                            className="h-full bg-linear-to-r from-teal-500 to-emerald-400"
+                            transition={{ duration: 1.5, ease: [0.33, 1, 0.68, 1] }}
+                            className={`h-full bg-linear-to-r ${
+                                isOnline 
+                                    ? 'from-teal-500 to-emerald-400 shadow-[0_0_15px_rgba(52,211,153,0.3)]' 
+                                    : 'from-red-500 to-rose-600 shadow-[0_0_15px_rgba(239,68,68,0.3)]'
+                            }`}
                         />
                     </div>
                     <div className="flex justify-between text-sm text-gray-400">

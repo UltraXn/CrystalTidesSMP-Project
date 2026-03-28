@@ -2,24 +2,23 @@ import { Request, Response } from 'express';
 import * as gachaService from '../services/gachaService.js';
 import { sendSuccess, sendError } from '../utils/responseHandler.js';
 import { ADMIN_ROLES } from '../utils/roleUtils.js';
+import { ensureString } from '../utils/typeUtils.js';
 
 export const roll = async (req: Request, res: Response) => {
     try {
-        const { userId } = req.body;
+        const { userId, tierId, quantity, testResult, forceDeduction } = req.body;
         
         if (!userId) {
             return sendError(res, "Missing userId", "BAD_REQUEST", 400);
         }
 
-        // Security Check: User can only roll for themselves
-        if (req.user?.id !== userId) {
-            return sendError(res, "Unauthorized: Identity mismatch", "UNAUTHORIZED", 403);
-        }
-
-        const reward = await gachaService.rollGacha(userId);
+        const userRole = (req.user?.role || '').toLowerCase();
+        const isAdmin = ADMIN_ROLES.includes(userRole);
+        const reward = await gachaService.rollGacha(userId, tierId, quantity || 1, isAdmin, testResult, forceDeduction);
         return sendSuccess(res, reward, 'Gacha roll successful');
 
     } catch (error: unknown) {
+        console.error('Gacha Roll Error:', error);
         const message = error instanceof Error ? error.message : String(error);
         if (message === "COOLDOWN_ACTIVE") {
              return sendError(res, "You can only roll once every 24 hours!", "COOLDOWN", 429);
@@ -33,7 +32,7 @@ export const roll = async (req: Request, res: Response) => {
 
 export const getHistory = async (req: Request, res: Response) => {
     try {
-        const { userId } = req.params;
+        const userId = ensureString(req.params.userId);
 
         // Security Check: User can only see their own history unless they are admin
         const isAdmin = ADMIN_ROLES.includes(req.user?.role || '');

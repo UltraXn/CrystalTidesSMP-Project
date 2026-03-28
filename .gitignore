@@ -53,3 +53,11 @@ testsprite_tests/
 # Local Server Dev Environment
 CrystalTidesSMP SV DEV/
 
+
+# Extra ignores
+build/
+target/
+.trunk/
+bun.lock
+windows/
+~/

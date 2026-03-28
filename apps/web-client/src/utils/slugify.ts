@@ -3,7 +3,7 @@ export const slugify = (text: string) => {
         .toString()
         .toLowerCase()
         .trim()
-        .replace(/\s+/g, '_')           // Replace spaces with _
-        .replace(/[^\w-]+/g, '')       // Remove all non-word chars
-        .replace(/--+/g, '_');          // Replace multiple - or _ with single _
+        .replace(/[^\w\s-]/g, '')       // Remove special chars but keep spaces/hyphens
+        .replace(/[\s_-]+/g, '_')       // Replace spaces, underscores or dashes with single _
+        .replace(/^_+|_+$/g, '');       // Remove leading/trailing underscores
 };

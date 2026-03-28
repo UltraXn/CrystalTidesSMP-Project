@@ -23,7 +23,7 @@ interface HeroProps {
 export default function Hero({ mockSlides, mockPlayerCount, mockIsOnline }: HeroProps = {}) {
     const { t } = useTranslation()
     const [copied, setCopied] = useState(false)
-    const ip = "MC.CrystaltidesSMP.net"
+    const ip = "mc.crystaltidessmp.net"
 
     const welcomeRef = useRef<HTMLElement>(null)
     const descRef = useRef<HTMLParagraphElement>(null)
@@ -164,14 +164,14 @@ export default function Hero({ mockSlides, mockPlayerCount, mockIsOnline }: Hero
             <div className="relative z-20 w-full max-w-5xl mx-auto px-6 text-center pt-10 sm:pt-20 pb-32 sm:pb-0">
                 {showMainBranding && (
                     <div className="mb-12">
-                        <h1 className="text-4xl sm:text-6xl md:text-8xl font-black uppercase tracking-tighter mb-6">
+                        <h1 className="text-[clamp(1.5rem,10vw,4rem)] sm:text-6xl md:text-8xl font-black uppercase tracking-tighter mb-6">
                             <span
                                 ref={welcomeRef}
-                                className="block text-(--accent)/90 text-2xl sm:text-3xl md:text-4xl tracking-widest mb-4 font-black drop-shadow-[0_0_15px_rgba(137,217,209,0.3)]"
+                                className="block text-(--accent)/90 text-[clamp(1rem,5vw,2.25rem)] tracking-[0.2em] sm:tracking-widest mb-4 font-black drop-shadow-[0_0_15px_rgba(137,217,209,0.3)]"
                             >
                                 {t('hero.welcome')}
                             </span>
-                            <span className="inline-flex flex-wrap justify-center text-white drop-shadow-[0_0_30px_rgba(255,255,255,0.4)]">
+                            <span className="inline-flex flex-wrap justify-center text-white drop-shadow-[0_0_30px_rgba(255,255,255,0.4)] whitespace-nowrap sm:whitespace-normal">
                                 {renderBrandText()}
                             </span>
                         </h1>

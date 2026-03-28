@@ -5,6 +5,7 @@
 /* @import 'variables.css'; Moved into base.css */
 
 @import './base.css';
+@import './themes.css';
 @import './animations.css';
 @import './layout.css';
 @import './components.css';

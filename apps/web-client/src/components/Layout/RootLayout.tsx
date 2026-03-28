@@ -12,6 +12,8 @@ import Footer from "../Layout/Footer"
 import CommandPalette from "../UI/CommandPalette"
 import Tutorial from "../UI/Tutorial"
 import { useSiteSettings } from "../../hooks/useAdminData"
+import Snowfall from "../Effects/Snowfall"
+import HalloweenPop from "../Effects/HalloweenPop"
 
 const MobileBottomNav = lazy(() => import("../Layout/MobileBottomNav"))
 
@@ -65,7 +67,8 @@ export default function RootLayout() {
 
     const showHeader = !isMaintenancePage && !isAdminPage
     const showFooter = !isAdminPage && !isMaintenancePage && !isAccountPage && !isAuthPage
-    const showBubbles = !isAccountPage && !isAdminPage
+    const holidayTheme = settings?.theme === 'christmas' || settings?.theme === 'halloween'
+    const showBubbles = !isAccountPage && !isAdminPage && !holidayTheme
     const showSocialSidebar = !isAdminPage && !isAccountPage && !isStatusPage
 
     return (
@@ -87,6 +90,9 @@ export default function RootLayout() {
             </main>
 
             {showFooter && <Footer />}
+
+            {settings?.theme === 'christmas' && !isAdminPage && <Snowfall />}
+            {settings?.theme === 'halloween' && !isAdminPage && <HalloweenPop />}
 
             {showBubbles && (
                 <>

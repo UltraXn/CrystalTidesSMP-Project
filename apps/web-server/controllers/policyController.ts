@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import * as policyService from '../services/policyService.js';
 import { sendSuccess, sendError } from '../utils/responseHandler.js';
 import * as logService from '../services/logService.js';
+import { ensureString } from '../utils/typeUtils.js';
 
 export const getPolicies = async (req: Request, res: Response) => {
     try {
@@ -15,7 +16,7 @@ export const getPolicies = async (req: Request, res: Response) => {
 
 export const getPolicy = async (req: Request, res: Response) => {
     try {
-        const { slug } = req.params;
+        const slug = ensureString(req.params.slug);
         const policy = await policyService.getPolicyBySlug(slug);
         if (!policy) return sendError(res, 'Policy not found', 'NOT_FOUND', 404);
         sendSuccess(res, policy);
@@ -27,7 +28,7 @@ export const getPolicy = async (req: Request, res: Response) => {
 
 export const updatePolicy = async (req: Request, res: Response) => {
     try {
-        const { slug } = req.params;
+        const slug = ensureString(req.params.slug);
         const { title, content, title_en, content_en } = req.body;
         const user = req.user;
 

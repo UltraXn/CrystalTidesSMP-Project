@@ -1,67 +1,108 @@
 # 🌐 CrystalTides Web Client
 
-El **Web Client** es el portal principal de interacción para los usuarios y la administración de CrystalTides. Construido con React 18 y Vite, enfocado en una experiencia visual premium ("High Fidelity UX") y rendimiento extremo.
+> **The digital portal to the CrystalTides universe.**
 
-## 🛠️ Stack Tecnológico
+![CrystalTides Web Banner](https://raw.githubusercontent.com/CrystalTides/art/main/web-client-banner.png)
 
-- **Core**: React 18, TypeScript, Vite.
-- **Estilos**: Vanilla CSS Modules (Glassmorphism), `framer-motion` (Animaciones).
-- **Gráficos**: `recharts` (Métricas), `skinview3d` (Renderizado 3D de Skins).
-- **Estado**: React Context API + Local Storage.
-- **Data Fetching**: Fetch nativo con interceptores JWT.
+## 💎 Overview
 
-## 🧩 Módulos Principales
+El **CrystalTides Web Client** es la interfaz principal del ecosistema para jugadores y staff. Construido sobre **React** y **Vite**, ofrece una experiencia de navegación fluida, reactiva y visualmente impactante, integrando datos del juego en tiempo real con una gestión de usuarios robusta.
 
-### 1. 📢 Portal Público (`src/pages/Home`, `/PublicProfile`)
-- Landing page con diseño inmersivo.
-- **Perfil Público**: Visualización 3D interactiva de la skin del jugador, vitrina de medallas y estadísticas en tiempo real.
-- **Foros**: Sistema de comunidad con categorías, temas y respuestas enriquecidas.
-- **Wiki**: Guías y tutoriales del servidor (Renderizado Markdown).
+---
 
-### 2. 🔐 Dashboard de Usuario (`/account`)
-El panel de control personal para jugadores registrados.
-- **Autenticación Híbrida**: Login con Discord (OAuth2) y vinculación segura con Minecraft.
-- **Playstyle Radar**: Gráfico pentagonal que analiza el estilo de juego (Constructor, Luchador, Explorador, etc.) basado en datos del servidor.
-- **Gestión de Sesión**: Vinculación de redes sociales y ajustes de privacidad.
-- **Métricas**: Visualización de horas jugadas, economía (KilluCoins) y progreso.
+## 🌟 Core Features
 
-### 3. 🛡️ Staff Hub (`/staff-hub`)
-*Acceso restringido a roles administativos.*
-- **Kanban Board**: Gestión de tareas y proyectos del equipo.
-- **Gestor de Contenido**: CMS integrado para Noticias, Eventos y Encuestas.
-- **Buscador Universal**: Command Palette (`Ctrl+K`) para acciones rápidas.
+- 👤 **Dynamic Profiles**: Visualización detallada de progreso, inventarios y estadísticas de juego.
+- 🛡️ **Staff Hub**: Panel administrativo para moderación, gestión de tickets y herramientas de orquestación.
+- 🔗 **Account Linking**: Sistema de vinculación segura entre Discord, Minecraft y la web.
+- 📉 **Real-time Analytics**: Monitoreo en vivo del estado del servidor y actividad de los jugadores.
+- 🎨 **High-End UI**: Diseño premium con soporte nativo para dark mode y micro-animaciones.
 
-## 🚀 Instalación y Desarrollo
+---
 
-Este proyecto es parte del monorepo CrystalTides.
+## 🏗️ Architecture & Data Principles
 
-```bash
-# Instalar dependencias (desde la raíz del monorepo)
-npm install
+Para mantener la seguridad y el rendimiento, el cliente sigue una topología de datos estrictamente desacoplada:
 
-# Iniciar en modo desarrollo (Hot Module Replacement)
-# Puerto default: 5173
-cd apps/web-client
-npm run dev
+```mermaid
+graph TD
+    subgraph "Frontend"
+        WC[Web Client / React]
+    end
 
-# Construir para producción
-npm run build
+    subgraph "Services"
+        SB[Supabase Auth/Storage]
+        WS[Web Server / Node.js]
+    end
+
+    subgraph "Infrastructure"
+        DB[(MariaDB)]
+        RD[(Redis)]
+        MC[(Minecraft Server)]
+    end
+
+    WC -->|Auth / Content| SB
+    WC -->|Game Data / Bridge| WS
+    WS -->|Proxy| DB
+    WS -->|Cache| RD
+    WS -->|Events| MC
 ```
 
-## 📂 Estructura del Proyecto
+> [!IMPORTANT]
+> **Data Isolation**: El cliente web **nunca** se conecta directamente a la base de datos MariaDB o Redis del juego. Todo el flujo de datos de Minecraft pasa obligatoriamente por el `web-server`.
 
-```
-src/
-├── assets/         # Imágenes, iconos y recursos estáticos
-├── components/     # Componentes Reutilizables
-│   ├── Account/    # Widgets del Dashboard (Radar, Stats)
-│   ├── Auth/       # Formularios de Login/Registro
-│   ├── Forum/      # Tarjetas y listas del foro
-│   ├── Layout/     # Navbar, Footer, Sidebar
-│   └── Widgets/    # UI Genérica (Botones, Inputs, Loaders)
-├── context/        # React Contexts (Auth, Theme)
-├── hooks/          # Custom Hooks (useAuth, useFetch)
-├── pages/          # Vistas principales (Rutas)
-├── services/       # Clientes API (Supabase, Backend)
-└── App.tsx         # Router principal
-```
+---
+
+## 🛠️ Tech Stack
+
+| Componente | Tecnología | Propósito |
+| :--- | :--- | :--- |
+| **Framework** | [React](https://reactjs.org) | UI Basada en componentes |
+| **Build Tool** | [Vite](https://vitejs.dev) | Desarrollo ultra rápido |
+| **Styling** | Vanilla CSS / Framer Motion | Estética y Animaciones |
+| **State** | React Query / Zustand | Sincronización de estado |
+| **Backend** | Supabase / Node.js | Identidad y APIs de soporte |
+
+---
+
+## 🚀 Desarrollo & Despliegue
+
+### 🛠️ Entorno Local
+
+1.  **Instalar dependencias:**
+    ```bash
+    npm install
+    ```
+2.  **Correr en desarrollo:**
+    ```bash
+    npm run dev -w @crystaltides/client
+    ```
+3.  **Build de producción:**
+    ```bash
+    npm run build -w @crystaltides/client
+    ```
+
+### 🔐 Variables de Entorno (.env)
+
+| Variable | Descripción |
+| :--- | :--- |
+| `VITE_API_URL` | Endpoint del Web Server |
+| `VITE_SUPABASE_URL` | URL de Supabase |
+| `VITE_SUPABASE_ANON_KEY` | Llave anónima |
+
+### 🌍 Despliegue
+
+El frontend se despliega como una aplicación estática optimizada protegida por **Cloudflare** en el borde de la red, garantizando latencia mínima y protección contra ataques DDoS.
+
+---
+
+## 🗺️ Future Vision
+
+- [ ] **Integración de SpacetimeDB**: Para dashboards de staff con latencia cero y persistencia reactiva.
+- [ ] **3D Character Preview**: Visualización WebGL de los skins de los jugadores en el perfil.
+- [ ] **Live Quest Tracking**: Seguimiento en tiempo real de misiones activas desde la web.
+
+---
+
+> [!NOTE]
+> Este repositorio forma parte del monorepo de **CrystalTides**. Para más información sobre el ecosistema completo, visita el [README Principal](../../projects/README.md).

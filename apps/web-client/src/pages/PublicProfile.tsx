@@ -285,7 +285,7 @@ export default function PublicProfile() {
                     display: grid;
                     grid-template-columns: 350px 1fr;
                     gap: 2rem;
-                    margin: 0 auto;
+                    margin: 0 auto 10rem;
                 }
                 .profile-main {
                     display: flex;

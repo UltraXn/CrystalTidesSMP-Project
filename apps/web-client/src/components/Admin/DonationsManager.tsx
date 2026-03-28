@@ -64,12 +64,22 @@ export default function DonationsManager({ mockDonations }: DonationsManagerProp
     }
 
     const handleSave = async (donationData: Donation) => {
+        // Map Donation to DonationPayload expected by mutations
+        const payload = {
+            donor_name: donationData.from_name,
+            amount: donationData.amount,
+            currency: donationData.currency,
+            message: donationData.message,
+            source: 'admin', // Default source for manual admin entries
+            status: 'completed' // Default status for manual admin entries
+        };
+
         if (donationData.id) {
-            updateMutation.mutate({ id: donationData.id, payload: donationData }, {
+            updateMutation.mutate({ id: donationData.id, payload }, {
                 onSuccess: () => setShowModal(false)
             });
         } else {
-            createMutation.mutate(donationData, {
+            createMutation.mutate(payload, {
                 onSuccess: () => setShowModal(false)
             });
         }
@@ -103,9 +113,28 @@ export default function DonationsManager({ mockDonations }: DonationsManagerProp
                             className="poll-search-input"
                         />
                     </div>
-                    <button className="btn-primary poll-new-btn" onClick={handleNew} style={{ flex: '1 1 auto', minWidth: '160px', height: '52px', padding: '0 2rem', borderRadius: '18px', boxShadow: '0 10px 20px rgba(var(--accent-rgb), 0.2)' }}>
-                        <Plus /> {t('admin.donations.new_btn')}
-                    </button>
+                    <div style={{ display: 'flex', gap: '0.8rem', flex: '1 1 auto' }}>
+                        <button 
+                            className="btn-secondary" 
+                            onClick={async () => {
+                                try {
+                                    const { simulateDonation } = await import('../../services/donationService');
+                                    const names = ['Killu', 'Nero', 'User123', 'CrystalFan'];
+                                    const name = names[Math.floor(Math.random() * names.length)];
+                                    await simulateDonation(name, Math.floor(Math.random() * 50) + 1, 'USD');
+                                    alert('Donación simulada con éxito. Revisa el carrusel en el inicio.');
+                                } catch (err) {
+                                    alert('Error simulando: ' + (err instanceof Error ? err.message : String(err)));
+                                }
+                            }}
+                            style={{ height: '52px', borderRadius: '18px', padding: '0 1.5rem', fontWeight: 700 }}
+                        >
+                            {t('admin.donations.test_btn', 'Simular Donación')}
+                        </button>
+                        <button className="btn-primary poll-new-btn" onClick={handleNew} style={{ flex: '1', height: '52px', padding: '0 2rem', borderRadius: '18px', boxShadow: '0 10px 20px rgba(var(--accent-rgb), 0.2)' }}>
+                            <Plus /> {t('admin.donations.new_btn')}
+                        </button>
+                    </div>
                 </div>
             </div>
 

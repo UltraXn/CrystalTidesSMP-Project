@@ -1,5 +1,6 @@
 import supabase from '../services/supabaseService.js';
 import { Request, Response } from 'express';
+import { ensureString } from '../utils/typeUtils.js';
 
 export const getNotes = async (req: Request, res: Response) => {
     try {
@@ -39,7 +40,7 @@ export const createNote = async (req: Request, res: Response) => {
 
 export const deleteNote = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const id = ensureString(req.params.id);
         const { error } = await supabase
             .from('staff_notes')
             .delete()

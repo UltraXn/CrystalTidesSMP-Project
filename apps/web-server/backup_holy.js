@@ -17,7 +17,7 @@ const DB_SPECIALIZED = {
     database: 's41940_Base-Especializada'
 };
 
-const BACKUP_DIR = 'F:/Portafolio/crystaltides/CrystalTidesSMP SV DEV/BBDDHOLY';
+const BACKUP_DIR = 'C:/Users/nacho/Desktop/Portafolio/crystaltides/CrystalTidesSMP SV DEV/BBDDHOLY';
 
 async function backupDatabase(config, label) {
     console.log(`\n📦 Starting backup for ${label}...`);

@@ -3,6 +3,7 @@ import * as ruleService from '../services/ruleService.js';
 import * as logService from '../services/logService.js';
 import { translateText } from '../services/translationService.js';
 import { sendSuccess, sendError } from '../utils/responseHandler.js';
+import { ensureString } from '../utils/typeUtils.js';
 
 interface AuthenticatedRequest extends Request {
     user?: {
@@ -91,7 +92,7 @@ export const createRule = async (req: Request, res: Response) => {
 
 export const updateRule = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const id = ensureString(req.params.id);
         const updates = req.body;
 
         const updatedRule = await ruleService.updateRule(parseInt(id), {
@@ -123,7 +124,7 @@ export const updateRule = async (req: Request, res: Response) => {
 
 export const deleteRule = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const id = ensureString(req.params.id);
 
         await ruleService.deleteRule(parseInt(id));
 

@@ -21,8 +21,8 @@ const Gacha3DShowcase: React.FC<Gacha3DShowcaseProps> = ({ tierColor, modelUrl }
         const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         
-        const width = 300;
-        const height = 400;
+        const width = 260;
+        const height = 340;
         renderer.setSize(width, height);
         renderer.setPixelRatio(window.devicePixelRatio);
         mountRef.current.appendChild(renderer.domElement);
@@ -61,18 +61,28 @@ const Gacha3DShowcase: React.FC<Gacha3DShowcaseProps> = ({ tierColor, modelUrl }
                 modelRef.current = model;
                 scene.add(model);
                 
-                // Center model
+                // Center & scale model
                 const box = new THREE.Box3().setFromObject(model);
+                const size = box.getSize(new THREE.Vector3());
                 const center = box.getCenter(new THREE.Vector3());
                 model.position.sub(center);
+                
+                // Ensure model isn't too huge
+                const maxDim = Math.max(size.x, size.y, size.z);
+                if (maxDim > 3.5) {
+                    const scale = 3.5 / maxDim;
+                    model.scale.set(scale, scale, scale);
+                }
             });
         }
 
         camera.position.z = 5;
 
+        let frameId: number;
+
         // Animation
         const animate = () => {
-            requestAnimationFrame(animate);
+            frameId = requestAnimationFrame(animate);
             
             if (modelRef.current) {
                 modelRef.current.rotation.y += 0.01;
@@ -89,10 +99,25 @@ const Gacha3DShowcase: React.FC<Gacha3DShowcaseProps> = ({ tierColor, modelUrl }
         // Cleanup
         const mountNode = mountRef.current;
         return () => {
+            cancelAnimationFrame(frameId);
             if (mountNode) {
                 mountNode.removeChild(renderer.domElement);
             }
             renderer.dispose();
+            scene.clear();
+            // Free up memory
+            if (modelRef.current) {
+                modelRef.current.traverse((child) => {
+                    if (child instanceof THREE.Mesh) {
+                        child.geometry.dispose();
+                        if (Array.isArray(child.material)) {
+                            child.material.forEach(m => m.dispose());
+                        } else {
+                            child.material.dispose();
+                        }
+                    }
+                });
+            }
         };
     }, [modelUrl, tierColor]);
 
@@ -118,12 +143,13 @@ const Gacha3DShowcase: React.FC<Gacha3DShowcaseProps> = ({ tierColor, modelUrl }
             <style>{`
                 .gacha-3d-showcase {
                     position: relative;
-                    width: 300px;
-                    height: 400px;
+                    width: 260px;
+                    height: 380px;
                     display: flex;
                     flex-direction: column;
                     align-items: center;
                     justify-content: center;
+                    filter: drop-shadow(0 0 30px rgba(0,0,0,0.4));
                 }
 
                 .three-container {
@@ -134,27 +160,29 @@ const Gacha3DShowcase: React.FC<Gacha3DShowcaseProps> = ({ tierColor, modelUrl }
 
                 .showcase-pedestal {
                     position: absolute;
-                    bottom: 40px;
-                    width: 160px;
-                    height: 20px;
+                    bottom: 60px;
+                    width: 180px;
+                    height: 24px;
                     z-index: 1;
                 }
 
                 .pedestal-top {
                     width: 100%;
                     height: 100%;
-                    background: #1a1a2e;
-                    border: 2px solid rgba(255,255,255,0.1);
+                    background: linear-gradient(135deg, #2a2a4a 0%, #1a1a2e 100%);
+                    border: 2px solid rgba(139, 92, 246, 0.3);
                     border-radius: 50%;
-                    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+                    box-shadow: 
+                        0 5px 15px rgba(0,0,0,0.8),
+                        inset 0 0 10px rgba(139, 92, 246, 0.2);
                 }
 
                 .pedestal-glow {
                     position: absolute;
-                    inset: -25px;
+                    inset: -30px;
                     background: radial-gradient(circle, var(--tier-color) 0%, transparent 70%);
-                    opacity: 0.5;
-                    filter: blur(15px);
+                    opacity: 0.6;
+                    filter: blur(20px);
                     animation: pulse 2s infinite alternate;
                 }
 
@@ -162,16 +190,16 @@ const Gacha3DShowcase: React.FC<Gacha3DShowcaseProps> = ({ tierColor, modelUrl }
                     content: '';
                     position: absolute;
                     inset: 0;
-                    background: radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 50%);
+                    background: radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, transparent 60%);
                     pointer-events: none;
                     z-index: 1;
-                    opacity: ${tierColor === '#6366f1' ? 1 : 0};
+                    opacity: ${tierColor === '#6366f1' ? 1 : 0.5};
                     transition: opacity 0.5s;
                 }
 
                 @keyframes pulse {
-                    from { transform: scale(0.98) translateY(2px); opacity: 0.4; }
-                    to { transform: scale(1.02) translateY(-2px); opacity: 0.5; }
+                    from { transform: scale(0.95) translateY(2px); opacity: 0.4; }
+                    to { transform: scale(1.05) translateY(-2px); opacity: 0.7; }
                 }
             `}</style>
         </div>

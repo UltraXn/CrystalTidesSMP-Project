@@ -3,6 +3,7 @@ import * as skinService from '../services/skinService.js';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import pool from '../config/database.js';
 import { Request, Response } from 'express';
+import { ensureString } from '../utils/typeUtils.js';
 
 // Database Schema Fix (Ensures missing columns exist)
 (async () => {
@@ -26,17 +27,19 @@ export const getStatus = async (req: Request, res: Response) => {
         const status = await minecraftService.getServerStatus(host, port);
 
         res.json(status);
-    } catch {
+    } catch (error) {
+        console.error("[Minecraft Status CRITICAL 500]:", error);
         res.status(500).json({
             online: false,
-            error: 'Internal server error fetching status'
+            error: 'Internal server error fetching status',
+            details: error instanceof Error ? error.message : String(error)
         });
     }
 };
 
 export const getSkin = async (req: Request, res: Response) => {
     try {
-        const { username } = req.params;
+        const username = ensureString(req.params.username);
         if (!username) return res.status(400).json({ error: 'Username required' });
 
         const skinData = await skinService.getSkinUrl(username);
@@ -44,7 +47,7 @@ export const getSkin = async (req: Request, res: Response) => {
     } catch (error) {
         console.error("Error fetching skin:", error);
         // Fallback to minotar direct
-        res.json({ url: `https://minotar.net/skin/${req.params.username}`, source: 'fallback' });
+        res.json({ url: `https://minotar.net/skin/${ensureString(req.params.username)}`, source: 'fallback' });
     }
 };
 
@@ -213,7 +216,7 @@ export const initWebLink = async (req: Request, res: Response) => {
 
 export const checkLinkStatus = async (req: Request, res: Response) => {
     try {
-        const { userId } = req.query; 
+        const userId = ensureString(req.query.userId); 
         if (!userId) return res.status(400).json({ error: 'UserId required' });
 
         if (!supabase) return res.status(503).json({ error: 'Supabase not configured' });

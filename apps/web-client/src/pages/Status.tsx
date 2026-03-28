@@ -12,7 +12,7 @@ export default function Status() {
     const [loading, setLoading] = useState(true)
     const { t } = useTranslation()
 
-    const SERVER_IP = "mc.crystaltidesSMP.net" // Display IP
+    const SERVER_IP = "mc.crystaltidessmp.net" // Display IP
 
     const fetchStatus = async () => {
         try {

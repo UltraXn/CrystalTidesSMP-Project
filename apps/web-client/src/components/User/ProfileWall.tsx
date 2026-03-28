@@ -155,7 +155,7 @@ export default function ProfileWall({ profileId, isAdmin, mockComments }: Profil
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, scale: 0.95 }}
-                                className="relative bg-black/20 border border-white/5 rounded-2xl p-6 hover:bg-black/30 transition-colors group"
+                                className="relative bg-black/20 border border-white/5 rounded-2xl p-6 hover:bg-black/30 hover:-translate-y-2 hover:scale-[1.02] hover:border-white/20 hover:shadow-[0_40px_80px_-15px_rgba(0,0,0,0.5)] transition-all duration-300 group"
                             >
                                 {(() => {
                                     // Use local user data if it's my own comment (to ensure settings are up-to-date)
@@ -223,7 +223,7 @@ export default function ProfileWall({ profileId, isAdmin, mockComments }: Profil
                                                             {statusMessage && (
                                                                 <p className="text-[10px] text-gray-400 italic mt-0.5 line-clamp-2">"{statusMessage}"</p>
                                                             )}
-                                                            <img src={roleImage} alt={role} className="h-4 mt-1 object-contain object-left" />
+                                                            <img src={roleImage} alt={role} className="mt-1 object-contain object-left" style={{ maxHeight: '24px' }} />
                                                         </div>
                                                     </div>
                                                     
@@ -258,7 +258,8 @@ export default function ProfileWall({ profileId, isAdmin, mockComments }: Profil
                                                         <img 
                                                             src={roleImage} 
                                                             alt={role} 
-                                                            className="h-5 object-contain select-none"
+                                                            className="object-contain select-none"
+                                                            style={{ maxHeight: '28px' }}
                                                             onError={(e) => {
                                                                 e.currentTarget.style.display = 'none';
                                                             }}
