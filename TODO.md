@@ -28,4 +28,9 @@
   - [ ] **Análisis**: Parsing automático de excepciones comunes (OOM, Mod Conflicts).
   - [ ] **Analytics**: Implementación de DuckDB para análisis estadístico de fallos.
 
+
 ---
+
+## Links de Interés
+
+- [agensic](https://github.com/Alex188dot/agensic) — Framework de agentes AI
