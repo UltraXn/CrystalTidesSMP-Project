@@ -1,9 +1,4 @@
 import { useMemo } from 'react'
-<<<<<<< HEAD
-import SecureConsole from './Config/SecureConsole'
-=======
-import { useAuth } from '../../context/AuthContext'
->>>>>>> security/api-hardening
 import Loader from "../UI/Loader"
 import KPIStats from './Dashboard/KPIStats';
 import ResourceUsage from './Dashboard/ResourceUsage';
@@ -32,17 +27,9 @@ interface DashboardOverviewProps {
     mockDonationStats?: { currentMonth: string, percentChange: number };
 }
 
-import { useHasPermission } from "../../utils/rolePermissions"
-
 export default function DashboardOverview({ mockServerStats, mockStaffOnline, mockTicketStats, mockDonationStats }: DashboardOverviewProps = {}) {
-<<<<<<< HEAD
-    // RBAC
-    const canViewConsole = useHasPermission('VIEW_CONSOLE');
+    // RBAC hooks preserved for future console feature
 
-=======
-    useAuth()
-    
->>>>>>> security/api-hardening
     // TanStack Query Hooks
     const { data: resources, isLoading: loadingResources } = useServerResources();
     const { data: liveStatus, isLoading: loadingLive } = useServerLiveStatus();
@@ -133,16 +120,7 @@ export default function DashboardOverview({ mockServerStats, mockStaffOnline, mo
                 />
             </div>
 
-<<<<<<< HEAD
-            {/* Secure Console (Super Admin Only) */}
-            {/* Secure Console (Super Admin Only) */}
-            {canViewConsole && (
-                <div style={{ marginTop: '0', background: 'rgba(10, 10, 15, 0.6)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255, 255, 255, 0.05)', borderRadius: '24px', overflow: 'hidden' }}>
-                    <SecureConsole />
-                </div>
-            )}
-=======
->>>>>>> security/api-hardening
+            {/* TODO: SecureConsole (Super Admin Only) - add when component is ready */}
         </div>
     )
 }

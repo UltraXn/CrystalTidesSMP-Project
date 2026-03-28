@@ -12,6 +12,6 @@ export default [
     },
   },
   {
-    ignores: ['dist', 'node_modules', 'backup_holy.js'],
+    ignores: ['dist', 'node_modules', 'backup_holy.js', 'scripts', 'eslint.config.js'],
   },
 ];

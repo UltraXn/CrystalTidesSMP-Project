@@ -378,8 +378,7 @@ export const Gacha = () => {
                 return found ? { ...res, ...found } : res;
             });
 
-            const animateSpin = (item: any, isBulk: boolean) => {
-                return new Promise<void>(async resolve => {
+            const animateSpin = async (item: any, isBulk: boolean) => {
                     // Update reels for this specific roll
                     setReelItemsSet(prev => prev.map((reel) => {
                         const newReel = [...reel];
@@ -392,24 +391,25 @@ export const Gacha = () => {
 
                     const targetIdx = 45; 
                     const reelH = targetIdx * 160; 
-                    const tl = gsap.timeline({ onComplete: resolve });
 
                     // Speed: Bulk = ~1.2s total, Single = ~4-6s total
                     const baseDuration = isBulk ? 0.8 : 4;
                     const stagger = isBulk ? 0.2 : 1;
                     const ease = isBulk ? "power2.inOut" : "power4.inOut";
-                    
-                    reelRefs.forEach((ref, i) => {
-                        const currentReel = ref.current;
-                        if (!currentReel) return;
-                        gsap.set(currentReel, { y: 0 });
-                        tl.to(currentReel, { 
-                            y: -reelH, 
-                            duration: baseDuration + (i * stagger), 
-                            ease: ease 
-                        }, 0);
+
+                    await new Promise<void>(resolve => {
+                        const tl = gsap.timeline({ onComplete: resolve });
+                        reelRefs.forEach((ref, i) => {
+                            const currentReel = ref.current;
+                            if (!currentReel) return;
+                            gsap.set(currentReel, { y: 0 });
+                            tl.to(currentReel, { 
+                                y: -reelH, 
+                                duration: baseDuration + (i * stagger), 
+                                ease: ease 
+                            }, 0);
+                        });
                     });
-                });
             };
 
             // Run each animation in sequence

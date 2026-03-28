@@ -2,7 +2,7 @@ import { User } from '@supabase/supabase-js';
 
 const ADMIN_ROLES = ['admin', 'neroferno', 'killu', 'developer', 'staff'];
 
-const getUserRole = (user: User | null): string | null => {
+export const getUserRole = (user: User | null): string | null => {
     if (!user) return null;
 
     if (user.app_metadata?.role && typeof user.app_metadata.role === 'string') {
