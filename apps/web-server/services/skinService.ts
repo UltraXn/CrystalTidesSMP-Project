@@ -1,12 +1,9 @@
 import pool from '../config/database.js';
+import type { RowDataPacket } from 'mysql2';
 
 
-interface SkinRow {
+interface SkinRow extends RowDataPacket {
     Value: string;
-}
-
-interface ShowTableResult {
-    [key: string]: string;
 }
 
 let cachedTableName: string | null = null;
@@ -15,7 +12,7 @@ const findSkinTable = async () => {
     if (cachedTableName) return cachedTableName;
 
     try {
-        const [rows] = await pool.query<ShowTableResult[]>('SHOW TABLES');
+        const [rows] = await pool.query<RowDataPacket[]>('SHOW TABLES');
         // Rows is [{ Tables_in_dbname: 'tablename' }, ...]
         // We look for 'skins' case insensitive
         for (const row of rows) {

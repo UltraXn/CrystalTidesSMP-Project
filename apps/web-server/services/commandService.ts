@@ -1,8 +1,9 @@
 import pool from '../config/database.js';
+import type { RowDataPacket } from 'mysql2';
 
 import { sendToAll } from './websocketService.js';
 
-interface CommandRow {
+interface CommandRow extends RowDataPacket {
     id: number;
     command: string;
     executed: number;

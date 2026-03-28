@@ -1,4 +1,5 @@
 import db from '../config/database.js';
+import type { RowDataPacket } from 'mysql2';
 
 interface PlayerStats {
     username: string;
@@ -20,33 +21,33 @@ interface PlayerStats {
     raw_rank?: string;
 }
 
-interface PlanUserRow {
+interface PlanUserRow extends RowDataPacket {
     uuid: string;
     name: string;
     id: number;
     registered: string | number | Date;
 }
 
-interface SessionStatsRow {
+interface SessionStatsRow extends RowDataPacket {
     playtime: number;
     mobs: number;
     deaths: number;
 }
 
-interface KillCountRow {
+interface KillCountRow extends RowDataPacket {
     count: number;
 }
 
-interface MoneyRow {
+interface MoneyRow extends RowDataPacket {
     vault_balance: number | string | null;
     vault_balance_str: string | null;
 }
 
-interface LuckPermsUserRow {
+interface LuckPermsUserRow extends RowDataPacket {
     primary_group: string;
 }
 
-interface LuckPermsPermRow {
+interface LuckPermsPermRow extends RowDataPacket {
     permission: string;
 }
 
