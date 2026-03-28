@@ -48,6 +48,9 @@
     "vite": "^6.2.0",
     "vitest": "^3.0.10"
   },
+  "overrides": {
+    "undici": "^6.21.4"
+  },
   "dependencies": {
     "@hello-pangea/dnd": "^18.0.1",
     "@supabase/supabase-js": "^2.89.0",

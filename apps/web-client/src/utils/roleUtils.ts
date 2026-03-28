@@ -27,3 +27,9 @@ export const isAdmin = (user: User | null): boolean => {
     const role = getUserRole(user);
     return !!(role && ADMIN_ROLES.includes(role.toLowerCase()));
 };
+
+export const isStaff = (user: User | null): boolean => {
+    const role = getUserRole(user);
+    const STAFF_ROLES = ['staff', 'moderator', 'helper', 'admin', 'developer'];
+    return !!(role && STAFF_ROLES.includes(role.toLowerCase()));
+};

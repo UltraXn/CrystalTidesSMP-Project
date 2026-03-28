@@ -21,6 +21,7 @@ export interface AdminDoc {
     id: string;
     title: string;
     content: string;
+    [key: string]: unknown;
 }
 
 export const getDefaults = (t: TFunction) => [
