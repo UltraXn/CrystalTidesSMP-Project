@@ -68,8 +68,17 @@ const SkinViewerComponent = ({ skinUrl, width = 300, height = 400 }: SkinViewerP
         // Cleanup function
         return () => {
             if (viewer) {
-                viewer.dispose();
-                viewerRef.current = null;
+                try {
+                    // Check if internal components exist before disposing to avoid library crashes
+                    // Some versions of skinview3d might crash if canvas is already gone
+                    if (viewer.canvas) {
+                        viewer.dispose();
+                    }
+                } catch (e) {
+                    console.warn("SkinViewer cleanup suppressed:", e);
+                } finally {
+                    viewerRef.current = null;
+                }
             }
         };
     }, [isVisible, skinUrl, width, height]);
