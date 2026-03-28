@@ -1,6 +1,7 @@
 import * as pollService from '../services/pollService.js';
 import { Request, Response } from 'express';
 import { sendSuccess, sendError } from '../utils/responseHandler.js';
+import { ensureString } from '../utils/typeUtils.js';
 
 export const getActivePoll = async (req: Request, res: Response) => {
     try {
@@ -19,7 +20,13 @@ export const getActivePoll = async (req: Request, res: Response) => {
 export const vote = async (req: Request, res: Response) => {
     try {
         const { pollId, optionId } = req.body;
-        const result = await pollService.votePoll(pollId, optionId);
+        const userId = req.user?.id;
+        
+        if (!userId) {
+            return sendError(res, 'User ID not found in token', 401);
+        }
+
+        const result = await pollService.votePoll(pollId, optionId, userId);
         return sendSuccess(res, result, 'Vote recorded');
     } catch (error: unknown) {
         const message = error instanceof Error ? error.message : 'Unknown error';
@@ -39,7 +46,7 @@ export const create = async (req: Request, res: Response) => {
 
 export const update = async (req: Request, res: Response) => {
     try {
-        const id = parseInt(req.params.id);
+        const id = parseInt(ensureString(req.params.id));
         const result = await pollService.updatePoll(id, req.body);
         return sendSuccess(res, result, 'Poll updated successfully');
     } catch (error: unknown) {
@@ -50,7 +57,7 @@ export const update = async (req: Request, res: Response) => {
 
 export const close = async (req: Request, res: Response) => {
     try {
-        await pollService.closePoll(parseInt(req.params.id));
+        await pollService.closePoll(parseInt(ensureString(req.params.id)));
         return sendSuccess(res, null, 'Poll closed successfully');
     } catch (error: unknown) {
         const message = error instanceof Error ? error.message : 'Unknown error';
@@ -60,7 +67,7 @@ export const close = async (req: Request, res: Response) => {
 
 export const deletePoll = async (req: Request, res: Response) => {
     try {
-        await pollService.deletePoll(parseInt(req.params.id));
+        await pollService.deletePoll(parseInt(ensureString(req.params.id)));
         return sendSuccess(res, null, 'Poll deleted successfully');
     } catch (error: unknown) {
         const message = error instanceof Error ? error.message : 'Unknown error';
@@ -70,8 +77,8 @@ export const deletePoll = async (req: Request, res: Response) => {
 
 export const getPolls = async (req: Request, res: Response) => {
     try {
-        const page = parseInt(req.query.page as string) || 1;
-        const limit = parseInt(req.query.limit as string) || 10;
+        const page = parseInt(ensureString(req.query.page)) || 1;
+        const limit = parseInt(ensureString(req.query.limit)) || 10;
         const result = await pollService.getPolls({ page, limit });
         return sendSuccess(res, result);
     } catch (error: unknown) {

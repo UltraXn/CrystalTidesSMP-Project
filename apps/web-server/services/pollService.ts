@@ -125,26 +125,40 @@ export const getPollById = async (id: number) => {
     return { ...poll, options: optionsWithPercent, totalVotes, closesIn };
 };
 
-export const votePoll = async (pollId: number, optionId: number) => {
-    // Naive fetch-update
+export const votePoll = async (pollId: number, optionId: number, userId: string) => {
+    // 1. Check if the option exists
     const { data: option, error: fetchError } = await supabase
         .from('poll_options')
-        .select('votes')
+        .select('id')
         .eq('id', optionId)
         .single();
         
     if (fetchError || !option) throw new Error("Option not found");
 
-    const newVotes = (option.votes || 0) + 1;
-    
-    const { error } = await supabase
-        .from('poll_options')
-        .update({ votes: newVotes })
-        .eq('id', optionId);
+    // 2. Insert into poll_votes (unique constraint handles double-voting)
+    const { error: voteError } = await supabase
+        .from('poll_votes')
+        .insert([{
+            poll_id: pollId,
+            user_id: userId,
+            option_id: optionId
+        }]);
 
-    if (error) throw error;
+    if (voteError) {
+        if (voteError.code === '23505') { // Unique violation
+            throw new Error("Ya has votado en esta encuesta");
+        }
+        throw voteError;
+    }
     
-    return { success: true, votes: newVotes };
+    // 3. fetch the updated count from poll_options (updated via trigger)
+    const { data: updatedOption } = await supabase
+        .from('poll_options')
+        .select('votes')
+        .eq('id', optionId)
+        .single();
+
+    return { success: true, votes: updatedOption?.votes || 0 };
 };
 
 export const createPoll = async ({ title, title_en, question, question_en, options, closes_at, thread_id, discord_link }: CreatePollDTO) => {
