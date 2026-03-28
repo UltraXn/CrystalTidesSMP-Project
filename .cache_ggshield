@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 <<<<<<< Updated upstream
 {"last_found_secrets": [{"name": "Generic Password - f:\\Portafolio\\crystaltides\\apps\\web-server\\backup_holy.js", "match": "a50d29c5e0a432b79322936032311346e68b20582e95dacd6fc3b4f0aafb66b4"}]}
 =======
 {"last_found_secrets": [{"match": "2d91bbe17dbb8709e0b4dec51d7e245c7edeb41a0283dbe69ca98a74daff6245", "name": "Generic Database Assignment - f:\\Portafolio\\crystaltides\\apps\\discord-bot\\.env"}]}
 >>>>>>> Stashed changes
+=======
+{"last_found_secrets": [{"name": "Generic Password - C:\\Users\\nacho\\Desktop\\Portafolio\\crystaltides\\apps\\web-server\\backup_holy.js", "match": "a50d29c5e0a432b79322936032311346e68b20582e95dacd6fc3b4f0aafb66b4"}]}
+>>>>>>> security/api-hardening

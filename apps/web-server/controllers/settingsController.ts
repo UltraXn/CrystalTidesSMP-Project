@@ -2,6 +2,7 @@ import supabase from '../config/supabaseClient.js';
 import * as logService from '../services/logService.js';
 import { translateText } from '../services/translationService.js';
 import { Request, Response } from 'express';
+import { ensureString } from '../utils/typeUtils.js';
 
 // Configuración pública permitida para usuarios no autenticados
 const PUBLIC_SETTINGS_WHITELIST = [
@@ -48,16 +49,20 @@ export const getSettings = async (req: Request, res: Response) => {
 
         res.json(settings);
     } catch (error: unknown) {
+        console.error("[Settings Controller CRITICAL 500]:", error);
         const message = error instanceof Error ? error.message : String(error);
-        console.error("[Settings Controller Error]:", message);
-        res.status(500).json({ error: message });
+        res.status(500).json({ 
+            error: "Internal Server Error loading settings",
+            details: message,
+            timestamp: new Date().toISOString()
+        });
     }
 };
 
 // Obtener una configuración específica
 export const getSetting = async (req: Request, res: Response) => {
     try {
-        const { key } = req.params;
+        const key = ensureString(req.params.key);
         const { data, error } = await supabase
             .from('site_settings')
             .select('*')
@@ -84,7 +89,7 @@ export const getSetting = async (req: Request, res: Response) => {
 // Actualizar una configuración
 export const updateSetting = async (req: Request, res: Response) => {
     try {
-        const { key } = req.params;
+        const key = ensureString(req.params.key);
         const { value, username, userId } = req.body; // userId y username para logs
 
         let finalValue = value;

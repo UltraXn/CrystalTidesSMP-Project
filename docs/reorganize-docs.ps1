@@ -1,5 +1,5 @@
 # CrystalTides Documentation Reorganization Script
-# Run this from: f:\Portafolio\crystaltides\docs
+# Run this from: C:\Users\nacho\Desktop\Portafolio\crystaltides\docs
 
 Write-Host "🚀 Starting CrystalTides Documentation Reorganization..." -ForegroundColor Cyan
 

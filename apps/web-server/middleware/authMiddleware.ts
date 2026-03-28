@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import supabase from '../config/supabaseClient.js';
+import redis from '../config/redis.js';
 
 export const authenticateToken = async (req: Request, res: Response, next: NextFunction) => {
     const authHeader = req.headers['authorization'];

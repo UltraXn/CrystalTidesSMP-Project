@@ -1,8 +1,17 @@
-import baseConfig from '@crystaltides/eslint-config/base';
+import baseConfig from '../../packages/eslint-config/base.js';
 
+/** @type {import('eslint').Linter.Config[]} */
 export default [
   ...baseConfig,
   {
-    ignores: ['dist', 'node_modules'],
-  }
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+  },
+  {
+    ignores: ['dist', 'node_modules', 'backup_holy.js'],
+  },
 ];

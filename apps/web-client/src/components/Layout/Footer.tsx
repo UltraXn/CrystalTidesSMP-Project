@@ -45,22 +45,62 @@ export default function Footer() {
                     <div className="flex flex-col gap-8">
                         <h4 className="text-white text-xs font-black uppercase tracking-[0.3em] opacity-30">{t('footer.server')}</h4>
                         <ul className="flex flex-col gap-5 list-none">
-                            <li><Link to="/#rules" className="text-gray-400 hover:text-white hover:translate-x-1 inline-block transition-all">{t('footer.rules')}</Link></li>
-                            <li><Link to="/map" className="text-gray-400 hover:text-white hover:translate-x-1 inline-block transition-all">{t('footer.online_map')}</Link></li>
-                            <li><Link to="/support" className="text-gray-400 hover:text-white hover:translate-x-1 inline-block transition-all">{t('footer.support', 'Soporte')}</Link></li>
-                            <li><Link to="/#suggestions" className="text-gray-400 hover:text-white hover:translate-x-1 inline-block transition-all">{t('footer.suggestions')}</Link></li>
+                            <li>
+                                <Link to="/rules" className="text-gray-400 hover:text-white hover:translate-x-1 inline-block transition-all relative group">
+                                    <span className="relative z-10">{t('footer.rules')}</span>
+                                    <div className="absolute -inset-x-2 -inset-y-1 bg-(--accent)/30 blur-lg opacity-0 group-hover:opacity-100 transition-opacity rounded-full pointer-events-none"></div>
+                                </Link>
+                            </li>
+                            <li>
+                                <Link to="/map" className="text-gray-400 hover:text-white hover:translate-x-1 inline-block transition-all relative group">
+                                    <span className="relative z-10">{t('footer.online_map')}</span>
+                                    <div className="absolute -inset-x-2 -inset-y-1 bg-(--accent)/30 blur-lg opacity-0 group-hover:opacity-100 transition-opacity rounded-full pointer-events-none"></div>
+                                </Link>
+                            </li>
+                            <li>
+                                <Link to="/support" className="text-gray-400 hover:text-white hover:translate-x-1 inline-block transition-all relative group">
+                                    <span className="relative z-10">{t('footer.support', 'Soporte')}</span>
+                                    <div className="absolute -inset-x-4 -inset-y-2 bg-(--accent)/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity rounded-full pointer-events-none"></div>
+                                </Link>
+                            </li>
+                            <li>
+                                <Link to="/suggestions" className="text-gray-400 hover:text-white hover:translate-x-1 inline-block transition-all relative group">
+                                    <span className="relative z-10">{t('footer.suggestions')}</span>
+                                    <div className="absolute -inset-x-4 -inset-y-2 bg-(--accent)/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity rounded-full pointer-events-none"></div>
+                                </Link>
+                            </li>
                         </ul>
                     </div>
 
                     <div className="flex flex-col gap-8">
                         <h4 className="text-white text-xs font-black uppercase tracking-[0.3em] opacity-30">{t('footer.community')}</h4>
                         <ul className="flex flex-col gap-5 list-none">
-                            <li><Link to="/#news" className="text-gray-400 hover:text-white hover:translate-x-1 inline-block transition-all">{t('footer.news')}</Link></li>
-                            <li><Link to="/#contests" className="text-gray-400 hover:text-white hover:translate-x-1 inline-block transition-all">{t('footer.events')}</Link></li>
-                            <li><Link to="/#stories" className="text-gray-400 hover:text-white hover:translate-x-1 inline-block transition-all">{t('footer.stories')}</Link></li>
-                            <li><Link to="/forum" className="text-gray-400 hover:text-white hover:translate-x-1 inline-block transition-all">{t('footer.forum')}</Link></li>
                             <li>
-                                <Link to="/#donors" className="flex items-center justify-start gap-3 font-black text-(--accent) hover:scale-105 transition-all group/kofi">
+                                <Link to="/news" className="text-gray-400 hover:text-white hover:translate-x-1 inline-block transition-all relative group">
+                                    <span className="relative z-10">{t('footer.news')}</span>
+                                    <div className="absolute -inset-x-4 -inset-y-2 bg-(--accent)/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity rounded-full pointer-events-none"></div>
+                                </Link>
+                            </li>
+                            <li>
+                                <Link to="/contests" className="text-gray-400 hover:text-white hover:translate-x-1 inline-block transition-all relative group">
+                                    <span className="relative z-10">{t('footer.events')}</span>
+                                    <div className="absolute -inset-x-4 -inset-y-2 bg-(--accent)/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity rounded-full pointer-events-none"></div>
+                                </Link>
+                            </li>
+                            <li>
+                                <Link to="/stories" className="text-gray-400 hover:text-white hover:translate-x-1 inline-block transition-all relative group">
+                                    <span className="relative z-10">{t('footer.stories')}</span>
+                                    <div className="absolute -inset-x-4 -inset-y-2 bg-(--accent)/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity rounded-full pointer-events-none"></div>
+                                </Link>
+                            </li>
+                            <li>
+                                <Link to="/forum" className="text-gray-400 hover:text-white hover:translate-x-1 inline-block transition-all relative group">
+                                    <span className="relative z-10">{t('footer.forum')}</span>
+                                    <div className="absolute -inset-x-4 -inset-y-2 bg-(--accent)/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity rounded-full pointer-events-none"></div>
+                                </Link>
+                            </li>
+                            <li>
+                                <Link to="/donors" className="flex items-center justify-start gap-3 font-black text-(--accent) hover:scale-105 transition-all group/kofi">
                                     <img 
                                         src="https://storage.ko-fi.com/cdn/cup-border.png" 
                                         alt="Ko-Fi" 

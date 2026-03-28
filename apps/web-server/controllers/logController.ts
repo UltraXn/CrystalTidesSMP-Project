@@ -1,19 +1,23 @@
 import * as logService from '../services/logService.js';
 import { Request, Response } from 'express';
+import { ensureString } from '../utils/typeUtils.js';
 
 export const getLogs = async (req: Request, res: Response) => {
     try {
-        const { page = '1', limit = '50', source = 'all', search = '' } = req.query;
+        const page = ensureString(req.query.page, '1');
+        const limit = ensureString(req.query.limit, '50');
+        const source = ensureString(req.query.source, 'all');
+        const search = ensureString(req.query.search, '');
 
-        const pageNum = Math.max(1, parseInt(page as string, 10) || 1);
-        const limitNum = Math.max(1, Math.min(200, parseInt(limit as string, 10) || 50));
+        const pageNum = Math.max(1, parseInt(page) || 1);
+        const limitNum = Math.max(1, Math.min(200, parseInt(limit) || 50));
         const offset = (pageNum - 1) * limitNum;
 
         if (source === 'game') {
             const gameLogs = await logService.getGameLogs({
                 limit: limitNum,
                 offset,
-                search: search as string
+                search
             });
 
             return res.json({
@@ -27,8 +31,8 @@ export const getLogs = async (req: Request, res: Response) => {
         const logs = await logService.getLogs({
             limit: limitNum,
             offset,
-            source: source as string,
-            search: search as string
+            source,
+            search
         });
 
         return res.json({

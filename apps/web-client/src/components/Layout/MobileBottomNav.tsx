@@ -55,7 +55,7 @@ export default function MobileBottomNav() {
             <div className="fixed bottom-0 left-0 w-full bg-[#0a0a0a]/90 backdrop-blur-2xl border-t border-white/5 pb-safe z-150 lg:hidden animate-slide-up">
                 <div className="flex items-center justify-around h-20 px-2 pb-2">
                     <NavLink to="/" icon={<Home size={20} />} label={t('common.home', 'Inicio')} active={location.pathname === '/'} />
-                    <NavLink to="/#donors" icon={<Store size={20} />} label={t('navbar.donors', 'Tienda')} active={location.hash === '#donors'} />
+                    <NavLink to="/donors" icon={<Store size={20} />} label={t('navbar.donors', 'Tienda')} active={location.pathname === '/donors'} />
                     
                     {/* Center Action Button (PFP or Status) */}
                     <div className="relative -top-6 flex flex-col items-center justify-center">
@@ -188,14 +188,14 @@ function MenuOverlay({ isOpen, onClose }: { isOpen: boolean, onClose: () => void
                     {/* Navigation Links */}
                     <nav className="flex flex-col gap-2 mb-12">
                         {[
-                            { to: "/#rules", label: t('navbar.rules') },
-                            { to: "/#donors", label: t('navbar.donors'), highlight: true },
-                            { to: "/#news", label: t('navbar.news') },
-                            { to: "/#suggestions", label: t('navbar.suggestions') },
+                            { to: "/rules", label: t('navbar.rules') },
+                            { to: "/donors", label: t('navbar.donors'), highlight: true },
+                            { to: "/news", label: t('navbar.news') },
+                            { to: "/suggestions", label: t('navbar.suggestions') },
                             { to: "/forum", label: t('navbar.forum') },
                             { to: "/wiki", label: t('navbar.wiki', 'Guía') },
                             { to: "/support", label: t('navbar.support', 'Soporte') },
-                            { to: "/map", label: t('footer.online_map') }
+                            { to: "/map", label: t('navbar.map') }
                         ].map((link, idx) => (
                             <Link 
                                 key={idx}

@@ -6,6 +6,7 @@
         "save_error": "Error al guardar",
         "delete_error": "Error al eliminar",
         "confirm_delete": "Confirmar eliminación",
+        "deleting": "Eliminando...",
         "accept": "Aceptar",
         "cancel": "Cancelar",
         "loading": "Cargando...",
@@ -1668,10 +1669,12 @@
         },
         "error_create": "Error al crear el ticket. Por favor, inténtalo de nuevo."
     },
-    "gacha": {
+    "roulette": {
         "title": "Ruleta Diaria",
         "hero_title": "Ruleta del Destino",
         "hero_subtitle": "¡Prueba tu suerte gratis cada 24 horas y reclama tesoros exclusivos para tu aventura!",
+        "unauthorized_title": "ACCESO RESTRINGIDO",
+        "unauthorized_desc": "Esta sección del nexo está reservada para personal autorizado de CrystalTides y portadores del rango adecuado.",
         "btn_roll": "Girar Ruleta",
         "btn_cooldown": "En Descanso",
         "history_btn": "Historial",
@@ -1682,6 +1685,7 @@
         "claim_success": "¡El premio ha sido enviado a tu cola del servidor!",
         "reward_delivered": "¡El objeto ha sido teletransportado a tu inventario!",
         "claim_btn": "Recoger Premio",
+        "save_later_btn": "Guardar para después",
         "vuelve_mañana": "Vuelve mañana",
         "already_claimed": "¡Ya has girado la ruleta hoy!",
         "roll_error": "Error al girar",
@@ -1690,7 +1694,7 @@
         "account_not_linked": "Cuenta no vinculada",
         "link_instruction": "Debes vincular tu cuenta de Minecraft en los ajustes para poder recibir premios en el servidor.",
         "link_button": "Vincular ahora"
-    },
+},
     "tutorial": {
         "step1_title": "¡Bienvenido a CrystalTides!",
         "step1_content": "Descubre la nueva experiencia web de tu servidor favorito. Hemos renovado todo para ti.",
@@ -1771,5 +1775,43 @@
             "error_fields": "Por favor completa los campos básicos",
             "error_save": "Error al guardar"
         }
+    },
+    "gacha": {
+    "hero_title": "GACHA DE CRYSTALTIDES",
+    "hero_subtitle": "¡Prueba tu suerte y desbloquea recompensas místicas!",
+    "tiers": {
+        "bronze": "BRONCE",
+        "silver": "PLATA",
+        "gold": "ORO",
+        "emerald": "ESMERALDA",
+        "diamond": "DIAMANTE",
+        "netherite": "NETHERITE",
+        "ultra": "ULTRA"
+    },
+    "cost": "COSTE",
+    "quantity": "CANTIDAD",
+    "balance": "SALDO",
+    "spin": "TIRAR",
+    "spinning": "GIRANDO...",
+    "tier_locked": "BLOQUEADO",
+    "free_roll": "¡TIRO GRATIS!",
+    "event_only": "EVENTO",
+    "results_title": "RECOMPENSAS",
+    "accept": "ACEPTAR",
+    "no_rewards": "No se obtuvieron recompensas esta vez.",
+    "admin": {
+        "enable": "ACTIVAR MODO ADMIN",
+        "disable": "DESACTIVAR MODO ADMIN",
+        "forced_result": "RESULTADO FORZADO",
+        "real_consumption": "CONSUMO REAL",
+        "test_machine": "PROBAR MÁQUINA",
+        "add_funds": "Admin: +1M KC (Local)"
+    },
+    "unauthorized": {
+        "title": "ACCESO RESTRINGIDO",
+        "desc": "Este terminal de recompensas está reservado para personal autorizado y aventureros vinculados.",
+        "status": "ESTADO DEL SISTEMA",
+        "back": "VOLVER AL PORTAL"
     }
+}
 }

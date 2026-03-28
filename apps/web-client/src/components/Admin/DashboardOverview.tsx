@@ -1,5 +1,9 @@
 import { useMemo } from 'react'
+<<<<<<< HEAD
 import SecureConsole from './Config/SecureConsole'
+=======
+import { useAuth } from '../../context/AuthContext'
+>>>>>>> security/api-hardening
 import Loader from "../UI/Loader"
 import KPIStats from './Dashboard/KPIStats';
 import ResourceUsage from './Dashboard/ResourceUsage';
@@ -31,9 +35,14 @@ interface DashboardOverviewProps {
 import { useHasPermission } from "../../utils/rolePermissions"
 
 export default function DashboardOverview({ mockServerStats, mockStaffOnline, mockTicketStats, mockDonationStats }: DashboardOverviewProps = {}) {
+<<<<<<< HEAD
     // RBAC
     const canViewConsole = useHasPermission('VIEW_CONSOLE');
 
+=======
+    useAuth()
+    
+>>>>>>> security/api-hardening
     // TanStack Query Hooks
     const { data: resources, isLoading: loadingResources } = useServerResources();
     const { data: liveStatus, isLoading: loadingLive } = useServerLiveStatus();
@@ -124,6 +133,7 @@ export default function DashboardOverview({ mockServerStats, mockStaffOnline, mo
                 />
             </div>
 
+<<<<<<< HEAD
             {/* Secure Console (Super Admin Only) */}
             {/* Secure Console (Super Admin Only) */}
             {canViewConsole && (
@@ -131,6 +141,8 @@ export default function DashboardOverview({ mockServerStats, mockStaffOnline, mo
                     <SecureConsole />
                 </div>
             )}
+=======
+>>>>>>> security/api-hardening
         </div>
     )
 }

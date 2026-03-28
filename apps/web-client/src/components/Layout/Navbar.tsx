@@ -3,7 +3,7 @@ import NotificationCenter from "../../components/UI/NotificationCenter"
 import { Link, useNavigate, useLocation } from "react-router-dom"
 import { useAuth } from "../../context/AuthContext"
 import { isAdmin as checkAdmin } from "../../utils/roleUtils"
-import { Trophy, Edit, Shield, LogOut, Settings, Server, Link as LinkIcon } from "lucide-react"
+import { Trophy, Edit, Shield, LogOut, Settings, Server, User as UserIcon, Link as LinkIcon } from "lucide-react"
 import { useRef, useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 
@@ -67,162 +67,188 @@ export default function Navbar() {
     if (location.pathname.startsWith('/policies')) return null;
 
     return (
-        <header className={`fixed top-0 left-0 w-full z-100 transition-all duration-300 ${scrolled ? 'bg-black/90 backdrop-blur-xl border-b border-white/5 shadow-2xl py-2' : 'bg-transparent py-4'}`}>
-            <div className="w-full px-8 h-16 flex items-center relative">
+        <header className={`fixed top-0 left-0 right-0 z-100 transition-all duration-500 box-border ${scrolled ? 'py-2' : 'py-4'}`}>
+            <div className={`mx-auto transition-all duration-500 ${scrolled ? 'px-4 max-w-screen-2xl' : 'px-4 md:px-8 max-w-screen-2xl'}`}>
+                <div className={`relative flex items-center justify-between h-14 md:h-16 px-4 md:px-8 rounded-full border border-white/5 transition-all duration-500 ${scrolled ? 'bg-black/60 backdrop-blur-xl shadow-2xl' : 'bg-transparent'}`}>
                 
-                {/* 1. Logo Section (Left) */}
-                <div className="flex items-center">
-                    <Link 
-                        to="/" 
-                        className="flex items-center gap-3 group"
-                    >
-                        <motion.img
-                            src="/images/ui/logo.webp"
-                            alt="CrystalTides Logo"
-                            className="w-9 h-9 object-contain"
-                            whileHover={{ y: -5, rotate: 5, scale: 1.1 }}
-                            transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                        />
-                        <span className="text-xl font-black uppercase tracking-tighter text-white group-hover:text-(--accent) transition-colors hidden 2xl:flex items-center">
-                            <span>Crystal</span>
-                            <span className="text-(--accent)">Tides</span> 
-                            <span className="text-gray-500 ml-2">SMP</span>
-                        </span>
-                    </Link>
-                </div>
-
-                {/* 2. Desktop Navigation (Centered Absolutely) */}
-                <nav className="hidden xl:flex items-center gap-1 absolute left-1/2 -translate-x-1/2">
-                    {[
-                        { to: "/#rules", label: t('navbar.rules') },
-                        { to: "/#donors", label: t('navbar.donors') },
-                        { to: "/#news", label: t('navbar.news') },
-                        { to: "/#suggestions", label: t('navbar.suggestions') },
-                        { to: "/forum", label: t('navbar.forum') },
-                        { to: "/wiki", label: t('navbar.wiki', 'Guía') },
-                        { to: "/support", label: t('navbar.support', 'Soporte') },
-                        { to: "/map", label: t('footer.online_map') }
-                    ].map((link) => (
+                    {/* 1. Logo Section (Left) */}
+                    <div className="flex items-center shrink-0">
+                        <style>{`
+                            @keyframes logo-idle-float {
+                                0%, 100% { transform: translateY(0) rotate(0deg); }
+                                50% { transform: translateY(-5px) rotate(2deg); }
+                            }
+                            @keyframes brand-text-shimmer {
+                                0% { background-position: -200% 0; }
+                                100% { background-position: 200% 0; }
+                            }
+                            .logo-animate-idle {
+                                animation: logo-idle-float 3.5s ease-in-out infinite;
+                            }
+                            .brand-text-shimmer {
+                                background: linear-gradient(90deg, #fff 0%, var(--accent) 50%, #fff 100%);
+                                background-size: 200% auto;
+                                -webkit-background-clip: text;
+                                -webkit-text-fill-color: transparent;
+                                animation: brand-text-shimmer 4s linear infinite;
+                            }
+                        `}</style>
                         <Link 
-                            key={link.to} 
-                            to={link.to} 
-                            className="px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 hover:text-white transition-all whitespace-nowrap"
+                            to="/" 
+                            className="flex items-center gap-2 md:gap-3 group"
                         >
-                            {link.label}
+                            <div className="relative logo-animate-idle">
+                                <motion.img
+                                    src="/images/ui/logo.webp"
+                                    alt="CrystalTides Logo"
+                                    className="w-8 h-8 md:w-9 md:h-9 object-contain relative z-10"
+                                    whileHover={{ scale: 1.15, rotate: 8 }}
+                                    transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                                />
+                                {/* Glow */}
+                                <div className="absolute inset-0 bg-(--accent)/30 blur-xl rounded-full z-0 animate-pulse" />
+                            </div>
+                            <span className="text-sm sm:text-lg md:text-xl font-black uppercase tracking-tighter flex items-center relative">
+                                <span className="brand-text-shimmer hidden xl:inline">CrystalTides</span>
+                                <span className="text-gray-500 ml-1.5 text-[8px] md:text-xs opacity-50 hidden 2xl:inline">SMP</span>
+                            </span>
                         </Link>
-                    ))}
-                </nav>
-
-                {/* 3. Right Actions (Right) */}
-                <div className="ml-auto flex items-center gap-6">
-                    {/* Selector de Idioma */}
-                    <div className="hidden lg:flex items-center bg-black/40 p-1 rounded-xl border border-white/5 shadow-inner box-border">
-                        <button
-                            onClick={() => changeLanguage('es')}
-                            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-black transition-all ${i18n.resolvedLanguage === 'es' ? 'bg-(--accent) text-black shadow-lg shadow-(--accent)/20' : 'text-gray-500 hover:text-gray-300'}`}
-                        >
-                            <img src="/images/flags/es.svg" alt="ES" className="w-4 h-[10px] object-cover rounded-[1px] shrink-0" />
-                            ES
-                        </button>
-                        <div className="w-px h-3 bg-white/10 mx-1" />
-                        <button
-                            onClick={() => changeLanguage('en')}
-                            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-black transition-all ${i18n.resolvedLanguage === 'en' ? 'bg-(--accent) text-black shadow-lg shadow-(--accent)/20' : 'text-gray-500 hover:text-gray-300'}`}
-                        >
-                            <img src="/images/flags/us.svg" alt="EN" className="w-4 h-[10px] object-cover rounded-[1px] shrink-0" />
-                            EN
-                        </button>
                     </div>
 
-                    {/* User Profile / Login */}
-                    <div className="flex items-center gap-4">
-                        {user ? (
-                            <div className="flex items-center gap-4">
-                                <NotificationCenter />
-                                <div className="relative" ref={dropdownRef}>
-                                    <button
-                                        className="flex items-center gap-3 bg-(--accent) px-4 py-2 rounded-xl cursor-pointer hover:brightness-110 active:scale-95 transition-all shadow-lg shadow-(--accent)/20 group"
-                                        onClick={() => setDropdownOpen(!dropdownOpen)}
-                                    >
-                                        <div className="w-6 h-6 rounded-lg overflow-hidden border border-black/10">
-                                            <img 
-                                                src={(() => {
-                                                    const meta = user.user_metadata || {};
-                                                    const mcNick = meta.minecraft_nick || meta.username || 'steve';
-                                                    return meta.avatar_preference === 'social' && meta.avatar_url 
-                                                        ? meta.avatar_url 
-                                                        : `https://mc-heads.net/avatar/${mcNick}/64`;
-                                                })()}
-                                                alt="Avatar" 
-                                                className="w-full h-full object-cover" 
-                                            />
-                                        </div>
-                                        <span className="text-[11px] font-black text-black uppercase tracking-widest truncate max-w-[120px]">
-                                            {user.user_metadata?.minecraft_nick || user.user_metadata?.username || 'User'}
-                                        </span>
-                                    </button>
+                    {/* 2. Navigation (Flexible Center) */}
+                    <nav className="hidden lg:flex flex-1 items-center justify-center px-2 overflow-hidden min-w-0">
+                        <div className="flex items-center gap-0.5 xl:gap-1.5 overflow-hidden">
+                            {[
+                                { to: "/rules", label: t('navbar.rules', 'REGLAS') },
+                                { to: "/donors", label: t('navbar.donors', 'DONADORES') },
+                                { to: "/news", label: t('navbar.news', 'NOTICIAS') },
+                                { to: "/suggestions", label: t('navbar.suggestions', 'SUGERENCIAS') },
+                                { to: "/forum", label: t('navbar.forum', 'FORO') },
+                                { to: "/wiki", label: t('navbar.wiki', 'GUÍA') },
+                                { to: "/support", label: t('navbar.support', 'SOPORTE') },
+                                { to: "/map", label: t('navbar.map', 'MAPA') }
+                            ].map((link) => (
+                                <Link 
+                                    key={link.to} 
+                                    to={link.to} 
+                                    className="px-1 xl:px-2.5 py-2 text-[clamp(9px,0.55vw,11.5px)] font-black uppercase tracking-widest text-gray-400 hover:text-white transition-all whitespace-nowrap"
+                                >
+                                    {link.label}
+                                </Link>
+                            ))}
+                        </div>
+                    </nav>
 
-                                    {/* Dropdown Menu */}
-                                    <AnimatePresence>
-                                        {dropdownOpen && (
-                                            <motion.div
-                                                className="absolute top-full right-0 mt-4 min-w-[260px] bg-[#0a0a0a] border border-white/10 rounded-4xl p-3 shadow-2xl backdrop-blur-2xl z-100 origin-top-right overflow-hidden shadow-black/80"
-                                                initial={{ opacity: 0, scale: 0.9, y: 10 }}
-                                                animate={{ opacity: 1, scale: 1, y: 0 }}
-                                                exit={{ opacity: 0, scale: 0.9, y: 10 }}
-                                                transition={{ type: "spring", duration: 0.5, bounce: 0.3 }}
-                                            >
-                                                <div className="px-4 py-4 mb-2 border-b border-white/5">
-                                                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest leading-none mb-1">Conectado como</p>
-                                                    <p className="text-sm font-black text-white truncate">{user.email}</p>
-                                                </div>
+                    {/* 3. Right Actions (Right) */}
+                    <div className="flex items-center gap-2 xl:gap-6 shrink-0">
+                        {/* Selector de Idioma */}
+                        <div className="hidden sm:flex items-center bg-black/40 p-0.5 xl:p-1 rounded-xl border border-white/5 shadow-inner box-border">
+                            <button
+                                onClick={() => changeLanguage('es')}
+                                className={`flex items-center gap-1 xl:gap-2 px-2 xl:px-3 py-1.5 rounded-lg text-[10px] font-black transition-all ${i18n.resolvedLanguage === 'es' ? 'bg-(--accent) text-black shadow-lg shadow-(--accent)/20' : 'text-gray-500 hover:text-gray-300'}`}
+                            >
+                                <img src="/images/flags/es.svg" alt="ES" className="w-4 xl:w-4.5 h-[10px] xl:h-[12px] object-cover rounded-[1px] shrink-0" />
+                                <span className="hidden min-[1500px]:inline">ES</span>
+                            </button>
+                            <div className="hidden min-[1500px]:block w-px h-3 bg-white/10 mx-0.5 xl:mx-1" />
+                            <button
+                                onClick={() => changeLanguage('en')}
+                                className={`flex items-center gap-1 xl:gap-2 px-2 xl:px-3 py-1.5 rounded-lg text-[10px] font-black transition-all ${i18n.resolvedLanguage === 'en' ? 'bg-(--accent) text-black shadow-lg shadow-(--accent)/20' : 'text-gray-500 hover:text-gray-300'}`}
+                            >
+                                <img src="/images/flags/us.svg" alt="EN" className="w-4 xl:w-4.5 h-[10px] xl:h-[12px] object-cover rounded-[1px] shrink-0" />
+                                <span className="hidden min-[1500px]:inline">EN</span>
+                            </button>
+                        </div>
 
-                                                <div className="space-y-1">
-                                                    {[
-                                                        { to: "/account?tab=overview", icon: <Server size={18} />, label: t('account.nav.overview') },
-                                                        { to: "/account?tab=posts", icon: <Edit size={18} />, label: t('account.nav.posts') },
-                                                        { to: "/account?tab=achievements", icon: <Trophy size={18} />, label: t('navbar.achievements') },
-                                                        { to: "/account?tab=connections", icon: <LinkIcon size={18} />, label: t('account.nav.connections') },
-                                                        { to: "/account?tab=settings", icon: <Settings size={18} />, label: t('account.settings.title') }
-                                                    ].map((item, idx) => (
-                                                        <Link 
-                                                            key={idx}
-                                                            to={item.to} 
-                                                            className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-400 rounded-[1.25rem] hover:bg-white/5 hover:text-white group/item transition-all" 
-                                                            onClick={closeUserDropdown} 
-                                                        >
-                                                            <span className="text-gray-600 group-hover/item:text-(--accent) transition-colors">{item.icon}</span>
-                                                            {item.label}
-                                                        </Link>
-                                                    ))}
+                        {/* User Profile / Login */}
+                        <div className="flex items-center gap-4">
+                            {user ? (
+                                <div className="flex items-center gap-4">
+                                    <NotificationCenter />
+                                    <div className="relative" ref={dropdownRef}>
+                                        <button
+                                            className="flex items-center gap-3 bg-(--accent) px-4 py-2 rounded-xl cursor-pointer hover:brightness-110 active:scale-95 transition-all shadow-lg shadow-(--accent)/20 group"
+                                            onClick={() => setDropdownOpen(!dropdownOpen)}
+                                        >
+                                            <div className="w-6 h-6 rounded-lg overflow-hidden border border-black/10">
+                                                <img 
+                                                    src={(() => {
+                                                        const meta = user.user_metadata || {};
+                                                        const mcNick = meta.minecraft_nick || meta.username || 'steve';
+                                                        return meta.avatar_preference === 'social' && meta.avatar_url 
+                                                            ? meta.avatar_url 
+                                                            : `https://mc-heads.net/avatar/${mcNick}/64`;
+                                                    })()}
+                                                    alt="Avatar" 
+                                                    className="w-full h-full object-cover" 
+                                                />
+                                            </div>
+                                            <span className="text-[11px] font-black text-black uppercase tracking-widest truncate max-w-[120px]">
+                                                {user.user_metadata?.minecraft_nick || user.user_metadata?.username || 'User'}
+                                            </span>
+                                        </button>
 
-                                                    {isAdmin && (
-                                                        <>
-                                                            <div className="h-px bg-white/5 my-2 mx-4"></div>
-                                                            <Link to="/admin" className="flex items-center gap-3 px-4 py-3 text-sm font-black text-(--accent) rounded-[1.25rem] hover:bg-(--accent)/10 transition-all" onClick={closeUserDropdown}>
-                                                                <Shield size={18} /> {t('account.admin_panel')}
+                                        {/* Dropdown Menu */}
+                                        <AnimatePresence>
+                                            {dropdownOpen && (
+                                                <motion.div
+                                                    className="absolute top-full right-0 mt-4 min-w-[260px] bg-[#0a0a0a] border border-white/10 rounded-4xl p-3 shadow-2xl backdrop-blur-2xl z-100 origin-top-right overflow-hidden shadow-black/80"
+                                                    initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                                                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                                                    exit={{ opacity: 0, scale: 0.9, y: 10 }}
+                                                    transition={{ type: "spring", duration: 0.5, bounce: 0.3 }}
+                                                >
+                                                    <div className="px-4 py-4 mb-2 border-b border-white/5">
+                                                        <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest leading-none mb-1">Conectado como</p>
+                                                        <p className="text-sm font-black text-white truncate">{user.email}</p>
+                                                    </div>
+
+                                                    <div className="space-y-1">
+                                                        {[
+                                                            { to: `/u/${user.user_metadata?.minecraft_nick || user.user_metadata?.username}`, icon: <UserIcon size={18} />, label: t('account.nav.profile', 'Ver Perfil') },
+                                                            { to: "/account?tab=overview", icon: <Server size={18} />, label: t('account.nav.overview') },
+                                                            { to: "/account?tab=posts", icon: <Edit size={18} />, label: t('account.nav.posts') },
+                                                            { to: "/account?tab=achievements", icon: <Trophy size={18} />, label: t('navbar.achievements') },
+                                                            { to: "/account?tab=connections", icon: <LinkIcon size={18} />, label: t('account.nav.connections') },
+                                                            { to: "/account?tab=settings", icon: <Settings size={18} />, label: t('account.settings.title') }
+                                                        ].map((item, idx) => (
+                                                            <Link 
+                                                                key={idx}
+                                                                to={item.to} 
+                                                                className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-400 rounded-[1.25rem] hover:bg-white/5 hover:text-white group/item transition-all" 
+                                                                onClick={closeUserDropdown} 
+                                                            >
+                                                                <span className="text-gray-600 group-hover/item:text-(--accent) transition-colors">{item.icon}</span>
+                                                                {item.label}
                                                             </Link>
-                                                        </>
-                                                    )}
+                                                        ))}
 
-                                                    <div className="h-px bg-white/5 my-2 mx-4"></div>
-                                                    <button className="w-full flex items-center gap-3 px-4 py-3 text-sm font-black text-red-500 rounded-[1.25rem] hover:bg-red-500/10 transition-all text-left" onClick={handleLogout}>
-                                                        <LogOut size={18} /> {t('account.nav.logout')}
-                                                    </button>
-                                                </div>
-                                            </motion.div>
-                                        )}
-                                    </AnimatePresence>
+                                                        {isAdmin && (
+                                                            <>
+                                                                <div className="h-px bg-white/5 my-2 mx-4"></div>
+                                                                <Link to="/admin" className="flex items-center gap-3 px-4 py-3 text-sm font-black text-(--accent) rounded-[1.25rem] hover:bg-(--accent)/10 transition-all" onClick={closeUserDropdown}>
+                                                                    <Shield size={18} /> {t('account.admin_panel')}
+                                                                </Link>
+                                                            </>
+                                                        )}
+
+                                                        <div className="h-px bg-white/5 my-2 mx-4"></div>
+                                                        <button className="w-full flex items-center gap-3 px-4 py-3 text-sm font-black text-red-500 rounded-[1.25rem] hover:bg-red-500/10 transition-all text-left" onClick={handleLogout}>
+                                                            <LogOut size={18} /> {t('account.nav.logout')}
+                                                        </button>
+                                                    </div>
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+                                    </div>
                                 </div>
-                            </div>
-                        ) : (
-                            <div className="flex items-center gap-2">
-                                <Link to="/login" className="px-6 py-2.5 text-xs font-black uppercase tracking-widest text-gray-400 hover:text-white transition-colors">{t('navbar.login')}</Link>
-                                <Link to="/register" className="px-6 py-2.5 bg-white text-black text-xs font-black uppercase tracking-widest rounded-xl shadow-xl hover:bg-(--accent) hover:scale-105 active:scale-95 transition-all">{t('navbar.register')}</Link>
-                            </div>
-                        )}
-                        
-
+                            ) : (
+                                <div className="flex items-center gap-2">
+                                    <Link to="/login" className="px-6 py-2.5 text-xs font-black uppercase tracking-widest text-gray-400 hover:text-white transition-colors">{t('navbar.login')}</Link>
+                                    <Link to="/register" className="px-6 py-2.5 bg-white text-black text-xs font-black uppercase tracking-widest rounded-xl shadow-xl hover:bg-(--accent) hover:scale-105 active:scale-95 transition-all">{t('navbar.register')}</Link>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>

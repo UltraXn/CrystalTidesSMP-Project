@@ -1,8 +1,6 @@
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo } from "react"
 import { Search, DollarSign, BarChart3, Filter, Plus, HandCoins } from "lucide-react"
 import { useTranslation } from "react-i18next"
-import { useQueryClient } from "@tanstack/react-query"
-import { supabase } from "../../services/supabaseClient"
 import { Donation } from "./Donations/types"
 import DonationsTable from "./Donations/DonationsTable"
 import DonationFormModal from "./Donations/DonationFormModal"
@@ -11,11 +9,8 @@ import {
     useAdminDonations, 
     useCreateDonation, 
     useUpdateDonation, 
-    useDeleteDonation,
-    DonationPayload 
+    useDeleteDonation 
 } from "../../hooks/useAdminData"
-import { useHasPermission } from "../../utils/rolePermissions"
-import PermissionDenied from "./PermissionDenied"
 
 interface DonationsManagerProps {
     mockDonations?: Donation[];
@@ -25,10 +20,6 @@ export default function DonationsManager({ mockDonations }: DonationsManagerProp
     const { t } = useTranslation() 
     const [search, setSearch] = useState('')
     const [page, setPage] = useState(1)
-    const queryClient = useQueryClient()
-    
-    // RBAC
-    const hasPermission = useHasPermission('MANAGE_DONATIONS');
     
     // CRUD State
     const [showModal, setShowModal] = useState(false)
@@ -40,27 +31,6 @@ export default function DonationsManager({ mockDonations }: DonationsManagerProp
     const createMutation = useCreateDonation();
     const updateMutation = useUpdateDonation();
     const deleteMutation = useDeleteDonation();
-
-    // Real-time updates
-    useEffect(() => {
-        if (mockDonations) return
-
-        const channel = supabase
-            .channel('admin_donations_realtime')
-            .on('postgres_changes', {
-                event: '*',
-                schema: 'public',
-                table: 'donations'
-            }, () => {
-                queryClient.invalidateQueries({ queryKey: ['admin', 'donations'] })
-                queryClient.invalidateQueries({ queryKey: ['admin', 'donations', 'stats'] })
-            })
-            .subscribe()
-
-        return () => {
-            supabase.removeChannel(channel)
-        }
-    }, [mockDonations, queryClient])
 
     const donations = useMemo(() => mockDonations || donationsData?.data || [], [mockDonations, donationsData?.data]);
     const totalPages = donationsData?.totalPages || 1;
@@ -94,14 +64,14 @@ export default function DonationsManager({ mockDonations }: DonationsManagerProp
     }
 
     const handleSave = async (donationData: Donation) => {
-        // Map Donation to DonationPayload
-        const payload: DonationPayload = {
-            from_name: donationData.from_name || 'Anonymous',
-            amount: Number(donationData.amount),
-            currency: donationData.currency || 'USD',
-            message: donationData.message || '',
-            is_public: donationData.is_public ?? true,
-            buyer_email: donationData.buyer_email || ''
+        // Map Donation to DonationPayload expected by mutations
+        const payload = {
+            donor_name: donationData.from_name,
+            amount: donationData.amount,
+            currency: donationData.currency,
+            message: donationData.message,
+            source: 'admin', // Default source for manual admin entries
+            status: 'completed' // Default status for manual admin entries
         };
 
         if (donationData.id) {
@@ -113,15 +83,6 @@ export default function DonationsManager({ mockDonations }: DonationsManagerProp
                 onSuccess: () => setShowModal(false)
             });
         }
-    }
-
-    if (!hasPermission) {
-        return (
-            <PermissionDenied 
-                message="Solo administradores pueden gestionar donaciones manualmente."
-                requiredRole="admin"
-            />
-        );
     }
 
     return (
@@ -152,9 +113,28 @@ export default function DonationsManager({ mockDonations }: DonationsManagerProp
                             className="poll-search-input"
                         />
                     </div>
-                    <button className="btn-primary poll-new-btn" onClick={handleNew} style={{ flex: '1 1 auto', minWidth: '160px', height: '52px', padding: '0 2rem', borderRadius: '18px', boxShadow: '0 10px 20px rgba(var(--accent-rgb), 0.2)' }}>
-                        <Plus /> {t('admin.donations.new_btn')}
-                    </button>
+                    <div style={{ display: 'flex', gap: '0.8rem', flex: '1 1 auto' }}>
+                        <button 
+                            className="btn-secondary" 
+                            onClick={async () => {
+                                try {
+                                    const { simulateDonation } = await import('../../services/donationService');
+                                    const names = ['Killu', 'Nero', 'User123', 'CrystalFan'];
+                                    const name = names[Math.floor(Math.random() * names.length)];
+                                    await simulateDonation(name, Math.floor(Math.random() * 50) + 1, 'USD');
+                                    alert('Donación simulada con éxito. Revisa el carrusel en el inicio.');
+                                } catch (err) {
+                                    alert('Error simulando: ' + (err instanceof Error ? err.message : String(err)));
+                                }
+                            }}
+                            style={{ height: '52px', borderRadius: '18px', padding: '0 1.5rem', fontWeight: 700 }}
+                        >
+                            {t('admin.donations.test_btn', 'Simular Donación')}
+                        </button>
+                        <button className="btn-primary poll-new-btn" onClick={handleNew} style={{ flex: '1', height: '52px', padding: '0 2rem', borderRadius: '18px', boxShadow: '0 10px 20px rgba(var(--accent-rgb), 0.2)' }}>
+                            <Plus /> {t('admin.donations.new_btn')}
+                        </button>
+                    </div>
                 </div>
             </div>
 

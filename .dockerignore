@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 **/node_modules
 .git
 !.env
@@ -10,5 +11,42 @@ npm-debug.log
 yarn-debug.log
 yarn-error.log
 .idea
+=======
+# Optimized .dockerignore for Crystaltides Monorepo
+# Exclude build artifacts and unnecessary files
+
+**/.turbo
+**/.next
+**/.cache
+
+# Root heavy directories
+.git
+.github
+>>>>>>> security/api-hardening
 .vscode
-*.md
+.idea
+.agent
+target/
+database/
+plugins/
+temp/
+tmp/
+out/
+windows/
+native/
+
+# OS specific and misc
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.env
+.env.local
+.env.*.local
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+Thumbs.db
+desktop.ini

@@ -1,9 +1,10 @@
 import * as forumService from '../services/forumService.js';
 import { Request, Response } from 'express';
+import { ensureString } from '../utils/typeUtils.js';
 
 export const getThreads = async (req: Request, res: Response) => {
     try {
-        const { categoryId } = req.params;
+        const categoryId = ensureString(req.params.categoryId);
         const data = await forumService.getThreads(parseInt(categoryId));
         res.json(data);
     } catch (error) {
@@ -15,7 +16,7 @@ export const getThreads = async (req: Request, res: Response) => {
 
 export const getUserThreads = async (req: Request, res: Response) => {
     try {
-        const { userId } = req.params;
+        const userId = ensureString(req.params.userId);
         const data = await forumService.getUserThreads(userId);
         res.json(data);
     } catch (error) {
@@ -26,7 +27,7 @@ export const getUserThreads = async (req: Request, res: Response) => {
 
 export const getThread = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const id = ensureString(req.params.id);
         const data = await forumService.getThread(id);
         res.json(data);
     } catch {
@@ -40,7 +41,7 @@ export const getThread = async (req: Request, res: Response) => {
  */
 export const getThreadFull = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const id = ensureString(req.params.id);
 
         // Fetch Thread (includes Poll) and Posts in parallel
         // forumService.getThread handles both numeric ID and slug strings
@@ -68,7 +69,7 @@ export const createThread = async (req: Request, res: Response) => {
 
 export const getPosts = async (req: Request, res: Response) => {
     try {
-        const data = await forumService.getPosts(req.params.id);
+        const data = await forumService.getPosts(ensureString(req.params.id));
         res.json(data);
     } catch (e) { 
         const message = e instanceof Error ? e.message : String(e);
@@ -78,7 +79,7 @@ export const getPosts = async (req: Request, res: Response) => {
 
 export const createPost = async (req: Request, res: Response) => {
     try {
-        const result = await forumService.createPost({...req.body, thread_id: req.params.id});
+        const result = await forumService.createPost({...req.body, thread_id: ensureString(req.params.id)});
         res.status(201).json(result);
     } catch (e) { 
         const message = e instanceof Error ? e.message : String(e);
@@ -98,7 +99,7 @@ export const getStats = async (req: Request, res: Response) => {
 
 export const updateThread = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const id = ensureString(req.params.id);
         const result = await forumService.updateThread(id, req.body);
         res.json(result);
     } catch (e) { 
@@ -109,7 +110,7 @@ export const updateThread = async (req: Request, res: Response) => {
 
 export const deleteThread = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const id = ensureString(req.params.id);
         await forumService.deleteThread(id);
         res.json({ message: "Thread deleted" });
     } catch (e) { 
@@ -120,7 +121,7 @@ export const deleteThread = async (req: Request, res: Response) => {
 
 export const updatePost = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const id = ensureString(req.params.id);
         const result = await forumService.updatePost(parseInt(id), req.body);
         res.json(result);
     } catch (e) { 
@@ -131,7 +132,7 @@ export const updatePost = async (req: Request, res: Response) => {
 
 export const deletePost = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const id = ensureString(req.params.id);
         await forumService.deletePost(parseInt(id));
         res.json({ message: "Post deleted" });
     } catch (e) { 

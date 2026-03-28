@@ -1,6 +1,7 @@
 import supabase from '../services/supabaseService.js';
 import { Request, Response } from 'express';
 import * as logService from '../services/logService.js';
+import { ensureString } from '../utils/typeUtils.js';
 
 export const getTasks = async (req: Request, res: Response) => {
     try {
@@ -59,7 +60,7 @@ export const createTask = async (req: Request, res: Response) => {
 
 export const updateTask = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const id = ensureString(req.params.id);
         const updates = req.body;
         const user = (req as Request & { user?: { id?: string; username?: string } }).user;
         
@@ -93,7 +94,7 @@ export const updateTask = async (req: Request, res: Response) => {
 
 export const deleteTask = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const id = ensureString(req.params.id);
         const user = (req as Request & { user?: { id?: string; username?: string } }).user;
 
         const { data: existingTask } = await supabase
@@ -101,7 +102,6 @@ export const deleteTask = async (req: Request, res: Response) => {
             .select('id, title, column_id, assignee')
             .eq('id', id)
             .maybeSingle();
-
         const { error } = await supabase
             .from('staff_tasks')
             .delete()

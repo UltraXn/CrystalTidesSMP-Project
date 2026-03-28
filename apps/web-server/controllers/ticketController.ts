@@ -3,6 +3,7 @@ import * as logService from '../services/logService.js';
 import * as minecraftService from '../services/minecraftService.js';
 import { Request, Response } from 'express';
 import { sendSuccess, sendError } from '../utils/responseHandler.js';
+import { ensureString } from '../utils/typeUtils.js';
 
 interface AuthenticatedRequest extends Request {
     user?: {
@@ -60,7 +61,7 @@ export const createTicket = async (req: Request, res: Response) => {
 // Admin/User: Update Status
 export const updateStatus = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const id = ensureString(req.params.id);
         const { status } = req.body;
         const ticketId = parseInt(id);
         const user = (req as AuthenticatedRequest).user!;
@@ -110,7 +111,7 @@ export const getStats = async (req: Request, res: Response) => {
 // Get Messages
 export const getMessages = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const id = ensureString(req.params.id);
         const ticketId = parseInt(id);
         const user = (req as AuthenticatedRequest).user!;
         const STAFF_ROLES = ['admin', 'neroferno', 'killu', 'killuwu', 'developer', 'moderator', 'mod', 'helper'];
@@ -138,7 +139,7 @@ export const getMessages = async (req: Request, res: Response) => {
 // Add Message
 export const addMessage = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const id = ensureString(req.params.id);
         const { message } = req.body; // Remove user_id and is_staff from body for security
         const ticketId = parseInt(id);
         const user = (req as AuthenticatedRequest).user!;
@@ -195,7 +196,7 @@ export const banUser = async (req: Request, res: Response) => {
 
 export const deleteTicket = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const id = ensureString(req.params.id);
         await ticketService.deleteTicket(parseInt(id));
 
         logService.createLog({

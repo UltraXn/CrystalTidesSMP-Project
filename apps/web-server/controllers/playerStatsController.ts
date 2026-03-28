@@ -1,10 +1,11 @@
 import { Request, Response } from 'express';
 import * as playerStatsService from '../services/playerStatsService.js';
 import { sendSuccess, sendError } from '../utils/responseHandler.js';
+import { ensureString } from '../utils/typeUtils.js';
 
 export const getPlayerStats = async (req: Request, res: Response) => {
     try {
-        const { username } = req.params;
+        const username = ensureString(req.params.username);
         const stats = await playerStatsService.getPlayerStats(username);
         
         if (!stats) {

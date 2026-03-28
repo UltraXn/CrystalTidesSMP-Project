@@ -7,11 +7,12 @@ import { Request, Response } from 'express';
 import { sendSuccess, sendError } from '../utils/responseHandler.js';
 import { getRolePriority } from '../utils/roleUtils.js';
 import supabase from '../config/supabaseClient.js';
+import { ensureString } from '../utils/typeUtils.js';
 
 export const getAllUsers = async (req: Request, res: Response) => {
     try {
-        const { search } = req.query;
-        const users = await userService.getAllUsers(search as string);
+        const search = ensureString(req.query.search);
+        const users = await userService.getAllUsers(search);
         return sendSuccess(res, users, 'Users listed successfully');
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
@@ -21,7 +22,7 @@ export const getAllUsers = async (req: Request, res: Response) => {
 
 export const updateUserRole = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const id = ensureString(req.params.id);
         const { role } = req.body;
         
         if (!role) return sendError(res, 'Role is required', 'MISSING_FIELD', 400);
@@ -72,7 +73,7 @@ export const updateUserRole = async (req: Request, res: Response) => {
 
 export const updateUserMetadata = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const id = ensureString(req.params.id);
         const { metadata } = req.body;
         
         if (!metadata) return sendError(res, 'Metadata object is required', 'MISSING_FIELD', 400);
@@ -95,7 +96,7 @@ export const updateUserMetadata = async (req: Request, res: Response) => {
 
 export const getPublicProfile = async (req: Request, res: Response) => {
     try {
-        const { username } = req.params;
+        const username = ensureString(req.params.username);
         const profile = await userService.getPublicProfile(username);
         if (!profile) return sendError(res, 'User not found', 'USER_NOT_FOUND', 404);
         return sendSuccess(res, profile);
@@ -111,7 +112,7 @@ export const getPublicProfile = async (req: Request, res: Response) => {
  */
 export const getFullProfile = async (req: Request, res: Response) => {
     try {
-        const { username } = req.params;
+        const username = ensureString(req.params.username);
         const profile = await userService.getPublicProfile(username);
 
         if (!profile) return sendError(res, 'User not found', 'USER_NOT_FOUND', 404);
@@ -155,7 +156,7 @@ export const getStaffUsers = async (req: Request, res: Response) => {
 
 export const giveKarma = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const id = ensureString(req.params.id);
         const voterId = (req as Request & { user: { id: string } }).user.id; // From authenticateToken middleware
 
         if (id === voterId) {

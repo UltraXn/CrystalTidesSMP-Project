@@ -1,6 +1,7 @@
 import * as eventService from '../services/eventService.js';
 import * as logService from '../services/logService.js';
 import { Request, Response } from 'express';
+import { ensureString } from '../utils/typeUtils.js';
 
 export const getAllEvents = async (req: Request, res: Response) => {
     try {
@@ -34,7 +35,7 @@ export const createEvent = async (req: Request, res: Response) => {
 
 export const updateEvent = async (req: Request, res: Response) => {
     try {
-        const event = await eventService.updateEvent(parseInt(req.params.id), req.body);
+        const event = await eventService.updateEvent(parseInt(ensureString(req.params.id)), req.body);
 
         logService.createLog({
             username: 'Admin',
@@ -52,12 +53,12 @@ export const updateEvent = async (req: Request, res: Response) => {
 
 export const deleteEvent = async (req: Request, res: Response) => {
     try {
-        await eventService.deleteEvent(parseInt(req.params.id));
+        await eventService.deleteEvent(parseInt(ensureString(req.params.id)));
 
         logService.createLog({
             username: 'Admin',
             action: 'DELETE_EVENT',
-            details: `Deleted event ID: ${req.params.id}`,
+            details: `Deleted event ID: ${ensureString(req.params.id)}`,
             source: 'web'
         }).catch(console.error);
 
@@ -73,13 +74,13 @@ export const registerForEvent = async (req: Request, res: Response) => {
         const { userId } = req.body; 
         if (!userId) return res.status(400).json({ error: "User ID required" });
 
-        const registration = await eventService.registerUser(parseInt(req.params.id), userId);
+        const registration = await eventService.registerUser(parseInt(ensureString(req.params.id)), userId);
 
         logService.createLog({
             user_id: userId,
             username: 'User', 
             action: 'EVENT_REGISTER',
-            details: `Registered for event ${req.params.id}`,
+            details: `Registered for event ${ensureString(req.params.id)}`,
             source: 'web'
         }).catch(console.error);
 
@@ -92,7 +93,7 @@ export const registerForEvent = async (req: Request, res: Response) => {
 
 export const getUserRegistrations = async (req: Request, res: Response) => {
     try {
-        const userId = req.query.userId as string;
+        const userId = ensureString(req.query.userId);
         if (!userId) return res.status(400).json({ error: "User ID required" });
 
         const registrationIds = await eventService.getUserRegistrations(userId);
@@ -105,7 +106,7 @@ export const getUserRegistrations = async (req: Request, res: Response) => {
 
 export const getEventRegistrations = async (req: Request, res: Response) => {
     try {
-        const registrations = await eventService.getRegistrations(parseInt(req.params.id));
+        const registrations = await eventService.getRegistrations(parseInt(ensureString(req.params.id)));
         res.json(registrations);
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);

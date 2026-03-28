@@ -35,7 +35,7 @@ Sigue estos pasos para obtener las credenciales necesarias (Service Account) y c
 ## Paso 5: Conectar todo
 
 1. **Renombra** ese archivo descargado a `service-account.json`.
-2. **Muévelo** a la carpeta `server/` de tu proyecto (`f:\Portafolio\crystaltides\server\service-account.json`).
+2. **Muévelo** a la carpeta `apps/web-server/` de tu proyecto (`C:\Users\nacho\Desktop\Portafolio\crystaltides\apps\web-server\service-account.json`).
    - _Alternativa_: Copia el contenido del JSON.
 3. **Comparte el Calendario**:
    - Abre ese archivo JSON y copia el **`client_email`**.

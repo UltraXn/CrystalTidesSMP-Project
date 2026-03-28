@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { WebhookClient, EmbedBuilder } from 'discord.js';
 import supabase from '../config/supabaseClient.js';
+import { ensureString } from '../utils/typeUtils.js';
 
 const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
 
@@ -34,27 +35,45 @@ const sendDiscordWebhook = async (donation: WebhookDonation) => {
 
 export const testDonation = async (req: Request, res: Response) => {
     try {
-        const { username, amount, currency } = req.body;
-        // Mock object for the test
-        const mockDonation: WebhookDonation = {
-            from_name: username || 'Test User',
-            amount: amount || 69,
-            currency: currency || 'USD',
-            message: 'Alerta de prueba'
-        };
-        await sendDiscordWebhook(mockDonation);
-        res.json({ success: true, message: 'Test announcement sent' });
-    } catch {
-        // console.error('Error sending webhook:', error); // Removed unused error
-        res.status(500).json({ success: false, message: 'Failed test' });
+        const { username, amount, currency, message } = req.body;
+        
+        // 1. Insert into Supabase so it shows up on the frontend real-time carousel
+        const { data, error } = await supabase
+            .from('donations')
+            .insert([{ 
+                message_id: `test_${Date.now()}`,
+                from_name: username || 'Donador de Prueba', 
+                amount: amount || 5.00, 
+                currency: currency || 'USD', 
+                message: message || '¡Esto es una prueba del sistema de donaciones! 🚀', 
+                is_public: true,
+                created_at: new Date().toISOString()
+            }])
+            .select()
+            .single();
+
+        if (error) throw error;
+
+        // 2. Send Discord Webhook (Existing behavior)
+        await sendDiscordWebhook({
+            from_name: data.from_name,
+            amount: data.amount,
+            currency: data.currency,
+            message: data.message
+        });
+
+        res.json({ success: true, message: 'Test donation recorded and alert sent', data });
+    } catch (error) {
+        console.error('Error in testDonation:', error);
+        res.status(500).json({ success: false, message: 'Failed to process test donation' });
     }
 };
 
 export const getDonations = async (req: Request, res: Response) => {
     try {
-        const page = parseInt(req.query.page as string) || 1;
-        const limit = parseInt(req.query.limit as string) || 20;
-        const search = req.query.search as string;
+        const page = parseInt(ensureString(req.query.page)) || 1;
+        const limit = parseInt(ensureString(req.query.limit)) || 20;
+        const search = ensureString(req.query.search);
 
         let query = supabase
             .from('donations')
@@ -180,7 +199,7 @@ export const createDonation = async (req: Request, res: Response) => {
 
 export const updateDonation = async (req: Request, res: Response) => {
     try {
-        const id = parseInt(req.params.id);
+        const id = parseInt(ensureString(req.params.id));
         if (Number.isNaN(id)) {
             return res.status(400).json({ message: 'Invalid donation id' });
         }
@@ -211,7 +230,6 @@ export const updateDonation = async (req: Request, res: Response) => {
         if (Object.keys(updates).length === 0) {
             return res.status(400).json({ message: 'No valid donation fields to update' });
         }
-
         const { data, error } = await supabase
             .from('donations')
             .update(updates)
@@ -229,7 +247,7 @@ export const updateDonation = async (req: Request, res: Response) => {
 
 export const deleteDonation = async (req: Request, res: Response) => {
     try {
-        const id = parseInt(req.params.id);
+        const id = parseInt(ensureString(req.params.id));
         const { error } = await supabase
             .from('donations')
             .delete()

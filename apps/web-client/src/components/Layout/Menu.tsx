@@ -93,15 +93,15 @@ export default function Menu() {
                     {/* Navigation Links */}
                     <nav className="flex flex-col gap-2 mb-12">
                         {[
-                            { to: "/#rules", label: t('navbar.rules') },
-                            { to: "/#donors", label: t('navbar.donors'), highlight: true },
-                            { to: "/#news", label: t('navbar.news') },
-                            { to: "/#suggestions", label: t('navbar.suggestions') },
+                            { to: "/rules", label: t('navbar.rules') },
+                            { to: "/donors", label: t('navbar.donors'), highlight: true },
+                            { to: "/news", label: t('navbar.news') },
+                            { to: "/suggestions", label: t('navbar.suggestions') },
                             { to: "/forum", label: t('navbar.forum') },
                             { to: "/wiki", label: t('navbar.wiki', 'Guía') },
                             { to: "/support", label: t('navbar.support', 'Soporte') },
-                            { to: "/map", label: t('footer.online_map') }
-                        ].map((link, idx) => (
+                            { to: "/map", label: t('navbar.map') }
+                        ].map((link: { to: string, label: string, highlight?: boolean }, idx) => (
                             <Link 
                                 key={idx}
                                 to={link.to} 

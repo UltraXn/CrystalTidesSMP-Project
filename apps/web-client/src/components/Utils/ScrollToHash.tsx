@@ -6,8 +6,25 @@ export default function ScrollToHash() {
 
     // 1. Handle Navigation & Initial Load
     useEffect(() => {
+        // Define known hashless anchor paths
+        const hashlessPaths: Record<string, string> = {
+            '/rules': 'rules',
+            '/donors': 'donors',
+            '/news': 'news',
+            '/suggestions': 'suggestions',
+            '/contests': 'contests',
+            '/stories': 'stories'
+        };
+
         if (hash) {
             const element = document.getElementById(hash.replace("#", ""));
+            if (element) {
+                setTimeout(() => {
+                    element.scrollIntoView({ behavior: "smooth" });
+                }, 100);
+            }
+        } else if (hashlessPaths[pathname]) {
+            const element = document.getElementById(hashlessPaths[pathname]);
             if (element) {
                 setTimeout(() => {
                     element.scrollIntoView({ behavior: "smooth" });

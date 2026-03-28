@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import * as locationService from '../services/locationService.js';
 import * as logService from '../services/logService.js';
 import { sendSuccess, sendError } from '../utils/responseHandler.js';
+import { ensureString } from '../utils/typeUtils.js';
 
 interface AuthenticatedRequest extends Request {
     user?: {
@@ -72,7 +73,7 @@ export const createLocation = async (req: Request, res: Response) => {
 
 export const updateLocation = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const id = ensureString(req.params.id);
         const updates = req.body;
 
         const updatedLocation = await locationService.updateLocation(parseInt(id), updates);
@@ -97,7 +98,7 @@ export const updateLocation = async (req: Request, res: Response) => {
 
 export const deleteLocation = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const id = ensureString(req.params.id);
 
         await locationService.deleteLocation(parseInt(id));
 

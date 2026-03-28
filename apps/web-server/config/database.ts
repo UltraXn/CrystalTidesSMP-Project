@@ -1,13 +1,17 @@
-// MySQL database connection is disabled as the service is no longer in use.
-// This mock prevents the application from crashing when services attempt to query the defunct database.
+import mysql from 'mysql2/promise';
+import dotenv from 'dotenv';
 
-const mockPool = {
-    query: async <T = unknown>(_sql: string, _params?: unknown[]) => [[] as unknown as T, []],
-    execute: async <T = unknown>(_sql: string, _params?: unknown[]) => [[] as unknown as T, []],
-    end: async () => {},
-    promise: () => mockPool,
-    on: () => {},
-    connect: () => {}
-};
+dotenv.config();
 
-export default mockPool;
+const pool = mysql.createPool({
+    host: process.env.MC_DB_HOST,
+    port: parseInt(process.env.MC_DB_PORT || '3306'),
+    user: process.env.MC_DB_USER,
+    password: process.env.MC_DB_PASSWORD,
+    database: process.env.MC_DB_NAME,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
+});
+
+export default pool;

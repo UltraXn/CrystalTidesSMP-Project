@@ -36,6 +36,7 @@ export default defineConfig(() => {
         '/src': path.resolve(dirname, 'src'),
         '@crystaltides/shared': path.resolve(dirname, '../../packages/shared/src/index.ts'),
       },
+      dedupe: ['three'],
     },
     server: {
       allowedHosts: ['crystaltidessmp.net'],

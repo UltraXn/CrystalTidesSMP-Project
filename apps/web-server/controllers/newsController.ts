@@ -5,6 +5,7 @@ import { isAdmin as checkIsAdmin } from '../utils/roleUtils.js';
 
 import { Request, Response } from 'express';
 import { WebhookClient, EmbedBuilder } from 'discord.js';
+import { ensureString } from '../utils/typeUtils.js';
 
 // Canal de anuncios de Discord
 const NEWS_WEBHOOK_URL = process.env.DISCORD_NEWS_WEBHOOK_URL || process.env.DISCORD_WEBHOOK_URL;
@@ -116,7 +117,7 @@ export const getAllNews = async (req: Request, res: Response) => {
 
 export const getNewsById = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const id = ensureString(req.params.id);
         const isNumeric = /^\d+$/.test(id);
 
         let query = supabase.from('news').select('*');
@@ -157,7 +158,7 @@ export const getNewsById = async (req: Request, res: Response) => {
 
 export const getCommentsByNewsId = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const id = ensureString(req.params.id);
         let newsId = id;
 
         // Si el ID no es numérico, asumimos que es un slug y buscamos el ID real
@@ -203,7 +204,7 @@ export const getCommentsByNewsId = async (req: Request, res: Response) => {
 
 export const createComment = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params; // news_id o slug
+        const id = ensureString(req.params.id); // news_id o slug
         // Don't trust body for user info
         const { content } = req.body;
         const user = req.user;
@@ -272,7 +273,7 @@ export const createComment = async (req: Request, res: Response) => {
 
 export const updateComment = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params; // comment id
+        const id = ensureString(req.params.id); // comment id
         const { content } = req.body;
         const user = req.user;
 
@@ -308,7 +309,7 @@ export const updateComment = async (req: Request, res: Response) => {
 
 export const deleteComment = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params; // comment id
+        const id = ensureString(req.params.id); // comment id
         const user = req.user;
         console.log(`[deleteComment] Attempting to delete comment ID: ${id} by User: ${user?.username} (${user?.id})`);
 
@@ -405,7 +406,7 @@ export const createNews = async (req: Request, res: Response) => {
 
 export const updateNews = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const id = ensureString(req.params.id);
         console.log(`[UPDATE NEWS] ID: ${id}, Body:`, JSON.stringify(req.body));
         const { title, category, content, image, status, username, user_id, title_en, content_en } = req.body;
 
@@ -455,8 +456,9 @@ export const updateNews = async (req: Request, res: Response) => {
 
 export const deleteNews = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
-        const { userId, username } = req.query;
+        const id = ensureString(req.params.id);
+        const userId = ensureString(req.query.userId);
+        const username = ensureString(req.query.username);
 
         const { error } = await supabase
             .from('news')

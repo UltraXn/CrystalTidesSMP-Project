@@ -1,57 +1,36 @@
 services:
-  # Frontend (React + Vite + Nginx)
+  # Frontend (Nginx serving host-build)
   frontend:
-    # Use the 'builder' stage from the Dockerfile (Node environment)
     build:
       context: .
       dockerfile: apps/web-client/Dockerfile
-      target: builder
-      args:
-        VITE_SUPABASE_URL: ${VITE_SUPABASE_URL}
-        VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY}
-    # Run Vite development server bound to all interfaces
-    command: npm run dev -w @crystaltides/client -- --host 0.0.0.0 --port 80
-    volumes:
-      - .:/app
-      - /app/node_modules
     ports:
-      - '80:80'
-    environment:
-      - VITE_PROXY_TARGET=http://backend:3001
-      - VITE_API_URL=/api
-      - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
-      - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
+      - 80:80
     depends_on:
       - backend
     restart: always
 
-  # Backend (Express)
+  # Backend (Node.js running host-build dist)
   backend:
-    # Use Bun for faster development and native TS/ESM support
-    image: oven/bun:1-alpine
-    command: bun index.ts
-    volumes:
-      - .:/app
+    build:
+      context: .
+      dockerfile: apps/web-server/Dockerfile
     ports:
-      - '3001:3001'
+      - 3001:3001
     env_file:
       - ./apps/web-server/.env
-    working_dir: /app/apps/web-server
     restart: always
 
   # Discord Bot
   discord-bot:
-    image: crystaltides-bot:latest
-    ports:
-      - "3002:3002"
     build:
       context: .
       dockerfile: apps/discord-bot/Dockerfile
-    command: bun run src/index.ts
-    volumes:
-      - .:/app
+    ports:
+      - 3002:3002
     env_file:
-      - ./apps/web-server/.env # Shared env for DB/API access
+      - ./apps/web-server/.env
     depends_on:
       - backend
     restart: always
+

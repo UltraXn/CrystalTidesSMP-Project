@@ -5,7 +5,8 @@
         "optional": "Optional",
         "save_error": "Error saving",
         "delete_error": "Error deleting",
-        "confirm_delete": "Confirm delete",
+        "confirm_delete": "Confirm deletion",
+        "deleting": "Deleting...",
         "accept": "Accept",
         "cancel": "Cancel",
         "loading": "Loading...",
@@ -1597,29 +1598,6 @@
         },
         "error_create": "Error creating ticket. Please try again."
     },
-    "gacha": {
-        "title": "Daily Roulette",
-        "hero_title": "Wheel of Destiny",
-        "hero_subtitle": "Try your luck for free every 24 hours and unlock exclusive treasures for your adventure!",
-        "btn_roll": "Spin Roulette",
-        "btn_cooldown": "On Cooldown",
-        "history_btn": "History",
-        "possible_rewards": "Possible Rewards",
-        "last_rewards": "Latest Winners",
-        "no_history": "You haven't claimed any prizes yet.",
-        "opening": "Spinning wheel...",
-        "claim_success": "The prize has been sent to your server queue!",
-        "reward_delivered": "The item has been teleported to your Minecraft account!",
-        "claim_btn": "Claim Prize",
-        "vuelve_mañana": "Come back tomorrow",
-        "already_claimed": "You have already spun the wheel today!",
-        "roll_error": "Spin error",
-        "conn_error": "Connection error",
-        "loading": "Syncing Roulette...",
-        "account_not_linked": "Account not linked",
-        "link_instruction": "You must link your Minecraft account in settings to receive prizes on the server.",
-        "link_button": "Link now"
-    },
     "tutorial": {
         "step1_title": "Welcome to CrystalTides!",
         "step1_content": "Discover the new web experience of your favorite server. We have revamped everything for you.",
@@ -1668,6 +1646,32 @@
         "offline_title": "Server Unavailable",
         "offline_desc": "The server appears to be offline or under maintenance. Please check our Discord for more information."
     },
+    "roulette": {
+        "title": "Daily Roulette",
+        "hero_title": "Roulette of Fate",
+        "hero_subtitle": "Test your luck for free every 24 hours and claim exclusive treasures for your adventure!",
+        "unauthorized_title": "RESTRICTED ACCESS",
+        "unauthorized_desc": "This section of the nexus is reserved for authorized CrystalTides personnel and proper rank holders.",
+        "btn_roll": "Spin Roulette",
+        "btn_cooldown": "On Cooldown",
+        "history_btn": "History",
+        "possible_rewards": "Possible Rewards",
+        "last_rewards": "Latest Winners",
+        "no_history": "You haven't claimed any prizes yet.",
+        "opening": "Spinning the roulette...",
+        "claim_success": "The prize has been sent to your server queue!",
+        "reward_delivered": "The item has been teleported to your inventory!",
+        "claim_btn": "Claim Prize",
+        "save_later_btn": "Save for later",
+        "vuelve_mañana": "Come back tomorrow",
+        "already_claimed": "You have already spun the roulette today!",
+        "roll_error": "Roll error",
+        "conn_error": "Connection error",
+        "loading": "Syncing Roulette...",
+        "account_not_linked": "Account not linked",
+        "link_instruction": "You must link your Minecraft account in the settings to receive prizes on the server.",
+        "link_button": "Link now"
+    },
     "calendar": {
         "month": "Month",
         "week": "Week",
@@ -1695,6 +1699,43 @@
             "secret": "Secret?",
             "error_fields": "Please complete basic fields",
             "error_save": "Error saving"
+        }
+    },
+    "gacha": {
+        "hero_title": "CRYSTALTIDES GACHA",
+        "tiers": {
+            "bronze": "BRONZE",
+            "silver": "SILVER",
+            "gold": "GOLD",
+            "emerald": "EMERALD",
+            "diamond": "DIAMOND",
+            "netherite": "NETHERITE",
+            "ultra": "ULTRA"
+        },
+        "cost": "COST",
+        "quantity": "QUANTITY",
+        "balance": "BALANCE",
+        "spin": "SPIN",
+        "spinning": "SPINNING...",
+        "tier_locked": "LOCKED",
+        "free_roll": "FREE SPIN!",
+        "event_only": "EVENT",
+        "results_title": "REWARDS",
+        "accept": "ACCEPT",
+        "no_rewards": "No rewards were obtained this time.",
+        "admin": {
+            "enable": "ENABLE ADMIN MODE",
+            "disable": "DISABLE ADMIN MODE",
+            "forced_result": "FORCED RESULT",
+            "real_consumption": "REAL CONSUMPTION",
+            "test_machine": "TEST MACHINE",
+            "add_funds": "Admin: +1M KC (Local)"
+        },
+        "unauthorized": {
+            "title": "RESTRICTED ACCESS",
+            "desc": "This reward terminal is reserved for authorized personnel and linked adventurers.",
+            "status": "SYSTEM STATUS",
+            "back": "BACK TO PORTAL"
         }
     }
 }

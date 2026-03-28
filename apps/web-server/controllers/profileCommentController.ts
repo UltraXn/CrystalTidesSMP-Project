@@ -1,10 +1,11 @@
 import { Request, Response } from 'express';
 import * as commentService from '../services/profileCommentService.js';
 import { sendSuccess, sendError } from '../utils/responseHandler.js';
+import { ensureString } from '../utils/typeUtils.js';
 
 export const getComments = async (req: Request, res: Response) => {
     try {
-        const { profileId } = req.params;
+        const profileId = ensureString(req.params.profileId);
         const comments = await commentService.getCommentsByProfile(profileId);
         return sendSuccess(res, comments);
     } catch (error) {
@@ -14,7 +15,7 @@ export const getComments = async (req: Request, res: Response) => {
 
 export const postComment = async (req: Request, res: Response) => {
     try {
-        const { profileId } = req.params;
+        const profileId = ensureString(req.params.profileId);
         const { content } = req.body;
         const user = req.user;
 
@@ -30,7 +31,7 @@ export const postComment = async (req: Request, res: Response) => {
 
 export const removeComment = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const id = ensureString(req.params.id);
         await commentService.deleteComment(parseInt(id));
         return sendSuccess(res, null, 'Comment deleted');
     } catch (error) {

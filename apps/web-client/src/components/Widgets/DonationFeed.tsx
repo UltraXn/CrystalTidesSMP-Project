@@ -1,112 +1,120 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useState } from 'react'
+import { supabase } from '../../services/supabaseClient'
 import { Heart, User } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { gsap } from 'gsap'
-import { supabase } from '../../services/supabaseClient'
-import { fetchPublicDonations, PublicDonation } from '../../services/apiService'
 import '../../donation-feed.css'
 
+interface Donation {
+    id?: string;
+    message_id?: string;
+    from_name: string;
+    created_at: string;
+    currency: string;
+    amount: string | number;
+    message?: string;
+    message_en?: string;
+    is_public: boolean;
+}
+
 interface DonationFeedProps {
-    mockDonations?: PublicDonation[];
+    mockDonations?: Donation[];
 }
 
 export default function DonationFeed({ mockDonations }: DonationFeedProps = {}) {
+    const [donations, setDonations] = useState<Donation[]>(mockDonations || [])
+    const [loading, setLoading] = useState(!mockDonations)
+    const [newDonationIds, setNewDonationIds] = useState<Set<string>>(new Set())
     const { t, i18n } = useTranslation()
 
-    const queryClient = useQueryClient()
-    const { data: fetchedDonations = [], isLoading } = useQuery({
-        queryKey: ['public-donations-feed', 'all'],
-        queryFn: () => fetchPublicDonations('all'),
-        enabled: !mockDonations,
-        staleTime: 1000 * 15,
-        refetchInterval: 1000 * 60
-    })
-
-    const donations = mockDonations || fetchedDonations
-    const loading = !mockDonations && isLoading
-
-    // Real-time updates
     useEffect(() => {
-        if (mockDonations) return
+        if (mockDonations) return;
+        fetchDonations()
 
-        const channel = supabase
-            .channel('public_donations_realtime')
-            .on('postgres_changes', {
-                event: 'INSERT',
-                schema: 'public',
-                table: 'donations',
-                filter: 'is_public=eq.true'
-            }, () => {
-                queryClient.invalidateQueries({ queryKey: ['public-donations-feed', 'all'] })
+        // Suscribirse a cambios en tiempo real
+        const subscription = supabase
+            .channel('public:donations')
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'donations' }, (payload: { new: Donation }) => {
+                const donation = payload.new;
+                const id = donation.id || donation.message_id || `new-${Date.now()}`;
+                
+                // Marcar como "nueva" temporalmente para la animación
+                setNewDonationIds(prev => new Set(prev).add(id));
+                
+                setDonations(prev => [donation, ...prev]);
+
+                // Quitar el estado "nuevo" después de que pase la animación (600ms en CSS, damos un margen)
+                setTimeout(() => {
+                    setNewDonationIds(prev => {
+                        const next = new Set(prev);
+                        next.delete(id);
+                        return next;
+                    });
+                }, 5000);
             })
             .subscribe()
 
         return () => {
-            supabase.removeChannel(channel)
+            supabase.removeChannel(subscription)
         }
-    }, [mockDonations, queryClient])
+    }, [mockDonations])
 
-    const trackRef = useRef<HTMLDivElement>(null)
-    const animRef = useRef<gsap.core.Tween | null>(null)
+    const fetchDonations = async () => {
+        try {
+            const { data, error } = await supabase
+                .from('donations')
+                .select('*')
+                .eq('is_public', true)
+                .order('created_at', { ascending: false })
+                .limit(20)
 
-    // Constant Carousel Animation (GSAP)
-    useEffect(() => {
-        if (donations.length > 0 && trackRef.current) {
-            // Kill previous animation to avoid overlaps
-            if (animRef.current) animRef.current.kill()
-
-            animRef.current = gsap.to(trackRef.current, {
-                y: "-33.333%",
-                duration: Math.max(20, donations.length * 4), 
-                ease: "none",
-                repeat: -1,
-                paused: false
-            })
+            if (error) throw error
+            setDonations(data)
+        } catch (error) {
+            console.error('Error fetching donations:', error)
+        } finally {
+            setLoading(false)
         }
-        return () => {
-            if (animRef.current) animRef.current.kill()
-        }
-    }, [donations.length])
-
-    const getDonationTier = (amount: number | string) => {
-        const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount
-        if (numAmount >= 50) return 'legendary'
-        if (numAmount >= 10) return 'epic'
-        return 'standard'
     }
 
-    const renderDonationCard = (donation: PublicDonation, index: string | number) => {
-        const tier = getDonationTier(donation.amount)
-        
+    if (loading) return (
+        <div style={{ 
+            textAlign: 'center', 
+            height: '400px', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            color: 'var(--muted)'
+        }}>
+            {t('donors.loading_donations')}
+        </div>
+    )
+
+    const renderDonationCard = (donation: Donation, index: string | number) => {
+        const id = donation.id || donation.message_id || `card-${index}`;
+        const isNew = newDonationIds.has(id);
+        const amount = Number(donation.amount);
+        const isPremium = amount >= 20; // Brillo dorado para donaciones >= 20
+
         return (
             <div 
-                className={`donation-card donation-card-${tier}`} 
-                key={`${donation.id || donation.message_id}-${index}`}
+                className={`donation-card ${isNew ? 'new-donation' : ''} ${isPremium ? 'premium-glow' : ''}`} 
+                key={`${id}-${index}`}
             >
                 <div className="donation-header">
                     <div className="donation-user">
                         <div className="donation-avatar">
-                            {donation.from_avatar ? (
-                                <img src={donation.from_avatar} alt={donation.from_name} />
-                            ) : (
-                                <User size={20} className="text-white/40" />
-                            )}
+                            <User size={20} />
                         </div>
                         <div className="donation-info">
                             <h4>{donation.from_name}</h4>
                             <span className="donation-date">
-                                {new Date(donation.created_at).toLocaleDateString(i18n.language, {
-                                    month: 'short',
-                                    day: 'numeric',
-                                    year: 'numeric'
-                                })}
+                                {new Date(donation.created_at).toLocaleDateString()}
                             </span>
                         </div>
                     </div>
                     <div className="donation-amount-badge">
-                        <Heart size={14} className={tier === 'legendary' ? 'text-amber-400' : tier === 'epic' ? 'text-purple-400' : 'text-accent'} />
-                        <span>{donation.currency} {donation.amount}</span>
+                        <Heart size={14} fill="currentColor" />
+                        {donation.currency} {amount.toFixed(2)}
                     </div>
                 </div>
                 {donation.message && (
@@ -115,42 +123,20 @@ export default function DonationFeed({ mockDonations }: DonationFeedProps = {}) 
                     </div>
                 )}
             </div>
-        )
+        );
     }
 
     return (
         <div className="donation-feed">
-            {loading ? (
-                <div style={{
-                    textAlign: 'center',
-                    height: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: 'var(--muted)'
-                }}>
-                    {t('donors.loading_donations')}
-                </div>
-            ) : donations.length === 0 ? (
+            {donations.length === 0 ? (
                 <div style={{ textAlign: 'center', color: 'var(--muted)', padding: '2rem', background: 'rgba(0,0,0,0.2)', borderRadius: '12px' }}>
                     <p>{t('donors.no_donations')}</p>
                 </div>
             ) : (
-                <div 
-                    className="donation-scroll-container"
-                    onMouseEnter={() => animRef.current?.pause()}
-                    onMouseLeave={() => animRef.current?.play()}
-                    style={{ height: '100%', overflow: 'hidden' }}
-                >
-                    <div 
-                        ref={trackRef}
-                        className="donation-scroll-track"
-                    >
-                        {/* Render triple for seamless vertical loop */}
-                        {donations.map((d, i) => renderDonationCard(d, `A-${i}`))}
-                        {donations.map((d, i) => renderDonationCard(d, `B-${i}`))}
-                        {donations.map((d, i) => renderDonationCard(d, `C-${i}`))}
-                    </div>
+                <div className="donation-scroll-track">
+                    {/* Renderizamos la lista dos veces para el efecto infinito */}
+                    {donations.map((d, i) => renderDonationCard(d, `A-${i}`))}
+                    {donations.map((d, i) => renderDonationCard(d, `B-${i}`))}
                 </div>
             )}
         </div>

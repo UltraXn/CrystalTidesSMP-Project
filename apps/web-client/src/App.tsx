@@ -35,7 +35,6 @@ const Support = lazy(() => import("./pages/Support"))
 const TicketDetail = lazy(() => import("./pages/TicketDetail"))
 const PolicyPage = lazy(() => import("./pages/PolicyPage"))
 const Wiki = lazy(() => import("./pages/Wiki"))
-
 const router = createBrowserRouter([
     {
         path: "/",
@@ -69,6 +68,14 @@ const router = createBrowserRouter([
 
             { path: "verify", element: <LazyWrapper><Verify /></LazyWrapper> },
             { path: "maintenance", element: <LazyWrapper><Maintenance /></LazyWrapper> },
+            
+            { path: "rules", element: <Home /> },
+            { path: "donors", element: <Home /> },
+            { path: "news", element: <Home /> },
+            { path: "suggestions", element: <Home /> },
+            { path: "contests", element: <Home /> },
+            { path: "stories", element: <Home /> },
+
             { path: "*", element: <LazyWrapper><NotFound /></LazyWrapper> }
         ]
     }

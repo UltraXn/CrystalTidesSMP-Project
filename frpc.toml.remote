@@ -1,0 +1,10 @@
+serverAddr = "205.209.111.190"
+serverPort = 50960
+auth.token = "CrystalTidesFRP2026"
+
+[[proxies]]
+name = "wings-http"
+type = "tcp"
+localIP = "pelican-wings"
+localPort = 8080
+remotePort = 8081

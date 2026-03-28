@@ -43,5 +43,16 @@ apps/launcher/.flutter-plugins
 apps/launcher/.flutter-plugins-dependencies
 apps/launcher/.dart_tool
 
+<<<<<<< HEAD
 # Security Scans
 .cache_ggshield
+=======
+
+# Extra ignores
+build/
+target/
+.trunk/
+bun.lock
+windows/
+~/
+>>>>>>> security/api-hardening

@@ -53,15 +53,46 @@ export default function PollDisplay({ poll, refreshPoll, onVote }: PollDisplayPr
             if (onVote) {
                 await onVote(optionId);
             } else {
-                await fetch(`${API_URL}/polls/vote`, {
+                // Get the session token for the new secure voting backend
+                const { supabase } = await import('../../services/supabaseClient');
+                const { data: { session } } = await supabase.auth.getSession();
+                
+                if (!session) {
+                    throw new Error('Debes iniciar sesión para votar');
+                }
+
+                const response = await fetch(`${API_URL}/polls/vote`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${session.access_token}`
+                    },
                     body: JSON.stringify({ pollId: poll.id, optionId })
-                })
+                });
+
+                if (!response.ok) {
+                    let errorMessage = 'Error al votar';
+                    try {
+                        const contentType = response.headers.get('content-type');
+                        if (contentType && contentType.includes('application/json')) {
+                            const errorData = await response.json();
+                            errorMessage = errorData.message || errorMessage;
+                        } else {
+                            const textError = await response.text();
+                            errorMessage = textError || errorMessage;
+                        }
+                    } catch (e) {
+                        console.error('Error parsing response:', e);
+                    }
+                    throw new Error(errorMessage);
+                }
             }
             setVoted(true)
             if (refreshPoll) refreshPoll()
-        } catch (err) { console.error(err) }
+        } catch (err: any) { 
+            console.error(err);
+            alert(err.message || 'Error inesperado al votar');
+        }
         finally { setVoting(false) }
     }
 
