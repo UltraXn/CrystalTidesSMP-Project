@@ -23,7 +23,7 @@ export const vote = async (req: Request, res: Response) => {
         const userId = req.user?.id;
         
         if (!userId) {
-            return sendError(res, 'User ID not found in token', 401);
+            return sendError(res, 'User ID not found in token', 'UNAUTHORIZED', 401);
         }
 
         const result = await pollService.votePoll(pollId, optionId, userId);
@@ -47,6 +47,7 @@ export const create = async (req: Request, res: Response) => {
 export const update = async (req: Request, res: Response) => {
     try {
         const id = parseInt(ensureString(req.params.id));
+        if (isNaN(id)) return sendError(res, 'Invalid poll ID', 'INVALID_ID', 400);
         const result = await pollService.updatePoll(id, req.body);
         return sendSuccess(res, result, 'Poll updated successfully');
     } catch (error: unknown) {
@@ -57,7 +58,9 @@ export const update = async (req: Request, res: Response) => {
 
 export const close = async (req: Request, res: Response) => {
     try {
-        await pollService.closePoll(parseInt(ensureString(req.params.id)));
+        const id = parseInt(ensureString(req.params.id));
+        if (isNaN(id)) return sendError(res, 'Invalid poll ID', 'INVALID_ID', 400);
+        await pollService.closePoll(id);
         return sendSuccess(res, null, 'Poll closed successfully');
     } catch (error: unknown) {
         const message = error instanceof Error ? error.message : 'Unknown error';
@@ -67,7 +70,9 @@ export const close = async (req: Request, res: Response) => {
 
 export const deletePoll = async (req: Request, res: Response) => {
     try {
-        await pollService.deletePoll(parseInt(ensureString(req.params.id)));
+        const id = parseInt(ensureString(req.params.id));
+        if (isNaN(id)) return sendError(res, 'Invalid poll ID', 'INVALID_ID', 400);
+        await pollService.deletePoll(id);
         return sendSuccess(res, null, 'Poll deleted successfully');
     } catch (error: unknown) {
         const message = error instanceof Error ? error.message : 'Unknown error';
@@ -79,6 +84,7 @@ export const getPolls = async (req: Request, res: Response) => {
     try {
         const page = parseInt(ensureString(req.query.page)) || 1;
         const limit = parseInt(ensureString(req.query.limit)) || 10;
+        if (isNaN(page) || isNaN(limit)) return sendError(res, 'Invalid pagination values', 'INVALID_PAGINATION', 400);
         const result = await pollService.getPolls({ page, limit });
         return sendSuccess(res, result);
     } catch (error: unknown) {

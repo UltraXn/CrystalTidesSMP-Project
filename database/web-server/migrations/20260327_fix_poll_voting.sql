@@ -4,9 +4,9 @@
 -- 1. Create the table
 CREATE TABLE IF NOT EXISTS public.poll_votes (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    poll_id BIGINT REFERENCES public.polls(id) ON DELETE CASCADE,
-    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-    option_id BIGINT REFERENCES public.poll_options(id) ON DELETE CASCADE,
+    poll_id BIGINT NOT NULL REFERENCES public.polls(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    option_id BIGINT NOT NULL REFERENCES public.poll_options(id) ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
     UNIQUE(poll_id, user_id)
 );
@@ -29,12 +29,20 @@ CREATE POLICY "Users can insert own votes" ON public.poll_votes
 CREATE OR REPLACE FUNCTION public.handle_poll_vote()
 RETURNS TRIGGER AS $$
 BEGIN
+    -- Validate that the option belongs to the poll at the DB level
+    IF NOT EXISTS (
+        SELECT 1 FROM public.poll_options 
+        WHERE id = NEW.option_id AND poll_id = NEW.poll_id
+    ) THEN
+        RAISE EXCEPTION 'La opción elegida no pertenece a esta encuesta';
+    END IF;
+
     UPDATE public.poll_options
     SET votes = votes + 1
     WHERE id = NEW.option_id;
     RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 -- Cleanup existing trigger if exists
 DROP TRIGGER IF EXISTS on_poll_vote ON public.poll_votes;

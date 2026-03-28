@@ -126,14 +126,28 @@ export const getPollById = async (id: number) => {
 };
 
 export const votePoll = async (pollId: number, optionId: number, userId: string) => {
-    // 1. Check if the option exists
+    // 1. Check if the option exists and belongs to the poll
     const { data: option, error: fetchError } = await supabase
         .from('poll_options')
-        .select('id')
+        .select('id, poll_id')
         .eq('id', optionId)
         .single();
         
     if (fetchError || !option) throw new Error("Option not found");
+    if (option.poll_id !== pollId) throw new Error("Invalid option for this poll");
+
+    // 2. Check if the poll is active and not expired
+    const { data: poll, error: pollError } = await supabase
+        .from('polls')
+        .select('is_active, closes_at')
+        .eq('id', pollId)
+        .single();
+
+    if (pollError || !poll) throw new Error("Poll not found");
+    if (!poll.is_active) throw new Error("La encuesta ya no está activa");
+    if (poll.closes_at && new Date(poll.closes_at) <= new Date()) {
+        throw new Error("La encuesta ha finalizado");
+    }
 
     // 2. Insert into poll_votes (unique constraint handles double-voting)
     const { error: voteError } = await supabase
