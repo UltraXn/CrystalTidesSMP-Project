@@ -2,12 +2,12 @@ name: CI | Native Components
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
     paths:
       - apps/game-bridge/**
       - apps/launcher/**
   pull_request:
-    branches: [main]
+    branches: [main, develop]
     paths:
       - apps/game-bridge/**
       - apps/launcher/**

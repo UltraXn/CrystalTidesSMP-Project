@@ -2,9 +2,9 @@ name: Security & Pentesting
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
   pull_request:
-    branches: [main]
+    branches: [main, develop]
   schedule:
     - cron: 30 2 * * 1 # Weekly scan at 02:30 AM on Mondays
 
