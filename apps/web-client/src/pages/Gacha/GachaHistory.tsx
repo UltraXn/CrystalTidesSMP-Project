@@ -50,7 +50,11 @@ export const GachaHistory: React.FC<GachaHistoryProps> = ({
                     className="history-handle-btn" 
                     onClick={(e) => {
                         e.stopPropagation();
-                        isOpen ? onClose() : onOpen();
+                        if (isOpen) {
+                            onClose();
+                        } else {
+                            onOpen();
+                        }
                     }}
                     style={{ '--tier-accent-color': tierColor } as React.CSSProperties}
                 >

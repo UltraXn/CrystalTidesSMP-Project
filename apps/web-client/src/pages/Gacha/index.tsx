@@ -379,36 +379,39 @@ export const Gacha = () => {
             });
 
             const animateSpin = (item: any, isBulk: boolean) => {
-                return new Promise<void>(async resolve => {
-                    // Update reels for this specific roll
-                    setReelItemsSet(prev => prev.map((reel) => {
-                        const newReel = [...reel];
-                        newReel[46] = item;
-                        return newReel;
-                    }));
+                return new Promise<void>((resolve) => {
+                    const runAnimation = async () => {
+                        // Update reels for this specific roll
+                        setReelItemsSet(prev => prev.map((reel) => {
+                            const newReel = [...reel];
+                            newReel[46] = item;
+                            return newReel;
+                        }));
 
-                    // Small delay to ensure the DOM has the new item at index 46
-                    await new Promise(r => setTimeout(r, 50));
+                        // Small delay to ensure the DOM has the new item at index 46
+                        await new Promise(r => setTimeout(r, 50));
 
-                    const targetIdx = 45; 
-                    const reelH = targetIdx * 160; 
-                    const tl = gsap.timeline({ onComplete: resolve });
+                        const targetIdx = 45; 
+                        const reelH = targetIdx * 160; 
+                        const tl = gsap.timeline({ onComplete: resolve });
 
-                    // Speed: Bulk = ~1.2s total, Single = ~4-6s total
-                    const baseDuration = isBulk ? 0.8 : 4;
-                    const stagger = isBulk ? 0.2 : 1;
-                    const ease = isBulk ? "power2.inOut" : "power4.inOut";
-                    
-                    reelRefs.forEach((ref, i) => {
-                        const currentReel = ref.current;
-                        if (!currentReel) return;
-                        gsap.set(currentReel, { y: 0 });
-                        tl.to(currentReel, { 
-                            y: -reelH, 
-                            duration: baseDuration + (i * stagger), 
-                            ease: ease 
-                        }, 0);
-                    });
+                        // Speed: Bulk = ~1.2s total, Single = ~4-6s total
+                        const baseDuration = isBulk ? 0.8 : 4;
+                        const stagger = isBulk ? 0.2 : 1;
+                        const ease = isBulk ? "power2.inOut" : "power4.inOut";
+                        
+                        reelRefs.forEach((ref, i) => {
+                            const currentReel = ref.current;
+                            if (!currentReel) return;
+                            gsap.set(currentReel, { y: 0 });
+                            tl.to(currentReel, { 
+                                y: -reelH, 
+                                duration: baseDuration + (i * stagger), 
+                                ease: ease 
+                            }, 0);
+                        });
+                    };
+                    runAnimation();
                 });
             };
 
