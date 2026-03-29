@@ -1,6 +1,12 @@
 import supabase from './supabaseService.js';
 import * as pollService from './pollService.js';
 import * as discordService from './discordService.js';
+import { STAFF_ROLES } from '../utils/roleUtils.js';
+
+interface Requestor {
+    id: string;
+    role: string;
+}
 
 export interface ForumThread {
     id: number;
@@ -333,15 +339,28 @@ export const getCategoryStats = async () => {
     return stats;
 }
 
-export const updateThread = async (idOrSlug: number | string, updates: Partial<ForumThread>) => {
+export const updateThread = async (idOrSlug: number | string, updates: Partial<ForumThread>, requestor: Requestor) => {
     let threadId: number;
     
     if (typeof idOrSlug === 'string' && !/^\d+$/.test(idOrSlug)) {
-        const { data: thread } = await supabase.from('forum_threads').select('id').eq('slug', idOrSlug).single();
+        const { data: thread } = await supabase.from('forum_threads').select('id, user_id').eq('slug', idOrSlug).single();
         if (!thread) throw new Error("Thread not found");
+        
+        // Ownership Check (Allow staff/admin to moderate)
+        if (thread.user_id !== requestor.id && !STAFF_ROLES.includes(requestor.role.toLowerCase())) {
+            throw new Error("Forbidden: You do not own this thread");
+        }
+        
         threadId = thread.id;
     } else {
         threadId = typeof idOrSlug === 'number' ? idOrSlug : parseInt(idOrSlug);
+        const { data: thread } = await supabase.from('forum_threads').select('user_id').eq('id', threadId).single();
+        if (!thread) throw new Error("Thread not found");
+        
+        // Ownership Check (Allow staff/admin to moderate)
+        if (thread.user_id !== requestor.id && !STAFF_ROLES.includes(requestor.role.toLowerCase())) {
+            throw new Error("Forbidden: You do not own this thread");
+        }
     }
 
     const { data, error } = await supabase.from('forum_threads').update(updates).eq('id', threadId).select().single();
@@ -349,23 +368,36 @@ export const updateThread = async (idOrSlug: number | string, updates: Partial<F
     return data;
 };
 
-export const deleteThread = async (idOrSlug: number | string) => {
+export const deleteThread = async (idOrSlug: number | string, requestor: Requestor) => {
     let threadId: number;
     
     if (typeof idOrSlug === 'string' && !/^\d+$/.test(idOrSlug)) {
-        const { data: thread } = await supabase.from('forum_threads').select('id').eq('slug', idOrSlug).single();
+        const { data: thread } = await supabase.from('forum_threads').select('id, user_id, poll_id').eq('slug', idOrSlug).single();
         if (!thread) throw new Error("Thread not found");
+        
+        // Ownership Check (Allow staff/admin to moderate)
+        if (thread.user_id !== requestor.id && !STAFF_ROLES.includes(requestor.role.toLowerCase())) {
+            throw new Error("Forbidden: You do not own this thread");
+        }
+        
         threadId = thread.id;
     } else {
         threadId = typeof idOrSlug === 'number' ? idOrSlug : parseInt(idOrSlug);
+        const { data: thread } = await supabase.from('forum_threads').select('user_id, poll_id').eq('id', threadId).single();
+        if (!thread) throw new Error("Thread not found");
+        
+        // Ownership Check (Allow staff/admin to moderate)
+        if (thread.user_id !== requestor.id && !STAFF_ROLES.includes(requestor.role.toLowerCase())) {
+            throw new Error("Forbidden: You do not own this thread");
+        }
     }
 
-    // 1. Fetch thread first to check for poll
-    const { data: thread } = await supabase.from('forum_threads').select('poll_id').eq('id', threadId).single();
+    // 1. Fetch thread first (already done above, merged logic)
+    const { data: threadInfo } = await supabase.from('forum_threads').select('poll_id').eq('id', threadId).single();
 
     // 2. Delete Poll if exists
-    if (thread && thread.poll_id) {
-        await pollService.deletePoll(thread.poll_id).catch(err => console.error("Error cleaning up poll:", err));
+    if (threadInfo && threadInfo.poll_id) {
+        await pollService.deletePoll(threadInfo.poll_id).catch(err => console.error("Error cleaning up poll:", err));
     }
 
     // 3. Delete posts
@@ -376,13 +408,27 @@ export const deleteThread = async (idOrSlug: number | string) => {
     if(error) throw error;
 };
 
-export const updatePost = async (id: number, { content }: { content: string }) => {
-    const { data, error } = await supabase.from('forum_posts').update({ content }).eq('id', id).select().single();
+export const updatePost = async (id: number, updates: { content: string }, requestor: Requestor) => {
+    const { data: post } = await supabase.from('forum_posts').select('user_id').eq('id', id).single();
+    if (!post) throw new Error("Post not found");
+
+    if (post.user_id !== requestor.id && !STAFF_ROLES.includes(requestor.role.toLowerCase())) {
+        throw new Error("Forbidden: You do not own this post");
+    }
+
+    const { data, error } = await supabase.from('forum_posts').update({ content: updates.content }).eq('id', id).select().single();
     if(error) throw error;
     return data;
 };
 
-export const deletePost = async (id: number) => {
+export const deletePost = async (id: number, requestor: Requestor) => {
+    const { data: post } = await supabase.from('forum_posts').select('user_id').eq('id', id).single();
+    if (!post) throw new Error("Post not found");
+
+    if (post.user_id !== requestor.id && !STAFF_ROLES.includes(requestor.role.toLowerCase())) {
+        throw new Error("Forbidden: You do not own this post");
+    }
+
     const { error } = await supabase.from('forum_posts').delete().eq('id', id);
     if(error) throw error;
 };

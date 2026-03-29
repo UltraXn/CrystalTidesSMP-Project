@@ -62,7 +62,7 @@ router.get('/', suggestionController.getSuggestions);
  *           schema:
  *             $ref: '#/components/schemas/Suggestion'
  */
-router.post('/', sensitiveActionLimiter, validate(createSuggestionSchema), suggestionController.createSuggestion);
+router.post('/', authenticateToken, sensitiveActionLimiter, validate(createSuggestionSchema), suggestionController.createSuggestion);
 
 /**
  * @swagger

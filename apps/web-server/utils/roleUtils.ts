@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
 
 // Centralized role definitions based on project requirements
-export const ADMIN_ROLES = ['admin', 'neroferno', 'killu', 'developer', 'staff'];
-export const STAFF_ROLES = [...ADMIN_ROLES, 'moderator', 'mod', 'helper'];
+export const ADMIN_ROLES = ['admin', 'neroferno', 'killu', 'killuwu', 'developer', 'owner'];
+export const STAFF_ROLES = [...ADMIN_ROLES, 'staff', 'moderator', 'mod', 'helper'];
 
 /**
  * Middleware to check if the user has specific roles.

@@ -59,7 +59,17 @@ export const getThreadFull = async (req: Request, res: Response) => {
 
 export const createThread = async (req: Request, res: Response) => {
     try {
-        const result = await forumService.createThread(req.body);
+        if (!req.user) return res.status(401).json({ error: "Unauthorized" });
+        
+        const result = await forumService.createThread({
+            ...req.body, 
+            user_data: {
+                id: req.user.id,
+                name: req.user.username || 'Unknown',
+                avatar: req.user.avatar_url || '',
+                role: req.user.role
+            }
+        });
         res.status(201).json(result);
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
@@ -79,7 +89,18 @@ export const getPosts = async (req: Request, res: Response) => {
 
 export const createPost = async (req: Request, res: Response) => {
     try {
-        const result = await forumService.createPost({...req.body, thread_id: ensureString(req.params.id)});
+        if (!req.user) return res.status(401).json({ error: "Unauthorized" });
+
+        const result = await forumService.createPost({
+            thread_id: ensureString(req.params.id),
+            content: req.body.content,
+            user_data: {
+                id: req.user.id,
+                name: req.user.username || 'Unknown',
+                avatar: req.user.avatar_url || '',
+                role: req.user.role
+            }
+        });
         res.status(201).json(result);
     } catch (e) { 
         const message = e instanceof Error ? e.message : String(e);
@@ -99,44 +120,56 @@ export const getStats = async (req: Request, res: Response) => {
 
 export const updateThread = async (req: Request, res: Response) => {
     try {
+        if (!req.user) return res.status(401).json({ error: "Unauthorized" });
+
         const id = ensureString(req.params.id);
-        const result = await forumService.updateThread(id, req.body);
+        const result = await forumService.updateThread(id, req.body, req.user);
         res.json(result);
     } catch (e) { 
         const message = e instanceof Error ? e.message : String(e);
-        res.status(500).json({error: message}); 
+        const status = message.includes('Forbidden') ? 403 : 500;
+        res.status(status).json({error: message}); 
     }
 };
 
 export const deleteThread = async (req: Request, res: Response) => {
     try {
+        if (!req.user) return res.status(401).json({ error: "Unauthorized" });
+
         const id = ensureString(req.params.id);
-        await forumService.deleteThread(id);
+        await forumService.deleteThread(id, req.user);
         res.json({ message: "Thread deleted" });
     } catch (e) { 
         const message = e instanceof Error ? e.message : String(e);
-        res.status(500).json({error: message}); 
+        const status = message.includes('Forbidden') ? 403 : 500;
+        res.status(status).json({error: message}); 
     }
 };
 
 export const updatePost = async (req: Request, res: Response) => {
     try {
+        if (!req.user) return res.status(401).json({ error: "Unauthorized" });
+
         const id = ensureString(req.params.id);
-        const result = await forumService.updatePost(parseInt(id), req.body);
+        const result = await forumService.updatePost(parseInt(id), req.body, req.user);
         res.json(result);
     } catch (e) { 
         const message = e instanceof Error ? e.message : String(e);
-        res.status(500).json({error: message}); 
+        const status = message.includes('Forbidden') ? 403 : 500;
+        res.status(status).json({error: message}); 
     }
 };
 
 export const deletePost = async (req: Request, res: Response) => {
     try {
+        if (!req.user) return res.status(401).json({ error: "Unauthorized" });
+
         const id = ensureString(req.params.id);
-        await forumService.deletePost(parseInt(id));
+        await forumService.deletePost(parseInt(id), req.user);
         res.json({ message: "Post deleted" });
     } catch (e) { 
         const message = e instanceof Error ? e.message : String(e);
-        res.status(500).json({error: message}); 
+        const status = message.includes('Forbidden') ? 403 : 500;
+        res.status(status).json({error: message}); 
     }
 };

@@ -6,15 +6,23 @@ import { ensureString } from '../utils/typeUtils.js';
 
 export const roll = async (req: Request, res: Response) => {
     try {
-        const { userId, tierId, quantity, testResult, forceDeduction } = req.body;
-        
-        if (!userId) {
-            return sendError(res, "Missing userId", "BAD_REQUEST", 400);
-        }
+        const { userId: bodyUserId, tierId, quantity, testResult, forceDeduction } = req.body;
+        const user = req.user;
 
-        const userRole = (req.user?.role || '').toLowerCase();
+        if (!user) return sendError(res, "Unauthorized", "UNAUTHORIZED", 401);
+
+        const userRole = (user.role || '').toLowerCase();
         const isAdmin = ADMIN_ROLES.includes(userRole);
-        const reward = await gachaService.rollGacha(userId, tierId, quantity || 1, isAdmin, testResult, forceDeduction);
+
+        // Security: IDOR Protection
+        // If not admin, force userId to be the authenticated user's ID
+        const targetUserId = isAdmin && bodyUserId ? bodyUserId : user.id;
+
+        // Security: Block debug/test parameters for non-admins
+        const finalTestResult = isAdmin ? testResult : undefined;
+        const finalForceDeduction = isAdmin ? forceDeduction : undefined;
+
+        const reward = await gachaService.rollGacha(targetUserId, tierId, quantity || 1, isAdmin, finalTestResult, finalForceDeduction);
         return sendSuccess(res, reward, 'Gacha roll successful');
 
     } catch (error: unknown) {

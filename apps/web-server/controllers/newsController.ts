@@ -281,14 +281,13 @@ export const updateComment = async (req: Request, res: Response) => {
         // 1. Verify existence and ownership
         const { data: comment, error: fetchError } = await supabase
             .from('comments')
-            .select('user_name')
+            .select('user_id')
             .eq('id', id)
             .single();
 
         if (fetchError || !comment) return res.status(404).json({ error: "Comentario no encontrado" });
 
-        // Fallback ownership check using username (since user_id is missing in this table)
-        if (comment.user_name !== user.username) {
+        if (comment.user_id !== user.id) {
              return res.status(403).json({ error: "No tienes permiso para editar este comentario" });
         }
 
@@ -317,7 +316,7 @@ export const deleteComment = async (req: Request, res: Response) => {
         // 1. Verify existence
         const { data: comment, error: fetchError } = await supabase
             .from('comments')
-            .select('user_name')
+            .select('user_id')
             .eq('id', id)
             .single();
 
@@ -327,10 +326,9 @@ export const deleteComment = async (req: Request, res: Response) => {
         if (fetchError || !comment) return res.status(404).json({ error: "Comentario no encontrado" });
 
         // 2. Check Permissions (Owner OR Admin)
-        const isAdmin = ['admin', 'neroferno', 'killu', 'killuwu', 'developer', 'helper'].includes(user.role);
+        const isStaff = ['admin', 'neroferno', 'killu', 'killuwu', 'developer', 'moderator', 'mod', 'helper'].includes(user.role.toLowerCase());
         
-        // Ownership check via username
-        if (comment.user_name !== user.username && !isAdmin) {
+        if (comment.user_id !== user.id && !isStaff) {
             return res.status(403).json({ error: "No tienes permiso para eliminar este comentario" });
         }
 
@@ -456,8 +454,9 @@ export const updateNews = async (req: Request, res: Response) => {
 export const deleteNews = async (req: Request, res: Response) => {
     try {
         const id = ensureString(req.params.id);
-        const userId = ensureString(req.query.userId);
-        const username = ensureString(req.query.username);
+        const user = req.user;
+
+        if (!user) return res.status(401).json({ error: "Usuario no autenticado" });
 
         const { error } = await supabase
             .from('news')
@@ -468,8 +467,8 @@ export const deleteNews = async (req: Request, res: Response) => {
 
         // Log action
         logService.createLog({
-            user_id: userId as string || undefined,
-            username: username as string || 'Admin',
+            user_id: user.id,
+            username: user.username || 'Admin',
             action: 'DELETE_NEWS',
             details: `Deleted news #${id}`,
             source: 'web'

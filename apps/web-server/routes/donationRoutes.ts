@@ -3,6 +3,7 @@ import { testDonation, getDonations, createDonation, updateDonation, deleteDonat
 import { authenticateToken } from '../middleware/authMiddleware.js';
 import { validate } from '../middleware/validateResource.js';
 import { createDonationSchema, updateDonationSchema } from '../schemas/donationSchemas.js';
+import { checkRole, ADMIN_ROLES, STAFF_ROLES } from '../utils/roleUtils.js';
 
 const router = express.Router();
 
@@ -46,7 +47,7 @@ const router = express.Router();
  *     security:
  *       - bearerAuth: []
  */
-router.post('/test', authenticateToken, testDonation);
+router.post('/test', authenticateToken, checkRole(ADMIN_ROLES), testDonation);
 
 /**
  * @swagger
@@ -57,7 +58,7 @@ router.post('/test', authenticateToken, testDonation);
  *     security:
  *       - bearerAuth: []
  */
-router.get('/', authenticateToken, getDonations);
+router.get('/', authenticateToken, checkRole(STAFF_ROLES), getDonations);
 
 /**
  * @swagger
@@ -68,7 +69,7 @@ router.get('/', authenticateToken, getDonations);
  *     security:
  *       - bearerAuth: []
  */
-router.post('/', authenticateToken, validate(createDonationSchema), createDonation);
+router.post('/', authenticateToken, checkRole(STAFF_ROLES), validate(createDonationSchema), createDonation);
 
 /**
  * @swagger
@@ -79,7 +80,7 @@ router.post('/', authenticateToken, validate(createDonationSchema), createDonati
  *     security:
  *       - bearerAuth: []
  */
-router.get('/stats', authenticateToken, getDonationStats);
+router.get('/stats', authenticateToken, checkRole(STAFF_ROLES), getDonationStats);
 
 /**
  * @swagger
@@ -90,7 +91,7 @@ router.get('/stats', authenticateToken, getDonationStats);
  *     security:
  *       - bearerAuth: []
  */
-router.put('/:id', authenticateToken, validate(updateDonationSchema), updateDonation);
+router.put('/:id', authenticateToken, checkRole(STAFF_ROLES), validate(updateDonationSchema), updateDonation);
 
 /**
  * @swagger
@@ -101,6 +102,6 @@ router.put('/:id', authenticateToken, validate(updateDonationSchema), updateDona
  *     security:
  *       - bearerAuth: []
  */
-router.delete('/:id', authenticateToken, deleteDonation);
+router.delete('/:id', authenticateToken, checkRole(ADMIN_ROLES), deleteDonation);
 
 export default router;

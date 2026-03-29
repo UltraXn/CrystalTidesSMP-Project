@@ -1,31 +1,54 @@
-import rateLimit from 'express-rate-limit';
+import { rateLimit } from 'express-rate-limit';
 
-// Global API Limiter (Generous)
-// 2000 requests per 15 minutes
+/**
+ * General API Limiter - 100 requests per minute
+ */
 export const apiLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, 
-    max: 2000, 
+    windowMs: 1 * 60 * 1000, // 1 minute
+    max: 100, 
+    message: {
+        success: false,
+        error: {
+            code: 'TOO_MANY_REQUESTS',
+            message: 'Too many requests from this IP, please try again after a minute'
+        }
+    },
     standardHeaders: true,
     legacyHeaders: false,
-    message: { error: 'Too many requests, please try again later.' }
 });
 
-// Auth Limiter (Login/Register/Verify) - Stricter
-// 10 attempts per 15 minutes
-export const authLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 20,
-    standardHeaders: true,
-    legacyHeaders: false,
-    message: { error: 'Too many login attempts, please try again later.' }
-});
-
-// Sensitive Actions Limiter (Tickets, Suggestions)
-// 1000 requests per hour to allow for active usage
+/**
+ * Strict Auth/Sensitive Limiter - 10 requests per 10 minutes
+ */
 export const sensitiveActionLimiter = rateLimit({
-    windowMs: 60 * 60 * 1000,
-    max: 1000, 
+    windowMs: 10 * 60 * 1000, // 10 minutes
+    max: 10,
+    message: {
+        success: false,
+        error: {
+            code: 'RATE_LIMIT_EXCEEDED',
+            message: 'Too many sensitive actions. Please try again later.'
+        }
+    },
     standardHeaders: true,
     legacyHeaders: false,
-    message: { error: 'You are performing this action too frequently.' }
+});
+
+export const authLimiter = sensitiveActionLimiter;
+
+/**
+ * Admin Upload Limiter - 20 requests per hour
+ */
+export const uploadLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, // 1 hour
+    max: 20,
+    message: {
+        success: false,
+        error: {
+            code: 'UPLOAD_RATE_LIMIT_EXCEEDED',
+            message: 'Too many upload attempts. Please try again later.'
+        }
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
 });

@@ -4,6 +4,7 @@ import * as minecraftService from '../services/minecraftService.js';
 import { Request, Response } from 'express';
 import { sendSuccess, sendError } from '../utils/responseHandler.js';
 import { ensureString } from '../utils/typeUtils.js';
+import { STAFF_ROLES } from '../utils/roleUtils.js';
 
 interface AuthenticatedRequest extends Request {
     user?: {
@@ -35,13 +36,14 @@ export const getAllTickets = async (req: Request, res: Response) => {
 // User: Create ticket
 export const createTicket = async (req: Request, res: Response) => {
     try {
-        const { user_id, subject, description, priority } = req.body;
+        const { subject, description, priority } = req.body;
+        const user = (req as AuthenticatedRequest).user!;
 
-        if (!user_id || !subject) {
-            return sendError(res, 'Missing user_id or subject', 'MISSING_FIELD', 400);
+        if (!subject) {
+            return sendError(res, 'Missing subject', 'MISSING_FIELD', 400);
         }
 
-        const ticket = await ticketService.createTicket(user_id, { subject, description, priority });
+        const ticket = await ticketService.createTicket(user.id, { subject, description, priority });
         
         // Log
         logService.createLog({
@@ -65,7 +67,6 @@ export const updateStatus = async (req: Request, res: Response) => {
         const { status } = req.body;
         const ticketId = parseInt(id);
         const user = (req as AuthenticatedRequest).user!;
-        const STAFF_ROLES = ['admin', 'neroferno', 'killu', 'killuwu', 'developer', 'moderator', 'mod', 'helper'];
 
         // 1. Fetch ticket to check ownership
         const ticketInfo = await ticketService.getTicketById(ticketId);
@@ -114,7 +115,6 @@ export const getMessages = async (req: Request, res: Response) => {
         const id = ensureString(req.params.id);
         const ticketId = parseInt(id);
         const user = (req as AuthenticatedRequest).user!;
-        const STAFF_ROLES = ['admin', 'neroferno', 'killu', 'killuwu', 'developer', 'moderator', 'mod', 'helper'];
 
         // 1. Fetch ticket to check ownership
         const ticket = await ticketService.getTicketById(ticketId);
@@ -143,7 +143,6 @@ export const addMessage = async (req: Request, res: Response) => {
         const { message } = req.body; // Remove user_id and is_staff from body for security
         const ticketId = parseInt(id);
         const user = (req as AuthenticatedRequest).user!;
-        const STAFF_ROLES = ['admin', 'neroferno', 'killu', 'killuwu', 'developer', 'moderator', 'mod', 'helper'];
 
         if (!message) return sendError(res, "Message is required", 'MISSING_FIELD', 400);
 

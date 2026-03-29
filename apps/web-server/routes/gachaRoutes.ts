@@ -2,7 +2,7 @@ import express from 'express';
 import * as gachaController from '../controllers/gachaController.js';
 import { authenticateToken } from '../middleware/authMiddleware.js';
 import { validate } from '../middleware/validateResource.js';
-import { rollGachaSchema } from '../schemas/gachaSchemas.js';
+import { rollGachaSchema, gachaHistorySchema } from '../schemas/gachaSchemas.js';
 
 const router = express.Router();
 
@@ -52,6 +52,6 @@ router.post('/roll', authenticateToken, validate(rollGachaSchema), gachaControll
  *       200:
  *         description: Historial recuperado
  */
-router.get('/history/:userId', authenticateToken, gachaController.getHistory);
+router.get('/history/:userId', authenticateToken, validate(gachaHistorySchema), gachaController.getHistory);
 
 export default router;

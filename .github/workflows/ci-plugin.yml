@@ -1,0 +1,29 @@
+name: CI | Java Plugin
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - plugins/crystalcore/**
+  pull_request:
+    branches: [main]
+    paths:
+      - plugins/crystalcore/**
+
+jobs:
+  java-qa:
+    name: Build & Verify (Java)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup Java 21
+        uses: actions/setup-java@3a4adcc894b620ac3d2f9540b6d25277f022195f # v4.7.0
+        with:
+          java-version: 21
+          distribution: temurin
+          cache: maven
+
+      - name: Build & Test with Maven
+        run: mvn -B -f plugins/crystalcore/pom.xml clean test package

@@ -56,9 +56,10 @@ export const updateUserRole = async (req: Request, res: Response) => {
         }
 
         const updatedUser = await userService.updateUserRole(id, role);
+        const requestorUsername = (req as any).user?.username || 'Admin';
 
         logService.createLog({
-            username: 'Admin',
+            username: requestorUsername,
             action: 'UPDATE_ROLE',
             details: `Updated user ${id} role to ${role}`,
             source: 'web'
@@ -79,9 +80,10 @@ export const updateUserMetadata = async (req: Request, res: Response) => {
         if (!metadata) return sendError(res, 'Metadata object is required', 'MISSING_FIELD', 400);
 
         const updatedUser = await userService.updateUserMetadata(id, metadata);
+        const requestorUsername = (req as any).user?.username || 'Admin';
 
         logService.createLog({
-            username: 'Admin',
+            username: requestorUsername,
             action: 'UPDATE_METADATA',
             details: `Updated user ${id} metadata: ${JSON.stringify(metadata)}`,
             source: 'web'

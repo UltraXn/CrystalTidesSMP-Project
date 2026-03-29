@@ -17,9 +17,10 @@ export const createEvent = async (req: Request, res: Response) => {
     try {
         console.log("Creating event - Body received:", JSON.stringify(req.body));
         const event = await eventService.createEvent(req.body);
+        const requestorUsername = (req as any).user?.username || 'Admin';
 
         logService.createLog({
-            username: 'Admin',
+            username: requestorUsername,
             action: 'CREATE_EVENT',
             details: `Created event: ${event.title}`,
             source: 'web'
@@ -36,9 +37,10 @@ export const createEvent = async (req: Request, res: Response) => {
 export const updateEvent = async (req: Request, res: Response) => {
     try {
         const event = await eventService.updateEvent(parseInt(ensureString(req.params.id)), req.body);
+        const requestorUsername = (req as any).user?.username || 'Admin';
 
         logService.createLog({
-            username: 'Admin',
+            username: requestorUsername,
             action: 'UPDATE_EVENT',
             details: `Updated event: ${event.title}`,
             source: 'web'
@@ -53,10 +55,11 @@ export const updateEvent = async (req: Request, res: Response) => {
 
 export const deleteEvent = async (req: Request, res: Response) => {
     try {
+        const requestorUsername = (req as any).user?.username || 'Admin';
         await eventService.deleteEvent(parseInt(ensureString(req.params.id)));
 
         logService.createLog({
-            username: 'Admin',
+            username: requestorUsername,
             action: 'DELETE_EVENT',
             details: `Deleted event ID: ${ensureString(req.params.id)}`,
             source: 'web'
@@ -71,14 +74,14 @@ export const deleteEvent = async (req: Request, res: Response) => {
 
 export const registerForEvent = async (req: Request, res: Response) => {
     try {
-        const { userId } = req.body; 
-        if (!userId) return res.status(400).json({ error: "User ID required" });
+        const user = req.user;
+        if (!user) return res.status(401).json({ error: "Unauthorized" });
 
-        const registration = await eventService.registerUser(parseInt(ensureString(req.params.id)), userId);
+        const registration = await eventService.registerUser(parseInt(ensureString(req.params.id)), user.id);
 
         logService.createLog({
-            user_id: userId,
-            username: 'User', 
+            user_id: user.id,
+            username: user.username || 'User', 
             action: 'EVENT_REGISTER',
             details: `Registered for event ${ensureString(req.params.id)}`,
             source: 'web'
@@ -93,10 +96,10 @@ export const registerForEvent = async (req: Request, res: Response) => {
 
 export const getUserRegistrations = async (req: Request, res: Response) => {
     try {
-        const userId = ensureString(req.query.userId);
-        if (!userId) return res.status(400).json({ error: "User ID required" });
+        const user = req.user;
+        if (!user) return res.status(401).json({ error: "Unauthorized" });
 
-        const registrationIds = await eventService.getUserRegistrations(userId);
+        const registrationIds = await eventService.getUserRegistrations(user.id);
         res.json(registrationIds);
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);

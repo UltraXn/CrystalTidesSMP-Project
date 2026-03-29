@@ -32,7 +32,10 @@ export const postComment = async (req: Request, res: Response) => {
 export const removeComment = async (req: Request, res: Response) => {
     try {
         const id = ensureString(req.params.id);
-        await commentService.deleteComment(parseInt(id));
+        const user = req.user;
+        if (!user) return sendError(res, 'Unauthorized', 'UNAUTHORIZED', 401);
+        
+        await commentService.deleteComment(parseInt(id), { id: user.id, role: user.role });
         return sendSuccess(res, null, 'Comment deleted');
     } catch (error) {
         return sendError(res, error instanceof Error ? error.message : 'Error deleting comment');

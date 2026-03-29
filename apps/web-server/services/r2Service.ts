@@ -1,4 +1,5 @@
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import path from 'path';
 
 
 const R2_ENDPOINT = process.env.R2_ENDPOINT || '';
@@ -21,18 +22,20 @@ export const uploadFile = async (file: Express.Multer.File): Promise<string> => 
         throw new Error("R2 Credentials missing in server environment.");
     }
 
-    const key = file.originalname; // Mantener nombre original para mods (o usar UUID si prefieres unicidad)
+    const fileExtension = path.extname(file.originalname).toLowerCase();
+    const baseName = path.basename(file.originalname, fileExtension)
+        .replace(/[^a-z0-9]/gi, '_')
+        .toLowerCase();
     
-    // Si queremos evitar colisiones podríamos usar: 
-    // const fileExtension = path.extname(file.originalname);
-    // const key = `${path.basename(file.originalname, fileExtension)}-${randomUUID().split('-')[0]}${fileExtension}`;
+    // Uniqueness: Append short timestamp (base36)
+    const shortHash = Date.now().toString(36);
+    const key = `${baseName}-${shortHash}${fileExtension}`;
 
     const command = new PutObjectCommand({
         Bucket: R2_BUCKET_NAME,
         Key: key,
         Body: file.buffer,
         ContentType: file.mimetype,
-        // ACL: 'public-read' // R2 buckets are usually private/public via domain, ACL not needed for R2
     });
 
     try {

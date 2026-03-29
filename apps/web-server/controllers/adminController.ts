@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import { uploadFile } from '../services/r2Service.js';
-import path from 'path';
 
 export const uploadMod = async (req: Request, res: Response) => {
     try {
@@ -8,10 +7,7 @@ export const uploadMod = async (req: Request, res: Response) => {
             return res.status(400).json({ message: "No file uploaded." });
         }
 
-        // Validate File Type (only .jar allowed)
-        if (path.extname(req.file.originalname).toLowerCase() !== '.jar') {
-            return res.status(400).json({ message: "Only .jar files are allowed." });
-        }
+        // File Type Validation (Defense in Depth - handled by middleware)
 
         const publicUrl = await uploadFile(req.file);
 

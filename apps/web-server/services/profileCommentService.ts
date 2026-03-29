@@ -1,4 +1,10 @@
 import supabase from './supabaseService.js';
+import { STAFF_ROLES } from '../utils/roleUtils.js';
+
+interface Requestor {
+    id: string;
+    role: string;
+}
 
 export const getCommentsByProfile = async (profileId: string) => {
     // 1. Fetch comments (No Join)
@@ -57,7 +63,29 @@ export const createComment = async (profileId: string, authorId: string, content
     };
 };
 
-export const deleteComment = async (commentId: number) => {
+export const deleteComment = async (commentId: number, requestor: Requestor) => {
+    // 1. Fetch comment to check ownership
+    const { data: comment } = await supabase
+        .from('profile_comments')
+        .select('author_id, profile_id')
+        .eq('id', commentId)
+        .single();
+    
+    if (!comment) throw new Error("Comment not found");
+
+    // 2. Authorization check
+    // Allowed if:
+    // - User is the author
+    // - User is the owner of the profile where the comment is posted
+    // - User is staff/admin
+    const isAuthor = comment.author_id === requestor.id;
+    const isProfileOwner = comment.profile_id === requestor.id;
+    const isStaff = STAFF_ROLES.includes(requestor.role.toLowerCase());
+
+    if (!isAuthor && !isProfileOwner && !isStaff) {
+        throw new Error("Forbidden: You do not have permission to delete this comment");
+    }
+
     const { error } = await supabase
         .from('profile_comments')
         .delete()

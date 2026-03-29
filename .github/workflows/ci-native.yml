@@ -1,0 +1,46 @@
+name: CI | Native Components
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - apps/game-bridge/**
+      - apps/launcher/**
+  pull_request:
+    branches: [main]
+    paths:
+      - apps/game-bridge/**
+      - apps/launcher/**
+
+jobs:
+  native-qa:
+    name: Verify (Rust & Flutter)
+    runs-on: windows-latest # Required for Flutter Windows and some Rust builds
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@445199e46a9cb9907f1fbc3f6cf8a7de7982ca8f # v2.16.0
+        with:
+          channel: stable
+          flutter-version: 3.27.1
+
+      - name: Setup Rust
+        uses: actions-rust-lang/setup-rust-toolchain@9399c7bb15dca21d154c549629122736449bd0aa # v1.11.0
+        with:
+          toolchain: stable
+          cache: true
+
+      - name: Verify Launcher (Flutter)
+        working-directory: apps/launcher
+        run: |
+          flutter pub get
+          flutter analyze
+          flutter test
+
+      - name: Verify Game Bridge (Rust)
+        working-directory: apps/game-bridge/native-core
+        run: |
+          cargo check
+          cargo test

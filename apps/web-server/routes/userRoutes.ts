@@ -49,7 +49,6 @@ router.get('/staff', userController.getStaffUsers);
  *       404:
  *         description: Usuario no encontrado
  */
-router.get('/profile/:username', userController.getPublicProfile);
 
 /**
  * @swagger
@@ -69,7 +68,6 @@ router.get('/profile/:username', userController.getPublicProfile);
  *       404:
  *         description: Usuario no encontrado
  */
-router.get('/profile/:username/full', userController.getFullProfile);
 
 /**
  * @swagger
@@ -100,11 +98,16 @@ router.get('/profile/:username/full', userController.getFullProfile);
 import { validate } from '../middleware/validateResource.js';
 import { 
     updateUserMetadataSchema, 
-    updateUserRoleSchema 
+    updateUserRoleSchema,
+    voteKarmaSchema,
+    profileSchema
 } from '../schemas/userSchemas.js';
+
+router.get('/profile/:username', validate(profileSchema), userController.getPublicProfile);
+router.get('/profile/:username/full', validate(profileSchema), userController.getFullProfile);
 
 router.patch('/:id/role', authenticateToken, checkRole(ADMIN_ROLES), validate(updateUserRoleSchema), userController.updateUserRole);
 router.patch('/:id/metadata', authenticateToken, checkRole(ADMIN_ROLES), validate(updateUserMetadataSchema), userController.updateUserMetadata);
-router.post('/:id/karma', authenticateToken, userController.giveKarma);
+router.post('/:id/karma', authenticateToken, validate(voteKarmaSchema), userController.giveKarma);
 
 export default router;

@@ -4,7 +4,14 @@ import { ensureString } from '../utils/typeUtils.js';
 
 export const createSuggestion = async (req: Request, res: Response) => {
     try {
-        const result = await suggestionService.createSuggestion(req.body);
+        const user = req.user;
+        const suggestionData = {
+            ...req.body,
+            nickname: user?.username || req.body.nickname || 'Anónimo',
+            user_id: user?.id || null
+        };
+        
+        const result = await suggestionService.createSuggestion(suggestionData);
         res.status(201).json(result);
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);

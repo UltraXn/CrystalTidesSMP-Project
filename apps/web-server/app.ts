@@ -31,7 +31,7 @@ import locationRoutes from './routes/locationRoutes.js';
 import { initCleanupJob } from './services/cleanupService.js';
 
 import helmet from 'helmet';
-import { apiLimiter, sensitiveActionLimiter } from './middleware/rateLimitMiddleware.js';
+import { apiLimiter, sensitiveActionLimiter, authLimiter, uploadLimiter } from './middleware/rateLimitMiddleware.js';
 import authRoutes from './routes/authRoutes.js';
 
 const app = express();
@@ -83,13 +83,13 @@ app.use(hpp()); // Protect against HTTP Parameter Pollution attacks
 
 // Routes
 app.use('/api/system', systemRoutes);
-app.use('/api/admin', adminRoutes); // Admin Mod Uploads
+app.use('/api/admin', uploadLimiter, adminRoutes); // Admin Mod Uploads
 app.use('/api/webhooks', webhookRoutes);
 app.use('/api/news', newsRoutes);
 app.use('/api/minecraft', minecraftRoutes);
 app.use('/api/tickets', ticketRoutes);
 app.use('/api/users', userRoutes);
-app.use('/api/auth', authRoutes);
+app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/discord', sensitiveActionLimiter, discordRoutes);
 app.use('/api/logs', logRoutes);
 app.use('/api/donations', donationRoutes);

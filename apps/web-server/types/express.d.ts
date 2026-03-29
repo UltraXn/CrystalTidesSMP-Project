@@ -8,6 +8,7 @@ declare global {
                 username?: string;
                 role: string;
                 email?: string;
+                avatar_url?: string;
                 minecraft_uuid?: string;
                 app_metadata?: {
                     two_factor_enabled?: boolean;

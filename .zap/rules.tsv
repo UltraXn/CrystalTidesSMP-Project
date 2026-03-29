@@ -1,0 +1,4 @@
+# ZAP Rule Configuration
+# ID	OUTCOME	COMMENT
+10035	IGNORE	(Default HTTP Header Check)
+10038	IGNORE	(Content-Type Header Check)

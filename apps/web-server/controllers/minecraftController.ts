@@ -174,15 +174,11 @@ export const verifyLinkCode = async (req: Request, res: Response) => {
 
         res.json({ success: true, source, linked: true, playerName });
 
-    } catch (error) {
-        console.error('Link Verification Error:', error);
-        const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
-        // @ts-expect-error sqlMessage might exist
-        const sqlError = error?.sqlMessage || '';
+    } catch (error: any) {
+        const errorMessage = error?.message || 'Error desconocido';
         res.status(500).json({ 
             error: 'Error al procesar la vinculación.', 
-            details: errorMessage,
-            sqlError: sqlError
+            details: process.env.NODE_ENV === 'development' ? errorMessage : 'Internal Server Error'
         });
     }
 };

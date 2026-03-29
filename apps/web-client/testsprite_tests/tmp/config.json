@@ -13,7 +13,7 @@
     ],
     "additionalInstruction": "Execute authentication related tests. Focus on Login Success (TC003), Login Failure (TC004), and Session Expiry (TC021).",
     "envs": {
-      "API_KEY": "sk-user-h5PVebzvXGq0ror47sO414lzjZC87LejdzLt4U5dLWaDKiMfEPiiwX6kV4KCjoRMADExOmjIsLVAl2oDgflGmx2WO-W1Yt3ItWD1RkB-uiLsXtrKq30DPLi4T9zbGq8i-KY"
+      "API_KEY": "${TESTSPRITE_API_KEY}"
     }
   }
 }
