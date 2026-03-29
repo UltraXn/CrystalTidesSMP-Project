@@ -90,11 +90,11 @@ describe('react SKILL.md - content (PR change: dropped react-doctor, added react
 
 describe('react SKILL.md - valid YAML frontmatter structure', () => {
   it('should open with YAML front matter delimiter', () => {
-    expect(skillContent.trimStart()).toMatch(/^---\n/);
+    expect(skillContent.trimStart()).toMatch(/^---\r?\n/);
   });
 
   it('should close the frontmatter block before the markdown body', () => {
-    const lines = skillContent.split('\n');
+    const lines = skillContent.split('\n').map(l => l.trimEnd());
     const firstDelimiter = lines.indexOf('---');
     // There must be a closing --- after the opening one
     const secondDelimiter = lines.indexOf('---', firstDelimiter + 1);
