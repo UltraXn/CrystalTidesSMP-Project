@@ -5,6 +5,12 @@ on:
     branches:
       - main
       - develop
+    paths:
+      - 'apps/**'
+      - 'packages/**'
+      - 'package.json'
+      - 'turbo.json'
+      - '.github/workflows/deploy.yml'
   workflow_dispatch:
 
 env:
@@ -16,6 +22,10 @@ jobs:
   test:
     name: Run Automated Tests
     runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+      bot: ${{ steps.filter.outputs.bot }}
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
@@ -23,6 +33,24 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           submodules: recursive
+
+      - name: Path Filter
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            backend:
+              - 'apps/web-server/**'
+              - 'packages/**'
+              - 'package.json'
+            frontend:
+              - 'apps/web-client/**'
+              - 'packages/**'
+              - 'package.json'
+            bot:
+              - 'apps/discord-bot/**'
+              - 'packages/**'
+              - 'package.json'
 
       - name: Setup Node.js
         uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
@@ -39,6 +67,7 @@ jobs:
   deploy-backend:
     name: Deploy Backend
     needs: [test]
+    if: needs.test.outputs.backend == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -68,10 +97,18 @@ jobs:
       - name: Create .env file
         run: echo "${{ secrets.ENV_FILE }}" > apps/web-server/.env
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Build and Push Container
-        run: |-
-          docker build -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/backend:latest -f apps/web-server/Dockerfile .
-          docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/backend:latest
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/web-server/Dockerfile
+          push: true
+          tags: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/backend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@29668478f7e6e580a133d1c484ea20f86a2469a4 # v2.7.3
@@ -79,6 +116,7 @@ jobs:
           service: crystaltides-backend
           region: ${{ env.REGION }}
           image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/backend:latest
+          flags: '--max-revisions=10'
           env_vars: |
             NODE_ENV=production
             MC_SERVER_HOST=147.135.9.233
@@ -92,6 +130,7 @@ jobs:
   deploy-frontend:
     name: Deploy Frontend
     needs: [test]
+    if: needs.test.outputs.frontend == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -118,15 +157,22 @@ jobs:
       - name: Authorize Docker push
         run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Build and Push Container
-        run: |-
-          docker build \
-            --build-arg VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }} \
-            --build-arg VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }} \
-            --build-arg VITE_API_URL=https://api.crystaltidessmp.net/api \
-            -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/frontend:latest \
-            -f apps/web-client/Dockerfile .
-          docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/frontend:latest
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/web-client/Dockerfile
+          push: true
+          build-args: |
+            VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}
+            VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}
+            VITE_API_URL=https://api.crystaltidessmp.net/api
+          tags: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/frontend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@29668478f7e6e580a133d1c484ea20f86a2469a4 # v2.7.3
@@ -134,10 +180,12 @@ jobs:
           service: crystaltides-web
           region: ${{ env.REGION }}
           image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/frontend:latest
+          flags: '--max-revisions=10'
 
   deploy-bot:
     name: Deploy Discord Bot
     needs: [test]
+    if: needs.test.outputs.bot == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -167,10 +215,18 @@ jobs:
       - name: Create .env file
         run: echo "${{ secrets.ENV_FILE }}" > apps/discord-bot/.env
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Build and Push Container
-        run: |-
-          docker build -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/bot:latest -f apps/discord-bot/Dockerfile .
-          docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/bot:latest
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/discord-bot/Dockerfile
+          push: true
+          tags: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/bot:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@29668478f7e6e580a133d1c484ea20f86a2469a4 # v2.7.3
@@ -178,7 +234,7 @@ jobs:
           service: crystaltides-bot
           region: ${{ env.REGION }}
           image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/bot:latest
-          # Bot needs to be always on to receive events
-          flags: '--min-instances=1 --memory=512Mi --cpu=1'
+          # Bot needs to be always on to receive events. Optimized memory to 256Mi for cost reduction.
+          flags: '--min-instances=1 --memory=256Mi --cpu=0.5 --max-revisions=10'
           env_vars: |
             NODE_ENV=production
