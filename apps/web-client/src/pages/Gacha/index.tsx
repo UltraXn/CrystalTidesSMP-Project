@@ -18,24 +18,14 @@ import { GachaRewardsOverlay } from './GachaRewardsOverlay';
 import { GachaHistory } from './GachaHistory';
 import Gacha3DShowcase from '../../components/Gacha/Gacha3DShowcase';
 
-type Rarity = 'common' | 'rare' | 'epic' | 'legendary';
-
-interface RawGachaResult {
-    id: string;
-    reward_id: string;
-    reward_name?: string;
-    name?: string;
-    rarity: Rarity;
-    created_at: string;
-    color?: string;
-    image_url?: string;
-}
-
-interface RollResponse {
-    success: boolean;
-    data?: RawGachaResult;
-    code?: string;
-}
+import { 
+    GachaReward, 
+    RawGachaResult, 
+    MappedGachaResult, 
+    GachaHistoryEntry, 
+    GachaTier, 
+    RollResponse 
+} from './types';
 
 const RARITY_COLORS: Record<string, string> = {
     common: '#b0c3d9',
@@ -128,7 +118,7 @@ const getItemImg = (name: string) => {
 
 
 
-const GACHA_TIERS = [
+const GACHA_TIERS: GachaTier[] = [
     { 
         id: 'bronze', 
         name: 'BRONZE', 
@@ -280,7 +270,7 @@ export const Gacha = () => {
     const userIsAdmin = useMemo(() => isAdmin(user), [user]);
     const userRole = useMemo(() => getUserRole(user), [user]);
 
-    const [selectedTier, setSelectedTier] = useState(GACHA_TIERS[0]);
+    const [selectedTier, setSelectedTier] = useState<GachaTier>(GACHA_TIERS[0] as GachaTier);
     const [killuBalance, setKilluBalance] = useState(0);
     const [spinQuantity, setSpinQuantity] = useState(1);
     const [isOpening, setIsOpening] = useState(false);
@@ -293,11 +283,11 @@ export const Gacha = () => {
     const [testForceResult, setTestForceResult] = useState<'random' | 'win' | 'loss'>('random');
     const [isRealConsumption, setIsRealConsumption] = useState(false);
     const [showBulkRewards, setShowBulkRewards] = useState(false);
-    const [bulkRewards, setBulkRewards] = useState<any[] | null>(null);
+    const [bulkRewards, setBulkRewards] = useState<MappedGachaResult[] | null>(null);
     
     // History State
     const [showHistory, setShowHistory] = useState(false);
-    const [history, setHistory] = useState<any[]>([]);
+    const [history, setHistory] = useState<GachaHistoryEntry[]>([]);
     const [historyLoading, setHistoryLoading] = useState(false);
 
     const containerRef = useRef<HTMLDivElement>(null);
@@ -323,7 +313,7 @@ export const Gacha = () => {
 
     useEffect(() => { if (userIsAdmin) fetchLinkStatus(); }, [fetchLinkStatus, userIsAdmin]);
 
-    const [reelItemsSet, setReelItemsSet] = useState<any[][]>([[], [], []]);
+    const [reelItemsSet, setReelItemsSet] = useState<(GachaReward | MappedGachaResult)[][]>([[], [], []]);
 
     const generateReels = useCallback(() => {
         if (!selectedTier) return [[], [], []];
@@ -365,20 +355,37 @@ export const Gacha = () => {
             const rollRes: RollResponse = await res.json();
             if (!rollRes.success) throw new Error(rollRes.code);
 
-            const results = (rollRes.data as any).results || [rollRes.data];
+            const apiData = rollRes.data;
+            const results: RawGachaResult[] = apiData && 'results' in apiData ? apiData.results : (apiData ? [apiData as RawGachaResult] : []);
             
             // Map results to the local reward objects to get image_url, color, etc.
-            const mappedResults = results.map((res: any) => {
-                const found = selectedTier.rewards.find((r: any) => 
+            const mappedResults: MappedGachaResult[] = results.map((res) => {
+                const found = selectedTier.rewards.find((r) => 
                     (res.reward_id && r.id === res.reward_id) || 
                     (res.id && r.id === res.id) || 
                     (res.name && r.name === res.name) || 
                     (res.name && r.name.includes(res.name))
                 );
-                return found ? { ...res, ...found } : res;
+                
+                if (found) {
+                    return { 
+                        ...res, 
+                        ...found, 
+                        name: res.reward_name || res.name || found.name,
+                        image_url: found.image_url || res.image_url || '',
+                        color: found.color || res.color || '#fff'
+                    } as MappedGachaResult;
+                }
+                
+                return { 
+                    ...res, 
+                    name: res.reward_name || res.name || 'Unknown Reward',
+                    image_url: res.image_url || '', 
+                    color: res.color || '#fff' 
+                } as MappedGachaResult;
             });
 
-            const animateSpin = (item: any, isBulk: boolean) => {
+            const animateSpin = (item: GachaReward | MappedGachaResult, isBulk: boolean) => {
                 return new Promise<void>((resolve) => {
                     const runAnimation = async () => {
                         // Update reels for this specific roll
@@ -522,7 +529,7 @@ export const Gacha = () => {
                     <div className="gacha-game-layout">
                         <GachaMachine 
                             reelItemsSet={reelItemsSet} 
-                            reelRefs={reelRefs as any}
+                            reelRefs={reelRefs as unknown as React.RefObject<HTMLDivElement>[]}
                             isOpening={isOpening} 
                             RARITY_ICONS={RARITY_ICONS}
                             selectedTier={selectedTier}

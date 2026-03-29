@@ -1,5 +1,6 @@
 import { Star, AlertTriangle, CheckCircle, RefreshCcw, XCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { GachaTier } from './types';
 
 interface GachaHeaderProps {
     canAccessDev: boolean;
@@ -11,9 +12,9 @@ interface GachaHeaderProps {
     setIsRealConsumption: (val: boolean) => void;
     setKilluBalance: React.Dispatch<React.SetStateAction<number>>;
     devBarRef: React.RefObject<HTMLDivElement | null>;
-    GACHA_TIERS: any[];
-    selectedTier: any;
-    setSelectedTier: (tier: any) => void;
+    GACHA_TIERS: GachaTier[];
+    selectedTier: GachaTier;
+    setSelectedTier: (tier: GachaTier) => void;
     isOpening: boolean;
 }
 

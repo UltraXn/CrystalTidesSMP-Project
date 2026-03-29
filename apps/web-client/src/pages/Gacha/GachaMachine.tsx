@@ -1,13 +1,14 @@
 import React from 'react';
 import { Star } from 'lucide-react';
+import { GachaReward, MappedGachaResult, GachaTier } from './types';
 
 
 interface GachaMachineProps {
-    reelItemsSet: any[][];
+    reelItemsSet: (GachaReward | MappedGachaResult)[][];
     reelRefs: React.RefObject<HTMLDivElement | null>[];
     isOpening: boolean;
-    RARITY_ICONS: Record<string, any>;
-    selectedTier: any;
+    RARITY_ICONS: Record<string, React.ElementType>;
+    selectedTier: GachaTier;
 }
 
 export const GachaMachine: React.FC<GachaMachineProps> = ({
@@ -40,7 +41,7 @@ export const GachaMachine: React.FC<GachaMachineProps> = ({
                                             <div key={i} className={`slot-item rarity-${item.rarity}`}>
                                                 <div className="item-icon-wrapper" style={{ 
                                                     color: item.color,
-                                                    ['--item-glow' as any]: `${item.color}80` // 50% opacity color for the glow
+                                                    '--item-glow': `${item.color}80` // 50% opacity color for the glow
                                                 } as React.CSSProperties}>
                                                     {(() => {
                                                         const xpImg = '/images/xp_bottle.webp';

@@ -1,12 +1,12 @@
 import React from 'react';
 import { Star, Check, Trophy, AlertCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-
+import { GachaReward, MappedGachaResult, GachaTier } from './types';
 
 interface GachaRewardsOverlayProps {
     showBulkRewards: boolean;
-    bulkRewards: any[] | null;
-    selectedTier: any;
+    bulkRewards: (GachaReward | MappedGachaResult)[] | null;
+    selectedTier: GachaTier;
     setShowBulkRewards: (val: boolean) => void;
 }
 
@@ -138,7 +138,7 @@ export const GachaRewardsOverlay: React.FC<GachaRewardsOverlayProps> = ({
                                                         objectFit: 'contain',
                                                         imageRendering: 'pixelated',
                                                         filter: isKillucoin ? `drop-shadow(0 0 10px ${r.color || '#fff'})` : `drop-shadow(0 0 8px ${r.color}80)`,
-                                                        ['--item-glow' as any]: `${r.color}80`
+                                                        '--item-glow': `${r.color}80`
                                                     } as React.CSSProperties} 
                                                 />
                                             );

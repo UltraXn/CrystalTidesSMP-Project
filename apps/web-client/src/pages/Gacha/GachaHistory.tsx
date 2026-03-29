@@ -1,14 +1,15 @@
 import React from 'react';
 import { X, Clock, Star, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { GachaHistoryEntry } from './types';
 
 interface GachaHistoryProps {
     isOpen: boolean;
     onClose: () => void;
     onOpen: () => void;
-    history: any[];
+    history: GachaHistoryEntry[];
     loading: boolean;
-    RARITY_ICONS: Record<string, any>;
+    RARITY_ICONS: Record<string, React.ElementType>;
     RARITY_COLORS: Record<string, string>;
     tierColor: string;
 }

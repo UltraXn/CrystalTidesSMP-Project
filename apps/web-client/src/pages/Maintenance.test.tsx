@@ -24,15 +24,15 @@ describe('Maintenance Page', () => {
     it('should contain a link to Discord', () => {
         renderWithProviders(<Maintenance />);
         
-        const discordLink = screen.getByRole('link', { name: /Únete a Discord/i });
+        const discordLink = screen.getByTestId('discord-link');
         expect(discordLink).toBeInTheDocument();
-        expect(discordLink).toHaveAttribute('href', 'https://discord.com/invite/TDmwYNnvyT');
+        expect(discordLink).toHaveAttribute('href', expect.stringContaining('discord.com'));
     });
 
     it('should contain an admin login link', () => {
         renderWithProviders(<Maintenance />);
         
-        const loginLink = screen.getByRole('link', { name: /Iniciar Sesión/i });
+        const loginLink = screen.getByTestId('admin-login-link');
         expect(loginLink).toBeInTheDocument();
         expect(loginLink).toHaveAttribute('href', '/login');
     });

@@ -9,7 +9,7 @@ import { sendDiscordLog } from '../../services/discordService'
 import { Search } from 'lucide-react'
 import { 
     useAdminSettings, 
-    useSearchUsers, 
+    useUsers,
     useUpdateUserRole, 
     useUpdateUserMetadata 
 } from '../../hooks/useAdminData'
@@ -20,43 +20,34 @@ import UserAchievementsModal from './Users/UserAchievementsModal'
 import UserRoleModal from './Users/UserRoleModal'
 import { UserDefinition, MedalDefinition, AchievementDefinition } from './Users/types'
 
-interface UsersManagerProps {
-    mockUsers?: UserDefinition[];
-    mockMedals?: MedalDefinition[];
-    mockAchievements?: AchievementDefinition[];
-}
+// --- Users Management ---
 
-export default function UsersManager({ mockUsers }: UsersManagerProps = {}) {
+export default function UsersManager() {
     const { t } = useTranslation()
-    const [users, setUsers] = useState<UserDefinition[]>(mockUsers || [])
     const [searchQuery, setSearchQuery] = useState('')
-    const [hasSearched, setHasSearched] = useState(!!mockUsers) // Assume searched if mocks provided
+    // Active search query
+    const [activeSearch, setActiveSearch] = useState('')
     
     const [editingUser, setEditingUser] = useState<UserDefinition | null>(null)
     const [editingType, setEditingType] = useState<'medals' | 'achievements' | null>(null)
     const [roleChangeModal, setRoleChangeModal] = useState<{ userId: string, newRole: string } | null>(null)
-
+ 
     // TanStack Query Hooks
     const { data: adminSettings } = useAdminSettings();
-    const searchMutation = useSearchUsers();
+    const { data: fetchedUsers, isPending: isLoadingUsers } = useUsers(activeSearch);
     const updateRoleMutation = useUpdateUserRole();
     const updateMetadataMutation = useUpdateUserMetadata();
-
+ 
     const { user } = useAuth() as { user: UserDefinition | null } 
-
+ 
     const availableMedals = adminSettings?.medals || [];
     const availableAchievements = adminSettings?.achievements || [];
-
-    const handleSearch = async (e: React.FormEvent) => {
+ 
+    const handleSearch = (e: React.FormEvent) => {
         e.preventDefault()
-        if (!searchQuery.trim()) return
-
-        setHasSearched(true)
-        searchMutation.mutate(searchQuery, {
-            onSuccess: (data) => setUsers(data)
-        });
+        setActiveSearch(searchQuery)
     }
-
+ 
     const handleRoleChange = (userId: string, newRole: string) => {
         setRoleChangeModal({ userId, newRole });
     }
@@ -68,7 +59,7 @@ export default function UsersManager({ mockUsers }: UsersManagerProps = {}) {
         updateRoleMutation.mutate({ userId, role: newRole }, {
             onSuccess: async () => {
                 // Determine target user name for log
-                const targetUser = users.find(u => u.id === userId);
+                const targetUser = (fetchedUsers || []).find(u => u.id === userId);
                 const targetName = targetUser?.username || targetUser?.email || userId;
                 const adminName = user?.username || user?.email || 'Unknown Admin';
 
@@ -79,7 +70,6 @@ export default function UsersManager({ mockUsers }: UsersManagerProps = {}) {
                     'action'
                 );
 
-                setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u))
                 if (user && user.id === userId) {
                     await supabase.auth.refreshSession();
                     window.location.reload();
@@ -105,11 +95,6 @@ export default function UsersManager({ mockUsers }: UsersManagerProps = {}) {
             values: values || [] 
         }, {
             onSuccess: () => {
-                const payload = editingType === 'medals' 
-                    ? { medals: editingUser.medals } 
-                    : { achievements: editingUser.achievements };
-
-                setUsers(users.map(u => u.id === editingUser.id ? { ...u, ...payload } : u));
                 setEditingUser(null);
                 setEditingType(null);
             },
@@ -167,15 +152,15 @@ export default function UsersManager({ mockUsers }: UsersManagerProps = {}) {
                     />
                     <Search style={{ position: 'absolute', left: '1.2rem', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.3)' }} />
                 </div>
-                <button type="submit" disabled={searchMutation.isPending} className="modal-btn-primary" style={{ flex: '1 1 auto', minWidth: '140px', height: '52px', borderRadius: '16px', padding: '0 2rem' }}>
-                    {searchMutation.isPending ? t('common.searching', 'Buscando...') : t('admin.users.search_btn')}
+                <button type="submit" disabled={isLoadingUsers} className="modal-btn-primary" style={{ flex: '1 1 auto', minWidth: '140px', height: '52px', borderRadius: '16px', padding: '0 2rem' }}>
+                    {isLoadingUsers ? t('common.searching', 'Buscando...') : t('admin.users.search_btn')}
                 </button>
             </form>
 
             <UsersTable 
-                users={users} 
-                loading={searchMutation.isPending} 
-                hasSearched={hasSearched} 
+                users={fetchedUsers || []} 
+                loading={isLoadingUsers} 
+                hasSearched={true} 
                 canManageRoles={canManageRoles} 
                 onEditMedals={(u) => { setEditingUser(u); setEditingType('medals'); }}
                 onEditAchievements={(u) => { 
@@ -212,7 +197,7 @@ export default function UsersManager({ mockUsers }: UsersManagerProps = {}) {
             {/* Role Change Confirmation Modal */}
             {roleChangeModal && roleChangeModal.userId && (
                 <UserRoleModal 
-                    user={users.find(u => u.id === roleChangeModal.userId)!} 
+                    user={(fetchedUsers || []).find(u => u.id === roleChangeModal.userId)!} 
                     newRole={roleChangeModal.newRole} 
                     onClose={() => setRoleChangeModal(null)} 
                     onConfirm={confirmRoleChange} 

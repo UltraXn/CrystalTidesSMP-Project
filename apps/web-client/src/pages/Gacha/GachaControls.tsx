@@ -1,11 +1,11 @@
-import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { GachaTier } from './types';
 
 interface GachaControlsProps {
     spinQuantity: number;
     setSpinQuantity: (val: number) => void;
     isOpening: boolean;
-    selectedTier: any;
+    selectedTier: GachaTier;
     killuBalance: number;
     rollGacha: () => void;
     formatCost: (num: number) => string;

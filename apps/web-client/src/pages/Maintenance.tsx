@@ -49,6 +49,7 @@ export default function Maintenance() {
  
                 <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
                     <a href="https://discord.com/invite/TDmwYNnvyT" target="_blank" rel="noopener noreferrer" 
+                       data-testid="discord-link"
                        style={{ 
                            display: 'flex', 
                            alignItems: 'center', 
@@ -66,7 +67,7 @@ export default function Maintenance() {
                 </div>
                 
                 <div style={{ marginTop: '3rem', fontSize: '0.9rem', color: '#555' }}>
-                    ¿Eres administrador? <Link to="/login" style={{ color: 'var(--accent)' }}>Iniciar Sesión</Link>
+                    ¿Eres administrador? <Link to="/login" data-testid="admin-login-link" style={{ color: 'var(--accent)' }}>Iniciar Sesión</Link>
                 </div>
             </motion.div>
         </div>

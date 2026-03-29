@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../services/supabaseClient';
 import { getAuthHeaders } from '../services/adminAuth';
+import { UserDefinition } from '../components/Admin/Users/types';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
@@ -107,6 +108,25 @@ export const useUpdateSiteSetting = () => {
 };
 
 // --- Users Management ---
+
+export const useUsers = (search = '') => {
+    return useQuery<UserDefinition[]>({
+        queryKey: ['admin', 'users', search],
+        queryFn: async () => {
+            const session = (await supabase.auth.getSession()).data.session;
+            const headers = getAuthHeaders(session?.access_token || null);
+
+            const res = await fetch(`${API_URL}/users?search=${encodeURIComponent(search)}`, { headers });
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.error || 'User search failed');
+            }
+            const response = await res.json();
+            return Array.isArray(response) ? response : (response.data || []);
+        },
+        staleTime: 1000 * 60 * 5, // 5 minutes
+    });
+};
 
 export const useSearchUsers = () => {
     return useMutation({

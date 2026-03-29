@@ -6,6 +6,7 @@ export interface UserDefinition {
     medals?: number[];
     achievements?: (string | number)[];
     created_at: string;
+    avatar_url?: string;
     user_metadata?: { role?: string };
 }
 

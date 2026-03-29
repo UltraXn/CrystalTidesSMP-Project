@@ -38,9 +38,22 @@ export default function UsersTable({ users, loading, hasSearched, canManageRoles
                                         width: '42px', height: '42px', minWidth: '42px', borderRadius: '12px', 
                                         background: 'linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05))',
                                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--accent)'
+                                        fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--accent)',
+                                        overflow: 'hidden'
                                     }}>
-                                        {u.username ? u.username[0].toUpperCase() : u.email[0].toUpperCase()}
+                                        {u.avatar_url ? (
+                                            <img 
+                                                src={u.avatar_url} 
+                                                alt={u.username} 
+                                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                                onError={(e) => {
+                                                    (e.target as HTMLImageElement).style.display = 'none';
+                                                    (e.target as HTMLImageElement).parentElement!.innerText = u.username ? u.username[0].toUpperCase() : u.email[0].toUpperCase();
+                                                }}
+                                            />
+                                        ) : (
+                                            u.username ? u.username[0].toUpperCase() : u.email[0].toUpperCase()
+                                        )}
                                     </div>
                                     <div style={{ flex: '1', minWidth: '0' }}>
                                         <div style={{fontWeight:'800', color:'#fff', fontSize: '1rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>{u.username || u.email.split('@')[0]}</div>
