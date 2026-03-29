@@ -98,7 +98,7 @@ jobs:
         run: npm ci
 
       - name: Build Web Client (for Docker)
-        run: npx turbo run build --filter=@crystaltides/web-client
+        run: npx turbo run build --filter=@crystaltides/client
 
       - name: Start Services (Docker Compose)
         run: docker compose up -d frontend backend

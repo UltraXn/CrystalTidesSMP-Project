@@ -3,6 +3,7 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
+import { fixupPluginRules } from '@eslint/compat';
 
 /** @type {import('eslint').Linter.Config[]} */
 export default [
@@ -11,7 +12,7 @@ export default [
   {
       files: ['**/*.{js,jsx,ts,tsx}'],
       plugins: {
-        'react-hooks': reactHooks,
+        'react-hooks': fixupPluginRules(reactHooks),
         'react-refresh': reactRefresh,
       },
       languageOptions: {

@@ -32,10 +32,10 @@ jobs:
         run: npm ci
 
       - name: Lint (Web)
-        run: npx turbo run lint --filter=@crystaltides/web-client --filter=@crystaltides/web-server
+        run: npx turbo run lint --filter=@crystaltides/client --filter=@crystaltides/server
 
       - name: Test (Web)
-        run: npx turbo run test --filter=@crystaltides/web-client --filter=@crystaltides/web-server
+        run: npx turbo run test --filter=@crystaltides/client --filter=@crystaltides/server
 
       - name: Build (Web)
-        run: npx turbo run build --filter=@crystaltides/web-client --filter=@crystaltides/web-server
+        run: npx turbo run build --filter=@crystaltides/client --filter=@crystaltides/server

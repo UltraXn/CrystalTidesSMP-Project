@@ -30,4 +30,4 @@ jobs:
         run: npm ci
 
       - name: Lint & Typecheck
-        run: npx turbo run lint --filter=@crystaltides/discord-bot
+        run: npx turbo run lint --filter=discord-bot
