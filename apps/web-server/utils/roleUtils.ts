@@ -10,7 +10,8 @@ export const STAFF_ROLES = [...ADMIN_ROLES, 'staff', 'moderator', 'mod', 'helper
  */
 export const checkRole = (allowedRoles: string[]) => {
     return (req: Request, res: Response, next: NextFunction) => {
-        if (!req.user || !allowedRoles.includes(req.user.role.toLowerCase())) {
+        const userRole = req.user?.role?.toLowerCase();
+        if (!userRole || !allowedRoles.includes(userRole)) {
              return res.status(403).json({ error: 'Insufficent permissions' });
         }
         next();

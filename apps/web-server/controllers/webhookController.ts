@@ -62,6 +62,20 @@ export const handleKofiWebhook = async (req: Request, res: Response) => {
         }
 
         console.log(`Donation saved: ${payload.amount} ${payload.currency} from ${payload.from_name}`);
+
+        // 4. Notify Discord (Optional but highly recommended)
+        try {
+            const { sendDonationAlert } = await import('../services/discordService.js');
+            await sendDonationAlert({
+                from_name: payload.from_name || 'Anónimo',
+                amount: payload.amount,
+                currency: payload.currency,
+                message: payload.message
+            });
+        } catch (discordErr) {
+            console.error('Failed to send Discord alert, but donation was saved:', discordErr);
+        }
+
         res.status(200).send('Donation recorded');
 
     } catch (err) {

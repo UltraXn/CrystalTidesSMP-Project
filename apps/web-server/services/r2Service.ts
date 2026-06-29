@@ -40,8 +40,8 @@ export const uploadFile = async (file: Express.Multer.File): Promise<string> => 
 
     try {
         await s3Client.send(command);
-        // Retornar la URL pública
-        return `${PUBLIC_URL_BASE}/${key}`; // Ajustar si R2_PUBLIC_URL termina en /
+        const cleanBaseUrl = PUBLIC_URL_BASE.endsWith('/') ? PUBLIC_URL_BASE.slice(0, -1) : PUBLIC_URL_BASE;
+        return `${cleanBaseUrl}/${key}`;
     } catch (error) {
         console.error("R2 Upload Error:", error);
         throw new Error("Failed to upload file to R2.");

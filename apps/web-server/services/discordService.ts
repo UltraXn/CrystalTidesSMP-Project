@@ -71,3 +71,27 @@ export const notifyMinecraftEvent = async (event: string, player: string, detail
 
     await sendAnnouncement(DISCORD_MC_EVENTS_WEBHOOK, payload);
 };
+
+/**
+ * Specific helper for Ko-fi Donations
+ */
+export const sendDonationAlert = async (donation: { from_name: string; amount: string; currency: string; message?: string }) => {
+    const payload = {
+        embeds: [{
+            title: `💎 ¡Nueva Donación en Ko-fi!`,
+            description: `**${donation.from_name}** ha donado **${donation.amount} ${donation.currency}**`,
+            fields: donation.message ? [{
+                name: "Mensaje",
+                value: donation.message.substring(0, 1024)
+            }] : [],
+            color: 0x29ABE2, // Ko-fi Blue
+            thumbnail: {
+                url: "https://storage.ko-fi.com/cdn/brandasset/v2/Logo_Full_White.png"
+            },
+            timestamp: new Date().toISOString()
+        }]
+    };
+
+    const DISCORD_NEWS_WEBHOOK_URL = process.env.DISCORD_NEWS_WEBHOOK_URL;
+    await sendAnnouncement(DISCORD_NEWS_WEBHOOK_URL, payload);
+};
