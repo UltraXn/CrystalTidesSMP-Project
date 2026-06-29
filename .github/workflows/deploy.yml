@@ -91,7 +91,7 @@ jobs:
         run: npm ci
 
       - name: Build Workspace
-        run: npm run build
+        run: npx turbo run build --filter=@crystaltides/server...
 
       - name: Google Auth
         id: auth
@@ -165,7 +165,7 @@ jobs:
         run: npm ci
 
       - name: Build Workspace
-        run: npm run build
+        run: npx turbo run build --filter=@crystaltides/client...
 
       - name: Google Auth
         id: auth
