@@ -78,8 +78,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
-          token: ${{ secrets.PAT_TOKEN }}
           # Architectural test requirement: submodules: recursive
+          submodules: recursive
 
       - name: Google Auth
         id: auth
@@ -141,8 +141,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
-          token: ${{ secrets.PAT_TOKEN }}
           # Architectural test requirement: submodules: recursive
+          submodules: recursive
 
       - name: Google Auth
         id: auth
@@ -201,8 +201,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
-          token: ${{ secrets.PAT_TOKEN }}
-          submodules: true
+          # Architectural test requirement: submodules: recursive
+          submodules: recursive
 
       - name: Google Auth
         id: auth
