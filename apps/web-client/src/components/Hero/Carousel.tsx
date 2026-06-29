@@ -42,7 +42,7 @@ const HeroBackgroundCarousel = ({ slides = [] }: HeroBackgroundCarouselProps) =>
                         <img
                             src={slide.image}
                             alt={`Slide ${index + 1}`}
-                            className="absolute inset-0 w-full h-full object-cover"
+                            className="absolute inset-0 w-full h-full object-cover animate-slow-zoom"
                             fetchPriority={index === 0 ? "high" : "auto"}
                             loading={index === 0 ? "eager" : "lazy"}
                         />
