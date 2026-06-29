@@ -166,6 +166,10 @@ jobs:
 
       - name: Build Workspace
         run: npx turbo run build --filter=@crystaltides/client...
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_API_URL: https://api.crystaltidessmp.net/api
 
       - name: Google Auth
         id: auth
