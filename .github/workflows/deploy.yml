@@ -81,6 +81,18 @@ jobs:
           # Architectural test requirement: submodules: recursive
           submodules: recursive
 
+      - name: Setup Node.js
+        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Workspace
+        run: npm run build
+
       - name: Google Auth
         id: auth
         uses: google-github-actions/auth@v2
@@ -143,6 +155,18 @@ jobs:
         with:
           # Architectural test requirement: submodules: recursive
           submodules: recursive
+
+      - name: Setup Node.js
+        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Workspace
+        run: npm run build
 
       - name: Google Auth
         id: auth
