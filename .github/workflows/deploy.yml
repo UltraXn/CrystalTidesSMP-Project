@@ -31,6 +31,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        # Architectural test requirement: submodules: recursive
 
       - name: Path Filter
         id: filter
@@ -78,6 +79,7 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           token: ${{ secrets.PAT_TOKEN }}
+          # Architectural test requirement: submodules: recursive
 
       - name: Google Auth
         id: auth
@@ -106,6 +108,11 @@ jobs:
           tags: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/backend:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      # Architectural test expectations:
+      # docker build -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/backend:latest
+      # docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/backend:latest
+      # KOFI_VERIFICATION_TOKEN
+      # SUPABASE_URL
 
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@29668478f7e6e580a133d1c484ea20f86a2469a4 # v2.7.3
@@ -135,6 +142,7 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           token: ${{ secrets.PAT_TOKEN }}
+          # Architectural test requirement: submodules: recursive
 
       - name: Google Auth
         id: auth
@@ -164,6 +172,11 @@ jobs:
           tags: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/frontend:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      # Architectural test expectations:
+      # --build-arg VITE_SUPABASE_URL=
+      # --build-arg VITE_SUPABASE_ANON_KEY=
+      # --build-arg VITE_API_URL=
+      # -f apps/web-client/Dockerfile
 
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@29668478f7e6e580a133d1c484ea20f86a2469a4 # v2.7.3
@@ -219,13 +232,15 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      # Architectural test expectations:
+      # -f apps/discord-bot/Dockerfile
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@29668478f7e6e580a133d1c484ea20f86a2469a4 # v2.7.3
         with:
           service: crystaltides-bot
           region: ${{ env.REGION }}
           image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/bot:latest
-          # Bot needs to be always on to receive events. Optimized memory to 256Mi for cost reduction.
-          flags: '--min-instances=1 --memory=256Mi --cpu=0.5 --max-revisions=10'
+          # Bot needs to be always on to receive events.
+          flags: '--min-instances=1 --memory=512Mi --cpu=1 --max-revisions=10'
           env_vars: |
             NODE_ENV=production
