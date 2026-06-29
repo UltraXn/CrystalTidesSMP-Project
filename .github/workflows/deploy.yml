@@ -132,7 +132,6 @@ jobs:
           service: crystaltides-backend
           region: ${{ env.REGION }}
           image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/backend:latest
-          flags: '--max-revisions=10'
           env_vars: |
             NODE_ENV=production
             VAULT_ADDR=https://crystaltides-vault-z26d26mtfa-uc.a.run.app
@@ -208,7 +207,6 @@ jobs:
           service: crystaltides-web
           region: ${{ env.REGION }}
           image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/frontend:latest
-          flags: '--max-revisions=10'
 
   deploy-bot:
     name: Deploy Discord Bot
@@ -265,6 +263,6 @@ jobs:
           region: ${{ env.REGION }}
           image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/bot:latest
           # Bot needs to be always on to receive events.
-          flags: '--min-instances=1 --memory=512Mi --cpu=1 --max-revisions=10'
+          flags: '--min-instances=1 --memory=512Mi --cpu=1'
           env_vars: |
             NODE_ENV=production
