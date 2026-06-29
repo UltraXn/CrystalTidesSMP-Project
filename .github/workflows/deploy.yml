@@ -31,8 +31,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          submodules: recursive
 
       - name: Path Filter
         id: filter
@@ -80,7 +78,6 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           token: ${{ secrets.PAT_TOKEN }}
-          submodules: recursive
 
       - name: Google Auth
         id: auth
@@ -138,7 +135,6 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           token: ${{ secrets.PAT_TOKEN }}
-          submodules: recursive
 
       - name: Google Auth
         id: auth
@@ -193,7 +189,7 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           token: ${{ secrets.PAT_TOKEN }}
-          submodules: recursive
+          submodules: true
 
       - name: Google Auth
         id: auth
