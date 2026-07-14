@@ -61,3 +61,30 @@ target/
 bun.lock
 windows/
 ~/
+
+# Graphify
+graphify-out/
+
+# Agent Skills
+.agent/
+.agents/
+skills-lock.json
+
+# Agent Loops
+LOOP.md
+STATE.md
+loop*.md
+
+# IDE/Agent Configs
+.claude/
+
+# Test Artifacts
+test_results*.txt
+
+# Temporary Directories
+tmp/
+
+# Secrets
+vault-env.yaml
+.opencode/
+
