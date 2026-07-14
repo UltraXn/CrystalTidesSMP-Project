@@ -13,7 +13,7 @@
 - [x] **Java Plugin Safety**: Solucionado el bloqueo del Main Thread en `reloadProfile` (Async wrapper).
 - [x] **Auth Vulnerability**: Aplicado `authLimiter` a rutas de login/register.
 - [x] **Predictable Secrets**: Reforzado `ADMIN_JWT_SECRET` con generación aleatoria de respaldo.
-- [ ] **Secrets Exposure**: Limpieza de archivos `.env` y `.json` en el historial de Git (Pendiente ejecución de `git-filter-repo`).
+- [x] **Secrets Exposure**: Auditoría de historial de Git (limpio de secretos hardcodeados), exclusión de `.opencode/` (con tokens de desarrollo local) y desasociación de `testsprite_tests` del índice.
 - [x] **Validation Debt**: Implementar validación de esquemas Zod en controladores de `web-server` (✅ Completado 100% - Enero 10, 2026).
 - [x] **TanStack Query Migration**: Migración completa del Admin Panel (✅ Completado 100% - Enero 10, 2026).
 - [x] **Documentation Structure**: Reorganización de `docs/` con estructura modular (✅ Completado - Enero 10, 2026).
