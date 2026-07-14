@@ -31,3 +31,5 @@
 ---
 
 _Este archivo se mantiene sincronizado según la Regla 6 del proyecto._
+# (Autodocumentación en Obsidian activa a través de Git hook)
+
