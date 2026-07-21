@@ -57,11 +57,11 @@ Integra un motor de renderizado WebGL (vía skinview3d) para previsualizar la sk
 
 El launcher se distribuye como una suite de 3 aplicaciones independientes:
 
-| Módulo | Carpeta | Binario |
-|--------|---------|---------|
-| **CrystalTides Launcher** | `apps/launcher/client/` | `crystaltides-launcher.exe` |
-| **CTLauncher Installer** | `apps/launcher/installer/` | `ctlauncher-installer.exe` |
-| **CTLauncher Uninstaller** | `apps/launcher/uninstaller/` | `ctlauncher-uninstaller.exe` |
+| Módulo | Carpeta | Windows | Linux | macOS |
+|--------|---------|---------|-------|-------|
+| **CrystalTides Launcher** | `client/` | `.exe` / `.msi` | `.AppImage` / `.deb` | `.dmg` / `.app` |
+| **CTLauncher Installer** | `installer/` | `.exe` / `.msi` | `.AppImage` / `.deb` | `.dmg` / `.app` |
+| **CTLauncher Uninstaller** | `uninstaller/` | `.exe` / `.msi` | `.AppImage` / `.deb` | `.dmg` / `.app` |
 
 ## 🛠️ Desarrollo
 
@@ -83,13 +83,25 @@ Cada módulo contiene:
 
 ### Comandos
 
+#### 1. Launcher Principal (`client`)
 ```bash
-# Desarrollo
 cd apps/launcher/client
-npx tauri dev
+npx tauri dev    # Modo desarrollo
+npx tauri build  # Compilación de producción
+```
 
-# Build de producción
-npx tauri build
+#### 2. Instalador (`installer`)
+```bash
+cd apps/launcher/installer
+npx tauri dev    # Modo desarrollo
+npx tauri build  # Compilación de producción
+```
+
+#### 3. Desinstalador (`uninstaller`)
+```bash
+cd apps/launcher/uninstaller
+npx tauri dev    # Modo desarrollo
+npx tauri build  # Compilación de producción
 ```
 
 ---
