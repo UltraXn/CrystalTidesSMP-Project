@@ -12,19 +12,22 @@ on:
       - apps/game-bridge/**
       - apps/launcher/**
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   native-qa:
-    name: Verify (Rust & Flutter)
-    runs-on: windows-latest # Required for Flutter Windows and some Rust builds
+    name: Verify (Rust & Tauri)
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-      - name: Setup Flutter
-        uses: subosito/flutter-action@445199e46a9cb9907f1fbc3f6cf8a7de7982ca8f # v2.16.0
+      - name: Setup Node.js
+        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
         with:
-          channel: stable
-          flutter-version: 3.27.1
+          node-version: 22
+          cache: npm
 
       - name: Setup Rust
         uses: actions-rust-lang/setup-rust-toolchain@9399c7bb15dca21d154c549629122736449bd0aa # v1.11.0
@@ -32,15 +35,27 @@ jobs:
           toolchain: stable
           cache: true
 
-      - name: Verify Launcher (Flutter)
-        working-directory: apps/launcher
+      - name: Install Linux dependencies
         run: |
-          flutter pub get
-          flutter analyze
-          flutter test
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
 
-      - name: Verify Game Bridge (Rust)
-        working-directory: apps/game-bridge/native-core
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Verify Rust workspace
         run: |
-          cargo check
-          cargo test
+          cargo check --workspace
+          cargo test --workspace
+
+      - name: TypeScript check — Launcher Client
+        working-directory: apps/launcher/client
+        run: npx tsc --noEmit
+
+      - name: TypeScript check — Launcher Installer
+        working-directory: apps/launcher/installer
+        run: npx tsc --noEmit
+
+      - name: TypeScript check — Launcher Uninstaller
+        working-directory: apps/launcher/uninstaller
+        run: npx tsc --noEmit

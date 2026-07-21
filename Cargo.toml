@@ -2,7 +2,7 @@
 resolver = "2"
 members = [
   "apps/game-bridge/native-core",
-  "apps/launcher/uninstaller_bootstrapper",
-  "apps/launcher/bootstrapper",
-  "apps/launcher/native",
+  "apps/launcher/client/src-tauri",
+  "apps/launcher/installer/src-tauri",
+  "apps/launcher/uninstaller/src-tauri",
 ]

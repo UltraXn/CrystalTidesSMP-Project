@@ -6,7 +6,7 @@
 
 <p align="center">
   <strong>The Ultimate Minecraft SMP Ecosystem</strong><br/>
-  <i>High-fidelity Web Portal • Scalable Express API • Native Flutter Launcher • Seamless Game Integration</i>
+  <i>High-fidelity Web Portal • Scalable Express API • Native Tauri v2 Launcher • Seamless Game Integration</i>
 </p>
 
 <p align="center">
@@ -25,12 +25,12 @@
 | 🌉 **CrystalBridge V2** | Real-time command execution (<50ms) using a hybrid WebSocket/SQL queue architecture. No RCON required. |
 | 🎰 **Secure Gacha System** | Advanced visual gacha with server-side validation and secure roll logic. |
 | 🛡️ **Staff Master Hub** | Interactive Kanban boards, task synchronization, and staff management tools. |
-| 🦋 **Native Launcher** | Cross-platform desktop client built with Flutter and Rust for maximum safety and performance. |
+| 🦋 **Native Launcher** | Cross-platform desktop client built with Tauri v2 (React + Rust) with custom installer & uninstaller. |
 
 ## 🛠️ Tech Stack
 
 <p align="center">
-  <img src="https://skillicons.dev/icons?i=react,ts,nodejs,express,supabase,mysql,redis,tailwind,vite,figma,postman,docker" alt="Tech Stack" />
+  <img src="https://skillicons.dev/icons?i=react,ts,nodejs,express,rust,tauri,supabase,mysql,redis,tailwind,vite,docker" alt="Tech Stack" />
 </p>
 
 ---
@@ -71,7 +71,11 @@ flowchart TB
 
 - **`apps/web-client`**: Modern dashboard for users & staff.
 - **`apps/web-server`**: Cloud orchestrator & command bridge.
-- **`apps/launcher`**: Native desktop client.
+- **`apps/launcher/`**: Native desktop suite (Tauri v2 + React + Rust).
+  - **`client/`**: CrystalTides Launcher — main desktop client.
+  - **`installer/`**: CTLauncher Installer — custom branded installer.
+  - **`uninstaller/`**: CTLauncher Uninstaller — clean removal tool.
+- **`apps/game-bridge/`**: Native Rust bridge for real-time game integration.
 - **`plugins/crystalcore`**: Java plugin for the Minecraft core.
 - **`packages/shared`**: Shared types and utilities across the monorepo.
 
@@ -87,7 +91,12 @@ flowchart TB
    npm install
    npm run dev
    ```
-3. **Configure Submodules**:
+3. **Launcher development** (requires [Rust](https://rustup.rs/)):
+   ```bash
+   cd apps/launcher/client
+   npx tauri dev
+   ```
+4. **Configure Submodules**:
    Ensure all submodules are updated:
    ```bash
    git submodule update --init --recursive

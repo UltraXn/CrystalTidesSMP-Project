@@ -15,7 +15,7 @@ This guide will help you set up the complete CrystalTides development environmen
 - **Git** ([Download](https://git-scm.com/))
 - **Docker** (optional, for MySQL) ([Download](https://www.docker.com/))
 - **Java JDK** 21+ (for Minecraft plugin) ([Download](https://adoptium.net/))
-- **Flutter** 3.24+ (for launcher) ([Download](https://flutter.dev/))
+- **Tauri v2 CLI** (for launcher) — installed via `npm` automatically
 - **Rust** 1.75+ (for native components) ([Download](https://rustup.rs/))
 
 ### Accounts Needed
@@ -153,14 +153,18 @@ npm run db:seed
 
 ## 5️⃣ Build Native Components
 
-### Build Launcher Native Core (Rust)
+### Build Launcher (Tauri v2)
 
 ```bash
-cd apps/launcher/native
-cargo build --release
+# Development mode
+cd apps/launcher/client
+npx tauri dev
+
+# Production build
+npx tauri build
 ```
 
-The compiled library will be in `target/release/`.
+The compiled binaries will be in `target/release/`.
 
 ### Build Game Agent (Rust + Java)
 
@@ -319,4 +323,4 @@ npm install
 
 ---
 
-_Last updated: January 10, 2026_
+_Last updated: July 20, 2026_

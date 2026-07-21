@@ -1,24 +1,24 @@
 # 🦋 CrystalLauncher
 
-**CrystalLauncher** es la puerta de entrada exclusiva al ecosistema CrystalTides. No es solo un lanzador, es una plataforma integrada construida con **Flutter** (Frontend) y **Rust** (Backend) que garantiza rendimiento, seguridad y una experiencia de usuario premium.
+**CrystalLauncher** es la puerta de entrada exclusiva al ecosistema CrystalTides. No es solo un lanzador, es una plataforma integrada construida con **Tauri v2** (React + Rust) que garantiza rendimiento, seguridad y una experiencia de usuario premium.
 
 ## 🏗️ Arquitectura Híbrida
 
 El launcher utiliza un diseño de procesos desacoplados para combinar lo mejor de dos mundos:
 
-### 1. Frontend (Flutter UI)
+### 1. Frontend (React + TypeScript)
 
-- **Tecnología**: Flutter (Dart) para Windows Desktop.
-- **Responsabilidad**: Renderizado de interfaz, animaciones Rive (60 FPS), gestión de estado de navegación y visualización de progreso.
-- **Ventaja**: Permite crear diseños "Glassmorphism" complejos y fluidos que serían imposibles en Swing (Java) o pesados en Electron.
+- **Tecnología**: React 19 + TypeScript para la interfaz.
+- **Responsabilidad**: Renderizado de interfaz, animaciones CSS/JS (60 FPS), gestión de estado de navegación y visualización de progreso.
+- **Ventaja**: Permite crear diseños "Glassmorphism" complejos y fluidos con componentes reutilizables y ecosistema web maduro.
 
-### 2. Backend Nativo (Rust Core)
+### 2. Backend Nativo (Rust via Tauri)
 
-- **Tecnología**: Rust (crate `native`).
+- **Tecnología**: Rust (Tauri v2 commands).
 - **Responsabilidad**:
   - Operaciones de disco pesadas (Hashing de archivos).
   - Criptografía y Login seguro.
-  - Comunicación FFI (Foreign Function Interface) con Flutter.
+  - Comunicación directa Tauri IPC (Inter-Process Communication) con el frontend.
 - **Ventaja**: Zero-GC (Sin recolección de basura), uso mínimo de RAM y seguridad de memoria.
 
 ### 3. Orquestador de Minecraft (Engine)
@@ -38,7 +38,7 @@ A diferencia de otros launchers custom que obligan a redescargar 5GB de assets:
 
 1.  CrystalLauncher escanea tu instalación `.minecraft` vanilla.
 2.  Detecta librerías y assets ya existentes.
-3.  Crea **Symbolic Links** (o copias) en su directorio privado.
+3.  Crea **Symbolic Links** (o copias) en su directorio privado (`~/.crystaltides`).
     **Resultado**: La primera instalación toma segundos en lugar de minutos.
 
 ### Inyección de Agente
@@ -47,25 +47,50 @@ Al lanzar el juego, el launcher añade automáticamente el argumento `-javaagent
 
 ### Visor de Skins 3D
 
-Integra un motor de renderizado WebGL (vía WebView encapsulado) para previsualizar la skin del jugador en tiempo real. Soporta:
+Integra un motor de renderizado WebGL (vía skinview3d) para previsualizar la skin del jugador en tiempo real. Soporta:
 
 - Modelos Classic (Steve) y Slim (Alex).
 - Capas externas (Hat, Jacket, Pants).
 - Rotación interactiva y animaciones suaves.
 
+## 📦 Suite Completa
+
+El launcher se distribuye como una suite de 3 aplicaciones independientes:
+
+| Módulo | Carpeta | Binario |
+|--------|---------|---------|
+| **CrystalTides Launcher** | `apps/launcher/client/` | `crystaltides-launcher.exe` |
+| **CTLauncher Installer** | `apps/launcher/installer/` | `ctlauncher-installer.exe` |
+| **CTLauncher Uninstaller** | `apps/launcher/uninstaller/` | `ctlauncher-uninstaller.exe` |
+
 ## 🛠️ Desarrollo
 
 ### Estructura de Carpetas (`apps/launcher`)
 
-- `lib/`: Código Dart/Flutter.
-- `native/`: Código Rust.
-- `windows/`: Runner de C++ para Windows.
+- `client/`: Launcher principal (React + Tauri).
+- `installer/`: Instalador personalizado con UI glassmórfica.
+- `uninstaller/`: Desinstalador con temática de océano oscuro.
+
+Cada módulo contiene:
+- `src/`: Código React + TypeScript (frontend).
+- `src-tauri/src/`: Código Rust (backend nativo).
 
 ### Requisitos
 
-- Flutter SDK.
-- Rust Toolchain (`cargo`).
-- Visual Studio C++ (Build Tools).
+- Node.js 22+.
+- Rust Toolchain (`cargo` + `rustup`).
+- Tauri CLI (se instala automáticamente vía `npm`).
+
+### Comandos
+
+```bash
+# Desarrollo
+cd apps/launcher/client
+npx tauri dev
+
+# Build de producción
+npx tauri build
+```
 
 ---
 

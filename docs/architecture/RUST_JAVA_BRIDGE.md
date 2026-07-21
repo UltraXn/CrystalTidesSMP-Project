@@ -12,27 +12,27 @@ El ecosistema CrystalTides utiliza **tres puentes de comunicación Rust ↔ Java
 
 - **Rust**: Seguridad de memoria, abstracciones de coste cero y rendimiento nativo.
 - **Java**: Ecosistema JVM, compatibilidad con Minecraft y herramientas maduras.
-- **Dart (Flutter)**: UI fluida y desarrollo multiplataforma.
-- **Bridge**: Lo mejor de ambos mundos a través de **FFI** (Foreign Function Interface) y **JNI** (Java Native Interface).
+- **React + TypeScript**: UI moderna, componentes reutilizables y ecosistema web maduro.
+- **Bridge**: Lo mejor de ambos mundos a través de **Tauri IPC** (Inter-Process Communication) y **JNI** (Java Native Interface).
 
 ### Los Tres Tipos de Puente
 
-1. **Launcher Bridge** (Flutter → Rust → Minecraft)
+1. **Launcher Bridge** (React → Tauri IPC → Rust → Minecraft)
 2. **Game Agent Bridge** (Java ↔ Rust ↔ OpenGL)
 3. **Plugin Bridge** (Java → WebSocket Client)
 
 ---
 
-## 1️⃣ Launcher Bridge (Flutter → Rust → Minecraft)
+## 1️⃣ Launcher Bridge (React → Tauri IPC → Rust → Minecraft)
 
-Este puente es el núcleo del **Launcher V2**. Flutter maneja la interfaz, mientras que Rust gestiona la lógica pesada de archivos y procesos.
+Este puente es el núcleo del **Launcher V2**. React maneja la interfaz via Tauri, mientras que Rust gestiona la lógica pesada de archivos y procesos.
 
 ### Arquitectura
 
 ```mermaid
 sequenceDiagram
-    participant UI as 🎨 Flutter UI
-    participant FFI as 🔌 Dart FFI
+    participant UI as 🎨 React UI
+    participant FFI as 🔌 Tauri IPC
     participant Rust as 🦀 Native Core (Rust)
     participant Java as ☕ Minecraft JVM
 
@@ -115,8 +115,8 @@ Conecta el servidor de Minecraft (Paper) con el servidor Web de forma asíncrona
 
 - **Memory Safety**: Rust evita fugas de memoria y punteros nulos en las operaciones críticas de hashing y descarga.
 - **Validación JNI**: Gestión estricta de referencias locales (`DeleteLocalRef`) para prevenir el agotamiento de la heap de la JVM.
-- **Thread Safety**: Uso de `Mutex<T>` y `Arc<T>` en Rust para compartir estado de descarga con la UI de Flutter de forma segura.
+- **Thread Safety**: Uso de `Mutex<T>` y `Arc<T>` en Rust para compartir estado de descarga con la UI de React de forma segura.
 
 ---
 
-_Última actualización: 12 de enero, 2026_
+_Última actualización: 20 de julio, 2026_

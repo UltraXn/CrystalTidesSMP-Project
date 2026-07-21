@@ -19,8 +19,8 @@ CrystalTides es un ecosistema de alta fidelidad que integra Web, Juego (Minecraf
 
 ### 3. CrystalLauncher (Native Core) 🦋
 
-- **Tecnología**: Flutter 3.x + Rust (Native DLL via FFI).
-- **Enfoque 2026**: Manejo nativo de procesos Java, actualizaciones delta y validación de integridad mediante el núcleo en Rust.
+- **Tecnología**: Tauri v2 (React 19 + TypeScript + Rust).
+- **Enfoque 2026**: Manejo nativo de procesos Java, actualizaciones delta y validación de integridad mediante el backend en Rust. Suite completa con Installer y Uninstaller personalizados.
 
 ### 4. CrystalCore (Minecraft Plugin) 💎
 
