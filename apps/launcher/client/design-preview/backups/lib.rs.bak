@@ -1,0 +1,188 @@
+mod archive;
+mod core_init;
+mod errors;
+mod github_release;
+mod hashing;
+mod java_manager;
+mod mod_library;
+mod mod_loaders;
+mod neoforge;
+mod r2_sync;
+mod system;
+
+#[tauri::command]
+fn init_core() -> bool {
+    core_init::init_core()
+}
+
+#[tauri::command]
+fn calculate_sha1(path: String) -> Result<String, String> {
+    hashing::calculate_sha1(&path).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn create_hard_link(source: String, target: String) -> i32 {
+    system::create_hard_link(&source, &target)
+}
+
+#[tauri::command]
+fn extract_archive(archive_path: String, output_path: String) -> Result<(), String> {
+    archive::extract_archive(&archive_path, &output_path).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn check_single_instance() -> bool {
+    system::check_single_instance()
+}
+
+#[tauri::command]
+fn set_high_priority() -> bool {
+    system::set_high_priority()
+}
+
+#[tauri::command]
+fn set_normal_priority() -> bool {
+    system::set_normal_priority()
+}
+
+#[tauri::command]
+fn install_neoforge(neo_version: String, game_dir: String, java_path: String) -> Result<i32, String> {
+    neoforge::install_neoforge(&neo_version, &game_dir, &java_path).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn install_mod_loader(
+    loader_type: String,
+    loader_version: String,
+    mc_version: String,
+    game_dir: String,
+    java_path: String,
+) -> Result<i32, String> {
+    mod_loaders::install_mod_loader(&loader_type, &loader_version, &mc_version, &game_dir, &java_path)
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn sync_mods(target_dir: String, mod_list_json: String) -> Result<(), String> {
+    mod_library::sync_mods(&target_dir, &mod_list_json).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn upload_to_github(repo: String, tag: String, file_path: String, token: String) -> Result<(), String> {
+    github_release::upload_to_github(&repo, &tag, &file_path, &token).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn install_java_runtime(
+    app_handle: tauri::AppHandle,
+    version: i32,
+    install_dir: String,
+) -> Result<String, String> {
+    use tauri::Emitter;
+    let path = java_manager::download_and_install_java(version as u8, std::path::Path::new(&install_dir), |progress| {
+        let _ = app_handle.emit("java-install-progress", progress);
+    })
+    .map_err(|e| e.to_string())?;
+    Ok(path.to_string_lossy().to_string())
+}
+
+#[tauri::command]
+fn check_java_status(install_dir: String) -> Option<String> {
+    java_manager::find_java_binary(std::path::Path::new(&install_dir))
+        .map(|path| path.to_string_lossy().to_string())
+}
+
+#[tauri::command]
+fn perform_uninstallation(install_dir: String) -> i32 {
+    system::perform_uninstallation(&install_dir)
+}
+
+#[tauri::command]
+fn schedule_self_deletion(install_dir: String) -> i32 {
+    system::schedule_self_deletion(&install_dir)
+}
+
+#[tauri::command]
+fn get_home_dir() -> Option<String> {
+    dirs::home_dir().map(|path| path.to_string_lossy().to_string())
+}
+
+#[tauri::command]
+fn read_text_file(path: String) -> Result<String, String> {
+    std::fs::read_to_string(path).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn write_text_file(path: String, content: String) -> Result<(), String> {
+    // Ensure parent directory exists
+    if let Some(parent) = std::path::Path::new(&path).parent() {
+        let _ = std::fs::create_dir_all(parent);
+    }
+    std::fs::write(path, content).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn launch_minecraft(java_path: String, args: Vec<String>, game_dir: String) -> Result<(), String> {
+    std::process::Command::new(java_path)
+        .args(&args)
+        .current_dir(game_dir)
+        .spawn()
+        .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+#[tauri::command]
+async fn http_post(url: String, headers: std::collections::HashMap<String, String>, body: String) -> Result<String, String> {
+    let client = reqwest::Client::new();
+    let mut req = client.post(&url);
+    for (key, val) in headers {
+        req = req.header(key, val);
+    }
+    let res = req.body(body).send().await.map_err(|e| e.to_string())?;
+    let text = res.text().await.map_err(|e| e.to_string())?;
+    Ok(text)
+}
+
+#[tauri::command]
+async fn http_get(url: String, headers: std::collections::HashMap<String, String>) -> Result<String, String> {
+    let client = reqwest::Client::new();
+    let mut req = client.get(&url);
+    for (key, val) in headers {
+        req = req.header(key, val);
+    }
+    let res = req.send().await.map_err(|e| e.to_string())?;
+    let text = res.text().await.map_err(|e| e.to_string())?;
+    Ok(text)
+}
+
+#[cfg_attr(mobile, tauri::mobile_entry_point)]
+pub fn run() {
+    tauri::Builder::default()
+        .plugin(tauri_plugin_opener::init())
+        .invoke_handler(tauri::generate_handler![
+            init_core,
+            calculate_sha1,
+            create_hard_link,
+            extract_archive,
+            check_single_instance,
+            set_high_priority,
+            set_normal_priority,
+            install_neoforge,
+            install_mod_loader,
+            sync_mods,
+            upload_to_github,
+            install_java_runtime,
+            check_java_status,
+            perform_uninstallation,
+            schedule_self_deletion,
+            get_home_dir,
+            read_text_file,
+            write_text_file,
+            launch_minecraft,
+            http_post,
+            http_get,
+            r2_sync::download_mods_parallel
+        ])
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
+}

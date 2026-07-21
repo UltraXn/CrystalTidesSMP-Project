@@ -1,0 +1,48 @@
+/* ── App-level overrides ──
+   Stripped from Tauri boilerplate.
+   All design tokens live in index.css. */
+
+/* Reset defaults that conflict with index.css */
+:root {
+  font-family: var(--font-family);
+  font-size: 16px;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color: var(--text);
+  background-color: var(--background);
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Pressable micro-interaction (UX Interaction Design skill) */
+.pressable {
+  --press-scale: 0.97;
+  transition: transform 0.12s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.pressable:active {
+  transform: scale(var(--press-scale));
+}
+
+/* Link reset */
+a {
+  font-weight: 500;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a:hover {
+  color: #5EEAD4;
+}
+
+/* Prevent the old Tauri template from injecting button/input defaults */
+input,
+button {
+  outline: none;
+}
