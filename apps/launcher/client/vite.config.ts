@@ -29,12 +29,4 @@ export default defineConfig(async () => ({
       ignored: ["**/src-tauri/**"],
     },
   },
-  optimizeDeps: {
-    exclude: ["@supabase/phoenix"],
-  },
-  build: {
-    rollupOptions: {
-      external: ["@supabase/phoenix"],
-    },
-  },
 }));
