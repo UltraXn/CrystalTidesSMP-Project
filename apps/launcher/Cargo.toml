@@ -1,0 +1,7 @@
+[workspace]
+members = [
+    "client/src-tauri",
+    "installer/src-tauri",
+    "uninstaller/src-tauri"
+]
+resolver = "2"
