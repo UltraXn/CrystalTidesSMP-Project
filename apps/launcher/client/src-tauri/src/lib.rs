@@ -2,6 +2,7 @@ mod archive;
 mod core_init;
 mod errors;
 mod github_release;
+mod hardware;
 mod hashing;
 mod java_manager;
 mod mod_library;
@@ -496,6 +497,7 @@ pub fn run() {
             http_delete,
             fetch_image_base64,
             start_ms_oauth_server,
+            hardware::detect_hardware_profile,
             r2_sync::download_mods_parallel
         ])
         .run(tauri::generate_context!())
