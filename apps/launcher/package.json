@@ -1,0 +1,32 @@
+{
+  "name": "crystal-launcher-suite",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Oficial Desktop Launcher & Installer Suite for CrystalTides SMP (Tauri v2 + React 19 + Rust)",
+  "type": "module",
+  "workspaces": [
+    "client",
+    "installer",
+    "uninstaller"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=client",
+    "dev:installer": "npm run dev --workspace=installer",
+    "dev:uninstaller": "npm run dev --workspace=uninstaller",
+    "build": "npm run build --workspaces",
+    "build:client": "npm run build --workspace=client",
+    "build:installer": "npm run build --workspace=installer",
+    "build:uninstaller": "npm run build --workspace=uninstaller",
+    "build:tauri": "npm run build:tauri --workspace=client"
+  },
+  "keywords": [
+    "minecraft-launcher",
+    "crystaltides",
+    "tauri",
+    "react19",
+    "rust",
+    "modpack-sync"
+  ],
+  "author": "CrystalTides Engineering <admin@crystaltides.net>",
+  "license": "MIT"
+}

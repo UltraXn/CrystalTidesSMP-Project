@@ -1,0 +1,39 @@
+name: Build CrystalLauncher Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-tauri:
+    name: Build Desktop Binary (${{ matrix.platform }})
+    runs-on: ${{ matrix.platform }}
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [windows-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Rust Stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build Tauri Client
+        run: npm run build:tauri
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: CrystalLauncher-${{ matrix.platform }}
+          path: client/src-tauri/target/release/bundle/
