@@ -106,6 +106,12 @@ const getCapeButtonBorder = (selectedIndex: number, isActive: boolean): string =
   return "none";
 };
 
+const getPlayButtonLabel = (isInGame: boolean, isLaunching: boolean): string => {
+  if (isInGame) return "En juego";
+  if (isLaunching) return "Iniciando";
+  return "Jugar";
+};
+
 interface CpuInfo {
   brand: string;
   vendor: string;
@@ -1043,7 +1049,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                 <path d="M7 4.5v15l13-7.5-13-7.5z" />
               </svg>
             )}
-            <span>{isInGame ? "En juego" : isLaunching ? "Iniciando" : "Jugar"}</span>
+            <span>{getPlayButtonLabel(isInGame, isLaunching)}</span>
             {isLaunching && !isInGame && (
               <span style={{ fontSize: 13, letterSpacing: "0.05em" }}>{Math.round(launchProgress * 100)}%</span>
             )}
