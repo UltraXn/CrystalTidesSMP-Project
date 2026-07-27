@@ -82,6 +82,30 @@ const categoryStyle = (category: string): ChipStyle => {
   };
 };
 
+const getCpuAffinityLabel = (info: CpuInfo): string => {
+  if (info.is_xeon_or_legacy) return "Xeon Core Affinity (Afinidad Física Par)";
+  if (info.is_hybrid) return "Hybrid P-Core Affinity Mode";
+  return "Standard Core Affinity Mode";
+};
+
+const getCapeButtonText = (isEquipping: boolean, selectedIndex: number, isActive: boolean): string => {
+  if (isEquipping) return "Procesando...";
+  if (selectedIndex === -1) return "Quitar Capa";
+  return isActive ? "Equipada" : "Equipar Capa";
+};
+
+const getCapeButtonBackground = (selectedIndex: number, isActive: boolean): string => {
+  if (selectedIndex === -1) return "rgba(239, 68, 68, 0.15)";
+  if (isActive) return "rgba(255, 255, 255, 0.1)";
+  return "linear-gradient(135deg, #2DD4BF 0%, #0D9488 100%)";
+};
+
+const getCapeButtonBorder = (selectedIndex: number, isActive: boolean): string => {
+  if (selectedIndex === -1) return "1px solid rgba(239, 68, 68, 0.3)";
+  if (isActive) return "1px solid rgba(255, 255, 255, 0.2)";
+  return "none";
+};
+
 interface CpuInfo {
   brand: string;
   vendor: string;
@@ -225,8 +249,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
         mcVersion: profile.mcVersion,
         loaderType: profile.loaderType,
         loaderVersion: profile.loaderVersion,
-        minRam: profile.minRam !== undefined ? profile.minRam : settings.minRam,
-        maxRam: profile.maxRam !== undefined ? profile.maxRam : settings.maxRam,
+        minRam: profile.minRam ?? settings.minRam,
+        maxRam: profile.maxRam ?? settings.maxRam,
         useOptimization: profile.useOptimization,
         javaArgs: profile.javaArgs,
         javaPath: profile.javaPath || settings.javaPath || undefined,
@@ -408,9 +432,13 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
             <h2 style={{ margin: 0, fontSize: 13, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--text-muted)" }}>
               Novedades
             </h2>
-            <span
+            <button
               onClick={() => onNavigate?.("news")}
               style={{
+                background: "none",
+                border: "none",
+                padding: 0,
+                font: "inherit",
                 fontSize: 11.5,
                 fontWeight: 600,
                 color: "var(--accent)",
@@ -428,7 +456,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                 <line x1="5" y1="12" x2="19" y2="12" />
                 <polyline points="12 5 19 12 12 19" />
               </svg>
-            </span>
+            </button>
           </div>
 
           {(() => {
@@ -845,16 +873,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                     letterSpacing: "0.04em",
                     textTransform: "uppercase",
                     color: isEquippingCape ? "rgba(255,255,255,0.4)" : "#FFF",
-                    background: selectedCapeIndex === -1
-                      ? "rgba(239, 68, 68, 0.15)"
-                      : userCapes[selectedCapeIndex]?.state === "ACTIVE"
-                        ? "rgba(255, 255, 255, 0.1)"
-                        : "linear-gradient(135deg, #2DD4BF 0%, #0D9488 100%)",
-                    border: selectedCapeIndex === -1
-                      ? "1px solid rgba(239, 68, 68, 0.3)"
-                      : userCapes[selectedCapeIndex]?.state === "ACTIVE"
-                        ? "1px solid rgba(255, 255, 255, 0.2)"
-                        : "none",
+                    background: getCapeButtonBackground(selectedCapeIndex, userCapes[selectedCapeIndex]?.state === "ACTIVE"),
+                    border: getCapeButtonBorder(selectedCapeIndex, userCapes[selectedCapeIndex]?.state === "ACTIVE"),
                     borderRadius: 8,
                     padding: "6px 16px",
                     cursor: isEquippingCape ? "not-allowed" : "pointer",
@@ -886,13 +906,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                     }
                   }}
                 >
-                  {isEquippingCape
-                    ? "Procesando..."
-                    : selectedCapeIndex === -1
-                      ? "Quitar Capa"
-                      : userCapes[selectedCapeIndex]?.state === "ACTIVE"
-                        ? "Equipada"
-                        : "Equipar Capa"}
+                  {getCapeButtonText(isEquippingCape, selectedCapeIndex, userCapes[selectedCapeIndex]?.state === "ACTIVE")}
                 </button>
               </div>
             )}
@@ -948,11 +962,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
               color: hardwareInfo.is_xeon_or_legacy ? "#FCD34D" : "#2DD4BF",
               border: `1px solid ${hardwareInfo.is_xeon_or_legacy ? "rgba(245, 158, 11, 0.4)" : "rgba(45, 212, 191, 0.4)"}`
             }}>
-              {hardwareInfo.is_xeon_or_legacy
-                ? "Xeon Core Affinity (Afinidad Física Par)"
-                : hardwareInfo.is_hybrid
-                ? "Hybrid P-Core Affinity Mode"
-                : "Standard Core Affinity Mode"}
+              {getCpuAffinityLabel(hardwareInfo)}
             </span>
           </div>
         </div>
