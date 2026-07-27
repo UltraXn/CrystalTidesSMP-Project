@@ -8,6 +8,7 @@ import {
   fetchNeoForgeVersions,
   fetchForgeVersions,
 } from "../services/minecraftMetadataService";
+import { calculateRecommendedRam } from "../services/ramCalculator";
 
 interface ProfileEditorDialogProps {
   profile?: Profile | null; // If null/undefined, we are in CREATE mode
@@ -396,25 +397,50 @@ export const ProfileEditorDialog: React.FC<ProfileEditorDialogProps> = ({
             </div>
 
             {useCustomRam && (
-              <div style={{ display: "flex", gap: 16 }}>
-                <div style={{ ...formSectionStyle, flex: 1 }}>
-                  <label style={labelStyle}>Mínima (MB)</label>
-                  <input
-                    type="number"
-                    value={minRam}
-                    onChange={(e) => setMinRam(Number(e.target.value))}
-      
-                  />
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                <div style={{ display: "flex", gap: 16 }}>
+                  <div style={{ ...formSectionStyle, flex: 1 }}>
+                    <label style={labelStyle}>Mínima (MB)</label>
+                    <input
+                      type="number"
+                      value={minRam}
+                      onChange={(e) => setMinRam(Number(e.target.value))}
+                    />
+                  </div>
+                  <div style={{ ...formSectionStyle, flex: 1 }}>
+                    <label style={labelStyle}>Máxima (MB)</label>
+                    <input
+                      type="number"
+                      value={maxRam}
+                      onChange={(e) => setMaxRam(Number(e.target.value))}
+                    />
+                  </div>
                 </div>
-                <div style={{ ...formSectionStyle, flex: 1 }}>
-                  <label style={labelStyle}>Máxima (MB)</label>
-                  <input
-                    type="number"
-                    value={maxRam}
-                    onChange={(e) => setMaxRam(Number(e.target.value))}
-      
-                  />
-                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const rec = calculateRecommendedRam();
+                    setMinRam(rec.minRam);
+                    setMaxRam(rec.maxRam);
+                  }}
+                  style={{
+                    alignSelf: "flex-start",
+                    fontSize: 11,
+                    fontWeight: 700,
+                    color: "#2DD4BF",
+                    background: "rgba(45, 212, 191, 0.12)",
+                    border: "1px solid rgba(45, 212, 191, 0.3)",
+                    borderRadius: 6,
+                    padding: "5px 12px",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                  }}
+                >
+                  ⚡ Auto-calcular RAM Recomendada
+                </button>
               </div>
             )}
 

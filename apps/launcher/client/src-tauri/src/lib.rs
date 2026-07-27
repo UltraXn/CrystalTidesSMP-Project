@@ -1,5 +1,7 @@
+mod anticheat;
 mod archive;
 mod core_init;
+mod crash_reporter;
 mod errors;
 mod github_release;
 mod hardware;
@@ -464,6 +466,7 @@ fn open_folder(path: String) -> Result<(), String> {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .invoke_handler(tauri::generate_handler![
             log_frontend,
             open_folder,
@@ -498,7 +501,9 @@ pub fn run() {
             fetch_image_base64,
             start_ms_oauth_server,
             hardware::detect_hardware_profile,
-            r2_sync::download_mods_parallel
+            r2_sync::download_mods_parallel,
+            anticheat::generate_integrity_report,
+            crash_reporter::analyze_game_crash
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

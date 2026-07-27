@@ -112,6 +112,47 @@ const getPlayButtonLabel = (isInGame: boolean, isLaunching: boolean): string => 
   return "Jugar";
 };
 
+const HardwareBadge: React.FC<{ hardwareInfo: CpuInfo }> = ({ hardwareInfo }) => {
+  const isXeon = hardwareInfo.is_xeon_or_legacy;
+  return (
+    <div style={{
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      padding: "8px 16px",
+      borderRadius: 12,
+      background: "rgba(15, 23, 42, 0.6)",
+      border: "1px solid rgba(45, 212, 191, 0.2)",
+      fontSize: 11,
+      color: "rgba(255, 255, 255, 0.8)",
+      backdropFilter: "blur(8px)"
+    }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <span style={{ fontSize: 13 }}>⚡</span>
+        <span style={{ fontWeight: 700, color: "#2DD4BF" }}>CPU Detectada:</span>
+        <span>{hardwareInfo.brand || "Procesador Detectado"}</span>
+        <span style={{ color: "rgba(255,255,255,0.4)" }}>|</span>
+        <span>{hardwareInfo.physical_cores} Cores Físicos ({hardwareInfo.logical_cores} Hilos)</span>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+        <span style={{
+          fontSize: 9.5,
+          fontWeight: 800,
+          letterSpacing: "0.05em",
+          textTransform: "uppercase",
+          padding: "3px 8px",
+          borderRadius: 6,
+          background: isXeon ? "rgba(245, 158, 11, 0.2)" : "rgba(45, 212, 191, 0.2)",
+          color: isXeon ? "#FCD34D" : "#2DD4BF",
+          border: `1px solid ${isXeon ? "rgba(245, 158, 11, 0.4)" : "rgba(45, 212, 191, 0.4)"}`
+        }}>
+          {getCpuAffinityLabel(hardwareInfo)}
+        </span>
+      </div>
+    </div>
+  );
+};
+
 interface CpuInfo {
   brand: string;
   vendor: string;
@@ -936,43 +977,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
       )}
 
       {/* ── Info de Hardware / CPU Affinity ── */}
-      {hardwareInfo && (
-        <div style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "8px 16px",
-          borderRadius: 12,
-          background: "rgba(15, 23, 42, 0.6)",
-          border: "1px solid rgba(45, 212, 191, 0.2)",
-          fontSize: 11,
-          color: "rgba(255, 255, 255, 0.8)",
-          backdropFilter: "blur(8px)"
-        }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ fontSize: 13 }}>⚡</span>
-            <span style={{ fontWeight: 700, color: "#2DD4BF" }}>CPU Detectada:</span>
-            <span>{hardwareInfo.brand || "Procesador Detectado"}</span>
-            <span style={{ color: "rgba(255,255,255,0.4)" }}>|</span>
-            <span>{hardwareInfo.physical_cores} Cores Físicos ({hardwareInfo.logical_cores} Hilos)</span>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <span style={{
-              fontSize: 9.5,
-              fontWeight: 800,
-              letterSpacing: "0.05em",
-              textTransform: "uppercase",
-              padding: "3px 8px",
-              borderRadius: 6,
-              background: hardwareInfo.is_xeon_or_legacy ? "rgba(245, 158, 11, 0.2)" : "rgba(45, 212, 191, 0.2)",
-              color: hardwareInfo.is_xeon_or_legacy ? "#FCD34D" : "#2DD4BF",
-              border: `1px solid ${hardwareInfo.is_xeon_or_legacy ? "rgba(245, 158, 11, 0.4)" : "rgba(45, 212, 191, 0.4)"}`
-            }}>
-              {getCpuAffinityLabel(hardwareInfo)}
-            </span>
-          </div>
-        </div>
-      )}
+      {hardwareInfo && <HardwareBadge hardwareInfo={hardwareInfo} />}
 
       {/* ── Dock: perfil + jugar ── */}
       <section className="reveal-up" style={{ display: "flex", alignItems: "stretch", gap: 14, animationDelay: "0.18s", position: "relative", zIndex: 10, backgroundColor: "rgba(10, 14, 23, 0.95)", backdropFilter: "blur(16px)", padding: "10px 14px", borderRadius: "20px", border: "1px solid rgba(255, 255, 255, 0.12)", boxShadow: "0 -8px 32px rgba(0, 0, 0, 0.4)" }}>

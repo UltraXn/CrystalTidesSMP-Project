@@ -5,11 +5,14 @@ import { MainLayout } from "./components/MainLayout";
 import { WindowTitleBar } from "./components/WindowTitleBar";
 import { InstallerModePage } from "./components/InstallerModePage";
 import { UninstallerModePage } from "./components/UninstallerModePage";
+import { checkForAppUpdates, UpdateInfo } from "./services/updateService";
+import { UpdaterModal } from "./components/UpdaterModal";
 import "./App.css";
 
 function LauncherContent() {
   const { currentSession, isLoading } = useAuth();
   const [appMode, setAppMode] = useState<"launcher" | "installer" | "uninstaller">("launcher");
+  const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
 
   useEffect(() => {
     // Check URL query params or hash for mode
@@ -22,6 +25,12 @@ function LauncherContent() {
     } else if (modeParam === "uninstaller" || hash === "uninstaller") {
       setAppMode("uninstaller");
     }
+
+    checkForAppUpdates().then((info) => {
+      if (info.available) {
+        setUpdateInfo(info);
+      }
+    });
   }, []);
 
   if (appMode === "installer") {
@@ -56,6 +65,15 @@ function LauncherContent() {
       <div style={{ flex: 1, overflow: "hidden", position: "relative", paddingTop: 32 }}>
         {!currentSession ? <LoginPage /> : <MainLayout />}
       </div>
+
+      {updateInfo?.available && updateInfo.updateObj && (
+        <UpdaterModal
+          version={updateInfo.version || "Nueva versión"}
+          notes={updateInfo.notes}
+          updateObj={updateInfo.updateObj}
+          onClose={() => setUpdateInfo(null)}
+        />
+      )}
     </div>
   );
 }

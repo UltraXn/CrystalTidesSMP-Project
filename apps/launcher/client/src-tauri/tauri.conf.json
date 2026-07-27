@@ -35,9 +35,18 @@
     ],
     "windows": {
       "nsis": {
-        "installMode": "currentUser",
+        "installMode": "perMachine",
+        "displayLanguageSelector": true,
         "languages": ["Spanish", "English"]
       }
+    }
+  },
+  "plugins": {
+    "updater": {
+      "endpoints": [
+        "https://github.com/UltraXn/crystal-launcher/releases/latest/download/latest.json"
+      ],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IGF1dG91cGRhdGUgcHVibGljIGtleQpSV1N5TWpCa3JvVktGSmJndmRhbWR2bXNzZXZzYm1zZXZzYm1zZXZzYm1zZWQK"
     }
   }
 }
