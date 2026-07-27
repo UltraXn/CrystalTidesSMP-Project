@@ -147,6 +147,19 @@ pub fn list_mods(target_dir_str: &str) -> NativeResult<String> {
     Ok(serde_json::to_string(&entries)?)
 }
 
+pub fn get_mod_metadata(target_dir_str: &str, filename: &str) -> NativeResult<Option<serde_json::Value>> {
+    validate_filename(filename)?;
+    let path = Path::new(target_dir_str).join(filename);
+    if !path.exists() {
+        return Ok(None);
+    }
+    let (title, icon) = extract_jar_metadata(&path);
+    Ok(Some(serde_json::json!({
+        "title": title,
+        "icon_data": icon,
+    })))
+}
+
 /// Activa o desactiva un mod renombrando el archivo:
 /// `mod.jar` ↔ `mod.jar.disabled` (convención estándar de los loaders).
 pub fn set_mod_enabled(target_dir_str: &str, filename: &str, enabled: bool) -> NativeResult<()> {
@@ -186,4 +199,187 @@ pub fn delete_mod(target_dir_str: &str, filename: &str) -> NativeResult<()> {
         std::fs::remove_file(&path)?;
     }
     Ok(())
+}
+
+/// Extrae el título y la imagen original embebida dentro de un archivo .jar de Minecraft
+pub fn extract_jar_metadata(jar_path: &Path) -> (Option<String>, Option<String>) {
+    use base64::{engine::general_purpose::STANDARD as BASE64, Engine};
+    use std::io::Read;
+
+    let file = match std::fs::File::open(jar_path) {
+        Ok(f) => f,
+        Err(_) => return (None, None),
+    };
+    let mut archive = match zip::ZipArchive::new(file) {
+        Ok(a) => a,
+        Err(_) => return (None, None),
+    };
+
+    let mut mod_name: Option<String> = None;
+    let mut candidate_icons: Vec<String> = Vec::new();
+
+    // 1. Inspect fabric.mod.json
+    if let Ok(mut fab_file) = archive.by_name("fabric.mod.json") {
+        let mut content = String::new();
+        if fab_file.read_to_string(&mut content).is_ok() {
+            if let Ok(json) = serde_json::from_str::<serde_json::Value>(&content) {
+                if let Some(name_str) = json["name"].as_str() {
+                    if !name_str.trim().is_empty() {
+                        mod_name = Some(name_str.trim().to_string());
+                    }
+                }
+                if let Some(icon_str) = json["icon"].as_str() {
+                    candidate_icons.push(icon_str.trim_start_matches('/').to_string());
+                } else if let Some(icon_obj) = json["icon"].as_object() {
+                    for key in ["512", "128", "64", "32", "16"] {
+                        if let Some(path) = icon_obj.get(key).and_then(|v| v.as_str()) {
+                            candidate_icons.push(path.trim_start_matches('/').to_string());
+                        }
+                    }
+                    if candidate_icons.is_empty() {
+                        if let Some(first_val) = icon_obj.values().next().and_then(|v| v.as_str()) {
+                            candidate_icons.push(first_val.trim_start_matches('/').to_string());
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // 2. Inspect quilt.mod.json
+    if mod_name.is_none() {
+        if let Ok(mut q_file) = archive.by_name("quilt.mod.json") {
+            let mut content = String::new();
+            if q_file.read_to_string(&mut content).is_ok() {
+                if let Ok(json) = serde_json::from_str::<serde_json::Value>(&content) {
+                    let meta = &json["quilt_loader"]["metadata"];
+                    if let Some(name_str) = meta["name"].as_str() {
+                        if !name_str.trim().is_empty() {
+                            mod_name = Some(name_str.trim().to_string());
+                        }
+                    }
+                    if let Some(icon_str) = meta["icon"].as_str() {
+                        candidate_icons.push(icon_str.trim_start_matches('/').to_string());
+                    }
+                }
+            }
+        }
+    }
+
+    // 3. Inspect neoforge.mods.toml or mods.toml
+    let toml_file_name = if archive.by_name("META-INF/neoforge.mods.toml").is_ok() {
+        Some("META-INF/neoforge.mods.toml")
+    } else if archive.by_name("META-INF/mods.toml").is_ok() {
+        Some("META-INF/mods.toml")
+    } else {
+        None
+    };
+
+    if let Some(fname) = toml_file_name {
+        if let Ok(mut toml_file) = archive.by_name(fname) {
+            let mut content = String::new();
+            if toml_file.read_to_string(&mut content).is_ok() {
+                for line in content.lines() {
+                    let trimmed = line.trim();
+                    if trimmed.starts_with('#') {
+                        continue;
+                    }
+                    if mod_name.is_none() && (trimmed.starts_with("displayName") || trimmed.starts_with("name")) {
+                        if let Some((_, val)) = trimmed.split_once('=') {
+                            let clean = val.trim().trim_matches('"').trim_matches('\'');
+                            if !clean.is_empty() && clean != "Example Mod" {
+                                mod_name = Some(clean.to_string());
+                            }
+                        }
+                    }
+                    if trimmed.starts_with("logoFile") {
+                        if let Some((_, val)) = trimmed.split_once('=') {
+                            let logo = val.trim().trim_matches('"').trim_matches('\'').trim_start_matches('/');
+                            if !logo.is_empty() {
+                                candidate_icons.push(logo.to_string());
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // 4. Inspect mcmod.info (old Forge format)
+    if mod_name.is_none() {
+        if let Ok(mut mc_file) = archive.by_name("mcmod.info") {
+            let mut content = String::new();
+            if mc_file.read_to_string(&mut content).is_ok() {
+                if let Ok(json) = serde_json::from_str::<serde_json::Value>(&content) {
+                    let list = json.as_array().or_else(|| json["modList"].as_array());
+                    if let Some(arr) = list {
+                        if let Some(first) = arr.first() {
+                            if let Some(n) = first["name"].as_str() {
+                                if !n.trim().is_empty() {
+                                    mod_name = Some(n.trim().to_string());
+                                }
+                            }
+                            if let Some(logo) = first["logoFile"].as_str() {
+                                candidate_icons.push(logo.trim_start_matches('/').to_string());
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Extract Icon Data
+    let mut icon_data: Option<String> = None;
+
+    for name in &candidate_icons {
+        if let Ok(mut zip_entry) = archive.by_name(name) {
+            let mut buffer = Vec::new();
+            if zip_entry.read_to_end(&mut buffer).is_ok() && !buffer.is_empty() {
+                let mime = if name.ends_with(".jpg") || name.ends_with(".jpeg") { "image/jpeg" } else { "image/png" };
+                let encoded = BASE64.encode(&buffer);
+                icon_data = Some(format!("data:{mime};base64,{encoded}"));
+                break;
+            }
+        }
+    }
+
+    if icon_data.is_none() {
+        let mut best_icon_index: Option<usize> = None;
+        for i in 0..archive.len() {
+            if let Ok(file) = archive.by_index(i) {
+                let name = file.name().to_lowercase();
+                if name.ends_with(".png") || name.ends_with(".jpg") || name.ends_with(".jpeg") {
+                    if name == "icon.png" || name == "logo.png" || name.contains("assets/") && (name.ends_with("/icon.png") || name.ends_with("/logo.png") || name.ends_with("/icon.jpg") || name.ends_with("/pack.png")) {
+                        best_icon_index = Some(i);
+                        break;
+                    }
+                }
+            }
+        }
+
+        if let Some(idx) = best_icon_index {
+            if let Ok(mut zip_entry) = archive.by_index(idx) {
+                let name = zip_entry.name().to_lowercase();
+                let mut buffer = Vec::new();
+                if zip_entry.read_to_end(&mut buffer).is_ok() && !buffer.is_empty() {
+                    let mime = if name.ends_with(".jpg") || name.ends_with(".jpeg") { "image/jpeg" } else { "image/png" };
+                    let encoded = BASE64.encode(&buffer);
+                    icon_data = Some(format!("data:{mime};base64,{encoded}"));
+                }
+            }
+        }
+    }
+
+    (mod_name, icon_data)
+}
+
+pub fn extract_mod_icon(target_dir_str: &str, filename: &str) -> NativeResult<Option<String>> {
+    validate_filename(filename)?;
+    let path = Path::new(target_dir_str).join(filename);
+    if !path.exists() {
+        return Ok(None);
+    }
+    let (_, icon) = extract_jar_metadata(&path);
+    Ok(icon)
 }

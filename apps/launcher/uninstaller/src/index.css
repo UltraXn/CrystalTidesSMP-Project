@@ -26,6 +26,14 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+.titlebar-drag-region {
+  -webkit-app-region: drag;
+}
+
+.titlebar-no-drag {
+  -webkit-app-region: no-drag;
+}
+
 .glass-card {
   background: var(--surface-low);
   border: 1px solid var(--border-low);

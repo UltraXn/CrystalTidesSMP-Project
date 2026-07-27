@@ -17,7 +17,7 @@ export interface MicrosoftAuthResult {
   refreshToken?: string;
 }
 
-const CLIENT_ID = "3974b918-cd84-4d60-8955-2ad65234d16b";
+const CLIENT_ID = "000000004C12AE6F";
 const SCOPE = "XboxLive.SignIn XboxLive.offline_access";
 
 // Helper for POST requests through Rust proxy

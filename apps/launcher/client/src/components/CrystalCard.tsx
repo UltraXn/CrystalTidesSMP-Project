@@ -17,7 +17,7 @@ export const CrystalCard: React.FC<CrystalCardProps> = ({
   return (
     <div
       className={`glass-card ${hoverClass} ${className}`}
-      style={style}
+      style={{ borderRadius: 18, ...style }}
     >
       {children}
     </div>

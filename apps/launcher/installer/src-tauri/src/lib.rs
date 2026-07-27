@@ -25,10 +25,19 @@ fn install_app(target_dir: String) -> Result<(), String> {
     let exe_name = if is_windows { "CTLauncher.exe" } else { "CTLauncher" };
     let source_name = if is_windows { "launcher-tauri.exe" } else { "launcher-tauri" };
 
-    // Copy launcher binary if available
+    // Copy launcher binary if available (prefer release binary over debug binary)
     let current_exe = std::env::current_exe().unwrap_or_default();
-    let release_dir = current_exe.parent().unwrap_or_else(|| Path::new("."));
-    let launcher_source = release_dir.join(source_name);
+    let current_dir = current_exe.parent().unwrap_or_else(|| Path::new("."));
+    
+    let release_source = current_dir.join("../release").join(source_name);
+    let same_dir_source = current_dir.join(source_name);
+
+    let launcher_source = if release_source.exists() {
+        release_source
+    } else {
+        same_dir_source
+    };
+
     let target_launcher = path.join(exe_name);
 
     if launcher_source.exists() {
@@ -139,6 +148,11 @@ fn launch_launcher(install_dir: String) -> Result<(), String> {
     Ok(())
 }
 
+#[tauri::command]
+fn close_app(window: tauri::Window) {
+    let _ = window.close();
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -146,7 +160,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             get_home_dir,
             install_app,
-            launch_launcher
+            launch_launcher,
+            close_app
         ])
         .run(tauri::generate_context!())
         .expect("error while running installer application");

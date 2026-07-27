@@ -123,14 +123,18 @@ export const ProfileSelector: React.FC<ProfileSelectorProps> = ({
           justifyContent: "center",
           fontSize: 17,
         }}>
-          {activeProfile?.iconPath || "🌊"}
+          {activeProfile?.iconPath && (activeProfile.iconPath.startsWith("/") || activeProfile.iconPath.startsWith("http") || activeProfile.iconPath.includes(".")) ? (
+            <img src={activeProfile.iconPath} alt="Profile icon" style={{ width: 20, height: 20, objectFit: "contain" }} />
+          ) : (
+            activeProfile?.iconPath || "🌊"
+          )}
         </span>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", minWidth: 0 }}>
           <span style={{ fontSize: 13, fontWeight: 600, color: "#FFFFFF", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 140 }}>
             {activeProfile?.name || "Cargando..."}
           </span>
           <span style={{ fontSize: 10.5, color: "rgba(255, 255, 255, 0.5)", marginTop: 1 }}>
-            {activeProfile?.mcVersion} · {activeProfile?.loaderType || "Vanilla"} · {activeProfile?.maxRam ?? getSettings().maxRam} GB
+            {activeProfile?.mcVersion} · {activeProfile?.loaderType || "Vanilla"} · {activeProfile?.maxRam ? (activeProfile.maxRam > 100 ? `${activeProfile.maxRam / 1024} GB` : `${activeProfile.maxRam} GB`) : `${getSettings().maxRam > 100 ? getSettings().maxRam / 1024 : getSettings().maxRam} GB`}
           </span>
         </div>
         <svg style={{ marginLeft: "auto", flexShrink: 0, opacity: 0.5 }} width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -201,7 +205,13 @@ export const ProfileSelector: React.FC<ProfileSelectorProps> = ({
                   }}
                 >
                   <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1 }}>
-                    <span style={{ fontSize: 18 }}>{p.iconPath}</span>
+                    <span style={{ fontSize: 18, display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
+                      {p.iconPath && (p.iconPath.startsWith("/") || p.iconPath.startsWith("http") || p.iconPath.includes(".")) ? (
+                        <img src={p.iconPath} alt="Icon" style={{ width: 18, height: 18, objectFit: "contain" }} />
+                      ) : (
+                        p.iconPath || "🌊"
+                      )}
+                    </span>
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
                       <span
                         style={{

@@ -1,4 +1,5 @@
 import React from "react";
+import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 
 export const WindowTitleBar: React.FC = () => {
@@ -11,14 +12,26 @@ export const WindowTitleBar: React.FC = () => {
 
   const handleClose = async () => {
     try {
-      const appWindow = getCurrentWindow();
-      await appWindow.close();
-    } catch {}
+      await invoke("close_app");
+    } catch {
+      try {
+        const appWindow = getCurrentWindow();
+        await appWindow.close();
+      } catch {}
+    }
+  };
+
+  const handleStartDrag = (e: React.MouseEvent) => {
+    if (e.button === 0) {
+      getCurrentWindow().startDragging().catch(() => {});
+    }
   };
 
   return (
     <div
+      className="titlebar-drag-region"
       data-tauri-drag-region
+      onMouseDown={handleStartDrag}
       style={{
         position: "fixed",
         top: 0,
@@ -36,14 +49,14 @@ export const WindowTitleBar: React.FC = () => {
         userSelect: "none",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 8, pointerEvents: "none" }}>
-        <img src="/logo.png" style={{ width: 16, height: 16, objectFit: "contain" }} alt="Logo" />
-        <span style={{ fontSize: 11, fontWeight: 600, color: "rgba(255, 255, 255, 0.7)", letterSpacing: "0.03em" }}>
+      <div className="titlebar-drag-region" data-tauri-drag-region style={{ display: "flex", alignItems: "center", gap: 8, pointerEvents: "none" }}>
+        <img src="/logo.png" className="titlebar-drag-region" data-tauri-drag-region style={{ width: 16, height: 16, objectFit: "contain" }} alt="Logo" />
+        <span className="titlebar-drag-region" data-tauri-drag-region style={{ fontSize: 11, fontWeight: 600, color: "rgba(255, 255, 255, 0.7)", letterSpacing: "0.03em" }}>
           CTLauncher Installer
         </span>
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+      <div className="titlebar-no-drag" style={{ display: "flex", alignItems: "center", gap: 4 }} onMouseDown={(e) => e.stopPropagation()}>
         <button
           onClick={handleMinimize}
           style={{

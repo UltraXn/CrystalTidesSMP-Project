@@ -29,23 +29,23 @@ export function App() {
 
   const handleStartInstall = async () => {
     setStep("installing");
-    setProgress(0.1);
-    setStatusText("Verificando dependencias del sistema...");
+    setProgress(0.12);
+    setStatusText("Verificando dependencias y espacio en disco...");
     setErrorMessage(null);
 
     try {
-      await new Promise((r) => setTimeout(r, 500));
-      setProgress(0.35);
-      setStatusText("Creando directorio oficial (~/.crystaltides)...");
+      await new Promise((r) => setTimeout(r, 600));
+      setProgress(0.4);
+      setStatusText("Creando estructura aislada (~/.crystaltides)...");
 
       await invoke("install_app", { targetDir: installPath });
 
-      setProgress(0.75);
-      setStatusText("Generando accesos directos y registros de Windows...");
+      setProgress(0.8);
+      setStatusText("Generando accesos directos y entradas de Windows...");
 
-      await new Promise((r) => setTimeout(r, 600));
+      await new Promise((r) => setTimeout(r, 700));
       setProgress(1.0);
-      setStatusText("¡Instalación finalizada con éxito!");
+      setStatusText("¡Entorno configurado y listo para jugar!");
       setStep("finish");
     } catch (err: any) {
       setErrorMessage(err.message || String(err));
@@ -57,22 +57,39 @@ export function App() {
     try {
       await invoke("launch_launcher", { installDir: installPath });
       try {
-        const win = getCurrentWindow();
-        await win.close();
-      } catch {}
+        await invoke("close_app");
+      } catch {
+        try {
+          const win = getCurrentWindow();
+          await win.close();
+        } catch {}
+      }
     } catch {
       alert("No se pudo iniciar el Launcher. Verifica la instalación.");
     }
   };
 
+  const getStepIndex = () => {
+    switch (step) {
+      case "welcome": return 1;
+      case "directory": return 2;
+      case "installing": return 3;
+      case "finish": return 4;
+    }
+  };
+
+  const currentStepNum = getStepIndex();
+
   return (
     <div
+      className="titlebar-drag-region"
+      data-tauri-drag-region
       style={{
         display: "flex",
         flexDirection: "column",
         width: "100vw",
         height: "100vh",
-        background: "radial-gradient(ellipse at 30% 0%, var(--background-alt) 0%, var(--background) 75%)",
+        background: "radial-gradient(ellipse at 50% -10%, var(--background-alt) 0%, var(--background) 80%)",
         color: "#FFF",
         overflow: "hidden",
         position: "relative",
@@ -82,64 +99,102 @@ export function App() {
       <AmbientBubbles />
 
       <div
+        className="titlebar-drag-region"
+        data-tauri-drag-region
         style={{
           flex: 1,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          padding: 24,
-          paddingTop: 44,
+          padding: 20,
+          paddingTop: 40,
           zIndex: 2,
           position: "relative",
         }}
       >
         <div
-          className="glass-card"
+          className="glass-card titlebar-no-drag"
           style={{
             width: 520,
-            padding: "32px 36px",
-            backgroundColor: "rgba(13, 17, 23, 0.88)",
-            backdropFilter: "blur(24px)",
-            border: "1px solid rgba(45, 212, 191, 0.28)",
-            borderRadius: 20,
-            boxShadow: "0 20px 48px rgba(0,0,0,0.65), 0 0 32px rgba(45, 212, 191, 0.15)",
+            padding: "26px 32px",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
             textAlign: "center",
           }}
         >
+          {/* Stepper Nav */}
+          <div className="stepper-nav" style={{ marginBottom: 14 }}>
+            <div className={`stepper-step ${currentStepNum === 1 ? "active" : currentStepNum > 1 ? "completed" : ""}`}>
+              <span>{currentStepNum > 1 ? "✓" : "1"}</span> Inicio
+            </div>
+            <div className="stepper-divider" />
+            <div className={`stepper-step ${currentStepNum === 2 ? "active" : currentStepNum > 2 ? "completed" : ""}`}>
+              <span>{currentStepNum > 2 ? "✓" : "2"}</span> Ruta
+            </div>
+            <div className="stepper-divider" />
+            <div className={`stepper-step ${currentStepNum === 3 ? "active" : currentStepNum > 3 ? "completed" : ""}`}>
+              <span>{currentStepNum > 3 ? "✓" : "3"}</span> Instalación
+            </div>
+            <div className="stepper-divider" />
+            <div className={`stepper-step ${currentStepNum === 4 ? "active" : ""}`}>
+              <span>4</span> Listo
+            </div>
+          </div>
+
+          {/* Version Badge */}
+          <span
+            style={{
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: "0.12em",
+              color: "#2DD4BF",
+              textTransform: "uppercase",
+              background: "rgba(45, 212, 191, 0.12)",
+              padding: "3px 12px",
+              borderRadius: 20,
+              border: "1px solid rgba(45, 212, 191, 0.3)",
+              marginBottom: 12,
+              boxShadow: "0 0 16px rgba(45, 212, 191, 0.15)",
+            }}
+          >
+            CrystalTides SMP • Asistente Oficial
+          </span>
+
           {/* Logo animado del pulpo */}
           <div
             className="octopus-logo-box"
             style={{
-              width: 72,
-              height: 72,
+              width: 64,
+              height: 64,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              marginBottom: 16,
-              borderRadius: 20,
-              border: "1.5px solid rgba(45, 212, 191, 0.35)",
-              background: "linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%)",
+              marginBottom: 12,
+              borderRadius: 18,
+              border: "1.5px solid rgba(45, 212, 191, 0.4)",
+              background: "linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(45,212,191,0.03) 100%)",
             }}
           >
             <img
               src="/logo.png"
               className="octopus-logo-img"
-              style={{ width: "84%", height: "84%", objectFit: "contain" }}
+              style={{ width: "82%", height: "82%", objectFit: "contain" }}
               alt="CrystalTides Logo"
             />
           </div>
 
-          <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, letterSpacing: "-0.01em" }}>
-            {step === "finish" ? "¡Instalación Completada!" : "CTLauncher Installer"}
+          <h2 style={{ margin: 0, fontSize: 22, fontWeight: 800, letterSpacing: "-0.02em", color: "#F8FAFC" }}>
+            {step === "welcome" && "Instalar CrystalTides Launcher"}
+            {step === "directory" && "Ubicación del Cliente"}
+            {step === "installing" && "Configurando el Entorno"}
+            {step === "finish" && "¡Instalación Completada!"}
           </h2>
-          <p style={{ margin: "6px 0 20px 0", fontSize: 13, color: "rgba(255,255,255,0.55)", lineHeight: 1.45 }}>
-            {step === "welcome" && "Bienvenido a la experiencia oficial del cliente CrystalTidesSMP."}
-            {step === "directory" && "Selecciona la ubicación de instalación para los archivos del cliente."}
+          <p style={{ margin: "4px 0 16px 0", fontSize: 12.5, color: "var(--text-muted)", lineHeight: 1.45, maxWidth: 440 }}>
+            {step === "welcome" && "Bienvenido a la experiencia oficial del servidor. Prepárate para ingresar en segundos."}
+            {step === "directory" && "Selecciona la carpeta en tu sistema donde se guardarán los archivos y mods."}
             {step === "installing" && statusText}
-            {step === "finish" && "El entorno está listo para sumergirte en el servidor."}
+            {step === "finish" && "Todo está listo. Puedes iniciar el launcher ahora y sumergirte en el servidor."}
           </p>
 
           {/* PASO 1: Bienvenida y Legal */}
@@ -149,25 +204,44 @@ export function App() {
                 style={{
                   backgroundColor: "rgba(255, 255, 255, 0.03)",
                   border: "1px solid rgba(255, 255, 255, 0.08)",
-                  borderRadius: 12,
-                  padding: 14,
-                  fontSize: 12,
-                  color: "rgba(255,255,255,0.7)",
-                  lineHeight: 1.5,
+                  borderRadius: 14,
+                  padding: "14px 16px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 10,
                 }}
               >
-                Este asistente instalará <strong>CrystalTides Launcher</strong> en tu equipo. Obtendrás sincronización automática de mods, perfiles aislados y acceso al servidor.
+                <div style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 12, color: "rgba(255,255,255,0.85)" }}>
+                  <span style={{ color: "#2DD4BF", fontSize: 14 }}>✦</span> Sincronización automática de mods y recursos
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 12, color: "rgba(255,255,255,0.85)" }}>
+                  <span style={{ color: "#2DD4BF", fontSize: 14 }}>✦</span> Perfiles independientes sin alterar tu .minecraft
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 12, color: "rgba(255,255,255,0.85)" }}>
+                  <span style={{ color: "#2DD4BF", fontSize: 14 }}>✦</span> Rendimiento optimizado e integración nativa
+                </div>
               </div>
 
-              <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginTop: 4 }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: 10,
+                  padding: "10px 14px",
+                  borderRadius: 12,
+                  background: acceptedTerms ? "rgba(45, 212, 191, 0.06)" : "rgba(255, 255, 255, 0.02)",
+                  border: `1px solid ${acceptedTerms ? "rgba(45, 212, 191, 0.25)" : "rgba(255, 255, 255, 0.06)"}`,
+                  transition: "all 0.2s ease",
+                }}
+              >
                 <input
                   type="checkbox"
                   id="terms-check"
                   checked={acceptedTerms}
                   onChange={(e) => setAcceptedTerms(e.target.checked)}
-                  style={{ marginTop: 2, accentColor: "#2DD4BF", cursor: "pointer" }}
+                  style={{ marginTop: 2, accentColor: "#2DD4BF", cursor: "pointer", width: 16, height: 16 }}
                 />
-                <label htmlFor="terms-check" style={{ fontSize: 11.5, color: "rgba(255,255,255,0.75)", lineHeight: 1.4, cursor: "pointer" }}>
+                <label htmlFor="terms-check" style={{ fontSize: 11.5, color: "rgba(255,255,255,0.75)", lineHeight: 1.45, cursor: "pointer" }}>
                   Acepto los{" "}
                   <span
                     onClick={(e) => { e.preventDefault(); setShowTermsModal("terms"); }}
@@ -181,31 +255,15 @@ export function App() {
                     style={{ color: "#2DD4BF", textDecoration: "underline", fontWeight: 600 }}
                   >
                     Política de Privacidad
-                  </span>{" "}
-                  de CrystalTidesSMP.
+                  </span>.
                 </label>
               </div>
 
               <button
                 disabled={!acceptedTerms}
                 onClick={() => setStep("directory")}
-                style={{
-                  marginTop: 10,
-                  width: "100%",
-                  padding: "11px 0",
-                  borderRadius: 10,
-                  border: "none",
-                  background: acceptedTerms
-                    ? "linear-gradient(135deg, #2DD4BF 0%, #0D9488 100%)"
-                    : "rgba(255, 255, 255, 0.1)",
-                  color: acceptedTerms ? "#0B0D14" : "rgba(255, 255, 255, 0.3)",
-                  fontSize: 13,
-                  fontWeight: 700,
-                  letterSpacing: "0.05em",
-                  cursor: acceptedTerms ? "pointer" : "not-allowed",
-                  transition: "all 0.2s ease",
-                  boxShadow: acceptedTerms ? "0 4px 16px rgba(45, 212, 191, 0.3)" : "none",
-                }}
+                className="btn-primary"
+                style={{ marginTop: 4 }}
               >
                 CONTINUAR ➔
               </button>
@@ -214,64 +272,41 @@ export function App() {
 
           {/* PASO 2: Directorio de Instalación */}
           {step === "directory" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 16, width: "100%", textAlign: "left" }}>
-              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                <label style={{ fontSize: 11, fontWeight: 700, color: "var(--accent)", textTransform: "uppercase" }}>
-                  📁 Carpeta de Instalación
-                </label>
+            <div style={{ display: "flex", flexDirection: "column", gap: 18, width: "100%", textAlign: "left" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <label style={{ fontSize: 11, fontWeight: 700, color: "var(--accent)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                    📁 Carpeta de Instalación
+                  </label>
+                  <span style={{ fontSize: 10.5, color: "rgba(45, 212, 191, 0.8)", fontWeight: 600 }}>
+                    ~150 MB Libres
+                  </span>
+                </div>
                 <input
                   type="text"
                   value={installPath}
                   onChange={(e) => setInstallPath(e.target.value)}
-                  style={{
-                    backgroundColor: "rgba(0,0,0,0.3)",
-                    border: "1px solid rgba(255,255,255,0.15)",
-                    borderRadius: 8,
-                    padding: "8px 12px",
-                    color: "#FFF",
-                    fontSize: 12,
-                    fontFamily: "monospace",
-                  }}
+                  className="installer-input"
                 />
-                <span style={{ fontSize: 10.5, color: "rgba(255,255,255,0.4)" }}>
-                  Ruta recomendada aislada de tu .minecraft habitual.
+                <span style={{ fontSize: 10.5, color: "rgba(255,255,255,0.4)", lineHeight: 1.4 }}>
+                  💡 Se creará una carpeta dedicada para asegurar la aislación de archivos.
                 </span>
               </div>
 
-              <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
+              <div style={{ display: "flex", gap: 12 }}>
                 <button
                   onClick={() => setStep("welcome")}
-                  style={{
-                    flex: 1,
-                    padding: "10px 0",
-                    borderRadius: 10,
-                    border: "1px solid rgba(255,255,255,0.15)",
-                    background: "transparent",
-                    color: "rgba(255,255,255,0.7)",
-                    fontSize: 12,
-                    fontWeight: 600,
-                    cursor: "pointer",
-                  }}
+                  className="btn-secondary"
+                  style={{ flex: 1 }}
                 >
-                  ATRÁS
+                  ← ATRÁS
                 </button>
                 <button
                   onClick={handleStartInstall}
-                  style={{
-                    flex: 2,
-                    padding: "10px 0",
-                    borderRadius: 10,
-                    border: "none",
-                    background: "linear-gradient(135deg, #2DD4BF 0%, #0D9488 100%)",
-                    color: "#0B0D14",
-                    fontSize: 13,
-                    fontWeight: 700,
-                    letterSpacing: "0.05em",
-                    cursor: "pointer",
-                    boxShadow: "0 4px 16px rgba(45, 212, 191, 0.3)",
-                  }}
+                  className="btn-primary"
+                  style={{ flex: 2 }}
                 >
-                  INSTALAR AHORA
+                  INSTALAR AHORA 🚀
                 </button>
               </div>
             </div>
@@ -279,33 +314,44 @@ export function App() {
 
           {/* PASO 3: Progreso de Instalación */}
           {step === "installing" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 14, width: "100%" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 16, width: "100%" }}>
               <div
                 style={{
                   width: "100%",
-                  height: 10,
-                  backgroundColor: "rgba(255, 255, 255, 0.08)",
+                  height: 12,
+                  backgroundColor: "rgba(0, 0, 0, 0.5)",
                   borderRadius: 999,
                   overflow: "hidden",
-                  border: "1px solid rgba(255, 255, 255, 0.1)",
+                  border: "1px solid rgba(45, 212, 191, 0.25)",
+                  padding: 2,
+                  boxSizing: "border-box",
                 }}
               >
                 <div
+                  className="progress-glow-bar"
                   style={{
                     width: `${Math.min(100, progress * 100)}%`,
                     height: "100%",
-                    background: "linear-gradient(90deg, #2DD4BF 0%, #5EEAD4 100%)",
+                    background: "var(--accent-gradient)",
                     borderRadius: 999,
-                    transition: "width 0.3s ease",
-                    boxShadow: "0 0 12px rgba(45, 212, 191, 0.6)",
+                    transition: "width 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
+                    boxShadow: "0 0 16px rgba(45, 212, 191, 0.7)",
                   }}
                 />
               </div>
-              <span style={{ fontSize: 12, color: "rgba(255,255,255,0.6)" }}>
-                {Math.round(progress * 100)}% completado
-              </span>
+
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12 }}>
+                <span style={{ color: "rgba(255,255,255,0.6)", display: "flex", alignItems: "center", gap: 6 }}>
+                  <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: "#2DD4BF", boxShadow: "0 0 8px #2DD4BF" }} />
+                  {statusText}
+                </span>
+                <span style={{ fontWeight: 800, color: "#2DD4BF", fontFamily: "monospace" }}>
+                  {Math.round(progress * 100)}%
+                </span>
+              </div>
+
               {errorMessage && (
-                <div style={{ color: "#EF4444", fontSize: 12, marginTop: 8 }}>
+                <div style={{ color: "#EF4444", fontSize: 12, marginTop: 4, background: "rgba(239,68,68,0.1)", padding: "8px 12px", borderRadius: 8, border: "1px solid rgba(239,68,68,0.2)" }}>
                   ⚠️ Error: {errorMessage}
                 </div>
               )}
@@ -314,23 +360,25 @@ export function App() {
 
           {/* PASO 4: Finalizado */}
           {step === "finish" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 14, width: "100%" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 16, width: "100%" }}>
+              <div
+                style={{
+                  backgroundColor: "rgba(45, 212, 191, 0.08)",
+                  border: "1px solid rgba(45, 212, 191, 0.25)",
+                  borderRadius: 14,
+                  padding: "12px 16px",
+                  fontSize: 12.5,
+                  color: "rgba(255,255,255,0.85)",
+                  lineHeight: 1.5,
+                }}
+              >
+                🎉 Se ha creado un acceso directo en tu <strong>Escritorio</strong> y en el <strong>Menú de Inicio</strong>.
+              </div>
+
               <button
                 onClick={handleLaunchApp}
-                style={{
-                  width: "100%",
-                  padding: "12px 0",
-                  borderRadius: 10,
-                  border: "none",
-                  background: "linear-gradient(135deg, #2DD4BF 0%, #0D9488 100%)",
-                  color: "#0B0D14",
-                  fontSize: 14,
-                  fontWeight: 800,
-                  letterSpacing: "0.06em",
-                  cursor: "pointer",
-                  boxShadow: "0 6px 20px rgba(45, 212, 191, 0.4)",
-                  transition: "all 0.2s ease",
-                }}
+                className="btn-primary"
+                style={{ padding: "15px 20px", fontSize: 14 }}
               >
                 🚀 INICIAR LAUNCHER
               </button>
@@ -346,9 +394,9 @@ export function App() {
           style={{
             position: "fixed",
             inset: 0,
-            zIndex: 9999,
-            backgroundColor: "rgba(0,0,0,0.75)",
-            backdropFilter: "blur(8px)",
+            zIndex: 99999,
+            backgroundColor: "rgba(3, 7, 18, 0.82)",
+            backdropFilter: "blur(12px)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -360,31 +408,32 @@ export function App() {
             style={{
               width: 500,
               maxHeight: "75vh",
-              backgroundColor: "rgba(13, 17, 23, 0.95)",
-              border: "1px solid rgba(45, 212, 191, 0.3)",
-              borderRadius: 16,
-              padding: 24,
+              backgroundColor: "rgba(10, 15, 26, 0.95)",
+              border: "1px solid rgba(45, 212, 191, 0.35)",
+              borderRadius: 20,
+              padding: 26,
               display: "flex",
               flexDirection: "column",
-              gap: 12,
+              gap: 14,
+              boxShadow: "0 24px 60px rgba(0,0,0,0.9), 0 0 30px rgba(45,212,191,0.2)",
             }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <h3 style={{ margin: 0, fontSize: 16, color: "#2DD4BF" }}>
+              <h3 style={{ margin: 0, fontSize: 17, color: "#2DD4BF", fontWeight: 700 }}>
                 {showTermsModal === "terms" ? "📜 Términos de Servicio" : "🔒 Política de Privacidad"}
               </h3>
               <button
                 onClick={() => setShowTermsModal(null)}
-                style={{ background: "none", border: "none", color: "#FFF", fontSize: 16, cursor: "pointer" }}
+                style={{ background: "none", border: "none", color: "rgba(255,255,255,0.6)", fontSize: 18, cursor: "pointer" }}
               >
                 ✕
               </button>
             </div>
             <div
               style={{
-                fontSize: 11.5,
-                color: "rgba(255,255,255,0.7)",
-                lineHeight: 1.5,
+                fontSize: 12,
+                color: "rgba(255,255,255,0.75)",
+                lineHeight: 1.6,
                 overflowY: "auto",
                 maxHeight: "55vh",
                 paddingRight: 8,
@@ -392,29 +441,20 @@ export function App() {
             >
               {showTermsModal === "terms" ? (
                 <div>
-                  <p><strong>1. CLIENTE OFICIAL:</strong> CrystalTidesSMP Launcher es el software cliente para ingresar al servidor.</p>
+                  <p><strong>1. CLIENTE OFICIAL:</strong> CrystalTidesSMP Launcher es el software cliente exclusivo para ingresar al servidor.</p>
                   <p><strong>2. NO AFILIADO:</strong> Este cliente no está afiliado con Mojang AB ni Microsoft.</p>
-                  <p><strong>3. CONVIVENCIA:</strong> Prohibido el uso de exploits o ventaja injusta.</p>
+                  <p><strong>3. CONVIVENCIA:</strong> Queda prohibido el uso de hacks, exploits o cualquier ventaja injusta.</p>
                 </div>
               ) : (
                 <div>
-                  <p><strong>PRIVACIDAD:</strong> Se resguardan únicamente credenciales de sesión y parámetros del servidor.</p>
+                  <p><strong>PRIVACIDAD:</strong> Se resguardan únicamente credenciales de sesión y parámetros locales del servidor.</p>
                 </div>
               )}
             </div>
             <button
               onClick={() => setShowTermsModal(null)}
-              style={{
-                alignSelf: "flex-end",
-                backgroundColor: "rgba(45, 212, 191, 0.2)",
-                border: "1px solid #2DD4BF",
-                color: "#2DD4BF",
-                borderRadius: 8,
-                padding: "6px 16px",
-                fontSize: 12,
-                fontWeight: 700,
-                cursor: "pointer",
-              }}
+              className="btn-secondary"
+              style={{ alignSelf: "flex-end", padding: "8px 20px" }}
             >
               Cerrar
             </button>

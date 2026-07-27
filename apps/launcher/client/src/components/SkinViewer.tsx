@@ -100,8 +100,12 @@ export const SkinViewer: React.FC<SkinViewerProps> = ({ username, uuid, capeUrl,
     return () => {
       isSubscribed = false;
       window.removeEventListener("resize", handleResize);
-      if (skinViewer) {
-        skinViewer.dispose();
+      if (skinViewer && typeof (skinViewer as any).dispose === "function") {
+        try {
+          (skinViewer as any).dispose();
+        } catch {
+          // ignore dispose error
+        }
       }
       viewerRef.current = null;
     };

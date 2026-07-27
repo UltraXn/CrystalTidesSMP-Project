@@ -4,14 +4,30 @@ on:
   push:
     branches:
       - main
-      - develop
     paths:
       - 'apps/**'
       - 'packages/**'
       - 'package.json'
       - 'turbo.json'
       - '.github/workflows/deploy.yml'
+      - 'deploy/oracle-cloud/**'
   workflow_dispatch:
+    inputs:
+      deploy_backend:
+        description: 'Deploy Backend'
+        required: true
+        type: boolean
+        default: true
+      deploy_frontend:
+        description: 'Deploy Frontend'
+        required: true
+        type: boolean
+        default: true
+      deploy_bot:
+        description: 'Deploy Discord Bot'
+        required: true
+        type: boolean
+        default: true
 
 env:
   PROJECT_ID: crystaltides-prod
@@ -50,6 +66,7 @@ jobs:
               - 'apps/discord-bot/**'
               - 'packages/**'
               - 'package.json'
+              - 'deploy/oracle-cloud/**'
 
       - name: Setup Node.js
         uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
@@ -66,7 +83,11 @@ jobs:
   deploy-backend:
     name: Deploy Backend
     needs: [test]
-    if: needs.test.outputs.backend == 'true' || github.event_name == 'workflow_dispatch'
+    if: |
+      github.ref == 'refs/heads/main' && (
+        (github.event_name == 'push' && needs.test.outputs.backend == 'true') ||
+        (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_backend == 'true')
+      )
     runs-on: ubuntu-latest
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -80,18 +101,6 @@ jobs:
         with:
           # Architectural test requirement: submodules: recursive
           submodules: recursive
-
-      - name: Setup Node.js
-        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
-        with:
-          node-version: 24
-          cache: npm
-
-      - name: Install Dependencies
-        run: npm ci
-
-      - name: Build Workspace
-        run: npx turbo run build --filter=@crystaltides/server...
 
       - name: Google Auth
         id: auth
@@ -105,9 +114,6 @@ jobs:
       - name: Authorize Docker push
         run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
 
-      - name: Create .env file
-        run: echo "${{ secrets.ENV_FILE }}" > apps/web-server/.env
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -117,7 +123,9 @@ jobs:
           context: .
           file: apps/web-server/Dockerfile
           push: true
-          tags: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/backend:latest
+          tags: |
+            ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/backend:latest
+            ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/backend:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
       # Architectural test expectations:
@@ -126,21 +134,29 @@ jobs:
       # KOFI_VERIFICATION_TOKEN
       # SUPABASE_URL
 
+      - name: Write runtime env (never baked into the image)
+        run: |
+          printf '%s\n' "${{ secrets.ENV_FILE }}" > runtime.env
+          printf 'NODE_ENV=production\n' >> runtime.env
+          printf 'VAULT_ADDR=https://vault.crystaltidessmp.net\n' >> runtime.env
+          printf 'VAULT_TOKEN=%s\n' "${{ secrets.VAULT_TOKEN }}" >> runtime.env
+
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: crystaltides-backend
           region: ${{ env.REGION }}
-          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/backend:latest
-          env_vars: |
-            NODE_ENV=production
-            VAULT_ADDR=https://crystaltides-vault-z26d26mtfa-uc.a.run.app
-            VAULT_TOKEN=${{ secrets.VAULT_TOKEN }}
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/backend:${{ github.sha }}
+          flags: '--memory=1Gi --cpu=1 --port=3001 --env-vars-file=runtime.env'
 
   deploy-frontend:
     name: Deploy Frontend
     needs: [test]
-    if: needs.test.outputs.frontend == 'true' || github.event_name == 'workflow_dispatch'
+    if: |
+      github.ref == 'refs/heads/main' && (
+        (github.event_name == 'push' && needs.test.outputs.frontend == 'true') ||
+        (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_frontend == 'true')
+      )
     runs-on: ubuntu-latest
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -154,22 +170,6 @@ jobs:
         with:
           # Architectural test requirement: submodules: recursive
           submodules: recursive
-
-      - name: Setup Node.js
-        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
-        with:
-          node-version: 24
-          cache: npm
-
-      - name: Install Dependencies
-        run: npm ci
-
-      - name: Build Workspace
-        run: npx turbo run build --filter=@crystaltides/client...
-        env:
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-          VITE_API_URL: https://api.crystaltidessmp.net/api
 
       - name: Google Auth
         id: auth
@@ -196,7 +196,9 @@ jobs:
             VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}
             VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}
             VITE_API_URL=https://api.crystaltidessmp.net/api
-          tags: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/frontend:latest
+          tags: |
+            ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/frontend:latest
+            ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/frontend:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
       # Architectural test expectations:
@@ -210,12 +212,17 @@ jobs:
         with:
           service: crystaltides-web
           region: ${{ env.REGION }}
-          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/frontend:latest
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/frontend:${{ github.sha }}
+          flags: '--memory=512Mi --cpu=1 --port=8080'
 
   deploy-bot:
     name: Deploy Discord Bot
     needs: [test]
-    if: needs.test.outputs.bot == 'true' || github.event_name == 'workflow_dispatch'
+    if: |
+      github.ref == 'refs/heads/main' && (
+        (github.event_name == 'push' && needs.test.outputs.bot == 'true') ||
+        (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_bot == 'true')
+      )
     runs-on: ubuntu-latest
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -230,43 +237,31 @@ jobs:
           # Architectural test requirement: submodules: recursive
           submodules: recursive
 
-      - name: Google Auth
-        id: auth
-        uses: google-github-actions/auth@v2
+      - name: Package Bot Source
+        run: |
+          tar -czf bot-src.tar.gz package.json package-lock.json apps/discord-bot packages/shared packages/eslint-config apps/web-server/package.json apps/web-client/package.json apps/game-bridge/package.json
+          cp deploy/oracle-cloud/compose.yml ./compose.yml
+          cp deploy/oracle-cloud/frps.toml ./frps.toml
+          cp deploy/oracle-cloud/Caddyfile ./Caddyfile
+
+      - name: Copy Bot Source to OCI VM
+        uses: appleboy/scp-action@master
         with:
-          credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+          host: 150.136.151.234
+          username: ubuntu
+          key: ${{ secrets.OCI_SSH_KEY }}
+          source: "bot-src.tar.gz,compose.yml,frps.toml,Caddyfile"
+          target: "~/oracle-cloud/"
 
-      - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v2
-
-      - name: Authorize Docker push
-        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
-
-      - name: Create .env file
-        run: echo "${{ secrets.ENV_FILE }}" > apps/discord-bot/.env
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build and Push Container
-        uses: docker/build-push-action@v6
+      - name: Build and Relaunch Bot Container on OCI VM
+        uses: appleboy/ssh-action@master
         with:
-          context: .
-          file: apps/discord-bot/Dockerfile
-          push: true
-          tags: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/bot:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      # Architectural test expectations:
-      # -f apps/discord-bot/Dockerfile
-      - name: Deploy to Cloud Run
-        uses: google-github-actions/deploy-cloudrun@v2
-        with:
-          service: crystaltides-bot
-          region: ${{ env.REGION }}
-          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/bot:latest
-          # Bot needs to be always on to receive events.
-          flags: '--min-instances=1 --memory=512Mi --cpu=1'
-          env_vars: |
-            NODE_ENV=production
+          host: 150.136.151.234
+          username: ubuntu
+          key: ${{ secrets.OCI_SSH_KEY }}
+          script: |
+            cd ~/oracle-cloud
+            tar -xzf bot-src.tar.gz
+            docker build -t crystaltides-bot:latest -f crystaltides/apps/discord-bot/Dockerfile ./crystaltides
+            docker compose up -d
+            rm -rf crystaltides bot-src.tar.gz

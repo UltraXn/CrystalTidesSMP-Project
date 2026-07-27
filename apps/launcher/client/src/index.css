@@ -56,6 +56,14 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+.titlebar-drag-region {
+  -webkit-app-region: drag;
+}
+
+.titlebar-no-drag {
+  -webkit-app-region: no-drag;
+}
+
 /* Scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
@@ -594,5 +602,27 @@ input[type="checkbox"] {
   transform: scale(1.1) rotate(-3deg);
   filter: drop-shadow(0 0 20px rgba(45, 212, 191, 0.8)) !important;
 }
+
+/* 🌊 Custom Scrollbar para el Launcher */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.5);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(45, 212, 191, 0.3);
+  border-radius: 4px;
+  border: 1px solid rgba(45, 212, 191, 0.2);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(45, 212, 191, 0.6);
+}
+
 
 

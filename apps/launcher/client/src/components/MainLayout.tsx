@@ -9,6 +9,8 @@ import { ModManagerPage } from "./ModManagerPage";
 import { ProfileManagerPage } from "./ProfileManagerPage";
 import { SettingsPage } from "./SettingsPage";
 import { LogsPage } from "./LogsPage";
+import { RewardsPage } from "./RewardsPage";
+import { PlayerStatsWidget } from "./PlayerStatsWidget";
 
 interface SidebarItem {
   icon: React.ReactNode;
@@ -80,12 +82,37 @@ const NAV_ITEMS: SidebarItem[] = [
     label: "Logs",
     id: "logs",
   },
+  {
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2DD4BF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M20 12v10H4V12" />
+        <path d="M2 7h20v5H2z" />
+        <path d="M12 22V7" />
+        <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z" />
+        <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" />
+      </svg>
+    ),
+    label: "Recompensas",
+    id: "rewards",
+  },
+  {
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#38BDF8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <line x1="18" y1="20" x2="18" y2="10" />
+        <line x1="12" y1="20" x2="12" y2="4" />
+        <line x1="6" y1="20" x2="6" y2="14" />
+      </svg>
+    ),
+    label: "Estadísticas",
+    id: "stats",
+  },
 ];
 
 export const MainLayout: React.FC = () => {
   const [activePage, setActivePage] = useState("home");
   const { currentSession, crystalSession, logout } = useAuth();
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+  const [logoFailed, setLogoFailed] = useState(false);
   const [showAccountMenu, setShowAccountMenu] = useState(false);
   const [avatarPref, setAvatarPref] = useState<"web" | "minecraft">(
     getSettings().avatarPreference || "web"
@@ -116,6 +143,40 @@ export const MainLayout: React.FC = () => {
       case "mods": return <ModManagerPage />;
       case "settings": return <SettingsPage />;
       case "logs": return <LogsPage />;
+      case "rewards": return <RewardsPage />;
+      case "stats": return (
+        <div style={{ padding: "24px 32px", height: "100%", overflowY: "auto", boxSizing: "border-box" }}>
+          <div style={{ marginBottom: 20 }}>
+            <h1 style={{ margin: 0, fontSize: 24, fontWeight: 900, color: "#FFF" }}>
+              📊 Estadísticas del Jugador
+            </h1>
+            <p style={{ margin: "4px 0 0", fontSize: 13, color: "rgba(255,255,255,0.6)" }}>
+              Consulta tu progreso semanal e histórico en CrystalTides SMP.
+            </p>
+          </div>
+          {crystalSession?.username ? (
+            <PlayerStatsWidget username={crystalSession.username} />
+          ) : (
+            <div style={{
+              padding: 28,
+              borderRadius: 16,
+              background: "rgba(15, 23, 42, 0.65)",
+              border: "1px solid rgba(45, 212, 191, 0.2)",
+              textAlign: "center",
+              color: "rgba(255,255,255,0.8)",
+              marginTop: 20,
+            }}>
+              <div style={{ fontSize: 32, marginBottom: 8 }}>🔒</div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: "#2DD4BF", marginBottom: 6 }}>
+                Autenticación Requerida
+              </div>
+              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", maxWidth: 460, margin: "0 auto" }}>
+                Inicia sesión con tu **Cuenta Web oficial de CrystalTides SMP** para consultar tus estadísticas semanales, racha, KilluCoins e historial de juego de forma 100% segura.
+              </div>
+            </div>
+          )}
+        </div>
+      );
       default: return <HomePage onNavigate={setActivePage} />;
     }
   };
@@ -166,12 +227,24 @@ export const MainLayout: React.FC = () => {
           }}
           title="CrystalTides SMP"
         >
-          <img
-            src="/logo.png"
-            className="octopus-logo-img"
-            style={{ width: "84%", height: "84%", objectFit: "contain" }}
-            alt="CrystalTides Logo"
-          />
+          {logoFailed ? (
+            <span style={{ fontSize: 24, userSelect: "none" }}>💎</span>
+          ) : (
+            <img
+              src="/logo.png"
+              className="octopus-logo-img"
+              style={{ width: "84%", height: "84%", objectFit: "contain" }}
+              alt="CrystalTides Logo"
+              onError={(e) => {
+                if (!e.currentTarget.dataset.fallback) {
+                  e.currentTarget.dataset.fallback = "true";
+                  e.currentTarget.src = "/server_icon.png";
+                } else {
+                  setLogoFailed(true);
+                }
+              }}
+            />
+          )}
         </div>
 
         {/* Nav Items */}

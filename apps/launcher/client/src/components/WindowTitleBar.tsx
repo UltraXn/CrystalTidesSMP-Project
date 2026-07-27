@@ -20,9 +20,17 @@ export const WindowTitleBar: React.FC = () => {
     }
   };
 
+  const handleStartDrag = (e: React.MouseEvent) => {
+    if (e.button === 0) {
+      getCurrentWindow().startDragging().catch(() => {});
+    }
+  };
+
   return (
     <div
+      className="titlebar-drag-region"
       data-tauri-drag-region
+      onMouseDown={handleStartDrag}
       style={{
         height: 32,
         display: "flex",
@@ -43,6 +51,7 @@ export const WindowTitleBar: React.FC = () => {
     >
       {/* Title / Logo */}
       <div
+        className="titlebar-drag-region"
         data-tauri-drag-region
         style={{
           display: "flex",
@@ -56,15 +65,16 @@ export const WindowTitleBar: React.FC = () => {
       >
         <img
           src="/logo.png"
+          className="titlebar-drag-region"
           data-tauri-drag-region
           alt="CrystalTides Logo"
           style={{ width: 16, height: 16, objectFit: "contain", imageRendering: "pixelated" }}
         />
-        <span data-tauri-drag-region>CrystalTides Launcher</span>
+        <span className="titlebar-drag-region" data-tauri-drag-region>CrystalTides Launcher</span>
       </div>
 
       {/* Control Buttons */}
-      <div style={{ display: "flex", gap: 4 }}>
+      <div className="titlebar-no-drag" style={{ display: "flex", gap: 4 }} onMouseDown={(e) => e.stopPropagation()}>
         <button
           onClick={handleMinimize}
           style={{

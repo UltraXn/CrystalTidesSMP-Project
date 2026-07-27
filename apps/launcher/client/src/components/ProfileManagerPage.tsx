@@ -123,9 +123,18 @@ export const ProfileManagerPage: React.FC = () => {
                       borderRadius: 12,
                       backgroundColor: "rgba(255,255,255,0.03)",
                       border: "1px solid rgba(255,255,255,0.05)",
-                      display: "inline-block",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      width: 44,
+                      height: 44,
+                      boxSizing: "border-box",
                     }}>
-                      {p.iconPath || "🌊"}
+                      {p.iconPath && (p.iconPath.startsWith("/") || p.iconPath.startsWith("http") || p.iconPath.includes(".")) ? (
+                        <img src={p.iconPath} alt="Profile icon" style={{ width: 28, height: 28, objectFit: "contain" }} />
+                      ) : (
+                        p.iconPath || "🌊"
+                      )}
                     </span>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>

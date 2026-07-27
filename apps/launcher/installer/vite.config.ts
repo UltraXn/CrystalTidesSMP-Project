@@ -5,7 +5,7 @@ export default defineConfig({
   plugins: [react()],
   clearScreen: false,
   server: {
-    port: 1421,
+    port: 14210,
     strictPort: true,
   },
 });

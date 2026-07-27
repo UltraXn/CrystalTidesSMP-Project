@@ -18,6 +18,8 @@ export interface InstalledMod {
   sizeBytes: number;
   enabled: boolean;
   official: boolean;
+  title?: string;
+  iconData?: string;
 }
 
 /** Metadata opcional guardada al instalar desde Explorar (Modrinth/CurseForge) */
@@ -33,6 +35,8 @@ interface RawModFile {
   size_bytes: number;
   enabled: boolean;
   official: boolean;
+  title?: string;
+  icon_data?: string;
 }
 
 const modsDirOf = (gameDir: string): string =>
@@ -49,6 +53,8 @@ export const listInstalledMods = async (gameDir: string): Promise<InstalledMod[]
     sizeBytes: r.size_bytes,
     enabled: r.enabled,
     official: r.official,
+    title: r.title,
+    iconData: r.icon_data,
   }));
 };
 

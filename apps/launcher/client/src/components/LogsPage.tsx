@@ -97,7 +97,7 @@ export const LogsPage: React.FC = () => {
             </p>
           ) : (
             logs.map((entry, i) => (
-              <div key={i} style={{ display: "flex", gap: 8 }}>
+              <div key={`${entry.timestamp}-${i}`} style={{ display: "flex", gap: 8 }}>
                 <span style={{ color: "rgba(255,255,255,0.3)", minWidth: 170, flexShrink: 0 }}>
                   {new Date(entry.timestamp).toLocaleTimeString()}
                 </span>

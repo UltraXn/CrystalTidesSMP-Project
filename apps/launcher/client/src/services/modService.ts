@@ -3,6 +3,16 @@ import { supabase } from "./supabaseClient";
 
 const CF_API_KEY = "$2a$10$c3w/Utx0iBp.ELSa0hKO.O1b5wXQCeCuqA7kd2FexE3zXTKS1M2t2";
 
+export const getCurseForgeKey = (): string => {
+  return (
+    CF_API_KEY ||
+    import.meta.env.VITE_CURSEFORGE_API_KEY ||
+    localStorage.getItem("crystaltides_curseforge_key:v1") ||
+    localStorage.getItem("crystaltides_cf_api_key") ||
+    ""
+  );
+};
+
 export interface ModInfo {
   name: string;
   url: string;
@@ -107,7 +117,7 @@ export const fetchOfficialModsList = async (): Promise<ServerModItem[]> => {
       ];
     }
 
-    return data.map((mod: any) => {
+    return data.map((mod: { name: string; sha1?: string }) => {
       // Clean up names for presentation
       let cat = "Utilidad";
       let desc = "Mod de soporte oficial de CrystalTides.";
@@ -133,7 +143,7 @@ export const fetchOfficialModsList = async (): Promise<ServerModItem[]> => {
         name: mod.name,
         category: cat,
         description: desc,
-        sha1: mod.sha1,
+        sha1: mod.sha1 || "",
       };
     });
   } catch (err) {
@@ -176,7 +186,7 @@ export const searchModrinth = async (
   limit: number = 20
 ): Promise<SearchResponse> => {
   try {
-    const facetList: any[] = [
+    const facetList: string[][] = [
       [`categories:${loader}`],
       [`versions:${gameVersion}`],
       ["client_side:required", "client_side:optional"]
@@ -197,7 +207,7 @@ export const searchModrinth = async (
 
     const data = JSON.parse(responseText);
     return {
-      hits: (data.hits || []).map((hit: any) => ({
+      hits: (data.hits || []).map((hit: { project_id: string; title: string; description?: string; downloads?: number; icon_url?: string; author?: string; categories?: string[]; date_modified?: string; date_created?: string }) => ({
         id: hit.project_id,
         title: hit.title,
         description: hit.description,
@@ -233,7 +243,7 @@ export const installModFromModrinth = async (
   }
 
   const latestVersion = versions[0];
-  const file = latestVersion.files.find((f: any) => f.primary) || latestVersion.files[0];
+  const file = latestVersion.files.find((f: { primary?: boolean }) => f.primary) || latestVersion.files[0];
 
   const downloadUrl = file.url;
   const fileName = file.filename;
@@ -264,7 +274,7 @@ export const searchCurseForge = async (
   limit: number = 20
 ): Promise<SearchResponse> => {
   try {
-    const apiKey = CF_API_KEY || import.meta.env.VITE_CURSEFORGE_API_KEY || localStorage.getItem("crystaltides_cf_api_key") || "";
+    const apiKey = getCurseForgeKey();
     if (!apiKey) {
       console.warn("CurseForge API Key is missing.");
       return { hits: [], total: 0 };
@@ -310,13 +320,13 @@ export const searchCurseForge = async (
 
     const data = JSON.parse(responseText);
     return {
-      hits: (data.data || []).map((mod: any) => ({
+      hits: (data.data || []).map((mod: { id: number; name: string; summary?: string; logo?: { url?: string }; authors?: { name: string }[]; categories?: { name: string }[]; downloadCount?: number; dateModified?: string; dateCreated?: string }) => ({
         id: mod.id.toString(),
         title: mod.name,
         description: mod.summary,
         icon_url: mod.logo?.url,
         author: mod.authors?.[0]?.name || "Unknown",
-        categories: (mod.categories || []).map((c: any) => c.name),
+        categories: (mod.categories || []).map((c: { name: string }) => c.name),
         downloads: mod.downloadCount || 0,
         date_modified: mod.dateModified || mod.dateCreated,
       })),
@@ -334,7 +344,7 @@ export const installModFromCurseForge = async (
   loader: string,
   gameVersion: string
 ): Promise<string> => {
-  const apiKey = CF_API_KEY || import.meta.env.VITE_CURSEFORGE_API_KEY || localStorage.getItem("crystaltides_cf_api_key") || "";
+  const apiKey = getCurseForgeKey();
   if (!apiKey) {
     throw new Error("Clave API de CurseForge faltante. Ingrésela en los Ajustes o configure VITE_CURSEFORGE_API_KEY en su archivo .env.");
   }
@@ -354,29 +364,19 @@ export const installModFromCurseForge = async (
     }
   });
 
-  const resData = JSON.parse(responseText);
-  const files = resData.data || [];
+  const data = JSON.parse(responseText);
+  const files = data.data || [];
   if (files.length === 0) {
-    throw new Error("No se encontraron archivos compatibles en CurseForge para este perfil.");
+    throw new Error("No se encontraron archivos compatibles en CurseForge para esta versión.");
   }
 
-  const modFile = files[0];
-  let downloadUrl = modFile.downloadUrl;
-  const fileName = modFile.fileName;
-  const fileId = modFile.id;
-
-  // Si la URL de descarga directa es null debido a restricciones de distribución del autor,
-  // la construimos de forma determinista usando el CDN de CurseForge (edge.forgecdn.net)
-  if (!downloadUrl && fileId) {
-    const firstPart = Math.floor(fileId / 1000);
-    const secondPart = fileId % 1000;
-    downloadUrl = `https://edge.forgecdn.net/files/${firstPart}/${secondPart}/${encodeURIComponent(fileName)}`;
-  }
-
+  const file = files[0];
+  const downloadUrl = file.downloadUrl;
   if (!downloadUrl) {
-    throw new Error("Este mod no permite descargas directas de terceros en CurseForge y no se pudo resolver el enlace de descarga.");
+    throw new Error("Este archivo de CurseForge no permite descargas directas a través de la API.");
   }
 
+  const fileName = file.fileName;
   const targetModsDir = `${gameDir.replace(/\\/g, "/")}/mods`;
 
   await invoke("download_mods_parallel", {
@@ -386,8 +386,161 @@ export const installModFromCurseForge = async (
       sha1: "",
     }],
     outputDir: targetModsDir,
-    maxConcurrent: 1,
   });
 
   return fileName;
+};
+
+export const cleanModNameForSearch = (filename: string, title?: string): string => {
+  let name = (title || filename)
+    .replace(/\.jar(\.disabled)?$/i, "")
+    .replace(/^[\d.]+\s*/, "")
+    .replace(/v?\d+\.\d+(\.\d+)?/gi, "")
+    .replace(/\b(neoforge|forge|fabric|quilt|beta|alpha|mc|snapshot|release)\b/gi, "")
+    .replace(/[-_+.]+/g, " ")
+    .trim();
+
+  if (name.length < 2) {
+    name = (title || filename).replace(/\.jar(\.disabled)?$/i, "").trim();
+  }
+  return name;
+};
+
+export interface ResolvedModInfo {
+  title?: string;
+  iconUrl?: string;
+  source?: "modrinth" | "curseforge";
+  projectId?: string;
+}
+
+interface ModrinthHit {
+  title?: string;
+  slug?: string;
+  id?: string;
+  project_id?: string;
+  icon_url?: string;
+}
+
+interface CurseForgeHit {
+  id?: number;
+  name?: string;
+  slug?: string;
+  logo?: { url?: string };
+}
+
+const selectBestModrinthHit = (hits: ModrinthHit[], query: string) => {
+  if (!hits || hits.length === 0) return null;
+  const cleanQ = query.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+  const exact = hits.find((h: ModrinthHit) => {
+    const cleanTitle = (h.title || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+    const cleanSlug = (h.slug || h.id || h.project_id || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+    return cleanTitle === cleanQ || cleanSlug === cleanQ;
+  });
+  if (exact) return exact;
+
+  const startsWith = hits.find((h: ModrinthHit) => {
+    const cleanTitle = (h.title || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+    return cleanTitle.startsWith(cleanQ);
+  });
+  if (startsWith) return startsWith;
+
+  const matches = hits.filter((h: ModrinthHit) => {
+    const cleanTitle = (h.title || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+    return cleanTitle.includes(cleanQ);
+  });
+
+  if (matches.length > 0) {
+    matches.sort((a: ModrinthHit, b: ModrinthHit) => Math.abs((a.title || "").length - query.length) - Math.abs((b.title || "").length - query.length));
+    return matches[0];
+  }
+
+  return hits[0];
+};
+
+const selectBestCurseForgeHit = (hits: CurseForgeHit[], query: string) => {
+  if (!hits || hits.length === 0) return null;
+  const cleanQ = query.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+  const exact = hits.find((h: CurseForgeHit) => {
+    const cleanTitle = (h.name || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+    const cleanSlug = (h.slug || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+    return cleanTitle === cleanQ || cleanSlug === cleanQ;
+  });
+  if (exact) return exact;
+
+  const startsWith = hits.find((h: CurseForgeHit) => {
+    const cleanTitle = (h.name || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+    return cleanTitle.startsWith(cleanQ);
+  });
+  if (startsWith) return startsWith;
+
+  const matches = hits.filter((h: CurseForgeHit) => {
+    const cleanTitle = (h.name || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+    return cleanTitle.includes(cleanQ);
+  });
+
+  if (matches.length > 0) {
+    matches.sort((a: CurseForgeHit, b: CurseForgeHit) => Math.abs((a.name || "").length - query.length) - Math.abs((b.name || "").length - query.length));
+    return matches[0];
+  }
+
+  return hits[0];
+};
+
+export const fetchModDetailsFromAPIs = async (filename: string, title?: string): Promise<ResolvedModInfo | null> => {
+  const query = cleanModNameForSearch(filename, title);
+  if (!query || query.length < 2) return null;
+
+  // 1. Modrinth search (fetch top 10 to select best match)
+  try {
+    const url = `https://api.modrinth.com/v2/search?query=${encodeURIComponent(query)}&limit=10`;
+    const resText = await invoke<string>("http_get", {
+      url,
+      headers: { "User-Agent": "UltraXn/CrystalTides-Launcher/1.0.0" },
+    });
+    const data = JSON.parse(resText);
+    const bestHit = selectBestModrinthHit(data?.hits || [], query);
+    if (bestHit) {
+      return {
+        title: bestHit.title,
+        iconUrl: bestHit.icon_url || undefined,
+        source: "modrinth",
+        projectId: bestHit.project_id || bestHit.id,
+      };
+    }
+  } catch (e) {
+    console.debug("Modrinth icon lookup failed:", e);
+  }
+
+  // 2. CurseForge fallback search (fetch top 10 to select best match)
+  try {
+    const apiKey = getCurseForgeKey();
+    if (apiKey) {
+      const url = `https://api.curseforge.com/v1/mods/search?gameId=432&classId=6&searchFilter=${encodeURIComponent(query)}&pageSize=10`;
+      const resText = await invoke<string>("http_get", {
+        url,
+        headers: { Accept: "application/json", "x-api-key": apiKey },
+      });
+      const data = JSON.parse(resText);
+      const bestHit = selectBestCurseForgeHit(data?.data || [], query);
+      if (bestHit) {
+        return {
+          title: bestHit.name,
+          iconUrl: bestHit.logo?.url || undefined,
+          source: "curseforge",
+          projectId: bestHit.id?.toString(),
+        };
+      }
+    }
+  } catch (e) {
+    console.debug("CurseForge icon lookup failed:", e);
+  }
+
+  return null;
+};
+
+export const fetchModIconFromAPIs = async (filename: string, title?: string): Promise<string | null> => {
+  const info = await fetchModDetailsFromAPIs(filename, title);
+  return info?.iconUrl || null;
 };

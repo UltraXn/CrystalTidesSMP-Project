@@ -18,7 +18,8 @@ This document defines the requirements for testing the **Crystaltides Web Client
     - User list and profile editing.
 
 ## Technology Stack (Frontend)
-- **Framework**: React 19, Vite.
-- **Styling**: TailwindCSS.
-- **State/Auth**: Zustand, Supabase Auth.
+- **Framework**: React 19, Vite 6.
+- **Styling**: TailwindCSS 4.
+- **State/Auth**: TanStack Query, Supabase Auth.
+- **Forms**: React Hook Form + Zod.
 - **Dev Port**: 5173.

@@ -29,7 +29,5 @@
   - [ ] **Analytics**: Implementación de DuckDB para análisis estadístico de fallos.
 
 ---
-
 _Este archivo se mantiene sincronizado según la Regla 6 del proyecto._
-# (Autodocumentación en Obsidian activa a través de Git hook)
-
+_Autodocumentación en Obsidian activa a través de Git hook_

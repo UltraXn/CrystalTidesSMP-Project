@@ -83,6 +83,16 @@ fn delete_mod(target_dir: String, filename: String) -> Result<(), String> {
 }
 
 #[tauri::command]
+fn extract_mod_icon(target_dir: String, filename: String) -> Result<Option<String>, String> {
+    mod_library::extract_mod_icon(&target_dir, &filename).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn get_mod_metadata(target_dir: String, filename: String) -> Result<Option<serde_json::Value>, String> {
+    mod_library::get_mod_metadata(&target_dir, &filename).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
 fn upload_to_github(repo: String, tag: String, file_path: String, token: String) -> Result<(), String> {
     github_release::upload_to_github(&repo, &tag, &file_path, &token).map_err(|e| e.to_string())
 }
@@ -469,6 +479,8 @@ pub fn run() {
             list_mods,
             set_mod_enabled,
             delete_mod,
+            extract_mod_icon,
+            get_mod_metadata,
             upload_to_github,
             install_java_runtime,
             check_java_status,

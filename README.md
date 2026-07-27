@@ -83,7 +83,7 @@ flowchart TB
 
 1. **Clone the repo with submodules**:
    ```bash
-   git clone --recurse-submodules https://github.com/UltraXn/crystaltides.git
+   git clone --recurse-submodules https://github.com/UltraXn/CrystalTidesSMP-Project.git
    ```
 2. **Setup environment**:
    Install root dependencies and start the dev environment:

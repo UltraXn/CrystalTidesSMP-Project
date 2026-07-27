@@ -11,6 +11,7 @@ jobs:
   test-ai:
     name: TestSprite AI Test Cycle
     runs-on: ubuntu-latest
+    if: ${{ secrets.TESTSPRITE_API_KEY != '' }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -22,14 +23,9 @@ jobs:
           cache: 'npm'
 
       - name: Install Dependencies
-        run: npm install --legacy-peer-deps
+        run: npm ci --legacy-peer-deps
 
       - name: Run TestSprite
         env:
           TESTSPRITE_API_KEY: ${{ secrets.TESTSPRITE_API_KEY }}
-        run: |
-          if [ -z "$TESTSPRITE_API_KEY" ]; then
-            echo "Error: TESTSPRITE_API_KEY is not set in GitHub Secrets."
-            exit 1
-          fi
-          npx @testsprite/testsprite-mcp@latest generateCodeAndExecute
+        run: npx @testsprite/testsprite-mcp@0.0.38 generateCodeAndExecute

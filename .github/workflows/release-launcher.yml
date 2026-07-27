@@ -16,6 +16,7 @@ permissions:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
 
 jobs:
   release:
@@ -36,6 +37,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ env.RELEASE_TAG }}
 
       - name: Setup Node.js
         uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
@@ -60,15 +63,15 @@ jobs:
 
       # ── CTLauncher (Client) ──────────────────────────────
       - name: Build & Upload — CrystalTides Launcher
-        uses: tauri-apps/tauri-action@v0
+        uses: tauri-apps/tauri-action@0e5a3cbb8543e018ab19fbca54abb78a42e2b284 # v0.5.22
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           projectPath: apps/launcher/client
-          tagName: ${{ github.ref_name || inputs.tag }}
-          releaseName: 'CTLauncher ${{ github.ref_name || inputs.tag }}'
+          tagName: ${{ env.RELEASE_TAG }}
+          releaseName: 'CTLauncher ${{ env.RELEASE_TAG }}'
           releaseBody: |
-            ## 🌊 CTLauncher ${{ github.ref_name || inputs.tag }}
+            ## 🌊 CTLauncher ${{ env.RELEASE_TAG }}
 
             Descarga el **instalador** para tu plataforma y estarás listo.
 
@@ -82,24 +85,24 @@ jobs:
 
       # ── CTLauncher Installer ─────────────────────────────
       - name: Build & Upload — CTLauncher Installer
-        uses: tauri-apps/tauri-action@v0
+        uses: tauri-apps/tauri-action@0e5a3cbb8543e018ab19fbca54abb78a42e2b284 # v0.5.22
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           projectPath: apps/launcher/installer
-          tagName: ${{ github.ref_name || inputs.tag }}
-          releaseName: 'CTLauncher ${{ github.ref_name || inputs.tag }}'
+          tagName: ${{ env.RELEASE_TAG }}
+          releaseName: 'CTLauncher ${{ env.RELEASE_TAG }}'
           releaseDraft: true
           prerelease: false
 
       # ── CTLauncher Uninstaller ───────────────────────────
       - name: Build & Upload — CTLauncher Uninstaller
-        uses: tauri-apps/tauri-action@v0
+        uses: tauri-apps/tauri-action@0e5a3cbb8543e018ab19fbca54abb78a42e2b284 # v0.5.22
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           projectPath: apps/launcher/uninstaller
-          tagName: ${{ github.ref_name || inputs.tag }}
-          releaseName: 'CTLauncher ${{ github.ref_name || inputs.tag }}'
+          tagName: ${{ env.RELEASE_TAG }}
+          releaseName: 'CTLauncher ${{ env.RELEASE_TAG }}'
           releaseDraft: true
           prerelease: false

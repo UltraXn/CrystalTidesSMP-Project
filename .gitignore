@@ -78,13 +78,21 @@ loop*.md
 # IDE/Agent Configs
 .claude/
 
-# Test Artifacts
+# Test/Lint/Build Artifacts
 test_results*.txt
+lint-output.txt
+full_lint_log.txt
+rd_report.txt
+*.tsbuildinfo
+vite.config.d.ts
 
 # Temporary Directories
 tmp/
+%TEMP%/
+**/%TEMP%/
 
 # Secrets
 vault-env.yaml
 .opencode/
+
 

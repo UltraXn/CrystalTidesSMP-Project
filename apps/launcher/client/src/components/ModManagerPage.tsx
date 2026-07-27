@@ -8,6 +8,7 @@ import {
   installModFromModrinth,
   searchCurseForge,
   installModFromCurseForge,
+  fetchModDetailsFromAPIs,
   type ServerModItem,
   type ModrinthSearchResult
 } from "../services/modService";
@@ -62,7 +63,9 @@ export const ModManagerPage: React.FC = () => {
   const [installStatus, setInstallStatus] = useState<{ [id: string]: string }>({});
   
   // CurseForge API Key setup
-  const [cfApiKeyInput, setCfApiKeyInput] = useState(localStorage.getItem("crystaltides_cf_api_key") || "");
+  const [cfApiKeyInput, setCfApiKeyInput] = useState(
+    localStorage.getItem("crystaltides_curseforge_key:v1") || localStorage.getItem("crystaltides_cf_api_key") || ""
+  );
   const [hasCfApiKey, setHasCfApiKey] = useState(true);
 
   // Search Filters
@@ -81,6 +84,7 @@ export const ModManagerPage: React.FC = () => {
     loadData();
     loadSearchFilters();
     loadInstalled();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Whenever filters change, trigger a fresh search
@@ -88,7 +92,84 @@ export const ModManagerPage: React.FC = () => {
     if (activeTab === "search") {
       triggerFreshSearch();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedVersion, selectedLoader, selectedCategory, selectedSort, selectedSource, pageSize]);
+
+  // Auto-fetch missing mod icons & titles for installed mods asynchronously in background
+  useEffect(() => {
+    if (installedMods.length === 0) return;
+
+    let cancelled = false;
+
+    const resolveInstalledMetadata = async () => {
+      const dir = await resolveGameDir();
+      if (!dir) return;
+      const modsDir = `${dir.replace(/\\/g, "/")}/mods`;
+
+      for (const mod of installedMods) {
+        if (cancelled) break;
+        const reg = modsRegistry[mod.filename] || modsRegistry[mod.filename.replace(/\.disabled$/, "")] || {};
+
+        try {
+          // 1. Primary: Extract true title & embedded icon directly from inside the .jar archive
+          let iconUrl: string | null = null;
+          let trueTitle: string | undefined = undefined;
+
+          try {
+            const meta = await invoke<{ title?: string; icon_data?: string } | null>("get_mod_metadata", {
+              targetDir: modsDir,
+              filename: mod.filename,
+            });
+            if (meta) {
+              if (meta.icon_data) iconUrl = meta.icon_data;
+              if (meta.title) trueTitle = meta.title;
+            }
+          } catch (e) {
+            console.debug("Failed extracting jar metadata:", e);
+          }
+
+          // If trueTitle extracted from JAR is different from reg.title, discard stale reg.iconUrl
+          const titleChanged = Boolean(trueTitle && reg.title && trueTitle.trim().toLowerCase() !== reg.title.trim().toLowerCase());
+          const existingIcon = titleChanged ? null : reg.iconUrl;
+
+          // 2. Fallback: Query Modrinth / CurseForge if no embedded icon was found (or if title changed)
+          if (!iconUrl && !existingIcon) {
+            const details = await fetchModDetailsFromAPIs(mod.filename, trueTitle || reg.title);
+            if (details) {
+              if (details.iconUrl) iconUrl = details.iconUrl;
+              if (!trueTitle && details.title) trueTitle = details.title;
+            }
+          }
+
+          const finalTitle = trueTitle || prettyModName(mod.filename);
+          const finalIcon = iconUrl || existingIcon || undefined;
+
+          // If title or icon needs correction, update registry & disk
+          if (!cancelled && (reg.title !== finalTitle || reg.iconUrl !== finalIcon)) {
+            const updatedEntry: ModRegistryEntry = {
+              ...reg,
+              title: finalTitle,
+              iconUrl: finalIcon,
+            };
+            await registerInstalledMod(dir, mod.filename, updatedEntry);
+            setModsRegistry((prev) => ({
+              ...prev,
+              [mod.filename]: updatedEntry,
+            }));
+          }
+        } catch (err) {
+          console.debug("Failed resolving metadata for mod:", mod.filename, err);
+        }
+      }
+    };
+
+    resolveInstalledMetadata();
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [installedMods]);
 
   const loadData = async () => {
     setIsLoadingMods(true);
@@ -117,11 +198,12 @@ export const ModManagerPage: React.FC = () => {
 
   const saveCfApiKey = () => {
     if (cfApiKeyInput.trim()) {
-      localStorage.setItem("crystaltides_cf_api_key", cfApiKeyInput.trim());
+      localStorage.setItem("crystaltides_curseforge_key:v1", cfApiKeyInput.trim());
       setHasCfApiKey(true);
       alert("Clave API de CurseForge guardada correctamente.");
       triggerFreshSearch();
     } else {
+      localStorage.removeItem("crystaltides_curseforge_key:v1");
       localStorage.removeItem("crystaltides_cf_api_key");
       setHasCfApiKey(true);
       alert("Clave API de CurseForge de respaldo reactivada.");
@@ -215,8 +297,9 @@ export const ModManagerPage: React.FC = () => {
         setSyncStatus(null);
         setSyncProgress(0);
       }, 4000);
-    } catch (err: any) {
-      setSyncError(err.message || String(err));
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      setSyncError(errorMsg);
       setSyncStatus(null);
     } finally {
       setIsSyncing(false);
@@ -247,7 +330,7 @@ export const ModManagerPage: React.FC = () => {
         projectId: mod.id,
       });
       setInstallStatus((prev) => ({ ...prev, [mod.id]: `✅ ${fileName}` }));
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
       setInstallStatus((prev) => ({ ...prev, [mod.id]: `❌ Falló` }));
     } finally {
@@ -289,8 +372,9 @@ export const ModManagerPage: React.FC = () => {
       if (!dir) throw new Error("No se pudo resolver el directorio de juego.");
       await setModEnabled(dir, mod.filename, !mod.enabled);
       await loadInstalled();
-    } catch (e: any) {
-      alert(`No se pudo cambiar el estado del mod: ${e.message || e}`);
+    } catch (e: unknown) {
+      const errorMsg = e instanceof Error ? e.message : String(e);
+      alert(`No se pudo cambiar el estado del mod: ${errorMsg}`);
     }
     setBusyModFile(null);
   };
@@ -305,8 +389,9 @@ export const ModManagerPage: React.FC = () => {
       await deleteInstalledMod(dir, mod.filename);
       await unregisterMod(dir, mod.filename);
       await loadInstalled();
-    } catch (e: any) {
-      alert(`No se pudo eliminar el mod: ${e.message || e}`);
+    } catch (e: unknown) {
+      const errorMsg = e instanceof Error ? e.message : String(e);
+      alert(`No se pudo eliminar el mod: ${errorMsg}`);
     }
     setBusyModFile(null);
   };
@@ -321,8 +406,9 @@ export const ModManagerPage: React.FC = () => {
       } catch {
         await invoke("open_folder", { path: modsPath });
       }
-    } catch (e: any) {
-      alert(`No se pudo abrir la carpeta: ${e.message || e}`);
+    } catch (e: unknown) {
+      const errorMsg = e instanceof Error ? e.message : String(e);
+      alert(`No se pudo abrir la carpeta: ${errorMsg}`);
     }
   };
 
@@ -482,7 +568,7 @@ export const ModManagerPage: React.FC = () => {
               ) : (() => {
                 const filtered = installedMods.filter(m => {
                   const reg = modsRegistry[m.filename] || modsRegistry[m.filename.replace(/\.disabled$/, "")] || {};
-                  const title = reg.title || prettyModName(m.filename);
+                  const title = m.title || reg.title || prettyModName(m.filename);
                   return title.toLowerCase().includes(installedFilter.toLowerCase()) ||
                     m.filename.toLowerCase().includes(installedFilter.toLowerCase());
                 });
@@ -497,8 +583,28 @@ export const ModManagerPage: React.FC = () => {
 
                 return filtered.map((mod) => {
                   const reg = modsRegistry[mod.filename] || modsRegistry[mod.filename.replace(/\.disabled$/, "")] || {};
-                  const title = reg.title || prettyModName(mod.filename);
+                  const title = mod.title || reg.title || prettyModName(mod.filename);
                   const isBusy = busyModFile === mod.filename;
+
+                  const f = mod.filename.toLowerCase();
+                  const t = title.toLowerCase();
+
+                  const resolvedIconUrl = mod.iconData || reg.iconUrl || (
+                    f.includes("sodium") || t.includes("sodium") ? "https://raw.githubusercontent.com/CaffeineMC/sodium-fabric/1.20.x/dev/logo.png" :
+                    f.includes("iris") || t.includes("iris") ? "https://raw.githubusercontent.com/IrisShaders/Iris/main/logo.png" :
+                    f.includes("voicechat") || t.includes("voice") ? "https://raw.githubusercontent.com/henkelmax/simple-voice-chat/main/logo.png" :
+                    f.includes("ferrite") || t.includes("ferrite") ? "https://raw.githubusercontent.com/malte0811/FerriteCore/1.20/logo.png" :
+                    null
+                  );
+
+                  const initials = title
+                    .replace(/^[0-9.]+\s*/, "")
+                    .replace(/\.jar(\.disabled)?$/i, "")
+                    .split(/[\s-_+.]+/)
+                    .filter(Boolean)
+                    .slice(0, 2)
+                    .map((w) => w[0].toUpperCase())
+                    .join("") || "MD";
 
                   return (
                     <div key={mod.filename} className="reveal-up" style={{
@@ -515,19 +621,34 @@ export const ModManagerPage: React.FC = () => {
                       <div style={{
                         width: 44,
                         height: 44,
-                        borderRadius: 10,
+                        borderRadius: 12,
                         overflow: "hidden",
-                        backgroundColor: "rgba(255,255,255,0.02)",
-                        border: "1px solid var(--border-low)",
+                        background: resolvedIconUrl ? "rgba(0,0,0,0.3)" : "linear-gradient(135deg, rgba(15,118,110,0.4) 0%, rgba(45,212,191,0.15) 100%)",
+                        border: "1px solid rgba(45, 212, 191, 0.25)",
+                        boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
                         flexShrink: 0,
+                        color: "#2DD4BF",
+                        fontWeight: 900,
+                        fontSize: 13,
+                        letterSpacing: "0.05em",
                       }}>
-                        {reg.iconUrl ? (
-                          <img src={reg.iconUrl} alt={title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                        {resolvedIconUrl ? (
+                          <img
+                            src={resolvedIconUrl}
+                            alt={title}
+                            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                            onError={(e) => {
+                              e.currentTarget.style.display = "none";
+                              if (e.currentTarget.parentElement) {
+                                e.currentTarget.parentElement.innerText = initials;
+                              }
+                            }}
+                          />
                         ) : (
-                          <span style={{ fontSize: 20 }}>🧩</span>
+                          <span>{initials}</span>
                         )}
                       </div>
 
@@ -1207,7 +1328,7 @@ export const ModManagerPage: React.FC = () => {
                             const totalPages = Math.max(1, Math.ceil(totalResults / pageSize));
                             const maxButtons = 5;
                             let startPage = Math.max(1, currentPage - 2);
-                            let endPage = Math.min(totalPages, startPage + maxButtons - 1);
+                            const endPage = Math.min(totalPages, startPage + maxButtons - 1);
                             
                             if (endPage - startPage < maxButtons - 1) {
                               startPage = Math.max(1, endPage - (maxButtons - 1));

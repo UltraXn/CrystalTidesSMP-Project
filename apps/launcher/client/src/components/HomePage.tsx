@@ -94,6 +94,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
   // v2: noticias + feedback de copiar IP
   const [news, setNews] = useState<NewsPost[]>([]);
   const [ipCopied, setIpCopied] = useState(false);
+  const [activeNewsIndex, setActiveNewsIndex] = useState(0);
+  const [isHoveringCarousel, setIsHoveringCarousel] = useState(false);
 
   // Profile Dialog states
   const [profilesVersion, setProfilesVersion] = useState(0);
@@ -103,14 +105,23 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
 
   // Capes state
   const [activeCapeUrl, setActiveCapeUrl] = useState<string | undefined>(undefined);
-  const [userCapes, setUserCapes] = useState<any[]>([]);
+  const [userCapes, setUserCapes] = useState<{ id: string; state: string; url: string; alias?: string }[]>([]);
   const [selectedCapeIndex, setSelectedCapeIndex] = useState<number>(-1);
   const [isEquippingCape, setIsEquippingCape] = useState(false);
 
   useEffect(() => {
     loadServerStatus();
-    fetchNews(3).then(setNews);
+    fetchNews(5).then(setNews);
   }, []);
+
+  // Auto-advance news carousel slider
+  useEffect(() => {
+    if (news.length <= 1 || isHoveringCarousel) return;
+    const interval = setInterval(() => {
+      setActiveNewsIndex((prev) => (prev + 1) % news.length);
+    }, 6000);
+    return () => clearInterval(interval);
+  }, [news.length, isHoveringCarousel]);
 
   useEffect(() => {
     const loadProfileAndCapes = async () => {
@@ -120,7 +131,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
           const capes = profile.capes || [];
           setUserCapes(capes);
           
-          const activeIndex = capes.findIndex((c: any) => c.state === "ACTIVE");
+          const activeIndex = capes.findIndex((c: { state: string }) => c.state === "ACTIVE");
           if (activeIndex !== -1) {
             setSelectedCapeIndex(activeIndex);
             setActiveCapeUrl(capes[activeIndex].url);
@@ -129,7 +140,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
             setActiveCapeUrl(undefined);
           }
         } catch (err) {
-          console.error("Error loading profile capes:", err);
+          console.error("Error cargando perfil/capas:", err);
         }
       } else {
         setUserCapes([]);
@@ -216,8 +227,9 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
         setLaunchStatus(null);
         setIsLaunching(false);
       }, 5000);
-    } catch (err: any) {
-      setLaunchError(err.message || String(err));
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      setLaunchError(errorMsg);
       setLaunchStatus(null);
       setIsLaunching(false);
     }
@@ -403,83 +415,251 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
             </span>
           </div>
 
-          <div style={{ flex: 1, display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14, minHeight: 0 }}>
-            {news.map((post) => {
-              const style = categoryStyle(post.category);
-              return (
-                <article
-                  key={post.id}
-                  className="news-card-v2"
-                  onClick={() => onNavigate?.("news")}
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    background: "rgba(255, 255, 255, 0.03)",
-                    border: "1px solid var(--border-low)",
-                    borderRadius: 16,
-                    overflow: "hidden",
-                    cursor: "pointer",
-                    minHeight: 0,
-                  }}
-                >
-                  {/* Thumb */}
-                  <div style={{ height: 88, minHeight: 88, position: "relative", background: style.thumb }}>
-                    {post.imageUrl && (
-                      <img
-                        src={post.imageUrl}
-                        alt=""
-                        style={{ width: "100%", height: "100%", objectFit: "cover", position: "absolute", inset: 0 }}
-                        onError={(e) => (e.currentTarget.style.display = "none")}
+          {(() => {
+            const currentPost = news[activeNewsIndex] || news[0];
+            const currentStyle = currentPost ? categoryStyle(currentPost.category) : categoryStyle("");
+
+            return (
+              <div
+                className="hero-news-carousel"
+                onMouseEnter={() => setIsHoveringCarousel(true)}
+                onMouseLeave={() => setIsHoveringCarousel(false)}
+                style={{
+                  flex: 1,
+                  position: "relative",
+                  borderRadius: 20,
+                  overflow: "hidden",
+                  border: "1px solid rgba(255, 255, 255, 0.12)",
+                  background: "rgba(10, 15, 26, 0.6)",
+                  display: "flex",
+                  flexDirection: "column",
+                  boxShadow: "0 12px 32px rgba(0, 0, 0, 0.4)",
+                  minHeight: 0,
+                }}
+              >
+                {currentPost ? (
+                  <>
+                    {/* Background Image / Gradient */}
+                    <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
+                      {currentPost.imageUrl ? (
+                        <img
+                          src={currentPost.imageUrl}
+                          alt=""
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                            filter: "brightness(0.65)",
+                            transition: "all 0.5s ease",
+                          }}
+                          onError={(e) => (e.currentTarget.style.display = "none")}
+                        />
+                      ) : (
+                        <div
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            background: currentStyle.thumb,
+                            opacity: 0.85,
+                          }}
+                        />
+                      )}
+                      {/* Subtle Gradient Overlay */}
+                      <div
+                        style={{
+                          position: "absolute",
+                          inset: 0,
+                          background:
+                            "linear-gradient(180deg, rgba(10, 15, 26, 0.15) 0%, rgba(10, 15, 26, 0.7) 55%, rgba(10, 15, 26, 0.95) 100%)",
+                        }}
                       />
-                    )}
-                    <div style={{
-                      position: "absolute",
-                      inset: 0,
-                      background: "linear-gradient(180deg, transparent 40%, rgba(6, 7, 11, 0.75) 100%)",
-                    }} />
+                    </div>
+
+                    {/* Content Overlay */}
+                    <div
+                      style={{
+                        position: "relative",
+                        zIndex: 2,
+                        padding: "20px 24px 18px",
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "flex-end",
+                        height: "100%",
+                        boxSizing: "border-box",
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+                        <span
+                          style={{
+                            fontSize: 10,
+                            fontWeight: 800,
+                            letterSpacing: "0.08em",
+                            textTransform: "uppercase",
+                            padding: "4px 12px",
+                            borderRadius: 999,
+                            color: currentStyle.color,
+                            background: currentStyle.background,
+                            border: `1px solid ${currentStyle.border}`,
+                            backdropFilter: "blur(8px)",
+                            boxShadow: `0 0 12px ${currentStyle.border}`,
+                          }}
+                        >
+                          {currentPost.category}
+                        </span>
+                        <span style={{ fontSize: 11, color: "rgba(255, 255, 255, 0.6)", fontWeight: 500 }}>
+                          {timeAgo(currentPost.createdAt)}
+                        </span>
+                      </div>
+
+                      <h3
+                        style={{
+                          margin: "0 0 6px 0",
+                          fontSize: 20,
+                          fontWeight: 800,
+                          lineHeight: 1.25,
+                          color: "#FFFFFF",
+                          letterSpacing: "-0.01em",
+                          textShadow: "0 2px 10px rgba(0,0,0,0.5)",
+                        }}
+                      >
+                        {currentPost.title}
+                      </h3>
+
+                      <p
+                        style={{
+                          margin: "0 0 14px 0",
+                          fontSize: 12.5,
+                          color: "rgba(255, 255, 255, 0.78)",
+                          lineHeight: 1.45,
+                          display: "-webkit-box",
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: "vertical",
+                          overflow: "hidden",
+                          maxWidth: "92%",
+                        }}
+                      >
+                        {currentPost.content}
+                      </p>
+
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        <button
+                          onClick={() => onNavigate?.("news")}
+                          style={{
+                            background: "rgba(255, 255, 255, 0.12)",
+                            border: "1px solid rgba(255, 255, 255, 0.25)",
+                            color: "#FFFFFF",
+                            fontSize: 11.5,
+                            fontWeight: 700,
+                            padding: "7px 16px",
+                            borderRadius: 10,
+                            cursor: "pointer",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 6,
+                            backdropFilter: "blur(8px)",
+                            transition: "all 0.2s ease",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = "var(--accent)";
+                            e.currentTarget.style.color = "#052A26";
+                            e.currentTarget.style.borderColor = "var(--accent)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = "rgba(255, 255, 255, 0.12)";
+                            e.currentTarget.style.color = "#FFFFFF";
+                            e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.25)";
+                          }}
+                        >
+                          <span>Leer noticia completa</span>
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                            <line x1="5" y1="12" x2="19" y2="12" />
+                            <polyline points="12 5 19 12 12 19" />
+                          </svg>
+                        </button>
+
+                        {/* Controls & Dots */}
+                        {news.length > 1 && (
+                          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                            {/* Prev / Next Arrows */}
+                            <div style={{ display: "flex", gap: 6 }}>
+                              <button
+                                onClick={() => setActiveNewsIndex((prev) => (prev - 1 + news.length) % news.length)}
+                                style={{
+                                  width: 30,
+                                  height: 30,
+                                  borderRadius: 8,
+                                  background: "rgba(0, 0, 0, 0.4)",
+                                  border: "1px solid rgba(255, 255, 255, 0.15)",
+                                  color: "#FFF",
+                                  fontSize: 10,
+                                  cursor: "pointer",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  backdropFilter: "blur(6px)",
+                                  transition: "all 0.2s",
+                                }}
+                              >
+                                ◀
+                              </button>
+                              <button
+                                onClick={() => setActiveNewsIndex((prev) => (prev + 1) % news.length)}
+                                style={{
+                                  width: 30,
+                                  height: 30,
+                                  borderRadius: 8,
+                                  background: "rgba(0, 0, 0, 0.4)",
+                                  border: "1px solid rgba(255, 255, 255, 0.15)",
+                                  color: "#FFF",
+                                  fontSize: 10,
+                                  cursor: "pointer",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  backdropFilter: "blur(6px)",
+                                  transition: "all 0.2s",
+                                }}
+                              >
+                                ▶
+                              </button>
+                            </div>
+
+                            {/* Pagination Dots */}
+                            <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                              {news.map((item, idx) => (
+                                <button
+                                  key={item.id || item.title || `news-dot-${idx}`}
+                                  onClick={() => setActiveNewsIndex(idx)}
+                                  style={{
+                                    width: activeNewsIndex === idx ? 18 : 7,
+                                    height: 7,
+                                    borderRadius: 999,
+                                    background: activeNewsIndex === idx ? "var(--accent)" : "rgba(255, 255, 255, 0.3)",
+                                    border: "none",
+                                    cursor: "pointer",
+                                    padding: 0,
+                                    transition: "all 0.3s ease",
+                                  }}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div style={{ padding: 20, color: "rgba(255,255,255,0.5)", textAlign: "center", margin: "auto" }}>
+                    No hay novedades disponibles por ahora.
                   </div>
-                  {/* Body */}
-                  <div style={{ padding: "12px 14px 13px", display: "flex", flexDirection: "column", gap: 6, flex: 1, minHeight: 0 }}>
-                    <span style={{
-                      alignSelf: "flex-start",
-                      fontSize: 9.5,
-                      fontWeight: 700,
-                      letterSpacing: "0.07em",
-                      textTransform: "uppercase",
-                      padding: "3px 9px",
-                      borderRadius: 999,
-                      color: style.color,
-                      background: style.background,
-                      border: `1px solid ${style.border}`,
-                    }}>
-                      {post.category}
-                    </span>
-                    <div style={{ fontSize: 13.5, fontWeight: 600, lineHeight: 1.3, letterSpacing: "-0.01em", color: "#FFF" }}>
-                      {post.title}
-                    </div>
-                    <div style={{
-                      fontSize: 11.5,
-                      color: "var(--text-muted)",
-                      lineHeight: 1.45,
-                      display: "-webkit-box",
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: "vertical",
-                      overflow: "hidden",
-                    }}>
-                      {post.content}
-                    </div>
-                    <div style={{ marginTop: "auto", fontSize: 10, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.04em" }}>
-                      {timeAgo(post.createdAt)}
-                    </div>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
+                )}
+              </div>
+            );
+          })()}
         </div>
 
         {/* Tarjeta del jugador */}
-        <div className="reveal-up" style={{ flex: 1, minWidth: 0, animationDelay: "0.12s" }}>
+        <div className="reveal-up custom-scrollbar" style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 12, height: "100%", overflowY: "auto", animationDelay: "0.12s" }}>
           <CrystalCard
             enableHoverEffect={false}
             style={{
@@ -720,7 +900,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
       )}
 
       {/* ── Dock: perfil + jugar ── */}
-      <section className="reveal-up" style={{ display: "flex", alignItems: "stretch", gap: 14, animationDelay: "0.18s" }}>
+      <section className="reveal-up" style={{ display: "flex", alignItems: "stretch", gap: 14, animationDelay: "0.18s", position: "relative", zIndex: 10, backgroundColor: "rgba(10, 14, 23, 0.95)", backdropFilter: "blur(16px)", padding: "10px 14px", borderRadius: "20px", border: "1px solid rgba(255, 255, 255, 0.12)", boxShadow: "0 -8px 32px rgba(0, 0, 0, 0.4)" }}>
         <ProfileSelector
           key={profilesVersion}
           onEditProfile={(p) => {

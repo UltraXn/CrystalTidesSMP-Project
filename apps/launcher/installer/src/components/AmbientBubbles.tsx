@@ -15,6 +15,8 @@ export const AmbientBubbles: React.FC = () => {
 
     return (
         <div className="ambient-bubbles-container">
+            <div className="aurora-orb-1" />
+            <div className="aurora-orb-2" />
             {bubbles.map((bubble) => (
                 <div
                     key={bubble.id}
