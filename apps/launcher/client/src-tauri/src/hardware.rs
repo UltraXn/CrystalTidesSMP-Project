@@ -16,10 +16,9 @@ pub struct CpuInfo {
 
 #[tauri::command]
 pub fn detect_hardware_profile() -> CpuInfo {
-    let mut sys = System::new_with_specifics(
+    let sys = System::new_with_specifics(
         RefreshKind::new().with_cpu(CpuRefreshKind::everything())
     );
-    sys.refresh_cpu_all();
 
     let cpus = sys.cpus();
     let logical_cores = cpus.len();
@@ -37,7 +36,7 @@ pub fn detect_hardware_profile() -> CpuInfo {
         "Unknown Vendor".to_string()
     };
 
-    let brand_lower = brand.to_lower();
+    let brand_lower = brand.to_lowercase();
     let has_hyperthreading = logical_cores > physical_cores;
     let is_xeon_or_legacy = brand_lower.contains("xeon") || brand_lower.contains("v3") || brand_lower.contains("v4") || brand_lower.contains("fx-");
     
