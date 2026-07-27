@@ -82,9 +82,22 @@ const categoryStyle = (category: string): ChipStyle => {
   };
 };
 
+interface CpuInfo {
+  brand: string;
+  vendor: string;
+  physical_cores: number;
+  logical_cores: number;
+  has_hyperthreading: boolean;
+  is_hybrid: boolean;
+  is_xeon_or_legacy: boolean;
+  recommended_affinity_mask: number;
+  jvm_recommended_flags: string[];
+}
+
 export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
   const { currentSession, crystalSession } = useAuth();
   const [serverStatus, setServerStatus] = useState<ServerStatus | null>(null);
+  const [hardwareInfo, setHardwareInfo] = useState<CpuInfo | null>(null);
   const [isLoadingStatus, setIsLoadingStatus] = useState(true);
   const [isLaunching, setIsLaunching] = useState(false);
   const [launchStatus, setLaunchStatus] = useState<string | null>(null);
@@ -112,6 +125,9 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
   useEffect(() => {
     loadServerStatus();
     fetchNews(5).then(setNews);
+    invoke<CpuInfo>("detect_hardware_profile")
+      .then(setHardwareInfo)
+      .catch((err) => console.warn("Hardware detection not available in browser mode:", err));
   }, []);
 
   // Auto-advance news carousel slider
@@ -896,6 +912,49 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
           textAlign: "left",
         }}>
           ⚠️ {launchError}
+        </div>
+      )}
+
+      {/* ── Info de Hardware / CPU Affinity ── */}
+      {hardwareInfo && (
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "8px 16px",
+          borderRadius: 12,
+          background: "rgba(15, 23, 42, 0.6)",
+          border: "1px solid rgba(45, 212, 191, 0.2)",
+          fontSize: 11,
+          color: "rgba(255, 255, 255, 0.8)",
+          backdropFilter: "blur(8px)"
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ fontSize: 13 }}>⚡</span>
+            <span style={{ fontWeight: 700, color: "#2DD4BF" }}>CPU Detectada:</span>
+            <span>{hardwareInfo.brand || "Procesador Detectado"}</span>
+            <span style={{ color: "rgba(255,255,255,0.4)" }}>|</span>
+            <span>{hardwareInfo.physical_cores} Cores Físicos ({hardwareInfo.logical_cores} Hilos)</span>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <span style={{
+              fontSize: 9.5,
+              fontWeight: 800,
+              letterSpacing: "0.05em",
+              textTransform: "uppercase",
+              padding: "3px 8px",
+              borderRadius: 6,
+              background: hardwareInfo.is_xeon_or_legacy ? "rgba(245, 158, 11, 0.2)" : "rgba(45, 212, 191, 0.2)",
+              color: hardwareInfo.is_xeon_or_legacy ? "#FCD34D" : "#2DD4BF",
+              border: `1px solid ${hardwareInfo.is_xeon_or_legacy ? "rgba(245, 158, 11, 0.4)" : "rgba(45, 212, 191, 0.4)"}`
+            }}>
+              {hardwareInfo.is_xeon_or_legacy
+                ? "Xeon Core Affinity (Afinidad Física Par)"
+                : hardwareInfo.is_hybrid
+                ? "Hybrid P-Core Affinity Mode"
+                : "Standard Core Affinity Mode"}
+            </span>
+          </div>
         </div>
       )}
 
