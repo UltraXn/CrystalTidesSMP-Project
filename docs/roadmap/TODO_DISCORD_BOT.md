@@ -25,12 +25,12 @@
 
 - [ ] **Comando de Estadísticas `/stats <jugador>`**
   - [ ] **Sincronización Web**: Mostrar las mismas métricas que el Dashboard (`Account.tsx`).
-  - [ ] **Playstyle Radar**: Incluir los 5 atributos:
-    - [ ] 🛠️ Constructor (Bloques).
-    - [ ] ⚔️ Luchador (Kills/MobKills).
-    - [ ] 🗺️ Explorador (Tiempo Jugar).
-    - [ ] 💰 Mercader (Dinero).
-    - [ ] 👥 Social (Rango + Tiempo).
+  - [ ] **Playstyle Radar**: Incluir los 5 atributos oficiales sincronizados con la Web (`PlaystyleRadarFinal.tsx`):
+    - [ ] 🛠️ **Constructor**: Bloques Minados + Colocados (`blocksMined + blocksPlaced`).
+    - [ ] ⚔️ **Luchador**: Puntos de Combate (`15 * PvP Kills + 1 * Mob Kills`).
+    - [ ] 💰 **Mercader**: Escala Logarítmica (`100 * log10(KilluCoins)`).
+    - [ ] 💖 **Constancia**: Exponencial `(Días de Racha)²`.
+    - [ ] 🗺️ **Explorador**: `(Horas Jugadas * 10) + Km Recorridos`.
   - [ ] Generar imagen/embed visual similar al diseño "Glassmorphism" de la web.
 
 - [ ] **Canal de Estado en Vivo (Live Status)**
