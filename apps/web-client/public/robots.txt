@@ -1,5 +1,8 @@
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /api
 
 # Sitemap
 Sitemap: https://crystaltidessmp.net/sitemap.xml
+
