@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useState, useContext, useEffect } from 'react';
+import { createContext, useState, useContext, useEffect, useMemo, useCallback } from 'react';
 import { supabase } from '../services/supabaseClient';
 import { User, Provider, AuthResponse, OAuthResponse } from '@supabase/supabase-js';
 
@@ -84,7 +84,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     */
 
     // Función de Login
-    const login = async (email: string, password: string): Promise<AuthResponse['data']> => {
+    const login = useCallback(async (email: string, password: string): Promise<AuthResponse['data']> => {
         const { data, error } = await supabase.auth.signInWithPassword({
             email,
             password
@@ -104,10 +104,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             throw error;
         }
         return data;
-    };
+    }, []);
 
     // Función de Logout
-    const logout = async () => {
+    const logout = useCallback(async () => {
         try {
             const { error } = await supabase.auth.signOut();
             if (error) throw error;
@@ -116,11 +116,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         } finally {
             setUser(null);
         }
-    };
+    }, []);
 
     // Función extra: Registro (Opcional, pero útil tenerla lista)
-    // Función extra: Registro (Opcional, pero útil tenerla lista)
-    const register = async (email: string, password: string, metadata: Record<string, unknown> = {}): Promise<AuthResponse['data']> => {
+    const register = useCallback(async (email: string, password: string, metadata: Record<string, unknown> = {}): Promise<AuthResponse['data']> => {
         // Ensure we send the correct production URL if we are not on localhost (forcing HTTPS for prod)
         const productionUrl = 'https://crystaltidessmp.net/login';
         const redirectUrl = window.location.hostname.includes('localhost') 
@@ -139,9 +138,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         });
         if (error) throw error;
         return data;
-    };
+    }, []);
 
-    const loginWithProvider = async (provider: Provider): Promise<OAuthResponse['data']> => {
+    const loginWithProvider = useCallback(async (provider: Provider): Promise<OAuthResponse['data']> => {
         const { data, error } = await supabase.auth.signInWithOAuth({
             provider: provider,
             options: {
@@ -150,9 +149,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         });
         if (error) throw error;
         return data;
-    };
+    }, []);
 
-    const updateUser = async (data: Record<string, unknown>): Promise<User | undefined> => {
+    const updateUser = useCallback(async (data: Record<string, unknown>): Promise<User | undefined> => {
         const { data: { user: updatedUser }, error } = await supabase.auth.updateUser({
             data: data
         });
@@ -162,9 +161,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             setUser(updatedUser);
             return updatedUser;
         }
-    };
+    }, []);
 
-    const value = {
+    const value = useMemo(() => ({
         user,
         login,
         loginWithProvider,
@@ -172,7 +171,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         register,
         updateUser,
         loading
-    };
+    }), [user, loading, login, loginWithProvider, logout, register, updateUser]);
 
     return (
         <AuthContext.Provider value={value}>

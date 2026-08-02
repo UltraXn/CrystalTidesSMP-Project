@@ -1,6 +1,7 @@
 import * as forumService from '../services/forumService.js';
 import { Request, Response } from 'express';
 import { ensureString } from '../utils/typeUtils.js';
+import { sendError } from '../utils/responseHandler.js';
 
 export const getThreads = async (req: Request, res: Response) => {
     try {
@@ -10,7 +11,7 @@ export const getThreads = async (req: Request, res: Response) => {
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         if (message.includes('does not exist')) return res.json([]);
-        res.status(500).json({ error: message });
+        return sendError(res, message);
     }
 };
 
@@ -21,7 +22,7 @@ export const getUserThreads = async (req: Request, res: Response) => {
         res.json(data);
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        res.status(500).json({ error: message });
+        return sendError(res, message);
     }
 };
 
@@ -61,8 +62,12 @@ export const createThread = async (req: Request, res: Response) => {
     try {
         if (!req.user) return res.status(401).json({ error: "Unauthorized" });
         
+        const { category_id, title, content, poll_data } = req.body;
         const result = await forumService.createThread({
-            ...req.body, 
+            category_id,
+            title,
+            content,
+            poll_data,
             user_data: {
                 id: req.user.id,
                 name: req.user.username || 'Unknown',
@@ -73,7 +78,7 @@ export const createThread = async (req: Request, res: Response) => {
         res.status(201).json(result);
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        res.status(500).json({ error: message });
+        return sendError(res, message);
     }
 };
 
@@ -83,7 +88,7 @@ export const getPosts = async (req: Request, res: Response) => {
         res.json(data);
     } catch (e) { 
         const message = e instanceof Error ? e.message : String(e);
-        res.status(500).json({error: message}); 
+        return sendError(res, message);
     }
 };
 
@@ -104,7 +109,7 @@ export const createPost = async (req: Request, res: Response) => {
         res.status(201).json(result);
     } catch (e) { 
         const message = e instanceof Error ? e.message : String(e);
-        res.status(500).json({error: message}); 
+        return sendError(res, message);
     }
 };
 
@@ -114,7 +119,7 @@ export const getStats = async (req: Request, res: Response) => {
         res.json(data);
     } catch (e) { 
         const message = e instanceof Error ? e.message : String(e);
-        res.status(500).json({error: message}); 
+        return sendError(res, message);
     }
 };
 
@@ -128,7 +133,8 @@ export const updateThread = async (req: Request, res: Response) => {
     } catch (e) { 
         const message = e instanceof Error ? e.message : String(e);
         const status = message.includes('Forbidden') ? 403 : 500;
-        res.status(status).json({error: message}); 
+        if (status === 403) return res.status(403).json({ error: message });
+        return sendError(res, message);
     }
 };
 
@@ -142,7 +148,8 @@ export const deleteThread = async (req: Request, res: Response) => {
     } catch (e) { 
         const message = e instanceof Error ? e.message : String(e);
         const status = message.includes('Forbidden') ? 403 : 500;
-        res.status(status).json({error: message}); 
+        if (status === 403) return res.status(403).json({ error: message });
+        return sendError(res, message);
     }
 };
 
@@ -156,7 +163,8 @@ export const updatePost = async (req: Request, res: Response) => {
     } catch (e) { 
         const message = e instanceof Error ? e.message : String(e);
         const status = message.includes('Forbidden') ? 403 : 500;
-        res.status(status).json({error: message}); 
+        if (status === 403) return res.status(403).json({ error: message });
+        return sendError(res, message);
     }
 };
 
@@ -170,6 +178,7 @@ export const deletePost = async (req: Request, res: Response) => {
     } catch (e) { 
         const message = e instanceof Error ? e.message : String(e);
         const status = message.includes('Forbidden') ? 403 : 500;
-        res.status(status).json({error: message}); 
+        if (status === 403) return res.status(403).json({ error: message });
+        return sendError(res, message);
     }
 };

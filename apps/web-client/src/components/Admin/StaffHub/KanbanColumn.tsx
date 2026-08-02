@@ -41,9 +41,17 @@ export default function KanbanColumn({ column, cards, onDragStart, onDrop, onDel
             onDragOver={handleDragOver}
             onDrop={handleDrop}
         >
-            <div 
+            <div
                 className="column-header-premium"
                 onClick={() => setIsExpanded(!isExpanded)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setIsExpanded(!isExpanded);
+                    }
+                }}
             >
                 <span className="column-count-premium">
                     {cards.length}

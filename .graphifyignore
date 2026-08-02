@@ -1,0 +1,5 @@
+# graphify: exclude vendored third-party code from the knowledge graph
+# (these are dependency caches / bundled libs, not project source)
+apps/launcher/packages_cache/
+apps/launcher/assets/web/skin_viewer/
+node_modules_old/

@@ -19,6 +19,7 @@ export default function RegistrationsModal({ eventId, onClose, API_URL, mockRegi
     const [loading, setLoading] = useState(!mockRegistrations);
     
     useEffect(() => {
+        let ignore = false;
         const fetchReg = async () => {
             if (mockRegistrations) return;
             try {
@@ -28,12 +29,13 @@ export default function RegistrationsModal({ eventId, onClose, API_URL, mockRegi
                 });
                 if (res.ok) {
                     const data = await res.json();
-                    setRegistrations(data);
+                    if (!ignore) setRegistrations(data);
                 }
             } catch (e) { console.error(e) } 
-            finally { setLoading(false) }
+            finally { if (!ignore) setLoading(false); }
         }
         fetchReg();
+        return () => { ignore = true; };
     }, [eventId, API_URL, mockRegistrations]);
 
     return (
@@ -46,7 +48,7 @@ export default function RegistrationsModal({ eventId, onClose, API_URL, mockRegi
                         <Users style={{ color: 'var(--accent)' }} />
                         {t('admin.events.registrations.title')} ({registrations.length})
                     </h3>
-                    <button onClick={onClose} className="btn-close-mini">
+                    <button aria-label="Action" type="button" onClick={onClose} className="btn-close-mini">
                         <X />
                     </button>
                 </div>
@@ -89,7 +91,7 @@ export default function RegistrationsModal({ eventId, onClose, API_URL, mockRegi
                 </div>
 
                 <div style={{ padding: '1.5rem 2.5rem', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'flex-end' }}>
-                    <button onClick={onClose} className="modal-btn-primary" style={{ height: '44px', padding: '0 2rem' }}>
+                    <button type="button" onClick={onClose} className="modal-btn-primary" style={{ height: '44px', padding: '0 2rem' }}>
                         {t('admin.events.close_btn', 'Cerrar')}
                     </button>
                 </div>

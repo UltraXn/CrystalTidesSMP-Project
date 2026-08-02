@@ -1,6 +1,6 @@
 import { PieChart, Briefcase, Settings, Menu, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { motion } from "framer-motion";
+import { m as motion } from "framer-motion";
 
 interface AdminMobileNavbarProps {
     activeTab: string;
@@ -21,7 +21,7 @@ export default function AdminMobileNavbar({ activeTab, setActiveTab, sidebarOpen
     return (
         <div className="admin-mobile-navbar">
             {navItems.map((item) => (
-                <button
+                <button aria-label="Action" type="button"
                     key={item.id}
                     className={`mobile-nav-item ${activeTab === item.id ? 'active' : ''}`}
                     onClick={() => {
@@ -42,7 +42,7 @@ export default function AdminMobileNavbar({ activeTab, setActiveTab, sidebarOpen
             ))}
 
             {/* Menu Toggle */}
-            <button
+            <button type="button"
                 className={`mobile-nav-item ${sidebarOpen ? 'active' : ''}`}
                 onClick={() => setSidebarOpen(!sidebarOpen)}
             >

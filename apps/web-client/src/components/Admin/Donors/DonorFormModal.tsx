@@ -68,6 +68,7 @@ export default function DonorFormModal({ donor, isNew, onClose, onSave, saving }
                 },
                 body: JSON.stringify({ text, targetLang: toLang })
             });
+            if (!res.ok) throw new Error('Translation failed');
             const data = await res.json();
             if (data.success) {
                 setFormData(prev => ({ ...prev, [field]: data.translatedText }));
@@ -98,7 +99,7 @@ export default function DonorFormModal({ donor, isNew, onClose, onSave, saving }
                         <Crown style={{ color: 'var(--accent)' }} />
                         {isNew ? t('admin.donors.new_title') : t('admin.donors.edit_title')}
                     </h3>
-                    <button onClick={onClose} className="btn-close-mini">
+                    <button aria-label="Action" type="button" onClick={onClose} className="btn-close-mini">
                         <X />
                     </button>
                 </div>
@@ -108,8 +109,8 @@ export default function DonorFormModal({ donor, isNew, onClose, onSave, saving }
                         {/* Left Side: Basic Info */}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                             <div className="form-group">
-                                <label className="admin-label-premium">{t('admin.donors.form.nick')}</label>
-                                <input 
+                                <label htmlFor="donor-nick" className="admin-label-premium">{t('admin.donors.form.nick')}</label>
+                                <input id="donor-nick"
                                     className="admin-input-premium" 
                                     value={formData.name} 
                                     onChange={e => setFormData({...formData, name: e.target.value})}
@@ -119,7 +120,7 @@ export default function DonorFormModal({ donor, isNew, onClose, onSave, saving }
 
                             <div className="form-group">
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                                    <input 
+                                    <input aria-label="Input field" 
                                         type="checkbox" 
                                         id="isPremiumDonor"
                                         checked={formData.isPremium || false}
@@ -134,8 +135,8 @@ export default function DonorFormModal({ donor, isNew, onClose, onSave, saving }
 
                             {!formData.isPremium && (
                                 <div className="form-group">
-                                    <label className="admin-label-premium">{t('admin.donors.form.skin_url')}</label>
-                                    <input 
+                                    <label htmlFor="donor-skin-url" className="admin-label-premium">{t('admin.donors.form.skin_url')}</label>
+                                    <input id="donor-skin-url"
                                         className="admin-input-premium" 
                                         value={formData.skinUrl} 
                                         onChange={e => setFormData({...formData, skinUrl: e.target.value})}
@@ -148,15 +149,16 @@ export default function DonorFormModal({ donor, isNew, onClose, onSave, saving }
                             )}
 
                             <div className="form-group">
-                                <label className="admin-label-premium">{t('admin.donors.form.ranks')}</label>
+                                <div className="admin-label-premium">{t('admin.donors.form.ranks')}</div>
                                 <div className="donor-ranks-selector">
                                     {AVAILABLE_RANKS.map(rank => {
                                         const isSelected = formData.ranks.includes(rank.id);
                                         return (
-                                            <div 
+                                            <button
+                                                type="button"
                                                 key={rank.id}
                                                 onClick={() => {
-                                                    const newRanks = isSelected 
+                                                    const newRanks = isSelected
                                                         ? formData.ranks.filter(r => r !== rank.id)
                                                         : [...formData.ranks, rank.id];
                                                     setFormData({...formData, ranks: newRanks});
@@ -165,7 +167,7 @@ export default function DonorFormModal({ donor, isNew, onClose, onSave, saving }
                                             >
                                                 <img src={rank.img} alt={rank.label} />
                                                 <span>{rank.label}</span>
-                                            </div>
+                                            </button>
                                         )
                                     })}
                                 </div>
@@ -176,7 +178,7 @@ export default function DonorFormModal({ donor, isNew, onClose, onSave, saving }
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                             <div className="form-group">
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                    <label className="admin-label-premium">{t('admin.donors.form.desc')}</label>
+                                    <label htmlFor="donor-desc" className="admin-label-premium">{t('admin.donors.form.desc')}</label>
                                     <button 
                                         type="button"
                                         className="btn-premium-mini" 
@@ -187,7 +189,7 @@ export default function DonorFormModal({ donor, isNew, onClose, onSave, saving }
                                         {t('admin.donors.form.translate_en')}
                                     </button>
                                 </div>
-                                <textarea 
+                                <textarea id="donor-desc" 
                                     className="admin-textarea-premium" 
                                     value={formData.description} 
                                     onChange={e => setFormData({...formData, description: e.target.value})}
@@ -198,7 +200,7 @@ export default function DonorFormModal({ donor, isNew, onClose, onSave, saving }
 
                             <div className="form-group">
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                    <label className="admin-label-premium">{t('admin.donors.form.desc_en')}</label>
+                                    <label htmlFor="donor-desc-en" className="admin-label-premium">{t('admin.donors.form.desc_en')}</label>
                                     <button 
                                         type="button"
                                         className="btn-premium-mini" 
@@ -209,7 +211,7 @@ export default function DonorFormModal({ donor, isNew, onClose, onSave, saving }
                                         {t('admin.donors.form.translate_es')}
                                     </button>
                                 </div>
-                                <textarea 
+                                <textarea id="donor-desc-en" 
                                     className="admin-textarea-premium" 
                                     value={formData.description_en || ''} 
                                     onChange={e => setFormData({...formData, description_en: e.target.value})}
@@ -249,7 +251,7 @@ export default function DonorFormModal({ donor, isNew, onClose, onSave, saving }
                         <button type="button" className="modal-btn-secondary" onClick={onClose} style={{ height: '52px' }}>
                             {t('admin.donors.form.cancel')}
                         </button>
-                        <button 
+                        <button type="button" 
                             className="modal-btn-primary" 
                             onClick={handleSubmit} 
                             disabled={saving} 

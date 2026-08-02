@@ -1,6 +1,6 @@
 import supabase from './supabaseService.js';
 
-export interface LocationAuthor {
+interface LocationAuthor {
     name: string;
     role: string;
 }

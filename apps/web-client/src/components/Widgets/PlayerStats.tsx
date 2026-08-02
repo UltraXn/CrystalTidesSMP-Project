@@ -1,4 +1,4 @@
-import { motion as Motion } from 'framer-motion'
+import { m as Motion } from 'framer-motion'
 import { Skull, Crosshair, Box, Layers, Trophy, Clock, Calendar, Ghost } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import Loader from '../UI/Loader'
@@ -35,7 +35,7 @@ export default function PlayerStats({ statsData, loading, error }: PlayerStatsPr
 
     if (loading || !statsData) {
         return (
-            <div className="flex items-center justify-center min-h-[400px]">
+            <div className="flex items-center justify-center min-h-100">
                 <Loader text={t('account.stats.loading')} />
             </div>
         )
@@ -139,7 +139,7 @@ interface StatItemProps {
 function StatItem({ icon, label, value, color }: StatItemProps) {
     return (
         <Motion.div 
-            className="group relative flex flex-col items-center bg-white/5 border border-white/5 rounded-4xl p-8 backdrop-blur-3xl transition-all hover:bg-white/10 hover:border-white/10 hover:-translate-y-1"
+            className="group relative flex flex-col items-center bg-white/5 border border-white/5 rounded-4xl p-8 backdrop-blur-3xl transition-colors hover:bg-white/10 hover:border-white/10 hover:-translate-y-1"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             whileHover={{ scale: 1.02 }}
@@ -171,7 +171,7 @@ function StatItem({ icon, label, value, color }: StatItemProps) {
 
             {/* Accent Border Bottom */}
             <div 
-                className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1/4 h-[2px] rounded-full opacity-0 group-hover:opacity-100 transition-all duration-500"
+                className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1/4 h-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-colors duration-500"
                 style={{ backgroundColor: color, boxShadow: `0 0 15px ${color}` }}
             />
         </Motion.div>

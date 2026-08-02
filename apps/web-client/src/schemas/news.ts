@@ -8,7 +8,7 @@ export const newsSchema = z.object({
     content_en: z.string().optional(),
     category: z.string().min(1, "Category is required"),
     status: z.enum(["Draft", "Published"]),
-    image: z.string().url("Must be a valid URL").optional().or(z.literal('')),
+    image: z.url("Must be a valid URL").optional().or(z.literal('')),
     author_id: z.string().optional(),
     username: z.string().optional(),
     user_id: z.string().optional(),

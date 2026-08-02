@@ -1,4 +1,76 @@
 {
+    "seo": {
+        "title": "CrystalTides SMP | El Mejor Servidor Minecraft Survival Modded 1.21.1 en Español",
+        "description": "CrystalTides SMP: El mejor servidor de Minecraft Survival Modded 1.21.1 en español con comunidad activa, economía custom, eventos y mecánicas únicas.",
+        "keywords": "Servidor Minecraft Survival Modded 1.21.1, Servidor Minecraft Español, Survival Modded 1.21.1, CrystalTides SMP, Servidor Minecraft"
+    },
+    "about": {
+        "features": {
+            "title": "Características Destacadas",
+            "subtitle": "Sistemas a medida programados exclusivamente para ofrecerte una jugabilidad pulida, inmersiva y duradera.",
+            "proximity": {
+                "title": "Chat de Proximidad",
+                "tag": "INMERSIÓN",
+                "desc": "Comunícate con otros jugadores mediante voz de proximidad integrada. Escucha susurros en los callejones de la ciudad, haz tratos en secreto o grita advertencias en mitad de batallas frenéticas."
+            },
+            "economy": {
+                "title": "Economía de Cristales",
+                "tag": "COMERCIO",
+                "desc": "Un ecosistema financiero dinámico. Mina cristales inestables en las profundidades, procésalos en refinerías y utilízalos para adquirir barcos, comerciar en subastas o pagar los impuestos de tu ciudad."
+            },
+            "nations": {
+                "title": "Naciones e Imperios",
+                "tag": "POLÍTICA",
+                "desc": "Funda tu propia aldea o únete a una nación existente. Establece leyes, gestiona la tesorería municipal, firma tratados de paz o declara guerras territoriales para expandir tu imperio."
+            }
+        },
+        "roles": {
+            "badge": "Sistema Custom de Mecánicas Creado a Medida",
+            "title": "Elige tu Camino en CrystalTides",
+            "subtitle": "El servidor tiene el objetivo principal de ser divertido y pasársela genial jugando, ya sea de manera relajada (chill) con amigos o tryhardeando para subir en los rankings. Tu progreso en el juego te permite desbloquear títulos cosméticos y ascender de prestigio.",
+            "step1_title": "1. Juega como Quieras",
+            "step1_desc": "Construye, combate, comercia o explora libremente. No hay restricciones de estilo de juego.",
+            "step2_title": "2. Títulos por Progresión",
+            "step2_desc": "Al acumular bloques, kills, KilluCoins o días de racha desbloqueas títulos progresivos.",
+            "step3_title": "3. Prestigio & Top #1",
+            "step3_desc": "Avanza en los 5 niveles de Prestigio mundial y compite por el puesto supremo de la rama.",
+            "radar": {
+                "builder": "Constructor",
+                "fighter": "Luchador",
+                "merchant": "Mercader",
+                "constancy": "Constancia",
+                "explorer": "Explorador"
+            },
+            "prestige_desc": "Los Niveles de Prestigio recompensan la constancia de los jugadores que maxean sus estadísticas de maestría en CrystalTides.",
+            "prestige": {
+                "tier1": {
+                    "name": "Prestigio I (Cobre)",
+                    "badge": "⭐ PRESTIGIO I",
+                    "req": "Racha inicial o hito de nivel 2"
+                },
+                "tier2": {
+                    "name": "Prestigio II (Hierro)",
+                    "badge": "⭐⭐ PRESTIGIO II",
+                    "req": "Racha intermedia o hito de nivel 3"
+                },
+                "tier3": {
+                    "name": "Prestigio III (Oro)",
+                    "badge": "⭐⭐⭐ PRESTIGIO III",
+                    "req": "Racha de 14 días o hito de nivel 4"
+                },
+                "tier4": {
+                    "name": "Prestigio IV (Diamante)",
+                    "badge": "⭐⭐⭐⭐ PRESTIGIO IV",
+                    "req": "Racha de 30 días o Top 5 del Servidor"
+                },
+                "tier5": {
+                    "name": "Prestigio V (Iridium)",
+                    "badge": "💎 PRESTIGIO V",
+                    "req": "Top #1 indiscutido de la Maestría"
+                }
+            }
+        }
+    },
     "common": {
         "back": "Volver",
         "back_home": "Volver al Inicio",
@@ -91,7 +163,8 @@
         "register": "Registrarse",
         "wiki": "Guía",
         "support": "Soporte",
-        "gacha": "Gacha"
+        "gacha": "Gacha",
+        "logged_in_as": "Conectado como"
     },
     "features": {
         "economy_title": "Economía Dinámica",
@@ -103,7 +176,7 @@
     },
     "home": {
         "title": "Sobre el Servidor",
-        "description": "CrystalTides no es solo un territorio, es el legado vivo de cuatro entidades primordiales. Fue forjado por la unión de un Soberano Acuático, dueño de las profundidades; una Presencia Abismal e insondable, dueña de la mente y los secretos, que no responde a leyes ni bandos, sino a su propia voluntad; un Viajero de las Estrellas, portador de la visión cósmica y la estrategia bélica inigualables; y una Fuerza Terrenal, enraizada en los misterios antiguos de estas tierras.\n\nHoy, CrystalTides es un crisol de maravillas, un mundo mágico moldeado por esta alianza divina donde cada rincón respira la esencia de sus fundadores: la marea, el abismo, el cosmos y la tierra.",
+        "description": "CrystalTides es un universo survival RPG único donde las fuerzas de la marea, el abismo, el cosmos y la tierra colisionan. Elige tu camino, forja alianzas en un mundo completamente vivo, domina la economía de cristales y escribe tu propia leyenda.",
         "join_us_twitch": "Si queréis ver en qué gasta su tiempo una criatura acuática hiperactiva, id a ver a Killubysmali en Twitch. Lo mismo te dibuja una obra de arte, que te da una English MASTER class o se pone a jugar Repo como si le fuera la vida en ello.",
         "join_us_discord": "¿Te quedaste con ganas de más locura? Únete a La Pecerita de killu en Discord. Pero cuidado: en esas aguas profundas acecha la temible Killujaiba, se entonan himnos al Hombre Océano (me coge de la mano y me lleva a un lugar~ 🎵) y todavía hay un trauma colectivo por la Cucharita de killu (que se le perdió...).",
         "stats": {
@@ -223,19 +296,150 @@
         "view_all_news": "Ver todas"
     },
     "hero": {
-        "welcome": "Bienvenido a",
+        "welcome": "BIENVENIDO A",
+        "title": "CRYSTALTIDES SMP",
+        "subtitle": "Sumérgete en un mundo de aventuras, comunidad y creatividad sin límites. ¡Únete a nosotros! Te esperamos ✨",
         "description": "Sumérgete en un mundo de aventuras, comunidad y creatividad sin límites. ¡Únete a nosotros! Te esperamos ✨",
+        "edition": "EDICIÓN .JAVA",
+        "copy_ip": "COPIAR IP",
+        "copied": "¡COPIADO!",
         "players_online": "Jugadores Online",
-        "connect": "Conéctate al Servidor",
-        "java_edition": "Edición Java",
-        "copy_ip": "Copiar IP",
-        "copied": "¡Copiado!",
-        "kofi_text": "¡Dona en Ko-Fi!"
+        "kofi_text": "¡Apóyanos en Ko-fi!",
+        "status": {
+            "offline": "OFFLINE",
+            "online": "ONLINE"
+        }
+    },
+    "nav": {
+        "kofi": "KO-FI",
+        "donators": "DONADORES",
+        "donors": "DONADORES"
+    },
+    "history_section": {
+        "title": "Historia de CrystalTides SMP",
+        "desc": "Bienvenid@ a la historia de CrystalTides SMP, aquí podrás ver las etapas del proyecto",
+        "stage1": {
+            "stageName": "ESTACIÓN 01",
+            "title": "La Pecerita de los Killufishies",
+            "subtitle": "El Origen de la Comunidad en Twitch",
+            "badge": "✦ EL ORIGEN",
+            "summary": "El nacimiento de nuestra historia en los streams de Twitch de Killu: un espacio dedicado al arte, la ilustración y las primeras noches de juego casual.",
+            "f1_title": "Streams de Ilustración",
+            "f1_desc": "Comunidad activa de dibujo & fanart",
+            "f2_title": "Noches de Minijuegos",
+            "f2_desc": "Primeros momentos de chill & gaming"
+        },
+        "stage2": {
+            "stageName": "ESTACIÓN 02",
+            "title": "Creación del staff",
+            "subtitle": "Formación del Núcleo de Desarrollo, Arte y QA",
+            "badge": "✦ NÚCLEO STAFF",
+            "banner_badge": "✦ EL ORIGEN DE NUESTRA MARCA & SERVIDOR ✦",
+            "banner_text": "Lo que comenzó como una gran amistad dio origen a algo maravilloso. CrystalTidesSMP no es solo un servidor; es el reflejo de nuestro compromiso por construir un hogar digital transparente, creado con empatía y escuchando a nuestra comunidad.",
+            "summary": "Se forma el equipo oficial: Killu en la voz y comunidad, Nero en la arquitectura técnica e infraestructura, Churly en el diseño de interfaz y Japa en el testing de juego."
+        },
+        "members": {
+            "killu": {
+                "role": "Directora & Comunidad",
+                "desc": "Apasionada, alegre y el alma protectora de la Pecerita. Crea un ambiente acogedor, organiza eventos y guía con calidez humana.",
+                "tag1": "Carismática",
+                "tag2": "Eventos",
+                "tag3": "Voz Principal"
+            },
+            "nero": {
+                "role": "Dev Lead & Infra",
+                "desc": "Mente lógica e inyectado de euforia técnica. Obsesionado con el rendimiento del servidor, parches custom y código limpio sin fallos.",
+                "tag1": "Euforia Técnica",
+                "tag2": "Infra Fullstack",
+                "tag3": "Cero Bugs"
+            },
+            "churly": {
+                "role": "Diseño & Arte Lead",
+                "desc": "Perfeccionista visual, creativo y visionario de la estética. Diseña interfaces, conceptos de arte e identidades visuales únicas.",
+                "tag1": "Visión Artística",
+                "tag2": "UI/UX Lead",
+                "tag3": "Estética Pulida"
+            },
+            "japa": {
+                "role": "QA & BetaTester",
+                "desc": "Curioso, persistente e implacable buscando romper mecánicas para mejorarlas. El agente del caos a prueba de fallos personal de killu.",
+                "tag1": "Agente Caos",
+                "tag2": "QA Tester",
+                "tag3": "Gameplay Solid"
+            }
+        },
+        "stage3": {
+            "stageName": "ESTACIÓN 03",
+            "title": "Evolución a CrystalTides SMP",
+            "subtitle": "Sistema RPG, Economía VIVA & Bosses del Nether",
+            "badge": "✦ EVOLUCIÓN",
+            "summary": "La pecerita fue renombrada como CrystalTidesSMP, un servidor nuevo con mecánicas nuevas y bosses increíbles.",
+            "live_combat": "🔴 VER REGISTRO DE COMBATE EN VIVO",
+            "wither_boss": "Wither Terror Boss Fight",
+            "nether_raid": "NETHER RAID",
+            "nether_citadel": "Ciudadela Nether",
+            "community": "COMUNIDAD",
+            "sakura_forest": "Bosque Sakura",
+            "showdown": "ENFRENTAMIENTO",
+            "nether_battle": "Batalla Nether",
+            "economy": "ECONOMÍA",
+            "grand_vault": "Gran Bóveda",
+            "f1_title": "Habilidades mcMMO",
+            "f1_desc": "Sistema RPG completo de maestrías & combate",
+            "f2_title": "Economía Killupesos",
+            "f2_desc": "Se originó el futuro sistema de economía con 7 monedas de cambio",
+            "f3_title": "Forgotten Terror Boss",
+            "f3_desc": "Mazmorra semanal y combates en el Nether",
+            "f4_title": "Red de Waystones",
+            "f4_desc": "Teletransporte e hitos del mapa survival"
+        },
+        "stage4": {
+            "stageName": "ESTACIÓN 04",
+            "title": "Era Dedicada & Launcher",
+            "subtitle": "Servidores Dedicados, Dominio Oficial y Futuro",
+            "badge": "✦ ERA DEDICADA",
+            "summary": "Migración a infraestructura profesional en servidores dedicados Ubuntu Server (MySQL, Redis, nodos distribuidos), dominio oficial y Launcher Beta.",
+            "new_hosting": "NUEVO HOSTING",
+            "ubuntu_tps": "Ubuntu 20 TPS Sostenidos",
+            "daily_rewards": "RECOMPENSAS DIARIAS",
+            "daily_loot": "Premios & Loot por Entrar",
+            "new_stats": "NUEVAS ESTADÍSTICAS",
+            "live_metrics": "Métricas & Kills en Vivo",
+            "improved_economy": "ECONOMÍA MEJORADA",
+            "economy_system": "Sistema de economía mejorado",
+            "f1_title": "Dedicated Ubuntu Node",
+            "f1_desc": "20 TPS constantes y nodos distribuidos",
+            "rules": {
+                "title": "Reglamento del Servidor",
+                "search_placeholder": "Buscar normas... (ej: pvp, chat, insultos)",
+                "delete_confirm": "¿Estás seguro de eliminar esta regla?",
+                "delete_error": "Error al eliminar la regla",
+                "save_error": "Error al guardar la regla",
+                "view_more": "Ver detalles ↓",
+                "view_less": "Ver menos ↑",
+                "allowed": "PERMITIDO",
+                "forbidden": "PROHIBIDO / SANCIONABLE",
+                "useful_commands": "COMANDOS ÚTILES",
+                "copied": "Copiado al portapapeles:"
+            },
+            "f2_title": "Mc.CrystalTidesSMP.net",
+            "f2_desc": "Dominio oficial de conexión directa",
+            "f3_title": "Launcher Oficial Beta",
+            "f3_desc": "Entrada optimizada al juego en 1-Click"
+        }
     },
     "rules": {
         "title": "Reglas del Servidor",
+        "search_placeholder": "Buscar normas... (ej: pvp, chat, insultos)",
         "intro": "Para mantener una comunidad sana y divertida, es fundamental respetar estas normas de convivencia. El incumplimiento puede llevar a sanciones severas.",
         "loading": "Cargando normativas...",
+        "view_more": "Ver detalles ↓",
+        "view_less": "Ver menos ↑",
+        "severity": {
+            "mild": "Leve",
+            "serious": "Grave",
+            "critical": "Crítica"
+        },
         "all": "Todas",
         "new_rule": "Nueva Normativa",
         "editing": "Editando Norma",
@@ -349,6 +553,7 @@
             "soon": "Próximamente",
             "finished": "Finalizado"
         },
+        "view_podium": "Ver Podio 🏆",
         "items": {
             "1": {
                 "title": "Master Builder",
@@ -466,6 +671,7 @@
             "staff": "Staff"
         },
         "nav": {
+            "profile": "Ver Perfil",
             "overview": "Resumen",
             "posts": "Mis Publicaciones",
             "achievements": "Logros",
@@ -485,6 +691,7 @@
             "not_linked_title": "¡Vincula tu cuenta!",
             "not_linked_msg": "Para ver tus estadísticas en tiempo real (dinero, tiempo de juego, muertes), necesitas verificar que eres el dueño de la cuenta de Minecraft.",
             "verify_btn": "Verificar Ahora",
+            "formula_header": "¿Cómo se calcula cada Puntuación?",
             "playstyle": {
                 "title": "Estilo de Juego",
                 "metrics_title": "Métricas de Estilo de Juego",
@@ -499,13 +706,75 @@
                 "pts_kill": "pts (Kill x10)",
                 "hours": "horas",
                 "pts_formula": "pts (H x0.2 + Rango)",
-                "social_note": "* Social: +30 pts por rango Donador, Fundador, Killu, Neroferno, Developer o Staff."
+                "social_note": "* Social: +30 pts por rango Donador, Fundador, Killu, Neroferno, Developer o Staff.",
+                "blocks_formula": "Bloques Minados + Colocados",
+                "pvp_formula": "PvP (x15) + Mobs (x1)",
+                "merchant_formula": "100 × log₁₀(KilluCoins)",
+                "constancy_formula": "(Días de Racha)²",
+                "explorer_formula": "Horas (x10) + Km"
+            },
+            "prestige": {
+                "title": "Sistema de Prestigios de Estilo de Juego",
+                "level1": "⭐ Prestige I",
+                "level2": "⭐⭐ Prestige II",
+                "level3": "⭐⭐⭐ Prestige III",
+                "level4": "⭐⭐⭐⭐ Prestige IV",
+                "level5": "💎 Prestige V",
+                "bonus1": "+5% KC Diarios",
+                "bonus2": "+10% KC Diarios",
+                "bonus3_discount": "+15% KC + Descuento",
+                "bonus3_aura": "+15% KC + Aura",
+                "bonus5_swords": "+25% KC + Espadas",
+                "tag_neon": "[P5] Neon",
+                "active": "Activo",
+                "locked": "Bloqueado",
+                "max_reached": "¡Felicidades! Has alcanzado el Nivel Máximo V de Prestigio en {{branch}}.",
+                "req_met": "¡Requisito Cumplido! Eres el #1 del servidor en {{branch}}. Puedes ascender al Nivel {{level}}.",
+                "locked_msg": "Bloqueado: Debes ser el jugador #1 con Rango Máximo en {{branch}} para ascender.",
+                "btn_req": "🔒 Requisito: Alcanzar Rango Máximo",
+                "btn_max": "👑 Prestigio Máximo Alcanzado",
+                "btn_ascend": "⭐ Ascender a Prestigio {{level}}",
+                "arch": {
+                    "constructor": {
+                        "p1": "Iniciado de Piedra",
+                        "p2": "Constructor Consagrado",
+                        "p3": "Gran Arquitecto",
+                        "p4": "Maestro Constructor",
+                        "p5": "Arquitecto Mítico"
+                    },
+                    "luchador": {
+                        "p1": "Guerrero de Bronce",
+                        "p2": "Campeón de Batalla",
+                        "p3": "Señor de Guerra",
+                        "p4": "Maestro de Armas",
+                        "p5": "Gladiador Supremo"
+                    },
+                    "mercader": {
+                        "p1": "Mercader Próspero",
+                        "p2": "Comerciante de Élite",
+                        "p3": "Barón Financiero",
+                        "p4": "Gran Maestro Gremial",
+                        "p5": "Magnate Legendario"
+                    },
+                    "constancia": {
+                        "p1": "Devoto del Servidor",
+                        "p2": "Pilar Inquebrantable",
+                        "p3": "Guardián de Racha",
+                        "p4": "Leyenda Inquebrantable",
+                        "p5": "Titán Eterno"
+                    },
+                    "explorador": {
+                        "p1": "Navegante de Reinos",
+                        "p2": "Mapeador Ancestral",
+                        "p3": "Pionero del Horizonte",
+                        "p4": "Explorador Experto",
+                        "p5": "Conquistador de Mundos"
+                    }
+                }
             }
         },
-       "medals_title": "Mis Medallas",
-
+        "medals_title": "Mis Medallas",
         "no_medals": "Aún no tienes medallas especiales.",
-
         "unlink_confirm_title": "Desvincular cuenta",
         "unlink_confirm_msg": "¿Estás seguro? Podrías perder acceso a ciertas características.",
         "stats": {
@@ -628,7 +897,6 @@
             "status_placeholder": "Ej: Explorando el End..."
         },
         "admin_panel": "Panel Admin",
-
         "security": {
             "2fa_title": "Autenticación de Dos Factores",
             "2fa_active": "Tu cuenta está protegida con 2FA.",
@@ -689,7 +957,7 @@
         "stats_title": "Estadísticas de Juego",
         "give_karma": "Dar Karma"
     },
-"admin": {
+    "admin": {
         "close": "Cerrar",
         "loading_panel": "Cargando panel...",
         "sidebar": {
@@ -712,7 +980,6 @@
             "msg": "No tienes los permisos necesarios para estar aquí.",
             "back_home": "Volver al Inicio"
         },
-
         "panel_subtitle": "Panel de control administrativo",
         "tabs": {
             "general": "General",
@@ -748,7 +1015,8 @@
             "docs": "Documentación Interna",
             "donations": "Gestión de Donaciones",
             "wiki": "Editor de Wiki / Gamepedia",
-            "locations": "Gestor de Lugares y Lore"
+            "locations": "Gestor de Lugares y Lore",
+            "roadmap": "Roadmap y Recompensas del Launcher"
         },
         "polls": {
             "title": "Gestor de Encuestas",
@@ -942,7 +1210,6 @@
                     "no_events": "No hay tareas en este rango"
                 }
             },
-
             "notes": {
                 "title": "Notas Rápidas",
                 "new_note_btn": "Nueva Nota",
@@ -959,7 +1226,6 @@
                 }
             }
         },
-
         "wiki": {
             "manager_title": "Gestor de Wiki",
             "search_placeholder": "Buscar artículos...",
@@ -989,8 +1255,6 @@
             },
             "delete_confirm": "¿Estás seguro de que quieres eliminar este artículo?"
         },
-
-
         "2fa": {
             "title": "Verificación de Seguridad",
             "desc": "Ingresa tu código 2FA para acceder al Panel Administrativo.",
@@ -1118,8 +1382,6 @@
                 "mo": "Meses"
             }
         },
-
-
         "donations": {
             "title": "Gestión de Donaciones",
             "manager_desc": "Visualiza y administra el historial de contribuciones de la comunidad.",
@@ -1314,21 +1576,21 @@
             "initial_msg": "Usa el buscador para encontrar usuarios.",
             "searching": "Buscando...",
             "confirm_role": "¿Cambiar rol a ",
-                "error_role": "Error actualizando rol",
-                "gamification": "Gamificación",
-                "medals": "Medallas",
-                "medals_of": "Medallas de",
-                "no_medals": "No hay medallas creadas en el sistema.",
-                "save_medals": "Guardar Cambios",
-                "saving": "Guardando...",
-                "error_medals": "Error al guardar medallas",
-                "role_modal": {
-                    "title": "¿Confirmar Cambio de Rol?",
-                    "desc": "Estás a punto de cambiar el rol del usuario",
-                    "to": "a",
-                    "confirm": "Confirmar Cambio",
-                    "cancel": "Cancelar"
-                }
+            "error_role": "Error actualizando rol",
+            "gamification": "Gamificación",
+            "medals": "Medallas",
+            "medals_of": "Medallas de",
+            "no_medals": "No hay medallas creadas en el sistema.",
+            "save_medals": "Guardar Cambios",
+            "saving": "Guardando...",
+            "error_medals": "Error al guardar medallas",
+            "role_modal": {
+                "title": "¿Confirmar Cambio de Rol?",
+                "desc": "Estás a punto de cambiar el rol del usuario",
+                "to": "a",
+                "confirm": "Confirmar Cambio",
+                "cancel": "Cancelar"
+            }
         },
         "staff": {
             "manager_title": "Gestión del Staff",
@@ -1513,6 +1775,8 @@
             "source_all": "TODOS",
             "source_web": "WEB",
             "source_game": "JUEGO",
+            "source_security": "Alerta",
+            "source_security-auditor": "Seguridad",
             "showing": "Mostrando {{count}} de {{total}} eventos",
             "no_logs_found": "No se encontraron registros",
             "try_adjust_filters": "Intenta ajustar los filtros o la búsqueda.",
@@ -1522,7 +1786,6 @@
             "table_action": "ACCIÓN",
             "table_details": "DETALLES"
         },
-
         "notifications": {
             "title": "Notificaciones",
             "empty": "No tienes notificaciones nuevas.",
@@ -1546,7 +1809,6 @@
                 "cancel": "Cancelar"
             }
         },
-
         "events": {
             "title": "Gestión de Eventos y Concursos",
             "loading": "Cargando eventos...",
@@ -1589,11 +1851,11 @@
             "error_delete": "Error al eliminar",
             "delete_tooltip": "Eliminar",
             "registrations": {
-                 "title": "Inscripciones",
-                 "empty": "No hay inscripciones aún.",
-                 "loading": "Cargando...",
-                 "unknown_user": "Usuario desconocido",
-                 "view_tooltip": "Ver Inscripciones"
+                "title": "Inscripciones",
+                "empty": "No hay inscripciones aún.",
+                "loading": "Cargando...",
+                "unknown_user": "Usuario desconocido",
+                "view_tooltip": "Ver Inscripciones"
             },
             "form_extras": {
                 "title_es": "Título (Español)",
@@ -1694,7 +1956,7 @@
         "account_not_linked": "Cuenta no vinculada",
         "link_instruction": "Debes vincular tu cuenta de Minecraft en los ajustes para poder recibir premios en el servidor.",
         "link_button": "Vincular ahora"
-},
+    },
     "tutorial": {
         "step1_title": "¡Bienvenido a CrystalTides!",
         "step1_content": "Descubre la nueva experiencia web de tu servidor favorito. Hemos renovado todo para ti.",
@@ -1715,7 +1977,7 @@
     },
     "staff": {
         "title": "Nuestro Equipo",
-        "subtitle": "Conoce a las personas que hacen posible CrystalTides.",
+        "subtitle": "Un equipo de 4 personas unidas por la pasión, el código, el arte y el caos controlado: la voz y comunidad de Killu, la infraestructura eufórica de Nero, la estética limpia de Churly y el testing implacable de Japa.",
         "hiring_title": "¡Estamos contratando!",
         "hiring_action": "Postúlate aquí",
         "loading": "Cargando equipo..."
@@ -1777,41 +2039,44 @@
         }
     },
     "gacha": {
-    "hero_title": "GACHA DE CRYSTALTIDES",
-    "hero_subtitle": "¡Prueba tu suerte y desbloquea recompensas místicas!",
-    "tiers": {
-        "bronze": "BRONCE",
-        "silver": "PLATA",
-        "gold": "ORO",
-        "emerald": "ESMERALDA",
-        "diamond": "DIAMANTE",
-        "netherite": "NETHERITE",
-        "ultra": "ULTRA"
-    },
-    "cost": "COSTE",
-    "quantity": "CANTIDAD",
-    "balance": "SALDO",
-    "spin": "TIRAR",
-    "spinning": "GIRANDO...",
-    "tier_locked": "BLOQUEADO",
-    "free_roll": "¡TIRO GRATIS!",
-    "event_only": "EVENTO",
-    "results_title": "RECOMPENSAS",
-    "accept": "ACEPTAR",
-    "no_rewards": "No se obtuvieron recompensas esta vez.",
-    "admin": {
-        "enable": "ACTIVAR MODO ADMIN",
-        "disable": "DESACTIVAR MODO ADMIN",
-        "forced_result": "RESULTADO FORZADO",
-        "real_consumption": "CONSUMO REAL",
-        "test_machine": "PROBAR MÁQUINA",
-        "add_funds": "Admin: +1M KC (Local)"
-    },
-    "unauthorized": {
-        "title": "ACCESO RESTRINGIDO",
-        "desc": "Este terminal de recompensas está reservado para personal autorizado y aventureros vinculados.",
-        "status": "ESTADO DEL SISTEMA",
-        "back": "VOLVER AL PORTAL"
+        "hero_title": "Crystal Slot",
+        "hero_subtitle": "Gira la máquina y consigue cosméticos, mascotas y objetos legendarios",
+        "probability_rates": "Probabilidades de Obtención",
+        "history_title": "Historial de Premios",
+        "view_all": "Ver Todo",
+        "tiers": {
+            "bronze": "BRONCE",
+            "silver": "PLATA",
+            "gold": "ORO",
+            "emerald": "ESMERALDA",
+            "diamond": "DIAMANTE",
+            "netherite": "NETHERITE",
+            "ultra": "ULTRA"
+        },
+        "cost": "COSTE",
+        "quantity": "CANTIDAD",
+        "balance": "SALDO",
+        "spin": "TIRAR",
+        "spinning": "GIRANDO...",
+        "tier_locked": "BLOQUEADO",
+        "free_roll": "¡TIRO GRATIS!",
+        "event_only": "EVENTO",
+        "results_title": "RECOMPENSAS",
+        "accept": "ACEPTAR",
+        "no_rewards": "No se obtuvieron recompensas esta vez.",
+        "admin": {
+            "enable": "ACTIVAR MODO ADMIN",
+            "disable": "DESACTIVAR MODO ADMIN",
+            "forced_result": "RESULTADO FORZADO",
+            "real_consumption": "CONSUMO REAL",
+            "test_machine": "PROBAR MÁQUINA",
+            "add_funds": "Admin: +1M KC (Local)"
+        },
+        "unauthorized": {
+            "title": "ACCESO RESTRINGIDO",
+            "desc": "Este terminal de recompensas está reservado para personal autorizado y aventureros vinculados.",
+            "status": "ESTADO DEL SISTEMA",
+            "back": "VOLVER AL PORTAL"
+        }
     }
-}
 }

@@ -1,0 +1,23 @@
+@keyframes logo-idle-float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-5px) rotate(2deg); }
+}
+@keyframes brand-text-shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+.logo-animate-idle {
+    will-change: transform;
+    transform: translateZ(0);
+    animation: logo-idle-float 3s ease-in-out infinite;
+}
+.brand-text-shimmer {
+    background: linear-gradient(90deg, #fff 0%, var(--accent) 50%, #fff 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: brand-text-shimmer 4s linear infinite;
+    padding-right: 0.15em;
+    display: inline-block;
+}

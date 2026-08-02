@@ -29,7 +29,7 @@ This guide will help you set up the complete CrystalTides development environmen
 ## 1️⃣ Clone the Repository
 
 ```bash
-git clone https://github.com/crystaltides/crystaltides.git
+git clone https://github.com/UltraXn/CrystalTidesSMP-Project.git
 cd crystaltides
 ```
 

@@ -1,6 +1,6 @@
 import express from 'express';
 import * as ticketController from '../controllers/ticketController.js';
-import { authenticateToken } from '../middleware/authMiddleware.js';
+import { authenticateToken, require2FA } from '../middleware/authMiddleware.js';
 import { checkRole, ADMIN_ROLES, STAFF_ROLES } from '../utils/roleUtils.js';
 import { validate } from '../middleware/validateResource.js';
 import { createTicketSchema, addTicketMessageSchema, updateTicketStatusSchema, banUserSchema } from '../schemas/ticketSchemas.js';
@@ -127,6 +127,6 @@ router.post('/:id/messages', sensitiveActionLimiter, validate(addTicketMessageSc
  *     security:
  *       - bearerAuth: []
  */
-router.post('/ban', checkRole(ADMIN_ROLES), validate(banUserSchema), ticketController.banUser);
+router.post('/ban', checkRole(ADMIN_ROLES), require2FA, validate(banUserSchema), ticketController.banUser);
 
 export default router;

@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react"
 import { useParams, Link } from "react-router-dom"
 import { User, MessageSquare, Clock, Pen, Pin, ArrowLeft } from "lucide-react"
 import Loader from "../components/UI/Loader"
 import { useTranslation } from 'react-i18next'
 import Section from "../components/Layout/Section"
+import { useQuery } from "@tanstack/react-query"
 
 interface ThreadSummary {
     id: string | number;
@@ -61,72 +61,58 @@ const categoryTranslationKeys: Record<string, string> = {
 export default function ForumCategory() {
     const { id: slug } = useParams<{ id: string }>()
     const { t } = useTranslation()
-    const [threads, setThreads] = useState<ThreadSummary[]>([])
-    const [loading, setLoading] = useState(true)
-
-    // Fallback if slug not found - try to map slug to ID, or use it as ID if it is one
+    const API_URL = import.meta.env.VITE_API_URL
     const categoryId = slug ? (categorySlugs[slug as keyof typeof categorySlugs] || slug) : null;
     const translationKey = slug ? categoryTranslationKeys[slug] : null;
     const categoryTitle = translationKey ? t(`forum_page.categories.${translationKey}.title`) : t('forum_page.categories.general.title')
-    const API_URL = import.meta.env.VITE_API_URL
+    
+    const isNewsCategory = String(categoryId) === "1"
 
-    useEffect(() => {
-        const fetchData = async () => {
-            setLoading(true)
-            if (!categoryId) {
-                setLoading(false)
-                return
-            }
-
-            if (String(categoryId) === "1") {
-                try {
-                    // Fetch real news for "Anuncios"
-                    const res = await fetch(`${API_URL}/news`)
-                    const data = await res.json()
-                    const mappedNews: ThreadSummary[] = Array.isArray(data) ? (data as NewsResponse[]).filter(n => n.status === 'Published').map(n => ({
-                        id: n.id,
-                        title: n.title,
-                        author: "Staff",
-                        replies: n.replies || 0,
-                        views: n.views || 0,
-                        lastActivity: new Date(n.created_at).toLocaleDateString(),
-                        pinned: true,
-                        tag: n.category,
-                        slug: n.slug
-                    })) : []
-                    setThreads(mappedNews)
-                } catch (err) {
-                    console.error("Error loading forum news:", err)
-                } finally {
-                    setLoading(false)
-                }
+    const { data: threads = [], isLoading: loading } = useQuery<ThreadSummary[]>({
+        queryKey: ['forumCategoryThreads', categoryId, isNewsCategory, API_URL],
+        queryFn: async () => {
+            if (!categoryId) return [];
+            if (isNewsCategory) {
+                const res = await fetch(`${API_URL}/news`);
+                if (!res.ok) throw new Error('Failed to fetch news');
+                const data = await res.json();
+                return Array.isArray(data)
+                    ? (data as NewsResponse[]).reduce<ThreadSummary[]>((acc, n) => {
+                        if (n.status === 'Published') {
+                            acc.push({
+                                id: n.id,
+                                title: n.title,
+                                author: "Staff",
+                                replies: n.replies || 0,
+                                views: n.views || 0,
+                                lastActivity: new Date(n.created_at).toLocaleDateString(),
+                                pinned: true,
+                                tag: "NEWS",
+                                slug: n.slug || `news-${n.id}`
+                            });
+                        }
+                        return acc;
+                    }, []) : [];
             } else {
-                try {
-                    // Fetch real user threads
-                    const res = await fetch(`${API_URL}/forum/category/${categoryId}`)
-                    const data = await res.json()
-                    const mappedThreads: ThreadSummary[] = Array.isArray(data) ? (data as ThreadResponse[]).map(t => ({
-                        id: t.id,
-                        title: t.title,
-                        author: t.author_name || "Anónimo",
-                        replies: t.reply_count || 0,
-                        views: t.views || 0,
-                        lastActivity: new Date(t.created_at).toLocaleDateString(),
-                        pinned: t.pinned || false,
-                        tag: null,
-                        slug: t.slug
-                    })) : []
-                    setThreads(mappedThreads)
-                } catch (err) {
-                    console.error(err)
-                } finally {
-                    setLoading(false)
-                }
+                const res = await fetch(`${API_URL}/forum/category/${categoryId}`);
+                if (!res.ok) throw new Error('Failed to fetch threads');
+                const data = await res.json();
+                return Array.isArray(data) ? (data as ThreadResponse[]).map((t) => ({
+                    id: t.id,
+                    title: t.title,
+                    author: t.author_name || "Aventurero",
+                    replies: t.reply_count || 0,
+                    views: t.views || 0,
+                    lastActivity: new Date(t.created_at).toLocaleDateString(),
+                    pinned: t.pinned || false,
+                    tag: null,
+                    slug: t.slug
+                })) : [];
             }
-        }
-
-        fetchData()
-    }, [categoryId, slug, API_URL])
+        },
+        enabled: Boolean(categoryId),
+        staleTime: 30_000,
+    });
 
     return (
         <div className="pt-24 min-h-screen">
@@ -180,7 +166,7 @@ export default function ForumCategory() {
                                     key={thread.id} 
                                     className="group block"
                                 >
-                                    <div className="bg-black/40 backdrop-blur-xl border border-white/5 rounded-2xl p-6 flex items-center gap-6 transition-all duration-300 hover:bg-white/5 hover:border-(--accent)/30 hover:-translate-y-1 hover:shadow-xl hover:shadow-(--accent)/5">
+                                    <div className="bg-black/40 backdrop-blur-xl border border-white/5 rounded-2xl p-6 flex items-center gap-6 transition-colors duration-300 hover:bg-white/5 hover:border-(--accent)/30 hover:-translate-y-1 hover:shadow-xl hover:shadow-(--accent)/5">
                                         
                                         {/* Icon */}
                                         <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl shrink-0 ${thread.pinned ? 'bg-(--accent)/10 text-(--accent)' : 'bg-white/5 text-gray-500 group-hover:bg-white/10 group-hover:text-gray-300'}`}>

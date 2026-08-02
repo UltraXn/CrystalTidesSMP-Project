@@ -1,6 +1,6 @@
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 export type ToastType = 'success' | 'error' | 'info';
 
@@ -13,14 +13,19 @@ interface ToastProps {
 }
 
 export default function Toast({ message, type = 'info', isVisible, onClose, duration = 3000 }: ToastProps) {
+    const onCloseRef = useRef(onClose);
+    useEffect(() => {
+        onCloseRef.current = onClose;
+    }, [onClose]);
+
     useEffect(() => {
         if (isVisible) {
             const timer = setTimeout(() => {
-                onClose();
+                onCloseRef.current();
             }, duration);
             return () => clearTimeout(timer);
         }
-    }, [isVisible, duration, onClose]);
+    }, [isVisible, duration]);
 
     const getIcon = () => {
         switch (type) {
@@ -43,7 +48,7 @@ export default function Toast({ message, type = 'info', isVisible, onClose, dura
     return (
         <AnimatePresence>
             {isVisible && (
-                <motion.div
+                <m.div
                     initial={{ opacity: 0, y: -50, x: '-50%' }}
                     animate={{ opacity: 1, y: 0, x: '-50%' }}
                     exit={{ opacity: 0, y: -20, x: '-50%' }}
@@ -72,8 +77,9 @@ export default function Toast({ message, type = 'info', isVisible, onClose, dura
                     <p style={{ margin: 0, color: '#fff', fontSize: '0.95rem', fontWeight: 500, flex: 1 }}>
                         {message}
                     </p>
-                    <button 
+                    <button type="button" 
                         onClick={onClose}
+                        aria-label="Cerrar notificación"
                         style={{
                             background: 'transparent',
                             border: 'none',
@@ -86,7 +92,7 @@ export default function Toast({ message, type = 'info', isVisible, onClose, dura
                     >
                         <X />
                     </button>
-                </motion.div>
+                </m.div>
             )}
         </AnimatePresence>
     );

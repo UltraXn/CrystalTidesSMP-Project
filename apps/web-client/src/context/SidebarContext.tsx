@@ -1,30 +1,24 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useState, type ReactNode } from 'react';
+import { createContext, useState, useMemo, useCallback, type ReactNode } from 'react';
 
-interface SidebarContextType {
+export interface SidebarContextType {
     sidebarOpen: boolean;
     setSidebarOpen: (open: boolean) => void;
     toggleSidebar: () => void;
 }
 
-const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
+export const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
 
 export const SidebarProvider = ({ children }: { children: ReactNode }) => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
-    const toggleSidebar = () => setSidebarOpen(prev => !prev);
+    const toggleSidebar = useCallback(() => setSidebarOpen(prev => !prev), []);
+
+    const value = useMemo(() => ({ sidebarOpen, setSidebarOpen, toggleSidebar }), [sidebarOpen, toggleSidebar]);
 
     return (
-        <SidebarContext.Provider value={{ sidebarOpen, setSidebarOpen, toggleSidebar }}>
+        <SidebarContext.Provider value={value}>
             {children}
         </SidebarContext.Provider>
     );
-};
-
-export const useSidebar = () => {
-    const context = useContext(SidebarContext);
-    if (context === undefined) {
-        throw new Error('useSidebar must be used within a SidebarProvider');
-    }
-    return context;
 };

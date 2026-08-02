@@ -1,6 +1,6 @@
 import * as ticketService from '../services/ticketService.js';
 import * as logService from '../services/logService.js';
-import * as minecraftService from '../services/minecraftService.js';
+import * as commandService from '../services/commandService.js';
 import { Request, Response } from 'express';
 import { sendSuccess, sendError } from '../utils/responseHandler.js';
 import { ensureString } from '../utils/typeUtils.js';
@@ -18,7 +18,6 @@ interface AuthenticatedRequest extends Request {
 
 const getLogUsername = (req: Request) => {
     const user = (req as AuthenticatedRequest).user;
-    console.log('DEBUG: getLogUsername - req.user:', user);
     return user?.username || user?.email || 'Unknown';
 };
 
@@ -172,20 +171,34 @@ export const banUser = async (req: Request, res: Response) => {
         const { username, reason } = req.body;
         if (!username) return sendError(res, 'Username required', 'MISSING_FIELD', 400);
 
-        const cmd = `ban ${username} ${reason || 'Banned via Web Panel'}`;
-        const result = await minecraftService.sendCommand(cmd);
+        // Sanitize reason: strip anything that could act as a command separator or
+        // control char in the Minecraft console (; & | ` \ and CRLF). Prevents
+        // command chaining via the ban reason (e.g. "x;op attacker").
+        const sanitizedReason = String(reason || 'Banned via Web Panel')
+            // eslint-disable-next-line no-control-regex -- intentionally stripping control chars
+            .replace(/[;&|`\\\r\n\x00-\x1F]/g, '')
+            .trim();
+
+        // Validate the username again to ensure it conforms to Minecraft username pattern
+        const usernameRegex = /^[A-Za-z0-9_]{3,16}$/;
+        if (!usernameRegex.test(username)) {
+            return sendError(res, 'Invalid Minecraft username', 'INVALID_FIELD', 400);
+        }
+
+        const cmd = `ban ${username} ${sanitizedReason}`;
+        const result = await commandService.queueCommand(cmd);
 
         if (result.success) {
             logService.createLog({
                 username: getLogUsername(req),
                 action: 'BAN_USER',
-                details: `Banned user ${username}. Reason: ${reason || 'N/A'}`,
+                details: `Banned user ${username}. Reason: ${sanitizedReason}`,
                 source: 'web'
             }).catch(console.error);
 
             return sendSuccess(res, { command: cmd }, `User ${username} banned successfully`);
         } else {
-            return sendError(res, result.error || 'RCON Error', 'RCON_FAILED');
+            return sendError(res, result.error || 'Bridge Error', 'BRIDGE_FAILED');
         }
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);

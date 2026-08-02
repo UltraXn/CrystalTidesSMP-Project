@@ -18,12 +18,7 @@ export const checkRole = (allowedRoles: string[]) => {
     };
 };
 
-/**
- * Helper for single role checks
- */
-export const isAdmin = (role: string) => ADMIN_ROLES.includes(role);
-
-export const ROLE_PRIORITY: Record<string, number> = {
+const ROLE_PRIORITY: Record<string, number> = {
     'neroferno': 100,
     'killu': 95,
     'developer': 90,

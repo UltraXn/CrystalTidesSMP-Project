@@ -105,7 +105,7 @@ export default function DonationsManager({ mockDonations }: DonationsManagerProp
                 <div className="donations-actions" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', width: '100%' }}>
                     <div className="poll-search-wrapper" style={{ flex: '1 1 100%', minWidth: '200px', maxWidth: '100%' }}>
                         <Search className="search-icon" />
-                        <input 
+                        <input aria-label="Input field" 
                             type="text" 
                             placeholder={t('admin.donations.search_ph')}
                             value={search}
@@ -114,7 +114,7 @@ export default function DonationsManager({ mockDonations }: DonationsManagerProp
                         />
                     </div>
                     <div style={{ display: 'flex', gap: '0.8rem', flex: '1 1 auto' }}>
-                        <button 
+                        <button type="button" 
                             className="btn-secondary" 
                             onClick={async () => {
                                 try {
@@ -131,7 +131,7 @@ export default function DonationsManager({ mockDonations }: DonationsManagerProp
                         >
                             {t('admin.donations.test_btn', 'Simular Donación')}
                         </button>
-                        <button className="btn-primary poll-new-btn" onClick={handleNew} style={{ flex: '1', height: '52px', padding: '0 2rem', borderRadius: '18px', boxShadow: '0 10px 20px rgba(var(--accent-rgb), 0.2)' }}>
+                        <button type="button" className="btn-primary poll-new-btn" onClick={handleNew} style={{ flex: '1', height: '52px', padding: '0 2rem', borderRadius: '18px', boxShadow: '0 10px 20px rgba(var(--accent-rgb), 0.2)' }}>
                             <Plus /> {t('admin.donations.new_btn')}
                         </button>
                     </div>

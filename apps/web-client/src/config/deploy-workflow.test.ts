@@ -100,27 +100,28 @@ describe('deploy.yml - deploy-frontend job', () => {
 });
 
 describe('deploy.yml - deploy-bot job', () => {
-  it('should deploy the bot service to crystaltides-bot', () => {
-    expect(workflowContent).toContain('service: crystaltides-bot');
+  it('should deploy the bot to the OCI VM IP address', () => {
+    expect(workflowContent).toContain('150.136.151.234');
   });
 
-  it('should retain min-instances and resource flags for the bot (always-on requirement)', () => {
-    // Bot must stay always-on to receive Discord events, so its flags were NOT removed
-    expect(workflowContent).toContain('--min-instances=1');
-    expect(workflowContent).toContain('--memory=512Mi');
-    expect(workflowContent).toContain('--cpu=1');
+  it('should package and copy bot source and compose configuration to OCI VM', () => {
+    expect(workflowContent).toContain('bot-src.tar.gz');
+    expect(workflowContent).toContain('compose.yml');
+    expect(workflowContent).toContain('frps.toml');
+    expect(workflowContent).toContain('Caddyfile');
+    expect(workflowContent).toContain('scp-action');
   });
 
-  it('should use the discord-bot Dockerfile', () => {
-    expect(workflowContent).toContain('-f apps/discord-bot/Dockerfile');
+  it('should build the discord-bot Dockerfile on the OCI VM', () => {
+    expect(workflowContent).toContain('-f crystaltides/apps/discord-bot/Dockerfile');
   });
 });
 
 describe('deploy.yml - security and auth', () => {
-  it('should authenticate with GCP using credentials_json in every job', () => {
+  it('should authenticate with GCP using credentials_json in Cloud Run jobs', () => {
     const credentialMatches = (workflowContent.match(/credentials_json/g) || []).length;
-    // All 3 jobs should use GCP credentials
-    expect(credentialMatches).toBeGreaterThanOrEqual(3);
+    // Backend and frontend jobs should use GCP credentials (2 jobs)
+    expect(credentialMatches).toBeGreaterThanOrEqual(2);
   });
 
   it('should checkout with submodules in every job', () => {

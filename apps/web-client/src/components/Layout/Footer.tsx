@@ -2,6 +2,14 @@ import { ArrowUp } from "lucide-react"
 import { Link } from "react-router-dom"
 import { useTranslation } from 'react-i18next'
 import { useState, useEffect } from 'react'
+import { m as motion } from 'framer-motion'
+
+const scrollToTop = () => {
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    })
+}
 
 export default function Footer() {
     const { t } = useTranslation()
@@ -15,26 +23,25 @@ export default function Footer() {
         return () => window.removeEventListener('scroll', handleScroll)
     }, [])
 
-    const scrollToTop = () => {
-        window.scrollTo({
-            top: 0,
-            behavior: "smooth"
-        })
-    }
-
     return (
         <footer className="w-full bg-[#050505] border-t border-white/5 pt-32 pb-16 relative overflow-hidden">
-            <div className="max-w-[1400px] mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-20 mb-24 relative z-10">
+            <div className="max-w-350 mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-20 mb-24 relative z-10">
                 <div className="flex flex-col gap-8 items-start text-left">
-                    <Link to="/" onClick={scrollToTop} className="flex items-center gap-5 group no-underline">
-                        <img 
-                            src="/images/ui/logo.webp" 
-                            alt="Logo" 
-                            className="w-16 h-16 object-contain transition-all group-hover:scale-110 drop-shadow-[0_0_15px_rgba(255,255,255,0.2)] animate-jump" 
-                        />
-                        <h3 className="text-3xl font-black uppercase tracking-tighter text-white">
-                            Crystal<span className="text-(--accent)">Tides</span> SMP
-                        </h3>
+                    <Link to="/" onClick={scrollToTop} aria-label="CrystalTides SMP" className="flex items-center gap-3 md:gap-4 group no-underline">
+                        <div className="relative logo-animate-idle">
+                            <motion.img 
+                                src="/images/ui/logo.webp" 
+                                alt="CrystalTides Logo" 
+                                className="w-12 h-12 md:w-14 md:h-14 object-contain relative z-10" 
+                                whileHover={{ scale: 1.15, rotate: 8 }}
+                                transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                            />
+                            <div className="absolute inset-0 bg-(--accent)/30 blur-xl rounded-full z-0 animate-pulse" />
+                        </div>
+                        <span className="text-2xl md:text-3xl font-black uppercase tracking-tight flex items-center relative">
+                            <span className="brand-text-shimmer">CrystalTides</span>
+                            <span className="text-gray-400 ml-2 text-sm md:text-base opacity-60">SMP</span>
+                        </span>
                     </Link>
                     <p className="text-gray-400 max-w-md leading-relaxed text-lg font-medium">
                         {t('footer.slogan')}
@@ -43,28 +50,28 @@ export default function Footer() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-16 text-left">
                     <div className="flex flex-col gap-8">
-                        <h4 className="text-white text-xs font-black uppercase tracking-[0.3em] opacity-30">{t('footer.server')}</h4>
+                        <h2 className="text-white text-xs font-black uppercase tracking-[0.3em] opacity-60">{t('footer.server')}</h2>
                         <ul className="flex flex-col gap-5 list-none">
                             <li>
-                                <Link to="/rules" className="text-gray-400 hover:text-white hover:translate-x-1 inline-block transition-all relative group">
+                                <Link to="/rules" className="text-gray-400 hover:text-white hover:translate-x-1 inline-block transition-colors relative group">
                                     <span className="relative z-10">{t('footer.rules')}</span>
                                     <div className="absolute -inset-x-2 -inset-y-1 bg-(--accent)/30 blur-lg opacity-0 group-hover:opacity-100 transition-opacity rounded-full pointer-events-none"></div>
                                 </Link>
                             </li>
                             <li>
-                                <Link to="/map" className="text-gray-400 hover:text-white hover:translate-x-1 inline-block transition-all relative group">
+                                <Link to="/map" className="text-gray-400 hover:text-white hover:translate-x-1 inline-block transition-colors relative group">
                                     <span className="relative z-10">{t('footer.online_map')}</span>
                                     <div className="absolute -inset-x-2 -inset-y-1 bg-(--accent)/30 blur-lg opacity-0 group-hover:opacity-100 transition-opacity rounded-full pointer-events-none"></div>
                                 </Link>
                             </li>
                             <li>
-                                <Link to="/support" className="text-gray-400 hover:text-white hover:translate-x-1 inline-block transition-all relative group">
+                                <Link to="/support" className="text-gray-400 hover:text-white hover:translate-x-1 inline-block transition-colors relative group">
                                     <span className="relative z-10">{t('footer.support', 'Soporte')}</span>
                                     <div className="absolute -inset-x-4 -inset-y-2 bg-(--accent)/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity rounded-full pointer-events-none"></div>
                                 </Link>
                             </li>
                             <li>
-                                <Link to="/suggestions" className="text-gray-400 hover:text-white hover:translate-x-1 inline-block transition-all relative group">
+                                <Link to="/suggestions" className="text-gray-400 hover:text-white hover:translate-x-1 inline-block transition-colors relative group">
                                     <span className="relative z-10">{t('footer.suggestions')}</span>
                                     <div className="absolute -inset-x-4 -inset-y-2 bg-(--accent)/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity rounded-full pointer-events-none"></div>
                                 </Link>
@@ -73,37 +80,41 @@ export default function Footer() {
                     </div>
 
                     <div className="flex flex-col gap-8">
-                        <h4 className="text-white text-xs font-black uppercase tracking-[0.3em] opacity-30">{t('footer.community')}</h4>
+                        <h2 className="text-white text-xs font-black uppercase tracking-[0.3em] opacity-60">{t('footer.community')}</h2>
                         <ul className="flex flex-col gap-5 list-none">
                             <li>
-                                <Link to="/news" className="text-gray-400 hover:text-white hover:translate-x-1 inline-block transition-all relative group">
+                                <Link to="/news" className="text-gray-400 hover:text-white hover:translate-x-1 inline-block transition-colors relative group">
                                     <span className="relative z-10">{t('footer.news')}</span>
                                     <div className="absolute -inset-x-4 -inset-y-2 bg-(--accent)/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity rounded-full pointer-events-none"></div>
                                 </Link>
                             </li>
                             <li>
-                                <Link to="/contests" className="text-gray-400 hover:text-white hover:translate-x-1 inline-block transition-all relative group">
+                                <Link to="/contests" className="text-gray-400 hover:text-white hover:translate-x-1 inline-block transition-colors relative group">
                                     <span className="relative z-10">{t('footer.events')}</span>
                                     <div className="absolute -inset-x-4 -inset-y-2 bg-(--accent)/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity rounded-full pointer-events-none"></div>
                                 </Link>
                             </li>
                             <li>
-                                <Link to="/stories" className="text-gray-400 hover:text-white hover:translate-x-1 inline-block transition-all relative group">
+                                <Link to="/stories" className="text-gray-400 hover:text-white hover:translate-x-1 inline-block transition-colors relative group">
                                     <span className="relative z-10">{t('footer.stories')}</span>
                                     <div className="absolute -inset-x-4 -inset-y-2 bg-(--accent)/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity rounded-full pointer-events-none"></div>
                                 </Link>
                             </li>
                             <li>
-                                <Link to="/forum" className="text-gray-400 hover:text-white hover:translate-x-1 inline-block transition-all relative group">
+                                <Link to="/forum" className="text-gray-400 hover:text-white hover:translate-x-1 inline-block transition-colors relative group">
                                     <span className="relative z-10">{t('footer.forum')}</span>
                                     <div className="absolute -inset-x-4 -inset-y-2 bg-(--accent)/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity rounded-full pointer-events-none"></div>
                                 </Link>
                             </li>
                             <li>
-                                <Link to="/donors" className="flex items-center justify-start gap-3 font-black text-(--accent) hover:scale-105 transition-all group/kofi">
+                                <Link to="/donors" className="flex items-center justify-start gap-3 font-black text-(--accent) hover:scale-105 transition-colors group/kofi">
                                     <img 
                                         src="https://storage.ko-fi.com/cdn/cup-border.png" 
                                         alt="Ko-Fi" 
+                                        width={25}
+                                        height={20}
+                                        loading="lazy"
+                                        decoding="async"
                                         className="h-5 w-auto object-contain group-hover/kofi:rotate-12 transition-transform" 
                                     />
                                     <span className="uppercase tracking-widest text-sm">{t('footer.donate')}</span>
@@ -114,21 +125,21 @@ export default function Footer() {
                 </div>
             </div>
 
-            <button 
-                className={`fixed bottom-8 right-8 w-14 h-14 bg-white text-black rounded-2xl shadow-2xl hidden lg:flex items-center justify-center text-xl cursor-pointer hover:scale-110 hover:-translate-y-2 active:scale-95 transition-all z-40 ${showScrollBtn ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none'}`}  
+            <button type="button" 
+                className={`fixed bottom-8 right-8 w-14 h-14 bg-white text-black rounded-2xl shadow-2xl hidden lg:flex items-center justify-center text-xl cursor-pointer hover:scale-110 hover:-translate-y-2 active:scale-95 transition-colors z-40 ${showScrollBtn ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none'}`}  
                 onClick={scrollToTop} 
                 aria-label={t('footer.aria_scroll_top', 'Volver arriba')}
             >
                 <ArrowUp />
             </button>
 
-            <div className="max-w-[1400px] mx-auto px-6 pt-16 border-t border-white/5 flex flex-col items-center gap-8">
+            <div className="max-w-350 mx-auto px-6 pt-16 border-t border-white/5 flex flex-col items-center gap-8">
                 <div className="flex gap-8 justify-center text-[10px] font-black uppercase tracking-[0.2em]">
-                    <Link to="/policies/privacy" className="text-gray-500 hover:text-white transition-colors">{t('footer.privacy', 'Privacidad')}</Link>
-                    <Link to="/policies/tos" className="text-gray-500 hover:text-white transition-colors">{t('footer.tos', 'Términos')}</Link>
+                    <Link to="/policies/privacy" className="text-gray-400 hover:text-white transition-colors">{t('footer.privacy', 'Privacidad')}</Link>
+                    <Link to="/policies/tos" className="text-gray-400 hover:text-white transition-colors">{t('footer.tos', 'Términos')}</Link>
                 </div>
                 <div className="text-center">
-                    <p className="text-gray-600 text-[11px] font-bold uppercase tracking-widest mb-3">&copy; {new Date().getFullYear()} CrystalTides SMP. {t('footer.rights')}</p>
+                    <p className="text-gray-400 text-[11px] font-bold uppercase tracking-widest mb-3">&copy; {new Date().getFullYear()} CrystalTides SMP. {t('footer.rights')}</p>
                     <p className="text-[9px] uppercase tracking-[0.2em] text-gray-700 max-w-3xl mx-auto leading-loose font-black">
                         NOT AN OFFICIAL MINECRAFT PRODUCT. NOT APPROVED BY OR ASSOCIATED WITH MOJANG OR MICROSOFT.
                     </p>
@@ -136,8 +147,8 @@ export default function Footer() {
             </div>
 
             {/* Background Decorations */}
-            <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-(--accent)/5 rounded-full blur-[120px] pointer-events-none"></div>
-            <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-sky-500/5 rounded-full blur-[100px] pointer-events-none"></div>
+            <div className="absolute top-0 left-1/4 w-125 h-125 bg-(--accent)/5 rounded-full blur-[120px] pointer-events-none"></div>
+            <div className="absolute bottom-0 right-1/4 w-100 h-100 bg-sky-500/5 rounded-full blur-[100px] pointer-events-none"></div>
         </footer>
     )
 }

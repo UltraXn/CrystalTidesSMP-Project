@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, Mock } from 'vitest';
 import { waitFor } from '@testing-library/react';
 import { useAccountSettings, usePlayerStats } from './useAccountData';
 import { renderHookWithProviders } from '../utils/test-utils';
@@ -16,7 +16,7 @@ describe('useAccountData hooks', () => {
                 achievement_definitions: JSON.stringify([{ id: 'a1', name: 'Achievement 1' }]),
             };
 
-            (global.fetch as any).mockResolvedValue({
+            (global.fetch as Mock).mockResolvedValue({
                 ok: true,
                 json: async () => mockSettings,
             });
@@ -32,7 +32,7 @@ describe('useAccountData hooks', () => {
         });
 
         it('should handle fetch errors', async () => {
-            (global.fetch as any).mockResolvedValue({
+            (global.fetch as Mock).mockResolvedValue({
                 ok: false,
             });
 
@@ -46,7 +46,7 @@ describe('useAccountData hooks', () => {
     describe('usePlayerStats', () => {
         it('should fetch player stats when enabled and uuid is provided', async () => {
             const mockStats = { level: 10, kills: 50 };
-            (global.fetch as any).mockResolvedValue({
+            (global.fetch as Mock).mockResolvedValue({
                 ok: true,
                 json: async () => ({ success: true, data: mockStats }),
             });

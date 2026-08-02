@@ -92,7 +92,7 @@ export default function PollFormModal({ onClose, onSubmit, poll, creating, butto
                         <BarChart3 style={{ color: 'var(--accent)' }} />
                         {isEdit ? t('admin.polls.edit_title', 'Editar Encuesta') : t('admin.polls.create_title')}
                     </h3>
-                    <button onClick={onClose} className="btn-close-mini">
+                    <button aria-label="Action" type="button" onClick={onClose} className="btn-close-mini">
                         <X />
                     </button>
                 </div>
@@ -102,45 +102,46 @@ export default function PollFormModal({ onClose, onSubmit, poll, creating, butto
                         
                         <div className="poll-form-row">
                             <div className="form-group">
-                                <label className="admin-label-premium">{t('admin.polls.form_extras.title_es')}</label>
-                                <input className="admin-input-premium" value={title} onChange={e => setTitle(e.target.value)} placeholder={t('admin.polls.form.title_ph')} required />
+                                <label htmlFor="poll-title-es" className="admin-label-premium">{t('admin.polls.form_extras.title_es')}</label>
+                                <input id="poll-title-es" className="admin-input-premium" value={title} onChange={e => setTitle(e.target.value)} placeholder={t('admin.polls.form.title_ph')} required />
                             </div>
                             <div className="form-group">
                                 <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
-                                     <label className="admin-label-premium">{t('admin.polls.form_extras.title_en')}</label>
+                                     <label htmlFor="poll-title-en" className="admin-label-premium">{t('admin.polls.form_extras.title_en')}</label>
                                      <button type="button" onClick={() => onTranslate(title, 'title')} className="btn-secondary" style={{fontSize:'0.7rem', padding:'0.2rem 0.6rem', marginBottom:'0.5rem'}} disabled={translatingField === 'title'}>
                                          {translatingField === 'title' ? <Loader2 className="spin"/> : <><Languages /> {t('admin.polls.form_extras.translate')}</>}
                                      </button>
                                 </div>
-                                <input className="admin-input-premium" value={titleEn} onChange={e => setTitleEn(e.target.value)} placeholder="Poll Title" />
+                                <input id="poll-title-en" className="admin-input-premium" value={titleEn} onChange={e => setTitleEn(e.target.value)} placeholder="Poll Title" />
                             </div>
                         </div>
                         
                         <div className="poll-form-row">
                             <div className="form-group">
-                                <label className="admin-label-premium">{t('admin.polls.form_extras.question_es')}</label>
-                                <textarea className="admin-textarea-premium" value={question} onChange={e => setQuestion(e.target.value)} placeholder={t('admin.polls.form.question_ph')} required rows={3}></textarea>
+                                <label htmlFor="poll-question-es" className="admin-label-premium">{t('admin.polls.form_extras.question_es')}</label>
+                                <textarea id="poll-question-es" className="admin-textarea-premium" value={question} onChange={e => setQuestion(e.target.value)} placeholder={t('admin.polls.form.question_ph')} required rows={3}></textarea>
                             </div>
                             <div className="form-group">
                                 <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
-                                     <label className="admin-label-premium">{t('admin.polls.form_extras.question_en')}</label>
+                                     <label htmlFor="poll-question-en" className="admin-label-premium">{t('admin.polls.form_extras.question_en')}</label>
                                      <button type="button" onClick={() => onTranslate(question, 'question')} className="btn-secondary" style={{fontSize:'0.7rem', padding:'0.2rem 0.6rem', marginBottom:'0.5rem'}} disabled={translatingField === 'question'}>
                                          {translatingField === 'question' ? <Loader2 className="spin"/> : <><Languages /> {t('admin.polls.form_extras.translate')}</>}
                                      </button>
                                 </div>
-                                <textarea className="admin-textarea-premium" value={questionEn} onChange={e => setQuestionEn(e.target.value)} placeholder="Poll Question" rows={3}></textarea>
+                                <textarea id="poll-question-en" className="admin-textarea-premium" value={questionEn} onChange={e => setQuestionEn(e.target.value)} placeholder="Poll Question" rows={3}></textarea>
                             </div>
                         </div>
 
                         <div className="form-group">
-                            <label className="admin-label-premium">{t('admin.polls.form.options')}</label>
+                            <div className="admin-label-premium">{t('admin.polls.form.options')}</div>
                             <div className="poll-options-grid">
                                 {options.map((opt, idx) => (
-                                    <div key={idx} className="poll-option-edit-card">
+                                    // react-doctor-disable-next-line no-array-index-as-key -- editable option list: labels change per keystroke and may be empty/duplicated, so positional key is intended
+                                    <div key={`item-${idx}`} className="poll-option-edit-card">
                                         <div className="poll-option-index">{idx + 1}</div>
                                         
                                         <div className="poll-option-inputs">
-                                            <input 
+                                            <input aria-label="Input field" 
                                                 className="admin-input-premium" 
                                                 value={opt.label} 
                                                 onChange={e => updateOption(idx, 'label', e.target.value)} 
@@ -148,13 +149,13 @@ export default function PollFormModal({ onClose, onSubmit, poll, creating, butto
                                                 required
                                             />
                                             <div style={{display:'flex', gap:'10px'}}>
-                                                 <input 
+                                                 <input aria-label="Input field" 
                                                      className="admin-input-premium" 
                                                      value={opt.labelEn} 
                                                      onChange={e => updateOption(idx, 'labelEn', e.target.value)} 
                                                      placeholder={t('admin.polls.form_extras.option_en')}
                                                  />
-                                                 <button type="button" onClick={() => onTranslate(opt.label, 'options', idx)} className="btn-secondary" style={{padding:'0 1rem', borderRadius: '12px'}} disabled={translatingField === `option-${idx}`}>
+                                                 <button aria-label="Action" type="button" onClick={() => onTranslate(opt.label, 'options', idx)} className="btn-secondary" style={{padding:'0 1rem', borderRadius: '12px'}} disabled={translatingField === `option-${idx}`}>
                                                      {translatingField === `option-${idx}` ? <Loader2 className="spin"/> : <Languages size={18} />}
                                                  </button>
                                             </div>
@@ -181,8 +182,13 @@ export default function PollFormModal({ onClose, onSubmit, poll, creating, butto
 
                         <div className="poll-form-row">
                             <div className="form-group">
-                                <label className="admin-label-premium">{t('admin.polls.form.duration')} ({t('admin.polls.form.days', 'días')})</label>
-                                <input className="admin-input-premium" type="number" min="1" max="30" value={daysDuration} onChange={e => setDaysDuration(parseInt(e.target.value))} />
+                                <label htmlFor="poll-duration" className="admin-label-premium">{t('admin.polls.form.duration')} ({t('admin.polls.form.days', 'días')})</label>
+                                <input id="poll-duration" className="admin-input-premium" type="number" min="1" max="30" value={daysDuration} onChange={e => {
+                                    const raw = e.target.value;
+                                    if (!raw) { setDaysDuration(1); return; }
+                                    const val = parseInt(raw, 10);
+                                    setDaysDuration(isNaN(val) ? 1 : Math.max(1, Math.min(30, val)));
+                                }} />
                             </div>
                             <div style={{ display: 'flex', alignItems: 'flex-end' }}>
                                  {hasActivePoll && !isEdit && (

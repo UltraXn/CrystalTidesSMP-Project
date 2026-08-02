@@ -1,21 +1,32 @@
 import { lazy } from 'react'
-import { motion, Variants } from 'framer-motion'
+import { m as motion, Variants } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import Hero from "../components/Hero"
-import Section from "../components/Layout/Section"
 import SectionDivider from "../components/Layout/SectionDivider"
-import ServerFeatures from "../components/Home/ServerFeatures"
 import LazyWrapper from "../components/Utils/LazyWrapper"
+import { useSEO } from "../hooks/useSEO"
 
-// Lazy load below-the-fold sections to reduce initial bundle size
+// Skeleton Fallbacks
+import ServerHistorySkeleton from "../components/Home/skeletons/ServerHistorySkeleton"
+import AboutRolesSkeleton from "../components/Home/skeletons/AboutRolesSkeleton"
+import StaffShowcaseSkeleton from "../components/Home/skeletons/StaffShowcaseSkeleton"
+import RulesSkeleton from "../components/Home/skeletons/RulesSkeleton"
+import DonorsSkeleton from "../components/Home/skeletons/DonorsSkeleton"
+import ContestsSkeleton from "../components/Home/skeletons/ContestsSkeleton"
+import BlogSkeleton from "../components/Home/skeletons/BlogSkeleton"
+import StoriesSkeleton from "../components/Home/skeletons/StoriesSkeleton"
+import SuggestionsSkeleton from "../components/Home/skeletons/SuggestionsSkeleton"
+
+// Lazy load below-the-fold sections only when scrolled into view
+const ServerHistory = lazy(() => import("../components/Home/ServerHistory"))
+const AboutRoles = lazy(() => import("../components/Home/AboutRoles"))
+const StaffShowcase = lazy(() => import("../components/Home/StaffShowcase"))
 const Rules = lazy(() => import("./Rules"))
 const Donors = lazy(() => import("./Donors"))
 const Contests = lazy(() => import("./Contests"))
 const Blog = lazy(() => import("./Blog"))
 const Stories = lazy(() => import("./Stories"))
 const Suggestions = lazy(() => import("./Suggestions"))
-import StaffShowcase from "../components/Home/StaffShowcase"
-
-import { useTranslation } from 'react-i18next'
 
 // Animation variant for reusing
 const fadeUpVariant: Variants = {
@@ -33,7 +44,7 @@ const SectionWithScroll = ({ children, id, className }: { children: React.ReactN
         className={className}
         initial="hidden"
         whileInView="visible"
-        viewport={{ once: true, margin: "-100px" }}
+        viewport={{ once: true, margin: "0px" }}
         variants={fadeUpVariant}
     >
         {children}
@@ -43,83 +54,69 @@ const SectionWithScroll = ({ children, id, className }: { children: React.ReactN
 export default function Home() {
     const { t } = useTranslation()
 
+    useSEO({
+        title: t('seo.title', 'CrystalTides SMP | Best English Minecraft Survival moded Server 1.21.1'),
+        description: t('seo.description', 'CrystalTides SMP: Best English Minecraft Survival moded Server 1.21.1 featuring custom mechanics, active international community, and unique survival experience.'),
+        keywords: t('seo.keywords', 'Best English Minecraft Survival moded Server 1.21.1, English Minecraft Server, Modded Survival SMP, Minecraft 1.21.1, CrystalTides'),
+        canonical: 'https://crystaltidessmp.net/'
+    });
+
     return (
-        <div>
+        <div className="pb-16">
             <Hero />
             
-            <Section title={t('home.title')}>
-                <SectionWithScroll>
-                    <div className="relative p-8 bg-black/60 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl max-w-3xl mx-auto mb-16">
-                        <p className="text-lg text-gray-300 leading-relaxed">{t('home.description')}</p>
-                    </div>
-
-                    <ServerFeatures />
-                </SectionWithScroll>
-            </Section>
-
-            <SectionDivider />
-
-            <Section title={t('footer.community')} id="community">
-                <SectionWithScroll>
-                    <div className="relative p-8 bg-black/60 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl max-w-[800px] mx-auto">
-                        <p className="mb-6 text-xl text-gray-300">{t('home.join_us_twitch')}</p>
-                        <p className="text-xl text-gray-300">{t('home.join_us_discord')}</p>
-                    </div>
-                </SectionWithScroll>
-            </Section>
-
-            <SectionDivider />
-
-            <SectionWithScroll id="rules" className="w-full max-w-[1200px] mx-auto">
-                <LazyWrapper>
-                    <Rules />
-                </LazyWrapper>
+            {/* 1. Sección de Historia de CrystalTides SMP */}
+            <SectionWithScroll id="history" className="w-full max-w-440 mx-auto">
+                <LazyWrapper render={() => <ServerHistory />} fallback={<ServerHistorySkeleton />} />
             </SectionWithScroll>
 
             <SectionDivider />
 
-            <SectionWithScroll id="donors" className="w-full max-w-[1200px] mx-auto">
-                <LazyWrapper>
-                    <Donors />
-                </LazyWrapper>
+            {/* 2. Sección de Mecánicas y Roles */}
+            <SectionWithScroll id="mechanics" className="w-full max-w-440 mx-auto">
+                <LazyWrapper render={() => <AboutRoles />} fallback={<AboutRolesSkeleton />} />
             </SectionWithScroll>
 
             <SectionDivider />
 
-            <SectionWithScroll id="staff" className="w-full max-w-[1200px] mx-auto">
-                <StaffShowcase />
+            <SectionWithScroll id="rules" className="w-full max-w-360 mx-auto">
+                <LazyWrapper render={() => <Rules />} fallback={<RulesSkeleton />} />
             </SectionWithScroll>
 
             <SectionDivider />
 
-            <SectionWithScroll id="contests" className="w-full max-w-[1200px] mx-auto">
-                <LazyWrapper>
-                    <Contests />
-                </LazyWrapper>
+            <SectionWithScroll id="donors" className="w-full max-w-360 mx-auto">
+                <LazyWrapper render={() => <Donors />} fallback={<DonorsSkeleton />} />
             </SectionWithScroll>
 
             <SectionDivider />
 
-            <SectionWithScroll id="news" className="w-full max-w-[1200px] mx-auto">
-                <LazyWrapper>
-                    <Blog />
-                </LazyWrapper>
+            <SectionWithScroll id="staff" className="w-full max-w-360 mx-auto">
+                <LazyWrapper render={() => <StaffShowcase />} fallback={<StaffShowcaseSkeleton />} />
             </SectionWithScroll>
 
             <SectionDivider />
 
-            <SectionWithScroll id="stories" className="w-full max-w-[1200px] mx-auto">
-                <LazyWrapper>
-                    <Stories />
-                </LazyWrapper>
+            <SectionWithScroll id="contests" className="w-full max-w-360 mx-auto">
+                <LazyWrapper render={() => <Contests />} fallback={<ContestsSkeleton />} />
             </SectionWithScroll>
 
             <SectionDivider />
 
-            <SectionWithScroll id="suggestions" className="w-full max-w-[1200px] mx-auto">
-                <LazyWrapper>
-                    <Suggestions />
-                </LazyWrapper>
+            <SectionWithScroll id="news" className="w-full max-w-360 mx-auto">
+                <LazyWrapper render={() => <Blog />} fallback={<BlogSkeleton />} />
+            </SectionWithScroll>
+
+            <SectionDivider />
+
+            <SectionWithScroll id="stories" className="w-full max-w-360 mx-auto">
+                <LazyWrapper render={() => <Stories />} fallback={<StoriesSkeleton />} />
+            </SectionWithScroll>
+
+            <SectionDivider />
+
+            <SectionWithScroll id="suggestions" className="w-full max-w-360 mx-auto">
+                <LazyWrapper render={() => <Suggestions />} fallback={<SuggestionsSkeleton />} />
             </SectionWithScroll>
         </div>
     )

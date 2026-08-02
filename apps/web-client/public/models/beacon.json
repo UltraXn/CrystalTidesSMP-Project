@@ -1,0 +1,38 @@
+{
+  "credit": "Created by Antigravity AI for CrystalTides SMP",
+  "parent": "block/block",
+  "textures": {
+    "particle": "block/beacon",
+    "glass": "block/glass",
+    "beacon": "block/beacon",
+    "obsidian": "block/obsidian"
+  },
+  "elements": [
+    {
+      "name": "outer_glass",
+      "from": [0, 0, 0],
+      "to": [16, 16, 16],
+      "faces": {
+        "down":  { "uv": [0, 0, 16, 16], "texture": "#obsidian", "cullface": "down" },
+        "up":    { "uv": [0, 0, 16, 16], "texture": "#glass", "cullface": "up" },
+        "north": { "uv": [0, 0, 16, 16], "texture": "#glass", "cullface": "north" },
+        "south": { "uv": [0, 0, 16, 16], "texture": "#glass", "cullface": "south" },
+        "west":  { "uv": [0, 0, 16, 16], "texture": "#glass", "cullface": "west" },
+        "east":  { "uv": [0, 0, 16, 16], "texture": "#glass", "cullface": "east" }
+      }
+    },
+    {
+      "name": "inner_beacon_core",
+      "from": [3, 3, 3],
+      "to": [13, 13, 13],
+      "faces": {
+        "down":  { "uv": [3, 3, 13, 13], "texture": "#beacon" },
+        "up":    { "uv": [3, 3, 13, 13], "texture": "#beacon" },
+        "north": { "uv": [3, 3, 13, 13], "texture": "#beacon" },
+        "south": { "uv": [3, 3, 13, 13], "texture": "#beacon" },
+        "west":  { "uv": [3, 3, 13, 13], "texture": "#beacon" },
+        "east":  { "uv": [3, 3, 13, 13], "texture": "#beacon" }
+      }
+    }
+  ]
+}

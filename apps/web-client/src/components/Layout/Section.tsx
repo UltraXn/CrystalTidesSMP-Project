@@ -21,6 +21,8 @@ const Separator = () => (
     </div>
 );
 
+const OBSERVER_OPTIONS = { triggerOnce: true, threshold: 0.1 };
+
 export default function Section({
     title,
     children,
@@ -31,43 +33,41 @@ export default function Section({
     style = {},
     separator = false
 }: SectionProps) {
-    const [ref, isVisible] = useIntersectionObserver<HTMLElement>({ triggerOnce: true, threshold: 0.1 });
+    const [ref, isVisible] = useIntersectionObserver<HTMLElement>(OBSERVER_OPTIONS);
     const hasAnimated = useRef(false);
 
     useEffect(() => {
-        if (isVisible && !hasAnimated.current && ref.current) {
-            hasAnimated.current = true;
+        if (ref.current && !hasAnimated.current) {
+            if (isVisible) {
+                hasAnimated.current = true;
+                const startY = direction === 'up' ? 30 : (direction === 'down' ? -30 : 0);
+                const startX = direction === 'left' ? -30 : (direction === 'right' ? 30 : 0);
 
-            const startY = direction === 'up' ? 50 : (direction === 'down' ? -50 : 0);
-            const startX = direction === 'left' ? -50 : (direction === 'right' ? 50 : 0);
-
-            gsap.fromTo(ref.current,
-                { 
-                    opacity: 0, 
-                    y: startY, 
-                    x: startX 
-                },
-                {
-                    opacity: 1,
-                    y: 0,
-                    x: 0,
-                    duration: 1,
-                    ease: 'power3.out',
-                    delay: delay / 1000 // gsap uses seconds
-                }
-            );
+                gsap.fromTo(ref.current,
+                    { opacity: 0, y: startY, x: startX },
+                    {
+                        opacity: 1,
+                        y: 0,
+                        x: 0,
+                        duration: 0.8,
+                        ease: 'power3.out',
+                        delay: delay / 1000
+                    }
+                );
+            } else {
+                // Ensure default visibility if observer hasn't triggered yet
+                gsap.set(ref.current, { opacity: 1 });
+            }
         }
     }, [isVisible, delay, direction, ref]);
-
-
 
     if (title) {
         return (
             <section
                 ref={ref}
                 id={id}
-                className={`w-full max-w-[1200px] mx-auto px-4 py-16 text-center ${className}`.trim()}
-                style={{ opacity: 0, ...style }}
+                className={`w-full max-w-360 mx-auto px-4 py-16 text-center ${className}`.trim()}
+                style={style}
             >
                 <h2 className="text-3xl md:text-4xl font-black mb-8 text-(--accent) uppercase tracking-widest drop-shadow-lg">
                     {title}
@@ -82,8 +82,8 @@ export default function Section({
         <div
             ref={ref as React.RefObject<HTMLDivElement>}
             id={id}
-            className={`w-full max-w-[1200px] mx-auto ${className}`.trim()}
-            style={{ opacity: 0, ...style }}
+            className={`w-full max-w-360 mx-auto ${className}`.trim()}
+            style={style}
         >
             {children}
             {separator && <Separator />}

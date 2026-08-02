@@ -1,53 +1,47 @@
-import { useState, useEffect } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { useQuery } from "@tanstack/react-query"
+import { m as motion, AnimatePresence } from "framer-motion"
 import { Users, Cpu } from "lucide-react"
-import Loader from "../components/UI/Loader"
 import { useTranslation } from 'react-i18next'
 import ServerStatusCard, { ServerStatusData } from "../components/Server/ServerStatusCard"
+import StatusSkeleton from "../components/Home/skeletons/StatusSkeleton"
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 export default function Status() {
-    const [status, setStatus] = useState<ServerStatusData | null>(null)
-    const [loading, setLoading] = useState(true)
     const { t } = useTranslation()
-
     const SERVER_IP = "mc.crystaltidessmp.net" // Display IP
 
-    const fetchStatus = async () => {
-        try {
-            const res = await fetch(`${API_URL}/server/status/live`)
+    const { data: status = null, isLoading: loading } = useQuery<ServerStatusData | null>({
+        queryKey: ['serverStatusLive'],
+        queryFn: async () => {
+            const res = await fetch(`${API_URL}/server/status/live`);
             if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
-            
             const contentType = res.headers.get("content-type");
-            if (contentType && contentType.includes("application/json")) {
-                const data = await res.json();
-                setStatus(data);
+            if (contentType?.includes("application/json")) {
+                return await res.json();
             }
-        } catch (error) {
-            console.error("Error fetching status:", error)
-            setStatus(null) // Acts as offline/error
-        } finally {
-            setLoading(false)
-        }
-    }
-
-    useEffect(() => {
-        fetchStatus()
-        const interval = setInterval(() => fetchStatus(), 15000) // Refresh every 15s
-        return () => clearInterval(interval)
-    }, [])
+            return null;
+        },
+        refetchInterval: 15000,
+    });
 
     if (loading) {
-        return (
-            <div style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Loader />
-            </div>
-        )
+        return <StatusSkeleton />
     }
 
     const isOnline = status?.online ?? false
     const playerCount = status?.players?.online || 0
+
+    let latencyColor = 'text-gray-400';
+    if (status?.latency != null) {
+        if (status.latency <= 100) {
+            latencyColor = 'text-green-400';
+        } else if (status.latency < 200) {
+            latencyColor = 'text-yellow-400';
+        } else {
+            latencyColor = 'text-red-400';
+        }
+    }
 
     return (
         <div className="page-container" style={{ maxWidth: '1000px', margin: '0 auto', padding: '8rem 1rem 2rem' }}>
@@ -86,8 +80,8 @@ export default function Status() {
                             
                             {status?.players.sample && status.players.sample.length > 0 ? (
                                 <div className="flex flex-wrap gap-3">
-                                    {status.players.sample.map((p, i) => (
-                                        <div key={i} className="flex items-center gap-2 bg-black/20 px-3 py-2 rounded-lg border border-white/5">
+                                    {status.players.sample.map((p) => (
+                                        <div key={p.name} className="flex items-center gap-2 bg-black/20 px-3 py-2 rounded-lg border border-white/5">
                                             <img 
                                                 src={`https://minotar.net/helm/${p.name}/24.png`} 
                                                 alt={p.name}
@@ -122,15 +116,9 @@ export default function Status() {
                             <div className="space-y-3">
                                 <div className="flex justify-between p-3 rounded-lg bg-black/20">
                                     <span className="text-gray-400">{t('status.latency')}</span>
-                                    <span className={`font-mono ${
-                                        status?.latency != null 
-                                            ? status.latency <= 100 ? 'text-green-400' 
-                                            : status.latency < 200 ? 'text-yellow-400' 
-                                            : 'text-red-400'
-                                            : 'text-gray-400'
-                                    }`}>
-                                        {status?.latency != null ? Math.round(status.latency) + 'ms' : '--'}
-                                    </span>
+                                     <span className={`font-mono ${latencyColor}`}>
+                                         {status?.latency != null ? `${Math.round(status.latency)}ms` : '--'}
+                                     </span>
                                 </div>
                                 <div className="flex justify-between items-center p-3 rounded-lg bg-black/20 w-full">
                                     <span className="text-gray-400">{t('status.mode')}</span>

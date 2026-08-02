@@ -1,16 +1,31 @@
+import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import Maintenance from './Maintenance';
 import { renderWithProviders } from '../utils/test-utils';
 
-// Mock framer-motion to avoid animation issues in tests
-vi.mock('framer-motion', () => ({
-    motion: {
-        div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
-        h1: ({ children, ...props }: any) => <h1 {...props}>{children}</h1>,
-    },
-    AnimatePresence: ({ children }: any) => <>{children}</>,
-}));
+vi.mock('framer-motion', () => {
+    const Component = ({ children, ...props }: any) => <div {...props}>{children}</div>;
+    return {
+        m: {
+            div: Component,
+            h1: Component,
+            p: Component,
+            button: Component,
+            span: Component,
+            a: Component,
+        },
+        motion: {
+            div: Component,
+            h1: Component,
+            p: Component,
+            button: Component,
+            span: Component,
+            a: Component,
+        },
+        AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+    };
+});
 
 describe('Maintenance Page', () => {
     it('should render the maintenance message and logo', () => {

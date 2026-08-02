@@ -8,9 +8,10 @@ interface CustomAlertProps {
     onClose: () => void;
 }
 
+const colors: Record<string, string> = { error: '#ef4444', success: '#10b981', warning: '#facc15' }
+
 export function CustomAlert({ message, type = 'error', onClose }: CustomAlertProps) {
     const { t } = useTranslation()
-    const colors: Record<string, string> = { error: '#ef4444', success: '#10b981', warning: '#facc15' }
     const Icon = type === 'error' ? AlertCircle : (type === 'success' ? CheckCircle : AlertTriangle)
     
     const titles: Record<string, string> = {
@@ -29,7 +30,7 @@ export function CustomAlert({ message, type = 'error', onClose }: CustomAlertPro
                     {titles[type] || t('admin.alerts.warning_title')}
                 </h3>
                 <p style={{ color: '#ccc', marginBottom: '2rem', lineHeight: '1.6' }}>{message}</p>
-                <button 
+                <button type="button" 
                     onClick={onClose} 
                     className="btn-primary" 
                     style={{ width: '100%', justifyContent: 'center', background: colors[type], color: '#000', fontWeight: 'bold' }}
@@ -60,14 +61,14 @@ export function CustomConfirm({ message, onConfirm, onCancel }: CustomConfirmPro
                 </h3>
                 <p style={{ color: '#ccc', marginBottom: '2rem', lineHeight: '1.6' }}>{message}</p>
                 <div style={{ display: 'flex', gap: '1rem' }}>
-                     <button 
+                     <button type="button" 
                         onClick={onCancel} 
                         className="btn-secondary" 
                         style={{ flex: 1, justifyContent: 'center' }}
                     >
                         {t('admin.tickets.create_modal.cancel', 'Cancelar')}
                     </button>
-                    <button 
+                    <button type="button" 
                         onClick={onConfirm} 
                         className="btn-primary" 
                         style={{ flex: 1, justifyContent: 'center', background: '#ef4444', color: '#fff', fontWeight: 'bold' }}
@@ -80,16 +81,17 @@ export function CustomConfirm({ message, onConfirm, onCancel }: CustomConfirmPro
     )
 }
 
+const PRIORITY_COLORS: Record<string, string> = { low: '#4ade80', medium: '#facc15', high: '#fb923c', urgent: '#ef4444' }
+
 export function PriorityBadge({ priority }: { priority: string }) {
     const { t } = useTranslation()
-    const colors: Record<string, string> = { low: '#4ade80', medium: '#facc15', high: '#fb923c', urgent: '#ef4444' }
     const labels: Record<string, string> = {
         low: t('admin.tickets.priority.low', 'Baja'),
         medium: t('admin.tickets.priority.medium', 'Media'),
         high: t('admin.tickets.priority.high', 'Alta'),
         urgent: t('admin.tickets.priority.urgent', 'Urgente')
     }
-    return <span style={{ color: colors[priority] || colors.medium, fontWeight: 'bold', fontSize: '0.85rem', textTransform: 'capitalize' }}>{labels[priority] || priority}</span>
+    return <span style={{ color: PRIORITY_COLORS[priority] || PRIORITY_COLORS.medium, fontWeight: 'bold', fontSize: '0.85rem', textTransform: 'capitalize' }}>{labels[priority] || priority}</span>
 }
 
 export function StatusBadge({ status }: { status: string }) {

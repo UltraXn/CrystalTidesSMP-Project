@@ -17,4 +17,9 @@ router.post('/link', authenticateToken, validate(verifyLinkCodeSchema), minecraf
 router.post('/link/unlink', authenticateToken, minecraftController.unlinkAccount);
 router.post('/link/unlink-discord', authenticateToken, minecraftController.unlinkDiscord);
 
+// Microsoft OAuth proxy routes for Web Client
+router.post('/link/ms-device-code', authenticateToken, minecraftController.requestMsDeviceCode);
+router.post('/link/ms-poll', authenticateToken, minecraftController.pollMsDeviceToken);
+router.post('/link/ms-callback', authenticateToken, minecraftController.exchangeMsAuthCode);
+
 export default router;

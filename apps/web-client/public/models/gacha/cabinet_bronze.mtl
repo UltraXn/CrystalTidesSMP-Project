@@ -1,0 +1,39 @@
+﻿newmtl default
+Kd 0.1 0.1 0.1
+
+newmtl m_7f7d4538-c178-20a6-832a-80daccf91115
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.1 0.1 0.1
+map_Kd textures_cabinet_bronze/body.png
+
+newmtl m_791b5c57-5709-7770-e0e7-c2f5a0950344
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.1 0.1 0.1
+map_Kd textures_cabinet_bronze/trim.png
+
+newmtl m_157e71bd-a692-c188-cba4-d5d988a93bd7
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.1 0.1 0.1
+map_Kd textures_cabinet_bronze/panel.png
+
+newmtl m_a9be348d-6d51-e7a6-3bcc-25f7b2c17693
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.1 0.1 0.1
+map_Kd textures_cabinet_bronze/screen.png
+
+newmtl m_e797359e-c776-7dd3-2af4-468a110d5060
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.1 0.1 0.1
+map_Kd textures_cabinet_bronze/accent.png
+
+newmtl m_a48d2b50-9057-6a49-77d7-85fd16671656
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.1 0.1 0.1
+map_Kd textures_cabinet_bronze/coin.png
+

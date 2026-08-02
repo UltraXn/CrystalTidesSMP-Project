@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Plus, Trash2, Save, Edit2, X, MapPin, Ghost, Users } from 'lucide-react';
+import "../../../styles/admin/locations_manager.css";
 import ConfirmationModal from '../../UI/ConfirmationModal';
 import { getLocations, createLocation, updateLocation, deleteLocation, WorldLocation, LocationAuthor } from '../../../services/locationService';
 import { supabase } from '../../../services/supabaseClient';
@@ -38,11 +39,7 @@ export default function LocationsManager() {
 
     const [newAuthor, setNewAuthor] = useState<LocationAuthor>({ name: '', role: 'architect' });
 
-    useEffect(() => {
-        fetchLocations();
-    }, []);
-
-    const fetchLocations = async () => {
+    async function fetchLocations() {
         setLoading(true);
         try {
             const data = await getLocations();
@@ -52,7 +49,17 @@ export default function LocationsManager() {
         } finally {
             setLoading(false);
         }
-    };
+    }
+
+    useEffect(() => {
+        let isMounted = true;
+        Promise.resolve().then(() => {
+            if (isMounted) fetchLocations();
+        });
+        return () => {
+            isMounted = false;
+        };
+    }, []);
 
     const handleSave = async () => {
         if (!formData.title || !formData.description) {
@@ -140,72 +147,6 @@ export default function LocationsManager() {
 
     return (
         <div className="locations-manager-container animate-fade-in">
-            <style>{`
-                .locations-manager-container {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 2rem;
-                }
-                .manager-header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    gap: 1.5rem;
-                }
-                .editor-card {
-                    margin: 0;
-                    padding: 2.5rem;
-                    background: rgba(10, 10, 15, 0.4);
-                    backdrop-filter: blur(20px);
-                    border: 1px solid rgba(255, 255, 255, 0.05);
-                    border-radius: 24px;
-                }
-                .form-grid {
-                    display: grid;
-                    grid-template-columns: 1fr;
-                    gap: 2rem;
-                }
-                .input-row {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-                    gap: 1.5rem;
-                }
-                .author-controls {
-                    display: flex;
-                    gap: 1rem;
-                }
-                .form-actions {
-                    display: flex;
-                    justify-content: flex-end;
-                    gap: 1rem;
-                    margin-top: 3rem;
-                    padding-top: 2rem;
-                    border-top: 1px solid rgba(255,255,255,0.05);
-                }
-
-                @media (max-width: 768px) {
-                    .manager-header {
-                        flex-direction: column;
-                        align-items: flex-start;
-                    }
-                    .editor-card {
-                        padding: 1.5rem;
-                    }
-                    .author-controls {
-                        flex-direction: column;
-                    }
-                    .author-controls > * {
-                        width: 100% !important;
-                    }
-                    .form-actions {
-                        flex-direction: column-reverse;
-                    }
-                    .form-actions button {
-                        width: 100%;
-                        padding: 1rem !important;
-                    }
-                }
-            `}</style>
 
             {/* Header Section */}
             <div className="manager-header">
@@ -216,7 +157,7 @@ export default function LocationsManager() {
                     <p style={{ margin: '4px 0 0 0', fontSize: '0.9rem', color: 'rgba(255,255,255,0.4)' }}>{t('locations_manager.subtitle', 'Administra los puntos de interés y la historia del mundo.')}</p>
                 </div>
                 {!isCreating && (
-                    <button 
+                    <button type="button" 
                         onClick={() => setIsCreating(true)} 
                         className="modal-btn-primary hover-lift"
                         style={{ padding: '0.8rem 1.5rem', borderRadius: '16px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '10px' }}
@@ -233,7 +174,7 @@ export default function LocationsManager() {
                         <h4 style={{ margin: 0, fontSize: '1.2rem', fontWeight: '800', color: '#fff', display: 'flex', alignItems: 'center', gap: '10px' }}>
                             {editingId ? <><Edit2 style={{ color: '#facc15' }} /> {t('locations_manager.edit_title', 'Editar Registro')}</> : <><Plus style={{ color: 'var(--accent)' }} /> {t('locations_manager.create_title', 'Nuevo Registro')}</>}
                         </h4>
-                        <button onClick={resetForm} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer' }}>
+                        <button aria-label="Action" type="button" onClick={resetForm} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer' }}>
                             <X size={20} />
                         </button>
                     </div>
@@ -244,10 +185,10 @@ export default function LocationsManager() {
                             {/* Inputs Section */}
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                                 <div>
-                                    <label style={{ display: 'block', marginBottom: '0.8rem', color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', fontWeight: '700' }}>
+                                    <label htmlFor="location-title" style={{ display: 'block', marginBottom: '0.8rem', color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', fontWeight: '700' }}>
                                         {t('locations_manager.form.title', 'Título de la Localización')}
                                     </label>
-                                    <input 
+                                    <input id="location-title"
                                         className="admin-input-premium" 
                                         value={formData.title}
                                         onChange={e => setFormData({...formData, title: e.target.value})}
@@ -256,10 +197,10 @@ export default function LocationsManager() {
                                     />
                                 </div>
                                 <div>
-                                    <label style={{ display: 'block', marginBottom: '0.8rem', color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', fontWeight: '700' }}>
+                                    <label htmlFor="location-coords" style={{ display: 'block', marginBottom: '0.8rem', color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', fontWeight: '700' }}>
                                         {t('locations_manager.form.coords', 'Coordenadas')}
                                     </label>
-                                    <input 
+                                    <input id="location-coords"
                                         className="admin-input-premium" 
                                         value={formData.coords}
                                         onChange={e => setFormData({...formData, coords: e.target.value})}
@@ -271,10 +212,10 @@ export default function LocationsManager() {
 
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                                 <div>
-                                    <label style={{ display: 'block', marginBottom: '0.8rem', color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', fontWeight: '700' }}>
+                                    <label htmlFor="location-image" style={{ display: 'block', marginBottom: '0.8rem', color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', fontWeight: '700' }}>
                                         {t('locations_manager.form.image', 'URL de la Imagen')}
                                     </label>
-                                    <input 
+                                    <input id="location-image"
                                         className="admin-input-premium" 
                                         value={formData.image_url || ''}
                                         onChange={e => setFormData({...formData, image_url: e.target.value})}
@@ -284,10 +225,10 @@ export default function LocationsManager() {
                                 </div>
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                     <div>
-                                        <label style={{ display: 'block', marginBottom: '0.8rem', color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', fontWeight: '700' }}>
+                                        <label htmlFor="location-sort-order" style={{ display: 'block', marginBottom: '0.8rem', color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', fontWeight: '700' }}>
                                             {t('locations_manager.form.order', 'Orden')}
                                         </label>
-                                        <input 
+                                        <input id="location-sort-order"
                                             type="number"
                                             className="admin-input-premium" 
                                             value={formData.sort_order}
@@ -310,10 +251,11 @@ export default function LocationsManager() {
                                             <span style={{ fontSize: '0.8rem', fontWeight: '700', color: formData.is_coming_soon ? '#4ade80' : 'rgba(255,255,255,0.4)' }}>
                                                 {t('locations_manager.secret', 'Secret?')}
                                             </span>
-                                            <label className="switch" style={{ transform: 'scale(0.8)' }}>
-                                                <input 
+                                            <label className="switch" htmlFor="location-secret-toggle" style={{ transform: 'scale(0.8)' }}>
+                                                <input id="location-secret-toggle" 
                                                     type="checkbox" 
                                                     checked={formData.is_coming_soon}
+                                                    aria-label={t('locations_manager.secret', 'Secret?')}
                                                     onChange={(e) => setFormData({...formData, is_coming_soon: e.target.checked})}
                                                 />
                                                 <span className="slider round"></span>
@@ -325,10 +267,10 @@ export default function LocationsManager() {
                         </div>
 
                         <div>
-                            <label style={{ display: 'block', marginBottom: '0.8rem', color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', fontWeight: '700' }}>
+                            <label htmlFor="location-description" style={{ display: 'block', marginBottom: '0.8rem', color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', fontWeight: '700' }}>
                                 {t('locations_manager.form.desc', 'Descripción Corta (Resumen)')}
                             </label>
-                            <input 
+                            <input id="location-description"
                                 className="admin-input-premium" 
                                 value={formData.description}
                                 onChange={e => setFormData({...formData, description: e.target.value})}
@@ -337,10 +279,10 @@ export default function LocationsManager() {
                         </div>
 
                         <div>
-                            <label style={{ display: 'block', marginBottom: '0.8rem', color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', fontWeight: '700' }}>
+                            <label htmlFor="location-lore" style={{ display: 'block', marginBottom: '0.8rem', color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', fontWeight: '700' }}>
                                 {t('locations_manager.form.lore', 'Historia / Lore Detallado')}
                             </label>
-                            <textarea 
+                            <textarea id="location-lore"
                                 className="admin-textarea-premium" 
                                 rows={5}
                                 value={formData.long_description}
@@ -351,13 +293,13 @@ export default function LocationsManager() {
 
                         {/* Authors Section */}
                         <div style={{ background: 'rgba(255,255,255,0.02)', padding: '1.5rem', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                            <label style={{ display: 'block', marginBottom: '1rem', color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', fontWeight: '700' }}>
+                            <div style={{ display: 'block', marginBottom: '1rem', color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', fontWeight: '700' }}>
                                 <Users style={{ marginRight: '8px' }} /> {t('locations_manager.form.authors', 'Arquitectos / Autores')}
-                            </label>
+                            </div>
                             
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.8rem', marginBottom: '1.5rem' }}>
                                 {formData.authors?.map((auth, idx) => (
-                                    <div key={idx} style={{ 
+                                    <div key={auth.name} style={{ 
                                         display: 'flex', 
                                         alignItems: 'center', 
                                         gap: '8px', 
@@ -369,7 +311,7 @@ export default function LocationsManager() {
                                         <img src={`https://minotar.net/helm/${auth.name}/24.png`} alt="" style={{ width: '20px', height: '20px', borderRadius: '4px' }} />
                                         <span style={{ fontSize: '0.85rem', fontWeight: '700', color: '#fff' }}>{auth.name}</span>
                                         <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', color: '#60a5fa', fontWeight: '900' }}>{auth.role}</span>
-                                        <button onClick={() => removeAuthor(idx)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer', display: 'flex' }}>
+                                        <button aria-label="Action" type="button" onClick={() => removeAuthor(idx)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer', display: 'flex' }}>
                                             <X size={12} />
                                         </button>
                                     </div>
@@ -377,14 +319,14 @@ export default function LocationsManager() {
                             </div>
 
                             <div className="author-controls">
-                                <input 
+                                <input aria-label="Input field" 
                                     className="admin-input-premium" 
                                     placeholder={t('locations_manager.form.author_nick', 'Nick del Autor')}
                                     value={newAuthor.name}
                                     onChange={e => setNewAuthor({...newAuthor, name: e.target.value})}
                                     style={{ flexGrow: 1, padding: '0.8rem' }}
                                 />
-                                <select 
+                                <select aria-label="Select option" 
                                     className="admin-select-premium"
                                     value={newAuthor.role}
                                     onChange={e => setNewAuthor({...newAuthor, role: e.target.value})}
@@ -392,7 +334,7 @@ export default function LocationsManager() {
                                 >
                                     {AUTHOR_ROLES.map(r => <option key={r} value={r} style={{ background: '#0b0b10' }}>{r}</option>)}
                                 </select>
-                                <button onClick={addAuthor} className="modal-btn-primary hover-lift" style={{ padding: '0 1.2rem', borderRadius: '12px' }}>
+                                <button aria-label="Action" type="button" onClick={addAuthor} className="modal-btn-primary hover-lift" style={{ padding: '0 1.2rem', borderRadius: '12px' }}>
                                     <Plus />
                                 </button>
                             </div>
@@ -400,10 +342,10 @@ export default function LocationsManager() {
                     </div>
 
                     <div className="form-actions">
-                        <button onClick={resetForm} style={{ padding: '1rem 2rem', borderRadius: '16px', background: 'rgba(255,255,255,0.05)', color: '#fff', fontWeight: '700', cursor: 'pointer', border: 'none' }}>
+                        <button type="button" onClick={resetForm} style={{ padding: '1rem 2rem', borderRadius: '16px', background: 'rgba(255,255,255,0.05)', color: '#fff', fontWeight: '700', cursor: 'pointer', border: 'none' }}>
                             {t('admin.locations.form.cancel', 'Cancelar')}
                         </button>
-                        <button 
+                        <button type="button" 
                             onClick={handleSave} 
                             disabled={saving}
                             className="modal-btn-primary hover-lift"
@@ -438,10 +380,10 @@ export default function LocationsManager() {
                                 <img src={loc.image_url || ''} alt={loc.title} style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.6 }} />
                             )}
                             <div style={{ position: 'absolute', top: '15px', right: '15px', display: 'flex', gap: '8px' }}>
-                                <button onClick={() => handleEdit(loc)} style={{ padding: '8px', background: 'rgba(255,255,255,0.1)', color: '#fff', borderRadius: '10px', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer' }}>
+                                <button aria-label="Action" type="button" onClick={() => handleEdit(loc)} style={{ padding: '8px', background: 'rgba(255,255,255,0.1)', color: '#fff', borderRadius: '10px', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer' }}>
                                     <Edit2 size={14} />
                                 </button>
-                                <button onClick={() => setDeleteConfirmId(loc.id)} style={{ padding: '8px', background: 'rgba(239, 68, 68, 0.2)', color: '#ef4444', borderRadius: '10px', backdropFilter: 'blur(10px)', border: '1px solid rgba(239, 68, 68, 0.2)', cursor: 'pointer' }}>
+                                <button aria-label="Action" type="button" onClick={() => setDeleteConfirmId(loc.id)} style={{ padding: '8px', background: 'rgba(239, 68, 68, 0.2)', color: '#ef4444', borderRadius: '10px', backdropFilter: 'blur(10px)', border: '1px solid rgba(239, 68, 68, 0.2)', cursor: 'pointer' }}>
                                     <Trash2 size={14} />
                                 </button>
                             </div>
@@ -456,9 +398,9 @@ export default function LocationsManager() {
                             <div style={{ marginTop: '2rem', paddingTop: '1.5rem', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                     <div style={{ display: 'flex', marginLeft: '5px' }}>
-                                        {loc.authors?.slice(0, 3).map((auth, i) => (
-                                            <img 
-                                                key={i} 
+                                        {loc.authors?.slice(0, 3).map((auth) => (
+                                            <img
+                                                key={auth.name}
                                                 src={`https://minotar.net/helm/${auth.name}/24.png`} 
                                                 style={{ width: '24px', height: '24px', borderRadius: '4px', border: '2px solid #0a0a0f', marginLeft: '-8px' }} 
                                                 title={auth.name} 

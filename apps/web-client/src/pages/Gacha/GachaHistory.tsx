@@ -14,6 +14,22 @@ interface GachaHistoryProps {
     tierColor: string;
 }
 
+const formatTime = (dateStr?: string) => {
+    if (!dateStr) return 'Ahora mismo';
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return 'Ahora mismo';
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffMins < 1) return 'Ahora mismo';
+    if (diffMins < 60) return `Hace ${diffMins} min`;
+    if (diffHours < 24) return `Hace ${diffHours} h`;
+    return `Hace ${diffDays} d`;
+};
+
 export const GachaHistory: React.FC<GachaHistoryProps> = ({
     isOpen,
     onClose,
@@ -26,20 +42,6 @@ export const GachaHistory: React.FC<GachaHistoryProps> = ({
 }) => {
     const { t } = useTranslation();
 
-    const formatTime = (dateStr: string) => {
-        const date = new Date(dateStr);
-        const now = new Date();
-        const diffMs = now.getTime() - date.getTime();
-        const diffMins = Math.floor(diffMs / 60000);
-        const diffHours = Math.floor(diffMins / 60);
-        const diffDays = Math.floor(diffHours / 24);
-
-        if (diffMins < 1) return 'Ahora mismo';
-        if (diffMins < 60) return `Hace ${diffMins} min`;
-        if (diffHours < 24) return `Hace ${diffHours}h`;
-        return `Hace ${diffDays}d`;
-    };
-
     return (
         <div 
             className={`gacha-history-overlay ${isOpen ? 'active' : ''}`} 
@@ -47,7 +49,7 @@ export const GachaHistory: React.FC<GachaHistoryProps> = ({
             style={{ '--tier-accent-color': tierColor } as React.CSSProperties}
         >
             <div className="gacha-history-drawer" onClick={e => e.stopPropagation()}>
-                <button 
+                <button type="button" 
                     className="history-handle-btn" 
                     onClick={(e) => {
                         e.stopPropagation();
@@ -67,7 +69,7 @@ export const GachaHistory: React.FC<GachaHistoryProps> = ({
                         <Clock size={20} style={{ color: tierColor }} />
                         <h2>{t('gacha.history_title', 'Historial de Premios')}</h2>
                     </div>
-                    <button className="close-btn" onClick={onClose}>
+                    <button aria-label="Action" type="button" className="close-btn" onClick={onClose}>
                         <X size={24} />
                     </button>
                 </div>
@@ -86,7 +88,7 @@ export const GachaHistory: React.FC<GachaHistoryProps> = ({
                         </div>
                     ) : (
                         <div className="history-list custom-scrollbar">
-                                {history.map((item, index) => {
+                                {history.map((item) => {
                                     const Icon = RARITY_ICONS[item.rarity] || Star;
                                     const color = RARITY_COLORS[item.rarity] || '#fff';
                                     
@@ -123,7 +125,7 @@ export const GachaHistory: React.FC<GachaHistoryProps> = ({
 
                                     return (
                                         <div 
-                                            key={item.id || index} 
+                                            key={item.id} 
                                             className="history-card"
                                             style={{ 
                                                 '--rarity-indicator-color': color,
@@ -148,7 +150,7 @@ export const GachaHistory: React.FC<GachaHistoryProps> = ({
                                                     {item.rarity?.toUpperCase()}
                                                 </span>
                                                 <span className="time-tag">
-                                                    {formatTime(item.created_at)}
+                                                    {formatTime(item.created_at || item.roll_time)}
                                                 </span>
                                             </div>
                                         </div>

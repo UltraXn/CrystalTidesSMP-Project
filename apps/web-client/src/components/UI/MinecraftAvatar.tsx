@@ -24,13 +24,15 @@ const MinecraftAvatar: React.FC<MinecraftAvatarProps> = ({
     fallback = "https://mc-heads.net/avatar/MHF_Steve"
 }) => {
     
-    // Detectar si es una URL de textura de skin (Formato desarmado de MC)
+    // Detectar si es una URL de textura desarmada (64x64) de MC que requiere recorte CSS
     const isSkinTexture = React.useMemo(() => {
         if (!src) return false;
         const s = src.toLowerCase();
-        // Solo aplicar si viene de servidores de texturas conocidos o si el usuario lo marca específicamente
-        return s.startsWith('http') && (
-            s.includes('minecraftskins.com/uploads/skins') || 
+        return (
+            s.includes('/skins/') ||
+            s.endsWith('.png') ||
+            s.includes('minotar.net/skin') ||
+            s.includes('minecraftskins.com/uploads/skins') ||
             s.includes('textures.minecraft.net/texture') ||
             s.includes('crafatar.com/skins')
         );
@@ -39,8 +41,9 @@ const MinecraftAvatar: React.FC<MinecraftAvatarProps> = ({
     // Si no hay src o es un nickname corto, usamos mc-heads (fallback interno)
     const finalSrc = src || 'MHF_Steve';
     
-    // Si es un Nickname (no una URL)
-    if (!finalSrc.startsWith('http')) {
+    // Si es un Nickname (no una URL o ruta de archivo local)
+    const isUrl = finalSrc.startsWith('http') || finalSrc.startsWith('/') || finalSrc.includes('/');
+    if (!isUrl) {
         return (
             <img 
                 src={`https://mc-heads.net/avatar/${finalSrc}/${size}`}

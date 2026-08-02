@@ -42,7 +42,7 @@ export default function RegisterSuccess() {
                 </p>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    <button 
+                    <button type="button" 
                         className="btn-primary" 
                         onClick={() => navigate('/login')}
                         style={{ width: '100%', justifyContent: 'center', padding: '1rem' }}
@@ -50,7 +50,7 @@ export default function RegisterSuccess() {
                         {t('register.go_to_login', 'Ir a Iniciar Sesión')}
                     </button>
                     
-                    <button 
+                    <button type="button" 
                         className="btn-secondary" 
                         onClick={() => navigate('/')}
                         style={{ width: '100%', justifyContent: 'center', padding: '1rem', background: 'transparent', border: '1px solid #333' }}

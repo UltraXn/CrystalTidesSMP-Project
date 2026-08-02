@@ -47,18 +47,16 @@ export const createRule = async (rule: Omit<Rule, 'id'>, token: string): Promise
         },
         body: JSON.stringify(rule)
     });
-    const contentType = response.headers.get("content-type");
-    let json;
-    if (contentType && contentType.includes("application/json")) {
-        json = await response.json();
-    } else {
+    if (!response.ok) {
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+            const json = await response.json();
+            throw new Error(json?.error?.message || json?.message || 'Failed to create rule');
+        }
         const text = await response.text();
         throw new Error(text || `Error ${response.status}`);
     }
-
-    if (!response.ok) {
-        throw new Error(json?.error?.message || json?.message || 'Failed to create rule');
-    }
+    const json = await response.json();
     return json.data;
 };
 
@@ -71,18 +69,16 @@ export const updateRule = async (id: number, updates: Partial<Rule>, token: stri
         },
         body: JSON.stringify(updates)
     });
-    const contentType = response.headers.get("content-type");
-    let json;
-    if (contentType && contentType.includes("application/json")) {
-        json = await response.json();
-    } else {
+    if (!response.ok) {
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+            const json = await response.json();
+            throw new Error(json?.error?.message || json?.message || 'Failed to update rule');
+        }
         const text = await response.text();
         throw new Error(text || `Error ${response.status}`);
     }
-
-    if (!response.ok) {
-        throw new Error(json?.error?.message || json?.message || 'Failed to update rule');
-    }
+    const json = await response.json();
     return json.data;
 };
 

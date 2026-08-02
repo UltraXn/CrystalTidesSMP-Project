@@ -1,0 +1,10 @@
+serverAddr = "<YOUR_ORACLE_VM_PUBLIC_IP>"
+serverPort = 7000
+auth.token = "CrystalTidesFRP2026"
+
+[[proxies]]
+name = "local-spy"
+type = "tcp"
+localIP = "127.0.0.1"
+localPort = 8023
+remotePort = 8023

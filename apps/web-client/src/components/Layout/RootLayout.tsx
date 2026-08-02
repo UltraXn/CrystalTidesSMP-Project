@@ -59,17 +59,18 @@ export default function RootLayout() {
         }
     }, [settings]);
 
+    const isGachaPage = location.pathname === '/gacha'
     const isMaintenancePage = location.pathname === '/maintenance'
     const isAdminPage = location.pathname.startsWith('/admin')
-    const isAuthPage = ['/login', '/register', '/verify'].includes(location.pathname)
     const isAccountPage = location.pathname.startsWith('/account')
     const isStatusPage = location.pathname === '/status'
 
     const showHeader = !isMaintenancePage && !isAdminPage
-    const showFooter = !isAdminPage && !isMaintenancePage && !isAccountPage && !isAuthPage
+    const showFooter = !isAdminPage && !isMaintenancePage && !isAccountPage
     const holidayTheme = settings?.theme === 'christmas' || settings?.theme === 'halloween'
     const showBubbles = !isAccountPage && !isAdminPage && !holidayTheme
-    const showSocialSidebar = !isAdminPage && !isAccountPage && !isStatusPage
+    // Sidebar overlaps the machine column on gacha — keep it off there
+    const showSocialSidebar = !isAdminPage && !isAccountPage && !isStatusPage && !isGachaPage
 
     return (
         <>

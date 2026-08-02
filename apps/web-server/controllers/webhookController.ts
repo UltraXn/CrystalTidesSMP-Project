@@ -1,42 +1,52 @@
 import supabase from '../config/supabaseClient.js';
 import { Request, Response } from 'express';
+import crypto from 'crypto';
+import { kofiWebhookSchema } from '../schemas/donationSchemas.js';
 
 export const handleKofiWebhook = async (req: Request, res: Response) => {
     try {
         // Handle payload: webhooks often send data as x-www-form-urlencoded with a 'data' field containing JSON string
         // But Ko-Fi documentation says "A field named 'data' contains the payment infomation as a JSON string."
-        let payload = req.body;
+        let rawPayload = req.body;
 
         if (req.body.data && typeof req.body.data === 'string') {
             try {
-                payload = JSON.parse(req.body.data);
+                rawPayload = JSON.parse(req.body.data);
             } catch (e) {
                 console.error('Error parsing Ko-Fi JSON string:', e);
                 return res.status(400).send('Invalid JSON format');
             }
         }
 
-        console.log('Ko-Fi Payload received:', payload);
-
         // 1. Mandatory verification checks
         const VERIFICATION_TOKEN = process.env.KOFI_VERIFICATION_TOKEN;
-        
+
         if (!VERIFICATION_TOKEN) {
             console.error('CRITICAL: KOFI_VERIFICATION_TOKEN is not set!');
             return res.status(500).send('Server Configuration Error');
         }
 
-        if (payload.verification_token !== VERIFICATION_TOKEN) {
+        // Timing-safe comparison: don't leak token contents via response time
+        const providedToken = Buffer.from(String(rawPayload.verification_token || ''));
+        const expectedToken = Buffer.from(VERIFICATION_TOKEN);
+        const tokenValid = providedToken.length === expectedToken.length
+            && crypto.timingSafeEqual(providedToken, expectedToken);
+
+        if (!tokenValid) {
             console.warn('Invalid Ko-Fi verification token attempt');
             return res.status(403).send('Invalid token');
         }
 
-        // 2. Check essential fields
-        if (!payload.message_id) {
-            console.warn('Payload missing message_id');
-            // Ko-Fi expects 200 OK even if we ignore it, to stop retrying.
-            return res.status(200).send('Ignored');
+        // 2. Validate payload schema before processing
+        const parseResult = kofiWebhookSchema.safeParse(rawPayload);
+        if (!parseResult.success) {
+            console.warn('Invalid Ko-Fi payload schema:', parseResult.error.flatten());
+            return res.status(400).send('Invalid payload');
         }
+
+        const payload = parseResult.data;
+
+        console.log(`Ko-Fi Payload received: message_id=${payload.message_id}, amount=${payload.amount} ${payload.currency}`);
 
         // Insert into Supabase
         const { error } = await supabase
@@ -56,7 +66,7 @@ export const handleKofiWebhook = async (req: Request, res: Response) => {
 
         if (error) {
             console.error('Error saving query to Supabase:', error);
-            // Return 500 so Ko-Fi retries later? Or 200 to discard? 
+            // Return 500 so Ko-Fi retries later? Or 200 to discard?
             // Usually 500 for DB errors.
             return res.status(500).json({ error: 'Database error' });
         }
@@ -68,7 +78,7 @@ export const handleKofiWebhook = async (req: Request, res: Response) => {
             const { sendDonationAlert } = await import('../services/discordService.js');
             await sendDonationAlert({
                 from_name: payload.from_name || 'Anónimo',
-                amount: payload.amount,
+                amount: String(payload.amount),
                 currency: payload.currency,
                 message: payload.message
             });

@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 
 interface AnimatedCounterProps {
     value: number;
@@ -60,10 +60,11 @@ export default function AnimatedCounter({
     }, [value, duration]); // Dependemos de 'value' para reiniciar
 
     // Formateo del número
-    const formatted = new Intl.NumberFormat('en-US', {
+    const formatter = useMemo(() => new Intl.NumberFormat('en-US', {
         minimumFractionDigits: decimals,
         maximumFractionDigits: decimals,
-    }).format(displayValue);
+    }), [decimals]);
+    const formatted = formatter.format(displayValue);
 
     return <span>{prefix}{formatted}{suffix}</span>;
 }

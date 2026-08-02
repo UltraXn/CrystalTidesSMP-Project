@@ -1,5 +1,4 @@
-import { Request, Response } from 'express';
-import { logSecurityEvent, AuditAction } from '../services/auditService.js';
+import { Response } from 'express';
 
 interface ApiResponse<T> {
     success: boolean;
@@ -26,7 +25,7 @@ export const sendSuccess = <T>(res: Response, data: T, message?: string, meta?: 
     });
 };
 
-export const sendError = (res: Response, message: string, code: string = 'INTERNAL_ERROR', statusCode: number = 500, details?: unknown, req?: Request) => {
+export const sendError = (res: Response, message: string, code: string = 'INTERNAL_ERROR', statusCode: number = 500, details?: unknown) => {
     // Sanitize details to avoid circular references and leak info
     let safeDetails = process.env.NODE_ENV === 'development' ? details : undefined;
     const safeMessage = process.env.NODE_ENV === 'development' ? message : (statusCode >= 500 ? 'Internal server error' : message);
@@ -38,23 +37,6 @@ export const sendError = (res: Response, message: string, code: string = 'INTERN
         };
     }
 
-    // Auto-Audit Security Failures
-    if (req && (statusCode === 401 || statusCode === 403)) {
-        logSecurityEvent({
-            userId: req.user?.id,
-            username: req.user?.username || 'Guest',
-            action: statusCode === 401 ? AuditAction.UNAUTHORIZED_ACCESS : AuditAction.FORBIDDEN_ACTION,
-            details: {
-                path: req.path,
-                method: req.method,
-                reason: message,
-                code: code,
-                ip: req.ip,
-                userAgent: req.get('user-agent') || 'Unknown'
-            },
-            ip: req.ip
-        }).catch(err => console.error('Failed to log security event:', err));
-    }
 
     return res.status(statusCode).json({
         success: false,

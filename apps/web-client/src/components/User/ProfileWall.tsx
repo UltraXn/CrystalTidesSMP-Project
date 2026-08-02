@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { useTranslation } from "react-i18next"
-import { motion, AnimatePresence } from "framer-motion"
+import { m as motion, AnimatePresence } from "framer-motion"
 import { Trash2, Send, MessageCircle } from "lucide-react"
 import { useAuth } from "../../context/AuthContext"
 import { getProfileComments, postProfileComment, deleteProfileComment, ProfileComment } from "../../services/profileCommentService"
@@ -40,6 +40,7 @@ export default function ProfileWall({ profileId, isAdmin, mockComments }: Profil
     const [isDeleting, setIsDeleting] = useState(false)
 
     useEffect(() => {
+        let ignore = false;
         if (mockComments) {
             setComments(mockComments);
             setLoading(false);
@@ -49,14 +50,15 @@ export default function ProfileWall({ profileId, isAdmin, mockComments }: Profil
         const fetchComments = async () => {
             try {
                 const data = await getProfileComments(profileId)
-                setComments(data)
+                if (!ignore) setComments(data)
             } catch (error) {
                 console.error("Error loading wall comments:", error)
             } finally {
-                setLoading(false)
+                if (!ignore) setLoading(false)
             }
         }
         if (profileId) fetchComments()
+        return () => { ignore = true; }
     }, [profileId, mockComments])
 
     const handlePostComment = async (e: React.FormEvent) => {
@@ -103,12 +105,12 @@ export default function ProfileWall({ profileId, isAdmin, mockComments }: Profil
             {user ? (
                 <form onSubmit={handlePostComment} className="mb-8 relative">
                     <div className="relative group/input">
-                        <textarea
+                        <textarea aria-label="Text input"
                             value={newComment}
                             onChange={(e) => setNewComment(e.target.value)}
                             placeholder={t('profile.wall.placeholder', 'Escribe algo en este muro...')}
                             maxLength={500}
-                            className="w-full bg-black/20 border border-white/5 rounded-2xl p-4 text-sm font-medium text-white placeholder:text-gray-600 focus:outline-none focus:border-(--accent)/30 transition-all min-h-[120px] resize-none scrollbar-thin scrollbar-thumb-white/10"
+                            className="w-full bg-black/20 border border-white/5 rounded-2xl p-4 text-sm font-medium text-white placeholder:text-gray-600 focus:outline-none focus:border-(--accent)/30 transition-colors min-h-30 resize-none scrollbar-thin scrollbar-thumb-white/10"
                         />
                         <div className="absolute bottom-4 right-4 text-[10px] font-black text-gray-700 bg-black/40 px-2 py-1 rounded-lg backdrop-blur-md">
                             {newComment.length}/500
@@ -119,7 +121,7 @@ export default function ProfileWall({ profileId, isAdmin, mockComments }: Profil
                         <button 
                             type="submit" 
                             disabled={!newComment.trim() || sending}
-                            className="flex items-center gap-2 px-6 py-3 bg-white text-black rounded-xl text-xs font-black uppercase tracking-widest hover:bg-(--accent) hover:scale-105 active:scale-95 transition-all shadow-lg shadow-black/20 disabled:opacity-50 disabled:hover:scale-100 disabled:hover:bg-white"
+                            className="flex items-center gap-2 px-6 py-3 bg-white text-black rounded-xl text-xs font-black uppercase tracking-widest hover:bg-(--accent) hover:scale-105 active:scale-95 transition-colors shadow-lg shadow-black/20 disabled:opacity-50 disabled:hover:scale-100 disabled:hover:bg-white"
                         >
                             {sending ? <Loader minimal /> : <><Send size={16} /> {t('profile.wall.post', 'Publicar')}</>}
                         </button>
@@ -139,23 +141,30 @@ export default function ProfileWall({ profileId, isAdmin, mockComments }: Profil
                     <div className="flex flex-col items-center justify-center py-12">
                         <Loader text={t('common.loading')} />
                     </div>
-                ) : comments.length === 0 ? (
-                    <div className="text-center py-12 px-6 bg-black/20 rounded-2xl border border-white/5">
-                        <div className="text-4xl mb-4 opacity-20">💬</div>
-                        <p className="text-gray-500 font-bold italic">
-                            {t('profile.wall.empty', 'Aún no hay mensajes. ¡Sé el primero!')}
-                        </p>
-                    </div>
                 ) : (
                     <AnimatePresence>
-                        {comments.map((comment) => (
-
+                        {comments.length === 0 ? (
+                            <motion.div 
+                                key="empty-wall"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="text-center py-12 px-6 bg-black/20 rounded-2xl border border-white/5"
+                            >
+                                <div className="text-4xl mb-4 opacity-20">💬</div>
+                                <p className="text-gray-500 font-bold italic">
+                                    {t('profile.wall.empty', 'Aún no hay mensajes. ¡Sé el primero!')}
+                                </p>
+                            </motion.div>
+                        ) : (
+                            comments.map((comment) => {
+                            return (
                             <motion.div
                                 key={comment.id}
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, scale: 0.95 }}
-                                className="relative bg-black/20 border border-white/5 rounded-2xl p-6 hover:bg-black/30 hover:-translate-y-2 hover:scale-[1.02] hover:border-white/20 hover:shadow-[0_40px_80px_-15px_rgba(0,0,0,0.5)] transition-all duration-300 group"
+                                className="relative bg-black/20 border border-white/5 rounded-2xl p-6 hover:bg-black/30 hover:-translate-y-2 hover:scale-[1.02] hover:border-white/20 hover:shadow-[0_40px_80px_-15px_rgba(0,0,0,0.5)] transition-colors duration-300 group"
                             >
                                 {(() => {
                                     // Use local user data if it's my own comment (to ensure settings are up-to-date)
@@ -279,18 +288,20 @@ export default function ProfileWall({ profileId, isAdmin, mockComments }: Profil
 
                                 {/* Actions */}
                                 {(isAdmin || user?.id === comment.author_id || user?.id === profileId) && (
-                                    <button 
+                                    <button type="button" 
                                         onClick={() => handleDeleteClick(comment.id)}
-                                        className="absolute top-4 right-4 p-2 text-gray-600 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                                        className="absolute top-4 right-4 p-2 text-gray-600 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
                                         title={t('common.delete', 'Eliminar')}
                                     >
                                         <Trash2 size={12} />
                                     </button>
                                 )}
                             </motion.div>
-                        ))}
-                    </AnimatePresence>
+                        );
+                    })
                 )}
+                </AnimatePresence>
+            )}
             </div>
 
             <ConfirmationModal

@@ -42,7 +42,7 @@ export const initWebSocket = (server: Server) => {
     console.log('[WebSocket] Server initialized');
 };
 
-export const broadcast = (data: unknown) => {
+const broadcast = (data: unknown) => {
     if (!wss) return;
     const message = JSON.stringify(data);
     clients.forEach(client => {

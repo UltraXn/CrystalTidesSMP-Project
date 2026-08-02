@@ -49,7 +49,7 @@ const ShareableCard: React.FC<ShareableCardProps> = ({ achievement, username, on
             display: 'flex', alignItems: 'center', justifyContent: 'center'
         }}>
             <div style={{ position: 'relative', width: '90%', maxWidth: '600px' }}>
-                <button 
+                <button aria-label="Action" type="button" 
                     onClick={onClose}
                     style={{ position: 'absolute', top: -40, right: 0, background: 'none', border: 'none', color: '#fff', fontSize: '1.5rem', cursor: 'pointer' }}
                 >
@@ -116,7 +116,7 @@ const ShareableCard: React.FC<ShareableCardProps> = ({ achievement, username, on
 
                 {/* Actions */}
                 <div style={{ marginTop: '2rem', display: 'flex', justifySelf: 'center', justifyContent: 'center' }}>
-                    <button 
+                    <button type="button" 
                         onClick={handleDownload}
                         disabled={generating}
                         className="btn-primary"

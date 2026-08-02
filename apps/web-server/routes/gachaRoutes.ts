@@ -1,57 +1,20 @@
 import express from 'express';
 import * as gachaController from '../controllers/gachaController.js';
-import { authenticateToken } from '../middleware/authMiddleware.js';
+import { authenticateToken, require2FA } from '../middleware/authMiddleware.js';
+import { checkRole, ADMIN_ROLES } from '../utils/roleUtils.js';
 import { validate } from '../middleware/validateResource.js';
-import { rollGachaSchema, gachaHistorySchema } from '../schemas/gachaSchemas.js';
+import { rollGachaSchema, gachaHistorySchema, gachaStatusSchema, addFundsSchema } from '../schemas/gachaSchemas.js';
 
 const router = express.Router();
 
-/**
- * @swagger
- * tags:
- *   name: Gacha
- *   description: Sistema de recompensas diarias
- */
+router.get('/tiers', gachaController.getTiers);
 
-/**
- * @swagger
- * /gacha/roll:
- *   post:
- *     summary: Tirar de la ruleta (1 vez cada 24h)
- *     tags: [Gacha]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               userId:
- *                 type: string
- *     responses:
- *       200:
- *         description: Éxito
- *       429:
- *         description: Cooldown activo
- */
 router.post('/roll', authenticateToken, validate(rollGachaSchema), gachaController.roll);
 
-/**
- * @swagger
- * /gacha/history/{userId}:
- *   get:
- *     summary: Obtener historial de premios
- *     tags: [Gacha]
- *     parameters:
- *       - in: path
- *         name: userId
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Historial recuperado
- */
+router.post('/add-funds', authenticateToken, checkRole(ADMIN_ROLES), require2FA, validate(addFundsSchema), gachaController.addFunds);
+
 router.get('/history/:userId', authenticateToken, validate(gachaHistorySchema), gachaController.getHistory);
+
+router.get('/status/:userId', authenticateToken, validate(gachaStatusSchema), gachaController.getStatus);
 
 export default router;

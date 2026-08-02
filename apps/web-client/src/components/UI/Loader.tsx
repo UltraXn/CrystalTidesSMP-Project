@@ -1,20 +1,24 @@
 import { useTranslation } from "react-i18next";
-import "../../styles/loader.css";
+import "../../styles/layout/loader.css";
 
 interface LoaderProps {
     text?: string;
     style?: React.CSSProperties;
     minimal?: boolean;
     fullScreen?: boolean;
+    size?: number;
 }
 
-export default function Loader({ text, style, minimal, fullScreen }: LoaderProps) {
+export default function Loader({ text, style, minimal, fullScreen, size }: LoaderProps) {
     const { t } = useTranslation();
-    
+
     // In minimal mode, we only show a small spinner
     if (minimal) {
+        const sizeStyle: React.CSSProperties = size
+            ? { width: size, height: size, fontSize: size * 0.6, ...style }
+            : style ?? {};
         return (
-            <div className="loader-minimal" style={style}>
+            <div className="loader-minimal" style={sizeStyle}>
                 <div className="prism-glass">
                     <div className="spinner"></div>
                 </div>

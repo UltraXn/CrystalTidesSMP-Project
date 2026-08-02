@@ -1,5 +1,5 @@
 User-agent: *
 Allow: /
 
-# Sitemap (Opcional, futuro)
-# Sitemap: https://tuservidor.com/sitemap.xml
+# Sitemap
+Sitemap: https://crystaltidessmp.net/sitemap.xml

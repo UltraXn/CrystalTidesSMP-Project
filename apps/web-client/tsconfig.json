@@ -20,8 +20,7 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     
-    /* Absolute Imports */
-    "baseUrl": ".",
+    /* Absolute Imports — paths resolve relative to this config file (no baseUrl needed) */
     "paths": {
       "@/*": ["./src/*"]
     },

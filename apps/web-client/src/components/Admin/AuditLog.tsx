@@ -1,8 +1,19 @@
 import { useState, useEffect } from "react"
-import { Globe, Gamepad2, User, Search, Filter, Calendar, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Globe, Gamepad2, Shield, User, Search, Filter, Calendar, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useTranslation } from "react-i18next"
 import Loader from "../UI/Loader"
 import { useAuditLogs } from "../../hooks/useAdminData"
+
+const getSourceIcon = (source: string) => {
+    if (source === 'game') return <Gamepad2 size={16} />
+    if (source === 'security-auditor' || source === 'security') return <Shield size={16} />
+    return <Globe size={16} />
+}
+
+const formatDate = (date: number | string) => {
+    const d = new Date(date)
+    return d.toLocaleString()
+}
 
 interface LogEntry {
     id: string;
@@ -10,7 +21,7 @@ interface LogEntry {
     username: string;
     action: string;
     details: string;
-    source: 'web' | 'game';
+    source: string;
 }
 
 interface AuditLogProps {
@@ -71,15 +82,7 @@ export default function AuditLog({ mockLogs, mockTotal }: AuditLogProps = {}) {
     const totalCount = mockTotal !== undefined ? mockTotal : (fetchLogsData?.total || 0);
     const totalPages = Math.ceil(totalCount / limit) || 1;
 
-    const getSourceIcon = (source: string) => {
-        if (source === 'game') return <Gamepad2 size={16} />
-        return <Globe size={16} />
-    }
 
-    const formatDate = (date: number | string) => {
-        const d = new Date(date)
-        return d.toLocaleString()
-    }
 
     return (
         <div className="audit-log-container">
@@ -92,7 +95,7 @@ export default function AuditLog({ mockLogs, mockTotal }: AuditLogProps = {}) {
                 <div className="audit-log-controls">
                     <div className="audit-search-box">
                         <Search size={18} />
-                        <input 
+                        <input aria-label="Input field" 
                             type="text" 
                             placeholder={t('admin.audit.search_placeholder')} 
                             value={search}
@@ -106,22 +109,32 @@ export default function AuditLog({ mockLogs, mockTotal }: AuditLogProps = {}) {
                 <div className="filter-group">
                     <Filter size={16} />
                     <button 
+                        type="button"
                         className={`filter-btn ${filterSource === 'all' ? 'active' : ''}`}
                         onClick={() => { setFilterSource('all'); setPage(1); }}
                     >
                         {t('admin.audit.source_all')}
                     </button>
                     <button 
+                        type="button"
                         className={`filter-btn ${filterSource === 'web' ? 'active' : ''}`}
                         onClick={() => { setFilterSource('web'); setPage(1); }}
                     >
                         <Globe size={14} /> {t('admin.audit.source_web')}
                     </button>
                     <button 
+                        type="button"
                         className={`filter-btn ${filterSource === 'game' ? 'active' : ''}`}
                         onClick={() => { setFilterSource('game'); setPage(1); }}
                     >
                         <Gamepad2 size={14} /> {t('admin.audit.source_game')}
+                    </button>
+                    <button 
+                        type="button"
+                        className={`filter-btn ${filterSource === 'security-auditor' ? 'active' : ''}`}
+                        onClick={() => { setFilterSource('security-auditor'); setPage(1); }}
+                    >
+                        <Shield size={14} /> {t('admin.audit.source_security-auditor')}
                     </button>
                 </div>
 
@@ -193,7 +206,7 @@ export default function AuditLog({ mockLogs, mockTotal }: AuditLogProps = {}) {
             {totalPages > 1 && (
                 <div className="audit-pagination">
 
-                    <button 
+                    <button type="button" 
                         disabled={page === 1} 
                         onClick={() => setPage(page - 1)}
                         className="pagination-btn"
@@ -213,7 +226,7 @@ export default function AuditLog({ mockLogs, mockTotal }: AuditLogProps = {}) {
                             }
 
                             return Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i).map(p => (
-                                <button 
+                                <button aria-label="Action" type="button" 
                                     key={p}
                                     className={`page-num ${page === p ? 'active' : ''}`}
                                     onClick={() => setPage(p)}
@@ -223,7 +236,7 @@ export default function AuditLog({ mockLogs, mockTotal }: AuditLogProps = {}) {
                             ));
                         })()}
                     </div>
-                    <button 
+                    <button type="button" 
                         disabled={page === totalPages} 
                         onClick={() => setPage(page + 1)}
                         className="pagination-btn"

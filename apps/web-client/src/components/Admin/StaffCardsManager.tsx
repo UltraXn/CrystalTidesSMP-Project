@@ -7,11 +7,12 @@ import { StaffCardData as StaffCard } from './Staff/StaffFormModal';
 import StaffFormModal from './Staff/StaffFormModal';
 import StaffList from './Staff/StaffList';
 import StaffSyncModal from './Staff/StaffSyncModal';
-import { 
-    useAdminSettings, 
+import {
+    useAdminSettings,
     useUpdateSiteSetting,
     useStaffOnlineStatus
 } from '../../hooks/useAdminData';
+import { supabase } from '../../services/supabaseClient';
 
 interface ServerStaffUser {
     uuid?: string;
@@ -71,7 +72,11 @@ export default function StaffCardsManager({ mockCards, mockOnlineStatus }: Staff
     const startSync = async () => {
         setSyncing(true);
         try {
-            const res = await fetch(`${API_URL}/users/staff`);
+            // Staff list is staff-only server-side — send the session token
+            const { data: { session } } = await supabase.auth.getSession();
+            const res = await fetch(`${API_URL}/users/staff`, {
+                headers: { Authorization: `Bearer ${session?.access_token || ''}` }
+            });
             if (!res.ok) throw new Error(`Error ${res.status}`);
             const json = await res.json();
             const staffUsers = json.data || [];

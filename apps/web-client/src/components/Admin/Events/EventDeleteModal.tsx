@@ -37,14 +37,14 @@ export default function EventDeleteModal({ isOpen, onClose, onConfirm, deleting 
                     {t('admin.events.delete_modal.desc')}
                 </p>
                 <div style={{ display: 'flex', gap: '1.25rem', justifyContent: 'center' }}>
-                    <button 
+                    <button type="button" 
                         className="modal-btn-secondary" 
                         onClick={onClose}
                         style={{ flex: 1, height: '54px' }}
                     >
                         {t('admin.events.delete_modal.cancel')}
                     </button>
-                    <button 
+                    <button type="button" 
                         className="modal-btn-primary" 
                         onClick={onConfirm}
                         disabled={deleting}

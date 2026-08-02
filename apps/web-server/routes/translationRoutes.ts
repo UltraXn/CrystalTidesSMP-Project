@@ -1,15 +1,15 @@
 import express from 'express';
 import { translateText } from '../services/translationService.js';
 import { authenticateToken } from '../middleware/authMiddleware.js';
+import { sensitiveActionLimiter } from '../middleware/rateLimitMiddleware.js';
+import { validate } from '../middleware/validateResource.js';
+import { translateSchema } from '../schemas/translationSchemas.js';
 
 const router = express.Router();
 
-router.post('/', authenticateToken, async (req, res) => {
+// Rate-limited + length-capped: each call costs Gemini API quota
+router.post('/', authenticateToken, sensitiveActionLimiter, validate(translateSchema), async (req, res) => {
     const { text, targetLang } = req.body;
-    
-    if (!text) {
-        return res.status(400).json({ error: "Text is required" });
-    }
 
     try {
         const translated = await translateText(text, targetLang || 'en');

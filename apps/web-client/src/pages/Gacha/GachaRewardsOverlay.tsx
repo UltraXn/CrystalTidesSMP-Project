@@ -1,7 +1,8 @@
 import React from 'react';
-import { Star, Check, Trophy, AlertCircle } from 'lucide-react';
+import { Star, Check, Trophy, Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { GachaReward, MappedGachaResult, GachaTier } from './types';
+import { isLossReward, resolveRewardImage } from './gachaDisplayUtils';
 
 interface GachaRewardsOverlayProps {
     showBulkRewards: boolean;
@@ -9,6 +10,15 @@ interface GachaRewardsOverlayProps {
     selectedTier: GachaTier;
     setShowBulkRewards: (val: boolean) => void;
 }
+
+const coinImages: Record<string, string> = {
+    bronze: '/images/killucoins/coin_cobre.webp',
+    silver: '/images/killucoins/coin_plata.webp',
+    gold: '/images/killucoins/coin_oro.webp',
+    emerald: '/images/killucoins/coin_esmeralda.webp',
+    diamond: '/images/killucoins/coin_diamante.webp',
+    iridium: '/images/killucoins/coin_iridium.webp'
+};
 
 export const GachaRewardsOverlay: React.FC<GachaRewardsOverlayProps> = ({
     showBulkRewards,
@@ -22,14 +32,6 @@ export const GachaRewardsOverlay: React.FC<GachaRewardsOverlayProps> = ({
     const isSingle = bulkRewards.length === 1;
 
     const xpImg = '/images/items/xp_bottle.webp';
-    const coinImages: Record<string, string> = {
-        bronze: '/images/killucoins/coin_cobre.webp',
-        silver: '/images/killucoins/coin_plata.webp',
-        gold: '/images/killucoins/coin_oro.webp',
-        emerald: '/images/killucoins/coin_esmeralda.webp',
-        diamond: '/images/killucoins/coin_diamante.webp',
-        iridium: '/images/killucoins/coin_iridium.webp'
-    };
 
     const getFailsafeImg = (name: string) => {
         const n = name.toLowerCase();
@@ -69,7 +71,8 @@ export const GachaRewardsOverlay: React.FC<GachaRewardsOverlayProps> = ({
                     <span className={`reward-rarity rarity-${item.rarity}`}>{item.rarity.toUpperCase()}</span>
                     <div className={`reward-icon rarity-${item.rarity}`}>
                         {(() => {
-                            const activeImg = item.image_url || getFailsafeImg(item.name);
+                            const loss = isLossReward(item);
+                            const activeImg = loss ? null : resolveRewardImage(item.name, item.image_url) || getFailsafeImg(item.name);
                             if (activeImg) {
                                 return (
                                     <img 
@@ -86,18 +89,18 @@ export const GachaRewardsOverlay: React.FC<GachaRewardsOverlayProps> = ({
                                 );
                             }
 
-                            if (item.name.includes('PRÓXIMA') || item.name.includes('TRY AGAIN')) {
-                                return <AlertCircle size={100} color="#666" strokeWidth={1} />;
+                            if (loss) {
+                                return <Sparkles size={100} color="#94a3b8" strokeWidth={1.25} />;
                             }
 
                             return <Trophy size={100} color="#ffd700" strokeWidth={1} />;
                         })()}
                     </div>
                     <h3>{item.name}</h3>
-                    <p>{(item.name.includes('PRÓXIMA') || item.name.includes('TRY AGAIN')) 
+                    <p>{isLossReward(item)
                         ? '¡Vuelve a intentarlo en la próxima tirada!' 
                         : '¡Has desbloqueado un nuevo objeto!'}</p>
-                    <button className="reward-close-btn accept-btn" onClick={() => setShowBulkRewards(false)}>
+                    <button type="button" className="reward-close-btn accept-btn" onClick={() => setShowBulkRewards(false)}>
                         <Check size={20} />
                         <span>ACEPTAR</span>
                     </button>
@@ -120,10 +123,12 @@ export const GachaRewardsOverlay: React.FC<GachaRewardsOverlayProps> = ({
                         <p className="no-rewards">{t('gacha.no_rewards')}</p>
                     ) : (
                         bulkRewards.map((r, i) => (
-                            <div key={i} className={`bulk-item-row rarity-${r.rarity}`} style={{ "--delay": `${i * 0.05}s` } as React.CSSProperties}>
+                            // react-doctor-disable-next-line no-array-index-as-key -- bulk results can contain duplicate rewards (reward id not unique per result); rendered-once snapshot, never reordered
+                            <div key={`item-${i}`} className={`bulk-item-row rarity-${r.rarity}`} style={{ "--delay": `${i * 0.05}s` } as React.CSSProperties}>
                                  <div className="bulk-item-icon">
                                     {(() => {
-                                        const activeImg = r.image_url || getFailsafeImg(r.name);
+                                        const loss = isLossReward(r);
+                                        const activeImg = loss ? null : resolveRewardImage(r.name, r.image_url) || getFailsafeImg(r.name);
 
                                         if (activeImg) {
                                             const isKillucoin = r.name.toLowerCase().includes('killucoins') || r.name.toLowerCase().includes(' kc');
@@ -144,8 +149,8 @@ export const GachaRewardsOverlay: React.FC<GachaRewardsOverlayProps> = ({
                                             );
                                         }
 
-                                        if (r.name.includes('PRÓXIMA') || r.name.includes('TRY AGAIN')) {
-                                            return <AlertCircle size={24} color="#666" strokeWidth={2} />;
+                                        if (loss) {
+                                            return <Sparkles size={24} color="#94a3b8" strokeWidth={1.5} />;
                                         }
 
                                         return <Trophy size={24} color="#94a3b8" />;
@@ -161,7 +166,7 @@ export const GachaRewardsOverlay: React.FC<GachaRewardsOverlayProps> = ({
                 </div>
 
                 <div className="reward-footer">
-                    <button className="reward-close-btn accept-btn" onClick={() => setShowBulkRewards(false)}>
+                    <button type="button" className="reward-close-btn accept-btn" onClick={() => setShowBulkRewards(false)}>
                         <Check size={20} />
                         <span>ACEPTAR</span>
                     </button>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Megaphone, Save, Info, AlertTriangle, XCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import "../../../styles/admin/broadcast_manager.css";
 
 interface BroadcastConfig {
     message: string;
@@ -15,6 +16,14 @@ interface BroadcastManagerProps {
     onUpdate: (key: string, value: string) => void;
     saving: string | null;
 }
+
+const getTypeColor = (type: BroadcastConfig['type']) => {
+    switch(type) {
+        case 'alert': return '#facc15'; // Yellow
+        case 'error': return '#ef4444'; // Red
+        default: return '#3b82f6'; // Blue
+    }
+};
 
 export default function BroadcastManager({ settings, onUpdate, saving }: BroadcastManagerProps) {
     const { t } = useTranslation();
@@ -38,12 +47,13 @@ export default function BroadcastManager({ settings, onUpdate, saving }: Broadca
                     : broadcastConfig;
                 
                 // Sync state with props asynchronously to avoid effect warning
-                setTimeout(() => {
+                const timer = setTimeout(() => {
                     setConfig(prev => {
                        if (JSON.stringify(prev) !== JSON.stringify(parsed)) return parsed;
                        return prev;
                     });
                 }, 0);
+                return () => clearTimeout(timer);
             } catch (e) {
                 console.error("Error parsing broadcast config", e);
             }
@@ -53,14 +63,6 @@ export default function BroadcastManager({ settings, onUpdate, saving }: Broadca
     const handleSave = () => {
         // Save as JSON string
         onUpdate('broadcast_config', JSON.stringify(config));
-    };
-
-    const getTypeColor = (type: BroadcastConfig['type']) => {
-        switch(type) {
-            case 'alert': return '#facc15'; // Yellow
-            case 'error': return '#ef4444'; // Red
-            default: return '#3b82f6'; // Blue
-        }
     };
 
     return (
@@ -93,7 +95,7 @@ export default function BroadcastManager({ settings, onUpdate, saving }: Broadca
                         padding: '1.5rem', 
                         borderRadius: '16px',
                         border: config.active ? '1px solid rgba(76, 175, 80, 0.2)' : '1px solid rgba(255,255,255,0.05)',
-                        transition: 'all 0.3s'
+                        transition: "color 0.3s, background-color 0.3s, border-color 0.3s, opacity 0.3s"
                     }}>
                         <div>
                             <span style={{ fontWeight: '800', fontSize: '1.1rem', color: config.active ? '#4ade80' : 'rgba(255,255,255,0.4)', display: 'block', marginBottom: '4px' }}>
@@ -103,10 +105,11 @@ export default function BroadcastManager({ settings, onUpdate, saving }: Broadca
                                 {config.active ? 'La alerta es visible en toda la web.' : 'La alerta está oculta para los usuarios.'}
                             </p>
                         </div>
-                        <label className="switch">
-                            <input 
+                        <label className="switch" htmlFor="broadcast-active-toggle">
+                            <input id="broadcast-active-toggle" 
                                 type="checkbox" 
                                 checked={config.active}
+                                aria-label={config.active ? t('admin.settings.broadcast.active') : t('admin.settings.broadcast.inactive')}
                                 onChange={(e) => setConfig({...config, active: e.target.checked})}
                             />
                             <span className="slider round"></span>
@@ -115,10 +118,10 @@ export default function BroadcastManager({ settings, onUpdate, saving }: Broadca
 
                     {/* 2. Message Input */}
                     <div>
-                        <label style={{ display: 'block', marginBottom: '0.8rem', color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', fontWeight: '700' }}>
+                        <label htmlFor="broadcast-message" style={{ display: 'block', marginBottom: '0.8rem', color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', fontWeight: '700' }}>
                             {t('admin.settings.broadcast.message_label')}
                         </label>
-                        <input 
+                        <input id="broadcast-message"
                             className="admin-input-premium" 
                             value={config.message}
                             onChange={(e) => setConfig({...config, message: e.target.value})}
@@ -129,12 +132,12 @@ export default function BroadcastManager({ settings, onUpdate, saving }: Broadca
 
                     {/* 3. Type Selector */}
                     <div>
-                        <label style={{ display: 'block', marginBottom: '0.8rem', color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', fontWeight: '700' }}>
+                        <div style={{ display: 'block', marginBottom: '0.8rem', color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', fontWeight: '700' }}>
                             {t('admin.settings.broadcast.type_label')}
-                        </label>
+                        </div>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1rem' }}>
                             {(['info', 'alert', 'error'] as const).map(type => (
-                                <button
+                                <button type="button"
                                     key={type}
                                     onClick={() => setConfig({...config, type})}
                                     className="hover-lift"
@@ -148,7 +151,7 @@ export default function BroadcastManager({ settings, onUpdate, saving }: Broadca
                                         alignItems: 'center',
                                         justifyContent: 'center',
                                         gap: '10px',
-                                        transition: 'all 0.2s',
+                                        transition: "color 0.2s, background-color 0.2s, border-color 0.2s, opacity 0.2s",
                                         color: config.type === type ? '#fff' : 'rgba(255,255,255,0.5)',
                                         fontWeight: config.type === type ? '700' : 'normal'
                                     }}
@@ -170,7 +173,7 @@ export default function BroadcastManager({ settings, onUpdate, saving }: Broadca
                         marginTop: '1rem',
                         background: 'rgba(0,0,0,0.2)'
                     }}>
-                        <label style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', marginBottom: '1rem', display: 'block', letterSpacing: '1px', fontWeight: 'bold' }}>{t('admin.settings.broadcast.preview')}</label>
+                        <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', marginBottom: '1rem', display: 'block', letterSpacing: '1px', fontWeight: 'bold' }}>{t('admin.settings.broadcast.preview')}</div>
                         
                         {config.active ? (
                             <div style={{
@@ -197,7 +200,7 @@ export default function BroadcastManager({ settings, onUpdate, saving }: Broadca
                     </div>
 
                     <div style={{ display: 'flex', marginTop: '1.5rem' }}>
-                        <button 
+                        <button type="button" 
                             className="modal-btn-primary hover-lift" 
                             onClick={handleSave}
                             disabled={saving === 'broadcast_config'}
@@ -220,12 +223,8 @@ export default function BroadcastManager({ settings, onUpdate, saving }: Broadca
                             )}
                         </button>
                     </div>
-                    
                 </div>
             </div>
-             <style>{`
-                    @keyframes spin { 100% { transform: rotate(360deg); } }
-            `}</style>
         </div>
     );
 }

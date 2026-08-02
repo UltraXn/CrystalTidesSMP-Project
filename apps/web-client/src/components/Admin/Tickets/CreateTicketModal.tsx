@@ -90,7 +90,7 @@ export default function CreateTicketModal({ onClose, onSuccess, user }: CreateTi
                     <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.8rem', fontSize: '1.2rem', color: '#fff' }}>
                         <TicketIcon style={{ color: 'var(--accent)' }} /> {t('admin.tickets.create_modal.title', 'Nuevo Ticket')}
                     </h3>
-                    <button 
+                    <button aria-label="Action" type="button" 
                         onClick={onClose} 
                         className="hover-rotate"
                         style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', fontSize: '1.2rem' }}
@@ -101,20 +101,20 @@ export default function CreateTicketModal({ onClose, onSuccess, user }: CreateTi
                 
                 <form onSubmit={handleCreateTicket} style={{ padding: '2rem' }}>
                     <div style={{marginBottom: '1.5rem'}}>
-                        <label style={{ display: 'block', marginBottom: '0.8rem', color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', fontWeight: '700' }}>{t('admin.tickets.create_modal.subject', 'Asunto')}</label>
-                        <input 
+                        <label htmlFor="ticket-subject" style={{ display: 'block', marginBottom: '0.8rem', color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', fontWeight: '700' }}>{t('admin.tickets.create_modal.subject', 'Asunto')}</label>
+                        <input id="ticket-subject" 
                             className="admin-input-premium" 
                             value={newTicket.subject} 
                             onChange={e => setNewTicket({ ...newTicket, subject: e.target.value })} 
-                            autoFocus 
+                            
                             placeholder={t('admin.tickets.subject_ph', 'Ej: Problema con rango')} 
                             style={{ width: '100%', padding: '1rem', fontSize: '1rem', borderRadius: '12px' }}
                         />
                     </div>
 
                     <div style={{marginBottom: '1.5rem'}}>
-                        <label style={{ display: 'block', marginBottom: '0.8rem', color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', fontWeight: '700' }}>{t('admin.tickets.create_modal.description', 'Descripción')}</label>
-                        <textarea 
+                        <label htmlFor="ticket-description" style={{ display: 'block', marginBottom: '0.8rem', color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', fontWeight: '700' }}>{t('admin.tickets.create_modal.description', 'Descripción')}</label>
+                        <textarea id="ticket-description" 
                             className="admin-input-premium" 
                             rows={5} 
                             value={newTicket.description}  
@@ -125,9 +125,9 @@ export default function CreateTicketModal({ onClose, onSuccess, user }: CreateTi
                     </div>
 
                     <div style={{marginBottom: '2rem'}}>
-                        <label style={{ display: 'block', marginBottom: '0.8rem', color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', fontWeight: '700' }}>{t('admin.tickets.table.priority', 'Prioridad')}</label>
+                        <label htmlFor="ticket-priority" style={{ display: 'block', marginBottom: '0.8rem', color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', fontWeight: '700' }}>{t('admin.tickets.table.priority', 'Prioridad')}</label>
                         <div style={{ position: 'relative' }}>
-                            <select 
+                            <select id="ticket-priority" 
                                     className="admin-input-premium" 
                                     style={{ width: '100%', padding: '1rem', fontSize: '1rem', borderRadius: '12px', cursor: 'pointer', appearance: 'none' }}
                                     value={newTicket.priority} 

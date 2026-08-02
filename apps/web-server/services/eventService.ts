@@ -13,16 +13,6 @@ export interface Event {
     created_at?: string;
 }
 
-export interface EventRegistration {
-    id: number;
-    event_id: number;
-    user_id: string;
-    created_at?: string;
-    profiles?: {
-        username: string;
-        avatar_url: string | null;
-    };
-}
 
 export const getAllEvents = async () => {
     const { data, error } = await supabase

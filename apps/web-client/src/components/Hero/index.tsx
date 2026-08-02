@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react"
+import { useQuery } from "@tanstack/react-query"
 import { Link } from "react-router-dom"
 import { Copy, Check, Coffee } from "lucide-react"
 import HeroBackgroundCarousel from "./Carousel"
@@ -20,117 +21,109 @@ interface HeroProps {
     mockIsOnline?: boolean;
 }
 
+const renderBrandText = () => {
+    return "CRYSTALTIDES SMP".split('').map((char, index) => (
+        <span
+            key={`char-${char}-${index}`}
+            className="hero-brand-char inline-block"
+            style={{
+                minWidth: char === ' ' ? '14px' : 'auto'
+            }}
+        >
+            {char}
+        </span>
+    ));
+};
+
+async function loadHeroSettings(apiUrl: string) {
+    const res = await fetch(`${apiUrl}/settings`);
+    if (!res.ok) throw new Error("HTTP error " + res.status);
+    return res.json();
+}
+
+async function loadServerStatus(apiUrl: string) {
+    const res = await fetch(`${apiUrl}/status`);
+    if (!res.ok) throw new Error("HTTP error " + res.status);
+    return res.json();
+}
+
 export default function Hero({ mockSlides, mockPlayerCount, mockIsOnline }: HeroProps = {}) {
     const { t } = useTranslation()
     const [copied, setCopied] = useState(false)
     const ip = "mc.crystaltidessmp.net"
 
-    const welcomeRef = useRef<HTMLElement>(null)
+    const welcomeRef = useRef<HTMLDivElement>(null)
     const descRef = useRef<HTMLParagraphElement>(null)
     const containerRef = useRef<HTMLDivElement>(null)
-    const countRef = useRef<HTMLSpanElement>(null)
     const actionGroupRef = useRef<HTMLDivElement>(null)
+    const API_URL = import.meta.env.VITE_API_URL;
 
-    const [playerCount, setPlayerCount] = useState(0)
-    const [isOnline, setIsOnline] = useState<boolean | null>(null)
-    
-    const [slides, setSlides] = useState<Slide[]>([])
-    const API_URL = import.meta.env.VITE_API_URL
-
-    useEffect(() => {
-        if (mockSlides) {
-            setSlides(mockSlides);
-            return;
-        }
-
-        fetch(`${API_URL}/settings`)
-            .then(res => res.json())
-            .then(data => {
-                if(data.hero_slides) {
-                    try {
-                        const parsed = typeof data.hero_slides === 'string' 
-                            ? JSON.parse(data.hero_slides) 
-                            : data.hero_slides;
-                        setSlides((parsed || []) as Slide[]);
-                    } catch (e) {
-                         console.error("Error parsing hero slides", e);
-                    }
+    const { data: slides = mockSlides || [] } = useQuery<Slide[]>({
+        queryKey: ['heroSlides'],
+        queryFn: async () => {
+            if (mockSlides) return mockSlides;
+            const data = await loadHeroSettings(API_URL);
+            if (data.hero_slides) {
+                try {
+                    const parsed = typeof data.hero_slides === 'string'
+                        ? JSON.parse(data.hero_slides)
+                        : data.hero_slides;
+                    return (parsed || []) as Slide[];
+                } catch (e) {
+                    console.error("Error parsing hero slides", e);
                 }
-            })
-            .catch(err => console.error("Error fetching settings for hero", err));
-    }, [API_URL, mockSlides]);
+            }
+            return [];
+        },
+        enabled: !mockSlides,
+        staleTime: 60_000,
+    });
+
+    const { data: serverStatus } = useQuery({
+        queryKey: ['serverStatus', API_URL],
+        queryFn: () => loadServerStatus(API_URL),
+        enabled: mockIsOnline === undefined || mockPlayerCount === undefined,
+        staleTime: 30_000,
+    });
+
+    const isOnline = mockIsOnline ?? serverStatus?.online;
+    const playerCount = mockPlayerCount ?? serverStatus?.players?.online ?? 0;
 
     useEffect(() => {
         const ctx = gsap.context(() => {
+            // Set initial hidden states to prevent FOUC / stiff jumps
+            gsap.set(welcomeRef.current, { y: -15, opacity: 0 });
+            gsap.set('.hero-brand-char', { y: 30, opacity: 0 });
+            gsap.set([descRef.current, containerRef.current], { y: 25, opacity: 0 });
+
             const tl = gsap.timeline({
-                defaults: { ease: "power4.out", duration: 1.2 }
+                defaults: { ease: "power3.out", duration: 0.9 }
             });
 
-            gsap.set('.hero-brand-char', { opacity: 0, y: 50, filter: 'blur(10px)', scale: 0.8 });
-
-            tl.fromTo(welcomeRef.current, 
-                { opacity: 0, y: 30 },
-                { opacity: 1, y: 0, duration: 1 }
+            // Buttery smooth entrance sequence
+            tl.to(welcomeRef.current, 
+                { y: 0, opacity: 1, duration: 0.7 }
             )
-            .to('.hero-brand-char', {
-                opacity: 1,
-                y: 0,
-                filter: 'blur(0px)',
-                scale: 1,
-                stagger: 0.03,
-                duration: 1.5,
-                ease: "elastic.out(1, 0.75)"
-            }, "-=0.7")
-            .fromTo([descRef.current, containerRef.current],
-                { opacity: 0, y: 40 },
-                { opacity: 1, y: 0, stagger: 0.2, duration: 1 },
-                "-=1"
+            .to('.hero-brand-char', 
+                {
+                    y: 0,
+                    opacity: 1,
+                    stagger: 0.025,
+                    duration: 0.7,
+                    ease: "back.out(1.5)"
+                },
+                "-=0.4"
+            )
+            .to([descRef.current, containerRef.current],
+                { y: 0, opacity: 1, stagger: 0.15, duration: 0.7 },
+                "-=0.4"
             );
         });
 
-        const fetchPlayerCount = async () => {
-            if (mockIsOnline !== undefined && mockPlayerCount !== undefined) {
-                 setIsOnline(mockIsOnline);
-                 const counter = { val: 0 };
-                 gsap.to(counter, {
-                    val: mockPlayerCount,
-                    roundProps: "val",
-                    duration: 2.5,
-                    delay: 0.5,
-                    ease: "power2.out",
-                    onUpdate: () => setPlayerCount(Math.floor(counter.val))
-                });
-                return;
-            }
-
-            try {
-                const res = await fetch(`${API_URL}/minecraft/status`)
-                if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-                const data = await res.json()
-
-                if (data && data.online) {
-                    setIsOnline(true)
-                    const counter = { val: 0 };
-                    gsap.to(counter, {
-                        val: data.players.online,
-                        roundProps: "val",
-                        duration: 2.5,
-                        delay: 0.5,
-                        ease: "power2.out",
-                        onUpdate: () => setPlayerCount(Math.floor(counter.val))
-                    });
-                } else {
-                    setIsOnline(false)
-                }
-            } catch (err) {
-                console.warn("Hero: Failed to fetch server status", err instanceof Error ? err.message : err)
-                setIsOnline(false)
-            }
+        return () => {
+            ctx.revert();
         };
-
-        fetchPlayerCount();
-        return () => ctx.revert();
-    }, [API_URL, mockIsOnline, mockPlayerCount])
+    }, []);
 
     const handleCopy = () => {
         navigator.clipboard.writeText(ip)
@@ -138,93 +131,136 @@ export default function Hero({ mockSlides, mockPlayerCount, mockIsOnline }: Hero
         setTimeout(() => setCopied(false), 2000)
     }
 
-    const renderBrandText = () => {
-        return "CrystalTides SMP".split('').map((char, index) => (
-            <span
-                key={index}
-                className="hero-brand-char inline-block"
-                style={{
-                    minWidth: char === ' ' ? '12px' : 'auto'
-                }}
-            >
-                {char}
-            </span>
-        ));
-    };
-
-    // We only show the main branding if there are NO dynamic slides with text
-    const hasTextSlides = slides.some(s => s.title || s.text);
-    const showMainBranding = slides.length === 0 || !hasTextSlides;
-
     return (
-        <section className="relative min-h-screen w-full flex items-center justify-center overflow-hidden">
+        <div style={{
+            position: 'relative',
+            minHeight: '100vh',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            overflow: 'hidden',
+            paddingTop: '80px', // Header offset
+            paddingBottom: '40px'
+        }}>
+            {/* Background Carousel & Particles */}
             <HeroBackgroundCarousel slides={slides} />
             <HeroParticles />
-            
-            <div className="relative z-20 w-full max-w-5xl mx-auto px-6 text-center pt-10 sm:pt-20 pb-32 sm:pb-0">
-                {showMainBranding && (
-                    <div className="mb-12">
-                        <h1 className="text-[clamp(1.5rem,10vw,4rem)] sm:text-6xl md:text-8xl font-black uppercase tracking-tighter mb-6">
-                            <span
-                                ref={welcomeRef}
-                                className="block text-(--accent)/90 text-[clamp(1rem,5vw,2.25rem)] tracking-[0.2em] sm:tracking-widest mb-4 font-black drop-shadow-[0_0_15px_rgba(137,217,209,0.3)]"
-                            >
-                                {t('hero.welcome')}
-                            </span>
-                            <span className="inline-flex flex-wrap justify-center text-white drop-shadow-[0_0_30px_rgba(255,255,255,0.4)] whitespace-nowrap sm:whitespace-normal">
-                                {renderBrandText()}
-                            </span>
-                        </h1>
 
-                        <p ref={descRef} className="text-lg sm:text-xl md:text-2xl text-gray-300 max-w-2xl mx-auto leading-relaxed font-bold italic drop-shadow-md">
-                            {t('hero.description')}
-                        </p>
-                    </div>
-                )}
+            {/* Gradient Overlays */}
+            <div style={{
+                position: 'absolute', inset: 0,
+                background: 'radial-gradient(circle at center, transparent 0%, rgba(10, 10, 15, 0.8) 100%)',
+                pointerEvents: 'none'
+            }} />
+            <div style={{
+                position: 'absolute', bottom: 0, left: 0, right: 0, height: '200px',
+                background: 'linear-gradient(to top, var(--bg-primary), transparent)',
+                pointerEvents: 'none'
+            }} />
 
-                <div
-                    className="flex flex-col items-center gap-10"
-                    ref={containerRef}
+            {/* Content Container */}
+            <div style={{
+                position: 'relative', zIndex: 10,
+                maxWidth: '1200px', width: '100%',
+                padding: '0 2rem',
+                display: 'flex', flexDirection: 'column', alignItems: 'center',
+                textAlign: 'center'
+            }}>
+                
+                {/* Top Welcome Badge */}
+                <div 
+                    ref={welcomeRef}
+                    className="text-xs md:text-sm font-black uppercase tracking-[0.25em] text-(--accent) mb-2 opacity-90 drop-shadow-md"
                 >
-                    <Link to="/status" className="group flex items-center gap-3 bg-[#0a0a0a]/80 backdrop-blur-xl border border-(--accent)/30 shadow-[0_0_15px_rgba(137,217,209,0.1)] px-6 py-2.5 rounded-full no-underline transition-all hover:bg-black/90 hover:border-(--accent) hover:shadow-[0_0_25px_rgba(137,217,209,0.4)] hover:scale-105 active:scale-95">
-                        <span className={`w-2.5 h-2.5 rounded-full shadow-[0_0_10px] ${isOnline === false ? 'bg-red-500 shadow-red-500' : 'bg-(--accent) shadow-(--accent) animate-pulse'}`}></span>
-                        <span className="text-sm font-bold text-white tracking-wide group-hover:text-(--accent) transition-colors">
-                            {isOnline === false ? (
-                                t('status.offline')
-                            ) : (
-                                <><span ref={countRef} className="font-black text-(--accent)">{playerCount}</span> {t('hero.players_online')}</>
-                            )}
-                        </span>
-                    </Link>
+                    {t('hero.welcome', 'BIENVENIDO A')}
+                </div>
 
-                    <button 
-                        onClick={handleCopy}
-                        className="w-full max-w-2xl bg-black/50 backdrop-blur-2xl border border-(--accent)/20 rounded-3xl p-4 flex flex-col sm:flex-row items-center gap-6 shadow-2xl group/ip transition-all hover:bg-black/70 hover:border-(--accent)/50 hover:shadow-[0_0_30px_rgba(137,217,209,0.1)] active:scale-[0.99] cursor-pointer"
-                    >
-                        <div className="flex-1 flex flex-col items-center sm:items-start text-center sm:text-left pl-0 sm:pl-4">
-                            <span className="text-[10px] font-black text-(--accent) uppercase tracking-[0.2em] mb-1 opacity-80">
-                                {t('hero.java_edition')}
+                {/* Main Title */}
+                <h1 style={{
+                    fontSize: 'clamp(2.6rem, 5.8vw, 5.2rem)',
+                    fontWeight: 900,
+                    lineHeight: 1.08,
+                    letterSpacing: '-0.02em',
+                    marginBottom: '1.25rem',
+                    textShadow: '0 0 25px rgba(255, 255, 255, 0.4), 0 0 50px rgba(137, 217, 209, 0.25), 0 15px 40px rgba(0, 0, 0, 0.8)',
+                    whiteSpace: 'nowrap'
+                }}>
+                    {renderBrandText()}
+                </h1>
+
+                {/* Subtitle / Description */}
+                <p 
+                    ref={descRef}
+                    className="text-sm md:text-base text-gray-300 font-medium italic max-w-xl mb-6 leading-relaxed opacity-90"
+                >
+                    {t('hero.subtitle', 'Sumérgete en un mundo de aventuras, comunidad y creatividad sin límites. ¡Únete a nosotros! Te esperamos✨')}
+                </p>
+
+                {/* Online Status Pill Button */}
+                <Link 
+                    to="/status"
+                    className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-black/70 border border-white/15 text-xs font-bold text-gray-200 mb-8 backdrop-blur-md shadow-[0_0_20px_rgba(0,0,0,0.6)] hover:border-[#89d9d1]/60 hover:scale-105 transition-all no-underline cursor-pointer group"
+                >
+                    <span 
+                        className="w-2.5 h-2.5 rounded-full transition-colors duration-300 group-hover:scale-110"
+                        style={{
+                            backgroundColor: isOnline ? '#4ade80' : '#ef4444',
+                            boxShadow: isOnline ? '0 0 12px #4ade80' : '0 0 12px #ef4444'
+                        }} 
+                    />
+                    <span className="group-hover:text-white transition-colors">
+                        {isOnline 
+                            ? `${playerCount} ${t('hero.players_online', 'Jugadores Online')}`
+                            : t('hero.status.offline', 'OFFLINE')}
+                    </span>
+                </Link>
+
+                {/* Action Group */}
+                <div 
+                    ref={containerRef}
+                    className="flex flex-col items-center gap-6 w-full max-w-md"
+                >
+                    {/* Copy IP Box */}
+                    <div className="w-full bg-black/75 border border-[#89d9d1]/40 p-3.5 rounded-2xl backdrop-blur-xl shadow-[0_0_30px_rgba(0,0,0,0.7),0_0_15px_rgba(137,217,209,0.15)] flex items-center justify-between gap-4">
+                        <div className="flex flex-col items-start pl-3 text-left">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-[#89d9d1]">
+                                {t('hero.edition', 'EDICIÓN .JAVA')}
                             </span>
-                            <span className="text-2xl sm:text-3xl font-black text-white tracking-tight group-hover/ip:text-(--accent) transition-colors font-sans drop-shadow-[0_0_10px_rgba(255,255,255,0.6)]">{ip}</span>
+                            <span className="font-mono text-base md:text-lg font-black text-white tracking-wide drop-shadow-[0_0_10px_rgba(255,255,255,0.8)]">
+                                {ip}
+                            </span>
                         </div>
-                        
-                        <div className={`flex items-center justify-center gap-3 px-8 py-4 rounded-xl font-black uppercase tracking-widest transition-all duration-300 ${copied ? 'bg-(--accent) text-[#181C1B] shadow-[0_0_20px_rgba(137,217,209,0.6)]' : 'bg-white/5 text-white border border-white/10 shadow-lg group-hover/ip:bg-(--accent) group-hover/ip:text-[#181C1B] group-hover/ip:shadow-[0_0_20px_rgba(137,217,209,0.4)]'}`}>
-                            {copied ? <Check size={16} /> : <Copy size={16} />}
-                            <span className="text-xs">{copied ? t('hero.copied') : t('hero.copy_ip')}</span>
-                        </div>
-                    </button>
+                        <button type="button" 
+                            onClick={handleCopy}
+                            aria-label={copied ? t('hero.copied', '¡COPIADO!') : t('hero.copy_ip', 'COPIAR IP')}
+                            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-[#89d9d1]/20 border border-[#89d9d1]/40 hover:border-[#89d9d1] text-white font-bold text-xs uppercase tracking-wider transition-colors duration-200 cursor-pointer active:scale-95 shrink-0 shadow-[0_0_15px_rgba(137,217,209,0.2)]"
+                        >
+                            {copied ? <Check size={14} className="text-green-400" /> : <Copy size={14} />}
+                            {copied ? t('hero.copied', '¡COPIADO!') : t('hero.copy_ip', 'COPIAR IP')}
+                        </button>
+                    </div>
 
-                    <div className="flex flex-wrap justify-center gap-5 mt-4" ref={actionGroupRef}>
-                        <a href="https://ko-fi.com/G2G03Y8FL" target="_blank" rel="noreferrer" className="flex items-center gap-4 bg-(--accent) px-10 py-5 rounded-2xl no-underline transition-all hover:bg-white hover:scale-110 active:scale-95 group/kofi shadow-[0_0_20px_rgba(137,217,209,0.3)]">
-                            <Coffee size={22} className="text-[#181C1B] group-hover/kofi:rotate-12 transition-transform" />
-                            <span className="text-[#181C1B] font-black uppercase tracking-widest text-sm">{t('hero.kofi_btn', 'Ko-Fi')}</span>
+                    {/* Action Buttons */}
+                    <div ref={actionGroupRef} className="flex items-center justify-center gap-4 w-full">
+                        <a 
+                            href="https://ko-fi.com/ultraxn" 
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex-1 max-w-50 flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#89d9d1] hover:bg-[#72cac2] text-black font-black text-xs uppercase tracking-widest transition-all duration-200 hover:scale-105 active:scale-95 shadow-[0_0_25px_rgba(137,217,209,0.5)] no-underline"
+                        >
+                            <Coffee size={16} />
+                            {t('nav.kofi', 'KO-FI')}
                         </a>
-                        <Link to="/#donors" className="flex items-center gap-4 bg-transparent border-2 border-(--accent) px-10 py-5 rounded-2xl no-underline transition-all hover:bg-(--accent) hover:scale-110 active:scale-95 shadow-2xl group/donors">
-                            <span className="text-(--accent) font-black uppercase tracking-widest text-sm leading-none group-hover/donors:text-[#181C1B] transition-colors">{t('navbar.donors')}</span>
+                        <Link 
+                            to="/donors" 
+                            className="flex-1 max-w-50 flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-black/60 hover:bg-[#89d9d1]/10 border-2 border-[#89d9d1]/70 hover:border-[#89d9d1] text-[#89d9d1] font-black text-xs uppercase tracking-widest transition-all duration-200 hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(137,217,209,0.25)] no-underline"
+                        >
+                            {t('nav.donators', 'DONADORES')}
                         </Link>
                     </div>
                 </div>
+
             </div>
-        </section>
+        </div>
     )
 }

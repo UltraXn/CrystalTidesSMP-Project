@@ -13,7 +13,7 @@ export interface AchievementCardProps {
 
 const AchievementCard = ({ title, description, icon, unlocked, criteria, onShare, color = '#4CAF50' }: AchievementCardProps) => (
     <div 
-        className={`group relative flex flex-col items-center text-center p-8 rounded-4xl transition-all duration-500 overflow-hidden ${unlocked ? 'bg-white/5 border border-white/5 hover:bg-white/10 hover:-translate-y-1' : 'bg-transparent border border-dashed border-white/10 opacity-60'}`}
+        className={`group relative flex flex-col items-center text-center p-8 rounded-4xl transition-colors duration-500 overflow-hidden ${unlocked ? 'bg-white/5 border border-white/5 hover:bg-white/10 hover:-translate-y-1' : 'bg-transparent border border-dashed border-white/10 opacity-60'}`}
         style={{ '--accent-color': color } as React.CSSProperties}
     >
         {/* Background Glow */}
@@ -35,9 +35,9 @@ const AchievementCard = ({ title, description, icon, unlocked, criteria, onShare
                         <Medal size={14} className="drop-shadow-[0_0_8px_currentColor]" />
                     </div>
                     {onShare && (
-                        <button 
+                        <button type="button" 
                             onClick={(e) => { e.stopPropagation(); onShare(); }}
-                            className="w-9 h-9 flex items-center justify-center bg-white/5 border border-white/10 rounded-full text-white transition-all hover:bg-(--accent-color) hover:text-black hover:scale-110 active:scale-90"
+                            className="w-9 h-9 flex items-center justify-center bg-white/5 border border-white/10 rounded-full text-white transition-colors hover:bg-(--accent-color) hover:text-black hover:scale-110 active:scale-90"
                             title="Compartir Logro"
                         >
                             <Share2 size={12} />
@@ -52,7 +52,7 @@ const AchievementCard = ({ title, description, icon, unlocked, criteria, onShare
         </div>
         
         {/* Icon Container */}
-        <div className={`relative w-20 h-20 flex items-center justify-center rounded-3xl mb-6 transition-all duration-500 ${unlocked ? 'bg-white/5 border border-white/10 shadow-2xl group-hover:scale-110' : 'bg-white/2 border border-white/5 grayscale opacity-30 shadow-none'}`}>
+        <div className={`relative w-20 h-20 flex items-center justify-center rounded-3xl mb-6 transition-colors duration-500 ${unlocked ? 'bg-white/5 border border-white/10 shadow-2xl group-hover:scale-110' : 'bg-white/2 border border-white/5 grayscale opacity-30 shadow-none'}`}>
              <div className="text-4xl">
                 {icon}
              </div>
@@ -85,7 +85,7 @@ const AchievementCard = ({ title, description, icon, unlocked, criteria, onShare
         {/* Progress Line (Decorative) */}
         {unlocked && (
             <div 
-                className="absolute bottom-0 left-0 h-[2px] w-0 group-hover:w-full transition-all duration-700 ease-out"
+                className="absolute bottom-0 left-0 h-[2px] w-0 group-hover:w-full transition-colors duration-700 ease-out"
                 style={{ backgroundColor: color }}
             />
         )}

@@ -1,9 +1,10 @@
 import { useState, useRef } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Image, Loader2, AlertTriangle, Languages } from "lucide-react"
+import { Image as ImageIcon, Loader2, AlertTriangle, Languages } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { supabase } from "../../services/supabaseClient"
+import { uploadImage as uploadImageSecure } from "../../services/uploadService"
 import { newsSchema, NewsFormValues } from "../../schemas/news"
 
 import { User } from "@supabase/supabase-js";
@@ -13,6 +14,34 @@ interface NewsFormProps {
     onSave: (data: NewsFormValues) => Promise<void>;
     onCancel: () => void;
     user: User | null;
+}
+
+const convertFileToWebP = (file: File): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = (e) => {
+            const img = new Image()
+            img.onload = () => {
+                const canvas = document.createElement('canvas')
+                canvas.width = img.width
+                canvas.height = img.height
+                const ctx = canvas.getContext('2d')
+                if (!ctx) {
+                    reject(new Error('No canvas context'))
+                    return
+                }
+                ctx.drawImage(img, 0, 0)
+                canvas.toBlob((blob) => {
+                    if (blob) resolve(blob)
+                    else reject(new Error('Conversion failed'))
+                }, 'image/webp', 0.8)
+            }
+            img.onerror = reject
+            img.src = e.target?.result as string
+        }
+        reader.onerror = reject
+        reader.readAsDataURL(file)
+    })
 }
 
 export default function NewsForm({ initialData, onSave, onCancel }: NewsFormProps) {
@@ -44,57 +73,14 @@ export default function NewsForm({ initialData, onSave, onCancel }: NewsFormProp
     const content_en = watch("content_en");
 
 
-    const convertFileToWebP = (file: File): Promise<Blob> => {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader()
-            reader.onload = (e) => {
-                const img = new Image()
-                img.onload = () => {
-                    const canvas = document.createElement('canvas')
-                    canvas.width = img.width
-                    canvas.height = img.height
-                    const ctx = canvas.getContext('2d')
-                    if (!ctx) {
-                        reject(new Error('No canvas context'))
-                        return
-                    }
-                    ctx.drawImage(img, 0, 0)
-                    canvas.toBlob((blob) => {
-                        if (blob) resolve(blob)
-                        else reject(new Error('Conversion failed'))
-                    }, 'image/webp', 0.8)
-                }
-                img.onerror = reject
-                img.src = e.target?.result as string
-            }
-            reader.onerror = reject
-            reader.readAsDataURL(file)
-        })
-    }
-
     const uploadImage = async (file: File): Promise<string | null> => {
         try {
             setUploading(true)
             setUploadError(null)
-            
+
             const webpBlob = await convertFileToWebP(file)
-            const fileName = `news/${Date.now()}.webp`
-            
-            const { error: uploadError } = await supabase.storage
-                .from('forum-uploads')
-                .upload(fileName, webpBlob, {
-                     contentType: 'image/webp'
-                })
-
-            if (uploadError) {
-                if (uploadError.message.includes("Bucket not found")) {
-                     throw new Error(t('admin.news.upload_error_bucket'))
-                }
-                throw uploadError
-            }
-
-            const { data } = supabase.storage.from('forum-uploads').getPublicUrl(fileName)
-            return data.publicUrl
+            // Server-validated upload (magic bytes checked in backend)
+            return await uploadImageSecure(webpBlob, 'forum-uploads', 'news')
         } catch (error: unknown) {
             console.error('Error uploading image:', error)
             setUploadError((error as Error).message || t('admin.news.upload_error_unknown'))
@@ -140,6 +126,7 @@ export default function NewsForm({ initialData, onSave, onCancel }: NewsFormProp
                 },
                 body: JSON.stringify({ text, targetLang: toLang })
             })
+            if (!res.ok) throw new Error('Translation failed')
             const data = await res.json()
             if (data.success) {
                 setValue(field, data.translatedText, { shouldValidate: true })
@@ -157,7 +144,7 @@ export default function NewsForm({ initialData, onSave, onCancel }: NewsFormProp
                 <h3 style={{ margin: 0, fontSize: 'clamp(1.25rem, 4vw, 1.5rem)', fontWeight: 900, color: '#fff' }}>
                     {initialData?.id ? t('admin.news.edit_title') : t('admin.news.create_title')}
                 </h3>
-                <button className="btn-secondary" onClick={onCancel} style={{ borderRadius: '12px', height: '42px', flex: '1 1 auto', minWidth: '120px' }}>
+                <button type="button" className="btn-secondary" onClick={onCancel} style={{ borderRadius: '12px', height: '42px', flex: '1 1 auto', minWidth: '120px' }}>
                     {t('admin.news.cancel')}
                 </button>
             </div>
@@ -168,11 +155,13 @@ export default function NewsForm({ initialData, onSave, onCancel }: NewsFormProp
                     
                     {/* LEFT COLUMN: Spanish & Settings */}
                     <div className="news-form-section">
-                        <h4><img src="/images/ui/logo.webp" width="20" style={{ verticalAlign: 'middle', marginRight: '8px' }} /> {t('admin.news.form_extras.config_es', 'Contenido en Español')}</h4>
+                        <h4><img alt="" src="/images/ui/logo.webp" width="20" style={{ verticalAlign: 'middle', marginRight: '8px' }} /> {t('admin.news.form_extras.config_es', 'Contenido en Español')}</h4>
                         
                         <div className="form-group">
-                            <label className="admin-label-premium">{t('admin.news.form.title')}</label>
+                            <label htmlFor="news-form-title" className="admin-label-premium">{t('admin.news.form.title')}</label>
                             <input
+                                id="news-form-title"
+                                aria-label={t('admin.news.form.title')}
                                 type="text"
                                 className="admin-input-premium"
                                 {...register("title")}
@@ -181,7 +170,7 @@ export default function NewsForm({ initialData, onSave, onCancel }: NewsFormProp
                             {errors.title && <span style={{color: '#ef4444', fontSize: '0.75rem', fontWeight: 700, marginTop: '5px', display: 'block'}}>{errors.title.message}</span>}
                             
                             <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem' }}>
-                                <button
+                                <button 
                                     type="button"
                                     className="btn-translate-premium"
                                     onClick={() => handleTranslate(title, 'en', 'title_en')}
@@ -193,9 +182,11 @@ export default function NewsForm({ initialData, onSave, onCancel }: NewsFormProp
                         </div>
 
                         <div className="form-group">
-                            <label className="admin-label-premium">{t('admin.news.form.content')}</label>
+                            <label htmlFor="news-form-content" className="admin-label-premium">{t('admin.news.form.content')}</label>
                             <div style={{ position: 'relative' }}>
                                 <textarea
+                                    id="news-form-content"
+                                    aria-label={t('admin.news.form.content')}
                                     className="admin-textarea-premium"
                                     rows={12}
                                     {...register("content")}
@@ -208,9 +199,9 @@ export default function NewsForm({ initialData, onSave, onCancel }: NewsFormProp
                                     style={{ position: 'absolute', bottom: '1rem', right: '1rem', background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(10px)' }}
                                     disabled={uploading}
                                 >
-                                    <Image /> {t('admin.news.insert_image')}
+                                    <ImageIcon /> {t('admin.news.insert_image')}
                                 </button>
-                                <input 
+                                <input aria-label="Input field" 
                                     type="file" 
                                     ref={contentFileInputRef} 
                                     style={{display: 'none'}} 
@@ -221,7 +212,7 @@ export default function NewsForm({ initialData, onSave, onCancel }: NewsFormProp
                             {errors.content && <span style={{color: '#ef4444', fontSize: '0.75rem', fontWeight: 700, marginTop: '5px', display: 'block'}}>{errors.content.message}</span>}
                             
                             <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem' }}>
-                                <button
+                                <button 
                                     type="button"
                                     className="btn-translate-premium"
                                     onClick={() => handleTranslate(content, 'en', 'content_en')}
@@ -234,8 +225,8 @@ export default function NewsForm({ initialData, onSave, onCancel }: NewsFormProp
 
                         <div className="news-selectors-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1.5rem" }}>
                             <div className="form-group">
-                                <label className="admin-label-premium">{t('admin.news.form.category')}</label>
-                                <select className="admin-select-premium" {...register("category")}>
+                                <label htmlFor="news-form-category" className="admin-label-premium">{t('admin.news.form.category')}</label>
+                                <select id="news-form-category" aria-label={t('admin.news.form.category')} className="admin-select-premium" {...register("category")}>
                                     <option value="General">General</option>
                                     <option value="Evento">Evento</option>
                                     <option value="Update">Update</option>
@@ -244,8 +235,8 @@ export default function NewsForm({ initialData, onSave, onCancel }: NewsFormProp
                                 </select>
                             </div>
                             <div className="form-group">
-                                <label className="admin-label-premium">{t('admin.news.form.status')}</label>
-                                <select className="admin-select-premium" {...register("status")}>
+                                <label htmlFor="news-form-status" className="admin-label-premium">{t('admin.news.form.status')}</label>
+                                <select id="news-form-status" aria-label={t('admin.news.form.status')} className="admin-select-premium" {...register("status")}>
                                     <option value="Draft">{t('admin.news.form.draft')}</option>
                                     <option value="Published">{t('admin.news.form.published')}</option>
                                 </select>
@@ -258,8 +249,10 @@ export default function NewsForm({ initialData, onSave, onCancel }: NewsFormProp
                         <h4><Languages /> {t('admin.news.form_extras.config_en', 'English Version')}</h4>
 
                         <div className="form-group">
-                            <label className="admin-label-premium">{t('admin.news.form.title')} {t('admin.news.english_suffix')}</label>
+                            <label htmlFor="news-form-title-en" className="admin-label-premium">{t('admin.news.form.title')} {t('admin.news.english_suffix')}</label>
                             <input
+                                id="news-form-title-en"
+                                aria-label={t('admin.news.form.title')}
                                 type="text"
                                 className="admin-input-premium"
                                 {...register("title_en")}
@@ -268,7 +261,7 @@ export default function NewsForm({ initialData, onSave, onCancel }: NewsFormProp
                             {errors.title_en && <span style={{color: '#ef4444', fontSize: '0.75rem', fontWeight: 700, marginTop: '5px', display: 'block'}}>{errors.title_en.message}</span>}
                             
                             <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem' }}>
-                                <button
+                                <button 
                                     type="button"
                                     className="btn-translate-premium"
                                     onClick={() => handleTranslate(title_en || '', 'es', 'title')}
@@ -280,8 +273,10 @@ export default function NewsForm({ initialData, onSave, onCancel }: NewsFormProp
                         </div>
 
                         <div className="form-group">
-                            <label className="admin-label-premium">{t('admin.news.form.content')} {t('admin.news.english_suffix')}</label>
+                            <label htmlFor="news-form-content-en" className="admin-label-premium">{t('admin.news.form.content')} {t('admin.news.english_suffix')}</label>
                             <textarea
+                                id="news-form-content-en"
+                                aria-label={t('admin.news.form.content')}
                                 className="admin-textarea-premium"
                                 rows={12}
                                 {...register("content_en")}
@@ -290,7 +285,7 @@ export default function NewsForm({ initialData, onSave, onCancel }: NewsFormProp
                             {errors.content_en && <span style={{color: '#ef4444', fontSize: '0.75rem', fontWeight: 700, marginTop: '5px', display: 'block'}}>{errors.content_en.message}</span>}
                             
                             <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem' }}>
-                                <button
+                                <button 
                                     type="button"
                                     className="btn-translate-premium"
                                     onClick={() => handleTranslate(content_en || '', 'es', 'content')}
@@ -302,13 +297,13 @@ export default function NewsForm({ initialData, onSave, onCancel }: NewsFormProp
                         </div>
 
                         <div className="form-group">
-                            <label className="admin-label-premium">{t('admin.news.form.image')}</label>
+                            <label htmlFor="news-form-image" className="admin-label-premium">{t('admin.news.form.image')}</label>
                             <div className="news-img-preview-wrapper" style={{ marginBottom: '1rem' }}>
                                 {watch("image") ? (
                                     <img src={watch("image")} className="news-img-preview" alt="Preview" />
                                 ) : (
                                     <div style={{ textAlign: 'center', opacity: 0.3 }}>
-                                        <Image size={40} style={{ marginBottom: '10px' }} />
+                                        <ImageIcon size={40} style={{ marginBottom: '10px' }} />
                                         <p style={{ fontSize: '0.8rem', fontWeight: 800 }}>SIN IMAGEN PORTADA</p>
                                     </div>
                                 )}
@@ -321,7 +316,7 @@ export default function NewsForm({ initialData, onSave, onCancel }: NewsFormProp
                             </div>
 
                             <div style={{ display: 'flex', gap: '1rem' }}>
-                                <input
+                                <input id="news-form-image"
                                     type="text"
                                     className="admin-input-premium"
                                     placeholder="https://su-imagen.webp"
@@ -330,6 +325,7 @@ export default function NewsForm({ initialData, onSave, onCancel }: NewsFormProp
                                 />
                                 <button 
                                     type="button"
+                                    aria-label="Subir imagen"
                                     className="modal-btn-primary"
                                     style={{ width: '54px', height: '54px', borderRadius: '14px', flexShrink: 0 }}
                                     onClick={() => {
@@ -341,7 +337,7 @@ export default function NewsForm({ initialData, onSave, onCancel }: NewsFormProp
                                     }}
                                     disabled={uploading}
                                 >
-                                    <Image size={20} />
+                                    <ImageIcon size={20} />
                                 </button>
                             </div>
                             {uploadError && (

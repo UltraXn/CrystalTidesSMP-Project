@@ -1,5 +1,4 @@
-import { describe, it, expect } from 'vitest';
-import { createTicketSchema, updateTicketStatusSchema } from '../schemas/ticketSchemas.js';
+import { createTicketSchema, updateTicketStatusSchema, banUserSchema } from '../schemas/ticketSchemas.js';
 
 describe('Ticket Schemas Validation', () => {
     describe('createTicketSchema', () => {
@@ -49,6 +48,45 @@ describe('Ticket Schemas Validation', () => {
         it('should reject invalid statuses', () => {
             const result = updateTicketStatusSchema.safeParse({
                 body: { status: 'invalid_status' }
+            });
+            expect(result.success).toBe(false);
+        });
+    });
+
+    describe('banUserSchema', () => {
+        it('should accept valid Minecraft username and reason', () => {
+            const result = banUserSchema.safeParse({
+                body: {
+                    username: 'Minecraft_Player',
+                    reason: 'Griefing on the spawn area'
+                }
+            });
+            expect(result.success).toBe(true);
+        });
+
+        it('should reject invalid Minecraft usernames', () => {
+            const invalidUsernames = [
+                'ab', // too short
+                'toolongusernameforminecraft123', // too long
+                'user!name', // invalid characters
+            ];
+            invalidUsernames.forEach(username => {
+                const result = banUserSchema.safeParse({
+                    body: {
+                        username,
+                        reason: 'Griefing on the spawn area'
+                    }
+                });
+                expect(result.success, `Should reject username: ${username}`).toBe(false);
+            });
+        });
+
+        it('should reject reason that is too short', () => {
+            const result = banUserSchema.safeParse({
+                body: {
+                    username: 'Steve',
+                    reason: 'No'
+                }
             });
             expect(result.success).toBe(false);
         });

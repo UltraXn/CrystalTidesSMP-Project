@@ -1,0 +1,133 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CrystalTidesWikiCreature3D",
+  "type": "object",
+  "description": "Esquema canónico de JSON para que cualquier Asistente IA genere entidades 3D, bosses y criaturas para la Wiki de CrystalTides SMP.",
+  "required": ["title", "category", "model_3d_url", "boss_phases"],
+  "properties": {
+    "title": {
+      "type": "string",
+      "example": "Toro Wither Olvidado"
+    },
+    "slug": {
+      "type": "string",
+      "example": "toro-wither-olvidado"
+    },
+    "category": {
+      "type": "string",
+      "enum": ["Bestiario / Jefes 3D", "Guías del Servidor", "Economía & Mercado", "Sistemas Míticos", "Lore & Eventos"],
+      "default": "Bestiario / Jefes 3D"
+    },
+    "description": {
+      "type": "string",
+      "example": "Bestia mítica invocada en el Nether con magia de las sombras."
+    },
+    "boss_subtitle": {
+      "type": "string",
+      "example": "Jefe Mítico Tier V • Cazador de Sombras"
+    },
+    "boss_tier": {
+      "type": "string",
+      "example": "Jefe Supremo de Mazmorra"
+    },
+    "boss_entity_type": {
+      "type": "string",
+      "example": "MythicMobs Custom Plugin"
+    },
+    "boss_mod_name": {
+      "type": "string",
+      "example": "Cataclysm Mod / Custom Mythic"
+    },
+    "model_3d_url": {
+      "type": "string",
+      "example": "/models/toro_wither.gltf"
+    },
+    "model_3d_url_phase_2": {
+      "type": "string",
+      "example": "/models/toro_wither_terror.gltf"
+    },
+    "boss_hp": {
+      "type": "string",
+      "example": "1200 HP"
+    },
+    "boss_hp_phase_2": {
+      "type": "string",
+      "example": "1600 HP"
+    },
+    "boss_damage": {
+      "type": "string",
+      "example": "45 Daño"
+    },
+    "boss_damage_phase_2": {
+      "type": "string",
+      "example": "65 Daño Crítico"
+    },
+    "boss_armor": {
+      "type": "string",
+      "example": "90% Reducción Proyectiles"
+    },
+    "boss_speed": {
+      "type": "string",
+      "example": "0.25 Vuelo"
+    },
+    "boss_location": {
+      "type": "string",
+      "example": "Nether / Altar Ancestral"
+    },
+    "boss_spawn_method": {
+      "type": "string",
+      "example": "Ritual de Invocación con Cráneo Olvidado"
+    },
+    "boss_spawn_command": {
+      "type": "string",
+      "example": "/mm mobs spawn toro_wither 1 world,0,64,0"
+    },
+    "boss_kc_reward": {
+      "type": "integer",
+      "example": 5000
+    },
+    "boss_drops": {
+      "type": "array",
+      "items": { "type": "string" },
+      "example": ["Estrella del Nether", "Cráneo de Tormenta", "Espada del Vacío"]
+    },
+    "boss_immunities": {
+      "type": "array",
+      "items": { "type": "string" },
+      "example": ["Inmune a Fuego", "Resistencia a Magia", "Inmune a Caída"]
+    },
+    "boss_phases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["phase_number", "phase_name", "attacks"],
+        "properties": {
+          "phase_number": { "type": "integer", "example": 1 },
+          "phase_name": { "type": "string", "example": "Fase I: Inicial" },
+          "model_3d_url": { "type": "string", "example": "/models/toro_wither.gltf" },
+          "hp": { "type": "string", "example": "600 HP" },
+          "damage": { "type": "string", "example": "35 Daño" },
+          "attacks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["name", "type", "damage", "description"],
+              "properties": {
+                "name": { "type": "string", "example": "Smash Brutal" },
+                "type": { "type": "string", "enum": ["Melee", "AoE", "Proyectil", "Defensa", "Canalizado", "Invocación"], "example": "Melee" },
+                "damage": { "type": "string", "example": "40 Daño" },
+                "description": { "type": "string", "example": "Impacta el suelo creando una onda expansiva." },
+                "animation_clip": { "type": "string", "example": "smash" },
+                "variant_clips": {
+                  "type": "array",
+                  "items": { "type": "string" },
+                  "example": ["smash", "roundhouse", "claw1"]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

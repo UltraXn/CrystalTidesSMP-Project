@@ -40,13 +40,13 @@ Este documento centraliza el roadmap completo del proyecto, organizando las tare
 
 - [x] **Rate Limiting**: Protección Anti-Spam en rutas críticas.
 - [x] **Cabeceras de Seguridad**: Implementar Helmet.js.
-- [x] **Validación Backend**: Esquemas estrictos (Zod/Joi).
+- [x] **Validación Backend**: Esquemas Zod estrictos en **todas las rutas** con endpoints de escritura (31/31 rutas cubiertas).
 - [x] **Dominio Personalizado**: Configuración de `crystaltidessmp.net` (Web) y `api` (Backend) con SSL Full Strict.
 - [x] **CORS Production-Ready**: Configuración de seguridad para el nuevo dominio.
 
 ### 🚨 Alta Prioridad: Calidad de Código
 
-- [ ] **Storybook**: Documentación visual de componentes UI (Design System) - _PRIORIDAD MÁXIMA_.
+- [x] **Componentes UI y Cypress/Cucumber BDD**: Documentación y pruebas visuales mediante Cypress Component/E2E Testing (reemplazando Storybook).
 - [x] **Inferencia de tipos en Frontend**: Reutilizar esquemas Zod en React (react-hook-form).
   - [x] Admin Noticias (`NewsForm` refactorizado)
   - [x] Login/Register
@@ -83,8 +83,8 @@ Este documento centraliza el roadmap completo del proyecto, organizando las tare
 ### 🔗 Integración Profunda (Fase 8)
 
 - [x] **Sincronización de Rangos**: MC <-> Discord.
-- [ ] **Requisito de Cuenta Vinculada**: Para tickets o gacha.
-- [ ] **Integración Economía Real**: Vault bidireccional.
+- [x] **Requisito de Cuenta Vinculada**: Para tickets y gacha (`ACCOUNT_NOT_LINKED` en `gachaService.ts`).
+- [x] **Integración Economía Real**: Vault bidireccional (`node-vault` en backend & `VaultAPI` en `CrystalCore`).
 
 ### 🏗️ Mantenimiento Profesional (Fase 7)
 
@@ -138,14 +138,26 @@ Esta sección define el "Siguiente Nivel" para profesionalizar el portfolio al m
 - [ ] **Live Activity Feed ("El Pulso")**: Stream en tiempo real de logros, eventos y donaciones en la web.
 - [ ] **Mapa 3D Integrado**: Embed de **BlueMap** dentro del dashboard de usuario.
 
+#### Cliente & Motor Nativo (Crystal Agent)
+
+- [ ] 🚀 **Crystal Agent Nativo (Rust + OpenGL/Vulkan)**: Desarrollar el Agente nativo inyectado en el cliente para revolucionar totalmente la industria minecraftera (Renderizado nativo GPU 32x más rápido, Zero GC Stutter, Anticheat anti-tamper en RAM, Handshake cifrado Tauri-Rust).
+
 #### DevOps & Mantenimiento
 
 - [x] **Husky + Commitlint**: Estandarizar commits (`feat:`, `fix:`) antes de subir código. (Configurado)
 - [ ] **Renovate Bot**: Automatización de actualizaciones de dependencias (`npm`).
 
-#### Observabilidad & Analítica
+#### Pruebas & Calidad (E2E / BDD)
 
-- [ ] **Sentry**: Monitorización de errores en tiempo real (Backend/Frontend).
+- [x] **Cypress + Cucumber BDD**: Pruebas de navegador automatizadas en español (`apps/web-client`).
+  - [x] Motor Cypress + Preprocesador Esbuild + Cucumber BDD configurados.
+  - [x] Comandos NPM (`cy:open` y `test:e2e`).
+  - [x] Especificaciones Gherkin de la Wiki, Bestiario y Panel Admin.
+
+#### Observabilidad, SEO & Analítica
+
+- [x] **SEO Avanzado & Metadatos Dinámicos**: OpenGraph, Twitter Cards, Sitemap XML, robots.txt, LLMs.txt y Hook `useSEO.ts` nativo React 19.
+- [ ] **Sentry**: Monitorización de errores en tiempo real (Backend/Frontend - Pospuesto a fase de producción masiva).
 - [ ] **PostHog**: Analítica de producto (Mapas de calor, Grabación de sesiones).
   - _Nota_: Requiere Banner de Cookies/Privacidad (GDPR).
 
@@ -153,4 +165,4 @@ Esta sección define el "Siguiente Nivel" para profesionalizar el portfolio al m
 
 - [x] **2FA (TOTP)**: Autenticación de dos factores para el Panel de Admin.
 
-> Última actualización: 10 de Enero, 2026
+> Última actualización: 2 de Agosto, 2026

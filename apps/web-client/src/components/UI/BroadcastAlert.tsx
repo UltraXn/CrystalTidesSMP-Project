@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Info, AlertTriangle, XCircle, X } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -10,38 +11,37 @@ interface BroadcastConfig {
 }
 
 export default function BroadcastAlert() {
-    const [config, setConfig] = useState<BroadcastConfig | null>(null);
+    const [overrideConfig, setOverrideConfig] = useState<BroadcastConfig | null>(null);
     const [visible, setVisible] = useState(true);
 
-    const fetchConfig = () => {
-        fetch(`${API_URL}/settings`)
-            .then(res => res.ok ? res.json() : null)
-            .then(data => {
-                if(data && data.broadcast_config) {
-                    try {
-                        const parsed = typeof data.broadcast_config === 'string' 
-                            ? JSON.parse(data.broadcast_config) 
-                            : data.broadcast_config;
-                        setConfig(parsed);
-                    } catch (e) { 
-                        console.warn("BroadcastAlert: Failed to parse broadcast_config", e); 
-                    }
+    const { data: fetchedConfig = null } = useQuery<BroadcastConfig | null>({
+        queryKey: ['broadcastAlertConfig'],
+        queryFn: async () => {
+            const res = await fetch(`${API_URL}/settings`);
+            if (!res.ok) return null;
+            const data = await res.json();
+            if (data && data.broadcast_config) {
+                try {
+                    return typeof data.broadcast_config === 'string'
+                        ? JSON.parse(data.broadcast_config)
+                        : data.broadcast_config;
+                } catch (e) {
+                    console.warn("BroadcastAlert: Failed to parse broadcast_config", e);
                 }
-            })
-            .catch(err => {
-                // Only log warning to avoid console noise on expected dev hiccups
-                console.warn("BroadcastAlert: Failed to fetch settings", err.message);
-            });
-    };
+            }
+            return null;
+        },
+        staleTime: 30_000,
+    });
+
+    const config = overrideConfig ?? fetchedConfig;
 
     useEffect(() => {
-        fetchConfig();
-
         // Listen for real-time updates from Admin Panel
         const handleUpdate = (e: CustomEvent) => {
             try {
                 const parsed = JSON.parse(e.detail);
-                setConfig(parsed);
+                setOverrideConfig(parsed);
                 setVisible(true); // Re-show if updated
             } catch (err) { console.error(err); }
         };
@@ -83,7 +83,7 @@ export default function BroadcastAlert() {
         }}>
             {style.icon}
             <span>{config.message}</span>
-            <button 
+            <button aria-label="Action" type="button" 
                 onClick={() => setVisible(false)}
                 style={{
                     position: 'absolute',

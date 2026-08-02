@@ -11,11 +11,11 @@ export interface UpdateInfo {
 export const checkForAppUpdates = async (): Promise<UpdateInfo> => {
   try {
     const update = await check();
-    if (update && update.available) {
+    if (update) {
       return {
         available: true,
         version: update.version,
-        notes: update.body,
+        notes: update.body ?? undefined,
         updateObj: update,
       };
     }

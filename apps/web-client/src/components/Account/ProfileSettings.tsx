@@ -76,8 +76,8 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({
     }, [discordIdentity, twitchIdentity, user, setValue]);
 
     const handleUpdatePassword = () => {
-        if(passwords.new !== passwords.confirm) return showToast("Las contraseñas no coinciden", "error")
-        if(passwords.new.length < 6) return showToast("Mínimo 6 caracteres", "error")
+        if(passwords.new !== passwords.confirm) return showToast(t('account.settings.password_mismatch', 'Las contraseñas no coinciden'), "error")
+        if(passwords.new.length < 6) return showToast(t('account.settings.password_min', 'Mínimo 6 caracteres'), "error")
         
         changePassword(passwords.new, {
             onSuccess: () => {
@@ -85,7 +85,7 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({
                 setPasswords({ new: '', confirm: '' });
             },
             onError: (err: Error) => {
-                showToast("Error: " + err.message, "error");
+                showToast(t('common.save_error', 'Error al guardar') + ": " + err.message, "error");
             }
         });
     };
@@ -96,7 +96,7 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({
          updateProfile({ public_stats: newVal }, {
              onError: () => {
                  setPublicStats(!newVal); // Rollback on error
-                 showToast("Error al actualizar privacidad", "error");
+                 showToast(t('account.settings.error_privacy', 'Error al actualizar privacidad'), "error");
              }
          });
     };
@@ -104,10 +104,10 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({
     const handleSaveProfile = (data: UpdateUserFormValues) => {
         updateProfile(data as Record<string, unknown>, {
             onSuccess: () => {
-                showToast("Perfil actualizado correctamente", "success");
+                showToast(t('account.settings.success_profile', 'Perfil actualizado correctamente'), "success");
             },
             onError: () => {
-                showToast("Error al guardar el perfil", "error");
+                showToast(t('account.settings.error_profile', 'Error al guardar el perfil'), "error");
             }
         });
     };
@@ -124,13 +124,13 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({
                     
                     {/* Avatar Preference */}
                     <div className="bg-white/2 border border-white/5 rounded-4xl p-8 space-y-6">
-                        <label className="text-xs font-black uppercase tracking-[0.2em] text-gray-500">
+                        <div className="text-xs font-black uppercase tracking-[0.2em] text-gray-500">
                             {t('account.settings.avatar_pref', 'Preferencia de Avatar')}
-                        </label>
+                        </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <button 
+                            <button type="button" 
                                 onClick={() => setValue('avatar_preference', 'minecraft')}
-                                className={`flex items-center gap-4 p-5 rounded-2xl border transition-all ${avatarPreference === 'minecraft' ? 'bg-(--accent)/10 border-(--accent)/40 shadow-lg shadow-(--accent)/5' : 'bg-white/2 border-white/5 hover:bg-white/5 hover:border-white/10'}`}
+                                className={`flex items-center gap-4 p-5 rounded-2xl border transition-colors ${avatarPreference === 'minecraft' ? 'bg-(--accent)/10 border-(--accent)/40 shadow-lg shadow-(--accent)/5' : 'bg-white/2 border-white/5 hover:bg-white/5 hover:border-white/10'}`}
                             >
                                 <img src={`https://mc-heads.net/avatar/${mcUsername}/64`} alt="MC" className="w-12 h-12 rounded-xl object-contain [image-rendering:pixelated]" />
                                 <div className="text-left">
@@ -139,9 +139,9 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({
                                 </div>
                             </button>
 
-                            <button 
+                            <button type="button" 
                                 onClick={() => setValue('avatar_preference', 'social')}
-                                className={`flex items-center gap-4 p-5 rounded-2xl border transition-all ${avatarPreference === 'social' ? 'bg-(--accent)/10 border-(--accent)/40 shadow-lg shadow-(--accent)/5' : 'bg-white/2 border-white/5 hover:bg-white/5 hover:border-white/10'}`}
+                                className={`flex items-center gap-4 p-5 rounded-2xl border transition-colors ${avatarPreference === 'social' ? 'bg-(--accent)/10 border-(--accent)/40 shadow-lg shadow-(--accent)/5' : 'bg-white/2 border-white/5 hover:bg-white/5 hover:border-white/10'}`}
                             >
                                 <img 
                                     src={user?.user_metadata?.picture || user?.user_metadata?.avatar_url || "https://ui-avatars.com/api/?name=" + (user?.user_metadata?.full_name || "User")} 
@@ -150,7 +150,7 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({
                                 />
                                 <div className="text-left">
                                     <span className={`block text-xs font-black uppercase tracking-widest ${avatarPreference === 'social' ? 'text-(--accent)' : 'text-gray-400'}`}>{t('account.settings.social_web', 'Social / Web')}</span>
-                                    <span className="text-[10px] text-gray-600 font-bold uppercase truncate max-w-[120px]">{user?.user_metadata?.full_name}</span>
+                                    <span className="text-[10px] text-gray-600 font-bold uppercase truncate max-w-30">{user?.user_metadata?.full_name}</span>
                                 </div>
                             </button>
                         </div>
@@ -158,9 +158,9 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({
 
                     {/* Profile Banner */}
                     <div className="bg-white/2 border border-white/5 rounded-4xl p-8 space-y-6">
-                        <label className="text-xs font-black uppercase tracking-[0.2em] text-gray-500">
+                        <div className="text-xs font-black uppercase tracking-[0.2em] text-gray-500">
                             {t('account.settings.banner', 'Banner del Perfil')}
-                        </label>
+                        </div>
                         
                         <div className="relative w-full h-48 rounded-3xl overflow-hidden bg-black/40 border border-white/5 flex items-center justify-center group/banner">
                             {bannerUrl ? (
@@ -181,10 +181,10 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({
                                 <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none text-gray-500 group-hover/input:text-(--accent) transition-colors">
                                     <Link className="text-xs" />
                                 </div>
-                                <input 
+                                <input aria-label="Input field" 
                                     {...register('profile_banner_url')}
                                     placeholder={t('account.settings.banner_placeholder', 'URL de la imagen (ej: https://imgur.com/...)')}
-                                    className="w-full bg-white/2 border border-white/5 rounded-2xl py-4 pl-12 pr-6 text-sm font-bold text-white placeholder:text-gray-700 focus:outline-none focus:border-(--accent)/40 transition-all shadow-inner"
+                                    className="w-full bg-white/2 border border-white/5 rounded-2xl py-4 pl-12 pr-6 text-sm font-bold text-white placeholder:text-gray-700 focus:outline-none focus:border-(--accent)/40 transition-colors shadow-inner"
                                 />
                             </div>
                         </div>
@@ -193,53 +193,53 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({
                     
                     {/* Community Settings (Filler for layout balance) */}
                     <div className="bg-white/2 border border-white/5 rounded-4xl p-8 space-y-6">
-                        <label className="text-xs font-black uppercase tracking-[0.2em] text-gray-500">
+                        <div className="text-xs font-black uppercase tracking-[0.2em] text-gray-500">
                              {t('account.settings.community_pref', 'Preferencias de Comunidad')}
-                        </label>
+                        </div>
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {/* Status Message */}
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-gray-600 ml-1">
+                                <label htmlFor="profile-status-msg" className="text-[10px] font-black uppercase tracking-widest text-gray-600 ml-1">
                                     {t('account.settings.status_msg', 'Mensaje de Estado (Corto)')}
                                 </label>
                                 <div className="relative group/status">
                                     <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-gray-500 group-focus-within/status:text-(--accent) transition-colors">
                                         <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                                     </div>
-                                    <input 
+                                    <input id="profile-status-msg"
                                         {...register('status_message')}
                                         placeholder={t('account.settings.status_placeholder', 'Ej: Explorando el End...')}
-                                        className="w-full bg-black/20 border border-white/5 rounded-2xl py-4 pl-10 pr-4 text-xs font-bold text-white placeholder:text-gray-700 focus:outline-none focus:border-white/20 transition-all"
+                                        className="w-full bg-black/20 border border-white/5 rounded-2xl py-4 pl-10 pr-4 text-xs font-bold text-white placeholder:text-gray-700 focus:outline-none focus:border-white/20 transition-colors"
                                     />
                                 </div>
                             </div>
 
                             {/* Notification Toggles */}
                             <div className="space-y-4">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-gray-600 ml-1 mb-2 block">
+                                <div className="text-[10px] font-black uppercase tracking-widest text-gray-600 ml-1 mb-2 block">
                                     {t('account.settings.notifications', 'Notificaciones')}
-                                </label>
+                                </div>
                                 <div className="flex flex-col gap-3">
                                     <button 
                                         type="button"
                                         onClick={() => setValue('notify_events', !notifyEvents, { shouldDirty: true })}
-                                        className="flex items-center justify-between p-3 bg-black/20 rounded-xl border border-white/5 hover:bg-white/5 transition-all group"
+                                        className="flex items-center justify-between p-3 bg-black/20 rounded-xl border border-white/5 hover:bg-white/5 transition-colors group"
                                     >
                                         <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider group-hover:text-gray-200 transition-colors">{t('account.settings.notify_events', 'Eventos Globales')}</span>
                                         <div className={`w-8 h-4 rounded-full relative transition-colors duration-300 ${notifyEvents ? 'bg-green-500/20' : 'bg-white/10'}`}>
-                                            <div className={`absolute top-0.5 w-3 h-3 rounded-full transition-all duration-300 shadow-sm ${notifyEvents ? 'bg-green-500 left-4' : 'bg-gray-400 left-1'}`} />
+                                            <div className={`absolute top-0.5 w-3 h-3 rounded-full transition-colors duration-300 shadow-sm ${notifyEvents ? 'bg-green-500 left-4' : 'bg-gray-400 left-1'}`} />
                                         </div>
                                     </button>
 
                                     <button 
                                         type="button"
                                         onClick={() => setValue('notify_mentions', !notifyMentions, { shouldDirty: true })}
-                                        className="flex items-center justify-between p-3 bg-black/20 rounded-xl border border-white/5 hover:bg-white/5 transition-all group"
+                                        className="flex items-center justify-between p-3 bg-black/20 rounded-xl border border-white/5 hover:bg-white/5 transition-colors group"
                                     >
                                         <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider group-hover:text-gray-200 transition-colors">{t('account.settings.notify_mentions', 'Menciones / Respuestas')}</span>
                                         <div className={`w-8 h-4 rounded-full relative transition-colors duration-300 ${notifyMentions ? 'bg-green-500/20' : 'bg-white/10'}`}>
-                                            <div className={`absolute top-0.5 w-3 h-3 rounded-full transition-all duration-300 shadow-sm ${notifyMentions ? 'bg-green-500 left-4' : 'bg-gray-400 left-1'}`} />
+                                            <div className={`absolute top-0.5 w-3 h-3 rounded-full transition-colors duration-300 shadow-sm ${notifyMentions ? 'bg-green-500 left-4' : 'bg-gray-400 left-1'}`} />
                                         </div>
                                     </button>
                                 </div>
@@ -262,11 +262,11 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({
                                 <p className="text-[11px] font-black text-white uppercase tracking-widest">{t('account.settings.public_stats', 'Público')}</p>
                                 <p className="text-[10px] text-gray-600 font-bold leading-tight">{t('account.settings.public_stats_desc', 'Estadísticas visibles.')}</p>
                             </div>
-                            <button 
+                            <button aria-label="Action" type="button" 
                                 onClick={handlePrivacyToggle}
-                                className={`relative w-14 h-7 rounded-full transition-all duration-300 shrink-0 ${publicStats ? 'bg-linear-to-r from-(--accent) to-(--accent)/80 shadow-[0_0_15px_rgba(var(--accent-rgb),0.3)]' : 'bg-black/50 border border-white/10'}`}
+                                className={`relative w-14 h-7 rounded-full transition-colors duration-300 shrink-0 ${publicStats ? 'bg-linear-to-r from-(--accent) to-(--accent)/80 shadow-[0_0_15px_rgba(var(--accent-rgb),0.3)]' : 'bg-black/50 border border-white/10'}`}
                             >
-                                <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-all duration-300 shadow-md ${publicStats ? 'left-8' : 'left-1 opacity-50'}`} />
+                                <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-colors duration-300 shadow-md ${publicStats ? 'left-8' : 'left-1 opacity-50'}`} />
                             </button>
                         </div>
                     </div>
@@ -282,7 +282,7 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({
                             <button 
                                 type="button"
                                 onClick={() => i18n.changeLanguage('es')} // Assuming i18n is available from useTranslation deconstruction
-                                className={`flex flex-col items-center justify-center gap-2 p-4 rounded-2xl border transition-all ${i18n.language.startsWith('es') ? 'bg-(--accent)/10 border-(--accent)/40 shadow-[0_0_15px_rgba(var(--accent-rgb),0.1)]' : 'bg-black/20 border-white/5 hover:bg-white/5 hover:border-white/10'}`}
+                                className={`flex flex-col items-center justify-center gap-2 p-4 rounded-2xl border transition-colors ${i18n.language.startsWith('es') ? 'bg-(--accent)/10 border-(--accent)/40 shadow-[0_0_15px_rgba(var(--accent-rgb),0.1)]' : 'bg-black/20 border-white/5 hover:bg-white/5 hover:border-white/10'}`}
                             >
                                 <span className="text-2xl">🇪🇸</span>
                                 <span className={`text-[10px] font-black uppercase tracking-widest ${i18n.language.startsWith('es') ? 'text-(--accent)' : 'text-gray-500'}`}>Español</span>
@@ -291,7 +291,7 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({
                             <button 
                                 type="button"
                                 onClick={() => i18n.changeLanguage('en')}
-                                className={`flex flex-col items-center justify-center gap-2 p-4 rounded-2xl border transition-all ${i18n.language.startsWith('en') ? 'bg-(--accent)/10 border-(--accent)/40 shadow-[0_0_15px_rgba(var(--accent-rgb),0.1)]' : 'bg-black/20 border-white/5 hover:bg-white/5 hover:border-white/10'}`}
+                                className={`flex flex-col items-center justify-center gap-2 p-4 rounded-2xl border transition-colors ${i18n.language.startsWith('en') ? 'bg-(--accent)/10 border-(--accent)/40 shadow-[0_0_15px_rgba(var(--accent-rgb),0.1)]' : 'bg-black/20 border-white/5 hover:bg-white/5 hover:border-white/10'}`}
                             >
                                 <span className="text-2xl">🇺🇸</span>
                                 <span className={`text-[10px] font-black uppercase tracking-widest ${i18n.language.startsWith('en') ? 'text-(--accent)' : 'text-gray-500'}`}>English</span>
@@ -301,9 +301,9 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({
 
                     {/* Social Links Section (Moved Here) */}
                     <div className="bg-white/2 border border-white/5 rounded-4xl p-8 space-y-6">
-                        <label className="text-xs font-black uppercase tracking-[0.2em] text-gray-500">
+                        <div className="text-xs font-black uppercase tracking-[0.2em] text-gray-500">
                             {t('account.settings.social_links', 'Redes Sociales')}
-                        </label>
+                        </div>
                         
                         <div className="space-y-4">
                             {[
@@ -325,11 +325,11 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({
                                     <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none group-focus-within/social:scale-110 transition-transform" style={{ color: item.color }}>
                                         <item.icon className="w-4 h-4" />
                                     </div>
-                                    <input 
+                                    <input aria-label="Input field" 
                                         {...register(item.id as keyof UpdateUserFormValues & string)}
                                         autoComplete="off"
                                         placeholder={item.label}
-                                        className="w-full bg-black/20 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-xs font-bold text-white placeholder:text-gray-700 focus:outline-none focus:border-white/20 transition-all"
+                                        className="w-full bg-black/20 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-xs font-bold text-white placeholder:text-gray-700 focus:outline-none focus:border-white/20 transition-colors"
                                     />
                                 </div>
                             ))}
@@ -342,16 +342,16 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({
                     <form onSubmit={handleSubmit(handleSaveProfile)} className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         {/* Bio Section */}
                         <div className="bg-white/2 border border-white/5 rounded-4xl p-8 space-y-6 lg:row-span-2 flex flex-col h-full">
-                            <label className="text-xs font-black uppercase tracking-[0.2em] text-gray-500">
+                            <label htmlFor="profile-bio" className="text-xs font-black uppercase tracking-[0.2em] text-gray-500">
                                 {t('account.settings.bio_label', 'Biografía')}
                             </label>
                             <div className="relative flex-1">
-                                <textarea 
+                                <textarea id="profile-bio"
                                     {...register('bio')}
                                     rows={10}
                                     maxLength={500}
                                     placeholder={t('account.settings.bio_ph', 'Cuenta tu historia...')}
-                                    className="w-full h-full min-h-[200px] bg-black/20 border border-white/5 rounded-3xl p-6 text-sm font-medium leading-relaxed text-gray-300 placeholder:text-gray-700 focus:outline-none focus:border-(--accent)/40 transition-all resize-none scrollbar-thin scrollbar-thumb-white/5"
+                                    className="w-full h-full min-h-50 bg-black/20 border border-white/5 rounded-3xl p-6 text-sm font-medium leading-relaxed text-gray-300 placeholder:text-gray-700 focus:outline-none focus:border-(--accent)/40 transition-colors resize-none scrollbar-thin scrollbar-thumb-white/5"
                                 />
                                 <div className="absolute bottom-4 right-4 text-[10px] font-black text-gray-700 bg-black/40 px-2 py-1 rounded-lg backdrop-blur-md">
                                     {bioValue?.length || 0}/500
@@ -380,28 +380,28 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({
                                 
                                 <div className="space-y-4">
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-600 ml-2">{t('account.settings.new_password', 'Nueva Contraseña')}</label>
-                                        <input 
-                                            type="password" 
+                                        <label htmlFor="profile-new-password" className="text-[10px] font-black uppercase tracking-widest text-gray-600 ml-2">{t('account.settings.new_password', 'Nueva Contraseña')}</label>
+                                        <input id="profile-new-password"
+                                            type="password"
                                             value={passwords.new}
                                             onChange={e => setPasswords({...passwords, new: e.target.value})}
-                                            className="w-full bg-black/20 border border-white/5 rounded-2xl p-4 text-sm text-white focus:outline-none focus:border-red-500/30 transition-all font-mono"
+                                            className="w-full bg-black/20 border border-white/5 rounded-2xl p-4 text-sm text-white focus:outline-none focus:border-red-500/30 transition-colors font-mono"
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-600 ml-2">{t('account.settings.confirm_password', 'Confirmar')}</label>
-                                        <input 
-                                            type="password" 
+                                        <label htmlFor="profile-confirm-password" className="text-[10px] font-black uppercase tracking-widest text-gray-600 ml-2">{t('account.settings.confirm_password', 'Confirmar')}</label>
+                                        <input id="profile-confirm-password"
+                                            type="password"
                                             value={passwords.confirm}
                                             onChange={e => setPasswords({...passwords, confirm: e.target.value})}
-                                            className="w-full bg-black/20 border border-white/5 rounded-2xl p-4 text-sm text-white focus:outline-none focus:border-red-500/30 transition-all font-mono"
+                                            className="w-full bg-black/20 border border-white/5 rounded-2xl p-4 text-sm text-white focus:outline-none focus:border-red-500/30 transition-colors font-mono"
                                         />
                                     </div>
                                     <button 
                                         type="button"
                                         onClick={handleUpdatePassword}
                                         disabled={isUpdatingPassword}
-                                        className="w-full py-4 bg-white/5 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-gray-400 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20 transition-all disabled:opacity-30"
+                                        className="w-full py-4 bg-white/5 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-gray-400 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20 transition-colors disabled:opacity-30"
                                     >
                                         {isUpdatingPassword ? <Loader minimal /> : t('account.settings.update_password', 'Actualizar Password')}
                                     </button>
@@ -415,7 +415,7 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({
                                 <button 
                                     type="submit"
                                     disabled={isSavingProfile}
-                                    className="w-full py-5 bg-linear-to-r from-(--accent) to-(--accent)/80 text-white rounded-2xl text-xs font-black uppercase tracking-[0.2em] hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-(--accent)/20 disabled:opacity-50 disabled:shadow-none flex items-center justify-center gap-3 border border-white/10"
+                                    className="w-full py-5 bg-linear-to-r from-(--accent) to-(--accent)/80 text-white rounded-2xl text-xs font-black uppercase tracking-[0.2em] hover:scale-[1.02] active:scale-[0.98] transition-colors shadow-lg shadow-(--accent)/20 disabled:opacity-50 disabled:shadow-none flex items-center justify-center gap-3 border border-white/10"
                                 >
                                     {isSavingProfile ? <Loader minimal /> : <><UserIcon className="text-lg" /> {t('account.settings.save_profile', 'Actualizar Perfil')}</>}
                                 </button>

@@ -160,14 +160,12 @@ export default function RulesEditor() {
                     return;
                 }
 
-                // Import sequential to avoid race conditions and since we don't have a bulk API yet
-                for (const rule of json) {
+                // Import rules in parallel
+                await Promise.all(json.map((rule: Rule) => {
                     // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     const { id, ...ruleData } = rule;
-                    // Note: This is sequential and could be slow for many rules, but fine for typical counts.
-                    // Ideally we'd use Promise.all or a batch endpoint.
-                    await createRuleMutation.mutateAsync(ruleData as Omit<Rule, 'id'>);
-                }
+                    return createRuleMutation.mutateAsync(ruleData as Omit<Rule, 'id'>);
+                }));
 
                 alert(t('admin.settings.rules.import_success', 'Reglas importadas exitosamente'));
             } catch (error) {
@@ -211,7 +209,7 @@ export default function RulesEditor() {
                     </p>
                 </div>
                 <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-                    <button
+                    <button type="button"
                         onClick={handleExport}
                         className="modal-btn-secondary"
                         style={{ height: '48px', padding: '0 1.5rem', borderRadius: '14px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
@@ -225,7 +223,7 @@ export default function RulesEditor() {
                         title={t('admin.settings.rules.import_title')}
                     >
                         <FileInput size={18} /> {t('admin.settings.rules.import_btn', 'Importar')}
-                        <input
+                        <input aria-label={t('admin.settings.rules.import_btn', 'Importar normativas')}
                             type="file"
                             accept=".json"
                             onChange={handleImport}
@@ -233,7 +231,7 @@ export default function RulesEditor() {
                         />
                     </label>
                     {!isCreating && (
-                        <button
+                        <button type="button"
                             onClick={startCreate}
                             className="modal-btn-primary"
                             style={{ height: '48px', padding: '0 1.5rem', borderRadius: '14px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
@@ -246,30 +244,43 @@ export default function RulesEditor() {
 
             {/* Create/Edit Form Modal */}
             {isCreating && (
-                <div style={{
-                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)', backdropFilter: 'blur(5px)',
-                    zIndex: 1000, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '1rem'
-                }} onClick={(e) => {
-                    if (e.target === e.currentTarget) handleCancel();
-                }}>
+                <div
+                    aria-modal="true"
+                    role="dialog"
+                    aria-labelledby="rules-editor-dialog-title"
+                    style={{
+                        position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                        zIndex: 1000, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '1rem',
+                    }}
+                >
+                    <button
+                        type="button"
+                        aria-label="Cerrar modal"
+                        onClick={handleCancel}
+                        style={{
+                            position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)', backdropFilter: 'blur(5px)',
+                            border: 'none', width: '100%', height: '100%', cursor: 'default'
+                        }}
+                    />
                     <div className="admin-card" style={{ 
+                        position: 'relative', zIndex: 1,
                         background: 'rgba(20, 20, 25, 0.95)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255, 255, 255, 0.1)',
                         borderRadius: '24px', padding: '2rem', width: '100%', maxWidth: '800px', maxHeight: '90vh', overflowY: 'auto'
                     }}>
                         <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <h4 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#fff', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <h4 id="rules-editor-dialog-title" style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#fff', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                 {editingRule ? <><Edit2 size={18} /> {t('admin.settings.rules.edit_title')}</> : <><Plus size={18} /> {t('admin.settings.rules.new_title')}</>}
                             </h4>
-                            <button onClick={handleCancel} style={{ background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer' }}>
+                            <button aria-label="Action" type="button" onClick={handleCancel} style={{ background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer' }}>
                                 <X size={24} />
                             </button>
                         </div>
 
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '1.5rem' }}>
                             <div>
-                                <label className="admin-label-premium">{t('admin.settings.rules.category_label')}</label>
-                                <select
+                                <label htmlFor="rule-category" className="admin-label-premium">{t('admin.settings.rules.category_label')}</label>
+                                <select id="rule-category"
                                     className="admin-select-premium"
                                     value={formData.category}
                                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
@@ -280,8 +291,8 @@ export default function RulesEditor() {
                                 </select>
                             </div>
                             <div>
-                                <label className="admin-label-premium">{t('admin.settings.rules.order_label', 'Orden (Prioridad)')}</label>
-                                <input
+                                <label htmlFor="rule-sort-order" className="admin-label-premium">{t('admin.settings.rules.order_label', 'Orden (Prioridad)')}</label>
+                                <input id="rule-sort-order"
                                     type="number"
                                     className="admin-input-premium"
                                     value={formData.sort_order}
@@ -289,15 +300,15 @@ export default function RulesEditor() {
                                 />
                             </div>
                             <div>
-                                <label className="admin-label-premium">{t('admin.settings.rules.color_label', 'Color Representativo')}</label>
+                                <label htmlFor="rule-color-picker" className="admin-label-premium">{t('admin.settings.rules.color_label', 'Color Representativo')}</label>
                                 <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                                    <input
+                                    <input id="rule-color-picker"
                                         type="color"
                                         value={formData.color || '#6366f1'}
                                         onChange={(e) => setFormData({ ...formData, color: e.target.value })}
                                         style={{ width: '48px', height: '48px', padding: '0', border: 'none', borderRadius: '10px', background: 'none', cursor: 'pointer' }}
                                     />
-                                    <input
+                                    <input aria-label="Input field"
                                         type="text"
                                         className="admin-input-premium"
                                         value={formData.color || '#6366f1'}
@@ -312,51 +323,51 @@ export default function RulesEditor() {
                         {/* Spanish fields and translations as before, updating with t() if available */}
                         <div style={{ marginBottom: '1.5rem' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                                <label className="admin-label-premium" style={{ marginBottom: 0 }}>{t('admin.settings.rules.title_es', 'Título (Español)')}</label>
+                                <label htmlFor="rule-title-es" className="admin-label-premium" style={{ marginBottom: 0 }}>{t('admin.settings.rules.title_es', 'Título (Español)')}</label>
                                 <button type="button" className="modal-btn-secondary" style={{ padding: '0.2rem 0.8rem', fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
                                     onClick={() => handleTranslate(formData.title || '', 'en', 'title_en')} disabled={translateMutation.isPending || !formData.title}>
                                     {translatingField === 'title_en' ? <Loader2 className="spin" size={12} /> : <Languages size={12} />} {t('admin.settings.rules.translate_to_en', 'Traducir a EN')}
                                 </button>
                             </div>
-                            <input type="text" className="admin-input-premium" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} placeholder="Ej: PVP Consensuado" />
+                            <input id="rule-title-es" type="text" className="admin-input-premium" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} placeholder="Ej: PVP Consensuado" />
                         </div>
 
                         <div style={{ marginBottom: '1.5rem' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                                <label className="admin-label-premium" style={{ marginBottom: 0 }}>{t('admin.settings.rules.title_en', 'Título (Inglés)')}</label>
+                                <label htmlFor="rule-title-en" className="admin-label-premium" style={{ marginBottom: 0 }}>{t('admin.settings.rules.title_en', 'Título (Inglés)')}</label>
                                 <button type="button" className="modal-btn-secondary" style={{ padding: '0.2rem 0.8rem', fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
                                     onClick={() => handleTranslate(formData.title_en || '', 'es', 'title')} disabled={translateMutation.isPending || !formData.title_en}>
                                     {translatingField === 'title' ? <Loader2 className="spin" size={12} /> : <Languages size={12} />} {t('admin.settings.rules.translate_to_es', 'Traducir a ES')}
                                 </button>
                             </div>
-                            <input type="text" className="admin-input-premium" value={formData.title_en || ''} onChange={(e) => setFormData({ ...formData, title_en: e.target.value })} placeholder="Ex: Consensual PVP" />
+                            <input id="rule-title-en" type="text" className="admin-input-premium" value={formData.title_en || ''} onChange={(e) => setFormData({ ...formData, title_en: e.target.value })} placeholder="Ex: Consensual PVP" />
                         </div>
 
                         <div style={{ marginBottom: '1.5rem' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                                <label className="admin-label-premium" style={{ marginBottom: 0 }}>{t('admin.settings.rules.content_es', 'Contenido (Español)')}</label>
+                                <label htmlFor="rule-content-es" className="admin-label-premium" style={{ marginBottom: 0 }}>{t('admin.settings.rules.content_es', 'Contenido (Español)')}</label>
                                 <button type="button" className="modal-btn-secondary" style={{ padding: '0.2rem 0.8rem', fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
                                     onClick={() => handleTranslate(formData.content || '', 'en', 'content_en')} disabled={translateMutation.isPending || !formData.content}>
                                     {translatingField === 'content_en' ? <Loader2 className="spin" size={12} /> : <Languages size={12} />} {t('admin.settings.rules.translate_to_en', 'Traducir a EN')}
                                 </button>
                             </div>
-                            <textarea className="admin-textarea-premium" rows={5} value={formData.content} onChange={(e) => setFormData({ ...formData, content: e.target.value })} placeholder="Descripción detallada de la regla..." />
+                            <textarea id="rule-content-es" className="admin-textarea-premium" rows={5} value={formData.content} onChange={(e) => setFormData({ ...formData, content: e.target.value })} placeholder="Descripción detallada de la regla..." />
                         </div>
 
                         <div style={{ marginBottom: '1.5rem' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                                <label className="admin-label-premium" style={{ marginBottom: 0 }}>{t('admin.settings.rules.content_en', 'Contenido (Inglés)')}</label>
+                                <label htmlFor="rule-content-en" className="admin-label-premium" style={{ marginBottom: 0 }}>{t('admin.settings.rules.content_en', 'Contenido (Inglés)')}</label>
                                 <button type="button" className="modal-btn-secondary" style={{ padding: '0.2rem 0.8rem', fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
                                     onClick={() => handleTranslate(formData.content_en || '', 'es', 'content')} disabled={translateMutation.isPending || !formData.content_en}>
                                     {translatingField === 'content' ? <Loader2 className="spin" size={12} /> : <Languages size={12} />} {t('admin.settings.rules.translate_to_es', 'Traducir a ES')}
                                 </button>
                             </div>
-                            <textarea className="admin-textarea-premium" rows={5} value={formData.content_en || ''} onChange={(e) => setFormData({ ...formData, content_en: e.target.value })} placeholder="Detailed description of the rule..." />
+                            <textarea id="rule-content-en" className="admin-textarea-premium" rows={5} value={formData.content_en || ''} onChange={(e) => setFormData({ ...formData, content_en: e.target.value })} placeholder="Detailed description of the rule..." />
                         </div>
 
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
-                            <button onClick={handleCancel} className="modal-btn-secondary" style={{ height: '48px', padding: '0 1.5rem' }}>{t('admin.settings.rules.cancel_btn', 'Cancelar')}</button>
-                            <button onClick={handleSave} className="modal-btn-primary" style={{ height: '48px', padding: '0 1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }} disabled={saving}>
+                            <button type="button" onClick={handleCancel} className="modal-btn-secondary" style={{ height: '48px', padding: '0 1.5rem' }}>{t('admin.settings.rules.cancel_btn', 'Cancelar')}</button>
+                            <button type="button" onClick={handleSave} className="modal-btn-primary" style={{ height: '48px', padding: '0 1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }} disabled={saving}>
                                 <Save size={18} /> {saving ? t('admin.settings.saving', 'Guardando...') : t('admin.settings.rules.save_btn', 'Guardar Regla')}
                             </button>
                         </div>
@@ -392,10 +403,10 @@ export default function RulesEditor() {
                                             <p style={{ margin: 0, fontSize: '0.9rem', color: 'rgba(255,255,255,0.6)', lineHeight: '1.5' }}>{rule.content}</p>
                                         </div>
                                         <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
-                                            <button onClick={() => handleEdit(rule)} className="hover-lift" style={{ background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)', color: 'rgba(255, 255, 255, 0.7)', padding: '0.5rem', borderRadius: '8px', cursor: 'pointer' }}>
+                                            <button aria-label="Action" type="button" onClick={() => handleEdit(rule)} className="hover-lift" style={{ background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)', color: 'rgba(255, 255, 255, 0.7)', padding: '0.5rem', borderRadius: '8px', cursor: 'pointer' }}>
                                                 <Edit2 size={18} />
                                             </button>
-                                            <button onClick={() => handleDelete(rule.id)} className="hover-lift" style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', color: '#ef4444', padding: '0.5rem', borderRadius: '8px', cursor: 'pointer' }}>
+                                            <button aria-label="Action" type="button" onClick={() => handleDelete(rule.id)} className="hover-lift" style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', color: '#ef4444', padding: '0.5rem', borderRadius: '8px', cursor: 'pointer' }}>
                                                 <Trash2 size={18} />
                                             </button>
                                         </div>

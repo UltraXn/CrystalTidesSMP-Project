@@ -1,4 +1,4 @@
-import { Star, AlertTriangle, CheckCircle, RefreshCcw, XCircle } from 'lucide-react';
+import { AlertTriangle, CheckCircle, RefreshCcw, XCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { GachaTier } from './types';
 
@@ -8,9 +8,9 @@ interface GachaHeaderProps {
     setIsDevMode: (val: boolean) => void;
     testForceResult: 'random' | 'win' | 'loss';
     setTestForceResult: (val: 'random' | 'win' | 'loss') => void;
-    isRealConsumption: boolean;
-    setIsRealConsumption: (val: boolean) => void;
-    setKilluBalance: React.Dispatch<React.SetStateAction<number>>;
+    forceDeduction: boolean;
+    setForceDeduction: (val: boolean) => void;
+    addFunds: (amount: number) => void;
     devBarRef: React.RefObject<HTMLDivElement | null>;
     GACHA_TIERS: GachaTier[];
     selectedTier: GachaTier;
@@ -24,26 +24,24 @@ export const GachaHeader: React.FC<GachaHeaderProps> = ({
     setIsDevMode,
     testForceResult,
     setTestForceResult,
-    isRealConsumption,
-    setIsRealConsumption,
-    setKilluBalance,
+    forceDeduction,
+    setForceDeduction,
+    addFunds,
     devBarRef,
     GACHA_TIERS,
     selectedTier,
     setSelectedTier,
-    isOpening
+    isOpening,
 }) => {
     const { t } = useTranslation();
 
     return (
-        <header className="gacha-header">
-            <span className="gacha-badge"><Star size={14} /> CRYSTAL SLOT</span>
-            <h1>{t('gacha.hero_title')}</h1>
-            <p>{t('gacha.hero_subtitle')}</p>
-            {/* Admin Toggle */}
+        <header className="gacha-header" id="gacha_header">
+            <h1 id="gacha_title">{t('gacha.hero_title')}</h1>
+            <p id="gacha_sub">{t('gacha.hero_subtitle')}</p>
             {canAccessDev && (
                 <div className="admin-toggle-wrapper">
-                    <button 
+                    <button type="button"
                         className={`admin-mode-toggle ${isDevMode ? 'active' : ''}`}
                         onClick={() => setIsDevMode(!isDevMode)}
                     >
@@ -53,14 +51,13 @@ export const GachaHeader: React.FC<GachaHeaderProps> = ({
                 </div>
             )}
 
-            {/* Developer Test Bar */}
             {canAccessDev && isDevMode && (
                 <div className="dev-test-bar glass-morphism" ref={devBarRef}>
                     <div className="dev-section result-mode">
                         <span className="dev-label">RESULTADO FORZADO:</span>
                         <div className="dev-btn-group">
-                            {(['random', 'win', 'loss'] as const).map(mode => (
-                                <button 
+                            {(['random', 'win', 'loss'] as const).map((mode) => (
+                                <button aria-label="Action" type="button"
                                     key={mode}
                                     className={`dev-btn ${testForceResult === mode ? 'active' : ''} ${mode}`}
                                     onClick={() => setTestForceResult(mode)}
@@ -76,28 +73,46 @@ export const GachaHeader: React.FC<GachaHeaderProps> = ({
                     <div className="dev-separator"></div>
                     <div className="dev-section consumption-mode">
                         <span className="dev-label">CONSUMO REAL:</span>
-                        <button 
-                            className={`dev-toggle-btn ${isRealConsumption ? 'active' : ''}`}
-                            onClick={() => setIsRealConsumption(!isRealConsumption)}
+                        <button aria-label="Action" type="button"
+                            className={`dev-toggle-btn ${forceDeduction ? 'active' : ''}`}
+                            onClick={() => setForceDeduction(!forceDeduction)}
                         >
                             <div className="toggle-track">
                                 <div className="toggle-thumb"></div>
                             </div>
-                            <span>{isRealConsumption ? 'ON' : 'OFF'}</span>
+                            <span>{forceDeduction ? 'ON' : 'OFF'}</span>
                         </button>
+                    </div>
+                    <div className="dev-separator"></div>
+                    <div className="dev-section add-coins">
+                        <span className="dev-label">INYECTAR SALDO:</span>
+                        <div className="dev-btn-group">
+                            <button type="button"
+                                className="dev-btn add-btn"
+                                onClick={() => addFunds(500000)}
+                            >
+                                <span>+500k KC</span>
+                            </button>
+                            <button type="button"
+                                className="dev-btn add-btn"
+                                onClick={() => addFunds(5000000)}
+                            >
+                                <span>+5M KC</span>
+                            </button>
+                        </div>
                     </div>
                     <div className="dev-separator"></div>
                     <div className="dev-section quick-tiers">
                         <span className="dev-label">PROBAR MÁQUINA:</span>
                         <div className="dev-btn-group">
-                            {GACHA_TIERS.map(tier => (
-                                <button 
+                            {GACHA_TIERS.map((tier) => (
+                                <button aria-label="Action" type="button"
                                     key={tier.id}
                                     className={`dev-tier-btn ${selectedTier.id === tier.id ? 'active' : ''}`}
                                     onClick={() => {
                                         if (isOpening) return;
                                         setSelectedTier(tier);
-                                        setKilluBalance(prev => prev + (tier.cost || 0));
+                                        addFunds(tier.cost || 5000000);
                                     }}
                                     style={{ '--tier-color': tier.color } as React.CSSProperties}
                                 >
@@ -110,7 +125,6 @@ export const GachaHeader: React.FC<GachaHeaderProps> = ({
                     </div>
                 </div>
             )}
-
         </header>
     );
 };

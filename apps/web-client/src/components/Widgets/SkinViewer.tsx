@@ -56,9 +56,9 @@ const SkinViewerComponent = ({ skinUrl, width = 300, height = 400 }: SkinViewerP
             }
 
             // Controls
-            viewer.controls.enableZoom = true;
-            viewer.camera.position.z = 60;
-            viewer.controls.target.y = 5;
+            viewer.controls.enableZoom = false;
+            viewer.camera.position.z = 80;
+            viewer.controls.target.y = 12;
 
             viewerRef.current = viewer;
         } catch (error) {
@@ -69,13 +69,13 @@ const SkinViewerComponent = ({ skinUrl, width = 300, height = 400 }: SkinViewerP
         return () => {
             if (viewer) {
                 try {
-                    // Check if internal components exist before disposing to avoid library crashes
-                    // Some versions of skinview3d might crash if canvas is already gone
-                    if (viewer.canvas) {
-                        viewer.dispose();
+                    // Stop animation & render loop first to prevent frame ticks on disposed context
+                    if (viewer.animation) {
+                        viewer.animation.paused = true;
                     }
-                } catch (e) {
-                    console.warn("SkinViewer cleanup suppressed:", e);
+                    viewer.dispose();
+                } catch {
+                    // Ignore benign WebGL dispose race conditions during React Strict Mode unmount
                 } finally {
                     viewerRef.current = null;
                 }
@@ -85,9 +85,7 @@ const SkinViewerComponent = ({ skinUrl, width = 300, height = 400 }: SkinViewerP
 
     return (
         <div ref={containerRef} className="skin-viewer-container" style={{ width: width, height: height, position: 'relative', zIndex: 2 }}>
-            {isVisible && (
-                <canvas ref={canvasRef} style={{ width: '100%', height: '100%' }} />
-            )}
+            <canvas ref={canvasRef} style={{ width: '100%', height: '100%', display: isVisible ? 'block' : 'none' }} />
         </div>
     );
 };

@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import useEmblaCarousel from 'embla-carousel-react'
 import Autoplay from 'embla-carousel-autoplay'
 import Fade from 'embla-carousel-fade'
@@ -23,6 +24,7 @@ interface HeroBackgroundCarouselProps {
 }
 
 const HeroBackgroundCarousel = ({ slides = [] }: HeroBackgroundCarouselProps) => {
+    const [loadSecondary, setLoadSecondary] = useState(false)
     const [emblaRef] = useEmblaCarousel(
         { loop: true, watchDrag: false, duration: 40 },
         [
@@ -31,6 +33,11 @@ const HeroBackgroundCarousel = ({ slides = [] }: HeroBackgroundCarouselProps) =>
         ]
     )
 
+    useEffect(() => {
+        const timer = setTimeout(() => setLoadSecondary(true), 2500)
+        return () => clearTimeout(timer)
+    }, [])
+
     const hasDynamicSlides = slides && slides.length > 0;
     const items: Slide[] = hasDynamicSlides ? slides : IMAGES.map(src => ({ image: src }));
 
@@ -38,14 +45,17 @@ const HeroBackgroundCarousel = ({ slides = [] }: HeroBackgroundCarouselProps) =>
         <div className="absolute inset-0 z-0 overflow-hidden" ref={emblaRef}>
             <div className="flex touch-pan-y h-full">
                 {items.map((slide, index) => (
-                    <div className="relative flex-[0_0_100%] min-w-0 h-full overflow-hidden" key={index}>
-                        <img
-                            src={slide.image}
-                            alt={`Slide ${index + 1}`}
-                            className="absolute inset-0 w-full h-full object-cover animate-slow-zoom"
-                            fetchPriority={index === 0 ? "high" : "auto"}
-                            loading={index === 0 ? "eager" : "lazy"}
-                        />
+                    <div className="relative flex-[0_0_100%] min-w-0 h-full overflow-hidden" key={slide.image}>
+                        {(index === 0 || loadSecondary) && (
+                            <img
+                                src={slide.image}
+                                alt={`Slide ${index + 1}`}
+                                className="absolute inset-0 w-full h-full object-cover animate-slow-zoom"
+                                fetchPriority={index === 0 ? "high" : "low"}
+                                loading={index === 0 ? "eager" : "lazy"}
+                                decoding="async"
+                            />
+                        )}
                         {/* Gradient Overlays */}
                         <div className="absolute inset-0 bg-black/50"></div>
                         <div className="absolute inset-0 bg-linear-to-t from-black via-transparent to-black/60"></div>
@@ -68,7 +78,7 @@ const HeroBackgroundCarousel = ({ slides = [] }: HeroBackgroundCarouselProps) =>
                                     {slide.buttonText && (
                                         <a 
                                             href={slide.link || '#'} 
-                                            className="px-8 py-4 bg-(--accent) text-black font-black uppercase tracking-widest rounded-2xl shadow-2xl hover:scale-110 active:scale-95 transition-all inline-block"
+                                            className="px-8 py-4 bg-(--accent) text-black font-black uppercase tracking-widest rounded-2xl shadow-2xl hover:scale-110 active:scale-95 transition-colors inline-block"
                                         >
                                             {slide.buttonText}
                                         </a>

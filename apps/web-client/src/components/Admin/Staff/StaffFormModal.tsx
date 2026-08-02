@@ -155,7 +155,7 @@ export default function StaffFormModal({ userData, isNew, onClose, onSave, savin
                     {isNew ? t('admin.staff.form.new_title') : t('admin.staff.form.edit_title')}
                     {formData.name && <span className="preview-label">- {formData.name}</span>}
                     </h4>
-                    <button onClick={onClose} className="btn-close-mini"><X size={18} /></button>
+                    <button aria-label="Action" type="button" onClick={onClose} className="btn-close-mini"><X size={18} /></button>
             </div>
 
             <form onSubmit={handleSubmit} className="staff-form-grid">
@@ -188,8 +188,8 @@ export default function StaffFormModal({ userData, isNew, onClose, onSave, savin
                 {/* Right Column: Inputs */}
                 <div className="staff-form-inputs">
                     <div className="full-width">
-                        <label className="admin-label-premium">{t('admin.staff.form.name_label')}</label>
-                        <input 
+                        <label htmlFor="staff-name" className="admin-label-premium">{t('admin.staff.form.name_label')}</label>
+                        <input id="staff-name" 
                             className="admin-input-premium" 
                             required 
                             value={formData.name} 
@@ -199,8 +199,8 @@ export default function StaffFormModal({ userData, isNew, onClose, onSave, savin
                     </div>
 
                     <div className="full-width">
-                        <label className="admin-label-premium">Nick MC (Opcional - Para Skin/Status)</label>
-                        <input 
+                        <label htmlFor="staff-mc-nick" className="admin-label-premium">Nick MC (Opcional - Para Skin/Status)</label>
+                        <input id="staff-mc-nick" 
                             className="admin-input-premium" 
                             value={formData.mc_nickname || ''} 
                             onChange={e => handleChange('mc_nickname', e.target.value)} 
@@ -209,8 +209,8 @@ export default function StaffFormModal({ userData, isNew, onClose, onSave, savin
                     </div>
 
                     <div>
-                        <label className="admin-label-premium">{t('admin.staff.form.role_label')}</label>
-                        <select 
+                        <label htmlFor="staff-role" className="admin-label-premium">{t('admin.staff.form.role_label')}</label>
+                        <select id="staff-role" 
                             className="admin-select-premium" 
                             value={PRESET_ROLES.some(r => r.value === formData.role) ? formData.role : 'Custom'} 
                             onChange={onRoleChange}
@@ -220,7 +220,7 @@ export default function StaffFormModal({ userData, isNew, onClose, onSave, savin
                             ))}
                         </select>
                         {!PRESET_ROLES.some(r => r.value === formData.role && r.value !== 'Custom') && (
-                            <input 
+                            <input aria-label="Input field" 
                                 className="admin-input-premium" 
                                 style={{ marginTop: '0.5rem' }}
                                 value={formData.role} 
@@ -231,10 +231,10 @@ export default function StaffFormModal({ userData, isNew, onClose, onSave, savin
                     </div>
 
                     <div>
-                        <label className="admin-label-premium">{t('admin.staff.form.color_label')}</label>
+                        <label htmlFor="staff-color" className="admin-label-premium">{t('admin.staff.form.color_label')}</label>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                             <div style={{ position: 'relative', width: '40px', height: '40px', borderRadius: '10px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)' }}>
-                                <input 
+                                <input id="staff-color" 
                                     type="color" 
                                     value={formData.color} 
                                     onChange={e => handleChange('color', e.target.value)} 
@@ -246,8 +246,8 @@ export default function StaffFormModal({ userData, isNew, onClose, onSave, savin
                     </div>
 
                     <div className="full-width">
-                        <label className="admin-label-premium">{t('admin.staff.form.avatar_label')}</label>
-                        <input 
+                        <label htmlFor="staff-avatar" className="admin-label-premium">{t('admin.staff.form.avatar_label')}</label>
+                        <input id="staff-avatar" 
                             className="admin-input-premium" 
                             value={formData.image} 
                             onChange={e => handleChange('image', e.target.value)} 
@@ -259,8 +259,8 @@ export default function StaffFormModal({ userData, isNew, onClose, onSave, savin
                     </div>
 
                     <div className="full-width">
-                        <label className="admin-label-premium">{t('admin.staff.form.bio_label')}</label>
-                        <textarea 
+                        <label htmlFor="staff-bio" className="admin-label-premium">{t('admin.staff.form.bio_label')}</label>
+                        <textarea id="staff-bio" 
                             className="admin-textarea-premium" 
                             rows={3} 
                             value={formData.description} 
@@ -270,8 +270,8 @@ export default function StaffFormModal({ userData, isNew, onClose, onSave, savin
                     </div>
                     
                     <div>
-                        <label className="admin-label-premium"><DiscordIcon /> Discord (User/IDs)</label>
-                        <input 
+                        <label htmlFor="staff-discord" className="admin-label-premium"><DiscordIcon /> Discord (User/IDs)</label>
+                        <input id="staff-discord" 
                             className="admin-input-premium" 
                             value={formData.socials?.discord || ''} 
                             onChange={e => handleSocialChange('discord', e.target.value)} 
@@ -279,8 +279,8 @@ export default function StaffFormModal({ userData, isNew, onClose, onSave, savin
                         />
                     </div>
                     <div>
-                        <label className="admin-label-premium"><TwitchIcon /> Twitch (User)</label>
-                        <input 
+                        <label htmlFor="staff-twitch" className="admin-label-premium"><TwitchIcon /> Twitch (User)</label>
+                        <input id="staff-twitch" 
                             className="admin-input-premium" 
                             value={formData.socials?.twitch || ''} 
                             onChange={e => handleSocialChange('twitch', e.target.value)} 
@@ -288,8 +288,8 @@ export default function StaffFormModal({ userData, isNew, onClose, onSave, savin
                         />
                     </div>
                     <div>
-                        <label className="admin-label-premium"><TwitterIcon /> Twitter (Link)</label>
-                        <input 
+                        <label htmlFor="staff-twitter" className="admin-label-premium"><TwitterIcon /> Twitter (Link)</label>
+                        <input id="staff-twitter" 
                             className="admin-input-premium" 
                             value={formData.socials?.twitter || ''} 
                             onChange={e => handleSocialChange('twitter', e.target.value)} 
@@ -297,8 +297,8 @@ export default function StaffFormModal({ userData, isNew, onClose, onSave, savin
                         />
                     </div>
                     <div>
-                        <label className="admin-label-premium"><YoutubeIcon /> YouTube (Link)</label>
-                        <input 
+                        <label htmlFor="staff-youtube" className="admin-label-premium"><YoutubeIcon /> YouTube (Link)</label>
+                        <input id="staff-youtube" 
                             className="admin-input-premium" 
                             value={formData.socials?.youtube || ''} 
                             onChange={e => handleSocialChange('youtube', e.target.value)} 

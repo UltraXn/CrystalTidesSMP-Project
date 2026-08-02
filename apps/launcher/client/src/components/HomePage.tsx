@@ -20,6 +20,17 @@ import { fetchMinecraftProfile, setActiveCape, hideCape } from "../services/micr
 
 const SERVER_IP = "mc.crystaltidesSMP.net";
 
+const OFFICIAL_MICROSOFT_CAPES = [
+  { id: "migrator", state: "ACTIVE", url: "https://textures.minecraft.net/texture/2240cbb93f0b0972b3c85ee5ec728e27c88b90875e533eb0c7b74400cf9d750c", alias: "Capa Migrador" },
+  { id: "vanilla", state: "INACTIVE", url: "https://textures.minecraft.net/texture/68ce53198006e8b4e7240c5f2be521ec28f42d2a452778a05c106487e852926", alias: "Capa Vanilla" },
+  { id: "15th_anniversary", state: "INACTIVE", url: "https://textures.minecraft.net/texture/a35f29f0ef98a9d0b8180c4270d47d959543e498c4efab10c85c2c54f5d13a69", alias: "Capa 15 Aniversario" },
+  { id: "cherry", state: "INACTIVE", url: "https://textures.minecraft.net/texture/e7730999553ef7a8b417c8053a4794ed47502cf42b78b5e648834927f8d7522", alias: "Capa Flor de Cerezo" },
+  { id: "tiktok", state: "INACTIVE", url: "https://textures.minecraft.net/texture/83cfb2e65c92c55455986422d7d8e202568a0a86d2673d3251c5f3408ff3946a", alias: "Capa TikTok" },
+  { id: "twitch", state: "INACTIVE", url: "https://textures.minecraft.net/texture/26df859665672d3f7f893d56a297e28956903f56d95c1c0282c069b2d87b322a", alias: "Capa Twitch" },
+  { id: "founders", state: "INACTIVE", url: "https://textures.minecraft.net/texture/bdf4813589b3f3605e45a557b778398ff0c313a07cf8590c9b0e14a1a51c4a0", alias: "Capa Fundadores" },
+  { id: "pan", state: "INACTIVE", url: "https://textures.minecraft.net/texture/a2e8d9d226a27e77b63f8205f9397669d06efd824d62b9a7b6cf286b3607a9e", alias: "Capa Pan" },
+];
+
 interface HomePageProps {
   onNavigate?: (page: string) => void;
 }
@@ -188,9 +199,9 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
   const [profileToEdit, setProfileToEdit] = useState<Profile | null>(null);
 
   // Capes state
-  const [activeCapeUrl, setActiveCapeUrl] = useState<string | undefined>(undefined);
-  const [userCapes, setUserCapes] = useState<{ id: string; state: string; url: string; alias?: string }[]>([]);
-  const [selectedCapeIndex, setSelectedCapeIndex] = useState<number>(-1);
+  const [activeCapeUrl, setActiveCapeUrl] = useState<string | undefined>(OFFICIAL_MICROSOFT_CAPES[0].url);
+  const [userCapes, setUserCapes] = useState<{ id: string; state: string; url: string; alias?: string }[]>(OFFICIAL_MICROSOFT_CAPES);
+  const [selectedCapeIndex, setSelectedCapeIndex] = useState<number>(0);
   const [isEquippingCape, setIsEquippingCape] = useState(false);
 
   useEffect(() => {
@@ -212,29 +223,38 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
 
   useEffect(() => {
     const loadProfileAndCapes = async () => {
+      const combinedCapes: { id: string; state: string; url: string; alias?: string }[] = OFFICIAL_MICROSOFT_CAPES.map(c => ({ ...c }));
+
       if (currentSession?.type === "microsoft" && currentSession.accessToken) {
         try {
           const profile = await fetchMinecraftProfile(currentSession.accessToken);
-          const capes = profile.capes || [];
-          setUserCapes(capes);
-          
-          const activeIndex = capes.findIndex((c: { state: string }) => c.state === "ACTIVE");
-          if (activeIndex !== -1) {
-            setSelectedCapeIndex(activeIndex);
-            setActiveCapeUrl(capes[activeIndex].url);
-          } else {
-            setSelectedCapeIndex(-1);
-            setActiveCapeUrl(undefined);
+          const userAccountCapes = profile.capes || [];
+
+          if (userAccountCapes.length > 0) {
+            for (const userCape of userAccountCapes) {
+              const matchIdx = combinedCapes.findIndex(
+                (c) => c.id === userCape.id || (c.alias && userCape.alias && c.alias.toLowerCase().includes(userCape.alias.toLowerCase()))
+              );
+              if (matchIdx !== -1) {
+                combinedCapes[matchIdx] = { ...userCape };
+              } else {
+                combinedCapes.unshift({ ...userCape });
+              }
+            }
           }
         } catch (err) {
-          console.error("Error cargando perfil/capas:", err);
+          console.warn("Microsoft profile capes fetch warning:", err);
         }
-      } else {
-        setUserCapes([]);
-        setSelectedCapeIndex(-1);
-        setActiveCapeUrl(undefined);
       }
+
+      setUserCapes(combinedCapes);
+
+      const activeIdx = combinedCapes.findIndex((c) => c.state === "ACTIVE");
+      const selectedIdx = activeIdx !== -1 ? activeIdx : 0;
+      setSelectedCapeIndex(selectedIdx);
+      setActiveCapeUrl(combinedCapes[selectedIdx].url);
     };
+
     loadProfileAndCapes();
   }, [currentSession]);
 
@@ -758,9 +778,9 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
-              padding: "18px 16px 15px",
+              padding: "16px 14px 12px",
               position: "relative",
-              overflow: "hidden",
+              overflowY: "auto",
               boxSizing: "border-box",
             }}
           >
@@ -776,21 +796,21 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
               background: "radial-gradient(circle, rgba(45, 212, 191, 0.14) 0%, transparent 65%)",
               pointerEvents: "none",
             }} />
-            <div style={{ fontSize: 16, fontWeight: 700, letterSpacing: "-0.01em", zIndex: 1, color: "#FFF" }}>
+            <div style={{ fontSize: 15, fontWeight: 700, letterSpacing: "-0.01em", zIndex: 1, color: "#FFF" }}>
               {currentSession?.username || "Invitado"}
             </div>
             {crystalSession?.role && (
-              <RoleBadge role={crystalSession.role} size="md" style={{ marginTop: 6, zIndex: 1 }} />
+              <RoleBadge role={crystalSession.role} size="md" style={{ marginTop: 4, zIndex: 1 }} />
             )}
-            <div style={{ flex: 1, width: "100%", position: "relative", display: "flex", alignItems: "flex-end", justifyContent: "center", zIndex: 1, minHeight: 0 }}>
+            <div style={{ width: "100%", height: 210, position: "relative", display: "flex", alignItems: "flex-end", justifyContent: "center", zIndex: 1 }}>
               {/* Pedestal de luz */}
               <div style={{
                 position: "absolute",
-                bottom: 4,
+                bottom: 2,
                 left: "50%",
                 transform: "translateX(-50%)",
-                width: 130,
-                height: 26,
+                width: 120,
+                height: 22,
                 borderRadius: "50%",
                 background: "radial-gradient(ellipse, rgba(45, 212, 191, 0.3) 0%, transparent 70%)",
                 filter: "blur(6px)",
@@ -799,10 +819,10 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                 <SkinViewer username={currentSession?.username || "Steve"} uuid={currentSession?.uuid} capeUrl={activeCapeUrl} />
               </div>
             </div>
-            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", letterSpacing: "0.06em", textTransform: "uppercase", zIndex: 1, marginBottom: currentSession?.type === "microsoft" ? 2 : 0 }}>
+            <div style={{ fontSize: 9.5, color: "rgba(255,255,255,0.35)", letterSpacing: "0.06em", textTransform: "uppercase", zIndex: 1 }}>
               Skin 3D interactiva
             </div>
-            {currentSession?.type === "microsoft" && userCapes.length > 0 && (
+            {userCapes.length > 0 && (
               <div style={{
                 marginTop: 12,
                 display: "flex",

@@ -1,4 +1,5 @@
 {
+  "$schema": "https://json.schemastore.org/package",
   "name": "@crystaltides/server",
   "version": "1.0.0",
   "description": "API backend principal para la plataforma CrystalTides SMP.",
@@ -16,7 +17,6 @@
   "license": "ISC",
   "devDependencies": {
     "@crystaltides/eslint-config": "*",
-    "@types/bcryptjs": "^2.4.6",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.0",
     "@types/express-serve-static-core": "^5.0.0",
@@ -37,44 +37,7 @@
     "supertest": "^7.2.2",
     "ts-node": "^10.9.2",
     "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
-  },
-  "overrides": {
-    "glob": "11.1.0",
-    "cross-spawn": "7.0.6",
-    "brace-expansion": "2.0.2",
-    "tar": "7.5.11",
-    "minimatch": "10.2.4",
-    "undici": "7.24.4",
-    "fast-xml-parser": "5.5.6",
-    "rollup": "4.59.0",
-    "flatted": "3.4.1",
-    "lodash": "4.17.23",
-    "lodash-es": "4.17.23",
-    "ajv": "8.18.0",
-    "qs": "6.15.0",
-    "diff": "8.0.3",
-    "express-rate-limit": "8.3.1",
-    "**": {
-      "glob": "11.1.0",
-      "tar": "7.5.11",
-      "cross-spawn": "7.0.6",
-      "brace-expansion": "2.0.2",
-      "minimatch": "10.2.4",
-      "undici": "7.24.4",
-      "fast-xml-parser": "5.5.6",
-      "rollup": "4.59.0",
-      "flatted": "3.4.1",
-      "lodash": "4.17.23",
-      "lodash-es": "4.17.23",
-      "ajv": "8.18.0",
-      "qs": "6.15.0",
-      "diff": "8.0.3",
-      "express-rate-limit": "8.3.1",
-      "tinyglobby": {
-        "glob": "11.1.0"
-      }
-    }
+    "typescript": "7.0.2"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.990.0",
@@ -82,20 +45,15 @@
     "@notionhq/client": "^5.6.0",
     "@supabase/supabase-js": "^2.87.1",
     "@types/ws": "^8.18.1",
-    "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
-    "cross-spawn": "7.0.6",
-    "discord-api-types": "^0.38.44",
     "discord.js": "^14.25.1",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "express-rate-limit": "^8.3.1",
-    "glob": "11.1.0",
     "google-translate-api-x": "^10.7.2",
     "googleapis": "^169.0.0",
     "helmet": "^8.1.0",
     "hpp": "^0.2.3",
-    "ioredis": "^5.5.0",
     "jsonwebtoken": "^9.0.3",
     "minecraft-server-util": "^5.4.4",
     "multer": "^2.0.2",
@@ -107,7 +65,6 @@
     "speakeasy": "^2.0.0",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
-    "tar": "7.5.11",
     "ws": "^8.19.0",
     "zod": "^4.2.1"
   }

@@ -37,7 +37,7 @@ export default function EventsList({ events, loading, onEdit, onDelete, onViewRe
                     <p style={{ color: 'rgba(255,255,255,0.4)', maxWidth: '400px', margin: '0 auto 2.5rem', lineHeight: '1.6' }}>
                        Todavía no has programado ningún evento. ¡Empieza creando uno nuevo!
                     </p>
-                    <button className="btn-primary" onClick={onNew} style={{ padding: '1rem 2.5rem', fontSize: '1rem' }}>
+                    <button type="button" className="btn-primary" onClick={onNew} style={{ padding: '1rem 2.5rem', fontSize: '1rem' }}>
                         <Plus style={{ marginRight: '10px' }} /> {t('admin.events.create_title')}
                     </button>
                 </div>
@@ -76,21 +76,21 @@ export default function EventsList({ events, loading, onEdit, onDelete, onViewRe
                             <span>{event.registrations?.length || 0} Registrados</span>
                         </div>
                         <div className="event-actions">
-                            <button
+                            <button type="button"
                                 onClick={() => event.id && onViewRegistrations(event.id)}
                                 className="event-btn-action"
                                 title={t('admin.events.registrations.view_tooltip')}
                             >
                                 <Users />
                             </button>
-                            <button
+                            <button type="button"
                                 onClick={() => onEdit(event)}
                                 className="event-btn-action"
                                 title={t('admin.events.edit_title')}
                             >
                                 <Edit />
                             </button>
-                            <button
+                            <button type="button"
                                 onClick={() => event.id && onDelete(event.id)}
                                 className="event-btn-action delete"
                                 title={t('admin.events.delete_tooltip')}

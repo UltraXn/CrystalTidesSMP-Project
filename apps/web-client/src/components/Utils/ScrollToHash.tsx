@@ -16,23 +16,28 @@ export default function ScrollToHash() {
             '/stories': 'stories'
         };
 
+        let timerId: ReturnType<typeof setTimeout> | null = null;
         if (hash) {
             const element = document.getElementById(hash.replace("#", ""));
             if (element) {
-                setTimeout(() => {
+                timerId = setTimeout(() => {
                     element.scrollIntoView({ behavior: "smooth" });
                 }, 100);
             }
         } else if (hashlessPaths[pathname]) {
             const element = document.getElementById(hashlessPaths[pathname]);
             if (element) {
-                setTimeout(() => {
+                timerId = setTimeout(() => {
                     element.scrollIntoView({ behavior: "smooth" });
                 }, 100);
             }
         } else {
             window.scrollTo(0, 0);
         }
+
+        return () => {
+            if (timerId) clearTimeout(timerId);
+        };
     }, [pathname, hash, key]);
 
     // 2. Handle "Same Hash" Clicks (e.g. User at #foo, scrolls up, clicks #foo again)

@@ -12,18 +12,18 @@ import { use2FAStatus } from '../hooks/useAccountData'
 import { getAdminToken } from '../services/adminAuth'
 import Admin2FAModal from '../components/Admin/Admin2FAModal'
 import { useScrollDirection } from "../hooks/useScrollDirection"
-import '../styles/admin-layout.css'
-import '../styles/admin.css'
-import '../styles/admin_kanban.css'
-import '../styles/admin_calendar.css'
-import '../styles/admin_staff.css'
-import '../styles/admin_polls.css'
-import '../styles/admin_events.css'
-import '../styles/admin_news.css'
-import '../styles/admin_gamification.css'
-import '../styles/admin_donors.css'
-import '../styles/admin_donations.css'
-import '../styles/admin_audit.css'
+import '../styles/admin/admin-layout.css'
+import '../styles/admin/admin.css'
+import '../styles/admin/admin_kanban.css'
+import '../styles/admin/admin_calendar.css'
+import '../styles/admin/admin_staff.css'
+import '../styles/admin/admin_polls.css'
+import '../styles/admin/admin_events.css'
+import '../styles/admin/admin_news.css'
+import '../styles/admin/admin_gamification.css'
+import '../styles/admin/admin_donors.css'
+import '../styles/admin/admin_donations.css'
+import '../styles/admin/admin_audit.css'
 
 // Sub-componentes del Admin Panel
 import DashboardOverview from "../components/Admin/DashboardOverview"
@@ -44,6 +44,7 @@ import AdminDocs from "../components/Admin/AdminDocs"
 import WikiManager from "../components/Admin/WikiManager"
 import LocationsManager from "../components/Admin/Config/LocationsManager"
 import AdminMobileNavbar from "../components/Admin/AdminMobileNavbar"
+import RoadmapAdminManager from "../components/Admin/RoadmapAdminManager"
 
 export default function AdminPanel() {
     const { t, i18n } = useTranslation()
@@ -136,7 +137,7 @@ export default function AdminPanel() {
                 <Shield size={64} />
                 <h1 style={{fontSize: '2rem'}}>{t('admin.access_denied.title')}</h1>
                 <p style={{color: '#aaa'}}>{t('admin.access_denied.msg')}</p>
-                <button onClick={() => navigate('/')} className="btn-primary" style={{marginTop: '1rem'}}>
+                <button type="button" onClick={() => navigate('/')} className="btn-primary" style={{marginTop: '1rem'}}>
                     {t('admin.access_denied.back_home')}
                 </button>
             </div>
@@ -148,9 +149,11 @@ export default function AdminPanel() {
             
             {/* Mobile Overlay */}
             {isMobile && sidebarOpen && (
-                <div 
+                <button
+                    type="button"
                     className="admin-mobile-overlay"
                     onClick={() => setSidebarOpen(false)}
+                    aria-label="Cerrar menú lateral"
                 />
             )}
 
@@ -167,7 +170,7 @@ export default function AdminPanel() {
                         </div>
                     </div>
                     {isMobile && (
-                        <button onClick={() => setSidebarOpen(false)} className="admin-sidebar-close">
+                        <button aria-label="Action" type="button" onClick={() => setSidebarOpen(false)} className="admin-sidebar-close">
                             <X size={20} />
                         </button>
                     )}
@@ -175,7 +178,7 @@ export default function AdminPanel() {
 
                 <div className="xp-sidebar-nav">
                     {/* Botón Volver al Inicio */}
-                    <button
+                    <button type="button"
                         className="xp-sidebar-btn back-btn"
                         onClick={() => navigate('/')}
                     >
@@ -198,6 +201,7 @@ export default function AdminPanel() {
                     <SidebarItem active={activeTab === 'news'} onClick={() => { setActiveTab('news'); if(isMobile) setSidebarOpen(false); }} icon={<Newspaper size={18} />} label={t('admin.tabs.news')} />
                     <SidebarItem active={activeTab === 'events'} onClick={() => { setActiveTab('events'); if(isMobile) setSidebarOpen(false); }} icon={<Calendar size={18} />} label={t('admin.tabs.events')} />
                     <SidebarItem active={activeTab === 'gamification'} onClick={() => { setActiveTab('gamification'); if(isMobile) setSidebarOpen(false); }} icon={<Gamepad2 size={18} />} label={t('admin.tabs.gamification')} />
+                    <SidebarItem active={activeTab === 'roadmap'} onClick={() => { setActiveTab('roadmap'); if(isMobile) setSidebarOpen(false); }} icon={<Gift size={18} style={{ color: '#2DD4BF' }} />} label="Roadmap y Recompensas" />
                     <SidebarItem active={activeTab === 'suggestions'} onClick={() => { setActiveTab('suggestions'); if(isMobile) setSidebarOpen(false); }} icon={<Lightbulb size={18} />} label={t('admin.tabs.suggestions')} />
                     <SidebarItem active={activeTab === 'polls'} onClick={() => { setActiveTab('polls'); if(isMobile) setSidebarOpen(false); }} icon={<BarChart3 size={18} />} label={t('admin.tabs.polls')} />
                     <SidebarItem active={activeTab === 'wiki'} onClick={() => { setActiveTab('wiki'); if(isMobile) setSidebarOpen(false); }} icon={<Book size={18} />} label={t('admin.tabs.wiki', 'Wiki / Gamepedia')} />
@@ -231,13 +235,13 @@ export default function AdminPanel() {
                         
                         {/* Language Toggle */}
                         <div className="admin-lang-toggle">
-                            <button 
+                            <button aria-label="Action" type="button" 
                                 onClick={() => i18n.changeLanguage('es')} 
                                 className={`lang-btn ${i18n.language === 'es' ? 'active' : ''}`}
                             >
                                 ES
                             </button>
-                            <button 
+                            <button aria-label="Action" type="button" 
                                 onClick={() => i18n.changeLanguage('en')} 
                                 className={`lang-btn ${i18n.language === 'en' ? 'active' : ''}`}
                             >
@@ -248,7 +252,7 @@ export default function AdminPanel() {
                          <div className="admin-user-info-box">
                             <div className="username-text">
                                 <div className="username-display">{user?.user_metadata?.username || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Admin'}</div>
-                                <button 
+                                <button type="button" 
                                     onClick={() => setShow2FAModal(true)}
                                     style={{ 
                                         background: 'none', 
@@ -279,6 +283,7 @@ export default function AdminPanel() {
                     {activeTab === 'news' && <AdminNews user={user} />}
                     {activeTab === 'donations' && <DonationsManager />}
                     {activeTab === 'gamification' && <GamificationManager />}
+                    {activeTab === 'roadmap' && <RoadmapAdminManager />}
                     {activeTab === 'team' && hasSecureAccess && <StaffCardsManager />}
                     {activeTab === 'staff_hub' && <StaffWorkspace />}
                     {activeTab === 'wiki' && <WikiManager />}
@@ -317,9 +322,9 @@ interface SidebarItemProps {
     icon: React.ReactNode;
 }
 
-function SidebarItem({ active, onClick, label, icon }: SidebarItemProps) {
+function SidebarItem({ active, onClick, label, icon }: Readonly<SidebarItemProps>) {
     return (
-        <button
+        <button aria-label="Action" type="button"
             className={`xp-sidebar-btn ${active ? 'active' : ''}`}
             onClick={onClick}
         >
@@ -333,7 +338,7 @@ interface UserRoleDisplayProps {
     role: string;
 }
 
-function UserRoleDisplay({ role }: UserRoleDisplayProps) {
+function UserRoleDisplay({ role }: Readonly<UserRoleDisplayProps>) {
     const { t } = useTranslation()
     const roles: Record<string, { label: string; color?: string; img: string; icon?: string }> = {
         neroferno: { label: t('account.roles.neroferno'), color: '#8b5cf6', img: '/ranks/rank-neroferno.png' },

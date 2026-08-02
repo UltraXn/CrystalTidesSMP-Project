@@ -2,6 +2,8 @@ import express from 'express';
 import * as noteController from '../controllers/noteController.js';
 import { authenticateToken } from '../middleware/authMiddleware.js';
 import { checkRole, STAFF_ROLES } from '../utils/roleUtils.js';
+import { validate } from '../middleware/validateResource.js';
+import { createNoteSchema } from '../schemas/noteSchemas.js';
 
 const router = express.Router();
 
@@ -13,7 +15,7 @@ router.use(checkRole(STAFF_ROLES));
 router.get('/', noteController.getNotes);
 
 // POST /api/staff/notes
-router.post('/', noteController.createNote);
+router.post('/', validate(createNoteSchema), noteController.createNote);
 
 // DELETE /api/staff/notes/:id
 router.delete('/:id', noteController.deleteNote);

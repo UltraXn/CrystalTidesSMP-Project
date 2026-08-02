@@ -28,7 +28,7 @@ export default function DonorsList({ donors, onDragEnd, onEdit, onDelete, onImpo
                             <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '6rem', background: 'rgba(255,255,255,0.02)', borderRadius: '32px', border: '2px dashed rgba(255,255,255,0.05)' }}>
                                 <Crown size={48} style={{ opacity: 0.1, marginBottom: '1.5rem', color: 'var(--accent)' }} />
                                 <p style={{ color: 'rgba(255,255,255,0.3)', marginBottom: '2rem' }}>{t('admin.donors.empty_msg')}</p>
-                                <button onClick={onImport} className="modal-btn-secondary">
+                                <button type="button" onClick={onImport} className="modal-btn-secondary">
                                     {t('admin.donors.import_btn')}
                                 </button>
                             </div>
@@ -71,13 +71,13 @@ export default function DonorsList({ donors, onDragEnd, onEdit, onDelete, onImpo
                                         </p>
 
                                         <div className="donor-card-actions">
-                                            <button 
+                                            <button type="button" 
                                                 onClick={() => onEdit(donor)} 
                                                 className="donor-btn-action edit"
                                             >
                                                 <Edit size={14} /> {t('admin.polls.edit_btn', 'Editar')}
                                             </button>
-                                            <button 
+                                            <button type="button" 
                                                 onClick={() => onDelete(donor.id)}
                                                 className="donor-btn-action delete"
                                             >

@@ -77,19 +77,6 @@ export const updateTicketStatus = async (ticketId: number, status: string) => {
     return data;
 };
 
-/**
- * Get tickets for a specific user
- */
-export const getUserTickets = async (userId: string) => {
-    const { data, error } = await supabase
-        .from('tickets')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false });
-
-    if (error) throw error;
-    return data;
-};
 
 /**
  * Get ticket statistics (counts)

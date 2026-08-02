@@ -2,29 +2,35 @@ import { defineConfig } from 'vitest/config';
 import type { PluginOption } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
+import { boneyardPlugin } from 'boneyard-js/vite';
 import path from 'path';
 import { fileURLToPath } from 'url';
-// import { storybookTest } from '@storybook/addon-vitest/vitest-plugin'; // Temporarily disabled due to dep conflict
-
 
 export default defineConfig(() => {
   const dirname = path.dirname(fileURLToPath(import.meta.url));
-  // Force restart
-
 
   return {
     envDir: '../../',
-    plugins: [react() as unknown as PluginOption, tailwindcss()],
+    plugins: [react() as unknown as PluginOption, tailwindcss(), boneyardPlugin()],
+    esbuild: {
+      drop: (process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : []) as ('console' | 'debugger')[],
+    },
     build: {
       outDir: 'dist',
       emptyOutDir: true,
-      sourcemap: true,
+      sourcemap: false,
+      target: 'es2020',
+      cssCodeSplit: true,
+      chunkSizeWarningLimit: 1000,
       rollupOptions: {
         output: {
           manualChunks: {
             'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-            'ui-vendor': ['framer-motion', 'lucide-react', '@hello-pangea/dnd'],
+            'motion-vendor': ['framer-motion', 'gsap'],
+            'icons-vendor': ['lucide-react'],
+            'dnd-vendor': ['@hello-pangea/dnd'],
             'three-vendor': ['three', 'skinview3d', 'react-skinview3d'],
+            'chart-vendor': ['recharts'],
             'utils-vendor': ['date-fns', 'zod', 'i18next', 'react-i18next'],
           },
         },

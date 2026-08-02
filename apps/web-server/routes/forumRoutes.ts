@@ -1,6 +1,8 @@
 import express from 'express';
 import * as forumController from '../controllers/forumController.js';
 import { authenticateToken } from '../middleware/authMiddleware.js';
+import { validate } from '../middleware/validateResource.js';
+import { createThreadSchema, createPostSchema, updateThreadSchema, updatePostSchema } from '../schemas/forumSchemas.js';
 
 const router = express.Router();
 
@@ -14,11 +16,11 @@ router.get('/thread/:id/posts', forumController.getPosts);
 // Authenticated routes
 router.use(authenticateToken);
 
-router.post('/threads', forumController.createThread);
-router.post('/thread/:id/posts', forumController.createPost);
-router.put('/thread/:id', forumController.updateThread);
+router.post('/threads', validate(createThreadSchema), forumController.createThread);
+router.post('/thread/:id/posts', validate(createPostSchema), forumController.createPost);
+router.put('/thread/:id', validate(updateThreadSchema), forumController.updateThread);
 router.delete('/thread/:id', forumController.deleteThread);
-router.put('/posts/:id', forumController.updatePost);
+router.put('/posts/:id', validate(updatePostSchema), forumController.updatePost);
 router.delete('/posts/:id', forumController.deletePost);
 
 export default router;

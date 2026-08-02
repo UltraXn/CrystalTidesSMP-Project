@@ -7,7 +7,7 @@ export interface RecommendedRam {
 
 export const calculateRecommendedRam = (totalSystemMemoryBytes?: number): RecommendedRam => {
   // Fallback to navigator.deviceMemory if available (in GB) or default 16GB
-  const deviceMemoryGb = (navigator as any).deviceMemory || 16;
+  const deviceMemoryGb = (navigator as unknown as { deviceMemory?: number }).deviceMemory || 16;
   const totalGb = totalSystemMemoryBytes 
     ? Math.round(totalSystemMemoryBytes / (1024 * 1024 * 1024))
     : deviceMemoryGb;
@@ -25,7 +25,6 @@ export const calculateRecommendedRam = (totalSystemMemoryBytes?: number): Recomm
     maxRam = 6144;
     reason = "Sistema con 16GB RAM: 6GB asignados a Minecraft para máximo rendimiento con shaders y mods.";
   } else if (totalGb >= 12) {
-    minRam = 2048;
     maxRam = 5120;
     reason = "Sistema con 12GB RAM: 5GB asignados a Minecraft.";
   }

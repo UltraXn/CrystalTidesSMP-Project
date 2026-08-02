@@ -32,7 +32,7 @@ export const getStatus = async (req: Request, res: Response) => {
         res.status(500).json({
             online: false,
             error: 'Internal server error fetching status',
-            details: error instanceof Error ? error.message : String(error)
+            details: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : String(error)) : undefined
         });
     }
 };
@@ -53,7 +53,7 @@ export const getSkin = async (req: Request, res: Response) => {
 
 // Supabase Admin Client
 const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 let supabase: SupabaseClient | null = null;
 if (supabaseUrl && supabaseKey) supabase = createClient(supabaseUrl, supabaseKey);
 
@@ -174,8 +174,8 @@ export const verifyLinkCode = async (req: Request, res: Response) => {
 
         res.json({ success: true, source, linked: true, playerName });
 
-    } catch (error: any) {
-        const errorMessage = error?.message || 'Error desconocido';
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
         res.status(500).json({ 
             error: 'Error al procesar la vinculación.', 
             details: process.env.NODE_ENV === 'development' ? errorMessage : 'Internal Server Error'
@@ -436,3 +436,303 @@ export const unlinkDiscord = async (req: Request, res: Response) => {
         res.status(500).json({ error: 'Error al desvincular Discord.' });
     }
 };
+
+const CLIENT_ID_AZURE = "3974b918-cd84-4d60-8955-2ad65234d16b";
+const CLIENT_ID_LIVE = "00000000402B5328";
+
+export const requestMsDeviceCode = async (_req: Request, res: Response) => {
+    try {
+        // 1. Try Live.com Device Code endpoint (standard for Minecraft public clients)
+        const bodyLive = new URLSearchParams({
+            client_id: CLIENT_ID_LIVE,
+            scope: "service::user.auth.xboxlive.com::MBI_SSL",
+            response_type: "device_code",
+        });
+
+        const rLive = await fetch("https://login.live.com/oauth20_connect.srf", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: bodyLive.toString(),
+        });
+
+        const dataLive = await rLive.json();
+        if (rLive.ok && dataLive.user_code && dataLive.device_code) {
+            return res.json({
+                user_code: dataLive.user_code,
+                device_code: dataLive.device_code,
+                verification_uri: dataLive.verification_uri || "https://www.microsoft.com/link",
+                interval: dataLive.interval || 5,
+                expires_in: dataLive.expires_in || 900,
+                isLive: true,
+            });
+        }
+
+        // 2. Fallback to Azure v2.0 endpoint
+        const bodyAzure = new URLSearchParams({
+            client_id: CLIENT_ID_AZURE,
+            scope: "XboxLive.SignIn XboxLive.offline_access",
+        });
+
+        const rAzure = await fetch("https://login.microsoftonline.com/consumers/oauth2/v2.0/devicecode", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: bodyAzure.toString(),
+        });
+
+        const dataAzure = await rAzure.json();
+        if (rAzure.ok && dataAzure.device_code) {
+            return res.json({ ...dataAzure, isLive: false });
+        }
+
+        return res.status(400).json({
+            error: dataLive.error_description || dataLive.error || dataAzure.error_description || dataAzure.error || "Error al solicitar código de Microsoft",
+        });
+    } catch (err: unknown) {
+        console.error("msDeviceCode error:", err);
+        res.status(500).json({ error: "Error al solicitar el código de dispositivo de Microsoft." });
+    }
+};
+
+export const pollMsDeviceToken = async (req: Request, res: Response) => {
+    try {
+        const { deviceCode, isLive } = req.body;
+        if (!deviceCode) return res.status(400).json({ error: "deviceCode is required" });
+
+        let accessToken: string | null = null;
+        let authError: Record<string, unknown> | null = null;
+
+        if (isLive !== false) {
+            const bodyLive = new URLSearchParams({
+                client_id: CLIENT_ID_LIVE,
+                grant_type: "urn:ietf:params:oauth:grant-type:device_code",
+                device_code: deviceCode,
+            });
+
+            const rLive = await fetch("https://login.live.com/oauth20_token.srf", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: bodyLive.toString(),
+            });
+
+            const dataLive = await rLive.json();
+            if (dataLive.access_token) {
+                accessToken = dataLive.access_token;
+            } else if (dataLive.error) {
+                authError = dataLive;
+            }
+        } else {
+            const bodyAzure = new URLSearchParams({
+                client_id: CLIENT_ID_AZURE,
+                grant_type: "urn:ietf:params:oauth:grant-type:device_code",
+                device_code: deviceCode,
+            });
+
+            const rAzure = await fetch("https://login.microsoftonline.com/consumers/oauth2/v2.0/token", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: bodyAzure.toString(),
+            });
+
+            const dataAzure = await rAzure.json();
+            if (dataAzure.access_token) {
+                accessToken = dataAzure.access_token;
+            } else if (dataAzure.error) {
+                authError = dataAzure;
+            }
+        }
+
+        if (accessToken) {
+            // 1. Xbox Live
+            const r1 = await fetch("https://user.auth.xboxlive.com/user/authenticate", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", Accept: "application/json" },
+                body: JSON.stringify({
+                    Properties: {
+                        AuthMethod: "RPS",
+                        SiteName: "user.auth.xboxlive.com",
+                        RpsTicket: accessToken.startsWith("Ew") || accessToken.startsWith("d=") ? accessToken : `d=${accessToken}`,
+                    },
+                    RelyingParty: "http://auth.xboxlive.com",
+                    TokenType: "JWT",
+                }),
+            });
+            let xblData = await r1.json();
+            if (!r1.ok) {
+                const r1Retry = await fetch("https://user.auth.xboxlive.com/user/authenticate", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", Accept: "application/json" },
+                    body: JSON.stringify({
+                        Properties: {
+                            AuthMethod: "RPS",
+                            SiteName: "user.auth.xboxlive.com",
+                            RpsTicket: `t=${accessToken}`,
+                        },
+                        RelyingParty: "http://auth.xboxlive.com",
+                        TokenType: "JWT",
+                    }),
+                });
+                if (r1Retry.ok) xblData = await r1Retry.json();
+                else return res.status(400).json({ error: "Fallo la autenticación con Xbox Live" });
+            }
+
+            const xblToken = xblData.Token;
+            const userHash = xblData.DisplayClaims?.xui?.[0]?.uhs;
+
+            // 2. XSTS
+            const r2 = await fetch("https://xsts.auth.xboxlive.com/xsts/authorize", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", Accept: "application/json" },
+                body: JSON.stringify({
+                    Properties: {
+                        SandboxId: "RETAIL",
+                        UserTokens: [xblToken],
+                    },
+                    RelyingParty: "rp://api.minecraftservices.com/",
+                    TokenType: "JWT",
+                }),
+            });
+            const xstsData = await r2.json();
+            if (!r2.ok) {
+                if (xstsData.XErr === 2148916028) {
+                    return res.status(400).json({ error: "Esta cuenta de Microsoft no posee un perfil de Minecraft comprado." });
+                }
+                return res.status(400).json({ error: `Error XSTS (${xstsData.XErr || "desconocido"})` });
+            }
+
+            const xstsToken = xstsData.Token;
+
+            // 3. Minecraft Login
+            const r3 = await fetch("https://api.minecraftservices.com/authentication/login_with_xbox", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    identityToken: `XBL3.0 x=${userHash};${xstsToken}`,
+                }),
+            });
+            const mcAuthData = await r3.json();
+            if (!r3.ok) return res.status(400).json({ error: "Fallo el inicio de sesión en los servicios de Minecraft" });
+
+            // 4. Fetch Profile
+            const r4 = await fetch("https://api.minecraftservices.com/minecraft/profile", {
+                headers: { Authorization: `Bearer ${mcAuthData.access_token}` },
+            });
+            const profile = await r4.json();
+            if (!r4.ok || profile.error) {
+                return res.status(400).json({ error: profile.errorMessage || "No se pudo obtener el perfil de Minecraft" });
+            }
+
+            return res.json({ success: true, profile });
+        }
+
+        return res.json(authError || { error: "authorization_pending" });
+    } catch (err: unknown) {
+        console.error("pollMsDeviceToken error:", err);
+        res.status(500).json({ error: "Error al verificar la autorización con Microsoft." });
+    }
+};
+
+export const exchangeMsAuthCode = async (req: Request, res: Response) => {
+    try {
+        const { code, redirectUri } = req.body;
+        if (!code || !redirectUri) {
+            return res.status(400).json({ error: "Code and redirectUri are required" });
+        }
+
+        const tokenParams: Record<string, string> = {
+            client_id: CLIENT_ID_AZURE,
+            grant_type: "authorization_code",
+            code,
+            redirect_uri: redirectUri,
+            scope: "XboxLive.SignIn XboxLive.offline_access",
+        };
+
+        if (process.env.MICROSOFT_CLIENT_SECRET) {
+            tokenParams.client_secret = process.env.MICROSOFT_CLIENT_SECRET;
+        }
+
+        const body = new URLSearchParams(tokenParams);
+
+        const rMs = await fetch("https://login.microsoftonline.com/consumers/oauth2/v2.0/token", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: body.toString(),
+        });
+
+        const msData = await rMs.json();
+        if (!rMs.ok || !msData.access_token) {
+            return res.status(400).json({
+                error: msData.error_description || msData.error || "Error al canjear el código de autorización de Microsoft",
+            });
+        }
+
+        const accessToken = msData.access_token;
+
+        const r1 = await fetch("https://user.auth.xboxlive.com/user/authenticate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Accept: "application/json" },
+            body: JSON.stringify({
+                Properties: {
+                    AuthMethod: "RPS",
+                    SiteName: "user.auth.xboxlive.com",
+                    RpsTicket: `d=${accessToken}`,
+                },
+                RelyingParty: "http://auth.xboxlive.com",
+                TokenType: "JWT",
+            }),
+        });
+
+        const xblData = await r1.json();
+        if (!r1.ok) {
+            return res.status(400).json({ error: "Fallo la autenticación con Xbox Live" });
+        }
+
+        const xblToken = xblData.Token;
+        const userHash = xblData.DisplayClaims?.xui?.[0]?.uhs;
+
+        const r2 = await fetch("https://xsts.auth.xboxlive.com/xsts/authorize", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Accept: "application/json" },
+            body: JSON.stringify({
+                Properties: {
+                    SandboxId: "RETAIL",
+                    UserTokens: [xblToken],
+                },
+                RelyingParty: "rp://api.minecraftservices.com/",
+                TokenType: "JWT",
+            }),
+        });
+        const xstsData = await r2.json();
+        if (!r2.ok) {
+            if (xstsData.XErr === 2148916028) {
+                return res.status(400).json({ error: "Esta cuenta de Microsoft no posee un perfil de Minecraft comprado." });
+            }
+            return res.status(400).json({ error: `Error XSTS (${xstsData.XErr || "desconocido"})` });
+        }
+
+        const xstsToken = xstsData.Token;
+
+        const r3 = await fetch("https://api.minecraftservices.com/authentication/login_with_xbox", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                identityToken: `XBL3.0 x=${userHash};${xstsToken}`,
+            }),
+        });
+        const mcAuthData = await r3.json();
+        if (!r3.ok) return res.status(400).json({ error: "Fallo el inicio de sesión en los servicios de Minecraft" });
+
+        const r4 = await fetch("https://api.minecraftservices.com/minecraft/profile", {
+            headers: { Authorization: `Bearer ${mcAuthData.access_token}` },
+        });
+        const profile = await r4.json();
+        if (!r4.ok || profile.error) {
+            return res.status(400).json({ error: profile.errorMessage || "No se pudo obtener el perfil de Minecraft" });
+        }
+
+        return res.json({ success: true, profile });
+    } catch (err: unknown) {
+        console.error("exchangeMsAuthCode error:", err);
+        res.status(500).json({ error: "Error al autenticar con Microsoft." });
+    }
+};
+

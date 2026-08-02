@@ -15,14 +15,15 @@ import forumRoutes from './routes/forumRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import eventRoutes from './routes/eventRoutes.js';
 import settingsRoutes from './routes/settingsRoutes.js';
-import playerStatsRoutes from './routes/playerStats.js';
+import playerStatsRoutes from './routes/playerStatsRoutes.js';
 import serverRoutes from './routes/serverRoutes.js';
-import serverStatusRoutes from './routes/serverStatus.js';
+import serverStatusRoutes from './routes/serverStatusRoutes.js';
 import bridgeRoutes from './routes/bridgeRoutes.js'; // Secure CrystalBridge
 import taskRoutes from './routes/taskRoutes.js';
 import noteRoutes from './routes/noteRoutes.js';
 import gachaRoutes from './routes/gachaRoutes.js';
 import translationRoutes from './routes/translationRoutes.js';
+import uploadRoutes from './routes/uploadRoutes.js';
 import ruleRoutes from './routes/ruleRoutes.js';
 import policyRoutes from './routes/policyRoutes.js';
 import profileCommentRoutes from './routes/profileCommentRoutes.js';
@@ -31,7 +32,7 @@ import locationRoutes from './routes/locationRoutes.js';
 import { initCleanupJob } from './services/cleanupService.js';
 
 import helmet from 'helmet';
-import { apiLimiter, sensitiveActionLimiter, authLimiter, uploadLimiter } from './middleware/rateLimitMiddleware.js';
+import { apiLimiter, sensitiveActionLimiter, uploadLimiter } from './middleware/rateLimitMiddleware.js';
 import authRoutes from './routes/authRoutes.js';
 
 const app = express();
@@ -40,23 +41,25 @@ const app = express();
 app.set('trust proxy', 1);
 
 // Security Middleware
+// Strict CSP by default: this server serves JSON, so 'unsafe-inline' is never
+// needed. The only HTML it serves is Swagger UI, which gets a scoped, relaxed
+// CSP on its own route below (see /api/docs).
 app.use(helmet({
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
-            scriptSrc: ["'self'", "'unsafe-inline'", "https://www.google.com", "https://www.gstatic.com", "https://static.cloudflareinsights.com"],
+            scriptSrc: ["'self'"],
             connectSrc: [
-                "'self'", 
-                "https://*.supabase.co", 
-                "wss://*.supabase.co", 
-                "wss://*.crystaltidessmp.net", 
-                "https://crystaltidessmp.net", 
-                "https://api.crystaltidessmp.net",
-                "https://*.supabase.co"
+                "'self'",
+                "https://*.supabase.co",
+                "wss://*.supabase.co",
+                "wss://*.crystaltidessmp.net",
+                "https://crystaltidessmp.net",
+                "https://api.crystaltidessmp.net"
             ],
-            frameSrc: ["'self'", "https://www.google.com"],
+            frameSrc: ["'self'"],
             imgSrc: ["'self'", "data:", "https://*.supabase.co", "https://mc-heads.net", "https://minotar.net"],
-            styleSrc: ["'self'", "'unsafe-inline'"],
+            styleSrc: ["'self'"],
         },
     },
 }));
@@ -89,7 +92,7 @@ app.use('/api/news', newsRoutes);
 app.use('/api/minecraft', minecraftRoutes);
 app.use('/api/tickets', ticketRoutes);
 app.use('/api/users', userRoutes);
-app.use('/api/auth', authLimiter, authRoutes);
+app.use('/api/auth', sensitiveActionLimiter, authRoutes);
 app.use('/api/discord', sensitiveActionLimiter, discordRoutes);
 app.use('/api/logs', logRoutes);
 app.use('/api/donations', donationRoutes);
@@ -109,23 +112,38 @@ app.use('/api/server/status', serverStatusRoutes);
 app.use('/api/bridge', sensitiveActionLimiter, bridgeRoutes); // Secure CrystalBridge
 app.use('/api/gacha', sensitiveActionLimiter, gachaRoutes);
 
+import roadmapRoutes from './routes/roadmapRoutes.js';
+
+app.use('/api/roadmap', roadmapRoutes);
+
 // Staff Hub Routes
 app.use('/api/staff/tasks', taskRoutes);
 app.use('/api/staff/notes', noteRoutes);
 app.use('/api/translation', translationRoutes);
+app.use('/api/uploads', uploadRoutes); // Secure image uploads (magic-byte validated)
 
-// Swagger Docs
+// Swagger Docs — disabled in production unless ENABLE_API_DOCS=true.
+// A public API map is reconnaissance material for attackers.
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './config/swagger.js';
 
-// Documentation Route
-app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+const docsEnabled = process.env.ENABLE_API_DOCS === 'true' || process.env.NODE_ENV !== 'production';
+if (docsEnabled) {
+    // Scoped relaxed CSP for Swagger UI only (it needs inline scripts/styles).
+    // Overrides the strict global CSP for this path exclusively.
+    app.use('/api/docs', (req: express.Request, res: express.Response, next: express.NextFunction) => {
+        res.setHeader(
+            'Content-Security-Policy',
+            "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:"
+        );
+        next();
+    }, swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+}
 
 // Base route
 app.get('/', (req, res) => {
-    res.json({ 
+    res.json({
         message: 'Welcome to CrystalTides API',
-        documentation: '/api/docs',
         version: '1.0.0'
     });
 });

@@ -33,10 +33,10 @@ export default function DonorsConfirmModal({ isOpen, type, onClose, onConfirm }:
                     {type === 'delete' ? t('admin.donors.delete_confirm.msg') : t('admin.donors.import_confirm.msg')}
                 </p>
                 <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-                    <button onClick={onClose} className="modal-btn-secondary" style={{ flex: 1 }}>
+                    <button type="button" onClick={onClose} className="modal-btn-secondary" style={{ flex: 1 }}>
                         {t('common.cancel', 'Cancelar')}
                     </button>
-                    <button 
+                    <button type="button"
                         onClick={onConfirm} 
                         className="modal-btn-primary" 
                         style={{ 

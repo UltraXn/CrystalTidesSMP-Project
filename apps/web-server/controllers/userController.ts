@@ -5,7 +5,7 @@ import * as forumService from '../services/forumService.js';
 
 import { Request, Response } from 'express';
 import { sendSuccess, sendError } from '../utils/responseHandler.js';
-import { getRolePriority } from '../utils/roleUtils.js';
+import { getRolePriority, STAFF_ROLES } from '../utils/roleUtils.js';
 import supabase from '../config/supabaseClient.js';
 import { ensureString } from '../utils/typeUtils.js';
 
@@ -56,7 +56,7 @@ export const updateUserRole = async (req: Request, res: Response) => {
         }
 
         const updatedUser = await userService.updateUserRole(id, role);
-        const requestorUsername = (req as any).user?.username || 'Admin';
+        const requestorUsername = req.user?.username || 'Admin';
 
         logService.createLog({
             username: requestorUsername,
@@ -80,7 +80,7 @@ export const updateUserMetadata = async (req: Request, res: Response) => {
         if (!metadata) return sendError(res, 'Metadata object is required', 'MISSING_FIELD', 400);
 
         const updatedUser = await userService.updateUserMetadata(id, metadata);
-        const requestorUsername = (req as any).user?.username || 'Admin';
+        const requestorUsername = req.user?.username || 'Admin';
 
         logService.createLog({
             username: requestorUsername,
@@ -119,13 +119,20 @@ export const getFullProfile = async (req: Request, res: Response) => {
 
         if (!profile) return sendError(res, 'User not found', 'USER_NOT_FOUND', 404);
 
+        // SECURITY: wallet balance is private. Only expose it to the profile
+        // owner or staff roles. Everyone else gets the public shape only.
+        const requesterRole = (req.user?.role || '').toLowerCase();
+        const isOwner = req.user?.id === profile.id;
+        const isStaff = STAFF_ROLES.includes(requesterRole);
+        const canSeeWallet = isOwner || isStaff;
+
         // Parallel Fetching of related data
         const [stats, wallet, threads] = await Promise.all([
             // Stats (Game Kills, Playtime) - uses Minecraft Nick implies profile.username
             profile.username ? playerStatsService.getPlayerStats(profile.username) : null,
-            
-            // Wallet (Coins) - uses UUID or Nick
-            profile.minecraft_uuid ? playerStatsService.getMoney(profile.minecraft_uuid) : 0,
+
+            // Wallet (Coins) - only fetched when the requester is allowed to see it
+            canSeeWallet && profile.minecraft_uuid ? playerStatsService.getMoney(profile.minecraft_uuid) : null,
 
             // Forum Activity - uses Web User ID
             forumService.getUserThreads(profile.id)
@@ -134,7 +141,7 @@ export const getFullProfile = async (req: Request, res: Response) => {
         return sendSuccess(res, {
             ...profile,
             game_stats: stats,
-            wallet: { coins: wallet },
+            ...(canSeeWallet ? { wallet: { coins: wallet } } : {}),
             forum: {
                 threads: threads.slice(0, 5), // Limit to top 5
                 total_threads: threads.length

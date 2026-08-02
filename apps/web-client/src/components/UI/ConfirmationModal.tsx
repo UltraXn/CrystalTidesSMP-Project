@@ -1,5 +1,5 @@
  
-import { motion, AnimatePresence } from 'framer-motion'
+import { m, AnimatePresence } from 'framer-motion'
 import { AlertTriangle } from 'lucide-react'
 
 interface ConfirmationModalProps {
@@ -28,7 +28,7 @@ export default function ConfirmationModal({
 
     return (
         <AnimatePresence>
-            <motion.div
+            <m.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -48,7 +48,7 @@ export default function ConfirmationModal({
                 }}
                 onClick={isLoading ? undefined : onClose}
             >
-                <motion.div
+                <m.div
                     initial={{ scale: 0.9, y: 20, opacity: 0 }}
                     animate={{ scale: 1, y: 0, opacity: 1 }}
                     exit={{ scale: 0.9, y: 20, opacity: 0 }}
@@ -97,7 +97,7 @@ export default function ConfirmationModal({
                     </p>
 
                     <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-                        <button
+                        <button aria-label="Action" type="button"
                             onClick={onClose}
                             disabled={isLoading}
                             style={{
@@ -108,14 +108,16 @@ export default function ConfirmationModal({
                                 borderRadius: '8px',
                                 cursor: isLoading ? 'not-allowed' : 'pointer',
                                 fontSize: '0.9rem',
-                                transition: 'all 0.2s'
+                                transition: "color 0.2s, background-color 0.2s, border-color 0.2s, opacity 0.2s"
                             }}
                             onMouseOver={(e: React.MouseEvent<HTMLButtonElement>) => !isLoading && (e.currentTarget.style.borderColor = '#666')}
                             onMouseOut={(e: React.MouseEvent<HTMLButtonElement>) => !isLoading && (e.currentTarget.style.borderColor = '#444')}
+                            onFocus={(e: React.FocusEvent<HTMLButtonElement>) => !isLoading && (e.currentTarget.style.borderColor = '#666')}
+                            onBlur={(e: React.FocusEvent<HTMLButtonElement>) => !isLoading && (e.currentTarget.style.borderColor = '#444')}
                         >
                             {cancelText}
                         </button>
-                        <button
+                        <button aria-label="Action" type="button"
                             onClick={onConfirm}
                             disabled={isLoading}
                             style={{
@@ -136,8 +138,8 @@ export default function ConfirmationModal({
                             {isLoading ? 'Procesando...' : confirmText}
                         </button>
                     </div>
-                </motion.div>
-            </motion.div>
+                </m.div>
+            </m.div>
         </AnimatePresence>
     )
 }

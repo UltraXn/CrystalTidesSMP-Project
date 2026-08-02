@@ -10,7 +10,7 @@ export const ROLES = {
     DONOR: 'donor',
 } as const;
 
-export const STAFF_ROLES = [
+export const STAFF_ROLES: readonly string[] = [
     ROLES.HELPER,
     ROLES.MODERATOR,
     ROLES.ADMIN,
@@ -40,5 +40,5 @@ export const getRoleLevel = (role: string): number => {
 export const isStaffRole = (role: string): boolean => {
     if (!role) return false;
     const normalized = role.toLowerCase();
-    return STAFF_ROLES.includes(normalized as any);
+    return STAFF_ROLES.includes(normalized);
 };

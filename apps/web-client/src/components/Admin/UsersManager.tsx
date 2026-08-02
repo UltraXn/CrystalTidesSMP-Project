@@ -142,7 +142,7 @@ export default function UsersManager() {
             {/* Search Bar */}
             <form onSubmit={handleSearch} style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
                 <div style={{ flex: '1 1 100%', minWidth: '200px', position: 'relative' }}>
-                    <input 
+                    <input aria-label="Input field" 
                         type="text" 
                         placeholder={t('admin.users.search_placeholder')} 
                         className="admin-input-premium" 

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Check, AlertCircle, Loader2 } from "lucide-react";
+import "../styles/pages/account.css";
 
 interface LinkedData {
   username: string;
@@ -35,6 +36,8 @@ export default function Verify() {
     // 3. No token? Stop here (state already handled in initial render)
     if (!token) return;
 
+    let ignore = false;
+
     const verifyToken = async () => {
       setStatus("processing");
       try {
@@ -49,25 +52,42 @@ export default function Verify() {
           }),
         });
   
+        if (!response.ok) {
+          const errorData = await response.json();
+          if (!ignore) {
+            setStatus("error");
+            setMessage(errorData.error || "Error al vincular la cuenta.");
+          }
+          return;
+        }
+
         const data = await response.json();
   
-        if (response.ok && data.success) {
-          setStatus("success");
-          setLinkedData(data);
-          setMessage("¡Cuenta vinculada exitosamente!");
-        } else {
-          setStatus("error");
-          setMessage(data.error || "Error al vincular la cuenta.");
+        if (!ignore) {
+          if (data.success) {
+            setStatus("success");
+            setLinkedData(data);
+            setMessage("¡Cuenta vinculada exitosamente!");
+          } else {
+            setStatus("error");
+            setMessage(data.error || "Error al vincular la cuenta.");
+          }
         }
       } catch (error) {
         console.error(error);
-        setStatus("error");
-        setMessage("Error de conexión con el servidor.");
+        if (!ignore) {
+          setStatus("error");
+          setMessage("Error de conexión con el servidor.");
+        }
       }
     };
 
     // 4. Trigger Verification
     verifyToken();
+
+    return () => {
+      ignore = true;
+    };
   }, [user, loading, token, navigate]);
 
   if (loading || status === "loading") {
@@ -94,7 +114,7 @@ export default function Verify() {
         )}
 
         {status === "success" && (
-          <div className="flex flex-col items-center gap-4 animate-in fade-in zoom-in duration-300">
+          <div className="flex flex-col items-center gap-4 transition-opacity duration-300">
             <div className="relative">
                 <div className="w-24 h-24 bg-green-500/20 rounded-xl flex items-center justify-center mb-2 overflow-hidden border-2 border-green-500/50">
                     <img 
@@ -112,9 +132,9 @@ export default function Verify() {
             <p className="text-gray-300">
               Tu cuenta de Minecraft <strong>{linkedData?.username}</strong> ha sido vinculada correctamente.
             </p>
-            <button 
+            <button type="button" 
               onClick={() => navigate('/account')}
-              className="mt-6 px-6 py-3 bg-(--accent) hover:bg-(--accent-hover) text-black font-bold rounded-xl transition-all w-full"
+              className="mt-6 px-6 py-3 bg-(--accent) hover:bg-(--accent-hover) text-black font-bold rounded-xl transition-colors w-full"
             >
               Ir a mi Cuenta
             </button>
@@ -122,15 +142,15 @@ export default function Verify() {
         )}
 
         {status === "error" && (
-          <div className="flex flex-col items-center gap-4 animate-in fade-in zoom-in duration-300">
+          <div className="flex flex-col items-center gap-4 transition-opacity duration-300">
              <div className="w-20 h-20 bg-red-500/20 rounded-full flex items-center justify-center mb-2">
               <AlertCircle className="w-10 h-10 text-red-500" />
             </div>
             <h2 className="text-2xl font-bold text-red-500">Error</h2>
             <p className="text-gray-300">{message}</p>
-            <button 
+            <button type="button" 
               onClick={() => navigate('/')}
-              className="mt-6 px-6 py-3 bg-[#333] hover:bg-[#444] text-white font-bold rounded-xl transition-all w-full"
+              className="mt-6 px-6 py-3 bg-[#333] hover:bg-[#444] text-white font-bold rounded-xl transition-[color,background-color,border-color,opacity] w-full"
             >
               Volver al Inicio
             </button>

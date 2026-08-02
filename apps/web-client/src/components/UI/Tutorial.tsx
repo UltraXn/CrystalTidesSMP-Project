@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { motion as Motion, AnimatePresence } from 'framer-motion';
+import { m as Motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, ArrowLeft, X, Keyboard, User, Bell, Check, UserPlus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
@@ -48,7 +48,7 @@ export default function Tutorial() {
         {
             title: t('tutorial.step1_title'),
             content: t('tutorial.step1_content'),
-            icon: <img src="/images/ui/logo.png" alt="Logo" style={{ width: '80px', marginBottom: '1rem' }} />,
+            icon: <img src="/images/ui/logo.webp" alt="Logo" style={{ width: '80px', marginBottom: '1rem' }} />,
             action: t('tutorial.step1_action')
         },
         {
@@ -117,34 +117,36 @@ export default function Tutorial() {
                             display: 'flex',
                             gap: '10px'
                         }}>
-                            <button 
+                            <button type="button" 
                                 onClick={() => changeLanguage('es')}
+                                aria-label="Cambiar idioma a Español"
                                 style={{
                                     background: i18n.language === 'es' ? 'var(--accent)' : 'transparent',
-                                    color: i18n.language === 'es' ? '#000' : '#666',
+                                    color: i18n.language === 'es' ? '#000' : '#a0a0a0',
                                     border: '1px solid var(--accent)',
                                     borderRadius: '5px',
                                     padding: '2px 6px',
                                     cursor: 'pointer',
                                     fontSize: '0.8rem',
                                     fontWeight: 'bold',
-                                    transition: 'all 0.2s'
+                                    transition: "color 0.2s, background-color 0.2s, border-color 0.2s, opacity 0.2s"
                                 }}
                             >
                                 ES
                             </button>
-                            <button 
+                            <button type="button" 
                                 onClick={() => changeLanguage('en')}
+                                aria-label="Change language to English"
                                 style={{
                                     background: i18n.language === 'en' ? 'var(--accent)' : 'transparent',
-                                    color: i18n.language === 'en' ? '#000' : '#666',
+                                    color: i18n.language === 'en' ? '#000' : '#a0a0a0',
                                     border: '1px solid var(--accent)',
                                     borderRadius: '5px',
                                     padding: '2px 6px',
                                     cursor: 'pointer',
                                     fontSize: '0.8rem',
                                     fontWeight: 'bold',
-                                    transition: 'all 0.2s'
+                                    transition: "color 0.2s, background-color 0.2s, border-color 0.2s, opacity 0.2s"
                                 }}
                             >
                                 EN
@@ -152,8 +154,9 @@ export default function Tutorial() {
                         </div>
 
                         {/* Close Button */}
-                        <button 
+                        <button type="button" 
                             onClick={handleClose}
+                            aria-label="Cerrar tutorial"
                             style={{
                                 position: 'absolute',
                                 top: '15px', right: '15px',
@@ -171,7 +174,7 @@ export default function Tutorial() {
                         <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginBottom: '2rem', marginTop: '1rem' }}>
                             {STEPS.map((_, i) => (
                                 <div 
-                                    key={i}
+                                    key={`item-${i}`}
                                     style={{
                                         width: '10px', height: '10px',
                                         borderRadius: '50%',
@@ -207,7 +210,7 @@ export default function Tutorial() {
                         <div style={{ display: 'flex', gap: '1rem', flexDirection: 'column' }}>
                             <div style={{ display: 'flex', gap: '1rem', width: '100%' }}>
                                 {step > 0 && (
-                                    <button 
+                                    <button type="button" 
                                         className="btn-secondary"
                                         onClick={prevStep}
                                         style={{
@@ -224,7 +227,7 @@ export default function Tutorial() {
                                             cursor: 'pointer',
                                             flex: 1,
                                             fontWeight: '600',
-                                            transition: 'all 0.2s',
+                                            transition: "color 0.2s, background-color 0.2s, border-color 0.2s, opacity 0.2s",
                                             textTransform: 'uppercase',
                                             letterSpacing: '0.5px'
                                         }}
@@ -233,7 +236,7 @@ export default function Tutorial() {
                                     </button>
                                 )}
                                 
-                                <button 
+                                <button aria-label="Action" type="button" 
                                     className="btn-primary"
                                     onClick={() => {
                                         if (step < STEPS.length - 1) {
@@ -265,7 +268,7 @@ export default function Tutorial() {
                              {/* Only showing prominently on the last step or as a secondary option always? Let's put it on the last step as a strong CTA */}
                              
                              {step === STEPS.length - 1 && (
-                                <button
+                                <button type="button"
                                     onClick={handleRegister}
                                     style={{
                                         background: 'transparent',

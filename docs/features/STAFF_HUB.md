@@ -6,7 +6,7 @@ El **Staff Hub** es el panel centralizado diseñado para que el equipo de Crysta
 
 Ubicación: `/admin` -> **Staff Hub** ([Componente](../client/src/components/Admin/StaffHub/KanbanBoard.tsx))
 
-### Funcionalidades:
+### Funcionalidades
 
 - **Columnas Dinámicas**: Organización clásica Kanban (Backlog, To Do, In Progress, etc.).
 - **Gestión Avanzada**:
@@ -18,7 +18,7 @@ Ubicación: `/admin` -> **Staff Hub** ([Componente](../client/src/components/Adm
 
 El Staff Hub incluye una vista de calendario avanzada ([Componente](../client/src/components/Admin/StaffHub/CalendarView.tsx)) para la gestión de cronogramas.
 
-### Características:
+### Características
 
 - **Drag & Resize**: Permite mover tareas y ajustar su duración directamente en el calendario.
 - **Sincronización Multi-plataforma**:

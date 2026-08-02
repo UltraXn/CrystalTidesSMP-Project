@@ -84,9 +84,9 @@ const CustomToolbar = (props: ToolbarProps<CalendarEvent, object>) => {
   return (
     <div className="calendar-toolbar-custom">
       <div className="toolbar-left">
-        <button className="nav-btn-round" onClick={() => onNavigate('PREV')}><ChevronLeft /></button>
-        <button className="today-btn-premium" onClick={() => onNavigate('TODAY')}>{t('status.today', 'Hoy')}</button>
-        <button className="nav-btn-round" onClick={() => onNavigate('NEXT')}><ChevronRight /></button>
+        <button aria-label="Action" type="button" className="nav-btn-round" onClick={() => onNavigate('PREV')}><ChevronLeft /></button>
+        <button type="button" className="today-btn-premium" onClick={() => onNavigate('TODAY')}>{t('status.today', 'Hoy')}</button>
+        <button aria-label="Action" type="button" className="nav-btn-round" onClick={() => onNavigate('NEXT')}><ChevronRight /></button>
       </div>
       
       <div className="toolbar-center">
@@ -96,7 +96,7 @@ const CustomToolbar = (props: ToolbarProps<CalendarEvent, object>) => {
       <div className="toolbar-right">
         <div className="view-switcher-pill">
           {['month', 'week', 'day', 'agenda'].map((v) => (
-            <button 
+            <button type="button" 
               key={v}
               className={`switcher-btn ${view === v ? 'active' : ''}`}
               onClick={() => onView(v as View)}
@@ -130,36 +130,48 @@ const CustomEvent = ({ event }: { event: CalendarEvent }) => {
   );
 };
 
+const eventStyleGetter = (event: CalendarEvent) => {
+  return {
+    className: `calendar-event-${event.type || 'default'}`,
+    style: {
+      backgroundColor: 'transparent',
+      border: 'none',
+      padding: '0',
+      zIndex: 10
+    }
+  };
+};
+
 export default function CalendarView({ tasks, googleEvents, notionTasks, onUpdateEventDate, onUpdateEventDuration }: CalendarViewProps) {
   const { t, i18n } = useTranslation();
   const [view, setView] = useState<View>('month');
   const [date, setDate] = useState(new Date());
 
   // Map KanbanTasks
-  const taskEvents: CalendarEvent[] = useMemo(() => tasks
-    .filter(t => t.columnId !== 'idea') // Exclude Backlog tasks from calendar
-    .map(task => {
-      const startDate = new Date(task.due_date || task.created_at);
-      // If we have end_date use it, otherwise 1 hour if it's a specific time
-      let endDate;
-      if (task.end_date) {
-        endDate = new Date(task.end_date);
-      } else {
-        const hasTime = task.due_date?.includes('T');
-        endDate = new Date(startDate.getTime() + (hasTime ? 60 * 60 * 1000 : 0));
-      }
-      
-      return {
-        id: task.id,
-        title: task.title,
-        start: startDate,
-        end: endDate,
-        resource: task,
-        hexColor: task.priority ? (PRIORITY_COLORS[task.priority.toLowerCase()] || '#4338ca') : '#4338ca',
-        isDraggable: true,
-        type: 'task'
-      };
-    }), [tasks]);
+  const taskEvents: CalendarEvent[] = useMemo(() => tasks.reduce<CalendarEvent[]>((acc, task) => {
+    if (task.columnId === 'idea') return acc; // Exclude Backlog tasks from calendar
+
+    const startDate = new Date(task.due_date || task.created_at);
+    let endDate;
+    if (task.end_date) {
+      endDate = new Date(task.end_date);
+    } else {
+      const hasTime = task.due_date?.includes('T');
+      endDate = new Date(startDate.getTime() + (hasTime ? 60 * 60 * 1000 : 0));
+    }
+    
+    acc.push({
+      id: task.id,
+      title: task.title,
+      start: startDate,
+      end: endDate,
+      resource: task,
+      hexColor: task.priority ? (PRIORITY_COLORS[task.priority.toLowerCase()] || '#4338ca') : '#4338ca',
+      isDraggable: true,
+      type: 'task'
+    });
+    return acc;
+  }, []), [tasks]);
 
   // Map GoogleEvents
   const googleCalendarEvents: CalendarEvent[] = useMemo(() => (googleEvents || []).map(event => ({
@@ -198,18 +210,6 @@ export default function CalendarView({ tasks, googleEvents, notionTasks, onUpdat
     if (event.resource && typeof event.id === 'number' && event.id > 0 && onUpdateEventDuration) {
        onUpdateEventDuration(event.id, new Date(start), new Date(end));
     }
-  };
-
-  const eventStyleGetter = (event: CalendarEvent) => {
-    return {
-      className: `calendar-event-${event.type || 'default'}`,
-      style: {
-        backgroundColor: 'transparent',
-        border: 'none',
-        padding: '0',
-        zIndex: 10
-      }
-    };
   };
 
   const components = useMemo(() => ({

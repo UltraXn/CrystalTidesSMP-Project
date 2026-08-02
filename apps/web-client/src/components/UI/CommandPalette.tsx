@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AnimatePresence, motion as Motion } from 'framer-motion';
+import { AnimatePresence, m as Motion } from 'framer-motion';
 import { Search, Home, User, Users, Map, Settings, Shield, HelpCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
@@ -125,7 +125,7 @@ export default function CommandPalette() {
                     alignItems: 'flex-start',
                     justifyContent: 'center',
                     paddingTop: '15vh'
-                }} onClick={() => setIsOpen(false)}>
+                }} onClick={() => setIsOpen(false)} role="presentation">
                     <Motion.div 
                         initial={{ opacity: 0, scale: 0.95, y: -20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -153,7 +153,7 @@ export default function CommandPalette() {
                             gap: '1rem' 
                         }}>
                             <Search style={{ color: '#666', fontSize: '1.2rem' }} />
-                            <input 
+                            <input aria-label="Input field" 
                                 autoFocus
                                 value={query}
                                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
@@ -190,14 +190,19 @@ export default function CommandPalette() {
                                 </div>
                             ) : (
                                 filteredItems.map((item: ActionItem, index: number) => (
-                                    <div
+                                    <button
+                                        type="button"
                                         key={item.id}
                                         onMouseEnter={() => setSelectedIndex(index)}
+                                        onFocus={() => setSelectedIndex(index)}
                                         onClick={() => {
                                             item.action();
                                             setIsOpen(false);
                                         }}
                                         style={{
+                                            width: '100%',
+                                            border: 'none',
+                                            textAlign: 'left',
                                             display: 'flex',
                                             alignItems: 'center',
                                             gap: '1rem',
@@ -216,7 +221,7 @@ export default function CommandPalette() {
                                                 ↵ Enter
                                             </span>
                                         )}
-                                    </div>
+                                    </button>
                                 ))
                             )}
                         </div>

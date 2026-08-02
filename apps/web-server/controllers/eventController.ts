@@ -17,7 +17,7 @@ export const createEvent = async (req: Request, res: Response) => {
     try {
         console.log("Creating event - Body received:", JSON.stringify(req.body));
         const event = await eventService.createEvent(req.body);
-        const requestorUsername = (req as any).user?.username || 'Admin';
+        const requestorUsername = req.user?.username || 'Admin';
 
         logService.createLog({
             username: requestorUsername,
@@ -37,7 +37,7 @@ export const createEvent = async (req: Request, res: Response) => {
 export const updateEvent = async (req: Request, res: Response) => {
     try {
         const event = await eventService.updateEvent(parseInt(ensureString(req.params.id)), req.body);
-        const requestorUsername = (req as any).user?.username || 'Admin';
+        const requestorUsername = req.user?.username || 'Admin';
 
         logService.createLog({
             username: requestorUsername,
@@ -55,7 +55,7 @@ export const updateEvent = async (req: Request, res: Response) => {
 
 export const deleteEvent = async (req: Request, res: Response) => {
     try {
-        const requestorUsername = (req as any).user?.username || 'Admin';
+        const requestorUsername = req.user?.username || 'Admin';
         await eventService.deleteEvent(parseInt(ensureString(req.params.id)));
 
         logService.createLog({

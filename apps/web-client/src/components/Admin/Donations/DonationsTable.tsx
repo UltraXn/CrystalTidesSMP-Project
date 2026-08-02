@@ -99,10 +99,10 @@ export default function DonationsTable({
                                 </td>
                                 <td style={{ textAlign: 'right' }}>
                                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.6rem' }}>
-                                        <button onClick={() => onEdit(donation)} className="donor-btn-action edit" title={t('admin.polls.edit_btn')}>
+                                        <button type="button" onClick={() => onEdit(donation)} className="donor-btn-action edit" title={t('admin.polls.edit_btn')}>
                                             <Edit2 size={14} />
                                         </button>
-                                        <button onClick={() => onDelete(donation.id)} className="donor-btn-action delete" title={t('admin.donors.delete_btn')}>
+                                        <button type="button" onClick={() => onDelete(donation.id)} className="donor-btn-action delete" title={t('admin.donors.delete_btn')}>
                                             <Trash2 size={14} />
                                         </button>
                                     </div>
@@ -115,7 +115,7 @@ export default function DonationsTable({
 
             {totalPages > 1 && (
                 <div className="premium-pagination">
-                    <button 
+                    <button aria-label="Action" type="button" 
                         className="page-btn" 
                         onClick={() => setPage(p => Math.max(1, p - 1))}
                         disabled={page === 1}
@@ -125,7 +125,7 @@ export default function DonationsTable({
                     <div className="page-info">
                         PAGINA <span>{page}</span> DE <span>{totalPages}</span>
                     </div>
-                    <button 
+                    <button aria-label="Action" type="button" 
                         className="page-btn" 
                         onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                         disabled={page === totalPages}

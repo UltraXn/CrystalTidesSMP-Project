@@ -68,7 +68,7 @@ export default function DonationFormModal({ isOpen, onClose, onSave, initialData
                         <CircleDollarSign style={{ color: 'var(--accent)' }} />
                         {formData.id ? t('admin.donations.edit_title') : t('admin.donations.new_btn')}
                     </h3>
-                    <button onClick={onClose} className="btn-close-mini">
+                    <button aria-label="Action" type="button" onClick={onClose} className="btn-close-mini">
                         <X />
                     </button>
                 </div>
@@ -77,10 +77,10 @@ export default function DonationFormModal({ isOpen, onClose, onSave, initialData
                     <div className="donation-form-grid">
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                             <div className="form-group">
-                                <label className="admin-label-premium">
+                                <label htmlFor="donation-donor-name" className="admin-label-premium">
                                     <User size={12} /> {t('admin.donations.form.donor_name')}
                                 </label>
-                                <input 
+                                <input id="donation-donor-name"
                                     className="admin-input-premium" 
                                     value={formData.from_name} 
                                     onChange={e => setFormData({...formData, from_name: e.target.value})}
@@ -89,10 +89,10 @@ export default function DonationFormModal({ isOpen, onClose, onSave, initialData
                             </div>
 
                             <div className="form-group">
-                                <label className="admin-label-premium">
+                                <label htmlFor="donation-email" className="admin-label-premium">
                                     <Mail size={12} /> {t('admin.donations.form.email_label')}
                                 </label>
-                                <input 
+                                <input id="donation-email"
                                     className="admin-input-premium" 
                                     value={formData.buyer_email || ''} 
                                     onChange={e => setFormData({...formData, buyer_email: e.target.value})}
@@ -102,8 +102,8 @@ export default function DonationFormModal({ isOpen, onClose, onSave, initialData
 
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                 <div className="form-group">
-                                    <label className="admin-label-premium">{t('admin.donations.form.amount')}</label>
-                                    <input 
+                                    <label htmlFor="donation-amount" className="admin-label-premium">{t('admin.donations.form.amount')}</label>
+                                    <input id="donation-amount"
                                         type="number" 
                                         step="0.01"
                                         className="admin-input-premium" 
@@ -113,8 +113,8 @@ export default function DonationFormModal({ isOpen, onClose, onSave, initialData
                                     />
                                 </div>
                                 <div className="form-group">
-                                    <label className="admin-label-premium">{t('admin.donations.form.currency')}</label>
-                                    <select 
+                                    <label htmlFor="donation-currency" className="admin-label-premium">{t('admin.donations.form.currency')}</label>
+                                    <select id="donation-currency"
                                         className="admin-select-premium" 
                                         value={formData.currency} 
                                         onChange={e => setFormData({...formData, currency: e.target.value})}
@@ -129,8 +129,8 @@ export default function DonationFormModal({ isOpen, onClose, onSave, initialData
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                             <div className="form-group">
-                                <label className="admin-label-premium">{t('admin.donations.form.message')}</label>
-                                <textarea 
+                                <label htmlFor="donation-message" className="admin-label-premium">{t('admin.donations.form.message')}</label>
+                                <textarea id="donation-message"
                                     className="admin-textarea-premium" 
                                     rows={4}
                                     value={formData.message} 
@@ -140,24 +140,33 @@ export default function DonationFormModal({ isOpen, onClose, onSave, initialData
                             </div>
 
                             <div className="form-group">
-                                <div 
+                                <div
                                     className={`custom-checkbox-premium ${formData.is_public ? 'checked' : ''}`}
                                     onClick={() => setFormData({...formData, is_public: !formData.is_public})}
+                                    role="checkbox"
+                                    aria-checked={formData.is_public}
+                                    tabIndex={0}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                            e.preventDefault();
+                                            setFormData({...formData, is_public: !formData.is_public});
+                                        }
+                                    }}
                                 >
                                     <div className="checkbox-visual">
                                         {formData.is_public && <CheckCircle />}
                                     </div>
-                                    <label className="checkbox-label-text">
+                                    <div className="checkbox-label-text">
                                         {t('admin.donations.form.is_public')}
-                                    </label>
+                                    </div>
                                 </div>
                             </div>
 
                             <div className="form-group">
-                                <label className="admin-label-premium">
+                                <label htmlFor="donation-date" className="admin-label-premium">
                                     <Clock size={12} /> {t('admin.tickets.table.date')}
                                 </label>
-                                <input 
+                                <input id="donation-date"
                                     type="datetime-local"
                                     className="admin-input-premium" 
                                     value={formData.created_at ? new Date(formData.created_at).toISOString().slice(0, 16) : ''} 

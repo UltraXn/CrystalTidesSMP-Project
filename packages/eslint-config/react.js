@@ -30,6 +30,12 @@ export default [
         ],
         '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
         '@typescript-eslint/no-explicit-any': 'warn',
+        // Gradual migration: these React Compiler rules are valuable but the
+        // codebase has widespread existing patterns. Keep them off while they
+        // are refactored.
+        'react-hooks/set-state-in-effect': 'off',
+        'react-hooks/immutability': 'off',
+        'react-hooks/incompatible-library': 'off',
       },
   },
   {

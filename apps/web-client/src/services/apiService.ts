@@ -10,7 +10,8 @@ export const fetchServerResources = async () => {
 
 export const fetchStaffList = async () => {
     try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/staff`);
+        const headers = await getHeaders();
+        const response = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/staff`, { headers });
         if (!response.ok) {
             return [];
         }

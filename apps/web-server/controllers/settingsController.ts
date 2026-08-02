@@ -5,7 +5,7 @@ import { Request, Response } from 'express';
 import { ensureString } from '../utils/typeUtils.js';
 
 // Configuración pública permitida para usuarios no autenticados
-const PUBLIC_SETTINGS_WHITELIST = [
+const PUBLIC_SETTINGS_WHITELIST = new Set([
     'maintenance_mode',
     'theme',
     'hero_banners',
@@ -17,7 +17,38 @@ const PUBLIC_SETTINGS_WHITELIST = [
     'last_donors',
     'medal_definitions',
     'achievement_definitions'
-];
+]);
+
+const translateStaffCards = async (value: unknown): Promise<unknown> => {
+    try {
+        const cards = typeof value === 'string' ? JSON.parse(value) : value;
+        if (!Array.isArray(cards)) return value;
+        const translatedCards = await Promise.all(cards.map(async (card: { role?: string, role_en?: string, description?: string, description_en?: string }) => ({
+            ...card,
+            role_en: card.role ? await translateText(card.role, 'en').catch(() => card.role_en) : card.role_en,
+            description_en: card.description ? await translateText(card.description, 'en').catch(() => card.description_en) : card.description_en
+        })));
+        return JSON.stringify(translatedCards);
+    } catch (err) {
+        console.error("Error translating staff cards:", err);
+        return value;
+    }
+};
+
+const translateDonorsList = (value: unknown): unknown => {
+    try {
+        const donors = typeof value === 'string' ? JSON.parse(value) : value;
+        if (!Array.isArray(donors)) return value;
+        const translatedDonors = donors.map((donor: { description?: string, description_en?: string }) => ({
+            ...donor,
+            description_en: donor.description_en
+        }));
+        return JSON.stringify(translatedDonors);
+    } catch (err) {
+        console.error("Error translating donors list:", err);
+        return value;
+    }
+};
 
 // Obtener todas las configuraciones
 export const getSettings = async (req: Request, res: Response) => {
@@ -41,7 +72,7 @@ export const getSettings = async (req: Request, res: Response) => {
         const settings: Record<string, unknown> = {};
         if (data) {
             data.forEach((item: { key: string, value: unknown }) => {
-                if (isAdmin || PUBLIC_SETTINGS_WHITELIST.includes(item.key)) {
+                if (isAdmin || PUBLIC_SETTINGS_WHITELIST.has(item.key)) {
                     settings[item.key] = item.value;
                 }
             });
@@ -75,7 +106,7 @@ export const getSetting = async (req: Request, res: Response) => {
 
         if (!data) return res.json(null);
 
-        if (!isAdmin && !PUBLIC_SETTINGS_WHITELIST.includes(key)) {
+        if (!isAdmin && !PUBLIC_SETTINGS_WHITELIST.has(key)) {
             return res.status(403).json({ error: 'Access denied' });
         }
 
@@ -94,38 +125,10 @@ export const updateSetting = async (req: Request, res: Response) => {
 
         let finalValue = value;
 
-        // Auto Translation for Staff Cards
         if (key === 'staff_cards') {
-            try {
-                const cards = typeof value === 'string' ? JSON.parse(value) : value;
-                if (Array.isArray(cards)) {
-                    const translatedCards = await Promise.all(cards.map(async (card: { role?: string, role_en?: string, description?: string, description_en?: string }) => ({
-                        ...card,
-                        role_en: card.role ? await translateText(card.role, 'en').catch(() => card.role_en) : card.role_en,
-                        description_en: card.description ? await translateText(card.description, 'en').catch(() => card.description_en) : card.description_en
-                    })));
-                    finalValue = JSON.stringify(translatedCards);
-                }
-            } catch (err) {
-                console.error("Error translating staff cards:", err);
-            }
-        }
-
-        // Auto Translation for Donors List
-        if (key === 'donors_list') {
-            try {
-                const donors = typeof value === 'string' ? JSON.parse(value) : value;
-                if (Array.isArray(donors)) {
-                    const translatedDonors = await Promise.all(donors.map(async (donor: { description?: string, description_en?: string }) => ({
-                        ...donor,
-                        description_en: donor.description_en
-                        // description_en: donor.description ? await translateText(donor.description, 'en') : donor.description_en
-                    })));
-                    finalValue = JSON.stringify(translatedDonors);
-                }
-            } catch (err) {
-                console.error("Error translating donors list:", err);
-            }
+            finalValue = await translateStaffCards(value);
+        } else if (key === 'donors_list') {
+            finalValue = translateDonorsList(value);
         }
 
         const { data, error } = await supabase

@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Home, Store, Menu, Gamepad2, X, Shield, MessageSquare } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
-import { useSidebar } from "../../context/SidebarContext";
+import { useSidebar } from "../../hooks/useSidebar";
 import { gsap } from "gsap";
 import { isAdmin } from "../../utils/roleUtils";
 
@@ -60,21 +60,21 @@ export default function MobileBottomNav() {
                     {/* Center Action Button (PFP or Status) */}
                     <div className="relative -top-6 flex flex-col items-center justify-center">
                         {user ? (
-                            <Link to={profileLink} className="flex items-center justify-center w-16 h-16 rounded-full border-4 border-[#0a0a0a] bg-[#0a0a0a] shadow-xl overflow-hidden group transition-all active:scale-95">
+                            <Link to={profileLink} aria-label="Ir al perfil de usuario" className="flex items-center justify-center w-16 h-16 rounded-full border-4 border-[#0a0a0a] bg-[#0a0a0a] shadow-xl overflow-hidden group transition-colors active:scale-95">
                                  <img 
                                     src={avatarUrl} 
                                     alt="Profile" 
-                                    className="w-full h-full object-cover group-hover:brightness-110 transition-all"
+                                    className="w-full h-full object-cover group-hover:brightness-110 transition-colors"
                                 />
                             </Link>
                         ) : (
-                            <Link to="/status" className="flex items-center justify-center w-14 h-14 bg-(--accent) rounded-full shadow-[0_0_20px_var(--accent-color)] text-black animate-pulse-slow border-4 border-[#0a0a0a]">
+                            <Link to="/status" aria-label="Ver estado del servidor" className="flex items-center justify-center w-14 h-14 bg-(--accent) rounded-full shadow-[0_0_20px_var(--accent-color)] text-black animate-pulse-slow border-4 border-[#0a0a0a]">
                                 <Gamepad2 size={24} />
                             </Link>
                         )}
                         
                         {isAccountPage && user && (
-                            <button 
+                            <button type="button" 
                                 onClick={toggleSidebar}
                                 className="absolute top-18 text-[9px] font-black uppercase tracking-widest text-(--accent) bg-black/50 px-2 py-0.5 rounded-full backdrop-blur-md border border-white/10"
                             >
@@ -89,9 +89,10 @@ export default function MobileBottomNav() {
                          <NavLink to="/forum" icon={<MessageSquare size={20} />} label={t('footer.forum', 'Foro')} active={location.pathname === '/forum'} />
                     )}
 
-                    <button 
+                    <button type="button" 
                         onClick={() => setIsMenuOpen(true)}
-                        className={`flex flex-col items-center justify-center gap-1 w-16 py-2 rounded-xl transition-all ${isMenuOpen ? 'text-(--accent)' : 'text-gray-500'}`}
+                        aria-label="Abrir menú de navegación"
+                        className={`flex flex-col items-center justify-center gap-1 w-16 py-2 rounded-xl transition-colors ${isMenuOpen ? 'text-(--accent)' : 'text-gray-500'}`}
                     >
                         <Menu size={20} />
                         <span className="text-[9px] font-black uppercase tracking-widest mt-1.5">Menú</span>
@@ -109,7 +110,8 @@ function NavLink({ to, icon, label, active }: { to: string, icon: React.ReactNod
     return (
         <Link 
             to={to} 
-            className={`flex flex-col items-center justify-center gap-1 w-16 py-2 rounded-xl transition-all ${active ? 'text-(--accent)' : 'text-gray-500 active:scale-95'}`}
+            aria-label={label}
+            className={`flex flex-col items-center justify-center gap-1 w-16 py-2 rounded-xl transition-colors ${active ? 'text-(--accent)' : 'text-gray-500 active:scale-95'}`}
         >
             {icon}
             <span className="text-[9px] font-black uppercase tracking-widest mt-1.5">{label}</span>
@@ -176,9 +178,10 @@ function MenuOverlay({ isOpen, onClose }: { isOpen: boolean, onClose: () => void
                             Crystal<span className="text-(--accent)">Tides</span>
                         </span>
                     </div>
-                    <button 
+                    <button type="button" 
                         onClick={onClose}
-                        className="w-11 h-11 flex items-center justify-center bg-white/5 border border-white/5 rounded-xl text-white hover:bg-white/10 active:scale-90 transition-all shadow-lg"
+                        aria-label="Cerrar menú"
+                        className="w-11 h-11 flex items-center justify-center bg-white/5 border border-white/5 rounded-xl text-white hover:bg-white/10 active:scale-90 transition-colors shadow-lg"
                     >
                         <X size={20} />
                     </button>
@@ -196,18 +199,18 @@ function MenuOverlay({ isOpen, onClose }: { isOpen: boolean, onClose: () => void
                             { to: "/wiki", label: t('navbar.wiki', 'Guía') },
                             { to: "/support", label: t('navbar.support', 'Soporte') },
                             { to: "/map", label: t('navbar.map') }
-                        ].map((link, idx) => (
+                        ].map((link) => (
                             <Link 
-                                key={idx}
+                                key={link.to}
                                 to={link.to} 
-                                className={`flex items-center justify-between px-6 py-5 rounded-3xl transition-all group ${link.highlight ? 'bg-(--accent) text-black shadow-2xl shadow-(--accent)/20' : 'text-gray-400 hover:text-white hover:bg-white/5'}`} 
+                                className={`flex items-center justify-between px-6 py-5 rounded-3xl transition-colors group ${link.highlight ? 'bg-(--accent) text-black shadow-2xl shadow-(--accent)/20' : 'text-gray-400 hover:text-white hover:bg-white/5'}`} 
                                 onClick={onClose} 
                                 ref={addToRefs}
                             >
                                 <span className={`text-2xl font-black uppercase tracking-widest ${link.highlight ? 'text-black' : 'text-white/80 group-hover:text-white'}`}>
                                     {link.label}
                                 </span>
-                                <div className={`w-8 h-px transition-all duration-500 origin-right group-hover:scale-x-150 ${link.highlight ? 'bg-black' : 'bg-white/20 group-hover:bg-(--accent)'}`} />
+                                <div className={`w-8 h-px transition-colors duration-500 origin-right group-hover:scale-x-150 ${link.highlight ? 'bg-black' : 'bg-white/20 group-hover:bg-(--accent)'}`} />
                             </Link>
                         ))}
                     </nav>
@@ -215,16 +218,16 @@ function MenuOverlay({ isOpen, onClose }: { isOpen: boolean, onClose: () => void
                     {/* Bottom Section */}
                     <div className="mt-auto space-y-8" ref={addToRefs}>
                         <div className="flex items-center gap-4 bg-white/5 p-2 rounded-2xl border border-white/5">
-                            <button 
+                            <button aria-label="Action" type="button" 
                                 onClick={() => i18n.changeLanguage('es')} 
-                                className={`flex-1 flex items-center justify-center gap-3 py-4 rounded-xl text-xs font-black tracking-widest transition-all ${i18n.resolvedLanguage === 'es' ? 'bg-white text-black shadow-xl ring-4 ring-white/10' : 'text-gray-500 hover:text-white'}`}
+                                className={`flex-1 flex items-center justify-center gap-3 py-4 rounded-xl text-xs font-black tracking-widest transition-colors ${i18n.resolvedLanguage === 'es' ? 'bg-white text-black shadow-xl ring-4 ring-white/10' : 'text-gray-500 hover:text-white'}`}
                             >
                                 <img src="/images/flags/es.svg" alt="ES" className="w-5 h-auto rounded-sm" />
                                 ESPAÑOL
                             </button>
-                            <button 
+                            <button aria-label="Action" type="button" 
                                 onClick={() => i18n.changeLanguage('en')} 
-                                className={`flex-1 flex items-center justify-center gap-3 py-4 rounded-xl text-xs font-black tracking-widest transition-all ${i18n.resolvedLanguage === 'en' ? 'bg-white text-black shadow-xl ring-4 ring-white/10' : 'text-gray-500 hover:text-white'}`}
+                                className={`flex-1 flex items-center justify-center gap-3 py-4 rounded-xl text-xs font-black tracking-widest transition-colors ${i18n.resolvedLanguage === 'en' ? 'bg-white text-black shadow-xl ring-4 ring-white/10' : 'text-gray-500 hover:text-white'}`}
                             >
                                 <img src="/images/flags/us.svg" alt="EN" className="w-5 h-auto rounded-sm" />
                                 ENGLISH
@@ -234,10 +237,10 @@ function MenuOverlay({ isOpen, onClose }: { isOpen: boolean, onClose: () => void
                         {/* We don't show login/register buttons if we are logged in, handled by logic above */}
                         {!user && (
                              <div className="grid grid-cols-2 gap-4">
-                                <Link to="/login" className="py-5 text-center text-xs font-black uppercase tracking-widest text-white bg-white/5 border border-white/10 rounded-2xl active:scale-95 transition-all" onClick={onClose}>
+                                <Link to="/login" className="py-5 text-center text-xs font-black uppercase tracking-widest text-white bg-white/5 border border-white/10 rounded-2xl active:scale-95 transition-colors" onClick={onClose}>
                                     {t('navbar.login')}
                                 </Link>
-                                <Link to="/register" className="py-5 text-center text-xs font-black uppercase tracking-widest text-black bg-white rounded-2xl active:scale-95 transition-all shadow-[0_10px_30px_rgba(255,255,255,0.1)]" onClick={onClose}>
+                                <Link to="/register" className="py-5 text-center text-xs font-black uppercase tracking-widest text-black bg-white rounded-2xl active:scale-95 transition-colors shadow-[0_10px_30px_rgba(255,255,255,0.1)]" onClick={onClose}>
                                     {t('navbar.register')}
                                 </Link>
                             </div>

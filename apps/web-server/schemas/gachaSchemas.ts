@@ -15,3 +15,15 @@ export const gachaHistorySchema = z.object({
         userId: z.string().uuid("ID de usuario inválido")
     })
 });
+
+export const gachaStatusSchema = z.object({
+    params: z.object({
+        userId: z.string().uuid("ID de usuario inválido")
+    })
+});
+
+export const addFundsSchema = z.object({
+    body: z.object({
+        amount: z.number().int().positive("La cantidad debe ser positiva")
+    })
+});

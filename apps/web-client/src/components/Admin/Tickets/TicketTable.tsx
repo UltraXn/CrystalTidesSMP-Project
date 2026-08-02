@@ -1,3 +1,4 @@
+import { useMemo } from "react"
 import { Users, Eye, Ticket as TicketIcon } from "lucide-react"
 import { useTranslation } from 'react-i18next'
 import { Ticket } from "./types"
@@ -22,6 +23,7 @@ export default function TicketTable({
     onViewTicket 
 }: TicketTableProps) {
     const { t } = useTranslation()
+    const selectedSet = useMemo(() => new Set(selectedTicketIds), [selectedTicketIds]);
 
     if (loading) {
        return (
@@ -46,7 +48,7 @@ export default function TicketTable({
                 <thead>
                     <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', background: 'rgba(255,255,255,0.02)' }}>
                         <th style={{width: '50px', padding: '1.5rem 1rem', textAlign: 'center'}}>
-                            <input 
+                            <input aria-label="Input field" 
                                 type="checkbox" 
                                 checked={tickets.length > 0 && selectedTicketIds.length === tickets.length}
                                 onChange={toggleSelectAll}
@@ -71,14 +73,14 @@ export default function TicketTable({
                             style={{ 
                                 cursor: 'pointer', 
                                 borderBottom: '1px solid rgba(255,255,255,0.03)',
-                                background: selectedTicketIds.includes(ticketItem.id) ? 'rgba(var(--accent-rgb), 0.05)' : 'transparent',
+                                background: selectedSet.has(ticketItem.id) ? 'rgba(var(--accent-rgb), 0.05)' : 'transparent',
                                 transition: 'background 0.2s'
                             }}
                         >
                             <td onClick={e => e.stopPropagation()} style={{textAlign: 'center', padding: '1rem'}}>
-                                <input 
+                                <input aria-label="Input field" 
                                     type="checkbox" 
-                                    checked={selectedTicketIds.includes(ticketItem.id)}
+                                    checked={selectedSet.has(ticketItem.id)}
                                     onChange={() => toggleSelectTicket(ticketItem.id)}
                                     style={{cursor:'pointer', accentColor: 'var(--accent)'}}
                                 />
@@ -101,7 +103,7 @@ export default function TicketTable({
                             <td style={{ padding: '1rem' }}><StatusBadge status={ticketItem.status} /></td>
                             <td style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.85rem', padding: '1rem' }}>{new Date(ticketItem.created_at).toLocaleDateString()}</td>
                             <td style={{ padding: '1rem', textAlign: 'right' }}>
-                                <button
+                                <button type="button"
                                     onClick={(e) => { e.stopPropagation(); onViewTicket(ticketItem); }}
                                     className="hover-scale"
                                     style={{ 

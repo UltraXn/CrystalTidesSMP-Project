@@ -157,28 +157,46 @@ export const getPublicProfile = async (identifier: string) => {
 };
 
 /**
- * Give Karma to a user
+ * Give Karma to a user.
+ *
+ * Race-safe design: the `karma_votes` table (PK user_id+voter_id) is the
+ * source of truth, so concurrent duplicate votes are rejected atomically by
+ * the database (23505). The `reputation` counter in user_metadata is kept as
+ * a denormalized cache for read paths; it is recomputed as COUNT(*) after
+ * every vote and self-heals on the next one.
  */
 export const giveKarma = async (userId: string, voterId: string): Promise<number> => {
     const { data: { user }, error: fetchError } = await supabase.auth.admin.getUserById(userId);
     if (fetchError || !user) throw new Error('User not found');
 
-    const metadata = user.user_metadata || {};
-    const currentReputation = metadata.reputation || 0;
-    const voters = metadata.voters || [];
+    const { error: insertError } = await supabase
+        .from('karma_votes')
+        .insert({ user_id: userId, voter_id: voterId });
 
-    if (voters.includes(voterId)) {
-        throw new Error('Ya le has dado karma a este usuario');
+    if (insertError) {
+        // Unique violation -> this voter already voted for this user
+        if (insertError.code === '23505') {
+            throw new Error('Ya le has dado karma a este usuario');
+        }
+        throw insertError;
     }
 
-    const newReputation = currentReputation + 1;
-    voters.push(voterId);
+    const { count, error: countError } = await supabase
+        .from('karma_votes')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId);
 
-    const { error: updateError } = await supabase.auth.admin.updateUserById(
+    if (countError) throw countError;
+
+    const newReputation = count ?? 1;
+
+    // Best-effort cache sync for profile read paths (non-critical if it lags)
+    const cleanMetadata = { ...(user.user_metadata || {}) };
+    delete cleanMetadata.voters; // drop legacy unbounded array
+    await supabase.auth.admin.updateUserById(
         userId,
-        { user_metadata: { ...metadata, reputation: newReputation, voters } }
+        { user_metadata: { ...cleanMetadata, reputation: newReputation } }
     );
 
-    if (updateError) throw updateError;
     return newReputation;
 };

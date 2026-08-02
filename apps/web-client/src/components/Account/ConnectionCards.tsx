@@ -1,8 +1,14 @@
-import React from 'react';
-import { Gamepad2 } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Gamepad2, ChevronDown, ChevronUp, Copy, ExternalLink, Check } from 'lucide-react';
 import { UserIdentity } from '@supabase/supabase-js';
 import Loader from '../UI/Loader';
 import { useTranslation } from 'react-i18next';
+import {
+    openMicrosoftOAuthPopup,
+    exchangeMicrosoftAuthCode,
+    formatUuidWithHyphens,
+    MicrosoftDeviceCode
+} from '../../services/microsoftAuthWeb';
 
 export interface ConnectionCardsProps {
     isLinked: boolean;
@@ -28,6 +34,7 @@ export interface ConnectionCardsProps {
     onDiscordManualCodeChange?: (val: string) => void;
     onVerifyDiscordCode?: () => void;
     isVerifyingDiscord?: boolean;
+    onLinkMicrosoft?: (data: { uuid: string; nick: string }) => void;
 }
 
 const ConnectionCards: React.FC<ConnectionCardsProps> = ({
@@ -53,15 +60,88 @@ const ConnectionCards: React.FC<ConnectionCardsProps> = ({
     discordManualCode,
     onDiscordManualCodeChange,
     onVerifyDiscordCode,
-    isVerifyingDiscord
+    isVerifyingDiscord,
+    onLinkMicrosoft
 }) => {
     const { t } = useTranslation();
+
+    // Microsoft Auth States
+    const [msAuthLoading, setMsAuthLoading] = useState(false);
+    const [msDeviceCode] = useState<MicrosoftDeviceCode | null>(null);
+    const [msStatusMsg, setMsStatusMsg] = useState("");
+    const [msErrorMsg, setMsErrorMsg] = useState<string | null>(null);
+    const [copiedCode, setCopiedCode] = useState(false);
+
+    // No-Premium Section Toggle State
+    const [showNoPremiumSection, setShowNoPremiumSection] = useState(false);
+
+    const [popupWindow, setPopupWindow] = useState<Window | null>(null);
+
+    const onLinkMicrosoftRef = useRef(onLinkMicrosoft);
+    useEffect(() => {
+        onLinkMicrosoftRef.current = onLinkMicrosoft;
+    }, [onLinkMicrosoft]);
+
+    useEffect(() => {
+        if (!popupWindow) return;
+
+        const messageHandler = async (event: MessageEvent) => {
+            if (event.data?.type === "MS_AUTH_CODE" && event.data?.code) {
+                setMsStatusMsg("Autenticando con Microsoft y Xbox Live...");
+                try {
+                    const profile = await exchangeMicrosoftAuthCode(event.data.code);
+                    const formattedUuid = formatUuidWithHyphens(profile.id);
+                    if (onLinkMicrosoftRef.current) {
+                        onLinkMicrosoftRef.current({ uuid: formattedUuid, nick: profile.name });
+                    }
+                } catch (err: unknown) {
+                    console.error("Microsoft popup auth error:", err);
+                    const msg = err instanceof Error ? err.message : String(err);
+                    setMsErrorMsg(msg || "Error al autenticar con Microsoft");
+                } finally {
+                    setMsAuthLoading(false);
+                    setPopupWindow(null);
+                }
+            }
+        };
+
+        window.addEventListener("message", messageHandler);
+
+        const timer = setInterval(() => {
+            if (popupWindow.closed) {
+                setMsAuthLoading(false);
+                setPopupWindow(null);
+            }
+        }, 1000);
+
+        return () => {
+            clearInterval(timer);
+            window.removeEventListener("message", messageHandler);
+        };
+    }, [popupWindow]);
+
+    const handleStartMicrosoftLink = () => {
+        setMsAuthLoading(true);
+        setMsErrorMsg(null);
+        setMsStatusMsg("Abriendo ventana de inicio de sesión de Microsoft...");
+
+        const popup = openMicrosoftOAuthPopup();
+        setPopupWindow(popup);
+    };
+
+    const handleCopyMsCode = () => {
+        if (!msDeviceCode) return;
+        navigator.clipboard.writeText(msDeviceCode.user_code);
+        setCopiedCode(true);
+        setTimeout(() => setCopiedCode(false), 2000);
+        window.open(msDeviceCode.verification_uri || "https://microsoft.com/link", "_blank", "noopener,noreferrer");
+    };
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             
             {/* Minecraft Card */}
-            <div className="group relative flex flex-col bg-white/5 border border-green-500/20 rounded-4xl p-8 backdrop-blur-3xl overflow-hidden transition-all hover:bg-white/10 hover:border-green-500/50 hover:shadow-[0_0_30px_rgba(34,197,94,0.1)] hover:-translate-y-1">
+            <div className="group relative flex flex-col bg-white/5 border border-green-500/20 rounded-4xl p-8 backdrop-blur-3xl overflow-hidden transition-colors hover:bg-white/10 hover:border-green-500/50 hover:shadow-[0_0_30px_rgba(34,197,94,0.1)] hover:-translate-y-1">
                 <div className="flex items-center gap-5 mb-8">
                     <div className="relative">
                         {isLinked ? (
@@ -95,64 +175,135 @@ const ConnectionCards: React.FC<ConnectionCardsProps> = ({
                 <div className="mt-auto space-y-4">
                     {isLinked ? (
                         <button 
+                            type="button"
                             onClick={onUnlinkMinecraft}
-                            className="w-full py-4 bg-red-500/10 border border-red-500/20 text-red-400 font-black uppercase tracking-widest rounded-2xl hover:bg-red-500/20 active:scale-95 transition-all text-xs"
+                            className="w-full py-4 bg-red-500/10 border border-red-500/20 text-red-400 font-black uppercase tracking-widest rounded-2xl hover:bg-red-500/20 active:scale-95 transition-colors text-xs"
                         >
                             {t('account.connections.unlink')}
                         </button>
                     ) : (
                         <div className="space-y-4">
-                            {!linkCode ? (
-                                <>
-                                    <button 
-                                        onClick={onGenerateCode} 
-                                        disabled={linkLoading}
-                                        className="w-full py-4 bg-white text-black font-black uppercase tracking-widest rounded-2xl hover:bg-green-400 hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-white/5 disabled:opacity-50 text-xs"
+                            {/* Premium Microsoft Link Button */}
+                            {!msDeviceCode ? (
+                                <button 
+                                    type="button"
+                                    onClick={handleStartMicrosoftLink} 
+                                    disabled={msAuthLoading}
+                                    className="w-full py-4 bg-emerald-500 hover:bg-emerald-400 text-black font-black uppercase tracking-widest rounded-2xl hover:scale-[1.02] active:scale-95 transition-colors shadow-xl shadow-emerald-500/20 disabled:opacity-50 text-xs flex items-center justify-center gap-2"
+                                >
+                                    {msAuthLoading ? (
+                                        <Loader minimal />
+                                    ) : (
+                                        <>
+                                            <svg width="16" height="16" viewBox="0 0 23 23" fill="currentColor">
+                                                <path fill="#f35325" d="M1 1h10v10H1z"/>
+                                                <path fill="#81bc06" d="M12 1h10v10H12z"/>
+                                                <path fill="#05a6f0" d="M1 12h10v10H1z"/>
+                                                <path fill="#ffba08" d="M12 12h10v10H12z"/>
+                                            </svg>
+                                            <span>Vincular Premium (Microsoft)</span>
+                                        </>
+                                    )}
+                                </button>
+                            ) : (
+                                /* Microsoft Device Code Dialog */
+                                <div className="bg-black/60 border border-emerald-500/40 rounded-3xl p-5 text-center animate-fade-in space-y-3">
+                                    <p className="text-[11px] font-bold text-gray-300 uppercase tracking-widest">
+                                        Introduce este código en Microsoft:
+                                    </p>
+                                    <code className="block bg-emerald-950/60 text-emerald-300 py-2.5 rounded-xl text-xl font-black tracking-widest border border-emerald-500/30">
+                                        {msDeviceCode.user_code}
+                                    </code>
+
+                                    <button aria-label="Action"
+                                        type="button"
+                                        onClick={handleCopyMsCode}
+                                        className="w-full py-2.5 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 text-xs font-extrabold rounded-xl transition-colors flex items-center justify-center gap-2"
                                     >
-                                        {linkLoading ? <Loader minimal /> : t('account.connections.get_code')}
+                                        {copiedCode ? <Check size={14} /> : <Copy size={14} />}
+                                        <span>{copiedCode ? "¡Código copiado!" : "Copiar e ir a Microsoft"}</span>
+                                        <ExternalLink size={14} />
                                     </button>
 
-                                    <div className="relative py-2">
-                                        <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/5"></div></div>
-                                        <div className="relative flex justify-center text-[10px]"><span className="bg-[#0a0a0a] px-3 font-black text-gray-600 uppercase tracking-widest">O USA UN CÓDIGO</span></div>
-                                    </div>
-
-                                    <div className="flex gap-2">
-                                        <input 
-                                            type="text" 
-                                            placeholder="CÓDIGO"
-                                            value={manualCode}
-                                            onChange={(e) => onManualCodeChange?.(e.target.value)}
-                                            className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-sm font-bold text-white placeholder:text-gray-600 focus:outline-none focus:border-white/20 transition-colors"
-                                        />
-                                        <button 
-                                            onClick={onVerifyCode}
-                                            disabled={isVerifying || !manualCode}
-                                            className="px-6 bg-white/10 hover:bg-white/20 text-white font-black uppercase tracking-widest rounded-2xl transition-all disabled:opacity-30 text-[10px]"
-                                        >
-                                            {isVerifying ? <Loader minimal /> : '✓'}
-                                        </button>
-                                    </div>
-                                </>
-                            ) : (
-                                <div className="bg-white/5 border border-dashed border-green-500/40 rounded-3xl p-6 text-center animate-fade-in">
-                                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">{t('account.connections.type_in_server')}</p>
-                                    <code className="block bg-black/60 text-green-400 py-3 rounded-xl text-lg font-black tracking-widest border border-green-500/20 mb-4 shadow-2xl shadow-green-500/10">
-                                        /link {linkCode}
-                                    </code>
-                                    <div className="flex items-center justify-center gap-3">
+                                    <div className="flex items-center justify-center gap-2 pt-1 text-gray-400 text-[10.5px]">
                                         <Loader minimal />
-                                        <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{t('account.connections.waiting')}</span>
+                                        <span>{msStatusMsg || "Esperando autorización..."}</span>
                                     </div>
                                 </div>
                             )}
+
+                            {msErrorMsg && (
+                                <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs text-center font-semibold">
+                                    ⚠️ {msErrorMsg}
+                                </div>
+                            )}
+
+                            {/* Section for No-Premium accounts */}
+                            <div className="border-t border-white/10 pt-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowNoPremiumSection(!showNoPremiumSection)}
+                                    aria-expanded={showNoPremiumSection}
+                                    aria-label="Alternar sección de cuenta No-Premium"
+                                    className="w-full flex items-center justify-between text-[11px] font-bold text-gray-400 hover:text-white transition-colors py-1 px-1"
+                                >
+                                    <span>¿Usas cuenta No-Premium / Offline?</span>
+                                    {showNoPremiumSection ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                                </button>
+
+                                {showNoPremiumSection && (
+                                    <div className="mt-3 space-y-4 animate-fade-in">
+                                        {!linkCode ? (
+                                            <>
+                                                <button aria-label="Action" 
+                                                    type="button"
+                                                    onClick={onGenerateCode} 
+                                                    disabled={linkLoading}
+                                                    className="w-full py-3 bg-white/10 hover:bg-white/20 text-white font-bold uppercase tracking-widest rounded-2xl transition-colors disabled:opacity-50 text-[11px]"
+                                                >
+                                                    {linkLoading ? <Loader minimal /> : "Generar código en servidor (/link)"}
+                                                </button>
+
+                                                <div className="flex gap-2">
+                                                    <input aria-label="Input field" 
+                                                        type="text" 
+                                                        placeholder="CÓDIGO 6 DÍGITOS"
+                                                        value={manualCode}
+                                                        onChange={(e) => onManualCodeChange?.(e.target.value)}
+                                                        className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-4 py-2.5 text-xs font-bold text-white placeholder:text-gray-600 focus:outline-none focus:border-white/20 transition-colors"
+                                                    />
+                                                    <button aria-label="Action" 
+                                                        type="button"
+                                                        onClick={onVerifyCode}
+                                                        disabled={isVerifying || !manualCode}
+                                                        className="px-5 bg-white/10 hover:bg-white/20 text-white font-black uppercase tracking-widest rounded-2xl transition-colors disabled:opacity-30 text-[10px]"
+                                                    >
+                                                        {isVerifying ? <Loader minimal /> : '✓'}
+                                                    </button>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <div className="bg-white/5 border border-dashed border-green-500/40 rounded-3xl p-5 text-center animate-fade-in">
+                                                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Escribe esto en el chat del servidor:</p>
+                                                <code className="block bg-black/60 text-green-400 py-2.5 rounded-xl text-base font-black tracking-widest border border-green-500/20 mb-3 shadow-2xl">
+                                                    /link {linkCode}
+                                                </code>
+                                                <div className="flex items-center justify-center gap-2">
+                                                    <Loader minimal />
+                                                    <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{t('account.connections.waiting')}</span>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     )}
                 </div>
             </div>
 
             {/* Discord Card */}
-            <div className="group relative flex flex-col bg-white/5 border border-[#5865F2]/20 rounded-4xl p-8 backdrop-blur-3xl overflow-hidden transition-all hover:bg-white/10 hover:border-[#5865F2]/50 hover:shadow-[0_0_30px_rgba(88,101,242,0.1)] hover:-translate-y-1">
+            <div className="group relative flex flex-col bg-white/5 border border-[#5865F2]/20 rounded-4xl p-8 backdrop-blur-3xl overflow-hidden transition-colors hover:bg-white/10 hover:border-[#5865F2]/50 hover:shadow-[0_0_30px_rgba(88,101,242,0.1)] hover:-translate-y-1">
                 <div className="flex items-center gap-5 mb-8">
                     <div className="relative">
                         {isDiscordLinked && (discordIdentity?.identity_data?.avatar_url || discordIdentity?.identity_data?.image_url || discordIdentity?.identity_data?.picture || discordMetadataAvatar) ? (
@@ -177,7 +328,7 @@ const ConnectionCards: React.FC<ConnectionCardsProps> = ({
 
                     <div>
                         <h3 className="text-xl font-black uppercase tracking-tighter text-white">Discord</h3>
-                        <p className="text-sm font-bold text-gray-500 uppercase tracking-widest truncate max-w-[150px]">
+                        <p className="text-sm font-bold text-gray-500 uppercase tracking-widest truncate max-w-37.5">
                             {isDiscordLinked
                                 ? (discordIdentity?.identity_data?.full_name || discordIdentity?.identity_data?.name || discordIdentity?.identity_data?.user_name || discordMetadataName || t('account.connections.connected')) 
                                 : t('account.connections.disconnected')}
@@ -188,16 +339,18 @@ const ConnectionCards: React.FC<ConnectionCardsProps> = ({
                 <div className="mt-auto space-y-4">
                     {isDiscordLinked ? (
                         <button 
+                            type="button"
                             onClick={() => discordIdentity ? onUnlinkProvider(discordIdentity) : onUnlinkDiscord()}
-                            className="w-full py-4 bg-red-500/10 border border-red-500/20 text-red-400 font-black uppercase tracking-widest rounded-2xl hover:bg-red-500/20 active:scale-95 transition-all text-xs"
+                            className="w-full py-4 bg-red-500/10 border border-red-500/20 text-red-400 font-black uppercase tracking-widest rounded-2xl hover:bg-red-500/20 active:scale-95 transition-colors text-xs"
                         >
                             {t('account.connections.unlink')}
                         </button>
                     ) : (
                         <div className="space-y-4">
                             <button 
+                                type="button"
                                 onClick={() => onLinkProvider('discord')}
-                                className="w-full py-4 bg-[#5865F2] text-white font-black uppercase tracking-widest rounded-2xl hover:bg-[#4752c4] hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-[#5865f2]/10 text-xs"
+                                className="w-full py-4 bg-[#5865F2] text-white font-black uppercase tracking-widest rounded-2xl hover:bg-[#4752c4] hover:scale-[1.02] active:scale-95 transition-colors shadow-xl shadow-[#5865f2]/10 text-xs"
                             >
                                 {t('account.connections.connect_discord')}
                             </button>
@@ -212,29 +365,29 @@ const ConnectionCards: React.FC<ConnectionCardsProps> = ({
                             </div>
 
                             <div className="relative group/input">
-                                <input 
+                                <input aria-label="Input field" 
                                     type="text" 
                                     placeholder="CÓDIGO (EJ: AB12CD)"
                                     value={discordManualCode}
                                     onChange={(e) => onDiscordManualCodeChange?.(e.target.value.toUpperCase())}
-                                    className="w-full bg-[#111] border border-white/10 rounded-xl pl-4 pr-14 py-3.5 text-sm font-bold text-white placeholder:text-gray-700 outline-none focus:border-[#5865F2]/50 focus:bg-[#161616] focus:shadow-[0_0_20px_rgba(88,101,242,0.1)] transition-all uppercase tracking-widest"
+                                    className="w-full bg-[#111] border border-white/10 rounded-xl pl-4 pr-14 py-3.5 text-sm font-bold text-white placeholder:text-gray-700 outline-none focus:border-[#5865F2]/50 focus:bg-[#161616] focus:shadow-[0_0_20px_rgba(88,101,242,0.1)] transition-colors uppercase tracking-widest"
                                 />
                                 <button 
+                                    type="button"
                                     onClick={onVerifyDiscordCode}
                                     disabled={isVerifyingDiscord || !discordManualCode}
-                                    className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-[#5865F2] hover:bg-[#4752c4] text-white rounded-lg transition-all disabled:opacity-0 disabled:scale-75 shadow-lg shadow-[#5865F2]/20 hover:shadow-[#5865F2]/40 active:scale-95"
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-[#5865F2] hover:bg-[#4752c4] text-white rounded-lg transition-colors disabled:opacity-0 disabled:scale-75 shadow-lg shadow-[#5865F2]/20 hover:shadow-[#5865F2]/40 active:scale-95"
                                 >
                                     {isVerifyingDiscord ? <Loader minimal /> : <span className="font-bold text-xs">OK</span>}
                                 </button>
                             </div>
                         </div>
-
                     )}
                 </div>
             </div>
 
             {/* Twitch Card */}
-            <div className="group relative flex flex-col bg-white/5 border border-[#9146FF]/20 rounded-4xl p-8 backdrop-blur-3xl overflow-hidden transition-all hover:bg-white/10 hover:border-[#9146FF]/50 hover:shadow-[0_0_30px_rgba(145,70,255,0.1)] hover:-translate-y-1">
+            <div className="group relative flex flex-col bg-white/5 border border-[#9146FF]/20 rounded-4xl p-8 backdrop-blur-3xl overflow-hidden transition-colors hover:bg-white/10 hover:border-[#9146FF]/50 hover:shadow-[0_0_30px_rgba(145,70,255,0.1)] hover:-translate-y-1">
                 <div className="flex items-center gap-5 mb-8">
                     <div className="relative">
                         {twitchIdentity?.identity_data?.avatar_url ? (
@@ -259,7 +412,7 @@ const ConnectionCards: React.FC<ConnectionCardsProps> = ({
 
                     <div>
                         <h3 className="text-xl font-black uppercase tracking-tighter text-white">Twitch</h3>
-                        <p className="text-sm font-bold text-gray-500 uppercase tracking-widest truncate max-w-[150px]">
+                        <p className="text-sm font-bold text-gray-500 uppercase tracking-widest truncate max-w-37.5">
                             {twitchIdentity 
                                 ? (twitchIdentity.identity_data?.full_name || twitchIdentity.identity_data?.name || twitchIdentity.identity_data?.login || t('account.connections.connected')) 
                                 : t('account.connections.disconnected')}
@@ -269,16 +422,16 @@ const ConnectionCards: React.FC<ConnectionCardsProps> = ({
                 
                 <div className="mt-auto">
                     {twitchIdentity ? (
-                        <button 
+                        <button type="button" 
                             onClick={() => onUnlinkProvider(twitchIdentity)}
-                            className="w-full py-4 bg-red-500/10 border border-red-500/20 text-red-400 font-black uppercase tracking-widest rounded-2xl hover:bg-red-500/20 active:scale-95 transition-all text-xs"
+                            className="w-full py-4 bg-red-500/10 border border-red-500/20 text-red-400 font-black uppercase tracking-widest rounded-2xl hover:bg-red-500/20 active:scale-95 transition-colors text-xs"
                         >
                             {t('account.connections.unlink')}
                         </button>
                     ) : (
-                        <button 
+                        <button type="button" 
                             onClick={() => onLinkProvider('twitch')}
-                            className="w-full py-4 bg-[#9146FF] text-white font-black uppercase tracking-widest rounded-2xl hover:bg-[#772ce8] hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-[#9146ff]/10 text-xs"
+                            className="w-full py-4 bg-[#9146FF] text-white font-black uppercase tracking-widest rounded-2xl hover:bg-[#772ce8] hover:scale-[1.02] active:scale-95 transition-colors shadow-xl shadow-[#9146ff]/10 text-xs"
                         >
                             {t('account.connections.connect_twitch')}
                         </button>

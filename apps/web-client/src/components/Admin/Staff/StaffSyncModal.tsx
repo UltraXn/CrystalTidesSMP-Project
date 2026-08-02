@@ -11,7 +11,7 @@ const TwitchIcon = ({ size = 14 }: { size?: number }) => (
         <path d="M11.857 3.143h-1.143V5.714h1.143V3.143zm-3.143 0H7.571V5.714h1.143V3.143z"/>
     </svg>
 );
-import { useTranslation } from 'react-i18next';
+import { useTranslation, Trans } from 'react-i18next';
 import { StaffCardData } from './StaffFormModal';
 
 interface StaffSyncModalProps {
@@ -38,14 +38,19 @@ export default function StaffSyncModal({ isOpen, foundStaff, onClose, onConfirm 
                     </div>
                     <h3>{t('admin.staff.confirm_modal.title')}</h3>
                     <p>
-                        <span dangerouslySetInnerHTML={{ __html: t('admin.staff.confirm_modal.detected_msg', { count: foundStaff.length, interpolation: { escapeValue: false } }) }}></span> <br/>
+                        <Trans
+                            i18nKey="admin.staff.confirm_modal.detected_msg"
+                            values={{ count: foundStaff.length }}
+                            components={{ strong: <strong /> }}
+                        />
+                        <br />
                         <span className="warning-text">{t('admin.staff.confirm_modal.warning')}</span>
                     </p>
                 </div>
 
                 <div className="sync-list-container">
-                    {foundStaff.map((s, i) => (
-                        <div key={i} className="sync-item-row">
+                    {foundStaff.map((s) => (
+                        <div key={s.name} className="sync-item-row">
                             <div className="sync-avatar-status">
                                 <img 
                                     src={s.image?.startsWith('http') ? s.image : `https://mc-heads.net/avatar/${s.name}/56`}
@@ -71,13 +76,13 @@ export default function StaffSyncModal({ isOpen, foundStaff, onClose, onConfirm 
                 </div>
 
                 <div className="modal-footer-premium">
-                    <button 
+                    <button type="button" 
                         onClick={onClose} 
                         className="modal-btn-secondary"
                     >
                         {t('admin.staff.confirm_modal.cancel')}
                     </button>
-                    <button 
+                    <button type="button" 
                         onClick={onConfirm} 
                         className="modal-btn-primary" 
                     >

@@ -8,49 +8,53 @@ export default function HeroParticles() {
         const container = containerRef.current
         if (!container) return
 
-        // Configuration
-        const numParticles = 30
-        const colors = ['#89D9D1', '#168C80', '#0C5952', '#ffffff']
+        let timer: NodeJS.Timeout
 
-        // Create particles
-        const particles: HTMLDivElement[] = []
-        for (let i = 0; i < numParticles; i++) {
-            const el = document.createElement('div')
-            el.classList.add('particle')
+        // Delay particle creation to ensure 0 main-thread blocking during initial paint
+        const startParticles = () => {
+            const numParticles = 20
+            const colors = ['#89D9D1', '#168C80', '#0C5952', '#ffffff']
 
-            // Random initial properties
-            const size = Math.random() * 8 + 2 // 2px to 10px
-            const color = colors[Math.floor(Math.random() * colors.length)]
+            for (let i = 0; i < numParticles; i++) {
+                const el = document.createElement('div')
+                el.classList.add('particle')
 
-            el.style.width = `${size}px`
-            el.style.height = `${size}px`
-            el.style.backgroundColor = color
-            el.style.position = 'absolute'
-            el.style.borderRadius = '50%'
-            el.style.opacity = String(Math.random() * 0.5 + 0.1) // 0.1 to 0.6
-            el.style.left = `${Math.random() * 100}%`
-            el.style.top = `${Math.random() * 100}%`
-            el.style.filter = `blur(${Math.random() * 2}px)`
+                const size = Math.random() * 6 + 2
+                const color = colors[Math.floor(Math.random() * colors.length)]
 
-            container.appendChild(el)
-            particles.push(el)
+                el.style.width = `${size}px`
+                el.style.height = `${size}px`
+                el.style.backgroundColor = color
+                el.style.position = 'absolute'
+                el.style.borderRadius = '50%'
+                el.style.opacity = String(Math.random() * 0.5 + 0.1)
+                el.style.left = `${Math.random() * 100}%`
+                el.style.top = `${Math.random() * 100}%`
 
-            // GSAP individual animation for more natural float
-            gsap.to(el, {
-                x: "random(-100, 100)",
-                y: "random(-100, 100)",
-                scale: "random(0.5, 1.5)",
-                opacity: "random(0.1, 0.6)",
-                duration: "random(3, 8)",
-                repeat: -1,
-                yoyo: true,
-                ease: "sine.inOut",
-                delay: Math.random() * 2
-            });
+                container.appendChild(el)
+
+                gsap.to(el, {
+                    x: "random(-80, 80)",
+                    y: "random(-80, 80)",
+                    scale: "random(0.5, 1.2)",
+                    opacity: "random(0.1, 0.5)",
+                    duration: "random(4, 9)",
+                    repeat: -1,
+                    yoyo: true,
+                    ease: "sine.inOut",
+                    delay: Math.random() * 2
+                });
+            }
+        }
+
+        if ('requestIdleCallback' in window) {
+            (window as unknown as { requestIdleCallback: (cb: () => void) => void }).requestIdleCallback(startParticles)
+        } else {
+            timer = setTimeout(startParticles, 1200)
         }
 
         return () => {
-            // Cleanup particles and their animations
+            if (timer) clearTimeout(timer)
             if (container) {
                 while (container.firstChild) {
                     gsap.killTweensOf(container.firstChild);

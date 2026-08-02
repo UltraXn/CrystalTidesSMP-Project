@@ -25,11 +25,29 @@ interface KanbanBoardProps {
     mockNotionTasks?: Record<string, unknown>[];
 }
 
+const subscribeToCalendar = async () => {
+    try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const response = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/staff/tasks/calendar/subscribe`, {
+            headers: getAuthHeaders(session?.access_token || null)
+        });
+        if (!response.ok) throw new Error('Failed to get subscribe link');
+        const { url } = await response.json();
+        window.open(url, '_blank', 'noopener,noreferrer');
+    } catch (err) {
+        console.error("Subscription Error:", err);
+    }
+};
+
+const onDragStart = (e: React.DragEvent, cardId: number) => {
+    e.dataTransfer.setData("cardId", cardId.toString());
+};
+
 export default function KanbanBoard({ mockTasks, mockGoogleEvents, mockNotionTasks }: KanbanBoardProps = {}) {
 
 
     const { t } = useTranslation();
-    const [tasks, setTasks] = useState<KanbanTask[]>((mockTasks || []).map(t => ({...t, columnId: t.column_id || 'idea'})));
+    const [tasks, setTasks] = useState<KanbanTask[]>(() => (mockTasks || []).map(t => ({...t, columnId: t.column_id || 'idea'})));
     const [loading, setLoading] = useState(!mockTasks);
     const [viewMode, setViewMode] = useState<'board' | 'calendar'>('board');
     const [googleEvents, setGoogleEvents] = useState<GoogleEvent[]>(mockGoogleEvents || []);
@@ -53,20 +71,6 @@ export default function KanbanBoard({ mockTasks, mockGoogleEvents, mockNotionTas
             // Optionally show toast error
         } finally {
             setSyncing(false);
-        }
-    };
-
-    const subscribeToCalendar = async () => {
-        try {
-            const { data: { session } } = await supabase.auth.getSession();
-            const response = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/staff/tasks/calendar/subscribe`, {
-                headers: getAuthHeaders(session?.access_token || null)
-            });
-            if (!response.ok) throw new Error('Failed to get subscribe link');
-            const { url } = await response.json();
-            window.open(url, '_blank');
-        } catch (err) {
-            console.error("Subscription Error:", err);
         }
     };
 
@@ -110,6 +114,7 @@ export default function KanbanBoard({ mockTasks, mockGoogleEvents, mockNotionTas
     const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
 
     useEffect(() => {
+        let ignore = false;
         const fetchTasks = async () => {
             if (mockTasks) return;
             try {
@@ -123,16 +128,17 @@ export default function KanbanBoard({ mockTasks, mockGoogleEvents, mockNotionTas
                         ...task,
                         columnId: task.column_id || 'idea'
                     }));
-                    setTasks(mappedData);
+                    if (!ignore) setTasks(mappedData);
                 }
             } catch (error) {
                 console.error("Error fetching tasks:", error);
             } finally {
-                setLoading(false);
+                if (!ignore) setLoading(false);
             }
         };
 
         fetchTasks();
+        return () => { ignore = true; }
     }, [mockTasks]);
 
     const handleCreateTask = async (e?: React.FormEvent) => {
@@ -298,10 +304,6 @@ export default function KanbanBoard({ mockTasks, mockGoogleEvents, mockNotionTas
         }
     };
 
-    const onDragStart = (e: React.DragEvent, cardId: number) => {
-        e.dataTransfer.setData("cardId", cardId.toString());
-    };
-
     const onDrop = async (e: React.DragEvent, columnId: string) => {
         const cardId = e.dataTransfer.getData("cardId");
         
@@ -344,13 +346,13 @@ export default function KanbanBoard({ mockTasks, mockGoogleEvents, mockNotionTas
                 <h3>{t('admin.staff_hub.kanban.title', 'Tablero')}</h3>
                 <div className="kanban-controls">
                     <div className="view-mode-toggle">
-                        <button 
+                        <button type="button" 
                             onClick={() => setViewMode('board')}
                             className={viewMode === 'board' ? 'active' : ''}
                         >
                             <List /> {t('admin.staff_hub.kanban.view_board', 'Board')}
                         </button>
-                        <button 
+                        <button type="button" 
                             onClick={() => setViewMode('calendar')}
                             className={viewMode === 'calendar' ? 'active' : ''}
                         >
@@ -360,21 +362,21 @@ export default function KanbanBoard({ mockTasks, mockGoogleEvents, mockNotionTas
 
                     {viewMode === 'calendar' && (
                         <>
-                            <button 
+                            <button type="button" 
                                 onClick={fetchGoogleEvents}
                                 disabled={syncing}
                                 className="sync-btn google"
                             >
                                 <GoogleIcon /> {syncing ? t('admin.staff_hub.kanban.syncing', 'Syncing...') : t('admin.staff_hub.kanban.sync_calendar', 'Sync Calendar')}
                             </button>
-                            <button 
+                            <button type="button" 
                                 onClick={subscribeToCalendar}
                                 className="sync-btn secondary"
                                 title="Add CrystalTides Calendar to your Google Calendar"
                             >
                                 <Plus /> {t('admin.staff_hub.kanban.add_to_calendar', 'Add to My Calendar')}
                             </button>
-                            <button 
+                            <button type="button" 
                                 onClick={fetchNotionTasks}
                                 disabled={notionSyncing}
                                 className="sync-btn notion"
@@ -384,7 +386,7 @@ export default function KanbanBoard({ mockTasks, mockGoogleEvents, mockNotionTas
                         </>
                     )}
 
-                    <button 
+                    <button type="button" 
                         onClick={() => setShowCreateModal(true)}
                         className="new-task-btn"
                     >
@@ -434,7 +436,7 @@ export default function KanbanBoard({ mockTasks, mockGoogleEvents, mockNotionTas
                                     {editingTask ? t('admin.staff_hub.kanban.create_modal.subtitle_edit', 'Actualiza los detalles de tu tarea') : t('admin.staff_hub.kanban.create_modal.subtitle_new', 'Planifica una nueva actividad para el equipo')}
                                 </p>
                             </div>
-                            <button 
+                            <button aria-label="Action" type="button" 
                                 onClick={() => { setShowCreateModal(false); setEditingTask(null); }}
                                 className="btn-close-premium"
                             >
@@ -444,8 +446,8 @@ export default function KanbanBoard({ mockTasks, mockGoogleEvents, mockNotionTas
 
                         <div className="modal-body-premium">
                             <div className="form-group">
-                                <label className="admin-label-premium"><Target size={12} /> {t('admin.staff_hub.kanban.create_modal.task_title', 'TÍTULO DE LA TAREA')}</label>
-                                <input 
+                                <label htmlFor="kanban-task-title" className="admin-label-premium"><Target size={12} /> {t('admin.staff_hub.kanban.create_modal.task_title', 'TÍTULO DE LA TAREA')}</label>
+                                <input id="kanban-task-title" 
                                     className="admin-input-premium" 
                                     placeholder={t('admin.staff_hub.kanban.create_modal.task_placeholder', '¿En qué vamos a trabajar?')}
                                     value={newTask.title}
@@ -472,8 +474,8 @@ export default function KanbanBoard({ mockTasks, mockGoogleEvents, mockNotionTas
 
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
                                 <div className="form-group">
-                                    <label className="admin-label-premium"><Tag size={12} /> {t('admin.staff_hub.kanban.create_modal.priority', 'Prioridad')}</label>
-                                    <select 
+                                    <label htmlFor="kanban-task-priority" className="admin-label-premium"><Tag size={12} /> {t('admin.staff_hub.kanban.create_modal.priority', 'Prioridad')}</label>
+                                    <select id="kanban-task-priority" 
                                         className="admin-select-premium"
                                         value={newTask.priority}
                                         onChange={e => setNewTask({...newTask, priority: e.target.value as TaskPriority})}
@@ -484,8 +486,8 @@ export default function KanbanBoard({ mockTasks, mockGoogleEvents, mockNotionTas
                                     </select>
                                 </div>
                                 <div className="form-group">
-                                    <label className="admin-label-premium"><Layers size={12} /> {t('admin.staff_hub.kanban.create_modal.type', 'Tipo')}</label>
-                                    <select 
+                                    <label htmlFor="kanban-task-type" className="admin-label-premium"><Layers size={12} /> {t('admin.staff_hub.kanban.create_modal.type', 'Tipo')}</label>
+                                    <select id="kanban-task-type" 
                                         className="admin-select-premium"
                                         value={newTask.type}
                                         onChange={e => setNewTask({...newTask, type: e.target.value})}
@@ -515,8 +517,8 @@ export default function KanbanBoard({ mockTasks, mockGoogleEvents, mockNotionTas
                                     </div>
                                 )}
                                 <div className="form-group">
-                                    <label className="admin-label-premium"><Calendar size={12} /> {t('admin.staff_hub.kanban.create_modal.start_date', 'Inicio')}</label>
-                                    <input 
+                                    <label htmlFor="kanban-task-start" className="admin-label-premium"><Calendar size={12} /> {t('admin.staff_hub.kanban.create_modal.start_date', 'Inicio')}</label>
+                                    <input id="kanban-task-start" 
                                         type="datetime-local"
                                         className="admin-input-premium" 
                                         value={newTask.due_date}
@@ -524,8 +526,8 @@ export default function KanbanBoard({ mockTasks, mockGoogleEvents, mockNotionTas
                                     />
                                 </div>
                                 <div className="form-group">
-                                    <label className="admin-label-premium"><Clock size={12} /> {t('admin.staff_hub.kanban.create_modal.end_date', 'Fin')}</label>
-                                    <input 
+                                    <label htmlFor="kanban-task-end" className="admin-label-premium"><Clock size={12} /> {t('admin.staff_hub.kanban.create_modal.end_date', 'Fin')}</label>
+                                    <input id="kanban-task-end" 
                                         type="datetime-local"
                                         className="admin-input-premium" 
                                         value={newTask.end_date}
@@ -537,8 +539,8 @@ export default function KanbanBoard({ mockTasks, mockGoogleEvents, mockNotionTas
                             </div>
 
                             <div className="form-group">
-                                <label className="admin-label-premium"><User size={12} /> {t('admin.staff_hub.kanban.create_modal.assignee', 'Asignado a')}</label>
-                                <input 
+                                <label htmlFor="kanban-task-assignee" className="admin-label-premium"><User size={12} /> {t('admin.staff_hub.kanban.create_modal.assignee', 'Asignado a')}</label>
+                                <input id="kanban-task-assignee" 
                                     className="admin-input-premium" 
                                     placeholder={t('admin.staff_hub.kanban.create_modal.assignee_placeholder', 'Nombre del staff...')}
                                     value={newTask.assignee}
@@ -548,13 +550,13 @@ export default function KanbanBoard({ mockTasks, mockGoogleEvents, mockNotionTas
                         </div>
 
                         <div className="modal-footer-premium">
-                            <button 
+                            <button type="button" 
                                 className="modal-btn-secondary"
                                 onClick={() => { setShowCreateModal(false); setEditingTask(null); }}
                             >
                                 {t('admin.staff_hub.kanban.create_modal.cancel', 'CANCELAR')}
                             </button>
-                            <button 
+                            <button type="button" 
                                 className="modal-btn-primary"
                                 onClick={editingTask ? handleSaveTask : handleCreateTask}
                             >

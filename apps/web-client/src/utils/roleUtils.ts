@@ -1,8 +1,8 @@
 import { User } from '@supabase/supabase-js';
 
 // Centralized role definitions based on project requirements
-export const ADMIN_ROLES = ['admin', 'neroferno', 'killu', 'developer', 'staff'];
-export const STAFF_ROLES = [...ADMIN_ROLES, 'moderator', 'mod', 'helper'];
+const ADMIN_ROLES = ['admin', 'neroferno', 'killu', 'developer', 'staff'];
+const STAFF_ROLES = [...ADMIN_ROLES, 'moderator', 'mod', 'helper'];
 
 /**
  * Extracts a role from a Supabase user object from multiple possible locations.

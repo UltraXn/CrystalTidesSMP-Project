@@ -1,15 +1,5 @@
 import supabase from '../config/supabaseClient.js';
 
-export interface Policy {
-    id: number;
-    slug: string;
-    title: string;
-    content: string;
-    title_en?: string;
-    content_en?: string;
-    updated_at: string;
-    last_updated_by?: string;
-}
 
 export const getAllPolicies = async () => {
     const { data, error } = await supabase

@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../services/supabaseClient';
 import { UserIdentity } from '@supabase/supabase-js';
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 export const useAccountSettings = () => {
     return useQuery({
@@ -86,6 +86,7 @@ export const useLinkStatus = (userId?: string, isLinkCodeVisible: boolean = fals
 };
 
 export const useGenerateLinkCode = () => {
+    const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async (userId: string) => {
             const session = (await supabase.auth.getSession()).data.session;
@@ -97,9 +98,15 @@ export const useGenerateLinkCode = () => {
                 },
                 body: JSON.stringify({ userId }),
             });
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.error || 'Failed to generate code');
+            }
             const data = await res.json();
-            if (!res.ok) throw new Error(data.error || 'Failed to generate code');
             return data.code;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['link-status'] });
         },
     });
 };
@@ -117,11 +124,36 @@ export const useVerifyLinkCode = () => {
                 },
                 body: JSON.stringify({ userId, code }),
             });
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.details ? `${errorData.error}: ${errorData.details}` : errorData.error || 'Invalid code');
+            }
             const data = await res.json();
-            if (!res.ok || (!data.linked && !data.success)) {
+            if (!data.linked && !data.success) {
                 throw new Error(data.details ? `${data.error}: ${data.details}` : data.error || 'Invalid code');
             }
             return data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['link-status'] });
+            queryClient.invalidateQueries({ queryKey: ['player-stats'] });
+        },
+    });
+};
+
+export const useLinkMicrosoftAccount = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async ({ uuid, nick }: { uuid: string; nick: string }) => {
+            const { error } = await supabase.auth.updateUser({
+                data: {
+                    minecraft_uuid: uuid,
+                    minecraft_nick: nick,
+                    is_premium: true,
+                },
+            });
+            if (error) throw error;
+            return { success: true, uuid, nick };
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['link-status'] });
@@ -200,11 +232,15 @@ export const useUpdateProfile = () => {
 };
 
 export const useUpdatePassword = () => {
+    const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async (password: string) => {
             const { error } = await supabase.auth.updateUser({ password });
             if (error) throw error;
             return { success: true };
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['account-settings'] });
         },
     });
 };
@@ -226,6 +262,7 @@ export const use2FAStatus = () => {
 };
 
 export const useSetup2FA = () => {
+    const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async () => {
             const session = (await supabase.auth.getSession()).data.session;
@@ -234,9 +271,15 @@ export const useSetup2FA = () => {
                 method: 'POST',
                 headers: { Authorization: `Bearer ${session.access_token}` },
             });
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.error || 'Setup failed');
+            }
             const data = await res.json();
-            if (!res.ok) throw new Error(data.error || 'Setup failed');
             return data.data; // { secret, qrCode }
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['2fa-status'] });
         },
     });
 };
@@ -255,8 +298,11 @@ export const useEnable2FA = () => {
                 },
                 body: JSON.stringify({ token, secret }),
             });
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.error || 'Verification failed');
+            }
             const data = await res.json();
-            if (!res.ok) throw new Error(data.error || 'Verification failed');
             return data;
         },
         onSuccess: () => {

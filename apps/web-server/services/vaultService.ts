@@ -4,14 +4,14 @@ import vault from 'node-vault';
  * Initializes the HashiCorp Vault client and loads secrets into process.env.
  * If VAULT_ADDR or VAULT_TOKEN are not set, it falls back to local environment variables.
  */
-export async function initVault(): Promise<void> {
+export async function initVault(): Promise<boolean> {
   const vaultAddr = process.env.VAULT_ADDR;
   const vaultToken = process.env.VAULT_TOKEN;
   const secretPath = process.env.VAULT_SECRET_PATH || 'secret/data/crystaltides';
 
   if (!vaultAddr || !vaultToken) {
     console.log('🔑 [Vault] VAULT_ADDR or VAULT_TOKEN not set. Using local .env fallback.');
-    return;
+    return true; // Treat as success since we fall back to local .env
   }
 
   console.log(`🔑 [Vault] Connecting to Vault at ${vaultAddr}...`);
@@ -26,13 +26,8 @@ export async function initVault(): Promise<void> {
     // Check if Vault is sealed
     const status = await client.health();
     if (status.sealed) {
-      const errMsg = '❌ [Vault] Vault server is sealed. Cannot fetch secrets.';
-      if (process.env.NODE_ENV === 'production') {
-        throw new Error(errMsg);
-      } else {
-        console.warn(`${errMsg} Falling back to local .env.`);
-        return;
-      }
+      console.error('❌ [Vault] Vault server is sealed. Cannot fetch secrets.');
+      return false;
     }
 
     console.log(`🔑 [Vault] Fetching secrets from path: ${secretPath}`);
@@ -42,7 +37,7 @@ export async function initVault(): Promise<void> {
     // KV v1 engine stores data under response.data
     let secrets: Record<string, string> | undefined;
 
-    if (response && response.data) {
+    if (response?.data) {
       if (response.data.data) {
         secrets = response.data.data; // KV v2
       } else {
@@ -51,7 +46,8 @@ export async function initVault(): Promise<void> {
     }
 
     if (!secrets || Object.keys(secrets).length === 0) {
-      throw new Error(`No secrets found at path ${secretPath}`);
+      console.error(`❌ [Vault] No secrets found at path ${secretPath}`);
+      return false;
     }
 
     // Inject secrets into process.env
@@ -60,13 +56,9 @@ export async function initVault(): Promise<void> {
     }
 
     console.log(`✅ [Vault] Loaded ${Object.keys(secrets).length} secrets into environment.`);
-  } catch (error: any) {
-    const errMsg = `❌ [Vault] Failed to initialize Vault: ${error.message || error}`;
-    if (process.env.NODE_ENV === 'production') {
-      console.error(errMsg);
-      throw error;
-    } else {
-      console.warn(`${errMsg} Falling back to local .env.`);
-    }
+    return true;
+  } catch (error) {
+    console.error(`❌ [Vault] Failed to initialize Vault: ${error instanceof Error ? error.message : error}`);
+    return false;
   }
 }

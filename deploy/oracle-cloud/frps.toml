@@ -1,0 +1,10 @@
+bindPort = 7000
+[auth]
+token = "CrystalTidesFRP2026"
+
+# Port range for exposed local services (TCP/UDP)
+# We can allow ports 8000 to 9000, and 25565
+allowPorts = [
+    { start = 8000, end = 9000 },
+    { start = 25565, end = 25565 }
+]

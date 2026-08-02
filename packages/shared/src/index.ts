@@ -85,3 +85,5 @@ export const KANBAN_COLUMNS: KanbanColumnData[] = [
     { id: 'done', title: 'Completado', color: '#166534' },
     { id: 'blocked', title: 'Bloqueado', color: '#991b1b' }
 ];
+
+export * from './gacha.js';

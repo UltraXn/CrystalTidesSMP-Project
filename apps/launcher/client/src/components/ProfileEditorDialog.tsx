@@ -114,9 +114,12 @@ export const ProfileEditorDialog: React.FC<ProfileEditorDialogProps> = ({
         setLoaderVersions(list);
         
         if (list.length > 0) {
-          if (!profile || profile.loaderType !== loaderType || !list.includes(loaderVersion)) {
-            setLoaderVersion(list[0]);
-          }
+          setLoaderVersion((prevVersion) => {
+            if (!profile || profile?.loaderType !== loaderType || !list.includes(prevVersion)) {
+              return list[0];
+            }
+            return prevVersion;
+          });
         } else {
           setLoaderVersion("");
         }
@@ -127,7 +130,7 @@ export const ProfileEditorDialog: React.FC<ProfileEditorDialogProps> = ({
       }
     };
     loadLoaders();
-  }, [mcVersion, loaderType]);
+  }, [mcVersion, loaderType, profile]);
 
   const handleSave = () => {
     if (!name.trim()) {
@@ -161,8 +164,9 @@ export const ProfileEditorDialog: React.FC<ProfileEditorDialogProps> = ({
       }
       onSave();
       onClose();
-    } catch (err: any) {
-      alert(err.message || "Error al guardar el perfil");
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : "Error al guardar el perfil";
+      alert(errorMsg);
     }
   };
 
@@ -238,18 +242,18 @@ export const ProfileEditorDialog: React.FC<ProfileEditorDialogProps> = ({
         >
           {/* General Section */}
           <div style={formSectionStyle}>
-            <label style={labelStyle}>Nombre del Perfil</label>
+            <label style={labelStyle} htmlFor="profile-name-input">Nombre del Perfil</label>
             <input
+              id="profile-name-input"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Ej: Aventura 1.20"
-
             />
           </div>
 
           <div style={formSectionStyle}>
-            <label style={labelStyle}>Icono</label>
+            <span style={labelStyle}>Icono</span>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 4 }}>
               {EMOJIS.map((emoji) => (
                 <button
@@ -274,8 +278,9 @@ export const ProfileEditorDialog: React.FC<ProfileEditorDialogProps> = ({
           {/* Version Section */}
           <div style={{ display: "flex", gap: 16 }}>
             <div style={{ ...formSectionStyle, flex: 1 }}>
-              <label style={labelStyle}>Versión de Minecraft</label>
+              <label style={labelStyle} htmlFor="mc-version-select">Versión de Minecraft</label>
               <select
+                id="mc-version-select"
                 value={mcVersion}
                 onChange={(e) => setMcVersion(e.target.value)}
               >
@@ -295,11 +300,12 @@ export const ProfileEditorDialog: React.FC<ProfileEditorDialogProps> = ({
               </select>
             </div>
             <div style={{ ...formSectionStyle, flex: 1 }}>
-              <label style={labelStyle}>Cargador (Mod Loader)</label>
+              <label style={labelStyle} htmlFor="loader-type-select">Cargador (Mod Loader)</label>
               <select
+                id="loader-type-select"
                 value={loaderType}
                 onChange={(e) => {
-                  const type = e.target.value as any;
+                  const type = e.target.value as "vanilla" | "neoforge" | "fabric" | "forge" | "";
                   setLoaderType(type);
                 }}
               >
@@ -313,14 +319,16 @@ export const ProfileEditorDialog: React.FC<ProfileEditorDialogProps> = ({
 
           {loaderType !== "vanilla" && loaderType !== "" && (
             <div style={formSectionStyle}>
-              <label style={labelStyle}>Versión del Cargador</label>
-              {isLoadingVersions ? (
-                <select disabled style={{ opacity: 0.7 }}>
+              <label style={labelStyle} htmlFor="loader-version-input">Versión del Cargador</label>
+              {isLoadingVersions && (
+                <select id="loader-version-input" disabled style={{ opacity: 0.7 }}>
                   <option>Cargando versiones...</option>
                 </select>
-              ) : loaderVersions.length === 0 ? (
+              )}
+              {!isLoadingVersions && loaderVersions.length === 0 && (
                 <div style={{ display: "flex", gap: 8 }}>
                   <input
+                    id="loader-version-input"
                     type="text"
                     value={loaderVersion}
                     onChange={(e) => setLoaderVersion(e.target.value)}
@@ -331,8 +339,10 @@ export const ProfileEditorDialog: React.FC<ProfileEditorDialogProps> = ({
                     ⚠️ Manual
                   </span>
                 </div>
-              ) : (
+              )}
+              {!isLoadingVersions && loaderVersions.length > 0 && (
                 <select
+                  id="loader-version-input"
                   value={loaderVersion}
                   onChange={(e) => setLoaderVersion(e.target.value)}
                 >
@@ -365,8 +375,9 @@ export const ProfileEditorDialog: React.FC<ProfileEditorDialogProps> = ({
             </div>
 
             <div style={formSectionStyle}>
-              <label style={labelStyle}>Directorio de Juego Personalizado (Opcional)</label>
+              <label style={labelStyle} htmlFor="game-dir-input">Directorio de Juego Personalizado (Opcional)</label>
               <input
+                id="game-dir-input"
                 type="text"
                 value={gameDir}
                 onChange={(e) => setGameDir(e.target.value)}
@@ -400,16 +411,18 @@ export const ProfileEditorDialog: React.FC<ProfileEditorDialogProps> = ({
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 <div style={{ display: "flex", gap: 16 }}>
                   <div style={{ ...formSectionStyle, flex: 1 }}>
-                    <label style={labelStyle}>Mínima (MB)</label>
+                    <label style={labelStyle} htmlFor="min-ram-input">Mínima (MB)</label>
                     <input
+                      id="min-ram-input"
                       type="number"
                       value={minRam}
                       onChange={(e) => setMinRam(Number(e.target.value))}
                     />
                   </div>
                   <div style={{ ...formSectionStyle, flex: 1 }}>
-                    <label style={labelStyle}>Máxima (MB)</label>
+                    <label style={labelStyle} htmlFor="max-ram-input">Máxima (MB)</label>
                     <input
+                      id="max-ram-input"
                       type="number"
                       value={maxRam}
                       onChange={(e) => setMaxRam(Number(e.target.value))}
@@ -464,23 +477,23 @@ export const ProfileEditorDialog: React.FC<ProfileEditorDialogProps> = ({
           {/* Advanced Java */}
           <div style={{ display: "flex", flexDirection: "column", gap: 12, borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: 16 }}>
             <div style={formSectionStyle}>
-              <label style={labelStyle}>Argumentos JVM Personalizados</label>
+              <label style={labelStyle} htmlFor="java-args-input">Argumentos JVM Personalizados</label>
               <input
+                id="java-args-input"
                 type="text"
                 value={javaArgs}
                 onChange={(e) => setJavaArgs(e.target.value)}
                 placeholder="-XX:+UseG1GC ..."
-  
               />
             </div>
             <div style={formSectionStyle}>
-              <label style={labelStyle}>Ruta de Java ejecutable (Opcional)</label>
+              <label style={labelStyle} htmlFor="java-path-input">Ruta de Java ejecutable (Opcional)</label>
               <input
+                id="java-path-input"
                 type="text"
                 value={javaPath}
                 onChange={(e) => setJavaPath(e.target.value)}
                 placeholder="C:/Program Files/Java/.../java.exe"
-  
               />
             </div>
           </div>

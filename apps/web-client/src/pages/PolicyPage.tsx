@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Section from '../components/Layout/Section';
@@ -7,32 +7,20 @@ import { getPolicy, Policy } from '../services/policyService';
 import ReactMarkdown from 'react-markdown';
 import { Link } from 'react-router-dom';
 import { Shield, FileText, Clock, Headset, ArrowLeft } from 'lucide-react';
+import "../styles/pages/policy_page.css";
 
 export default function PolicyPage() {
     const { slug } = useParams<{ slug: string }>();
     const { t, i18n } = useTranslation();
-    const [policy, setPolicy] = useState<Policy | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(false);
-
-    useEffect(() => {
-        const fetchPolicy = async () => {
-            try {
-                if (!slug) return;
-                setLoading(true);
-                const data = await getPolicy(slug);
-                setPolicy(data);
-                setError(false);
-            } catch (err) {
-                console.error(err);
-                setError(true);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchPolicy();
-    }, [slug]);
+    const { data: policy = null, isLoading: loading, isError: error } = useQuery<Policy | null>({
+        queryKey: ['policy', slug],
+        queryFn: async () => {
+            if (!slug) return null;
+            return await getPolicy(slug);
+        },
+        enabled: Boolean(slug),
+        staleTime: 60_000,
+    });
 
     if (loading) return (
         <Section>
@@ -81,7 +69,7 @@ export default function PolicyPage() {
                     gap: '10px',
                     textDecoration: 'none',
                     fontWeight: '600',
-                    transition: 'all 0.2s',
+                    transition: "color 0.2s, background-color 0.2s, border-color 0.2s, opacity 0.2s",
                     boxShadow: '0 4px 20px rgba(0,0,0,0.2)'
                 }}
             >
@@ -141,7 +129,7 @@ export default function PolicyPage() {
                     </h1>
 
                     <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', justifyContent: 'center' }}>
-                        <button 
+                        <button aria-label="Action" type="button" 
                             onClick={() => i18n.changeLanguage('es')}
                             style={{
                                 background: i18n.language === 'es' ? 'var(--accent)' : 'rgba(255,255,255,0.1)',
@@ -152,13 +140,13 @@ export default function PolicyPage() {
                                 cursor: 'pointer',
                                 fontWeight: 'bold',
                                 fontSize: '0.8rem',
-                                transition: 'all 0.2s',
+                                transition: "color 0.2s, background-color 0.2s, border-color 0.2s, opacity 0.2s",
                                 opacity: i18n.language === 'es' ? 1 : 0.6
                             }}
                         >
                             ES
                         </button>
-                        <button 
+                        <button aria-label="Action" type="button" 
                             onClick={() => i18n.changeLanguage('en')}
                             style={{
                                 background: i18n.language === 'en' ? 'var(--accent)' : 'rgba(255,255,255,0.1)',
@@ -169,7 +157,7 @@ export default function PolicyPage() {
                                 cursor: 'pointer',
                                 fontWeight: 'bold',
                                 fontSize: '0.8rem',
-                                transition: 'all 0.2s',
+                                transition: "color 0.2s, background-color 0.2s, border-color 0.2s, opacity 0.2s",
                                 opacity: i18n.language === 'en' ? 1 : 0.6
                             }}
                         >
@@ -218,7 +206,7 @@ export default function PolicyPage() {
                         ul: ({ ...props }) => <ul style={{ marginBottom: '2rem', paddingLeft: '1.5rem' }} {...props} />,
                         li: ({ ...props }) => <li style={{ marginBottom: '0.8rem', paddingLeft: '0.5rem' }} {...props} />,
                         strong: ({ ...props }) => <strong style={{ color: '#fff', fontWeight: 700 }} {...props} />,
-                        a: ({ ...props }) => <a style={{ color: 'var(--accent)', textDecoration: 'none', borderBottom: '1px solid rgba(var(--accent-rgb), 0.3)', transition: 'all 0.2s' }} {...props} />,
+                        a: ({ ...props }) => <a style={{ color: 'var(--accent)', textDecoration: 'none', borderBottom: '1px solid rgba(var(--accent-rgb), 0.3)', transition: "color 0.2s, background-color 0.2s, border-color 0.2s, opacity 0.2s" }} {...props} />,
                         blockquote: ({ ...props }) => <blockquote style={{ borderLeft: '4px solid var(--accent)', paddingLeft: '1.5rem', color: '#aaa', fontStyle: 'italic', background: 'rgba(255,255,255,0.02)', padding: '1.5rem', borderRadius: '0 12px 12px 0', margin: '2rem 0' }} {...props} />
                     }}>
                         {displayContent}
@@ -249,14 +237,6 @@ export default function PolicyPage() {
                     <p style={{ margin: '1rem 0 0', opacity: 0.5 }}>© {new Date().getFullYear()} CrystalTides SMP.</p>
                 </div>
             </div>
-            <style>{`
-                .policy-content li::marker { color: var(--accent); }
-                .policy-content a:hover { border-bottom-color: var(--accent); color: #fff; }
-                @media (max-width: 768px) {
-                    .policy-content { padding: 2rem !important; font-size: 1rem !important; }
-                    header h1 { font-size: 2.5rem !important; }
-                }
-            `}</style>
         </Section>
     );
 }

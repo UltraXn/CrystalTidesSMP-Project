@@ -404,7 +404,6 @@ export const createNews = async (req: Request, res: Response) => {
 export const updateNews = async (req: Request, res: Response) => {
     try {
         const id = ensureString(req.params.id);
-        console.log(`[UPDATE NEWS] ID: ${id}, Body:`, JSON.stringify(req.body));
         const { title, category, content, image, status, username, user_id, title_en, content_en } = req.body;
 
         // If title changed, update slug

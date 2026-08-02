@@ -1,0 +1,45 @@
+﻿newmtl default
+Kd 0.06 0.06 0.08
+
+newmtl m_e01f3308-673e-92ac-cd58-d4e426fd50de
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.08 0.08 0.08
+map_Kd textures/body_grad.png
+
+newmtl m_c1201049-b884-6586-4479-d48b7dcd9163
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.08 0.08 0.08
+map_Kd textures/gold_grad.png
+
+newmtl m_ad5644a2-b5a3-96bb-d2e3-7007920569fe
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.08 0.08 0.08
+map_Kd textures/screen_grad.png
+
+newmtl m_19940b41-9414-b394-79f4-1eaff971ae22
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.08 0.08 0.08
+map_Kd textures/marquee_grad.png
+
+newmtl m_1e1641d7-0802-bc19-ff58-c9eb60b62774
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.08 0.08 0.08
+map_Kd textures/panel_grad.png
+
+newmtl m_239f475f-92f4-7261-0f29-1973577aae9f
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.08 0.08 0.08
+map_Kd textures/led_grad.png
+
+newmtl m_4b35a18a-ee55-23f7-7ed0-fe34b1a9f28b
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.08 0.08 0.08
+map_Kd textures/coin_oro.png
+

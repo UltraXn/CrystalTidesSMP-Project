@@ -1,5 +1,5 @@
 import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { AlertTriangle } from 'lucide-react';
 
 import { useTranslation } from 'react-i18next';
@@ -15,6 +15,24 @@ interface PremiumConfirmProps {
     variant?: 'danger' | 'warning' | 'info';
 }
 
+const colors = {
+    danger: {
+        primary: '#ef4444',
+        glow: 'rgba(239, 68, 68, 0.2)',
+        text: '#fff'
+    },
+    warning: {
+        primary: '#facc15',
+        glow: 'rgba(250, 204, 21, 0.2)',
+        text: '#000'
+    },
+    info: {
+        primary: '#3b82f6',
+        glow: 'rgba(59, 130, 246, 0.2)',
+        text: '#fff'
+    }
+};
+
 export default function PremiumConfirm({
     isOpen,
     title,
@@ -29,31 +47,13 @@ export default function PremiumConfirm({
 
     if (!isOpen) return null;
 
-    const colors = {
-        danger: {
-            primary: '#ef4444',
-            glow: 'rgba(239, 68, 68, 0.2)',
-            text: '#fff'
-        },
-        warning: {
-            primary: '#facc15',
-            glow: 'rgba(250, 204, 21, 0.2)',
-            text: '#000'
-        },
-        info: {
-            primary: '#3b82f6',
-            glow: 'rgba(59, 130, 246, 0.2)',
-            text: '#fff'
-        }
-    };
-
     const currentTheme = colors[variant];
 
     return createPortal(
         <AnimatePresence>
             {isOpen && (
                 <div className="modal-overlay" style={{ zIndex: 1000000, backdropFilter: 'blur(12px)', background: 'rgba(0,0,0,0.8)' }}>
-                    <motion.div 
+                    <m.div 
                         initial={{ opacity: 0, scale: 0.9, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -122,7 +122,7 @@ export default function PremiumConfirm({
                             </p>
 
                             <div style={{ display: 'flex', gap: '1rem' }}>
-                                <button 
+                                <button type="button" 
                                     onClick={onCancel} 
                                     className="hover-lift"
                                     style={{ 
@@ -140,7 +140,7 @@ export default function PremiumConfirm({
                                 >
                                     {cancelLabel || t('common.cancel', 'Cancelar')}
                                 </button>
-                                <button 
+                                <button type="button" 
                                     onClick={onConfirm} 
                                     className="hover-lift" 
                                     style={{ 
@@ -161,7 +161,7 @@ export default function PremiumConfirm({
                                 </button>
                             </div>
                         </div>
-                    </motion.div>
+                    </m.div>
                 </div>
             )}
         </AnimatePresence>,

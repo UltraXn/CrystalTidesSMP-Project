@@ -1,9 +1,9 @@
 import { useState, useRef } from 'react';
 import { Image, Plus, Trash2, Edit2, Check, Link, Loader2, Upload } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { supabase } from '../../../services/supabaseClient';
+import { uploadImage as uploadImageSecure } from '../../../services/uploadService';
 
-interface HeroSlide {
+export interface HeroSlide {
     id?: number;
     image: string;
     title: string;
@@ -80,26 +80,8 @@ export default function HeroBannerManager({ settings, onUpdate, saving }: HeroBa
     const uploadImage = async (file: File): Promise<string | null> => {
         try {
             setUploading(true);
-            
-            // Generate filename based on timestamp
-            const fileExt = file.name.split('.').pop() || 'png';
-            const fileName = `hero-banners/${Date.now()}.${fileExt}`;
-
-            // Helper to convert to WebP (Simplified version without canvas for now if accept="image/*" or direct upload)
-            // Ideally we use the same canvas logic as AdminNews but for brevity let's try direct upload first or simplified.
-            // Let's perform a direct upload of the file for now to ensure it works, user can optimize if needed.
-            // Actually, let's use the file type.
-            
-            const { error: uploadError } = await supabase.storage
-                .from('forum-uploads') // Using same bucket for now
-                .upload(fileName, file, {
-                     contentType: file.type
-                });
-
-            if (uploadError) throw uploadError;
-
-            const { data: publicData } = supabase.storage.from('forum-uploads').getPublicUrl(fileName);
-            return publicData.publicUrl;
+            // Server-validated upload (magic bytes checked in backend)
+            return await uploadImageSecure(file, 'forum-uploads', 'hero-banners');
         } catch (error) {
             console.error('Error uploading image:', error);
             alert("Error al subir imagen");
@@ -161,18 +143,18 @@ export default function HeroBannerManager({ settings, onUpdate, saving }: HeroBa
                 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                     <div>
-                        <label className="admin-label">{t('admin.settings.hero.image_url')}</label>
+                        <label htmlFor="hero-slide-image" className="admin-label">{t('admin.settings.hero.image_url')}</label>
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
-                            <input className="admin-input" value={formData.image} onChange={e => setFormData({...formData, image: e.target.value})} placeholder="https://..." style={{ flex: 1 }} />
-                            <input 
-                                type="file" 
-                                ref={fileInputRef} 
-                                style={{ display: 'none' }} 
-                                onChange={handleFileChange} 
+                            <input id="hero-slide-image" className="admin-input" value={formData.image} onChange={e => setFormData({...formData, image: e.target.value})} placeholder="https://..." style={{ flex: 1 }} />
+                            <input aria-label={t('admin.settings.hero.upload_image', 'Subir imagen de banner')}
+                                type="file"
+                                ref={fileInputRef}
+                                style={{ display: 'none' }}
+                                onChange={handleFileChange}
                                 accept="image/*"
                             />
-                            <button 
-                                className="btn-secondary" 
+                            <button aria-label="Action" type="button"
+                                className="btn-secondary"
                                 onClick={() => fileInputRef.current?.click()}
                                 disabled={uploading}
                                 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', whiteSpace: 'nowrap' }}
@@ -183,29 +165,29 @@ export default function HeroBannerManager({ settings, onUpdate, saving }: HeroBa
                         {formData.image && <img src={formData.image} alt="Preview" style={{ width: '100%', height: '150px', objectFit: 'cover', marginTop: '0.5rem', borderRadius: '4px', opacity: 0.7 }} />}
                     </div>
                     <div>
-                        <label className="admin-label">{t('admin.settings.hero.title_label')}</label>
-                        <input className="admin-input" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} placeholder="Ej: Nueva Temporada" />
+                        <label htmlFor="hero-slide-title" className="admin-label">{t('admin.settings.hero.title_label')}</label>
+                        <input id="hero-slide-title" className="admin-input" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} placeholder="Ej: Nueva Temporada" />
                     </div>
                     <div>
-                        <label className="admin-label">{t('admin.settings.hero.subtitle_label')}</label>
-                        <input className="admin-input" value={formData.text} onChange={e => setFormData({...formData, text: e.target.value})} placeholder="Descripción corta..." />
+                        <label htmlFor="hero-slide-subtitle" className="admin-label">{t('admin.settings.hero.subtitle_label')}</label>
+                        <input id="hero-slide-subtitle" className="admin-input" value={formData.text} onChange={e => setFormData({...formData, text: e.target.value})} placeholder="Descripción corta..." />
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1rem' }}>
                         <div>
-                            <label className="admin-label">{t('admin.settings.hero.btn_text')}</label>
-                            <input className="admin-input" value={formData.buttonText} onChange={e => setFormData({...formData, buttonText: e.target.value})} placeholder="Ej: Jugar Ahora" />
+                            <label htmlFor="hero-slide-btn-text" className="admin-label">{t('admin.settings.hero.btn_text')}</label>
+                            <input id="hero-slide-btn-text" className="admin-input" value={formData.buttonText} onChange={e => setFormData({...formData, buttonText: e.target.value})} placeholder="Ej: Jugar Ahora" />
                         </div>
                         <div>
-                            <label className="admin-label">{t('admin.settings.hero.btn_link')}</label>
-                            <input className="admin-input" value={formData.link} onChange={e => setFormData({...formData, link: e.target.value})} placeholder="/tienda o https://..." />
+                            <label htmlFor="hero-slide-btn-link" className="admin-label">{t('admin.settings.hero.btn_link')}</label>
+                            <input id="hero-slide-btn-link" className="admin-input" value={formData.link} onChange={e => setFormData({...formData, link: e.target.value})} placeholder="/tienda o https://..." />
                         </div>
                     </div>
 
                     <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem', flexWrap: 'wrap' }}>
-                        <button className="btn-primary" onClick={handleFormSave} disabled={saving === 'hero_slides'}>
+                        <button type="button" className="btn-primary" onClick={handleFormSave} disabled={saving === 'hero_slides'}>
                            <Check /> {saving === 'hero_slides' ? t('admin.settings.saving') : t('admin.settings.hero.save_btn')}
                         </button>
-                        <button className="btn-secondary" onClick={() => setIsEditing(false)} style={{ background: 'transparent', border: '1px solid #444' }}>
+                        <button type="button" className="btn-secondary" onClick={() => setIsEditing(false)} style={{ background: 'transparent', border: '1px solid #444' }}>
                            {t('admin.settings.hero.cancel_btn')}
                         </button>
                     </div>
@@ -220,14 +202,14 @@ export default function HeroBannerManager({ settings, onUpdate, saving }: HeroBa
                 <h3 style={{ margin: 0, display:'flex', alignItems:'center', gap:'0.5rem' }}>
                     <Image /> {t('admin.settings.hero.title')}
                 </h3>
-                <button onClick={handleCreate} className="btn-primary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.9rem' }}>
+                <button type="button" onClick={handleCreate} className="btn-primary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.9rem' }}>
                     <Plus /> {t('admin.settings.hero.new_slide')}
                 </button>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 {slides.map((slide, i) => (
-                    <div key={slide.id || i} style={{ 
+                    <div key={slide.id || slide.image} style={{ 
                         background: 'rgba(255,255,255,0.03)', 
                         border: '1px solid #333',
                         borderRadius: '8px',
@@ -253,10 +235,10 @@ export default function HeroBannerManager({ settings, onUpdate, saving }: HeroBa
 
                         {/* Actions */}
                         <div style={{ display: 'flex', flexDirection: 'column', borderLeft: '1px solid #333' }}>
-                            <button onClick={() => handleEdit(i)} style={{ flex: 1, padding: '0 1rem', background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer', borderBottom: '1px solid #333' }}>
+                            <button aria-label="Action" type="button" onClick={() => handleEdit(i)} style={{ flex: 1, padding: '0 1rem', background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer', borderBottom: '1px solid #333' }}>
                                 <Edit2 />
                             </button>
-                            <button onClick={() => handleDelete(i)} style={{ flex: 1, padding: '0 1rem', background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer' }}>
+                            <button aria-label="Action" type="button" onClick={() => handleDelete(i)} style={{ flex: 1, padding: '0 1rem', background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer' }}>
                                 <Trash2 />
                             </button>
                         </div>

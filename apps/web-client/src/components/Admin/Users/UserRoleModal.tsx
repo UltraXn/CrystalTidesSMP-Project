@@ -40,14 +40,14 @@ export default function UserRoleModal({ user, newRole, onClose, onConfirm }: Use
                     </p>
 
                     <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-                        <button 
+                        <button type="button" 
                             className="modal-btn-secondary" 
                             onClick={onClose}
                             style={{ flex: 1, height: '48px' }}
                         >
                             {t('admin.users.role_modal.cancel')}
                         </button>
-                        <button 
+                        <button type="button" 
                             className="modal-btn-primary" 
                             onClick={onConfirm}
                             style={{ 

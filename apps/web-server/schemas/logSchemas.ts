@@ -11,7 +11,7 @@ export const createLogSchema = z.object({
 
 export const reportSecuritySchema = z.object({
     body: z.object({
-        email: z.string().email("Email inválido").optional().or(z.literal('')),
+        email: z.email().optional().or(z.literal('')),
         details: z.string().min(5, "Proporcione más detalles")
     })
 });

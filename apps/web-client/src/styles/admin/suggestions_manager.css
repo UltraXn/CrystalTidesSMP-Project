@@ -1,0 +1,11 @@
+.suggestions-wrapper {
+    display: flex;
+    gap: 2rem;
+    align-items: flex-start;
+}
+@media (max-width: 900px) {
+    .suggestions-wrapper {
+        flex-direction: column;
+        gap: 1rem;
+    }
+}

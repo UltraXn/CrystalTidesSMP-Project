@@ -14,7 +14,7 @@ const FilterButton = ({ type, icon, label, isActive, onClick }: { type: string, 
     const colors = type === 'All' ? { bg: 'rgba(255,255,255,0.1)', border: 'rgba(255,255,255,0.2)' } : getTypeColor(type);
     
     return (
-        <button 
+        <button aria-label="Action" type="button" 
             onClick={onClick}
             style={{
                 display: 'flex', alignItems: 'center', gap: '8px',
@@ -24,7 +24,7 @@ const FilterButton = ({ type, icon, label, isActive, onClick }: { type: string, 
                 background: isActive ? colors.bg : 'rgba(0,0,0,0.2)',
                 color: isActive ? '#fff' : '#aaa',
                 cursor: 'pointer',
-                transition: 'all 0.2s ease',
+                transition: "color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease",
                 fontSize: '0.85rem',
                 fontWeight: isActive ? 600 : 400
             }}
@@ -42,7 +42,7 @@ const StatusFilterButton = ({ status, label, activeStatus, setStatus }: { status
         : getStatusColor(status.toLowerCase());
 
     return (
-        <button 
+        <button aria-label="Action" type="button" 
             onClick={() => setStatus(status)}
             style={{
                 display: 'flex', alignItems: 'center', gap: '8px',
@@ -52,7 +52,7 @@ const StatusFilterButton = ({ status, label, activeStatus, setStatus }: { status
                 background: isActive ? colors.bg : 'rgba(0,0,0,0.2)',
                 color: isActive ? colors.text : '#888',
                 cursor: 'pointer',
-                transition: 'all 0.2s ease',
+                transition: "color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease",
                 fontSize: '0.8rem',
                 fontWeight: isActive ? 600 : 400
             }}

@@ -55,9 +55,8 @@ export default function AdminNews({ user }: AdminNewsProps) {
 
     const executeDelete = async () => {
         if (!deleteConfirm || !user) return;
-        const username = user.user_metadata?.full_name || user.email || 'Admin';
-        
-        deleteMutation.mutate({ id: deleteConfirm, userId: user.id, username }, {
+
+        deleteMutation.mutate(deleteConfirm, {
             onSuccess: () => setDeleteConfirm(null)
         });
     }
@@ -113,7 +112,7 @@ export default function AdminNews({ user }: AdminNewsProps) {
             <div className="news-header">
                 <div className="news-search-wrapper">
                     <Search className="news-search-icon" />
-                    <input 
+                    <input aria-label="Input field" 
                         type="text" 
                         placeholder={t('admin.news.search_ph')} 
                         value={searchTerm}
@@ -121,7 +120,7 @@ export default function AdminNews({ user }: AdminNewsProps) {
                         className="news-search-input"
                     />
                 </div>
-                <button className="btn-primary poll-new-btn" onClick={handleNew}>
+                <button type="button" className="btn-primary poll-new-btn" onClick={handleNew}>
                     <Plus size={14} /> {t('admin.news.write_btn')}
                 </button>
             </div>
@@ -140,7 +139,7 @@ export default function AdminNews({ user }: AdminNewsProps) {
                         <p style={{ color: 'rgba(255,255,255,0.4)', maxWidth: '400px', margin: '0 auto 2.5rem', lineHeight: '1.6' }}>
                            No se han encontrado noticias que coincidan con tu búsqueda o aún no hay entradas.
                         </p>
-                        <button className="btn-primary" onClick={handleNew} style={{ padding: '1rem 2.5rem' }}>
+                        <button type="button" className="btn-primary" onClick={handleNew} style={{ padding: '1rem 2.5rem' }}>
                             <Plus style={{ marginRight: '10px' }} /> {t('admin.news.write_btn')}
                         </button>
                     </div>
@@ -181,14 +180,14 @@ export default function AdminNews({ user }: AdminNewsProps) {
                                 </div>
                                 
                                 <div className="news-card-footer">
-                                    <button
+                                    <button type="button"
                                         onClick={() => handleEdit(post)}
                                         className="event-btn-action"
                                         title={t('admin.news.edit_title')}
                                     >
                                         <Edit />
                                     </button>
-                                    <button
+                                    <button type="button"
                                         onClick={() => post.id && setDeleteConfirm(post.id)}
                                         className="event-btn-action delete"
                                         title={t('admin.news.delete_tooltip')}
@@ -226,14 +225,14 @@ export default function AdminNews({ user }: AdminNewsProps) {
                             {t('admin.news.delete_modal.desc')}
                         </p>
                         <div style={{ display: 'flex', gap: '1.25rem', justifyContent: 'center' }}>
-                            <button 
+                            <button type="button" 
                                 className="modal-btn-secondary" 
                                 onClick={() => setDeleteConfirm(null)}
                                 style={{ flex: 1, height: '54px' }}
                             >
                                 {t('admin.news.delete_modal.cancel')}
                             </button>
-                            <button 
+                            <button type="button" 
                                 className="modal-btn-primary" 
                                 onClick={executeDelete}
                                 disabled={deleteMutation.isPending}

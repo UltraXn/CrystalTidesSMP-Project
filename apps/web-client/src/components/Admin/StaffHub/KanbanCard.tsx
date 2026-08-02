@@ -26,7 +26,7 @@ export default function KanbanCard({ card, onDragStart, onDelete, onEdit }: Kanb
                 </span>
                 <div className="card-actions">
                     {onEdit && (
-                        <button 
+                        <button aria-label="Action" type="button" 
                             className="card-action-btn edit"
                             onClick={(e) => { e.stopPropagation(); onEdit(card); }}
                         >
@@ -34,7 +34,7 @@ export default function KanbanCard({ card, onDragStart, onDelete, onEdit }: Kanb
                         </button>
                     )}
                     {onDelete && (
-                        <button 
+                        <button aria-label="Action" type="button" 
                             className="card-action-btn delete"
                             onClick={(e) => { e.stopPropagation(); onDelete(card.id); }}
                         >

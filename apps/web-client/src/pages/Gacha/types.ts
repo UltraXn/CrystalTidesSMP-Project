@@ -34,6 +34,7 @@ export interface GachaHistoryEntry {
     rarity: Rarity;
     created_at: string;
     image_url?: string;
+    roll_time?: string;
 }
 
 export interface GachaTier {

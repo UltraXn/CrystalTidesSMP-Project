@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { m as motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../services/supabaseClient'
 import { Plus, Ticket, ChevronRight, Clock, AlertCircle } from 'lucide-react'
@@ -18,6 +18,15 @@ interface Ticket {
     priority: string;
     status: string;
     created_at: string;
+}
+
+const getStatusColor = (status: string) => {
+    switch(status) {
+        case 'open': return '#2ecc71';
+        case 'closed': return '#95a5a6';
+        case 'answered': return '#f39c12';
+        default: return '#3498db';
+    }
 }
 
 export default function Support() {
@@ -49,8 +58,18 @@ export default function Support() {
     }, [user])
 
     useEffect(() => {
-        if (user) fetchTickets()
-        else setLoading(false)
+        let isMounted = true;
+        Promise.resolve().then(() => {
+            if (!isMounted) return;
+            if (user) {
+                fetchTickets();
+            } else {
+                setLoading(false);
+            }
+        });
+        return () => {
+            isMounted = false;
+        };
     }, [user, fetchTickets])
 
     const handleCreateTicket = async (data: CreateTicketFormValues) => {
@@ -91,15 +110,6 @@ export default function Support() {
         } catch (error) {
             console.error('Error creating ticket:', error)
             alert(t('support.error_create', 'Error creating ticket. Please try again.'))
-        }
-    }
-
-    const getStatusColor = (status: string) => {
-        switch(status) {
-            case 'open': return '#2ecc71';
-            case 'closed': return '#95a5a6';
-            case 'answered': return '#f39c12';
-            default: return '#3498db';
         }
     }
 
@@ -146,7 +156,7 @@ export default function Support() {
                         transition={{ delay: 0.2 }}
                         style={{ display: 'flex', gap: '1.5rem', justifyContent: 'center', flexWrap: 'wrap', width: '100%' }}
                     >
-                        <button 
+                        <button type="button" 
                             className="nav-btn" 
                             onClick={() => user ? setShowCreateModal(true) : navigate('/login')}
                             style={{ 
@@ -257,7 +267,7 @@ export default function Support() {
                                 </div>
                                 <h3 style={{ fontSize: '1.8rem', marginBottom: '1rem' }}>{t('support.no_tickets')}</h3>
                                 <p style={{ color: 'var(--muted)', marginBottom: '2.5rem', fontSize: '1.1rem', maxWidth: '400px', margin: '0 auto 2.5rem' }}>{t('support.create_first')}</p>
-                                <button className="nav-btn primary" onClick={() => user ? setShowCreateModal(true) : navigate('/login')} style={{ padding: '1rem 3rem', borderRadius: '12px', fontSize: '1.1rem' }}>
+                                <button type="button" className="nav-btn primary" onClick={() => user ? setShowCreateModal(true) : navigate('/login')} style={{ padding: '1rem 3rem', borderRadius: '12px', fontSize: '1.1rem' }}>
                                     {t('support.create_first_btn')}
                                 </button>
                             </motion.div>
@@ -270,6 +280,8 @@ export default function Support() {
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ delay: index * 0.05 }}
                                         className="ticket-card-premium"
+                                        role="button"
+                                        tabIndex={0}
                                         style={{
                                             background: 'rgba(255,255,255,0.02)', 
                                             padding: '2rem', 
@@ -279,10 +291,11 @@ export default function Support() {
                                             justifyContent: 'space-between',
                                             alignItems: 'center',
                                             cursor: 'pointer',
-                                            transition: 'all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1)',
+                                            transition: "color 0.4s cubic-bezier(0.165, 0.84, 0.44, 1), background-color 0.4s cubic-bezier(0.165, 0.84, 0.44, 1), border-color 0.4s cubic-bezier(0.165, 0.84, 0.44, 1), opacity 0.4s cubic-bezier(0.165, 0.84, 0.44, 1)",
                                             boxShadow: '0 10px 20px rgba(0,0,0,0.1)'
                                         }}
                                         onClick={() => navigate(`/support/${ticket.id}`)}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(`/support/${ticket.id}`); } }}
                                         whileHover={{ y: -5, background: 'rgba(255,255,255,0.04)', borderColor: 'var(--accent)', boxShadow: '0 20px 30px rgba(0,0,0,0.2)' }}
                                     >
                                         <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
@@ -333,7 +346,7 @@ export default function Support() {
                                                 background: 'rgba(255,255,255,0.05)', 
                                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                                                 color: 'var(--muted)',
-                                                transition: 'all 0.3s ease'
+                                                transition: "color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease, opacity 0.3s ease"
                                             }}>
                                                 <ChevronRight size={20} />
                                             </div>
@@ -360,7 +373,10 @@ export default function Support() {
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             padding: '1.5rem'
                         }}
+                        role="button"
+                        tabIndex={0}
                         onClick={() => setShowCreateModal(false)}
+                        onKeyDown={(e) => { if (e.key === 'Escape' || e.key === 'Enter') setShowCreateModal(false); }}
                     >
                         <TicketForm 
                             onClose={() => setShowCreateModal(false)} 

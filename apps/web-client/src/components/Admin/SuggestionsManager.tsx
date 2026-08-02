@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import Loader from "../UI/Loader"
+import "../../styles/admin/suggestions_manager.css"
 
 import { 
     useAdminSuggestions, 
@@ -21,21 +22,21 @@ export default function SuggestionsManager() {
     const [filterType, setFilterType] = useState('All')
     const [filterStatus, setFilterStatus] = useState('All')
     const [showDeleteModal, setShowDeleteModal] = useState(false)
-    const [selectedId, setSelectedId] = useState<number | null>(null)
+    const selectedIdRef = useRef<number | null>(null)
 
     const suggestions = suggestionsData || [];
 
     const handleDelete = (id: number) => {
-        setSelectedId(id)
+        selectedIdRef.current = id
         setShowDeleteModal(true)
     }
 
     const confirmDelete = async () => {
-        if (selectedId === null) return
-        deleteMutation.mutate(selectedId, {
+        if (selectedIdRef.current === null) return
+        deleteMutation.mutate(selectedIdRef.current, {
             onSuccess: () => {
                 setShowDeleteModal(false)
-                setSelectedId(null)
+                selectedIdRef.current = null
             }
         });
     }
@@ -96,21 +97,6 @@ export default function SuggestionsManager() {
                     )}
                 </>
             )}
-
-            <style>{`
-                .suggestions-wrapper {
-                    display: flex;
-                    gap: 2rem;
-                    align-items: flex-start;
-                }
-                @media (max-width: 900px) {
-                    .suggestions-wrapper {
-                        flex-direction: column;
-                        gap: 1rem;
-                    }
-                }
-            `}</style>
-            
             <SuggestionDeleteModal 
                 isOpen={showDeleteModal}
                 onClose={() => setShowDeleteModal(false)}

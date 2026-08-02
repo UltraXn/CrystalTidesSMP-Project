@@ -65,7 +65,7 @@ export default function PollHistoryTable({ polls, loading, page, totalPages, onP
                                     <td style={{ textAlign: 'right' }}>
                                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
                                             {poll.is_active && (
-                                                <button 
+                                                <button type="button" 
                                                     onClick={() => onClose(poll.id)}
                                                     title={t('admin.polls.close_btn')}
                                                     className="poll-btn-action"
@@ -73,7 +73,7 @@ export default function PollHistoryTable({ polls, loading, page, totalPages, onP
                                                     <Square size={16} fill="currentColor" />
                                                 </button>
                                             )}
-                                            <button 
+                                            <button type="button" 
                                                 onClick={() => onDelete(poll.id)}
                                                 title={t('admin.polls.delete_tooltip')}
                                                 className="poll-btn-action delete"
@@ -93,9 +93,9 @@ export default function PollHistoryTable({ polls, loading, page, totalPages, onP
                     {/* Pagination */}
                     {totalPages > 1 && (
                         <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '3rem', padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: '16px' }}>
-                            <button onClick={() => onPageChange(Math.max(1, page - 1))} disabled={page === 1} className="poll-tab-btn" style={{ padding: '0.5rem 1rem' }}>&lt;</button>
+                            <button aria-label="Action" type="button" onClick={() => onPageChange(Math.max(1, page - 1))} disabled={page === 1} className="poll-tab-btn" style={{ padding: '0.5rem 1rem' }}>&lt;</button>
                             <span style={{ display: 'flex', alignItems: 'center', color: 'rgba(255,255,255,0.4)', fontWeight: '800' }}>{t('admin.polls.pagination', { page, total: totalPages })}</span>
-                            <button onClick={() => onPageChange(Math.min(totalPages, page + 1))} disabled={page === totalPages} className="poll-tab-btn" style={{ padding: '0.5rem 1rem' }}>&gt;</button>
+                            <button aria-label="Action" type="button" onClick={() => onPageChange(Math.min(totalPages, page + 1))} disabled={page === totalPages} className="poll-tab-btn" style={{ padding: '0.5rem 1rem' }}>&gt;</button>
                         </div>
                     )}
                 </div>

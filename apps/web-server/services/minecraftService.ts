@@ -44,40 +44,4 @@ export const getServerStatus = async (host: string, port = 25565) => {
 
 
 
-/**
- * Send a command to the Minecraft server via Pterodactyl API
- * @param {string} command - Command to execute (without /)
- */
-export const sendCommand = async (command: string) => {
-    try {
-        const apiKey = process.env.PTERODACTYL_API_KEY;
-        const serverId = process.env.PTERODACTYL_SERVER_ID;
-        // Default to holy.gg panel, but allow override
-        const host = process.env.PTERODACTYL_HOST || 'https://panel.holy.gg';
 
-        if (!apiKey || !serverId) {
-            console.error("Missing Pterodactyl credentials");
-            return { success: false, error: "Configuration missing" };
-        }
-
-        const response = await fetch(`${host}/api/client/servers/${serverId}/command`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${apiKey}`,
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-            },
-            body: JSON.stringify({ command })
-        });
-
-        if (response.ok) {
-            return { success: true };
-        } else {
-            return { success: false, error: "API Error" };
-        }
-    } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : "Unknown error";
-        console.error("Failed to send command:", error);
-        return { success: false, error: errorMessage };
-    }
-}

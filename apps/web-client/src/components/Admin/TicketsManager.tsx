@@ -82,7 +82,7 @@ export default function TicketsManager({ mockTickets, mockMessages }: TicketsMan
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2rem', flexWrap: 'wrap', gap: '1.5rem', alignItems: 'center' }}>
                 <div style={{ position: 'relative', width: '100%', maxWidth: '400px', flex: '1 1 auto' }}>
                     <Search style={{ position: 'absolute', left: '1.2rem', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.4)' }} />
-                    <input 
+                    <input aria-label="Input field" 
                         type="text" 
                         placeholder={t('admin.tickets.search_placeholder', 'Buscar tickets...')} 
                         style={{ 
@@ -94,14 +94,14 @@ export default function TicketsManager({ mockTickets, mockMessages }: TicketsMan
                             color: '#fff',
                             fontSize: '0.95rem',
                             outline: 'none',
-                            transition: 'all 0.2s ease'
+                            transition: "color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease"
                         }} 
                         className="admin-input-premium"
                     />
                 </div>
                 <div style={{ display: 'flex', gap: '1rem' }}>
                     {selectedTicketIds.length > 0 && (
-                        <button
+                        <button type="button"
                             className="hover-lift"
                             onClick={() => setConfirmBulkDelete(true)}
                             style={{ 
@@ -121,7 +121,7 @@ export default function TicketsManager({ mockTickets, mockMessages }: TicketsMan
                             <Trash2 size={14} /> {t('admin.tickets.delete_selected', 'Eliminar')} ({selectedTicketIds.length})
                         </button>
                     )}
-                    <button
+                    <button type="button"
                         className="modal-btn-primary hover-lift"
                         onClick={() => setShowCreateModal(true)}
                         style={{ 

@@ -5,13 +5,14 @@ import ConfirmationModal from '../UI/ConfirmationModal'
 import { useTranslation } from 'react-i18next'
 import Loader from "../UI/Loader"
 
-import { 
-    useSiteSettings, 
-    useUpdateSiteSetting 
+import {
+    useSiteSettings,
+    useUpdateSiteSetting,
+    SiteSettings as HookSiteSettings
 } from "../../hooks/useAdminData"
 
 import BroadcastManager from './Config/BroadcastManager'
-import HeroBannerManager from './Config/HeroBannerManager'
+import HeroBannerManager, { HeroSlide } from './Config/HeroBannerManager'
 import RulesEditor from './Config/RulesEditor'
 import DonorsManager from './DonorsManager'
 import PoliciesManager from './Config/PoliciesManager'
@@ -23,15 +24,11 @@ interface Rule {
     description: string;
 }
 
-interface SiteSettings {
-    theme: string;
-    maintenance_mode: string;
-    broadcast_config: string;
-    hero_slides: string;
-    recruitment_status?: string;
-    recruitment_link?: string;
+// NOTE: interface extension (not Omit) — Omit collapses the hook's index
+// signature `[key: string]: unknown` and loses all named properties.
+interface SiteSettings extends HookSiteSettings {
     server_rules?: string | Rule[];
-    [key: string]: unknown;
+    hero_slides: string | HeroSlide[];
 }
 
 interface User {
@@ -61,7 +58,7 @@ export default function SiteConfig() {
         hero_slides: '',
         recruitment_status: 'false',
         recruitment_link: '',
-        ...(fetchedSettings || {}),
+        ...(fetchedSettings || {}) as Partial<SiteSettings>,
         ...localSettings
     };
 
@@ -190,7 +187,7 @@ export default function SiteConfig() {
                             </div>
 
                             <label className="switch" style={{ margin: 0 }}>
-                                <input 
+                                <input aria-label="Input field" 
                                     type="checkbox" 
                                     checked={settings.maintenance_mode === 'true'} 
                                     onChange={() => {}} 
@@ -234,7 +231,7 @@ export default function SiteConfig() {
                                     <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', fontWeight: '600' }}>{t('admin.settings.recruitment.status_label')}</span>
                                 </div>
                                 <label className="switch">
-                                    <input 
+                                    <input aria-label="Input field" 
                                         type="checkbox" 
                                         checked={settings.recruitment_status === 'true'} 
                                         onChange={(e) => handleUpdate('recruitment_status', String(e.target.checked))} 
@@ -244,16 +241,16 @@ export default function SiteConfig() {
                             </div>
 
                             <div>
-                                <label style={{ display:'block', marginBottom:'8px', fontSize:'0.85rem', color:'rgba(255,255,255,0.5)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{t('admin.settings.recruitment.link_label')}</label>
+                                <label htmlFor="recruitment-link" style={{ display:'block', marginBottom:'8px', fontSize:'0.85rem', color:'rgba(255,255,255,0.5)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{t('admin.settings.recruitment.link_label')}</label>
                                 <div style={{ display: 'flex', gap: '10px' }}>
-                                    <input 
+                                    <input id="recruitment-link" 
                                         className="admin-input-premium" 
                                         value={settings.recruitment_link || ''} 
                                         onChange={(e) => setLocalSettings(prev => ({...prev, recruitment_link: e.target.value}))}
                                         placeholder={t('admin.settings.recruitment.link_ph')} 
                                         style={{ height: '48px', padding: '0 1rem', borderRadius: '12px' }}
                                     />
-                                    <button 
+                                    <button aria-label="Action" type="button" 
                                         className="modal-btn-primary hover-lift" 
                                         disabled={updateSettingMutation.isPending && updateSettingMutation.variables?.key === 'recruitment_link'}
                                         onClick={() => handleUpdate('recruitment_link', settings.recruitment_link || '')}
@@ -338,10 +335,10 @@ function ConfigSection({ title, icon, children, defaultOpen = false }: ConfigSec
             border: isOpen ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(255, 255, 255, 0.05)',
             borderRadius: '24px', 
             overflow: 'hidden',
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            transition: "color 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
             boxShadow: isOpen ? '0 10px 30px rgba(0,0,0,0.2)' : 'none'
         }}>
-            <button 
+            <button aria-label="Action" type="button" 
                 onClick={() => setIsOpen(!isOpen)}
                 style={{
                     width: '100%',
@@ -355,7 +352,7 @@ function ConfigSection({ title, icon, children, defaultOpen = false }: ConfigSec
                     cursor: 'pointer',
                     fontSize: '1.1rem',
                     fontWeight: '800',
-                    transition: 'all 0.2s',
+                    transition: "color 0.2s, background-color 0.2s, border-color 0.2s, opacity 0.2s",
                     borderBottom: isOpen ? '1px solid rgba(255,255,255,0.05)' : 'none'
                 }}
             >
@@ -378,7 +375,7 @@ function ConfigSection({ title, icon, children, defaultOpen = false }: ConfigSec
                     flexShrink: 0,
                     borderRadius: '50%', 
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    transition: 'all 0.3s',
+                    transition: "color 0.3s, background-color 0.3s, border-color 0.3s, opacity 0.3s",
                     transform: isOpen ? 'rotate(180deg)' : 'rotate(0)'
                 }}>
                     <ChevronDown size={14} />
@@ -405,16 +402,24 @@ interface ThemeCardProps {
 
 function ThemeCard({ active, onClick, icon, title, color, loading }: ThemeCardProps) {
     return (
-        <div 
+        <div
             onClick={onClick}
-            style={{ 
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onClick();
+                }
+            }}
+            style={{
                 background: active ? `linear-gradient(135deg, ${color}22, transparent)` : 'rgba(255,255,255,0.03)', 
                 border: active ? `2px solid ${color}` : '1px solid rgba(255,255,255,0.05)',
                 borderRadius: '16px',
                 padding: '1.5rem 1rem',
                 textAlign: 'center',
                 cursor: 'pointer',
-                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                transition: "color 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                 opacity: loading && !active ? 0.5 : 1,
                 position: 'relative',
                 overflow: 'hidden',

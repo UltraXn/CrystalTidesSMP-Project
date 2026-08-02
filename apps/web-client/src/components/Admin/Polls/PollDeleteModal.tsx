@@ -23,10 +23,10 @@ export default function PollDeleteModal({ onConfirm, onCancel }: PollDeleteModal
                     {t('admin.polls.delete_confirm_desc', 'Esta acción no se puede deshacer y todos los votos acumulados se perderán permanentemente.')}
                 </p>
                 <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-                    <button onClick={onCancel} className="modal-btn-secondary" style={{ flex: 1 }}>
+                    <button type="button" onClick={onCancel} className="modal-btn-secondary" style={{ flex: 1 }}>
                         {t('admin.polls.form_extras.cancel')}
                     </button>
-                    <button onClick={onConfirm} className="modal-btn-primary" style={{ background: '#ef4444', color: '#fff', flex: 1, boxShadow: '0 10px 30px rgba(239, 68, 68, 0.3)' }}>
+                    <button type="button" onClick={onConfirm} className="modal-btn-primary" style={{ background: '#ef4444', color: '#fff', flex: 1, boxShadow: '0 10px 30px rgba(239, 68, 68, 0.3)' }}>
                         {t('admin.polls.delete_btn', 'Eliminar')}
                     </button>
                 </div>

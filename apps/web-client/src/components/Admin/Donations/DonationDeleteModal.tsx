@@ -33,10 +33,10 @@ export default function DonationDeleteModal({ isOpen, onClose, onConfirm, deleti
                     {t('admin.donations.delete_confirm.msg')}
                 </p>
                 <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-                    <button onClick={onClose} className="modal-btn-secondary" style={{ flex: 1 }}>
+                    <button type="button" onClick={onClose} className="modal-btn-secondary" style={{ flex: 1 }}>
                         {t('common.cancel')}
                     </button>
-                    <button 
+                    <button type="button" 
                         onClick={onConfirm} 
                         className="modal-btn-primary" 
                         disabled={deleting}

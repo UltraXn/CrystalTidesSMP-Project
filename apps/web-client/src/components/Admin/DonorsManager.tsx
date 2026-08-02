@@ -201,7 +201,7 @@ export default function DonorsManager() {
                         {t('admin.donors.manager_desc', 'Administra la lista de honor y personaliza el perfil de cada donador.')}
                     </p>
                 </div>
-                <button className="btn-primary poll-new-btn" onClick={openNew}>
+                <button type="button" className="btn-primary poll-new-btn" onClick={openNew}>
                     <Plus /> {t('admin.donors.add_btn')}
                 </button>
             </div>
@@ -245,7 +245,7 @@ export default function DonorsManager() {
                    }}>
                        {alert.type === 'error' ? <AlertCircle color="#ef4444" /> : <CheckCircle color="#10b981" />}
                        <span style={{ color: '#fff', fontWeight: 700, fontSize: '0.9rem' }}>{alert.message}</span>
-                       <button onClick={() => setAlert(null)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer', padding: '4px' }}>
+                       <button aria-label="Action" type="button" onClick={() => setAlert(null)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer', padding: '4px' }}>
                            <X />
                        </button>
                    </div>

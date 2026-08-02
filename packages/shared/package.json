@@ -2,12 +2,13 @@
   "name": "@crystaltides/shared",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
     "build": "tsc"
   },
   "devDependencies": {
-    "typescript": "^5.0.0"
+    "typescript": "7.0.2"
   }
 }

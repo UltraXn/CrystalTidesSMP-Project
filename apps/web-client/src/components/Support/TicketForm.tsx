@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { motion } from 'framer-motion'
+import { m } from 'framer-motion'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslation } from 'react-i18next'
@@ -40,7 +40,7 @@ export default function TicketForm({ onClose, onSubmit }: TicketFormProps) {
     }
 
     return (
-        <motion.div 
+        <m.div 
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
@@ -68,8 +68,8 @@ export default function TicketForm({ onClose, onSubmit }: TicketFormProps) {
             <form onSubmit={handleSubmit(handleFormSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                     <div>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--muted)' }}>{t('support.category', 'Category')}</label>
-                        <select 
+                        <label htmlFor="ticket-category" style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--muted)' }}>{t('support.category', 'Category')}</label>
+                        <select id="ticket-category" 
                             {...register('category')}
                             style={{
                                 width: '100%', padding: '1rem', borderRadius: '1rem', 
@@ -86,8 +86,8 @@ export default function TicketForm({ onClose, onSubmit }: TicketFormProps) {
                         {errors.category && <span style={{color: '#ff6b6b', fontSize: '0.8rem'}}>{errors.category.message}</span>}
                     </div>
                     <div>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--muted)' }}>{t('support.priority', 'Priority')}</label>
-                        <select 
+                        <label htmlFor="ticket-priority" style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--muted)' }}>{t('support.priority', 'Priority')}</label>
+                        <select id="ticket-priority" 
                             {...register('priority')}
                             style={{
                                 width: '100%', padding: '1rem', borderRadius: '1rem', 
@@ -104,8 +104,8 @@ export default function TicketForm({ onClose, onSubmit }: TicketFormProps) {
                 </div>
 
                 <div>
-                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--muted)' }}>{t('support.subject')}</label>
-                    <input 
+                    <label htmlFor="ticket-subject" style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--muted)' }}>{t('support.subject')}</label>
+                    <input id="ticket-subject" 
                         type="text" 
                         placeholder={t('support.subject_placeholder')}
                         {...register('title')} 
@@ -118,8 +118,8 @@ export default function TicketForm({ onClose, onSubmit }: TicketFormProps) {
                     {errors.title && <span style={{color: '#ff6b6b', fontSize: '0.8rem'}}>{errors.title.message}</span>}
                 </div>
                 <div>
-                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--muted)' }}>{t('support.message')}</label>
-                    <textarea 
+                    <label htmlFor="ticket-message" style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--muted)' }}>{t('support.message')}</label>
+                    <textarea id="ticket-message" 
                         rows={5}
                         placeholder={t('support.message_placeholder')}
                         {...register('description')}
@@ -140,6 +140,6 @@ export default function TicketForm({ onClose, onSubmit }: TicketFormProps) {
                     </button>
                 </div>
             </form>
-        </motion.div>
+        </m.div>
     )
 }

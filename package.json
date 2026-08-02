@@ -2,6 +2,7 @@
   "$schema": "https://json.schemastore.org/package",
   "name": "crystaltides-app",
   "version": "1.0.0",
+  "type": "module",
   "packageManager": "npm@11.6.4",
   "private": true,
   "workspaces": [
@@ -16,7 +17,8 @@
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "client": "npm run dev -w @crystaltides/client",
     "server": "npm run dev -w @crystaltides/server",
-    "install:all": "npm install"
+    "install:all": "npm install",
+    "prepare": "husky"
   },
   "overrides": {
     "glob": "11.1.0",
@@ -91,7 +93,10 @@
     "turbo": "2.9.14",
     "typescript-eslint": "^8.50.1",
     "vite": "6.4.3",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.10",
+    "husky": "^9.1.7",
+    "@commitlint/cli": "^19.8.0",
+    "@commitlint/config-conventional": "^19.8.0"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^18.0.1",

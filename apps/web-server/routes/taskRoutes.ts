@@ -4,6 +4,8 @@ import * as calendarController from '../controllers/calendarController.js';
 import * as notionController from '../controllers/notionController.js';
 import { authenticateToken } from '../middleware/authMiddleware.js';
 import { checkRole, STAFF_ROLES } from '../utils/roleUtils.js';
+import { validate } from '../middleware/validateResource.js';
+import { createTaskSchema, updateTaskSchema } from '../schemas/taskSchemas.js';
 
 const router = express.Router();
 
@@ -32,10 +34,10 @@ router.post('/notion/sync', notionController.syncTask);
 router.get('/', taskController.getTasks);
 
 // POST /api/staff/tasks
-router.post('/', taskController.createTask);
+router.post('/', validate(createTaskSchema), taskController.createTask);
 
 // PUT /api/staff/tasks/:id
-router.put('/:id', taskController.updateTask);
+router.put('/:id', validate(updateTaskSchema), taskController.updateTask);
 
 // DELETE /api/staff/tasks/:id
 router.delete('/:id', taskController.deleteTask);

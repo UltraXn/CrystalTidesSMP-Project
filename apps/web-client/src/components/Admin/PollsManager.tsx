@@ -147,13 +147,13 @@ export default function PollsManager({ mockActivePoll, mockHistoryPolls }: Polls
         <div className="poll-manager-container">
             <div className="poll-header">
                 <div className="poll-tabs-wrapper">
-                    <button 
+                    <button type="button" 
                         onClick={() => setTab('active')}
                         className={`poll-tab-btn ${tab === 'active' ? 'active' : ''}`}
                     >
                         <BarChart3 size={18} /> {t('admin.polls.tabs.active')}
                     </button>
-                    <button 
+                    <button type="button" 
                         onClick={() => setTab('history')}
                         className={`poll-tab-btn ${tab === 'history' ? 'active' : ''}`}
                     >
@@ -161,7 +161,7 @@ export default function PollsManager({ mockActivePoll, mockHistoryPolls }: Polls
                     </button>
                 </div>
 
-                <button onClick={onCreateOpen} className="btn-primary poll-new-btn">
+                <button type="button" onClick={onCreateOpen} className="btn-primary poll-new-btn">
                     <Plus size={16} /> {t('admin.polls.new_btn')}
                 </button>
             </div>

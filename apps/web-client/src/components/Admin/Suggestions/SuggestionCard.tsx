@@ -26,7 +26,7 @@ export default function SuggestionCard({ suggestion: s, isExpanded, onToggleExpa
             display: 'flex', 
             alignItems: 'center', // Align items vertically center
             gap: '20px',
-            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+            transition: "color 0.2s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
             boxShadow: '0 4px 6px rgba(0,0,0,0.1)' 
         }}>
             
@@ -73,15 +73,17 @@ export default function SuggestionCard({ suggestion: s, isExpanded, onToggleExpa
                     {s.message}
                 </div>
                 {s.message.length > 100 && (
-                    <div 
+                    <button
+                        type="button"
                         onClick={onToggleExpand}
-                        style={{ 
+                        style={{
+                            background: 'none', border: 'none', padding: 0,
                             color: 'var(--accent)', fontSize: '0.75rem', cursor: 'pointer', marginTop: '4px', 
                             fontWeight: '600', display: 'inline-flex', alignItems: 'center', gap: '4px'
                         }}
                     >
                         {isExpanded ? t('admin.suggestions.show_less', 'Ver menos') : t('admin.suggestions.read_more', 'Leer más')}
-                    </div>
+                    </button>
                 )}
             </div>
              
@@ -101,7 +103,7 @@ export default function SuggestionCard({ suggestion: s, isExpanded, onToggleExpa
                 display: 'flex', alignItems: 'center', gap: '6px', minWidth: '160px', justifyContent: 'flex-end'
             }}>
                 {(s.status !== 'approved' && s.status !== 'implemented') && (
-                    <button 
+                    <button aria-label="Action" type="button" 
                         className="btn-action-icon btn-approve" 
                         title={t('admin.actions.approve', 'Aprobar')}
                         onClick={() => onUpdateStatus(s.id, 'approved')}
@@ -111,7 +113,7 @@ export default function SuggestionCard({ suggestion: s, isExpanded, onToggleExpa
                     </button>
                 )}
                 {(s.status !== 'rejected') && (
-                    <button 
+                    <button aria-label="Action" type="button" 
                         className="btn-action-icon btn-reject" 
                         title={t('admin.actions.reject', 'Rechazar')}
                         onClick={() => onUpdateStatus(s.id, 'rejected')}
@@ -121,7 +123,7 @@ export default function SuggestionCard({ suggestion: s, isExpanded, onToggleExpa
                     </button>
                 )}
                 
-                <button 
+                <button type="button" 
                     onClick={() => onDelete(s.id)} 
                     className="btn-ghost-delete"
                     title="Eliminar"
@@ -134,107 +136,4 @@ export default function SuggestionCard({ suggestion: s, isExpanded, onToggleExpa
     );
 }
 
-// Inline styles for actions - ideally move to a CSS module or shared components
-export const SuggestionStyles = `
-    /* Base Styles */
-    .admin-card-hover:hover {
-        background: rgba(30, 30, 30, 0.95) !important;
-        transform: translateY(-4px);
-        box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-        border-color: rgba(255,255,255,0.15) !important;
-    }
-    .btn-action-icon {
-        border: none;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.2s;
-    }
-    .btn-approve {
-        background: rgba(34, 197, 94, 0.1);
-        color: #4ade80;
-        border: 1px solid rgba(34, 197, 94, 0.2);
-    }
-    .btn-approve:hover {
-        background: rgba(34, 197, 94, 0.2);
-        box-shadow: 0 0 10px rgba(34, 197, 94, 0.1);
-    }
-    .btn-reject {
-        background: rgba(248, 113, 113, 0.1);
-        color: #f87171;
-        border: 1px solid rgba(248, 113, 113, 0.2);
-    }
-    .btn-reject:hover {
-        background: rgba(248, 113, 113, 0.2);
-        box-shadow: 0 0 10px rgba(248, 113, 113, 0.1);
-    }
-    .btn-ghost-delete {
-        background: transparent;
-        border: none;
-        color: #666;
-        width: 36px;
-        height: 36px;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-    .btn-ghost-delete:hover {
-        background: rgba(239, 68, 68, 0.15);
-        color: #ef4444;
-    }
 
-    /* Responsive Layout */
-    .suggestions-wrapper {
-        display: flex;
-        gap: 2rem;
-        align-items: flex-start;
-    }
-    
-    @media (max-width: 900px) {
-        .suggestions-wrapper {
-            flex-direction: column;
-            gap: 1rem;
-        }
-        .suggestions-sidebar {
-            width: 100% !important;
-            position: static !important;
-            margin-bottom: 1rem;
-        }
-        .suggestion-card {
-            flex-direction: column;
-            align-items: stretch !important;
-            gap: 16px !important;
-        }
-        .suggestion-user {
-            min-width: auto !important;
-            width: 100%;
-            justify-content: space-between;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            padding-bottom: 12px;
-        }
-        .suggestion-type {
-            width: 100% !important;
-            justify-content: flex-start !important;
-        }
-        .suggestion-content {
-            border: none !important;
-            padding: 0 !important;
-            margin: 4px 0;
-        }
-        .suggestion-status {
-            width: 100% !important;
-            justify-content: flex-start !important;
-            margin-top: 4px;
-        }
-        .suggestion-actions {
-            min-width: auto !important;
-            justify-content: flex-end !important;
-            border-top: 1px solid rgba(255,255,255,0.05);
-            padding-top: 12px;
-        }
-    }
-`;

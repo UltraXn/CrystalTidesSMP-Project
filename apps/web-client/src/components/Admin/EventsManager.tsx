@@ -94,7 +94,7 @@ export default function EventsManager({ mockEvents, mockRegistrationsMap }: Even
         <div className="event-manager-container">
             <div className="event-header">
                 <h3>{t('admin.events.title')}</h3>
-                <button className="btn-primary poll-new-btn" onClick={handleNew}>
+                <button type="button" className="btn-primary poll-new-btn" onClick={handleNew}>
                     <Plus size={14} /> {t('admin.events.create_title')}
                 </button>
             </div>

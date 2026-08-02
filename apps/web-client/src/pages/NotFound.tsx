@@ -63,6 +63,7 @@ export default function NotFound() {
                     alt="CrystalTides Logo"
                     className="not-found-logo"
                     onMouseEnter={handleLogoHover}
+                    onFocus={handleLogoHover}
                     style={{ width: '120px', height: 'auto', marginBottom: '1rem', filter: 'drop-shadow(0 0 10px rgba(15, 150, 156, 0.5))', cursor: 'pointer' }}
                 />
                 <h1 style={{ fontSize: '4rem', fontWeight: '800', lineHeight: 1, marginBottom: '0.5rem' }}>404</h1>

@@ -4,32 +4,32 @@ import { compressImage } from './imageOptimizer';
 describe('imageOptimizer', () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        
+
         // Mock FileReader
-        const mockFileReader = {
-            readAsDataURL: vi.fn(function(this: any) {
+        class MockFileReader {
+            onload: ((event: { target: { result: string } }) => void) | null = null;
+            onerror: ((event: Error) => void) | null = null;
+            readAsDataURL() {
                 setTimeout(() => {
-                    this.onload({ target: { result: 'data:image/png;base64,mockData' } });
+                    this.onload?.({ target: { result: 'data:image/png;base64,mockData' } });
                 }, 0);
-            }),
-            onload: null as any,
-            onerror: null as any,
-        };
-        vi.stubGlobal('FileReader', vi.fn(() => mockFileReader));
+            }
+        }
+        vi.stubGlobal('FileReader', MockFileReader);
 
         // Mock Image
-        const mockImage = {
+        class MockImage {
+            onload: (() => void) | null = null;
+            onerror: (() => void) | null = null;
+            width = 1000;
+            height = 800;
             set src(_val: string) {
                 setTimeout(() => {
-                    (this as any).onload();
+                    this.onload?.();
                 }, 0);
-            },
-            onload: null as any,
-            onerror: null as any,
-            width: 1000,
-            height: 800,
-        };
-        vi.stubGlobal('Image', vi.fn(() => mockImage));
+            }
+        }
+        vi.stubGlobal('Image', MockImage);
 
         // Mock HTMLCanvasElement and Context
         const mockBlob = new Blob(['mock-webp-data'], { type: 'image/webp' });
@@ -42,7 +42,7 @@ describe('imageOptimizer', () => {
             height: 0,
         };
         vi.spyOn(document, 'createElement').mockImplementation((tagName) => {
-            if (tagName === 'canvas') return mockCanvas as any;
+            if (tagName === 'canvas') return mockCanvas as unknown as HTMLCanvasElement;
             return document.createElement(tagName);
         });
     });
@@ -65,13 +65,16 @@ describe('imageOptimizer', () => {
     });
 
     it('should handle FileReader errors', async () => {
-        vi.stubGlobal('FileReader', vi.fn(() => ({
-            readAsDataURL: vi.fn(function(this: any) {
+        class MockFileReaderError {
+            onload: ((event: { target: { result: string } }) => void) | null = null;
+            onerror: ((event: Error) => void) | null = null;
+            readAsDataURL() {
                 setTimeout(() => {
-                    this.onerror(new Error('Read error'));
+                    this.onerror?.(new Error('Read error'));
                 }, 0);
-            }),
-        })));
+            }
+        }
+        vi.stubGlobal('FileReader', MockFileReaderError);
 
         const mockFile = new File(['mock-data'], 'test.png', { type: 'image/png' });
         await expect(compressImage(mockFile)).rejects.toThrow('Read error');

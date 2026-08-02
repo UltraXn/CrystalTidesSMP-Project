@@ -10,7 +10,9 @@ import PremiumConfirm from '../UI/PremiumConfirm';
 import PremiumAlert from '../UI/PremiumAlert';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../../services/supabaseClient';
+import { uploadImage as uploadImageSecure } from '../../services/uploadService';
 import { getAuthHeaders } from '../../services/adminAuth';
+import "../../styles/admin/admin_docs.css";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -200,6 +202,7 @@ export default function AdminDocs({ mockDocs }: AdminDocsProps = {}) {
 
     // Fetch docs from DB
     useEffect(() => {
+        let ignore = false;
         const fetchDocs = async () => {
              if (mockDocs) return; // Use mocked docs
             try {
@@ -209,23 +212,26 @@ export default function AdminDocs({ mockDocs }: AdminDocsProps = {}) {
                 });
                 if (res.ok) {
                     const data = await res.json();
-                    if (data && data.value) {
-                        const parsed = typeof data.value === 'string' ? JSON.parse(data.value) : data.value;
-                        setDocs(parsed);
-                    } else {
-                        setDocs(defaults);
+                    if (!ignore) {
+                        if (data && data.value) {
+                            const parsed = typeof data.value === 'string' ? JSON.parse(data.value) : data.value;
+                            setDocs(parsed);
+                        } else {
+                            setDocs(defaults);
+                        }
                     }
-                } else {
+                } else if (!ignore) {
                     setDocs(defaults);
                 }
             } catch (err) {
                 console.error("Error fetching docs:", err);
-                setDocs(defaults);
+                if (!ignore) setDocs(defaults);
             } finally {
-                setLoading(false);
+                if (!ignore) setLoading(false);
             }
         };
         fetchDocs();
+        return () => { ignore = true; };
     }, [defaults, mockDocs]);
 
     const activeDoc = docs.find(d => d.id === activeTab) || docs[0] || defaults[0];
@@ -284,19 +290,8 @@ export default function AdminDocs({ mockDocs }: AdminDocsProps = {}) {
     const handleImageUpload = async (file: File) => {
         setUploading(true);
         try {
-            const fileExt = file.name.split('.').pop();
-            const fileName = `${Date.now()}.${fileExt}`;
-            const filePath = `docs/${fileName}`;
-
-            const { error: uploadError } = await supabase.storage
-                .from('admin-assets')
-                .upload(filePath, file);
-
-            if (uploadError) throw uploadError;
-
-            const { data: { publicUrl } } = supabase.storage
-                .from('admin-assets')
-                .getPublicUrl(filePath);
+            // Server-validated upload (magic bytes checked in backend)
+            const publicUrl = await uploadImageSecure(file, 'admin-assets', 'docs');
 
             // Insert markdown at cursor or end
             const imageMarkdown = `\n![Image](${publicUrl})\n`;
@@ -325,174 +320,6 @@ export default function AdminDocs({ mockDocs }: AdminDocsProps = {}) {
 
     return (
         <div className="admin-docs-container">
-            <style>{`
-                .admin-docs-container {
-                    display: flex;
-                    gap: 2rem;
-                    height: calc(100vh - 150px);
-                    color: #fff;
-                    position: relative;
-                }
-                .docs-sidebar {
-                    width: 250px;
-                    flex-shrink: 0;
-                    border-right: 1px solid rgba(255,255,255,0.1);
-                    overflow-y: auto;
-                    padding-bottom: 2rem;
-                }
-                .docs-content {
-                    flex: 1;
-                    overflow-y: auto;
-                    padding-right: 2rem;
-                    display: flex;
-                    flex-direction: column;
-                }
-                .docs-card {
-                    background: rgba(0,0,0,0.2);
-                    padding: 2rem;
-                    border-radius: 12px;
-                    border: 1px solid rgba(255,255,255,0.05);
-                    flex: 1;
-                    display: flex;
-                    flex-direction: column;
-                }
-                .sidebar-btn {
-                    display: flex;
-                    align-items: center;
-                    gap: 0.8rem;
-                    padding: 0.8rem 1rem;
-                    background: transparent;
-                    color: #ccc;
-                    border: none;
-                    border-radius: 0 8px 8px 0;
-                    cursor: pointer;
-                    text-align: left;
-                    width: 100%;
-                    transition: all 0.2s;
-                    font-size: 0.95rem;
-                }
-                .sidebar-btn:hover {
-                    background: rgba(255,255,255,0.05);
-                    color: #fff;
-                }
-                .sidebar-btn.active {
-                    background: var(--accent);
-                    color: #000;
-                    font-weight: bold;
-                }
-                
-                .docs-editor {
-                    width: 100%;
-                    min-height: 400px;
-                    background: #111;
-                    color: #eee;
-                    border: 1px solid #333;
-                    border-radius: 8px;
-                    padding: 1rem;
-                    font-family: monospace;
-                    font-size: 1rem;
-                    line-height: 1.5;
-                    resize: vertical;
-                    outline: none;
-                }
-                .docs-editor:focus {
-                    border-color: var(--accent);
-                }
-
-                /* Mobile Dropdown Styles */
-                .mobile-dropdown-container {
-                    display: none;
-                    position: relative;
-                    margin-bottom: 1rem;
-                    z-index: 100;
-                }
-                .mobile-dropdown-btn {
-                    width: 100%;
-                    background: rgba(255,255,255,0.05);
-                    border: 1px solid rgba(255,255,255,0.1);
-                    color: #fff;
-                    padding: 1rem;
-                    border-radius: 8px;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    font-weight: bold;
-                    cursor: pointer;
-                }
-                .mobile-dropdown-list {
-                    position: absolute;
-                    top: 100%;
-                    left: 0;
-                    width: 100%;
-                    background: #1a1a1a;
-                    border: 1px solid rgba(255,255,255,0.1);
-                    border-radius: 8px;
-                    margin-top: 0.5rem;
-                    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-                    overflow: hidden;
-                    animation: fadeIn 0.2s ease;
-                }
-                .mobile-dropdown-item {
-                    padding: 1rem;
-                    display: flex;
-                    align-items: center;
-                    gap: 0.8rem;
-                    color: #ccc;
-                    border-bottom: 1px solid rgba(255,255,255,0.05);
-                    cursor: pointer;
-                }
-                .mobile-dropdown-item:last-child { border-bottom: none; }
-                .mobile-dropdown-item.active { background: var(--accent); color: #000; }
-
-                /* Mobile Responsive Improvements */
-                .docs-header {
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    margin-bottom: 2rem;
-                    border-bottom: 1px solid var(--accent);
-                    padding-bottom: 1rem;
-                }
-                
-                @media (max-width: 768px) {
-                    .admin-docs-container {
-                        flex-direction: column;
-                        height: auto;
-                        gap: 1rem;
-                        overflow: visible;
-                    }
-                    .docs-sidebar { display: none; }
-                    .mobile-dropdown-container { display: block; }
-                    .docs-content { 
-                        padding-right: 0; 
-                        overflow-y: visible;
-                        min-height: 500px; /* Ensure height on mobile */
-                    }
-                    .docs-card { padding: 1.25rem; }
-                    h2 { font-size: 1.5rem !important; }
-
-                    /* Header Stacking */
-                    .docs-header {
-                        flex-direction: column;
-                        align-items: flex-start;
-                        gap: 1.5rem;
-                    }
-                    .docs-header > div {
-                        width: 100%;
-                        justify-content: space-between;
-                        flex-wrap: wrap; /* Allow buttons to wrap */
-                        gap: 0.8rem;
-                    }
-                    /* Button adjustments for better touch targets */
-                    .btn-primary, .btn-secondary {
-                        flex: 1;
-                        justify-content: center;
-                        padding: 0.8rem;
-                        white-space: nowrap;
-                    }
-                }
-                @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
-            `}</style>
             
             {/* Desktop Sidebar */}
             <div className="docs-sidebar">
@@ -501,7 +328,7 @@ export default function AdminDocs({ mockDocs }: AdminDocsProps = {}) {
                     {docs.map(doc => {
                         const Icon = ICON_MAP[doc.id] || Book;
                         return (
-                            <button
+                            <button aria-label="Action" type="button"
                                 key={doc.id}
                                 onClick={() => { setActiveTab(doc.id); setIsEditing(false); }}
                                 className={`sidebar-btn ${activeTab === doc.id ? 'active' : ''}`}
@@ -516,7 +343,7 @@ export default function AdminDocs({ mockDocs }: AdminDocsProps = {}) {
 
             {/* Mobile Dropdown */}
             <div className="mobile-dropdown-container">
-                <button 
+                <button aria-label="Action" type="button" 
                     className="mobile-dropdown-btn"
                     onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 >
@@ -531,7 +358,8 @@ export default function AdminDocs({ mockDocs }: AdminDocsProps = {}) {
                         {docs.map(doc => {
                             const Icon = ICON_MAP[doc.id] || Book;
                             return (
-                                <div 
+                                <button
+                                    type="button"
                                     key={doc.id}
                                     className={`mobile-dropdown-item ${activeTab === doc.id ? 'active' : ''}`}
                                     onClick={() => {
@@ -541,7 +369,7 @@ export default function AdminDocs({ mockDocs }: AdminDocsProps = {}) {
                                     }}
                                 >
                                     <Icon /> {doc.title}
-                                </div>
+                                </button>
                             );
                         })}
                     </div>
@@ -560,18 +388,18 @@ export default function AdminDocs({ mockDocs }: AdminDocsProps = {}) {
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
                             {isEditing ? (
                                 <>
-                                    <button onClick={handleReset} className="btn-secondary" style={{ padding: '0.5rem 1rem', background: 'rgba(255,255,255,0.05)' }} title={t('admin.docs.reset')}>
+                                    <button type="button" onClick={handleReset} className="btn-secondary" style={{ padding: '0.5rem 1rem', background: 'rgba(255,255,255,0.05)' }} title={t('admin.docs.reset')}>
                                         <Undo2 />
                                     </button>
-                                    <button onClick={() => setIsEditing(false)} className="btn-secondary" style={{ color: '#ef4444' }}>
+                                    <button type="button" onClick={() => setIsEditing(false)} className="btn-secondary" style={{ color: '#ef4444' }}>
                                         <X /> {t('admin.actions.cancel')}
                                     </button>
-                                    <button onClick={handleSave} className="btn-primary" disabled={saving}>
+                                    <button type="button" onClick={handleSave} className="btn-primary" disabled={saving}>
                                         <Save /> {saving ? t('admin.docs.saving') : t('admin.actions.save')}
                                     </button>
                                 </>
                             ) : (
-                                <button onClick={() => setIsEditing(true)} className="btn-primary" style={{ background: 'rgba(22, 140, 128, 0.2)', border: '1px solid var(--accent)', color: 'var(--accent)' }}>
+                                <button type="button" onClick={() => setIsEditing(true)} className="btn-primary" style={{ background: 'rgba(22, 140, 128, 0.2)', border: '1px solid var(--accent)', color: 'var(--accent)' }}>
                                     <Edit /> {t('admin.docs.edit_section')}
                                 </button>
                             )}
@@ -591,7 +419,7 @@ export default function AdminDocs({ mockDocs }: AdminDocsProps = {}) {
                                 <label className="btn-icon-premium" style={{ cursor: 'pointer', padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
                                     {uploading ? <Loader2 className="spin" /> : <Image />}
                                     {uploading ? t('common.uploading', 'Subiendo...') : t('admin.docs.upload_image', 'Subir Imagen')}
-                                    <input 
+                                    <input aria-label={t('admin.docs.upload_image', 'Subir Imagen')} 
                                         type="file" 
                                         accept="image/*" 
                                         style={{ display: 'none' }} 
@@ -602,7 +430,7 @@ export default function AdminDocs({ mockDocs }: AdminDocsProps = {}) {
                                     />
                                 </label>
                             </div>
-                            <textarea 
+                            <textarea aria-label={t('admin.docs.edit_content', 'Editar contenido de la documentación')} 
                                 className="docs-editor"
                                 value={editContent}
                                 onChange={(e) => setEditContent(e.target.value)}

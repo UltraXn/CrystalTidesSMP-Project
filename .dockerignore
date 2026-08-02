@@ -1,6 +1,9 @@
 # Optimized .dockerignore for Crystaltides Monorepo
 # Exclude build artifacts and unnecessary files
 
+**/node_modules
+**/dist
+**/coverage
 **/.turbo
 **/.next
 **/.cache
@@ -11,6 +14,9 @@
 .vscode
 .idea
 .agent
+.claude
+.opencode
+graphify-out
 target/
 database/
 plugins/
@@ -19,6 +25,8 @@ tmp/
 out/
 windows/
 native/
+apps/launcher
+
 
 # OS specific and misc
 *.log
@@ -26,8 +34,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .env
-.env.local
-.env.*.local
+.env.*
+**/.env
+**/.env.*
 *.suo
 *.ntvs*
 *.njsproj

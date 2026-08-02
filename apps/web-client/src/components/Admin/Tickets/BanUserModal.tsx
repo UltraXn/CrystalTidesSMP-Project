@@ -65,13 +65,12 @@ export default function BanUserModal({ onClose, onSuccess }: BanUserModalProps) 
 
                 <form onSubmit={handleBan}>
                     <div style={{marginBottom:'1rem'}}>
-                        <label className="admin-label">{t('admin.tickets.ban_modal.nickname', 'Nickname (Exacto)')}</label>
-                        <input 
+                        <label htmlFor="ban-nickname" className="admin-label">{t('admin.tickets.ban_modal.nickname', 'Nickname (Exacto)')}</label>
+                        <input id="ban-nickname" 
                             className="admin-input" 
                             value={nickname} 
                             onChange={e => setNickname(e.target.value)} 
                             placeholder={t('admin.tickets.ban_modal.nick_ph', 'Ej: Notch')}
-                            autoFocus
                         />
                          <div style={{fontSize: '0.75rem', color: '#666', marginTop: '0.3rem'}}>
                             {t('admin.tickets.ban_modal.nick_hint', 'Asegúrate de copiarlo bien del chat.')}
@@ -79,7 +78,7 @@ export default function BanUserModal({ onClose, onSuccess }: BanUserModalProps) 
                     </div>
 
                     <div style={{marginBottom:'1rem'}}>
-                        <label className="admin-label">{t('admin.tickets.ban_modal.type', 'Tipo de Sanción')}</label>
+                        <div className="admin-label">{t('admin.tickets.ban_modal.type', 'Tipo de Sanción')}</div>
                         <div style={{display:'flex', gap:'1rem'}}>
                             <button 
                                 type="button" 
@@ -103,12 +102,12 @@ export default function BanUserModal({ onClose, onSuccess }: BanUserModalProps) 
                     {duration === 'temp' && (
                         <div style={{marginBottom:'1rem', display:'flex', gap:'0.5rem'}}>
                             <div style={{flex:1}}>
-                                <label className="admin-label">{t('admin.tickets.ban_modal.amount', 'Cantidad')}</label>
-                                <input type="number" className="admin-input" value={timeValue} onChange={e => setTimeValue(e.target.value)} min="1" />
+                                <label htmlFor="ban-amount" className="admin-label">{t('admin.tickets.ban_modal.amount', 'Cantidad')}</label>
+                                <input id="ban-amount" type="number" className="admin-input" value={timeValue} onChange={e => setTimeValue(e.target.value)} min="1" />
                             </div>
                             <div style={{flex:1}}>
-                                <label className="admin-label">{t('admin.tickets.ban_modal.unit', 'Unidad')}</label>
-                                <select 
+                                <label htmlFor="ban-unit" className="admin-label">{t('admin.tickets.ban_modal.unit', 'Unidad')}</label>
+                                <select id="ban-unit" 
                                     className="admin-input" 
                                     style={{ backgroundColor: '#1a1b20', color: 'white', cursor: 'pointer' }}
                                     value={timeUnit} 
@@ -124,8 +123,8 @@ export default function BanUserModal({ onClose, onSuccess }: BanUserModalProps) 
                     )}
 
                     <div style={{marginBottom:'1.5rem'}}>
-                        <label className="admin-label">{t('admin.tickets.ban_modal.reason', 'Razón')}</label>
-                        <textarea 
+                        <label htmlFor="ban-reason" className="admin-label">{t('admin.tickets.ban_modal.reason', 'Razón')}</label>
+                        <textarea id="ban-reason" 
                             className="admin-input" 
                             rows={3} 
                             value={reason} 

@@ -128,7 +128,7 @@ export default function TwoFactorSetup({
             {success && <div style={{ color: '#10b981', background: 'rgba(16, 185, 129, 0.1)', padding: '0.8rem', borderRadius: '8px', marginBottom: '1rem', fontSize: '0.9rem' }}>{success}</div>}
 
             {!enabled && !setupData && (
-                <button 
+                <button type="button" 
                     onClick={handleSetup}
                     disabled={loading}
                     className="btn-primary"
@@ -144,7 +144,7 @@ export default function TwoFactorSetup({
                         border: 'none',
                         cursor: loading ? 'not-allowed' : 'pointer',
                         width: '100%',
-                        transition: 'all 0.2s',
+                        transition: "color 0.2s, background-color 0.2s, border-color 0.2s, opacity 0.2s",
                         opacity: loading ? 0.7 : 1
                     }}
                 >
@@ -195,22 +195,23 @@ export default function TwoFactorSetup({
                             <Key size={12} /> {t('account.security.cant_scan', "Can't scan the QR code?")}
                         </p>
                         
-                        <div 
+                        <button
+                            type="button"
                             onClick={() => {
                                 navigator.clipboard.writeText(setupData.secret);
                                 setSuccess(t('account.security.copied', 'Copiado!'));
                                 setTimeout(() => setSuccess(''), 2000);
                             }}
-                            style={{ 
-                                display: 'flex', 
-                                alignItems: 'center', 
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
                                 justifyContent: 'space-between',
-                                background: 'rgba(0,0,0,0.3)', 
-                                padding: '8px 12px', 
-                                borderRadius: '6px', 
+                                background: 'rgba(0,0,0,0.3)',
+                                padding: '8px 12px',
+                                borderRadius: '6px',
                                 border: '1px dashed rgba(255,255,255,0.2)',
                                 cursor: 'pointer',
-                                transition: 'all 0.2s'
+                                transition: "color 0.2s, background-color 0.2s, border-color 0.2s, opacity 0.2s"
                             }}
                             className="hover:bg-white/5 hover:border-white/40 group"
                         >
@@ -218,12 +219,12 @@ export default function TwoFactorSetup({
                                 {setupData.secret}
                             </code>
                             <Copy size={12} style={{ color: '#666' }} className="group-hover:text-white transition-colors" />
-                        </div>
+                        </button>
                     </div>
                     
                     <h4 style={{ color: '#fff', marginBottom: '1rem' }}>2. {t('account.security.enter_code', 'Enter Code')}</h4>
                     <div style={{ display: 'flex', gap: '10px' }}>
-                        <input 
+                        <input aria-label="Input field" 
                             type="text" 
                             maxLength={6}
                             placeholder="000000"
@@ -231,7 +232,7 @@ export default function TwoFactorSetup({
                             onChange={e => setToken(e.target.value.replace(/[^0-9]/g, ''))}
                             style={{ padding: '0.8rem', borderRadius: '6px', border: '1px solid #444', background: '#222', color: '#fff', fontSize: '1.1rem', width: '120px', textAlign: 'center', letterSpacing: '2px' }}
                         />
-                        <button 
+                        <button type="button" 
                             onClick={handleEnable}
                             disabled={confirming || token.length !== 6}
                             className="btn-primary"
@@ -243,7 +244,7 @@ export default function TwoFactorSetup({
                                 borderRadius: '8px',
                                 border: 'none',
                                 cursor: (confirming || token.length !== 6) ? 'not-allowed' : 'pointer',
-                                transition: 'all 0.2s',
+                                transition: "color 0.2s, background-color 0.2s, border-color 0.2s, opacity 0.2s",
                                 opacity: (confirming || token.length !== 6) ? 0.6 : 1
                             }}
                         >
@@ -254,7 +255,7 @@ export default function TwoFactorSetup({
             )}
 
             {enabled && (
-                <button 
+                <button type="button" 
                     onClick={handleDisable}
                     disabled={loading}
                     style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '0.8rem 1.5rem', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center' }}

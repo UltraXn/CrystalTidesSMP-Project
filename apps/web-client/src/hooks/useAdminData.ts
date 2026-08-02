@@ -22,8 +22,11 @@ export const useVerifyAdmin2FA = () => {
                 },
                 body: JSON.stringify({ token: code }),
             });
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.error || 'Verification failed');
+            }
             const data = await res.json();
-            if (!res.ok) throw new Error(data.error || 'Verification failed');
             return data.data; // { adminToken: string }
         },
     });
@@ -125,23 +128,6 @@ export const useUsers = (search = '') => {
             return Array.isArray(response) ? response : (response.data || []);
         },
         staleTime: 1000 * 60 * 5, // 5 minutes
-    });
-};
-
-export const useSearchUsers = () => {
-    return useMutation({
-        mutationFn: async (query: string) => {
-            const session = (await supabase.auth.getSession()).data.session;
-            const headers = getAuthHeaders(session?.access_token || null);
-
-            const res = await fetch(`${API_URL}/users?search=${encodeURIComponent(query)}`, { headers });
-            if (!res.ok) {
-                const errorData = await res.json();
-                throw new Error(errorData.error || 'User search failed');
-            }
-            const response = await res.json();
-            return Array.isArray(response) ? response : (response.data || []);
-        }
     });
 };
 
@@ -457,6 +443,7 @@ export const useDeletePoll = () => {
 };
 
 export const useTranslateText = () => {
+    const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async ({ text, targetLang = 'en' }: { text: string; targetLang?: string }) => {
             const session = (await supabase.auth.getSession()).data.session;
@@ -471,6 +458,9 @@ export const useTranslateText = () => {
             if (!res.ok) throw new Error('Translation failed');
             const data = await res.json();
             return data.translatedText || '';
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['admin', 'translations'] });
         }
     });
 };
@@ -482,9 +472,16 @@ export interface NewsPayload {
     title_en?: string;
     content: string;
     content_en?: string;
-    image_url: string;
     category: string;
-    author: string;
+    status?: 'Published' | 'Draft';
+    id?: number;
+    image?: string;
+    image_url?: string;
+    author?: string;
+    // Optional audit fields accepted by the backend (newsController)
+    author_id?: string;
+    username?: string;
+    user_id?: string;
 }
 
 export const useAdminNews = () => {
@@ -580,7 +577,8 @@ export const useWikiArticles = () => {
         queryFn: async () => {
             const res = await fetch(`${API_URL}/wiki`);
             if (!res.ok) throw new Error('Failed to fetch wiki articles');
-            return await res.json();
+            const json = await res.json();
+            return Array.isArray(json) ? json : json.data || [];
         }
     });
 };
@@ -1035,27 +1033,3 @@ export const useUpdatePolicy = () => {
     });
 };
 
-// --- Secure Console ---
-
-export const useSendCommand = () => {
-    return useMutation({
-        mutationFn: async ({ command, twoFactorToken }: { command: string; twoFactorToken?: string | null }) => {
-            const session = (await supabase.auth.getSession()).data.session;
-            const res = await fetch(`${API_URL}/bridge/queue`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...getAuthHeaders(session?.access_token || null),
-                    ...(twoFactorToken ? { 'x-admin-token': twoFactorToken } : {})
-                },
-                body: JSON.stringify({ command })
-            });
-
-            if (!res.ok) {
-                 const err = await res.json();
-                 throw new Error(err.error || 'Failed to send command');
-            }
-            return await res.json();
-        }
-    });
-};

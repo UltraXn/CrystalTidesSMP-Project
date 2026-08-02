@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Bell, Info, AlertTriangle, CheckCircle2, X } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 
 interface Notification {
     id: number;
@@ -11,7 +12,13 @@ interface Notification {
     read: boolean;
 }
 
-import { useTranslation } from 'react-i18next'; // Added import
+const getIcon = (type: string) => {
+    switch(type) {
+        case 'success': return <CheckCircle2 style={{ color: '#4CAF50' }} />;
+        case 'warning': return <AlertTriangle style={{ color: '#FFC107' }} />;
+        default: return <Info style={{ color: '#2196F3' }} />;
+    }
+};
 
 export default function NotificationCenter() {
     const { t } = useTranslation();
@@ -41,17 +48,9 @@ export default function NotificationCenter() {
         setNotifications(notifications.filter(n => n.id !== id));
     };
 
-    const getIcon = (type: string) => {
-        switch(type) {
-            case 'success': return <CheckCircle2 style={{ color: '#4CAF50' }} />;
-            case 'warning': return <AlertTriangle style={{ color: '#FFC107' }} />;
-            default: return <Info style={{ color: '#2196F3' }} />;
-        }
-    };
-
     return (
         <div className="notification-center" ref={containerRef} style={{ position: 'relative' }}>
-            <button 
+            <button type="button" 
                 onClick={() => setIsOpen(!isOpen)}
                 aria-label={t('admin.notifications.label', 'Notificaciones')}
                 style={{ 
@@ -91,7 +90,7 @@ export default function NotificationCenter() {
 
             <AnimatePresence>
                 {isOpen && (
-                    <motion.div
+                    <m.div
                         initial={{ opacity: 0, y: 10, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
@@ -99,7 +98,7 @@ export default function NotificationCenter() {
                         style={{
                             position: 'absolute',
                             top: '100%',
-                            right: '-50px', // Align roughly with right edge
+                            right: '-50px',
                             width: '320px',
                             background: '#1a1a1a',
                             border: '1px solid rgba(255,255,255,0.1)',
@@ -123,7 +122,7 @@ export default function NotificationCenter() {
                         }}>
                             <h3 style={{ margin: 0, fontSize: '1rem' }}>{t('admin.notifications.title', 'Notificaciones')}</h3>
                             {unreadCount > 0 && (
-                                <button 
+                                <button type="button" 
                                     onClick={handleMarkAllRead}
                                     style={{ 
                                         background: 'transparent', 
@@ -147,12 +146,12 @@ export default function NotificationCenter() {
                                 </div>
                             ) : (
                                 notifications.map(n => (
-                                    <motion.div
+                                    <m.div
                                         key={n.id}
                                         layout
                                         initial={{ opacity: 0 }}
                                         animate={{ opacity: 1 }}
-                                        exit={{ opacity: 0, height: 0 }}
+                                        exit={{ opacity: 0, scale: 0.95 }}
                                         style={{
                                             padding: '1rem',
                                             borderBottom: '1px solid rgba(255,255,255,0.05)',
@@ -172,7 +171,7 @@ export default function NotificationCenter() {
                                             </h4>
                                             <p style={{ margin: 0, fontSize: '0.85rem', color: '#aaa', lineHeight: '1.4' }}>{n.message}</p>
                                         </div>
-                                        <button 
+                                        <button type="button" 
                                             onClick={(e) => deleteNotification(n.id, e)}
                                             style={{
                                                 background: 'transparent',
@@ -182,15 +181,16 @@ export default function NotificationCenter() {
                                                 padding: '2px',
                                                 alignSelf: 'flex-start'
                                             }}
+                                            aria-label={t('admin.notifications.dismiss', 'Descartar')}
                                             title={t('admin.notifications.dismiss', 'Descartar')}
                                         >
                                             <X />
                                         </button>
-                                    </motion.div>
+                                    </m.div>
                                 ))
                             )}
                         </div>
-                    </motion.div>
+                    </m.div>
                 )}
             </AnimatePresence>
         </div>

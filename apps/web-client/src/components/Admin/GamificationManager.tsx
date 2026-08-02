@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Plus, Trash2, Trophy, Medal as MedalIcon, Pencil, Check, X, Languages } from 'lucide-react';
 
 import { useTranslation } from 'react-i18next';
@@ -43,6 +43,7 @@ async function translateText(text: string): Promise<string> {
     if (!text || text.trim() === '') return '';
     try {
         const response = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=es|en`);
+        if (!response.ok) return text; // Fallback to original
         const data = await response.json();
         return data.responseData?.translatedText || text;
     } catch (error) {
@@ -54,12 +55,14 @@ async function translateText(text: string): Promise<string> {
 const MedalCard = ({ medal, onSave, onDelete }: { medal: Medal, onSave: (m: Medal) => void, onDelete: () => void }) => {
     const [isEditing, setIsEditing] = useState(false);
 
-    const [isTranslating, setIsTranslating] = useState(false); // Loading state
+    const [isTranslating, setIsTranslating] = useState(false);
+    const [prevMedal, setPrevMedal] = useState<Medal>(medal);
     const [formData, setFormData] = useState<Medal>(medal);
 
-    useEffect(() => {
+    if (medal !== prevMedal) {
+        setPrevMedal(medal);
         setFormData(medal);
-    }, [medal]);
+    }
 
 
 
@@ -130,7 +133,7 @@ const MedalCard = ({ medal, onSave, onDelete }: { medal: Medal, onSave: (m: Meda
                             const IconComp = MEDAL_ICONS[(isEditing ? formData.icon : medal.icon) as keyof typeof MEDAL_ICONS] || MedalIcon;
                             return <IconComp size={20} style={{ color: isEditing ? formData.color : medal.color }} />;
                         })()}
-                        <select 
+                        <select aria-label="Select option" 
                             value={isEditing ? formData.icon : medal.icon} 
                             onChange={(e) => handleChange('icon', e.target.value)}
                             disabled={!isEditing}
@@ -141,7 +144,7 @@ const MedalCard = ({ medal, onSave, onDelete }: { medal: Medal, onSave: (m: Meda
                             ))}
                         </select>
                     </div>
-                    <input 
+                    <input aria-label="Input field" 
                         type="color" 
                         value={isEditing ? formData.color : medal.color} 
                         onChange={(e) => handleChange('color', e.target.value)}
@@ -154,19 +157,19 @@ const MedalCard = ({ medal, onSave, onDelete }: { medal: Medal, onSave: (m: Meda
                 <div className="action-buttons">
                     {isEditing ? (
                         <>
-                            <button className="save-btn" onClick={handleSave} title="Guardar">
+                            <button aria-label="Action" type="button" className="save-btn" onClick={handleSave} title="Guardar">
                                 <Check size={18} />
                             </button>
-                            <button className="cancel-btn" onClick={handleCancel} title="Cancelar">
+                            <button aria-label="Action" type="button" className="cancel-btn" onClick={handleCancel} title="Cancelar">
                                 <X size={18} />
                             </button>
                         </>
                     ) : (
                         <>
-                            <button className="edit-btn" onClick={() => setIsEditing(true)} title="Editar">
+                            <button type="button" className="edit-btn" onClick={() => setIsEditing(true)} title="Editar">
                                 <Pencil size={18} />
                             </button>
-                            <button className="delete-btn" onClick={onDelete} title="Eliminar">
+                            <button aria-label="Action" type="button" className="delete-btn" onClick={onDelete} title="Eliminar">
                                 <Trash2 size={18} />
                             </button>
                         </>
@@ -176,7 +179,7 @@ const MedalCard = ({ medal, onSave, onDelete }: { medal: Medal, onSave: (m: Meda
 
             <div className="card-body">
                 {/* Spanish Fields */}
-                <input 
+                <input aria-label="Input field" 
                     type="text" 
                     value={isEditing ? formData.name : medal.name} 
                     placeholder="Nombre (ES)"
@@ -185,7 +188,7 @@ const MedalCard = ({ medal, onSave, onDelete }: { medal: Medal, onSave: (m: Meda
                     readOnly={!isEditing}
                     style={{ opacity: isEditing ? 1 : 0.8 }}
                 />
-                <textarea 
+                <textarea aria-label="Text input" 
                     value={isEditing ? formData.description : medal.description} 
                     placeholder="Descripción (ES)"
                     onChange={(e) => handleChange('description', e.target.value)}
@@ -199,8 +202,8 @@ const MedalCard = ({ medal, onSave, onDelete }: { medal: Medal, onSave: (m: Meda
                 {isEditing && (
                     <div style={{ marginTop: '0.5rem', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '0.5rem' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                            <label style={{ fontSize: '0.7rem', color: '#666', textTransform: 'uppercase', fontWeight: 'bold' }}>VERSION INGLÉS</label>
-                            <button 
+                            <div style={{ fontSize: '0.7rem', color: '#666', textTransform: 'uppercase', fontWeight: 'bold' }}>VERSION INGLÉS</div>
+                            <button aria-label="Action" type="button" 
                                 onClick={handleAutoTranslate}
                                 disabled={isTranslating}
                                 style={{ 
@@ -214,7 +217,7 @@ const MedalCard = ({ medal, onSave, onDelete }: { medal: Medal, onSave: (m: Meda
                                 {isTranslating ? "Translating..." : "Auto-Translate"}
                             </button>
                         </div>
-                        <input 
+                        <input aria-label="Input field" 
                             type="text" 
                             value={formData.name_en || ''} 
                             placeholder="Name (EN)"
@@ -222,7 +225,7 @@ const MedalCard = ({ medal, onSave, onDelete }: { medal: Medal, onSave: (m: Meda
                             className="input-premium"
                             style={{ fontSize: '0.9rem', marginBottom: '0.25rem' }}
                         />
-                        <textarea 
+                        <textarea aria-label="Text input" 
                             value={formData.description_en || ''} 
                             placeholder="Description (EN)"
                             onChange={(e) => handleChange('description_en', e.target.value)}
@@ -233,7 +236,7 @@ const MedalCard = ({ medal, onSave, onDelete }: { medal: Medal, onSave: (m: Meda
                 )}
 
                 {isEditing && (
-                    <input
+                    <input aria-label="Input field"
                         type="text"
                         placeholder="O URL manual imagen..."
                         value={formData.image_url || ''}
@@ -252,11 +255,13 @@ const AchievementCard = ({ achievement, onSave, onDelete }: { achievement: Achie
     const [isEditing, setIsEditing] = useState(false);
 
     const [isTranslating, setIsTranslating] = useState(false);
+    const [prevAchievement, setPrevAchievement] = useState<Achievement>(achievement);
     const [formData, setFormData] = useState<Achievement>(achievement);
 
-    useEffect(() => {
+    if (achievement !== prevAchievement) {
+        setPrevAchievement(achievement);
         setFormData(achievement);
-    }, [achievement]);
+    }
 
 
     const handleSave = () => {
@@ -320,7 +325,7 @@ const AchievementCard = ({ achievement, onSave, onDelete }: { achievement: Achie
                     </div>
                 )}
 
-                <input 
+                <input aria-label="Input field" 
                     type="text" 
                     value={isEditing ? formData.icon : achievement.icon} 
                     onChange={(e) => handleChange('icon', e.target.value)}
@@ -333,7 +338,7 @@ const AchievementCard = ({ achievement, onSave, onDelete }: { achievement: Achie
             
             <div className="achievement-details">
                 <div className="row">
-                    <input 
+                    <input aria-label="Input field" 
                         type="text"
                         value={isEditing ? formData.name : achievement.name}
                         onChange={(e) => handleChange('name', e.target.value)}
@@ -342,7 +347,7 @@ const AchievementCard = ({ achievement, onSave, onDelete }: { achievement: Achie
                         readOnly={!isEditing}
                         style={{ opacity: isEditing ? 1 : 0.8 }}
                     />
-                    <input 
+                    <input aria-label="Input field" 
                         type="text"
                         value={isEditing ? formData.criteria : achievement.criteria}
                         onChange={(e) => handleChange('criteria', e.target.value)}
@@ -352,7 +357,7 @@ const AchievementCard = ({ achievement, onSave, onDelete }: { achievement: Achie
                         style={{ opacity: isEditing ? 1 : 0.8 }}
                     />
                 </div>
-                <textarea 
+                <textarea aria-label="Text input" 
                     value={isEditing ? formData.description : achievement.description}
                     onChange={(e) => handleChange('description', e.target.value)}
                     className="textarea-premium"
@@ -365,8 +370,8 @@ const AchievementCard = ({ achievement, onSave, onDelete }: { achievement: Achie
                 {isEditing && (
                     <div style={{ marginTop: '0.5rem', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '0.5rem' }}>
                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                            <label style={{ fontSize: '0.7rem', color: '#666', textTransform: 'uppercase', fontWeight: 'bold' }}>VERSION INGLÉS</label>
-                            <button 
+                            <div style={{ fontSize: '0.7rem', color: '#666', textTransform: 'uppercase', fontWeight: 'bold' }}>VERSION INGLÉS</div>
+                            <button aria-label="Action" type="button" 
                                 onClick={handleAutoTranslate}
                                 disabled={isTranslating}
                                 style={{ 
@@ -381,7 +386,7 @@ const AchievementCard = ({ achievement, onSave, onDelete }: { achievement: Achie
                             </button>
                         </div>
                         <div className="row" style={{ marginTop: '0.25rem' }}>
-                            <input 
+                            <input aria-label="Input field" 
                                 type="text"
                                 value={formData.name_en || ''}
                                 onChange={(e) => handleChange('name_en', e.target.value)}
@@ -389,7 +394,7 @@ const AchievementCard = ({ achievement, onSave, onDelete }: { achievement: Achie
                                 placeholder="Name (EN)"
                                 style={{ fontSize: '0.9rem' }}
                             />
-                            <input 
+                            <input aria-label="Input field" 
                                 type="text"
                                 value={formData.criteria_en || ''}
                                 onChange={(e) => handleChange('criteria_en', e.target.value)}
@@ -398,7 +403,7 @@ const AchievementCard = ({ achievement, onSave, onDelete }: { achievement: Achie
                                 style={{ fontSize: '0.9rem' }}
                             />
                         </div>
-                        <textarea 
+                        <textarea aria-label="Text input" 
                             value={formData.description_en || ''}
                             onChange={(e) => handleChange('description_en', e.target.value)}
                             className="textarea-premium"
@@ -412,19 +417,19 @@ const AchievementCard = ({ achievement, onSave, onDelete }: { achievement: Achie
             <div className="achievement-actions action-buttons" style={{ flexDirection: 'column' }}>
                 {isEditing ? (
                     <>
-                        <button className="save-btn" onClick={handleSave} title="Guardar">
+                        <button aria-label="Action" type="button" className="save-btn" onClick={handleSave} title="Guardar">
                             <Check size={18} />
                         </button>
-                        <button className="cancel-btn" onClick={handleCancel} title="Cancelar">
+                        <button aria-label="Action" type="button" className="cancel-btn" onClick={handleCancel} title="Cancelar">
                             <X size={18} />
                         </button>
                     </>
                 ) : (
                     <>
-                        <button className="edit-btn" onClick={() => setIsEditing(true)} title="Editar">
+                        <button type="button" className="edit-btn" onClick={() => setIsEditing(true)} title="Editar">
                             <Pencil size={18} />
                         </button>
-                        <button className="delete-btn" onClick={onDelete} title="Eliminar">
+                        <button aria-label="Action" type="button" className="delete-btn" onClick={onDelete} title="Eliminar">
                             <Trash2 size={18} />
                         </button>
                     </>
@@ -518,20 +523,20 @@ export default function GamificationManager() {
         <div className="gamification-container">
             <div className="gamification-header">
                 <div className="gamification-tabs">
-                    <button 
+                    <button type="button" 
                         className={`tab-btn ${activeTab === 'medals' ? 'active' : ''}`}
                         onClick={() => setActiveTab('medals')}
                     >
                         <MedalIcon size={18} /> {t('admin.gamification.medals_tab')}
                     </button>
-                    <button 
+                    <button type="button" 
                         className={`tab-btn ${activeTab === 'achievements' ? 'active' : ''}`}
                         onClick={() => setActiveTab('achievements')}
                     >
                         <Trophy size={18} /> {t('admin.gamification.achievements_tab')}
                     </button>
                 </div>
-                <button 
+                <button type="button" 
                     className="btn-primary" 
                     onClick={(e) => {
                         e.preventDefault(); 

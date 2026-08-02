@@ -50,7 +50,7 @@ export default function EventFormModal({ onClose, onSave, currentEvent, setCurre
         <div className="event-form-container">
              <div className="event-header">
                 <h3>{currentEvent.id ? t('admin.events.edit_title') : t('admin.events.create_title')}</h3>
-                <button className="btn-secondary" onClick={onClose} style={{ borderRadius: '12px', height: '42px' }}>
+                <button type="button" className="btn-secondary" onClick={onClose} style={{ borderRadius: '12px', height: '42px' }}>
                     {t('admin.events.cancel')}
                 </button>
             </div>
@@ -63,8 +63,8 @@ export default function EventFormModal({ onClose, onSave, currentEvent, setCurre
                         <h4><Dices /> {t('admin.events.form_extras.info_basic', 'Información Básica')}</h4>
                         
                         <div className="form-group">
-                            <label className="admin-label-premium">{t('admin.events.form_extras.title_es')}</label>
-                            <input
+                            <label htmlFor="event-title-es" className="admin-label-premium">{t('admin.events.form_extras.title_es')}</label>
+                            <input id="event-title-es"
                                 type="text"
                                 className="admin-input-premium"
                                 value={currentEvent.title}
@@ -75,12 +75,12 @@ export default function EventFormModal({ onClose, onSave, currentEvent, setCurre
                         
                         <div className="form-group">
                             <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap: 'wrap', gap: '0.5rem'}}>
-                                <label className="admin-label-premium">{t('admin.events.form_extras.title_en')}</label>
+                                <label htmlFor="event-title-en" className="admin-label-premium">{t('admin.events.form_extras.title_en')}</label>
                                 <button type="button" className="btn-secondary" style={{fontSize:'0.7rem', padding:'0.3rem 0.8rem', height: 'auto'}} onClick={() => handleTranslate(currentEvent.title, 'title')} disabled={translating === 'title'}>
                                     {translating === 'title' ? <Loader2 className="spin"/> : <><Languages /> {t('admin.events.form_extras.translate_btn')}</>}
                                 </button>
                             </div>
-                            <input
+                            <input id="event-title-en"
                                 type="text"
                                 className="admin-input-premium"
                                 value={currentEvent.title_en || ''}
@@ -91,8 +91,8 @@ export default function EventFormModal({ onClose, onSave, currentEvent, setCurre
 
                         <div className="event-selectors-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1.5rem" }}>
                             <div className="form-group">
-                                <label className="admin-label-premium">{t('admin.events.form.type')}</label>
-                                <select
+                                <label htmlFor="event-type" className="admin-label-premium">{t('admin.events.form.type')}</label>
+                                <select id="event-type"
                                     className="admin-select-premium"
                                     value={currentEvent.type}
                                     onChange={e => setCurrentEvent(prev => prev ? { ...prev, type: e.target.value } : null)}
@@ -104,8 +104,8 @@ export default function EventFormModal({ onClose, onSave, currentEvent, setCurre
                                 </select>
                             </div>
                             <div className="form-group">
-                                <label className="admin-label-premium">{t('admin.events.form.status')}</label>
-                                <select
+                                <label htmlFor="event-status" className="admin-label-premium">{t('admin.events.form.status')}</label>
+                                <select id="event-status"
                                     className="admin-select-premium"
                                     value={currentEvent.status}
                                     onChange={e => setCurrentEvent(prev => prev ? { ...prev, status: e.target.value } : null)}
@@ -122,8 +122,8 @@ export default function EventFormModal({ onClose, onSave, currentEvent, setCurre
                         <h4><Edit /> {t('admin.events.form_extras.description', 'Descripción Detallada')}</h4>
                         
                         <div className="form-group">
-                            <label className="admin-label-premium">{t('admin.events.form_extras.desc_es')}</label>
-                             <textarea
+                            <label htmlFor="event-desc-es" className="admin-label-premium">{t('admin.events.form_extras.desc_es')}</label>
+                             <textarea id="event-desc-es"
                                 className="admin-textarea-premium"
                                 rows={4}
                                 value={currentEvent.description}
@@ -134,12 +134,12 @@ export default function EventFormModal({ onClose, onSave, currentEvent, setCurre
                         
                         <div className="form-group">
                             <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap: 'wrap', gap: '0.5rem'}}>
-                                <label className="admin-label-premium">{t('admin.events.form_extras.desc_en')}</label>
+                                <label htmlFor="event-desc-en" className="admin-label-premium">{t('admin.events.form_extras.desc_en')}</label>
                                 <button type="button" className="btn-secondary" style={{fontSize:'0.7rem', padding:'0.3rem 0.8rem', height: 'auto'}} onClick={() => handleTranslate(currentEvent.description, 'description')} disabled={translating === 'description'}>
                                     {translating === 'description' ? <Loader2 className="spin"/> : <><Languages /> {t('admin.events.form_extras.translate_btn')}</>}
                                 </button>
                             </div>
-                            <textarea
+                            <textarea id="event-desc-en"
                                 className="admin-textarea-premium"
                                 rows={4}
                                 value={currentEvent.description_en || ''}

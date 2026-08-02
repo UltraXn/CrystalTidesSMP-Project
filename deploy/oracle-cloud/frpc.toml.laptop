@@ -1,0 +1,17 @@
+serverAddr = "150.136.151.234"
+serverPort = 7000
+auth.token = "CrystalTidesFRP2026"
+
+[[proxies]]
+name = "wings-http"
+type = "tcp"
+localIP = "127.0.0.1"
+localPort = 8082 # Port mapped on the Laptop host
+remotePort = 8082
+
+[[proxies]]
+name = "minecraft"
+type = "tcp"
+localIP = "127.0.0.1"
+localPort = 25565
+remotePort = 25565

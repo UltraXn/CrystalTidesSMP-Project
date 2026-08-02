@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { addTicketMessageSchema, AddTicketMessageFormValues } from '../schemas/ticket'
  
-import { motion } from 'framer-motion'
+import { m as motion } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../services/supabaseClient'
 import { Send, ArrowLeft, Shield } from 'lucide-react'
@@ -72,19 +72,24 @@ export default function TicketDetail() {
             if (msgsError) throw msgsError
             setMessages(msgs || [])
             setLoading(false)
-            // scrollToBottom()
+            scrollToBottom()
         } catch (error) {
             console.error('Error fetching details:', error)
             navigate('/support') // Fallback if not authorized or not found
         }
-    }, [id, navigate])
+    }, [id, navigate, scrollToBottom])
 
     useEffect(() => {
+        let isMounted = true;
+        let channel: ReturnType<typeof supabase.channel> | null = null;
+
         if (id && user) {
-            fetchTicketData()
+            Promise.resolve().then(() => {
+                if (isMounted) fetchTicketData();
+            });
             
             // Subscribe to real-time messages
-            const channel = supabase
+            channel = supabase
                 .channel(`ticket_chat_${id}`)
                 .on('postgres_changes', { 
                     event: 'INSERT', 
@@ -99,12 +104,16 @@ export default function TicketDetail() {
                     // scrollToBottom() - User requested removal
                 })
                 .subscribe()
+        }
 
-            return () => {
-                supabase.removeChannel(channel)
+        return () => {
+            isMounted = false;
+            if (channel) {
+                channel.unsubscribe();
+                supabase.removeChannel(channel);
             }
         }
-    }, [id, user, fetchTicketData, scrollToBottom])
+    }, [id, user, fetchTicketData])
 
     const handleSendMessage = async (data: AddTicketMessageFormValues) => {
         if (!user || !id) return
@@ -144,7 +153,7 @@ export default function TicketDetail() {
             
             {/* Header */}
             <div style={{marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '1rem'}}>
-                <button onClick={() => navigate('/support')} style={{background: 'none', border: 'none', color: 'white', fontSize: '1.2rem', cursor: 'pointer'}}>
+                <button aria-label="Action" type="button" onClick={() => navigate('/support')} style={{background: 'none', border: 'none', color: 'white', fontSize: '1.2rem', cursor: 'pointer'}}>
                     <ArrowLeft />
                 </button>
                 <div>
@@ -232,7 +241,7 @@ export default function TicketDetail() {
                     display: 'flex',
                     gap: '1rem'
                 }}>
-                    <input 
+                    <input aria-label="Input field" 
                         type="text" 
                         placeholder={ticket?.status === 'closed' ? t('support.ticket_closed') : t('support.type_message')}
                         {...register('message')}
@@ -242,7 +251,7 @@ export default function TicketDetail() {
                             background: '#0f0f1a', border: '1px solid #333', color: 'white'
                         }}
                     />
-                    <button 
+                    <button aria-label="Action" 
                         type="submit" 
                         disabled={ticket?.status === 'closed' || isSubmitting}
                         className="cta-button"

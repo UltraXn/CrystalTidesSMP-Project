@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import { CheckCircle, Copy } from "lucide-react"
 import Confetti from "canvas-confetti"
 import { useTranslation } from 'react-i18next'
@@ -40,17 +40,12 @@ export default function ServerStatusCard({ status, serverIp = "mc.crystaltidesSM
     const handleCopy = () => {
         navigator.clipboard.writeText(serverIp)
         setCopied(true)
-        Confetti({
-            particleCount: 50,
-            spread: 60,
-            origin: { y: 0.6 },
-            colors: ['#4ade80', '#ffffff']
-        });
+        Confetti({ particleCount: 30, spread: 60, origin: { y: 0.8 } })
         setTimeout(() => setCopied(false), 2000)
     }
 
     return (
-        <motion.div
+        <m.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.1 }}
@@ -98,7 +93,7 @@ export default function ServerStatusCard({ status, serverIp = "mc.crystaltidesSM
                         <div>
                             <h2 className="text-lg sm:text-xl md:text-2xl font-bold flex flex-wrap justify-center md:justify-start items-center gap-2 md:gap-3">
                                 {serverIp}
-                                <button 
+                                <button type="button" 
                                     onClick={handleCopy}
                                     style={{ 
                                         background: copied ? 'var(--success)' : 'rgba(255,255,255,0.1)', 
@@ -109,7 +104,7 @@ export default function ServerStatusCard({ status, serverIp = "mc.crystaltidesSM
                                         cursor: 'pointer',
                                         fontSize: '0.8rem',
                                         display: 'flex', alignItems: 'center', gap: '6px',
-                                        transition: 'all 0.2s'
+                                        transition: "color 0.2s, background-color 0.2s, border-color 0.2s, opacity 0.2s"
                                     }}
                                 >
                                     {copied ? <CheckCircle /> : <Copy />}
@@ -138,10 +133,11 @@ export default function ServerStatusCard({ status, serverIp = "mc.crystaltidesSM
                             borderColor: isOnline ? 'rgba(74, 222, 128, 0.1)' : 'rgba(239, 68, 68, 0.1)'
                         }}
                     >
-                            <motion.div 
-                            initial={{ width: 0 }}
-                            animate={{ width: `${percentage}%` }}
+                            <m.div 
+                            initial={{ scaleX: 0 }}
+                            animate={{ scaleX: percentage / 100 }}
                             transition={{ duration: 1.5, ease: [0.33, 1, 0.68, 1] }}
+                            style={{ transformOrigin: "left", width: "100%" }}
                             className={`h-full bg-linear-to-r ${
                                 isOnline 
                                     ? 'from-teal-500 to-emerald-400 shadow-[0_0_15px_rgba(52,211,153,0.3)]' 
@@ -155,6 +151,6 @@ export default function ServerStatusCard({ status, serverIp = "mc.crystaltidesSM
                     </div>
                 </div>
             </div>
-        </motion.div>
+        </m.div>
     )
 }

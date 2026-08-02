@@ -1,0 +1,23 @@
+panel.crystaltidessmp.net {
+    reverse_proxy panel:80
+}
+
+vault.crystaltidessmp.net {
+    reverse_proxy crystaltides-vault:8200
+}
+
+bot.crystaltidessmp.net {
+    reverse_proxy crystaltides-bot:3002
+}
+
+node.crystaltidessmp.net {
+    reverse_proxy frps:8082
+}
+
+node-vps.crystaltidessmp.net {
+    reverse_proxy 127.0.0.1:8080
+}
+
+http://150.136.151.234 {
+    reverse_proxy panel:80
+}

@@ -57,18 +57,16 @@ export const createLocation = async (location: Omit<WorldLocation, 'id'>, token:
         },
         body: JSON.stringify(location)
     });
-    const contentType = response.headers.get("content-type");
-    let json;
-    if (contentType && contentType.includes("application/json")) {
-        json = await response.json();
-    } else {
+    if (!response.ok) {
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+            const json = await response.json();
+            throw new Error(json?.error?.message || json?.message || 'Failed to create location');
+        }
         const text = await response.text();
         throw new Error(text || `Error ${response.status}`);
     }
-
-    if (!response.ok) {
-        throw new Error(json?.error?.message || json?.message || 'Failed to create location');
-    }
+    const json = await response.json();
     return json.data;
 };
 
@@ -81,18 +79,16 @@ export const updateLocation = async (id: number, updates: Partial<WorldLocation>
         },
         body: JSON.stringify(updates)
     });
-    const contentType = response.headers.get("content-type");
-    let json;
-    if (contentType && contentType.includes("application/json")) {
-        json = await response.json();
-    } else {
+    if (!response.ok) {
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+            const json = await response.json();
+            throw new Error(json?.error?.message || json?.message || 'Failed to update location');
+        }
         const text = await response.text();
         throw new Error(text || `Error ${response.status}`);
     }
-
-    if (!response.ok) {
-        throw new Error(json?.error?.message || json?.message || 'Failed to update location');
-    }
+    const json = await response.json();
     return json.data;
 };
 

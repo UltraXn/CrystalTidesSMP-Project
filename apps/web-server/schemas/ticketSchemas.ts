@@ -22,7 +22,10 @@ export const updateTicketStatusSchema = z.object({
 });
 export const banUserSchema = z.object({
     body: z.object({
-        userId: z.string().uuid("Invalid User ID"),
-        reason: z.string().min(5, "Reason too short").max(500),
+        username: z.string().regex(/^[A-Za-z0-9_]{3,16}$/, "Invalid Minecraft username"),
+        // No command separators or control chars allowed (defense in depth with controller sanitize)
+        reason: z.string().min(5, "Reason too short").max(500)
+            // eslint-disable-next-line no-control-regex -- intentionally rejecting control chars
+            .regex(/^[^;&|`\\\r\n\x00-\x1F]*$/, "Reason contains forbidden characters"),
     }),
 });

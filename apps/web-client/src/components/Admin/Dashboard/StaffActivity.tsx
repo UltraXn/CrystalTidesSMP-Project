@@ -72,10 +72,10 @@ export default function StaffActivity({ staffOnline, serverOnline }: StaffActivi
                     <div style={{ maxHeight: '350px', overflowY: 'auto', paddingRight: '5px' }} className="custom-scrollbar">
                         {staffOnline.length > 0 ? (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                                {staffOnline.map((staff, idx) => {
+                                {staffOnline.map((staff) => {
                                     const discordColor = getStatusColor(staff.discord_status);
                                     return (
-                                    <div key={idx} className="hover-lift" style={{ 
+                                    <div key={staff.username} className="hover-lift" style={{ 
                                         display: 'grid', 
                                         gridTemplateColumns: 'auto 1fr auto', 
                                         gap: '1rem', 
@@ -83,7 +83,7 @@ export default function StaffActivity({ staffOnline, serverOnline }: StaffActivi
                                         padding: '0.8rem', 
                                         borderRadius: '16px', 
                                         border: '1px solid rgba(255,255,255,0.03)', 
-                                        transition: 'all 0.2s', 
+                                        transition: "color 0.2s, background-color 0.2s, border-color 0.2s, opacity 0.2s", 
                                         alignItems: 'center',
                                         cursor: 'default' 
                                     }}>

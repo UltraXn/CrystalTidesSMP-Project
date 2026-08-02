@@ -71,7 +71,7 @@ export default function UsersTable({ users, loading, hasSearched, canManageRoles
                             </td>
                             <td className="th-mobile-hide" style={{ border: '1px solid rgba(255,255,255,0.05)', borderLeft: 'none', borderRight: 'none' }}>
                                 <div style={{ display: 'flex', gap: '0.5rem', flexDirection: 'column' }}>
-                                    <button 
+                                    <button type="button" 
                                         onClick={() => onEditMedals(u)}
                                         style={{ 
                                             background: u.medals && u.medals.length > 0 ? 'rgba(251, 191, 36, 0.1)' : 'rgba(255, 255, 255, 0.05)', 
@@ -86,7 +86,7 @@ export default function UsersTable({ users, loading, hasSearched, canManageRoles
                                             gap: '0.5rem',
                                             fontSize: '0.8rem',
                                             fontWeight: '600',
-                                            transition: 'all 0.2s',
+                                            transition: "color 0.2s, background-color 0.2s, border-color 0.2s, opacity 0.2s",
                                             whiteSpace: 'nowrap',
                                             width: '100%'
                                         }}
@@ -94,7 +94,7 @@ export default function UsersTable({ users, loading, hasSearched, canManageRoles
                                     >
                                         <Medal size={14} /> {u.medals?.length || 0} {t('admin.users.medals', 'Medallas')}
                                     </button>
-                                    <button 
+                                    <button type="button" 
                                         onClick={() => onEditAchievements(u)}
                                         style={{ 
                                             background: u.achievements && u.achievements.length > 0 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(255, 255, 255, 0.05)', 
@@ -109,7 +109,7 @@ export default function UsersTable({ users, loading, hasSearched, canManageRoles
                                             gap: '0.5rem',
                                             fontSize: '0.8rem',
                                             fontWeight: '600',
-                                            transition: 'all 0.2s',
+                                            transition: "color 0.2s, background-color 0.2s, border-color 0.2s, opacity 0.2s",
                                             whiteSpace: 'nowrap',
                                             width: '100%'
                                         }}
@@ -122,7 +122,7 @@ export default function UsersTable({ users, loading, hasSearched, canManageRoles
                             {canManageRoles && (
                                 <td className="user-cell-actions" style={{ border: '1px solid rgba(255,255,255,0.05)', borderLeft: 'none', borderRadius: '0 16px 16px 0', paddingRight: '1.25rem' }}>
                                     <div style={{ position: 'relative' }}>
-                                        <select 
+                                        <select aria-label="Select option" 
                                             className="admin-select-premium" 
                                             style={{ padding: '0.6rem 2.5rem 0.6rem 1rem', fontSize: '0.85rem', minWidth: '140px', width: '100%', backgroundPosition: 'right 0.8rem center' }}
                                             value={u.role || 'user'}

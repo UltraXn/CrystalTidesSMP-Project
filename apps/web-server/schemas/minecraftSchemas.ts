@@ -9,6 +9,6 @@ export const verifyLinkCodeSchema = z.object({
 
 export const getSkinSchema = z.object({
     params: z.object({
-        username: z.string().min(3).max(16).regex(/^[a-zA-Z0-9_]+$/, 'Invalid Minecraft username'),
+        username: z.string().min(3).max(16).regex(/^\w+$/, 'Invalid Minecraft username'),
     }),
 });

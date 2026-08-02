@@ -1,5 +1,5 @@
 import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { AlertCircle, CheckCircle2, AlertTriangle, Info, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -56,7 +56,7 @@ export default function PremiumAlert({
         <AnimatePresence>
             {isOpen && (
                 <div className="modal-overlay" style={{ zIndex: 1000000, backdropFilter: 'blur(12px)', background: 'rgba(0,0,0,0.8)' }}>
-                    <motion.div 
+                    <m.div 
                         initial={{ opacity: 0, scale: 0.9, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -76,7 +76,7 @@ export default function PremiumAlert({
                         }}
                     >
                         {/* Close button X */}
-                        <button 
+                        <button aria-label="Action" type="button" 
                             onClick={onClose}
                             style={{
                                 position: 'absolute',
@@ -128,7 +128,7 @@ export default function PremiumAlert({
                                 {message}
                             </p>
 
-                            <button 
+                            <button type="button" 
                                 onClick={onClose} 
                                 className="hover-lift" 
                                 style={{ 
@@ -148,7 +148,7 @@ export default function PremiumAlert({
                                 {t('admin.alerts.accept', 'Aceptar')}
                             </button>
                         </div>
-                    </motion.div>
+                    </m.div>
                 </div>
             )}
         </AnimatePresence>,

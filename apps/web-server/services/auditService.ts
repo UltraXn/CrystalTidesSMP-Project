@@ -1,7 +1,7 @@
 import { createLog } from './logService.js';
 import { Request } from 'express';
 
-export enum AuditAction {
+enum AuditAction {
     LOGIN_SUCCESS = 'AUTH/LOGIN_SUCCESS',
     LOGIN_FAILURE = 'AUTH/LOGIN_FAILURE',
     UNAUTHORIZED_ACCESS = 'SECURITY/UNAUTHORIZED_ACCESS',
@@ -23,7 +23,7 @@ interface AuditEntry {
 /**
  * Logs a security event to the audit system.
  */
-export const logSecurityEvent = async ({ userId, username, action, details, ip }: AuditEntry) => {
+const logSecurityEvent = async ({ userId, username, action, details, ip }: AuditEntry) => {
     return await createLog({
         user_id: userId,
         username: username,
@@ -38,20 +38,21 @@ export const logSecurityEvent = async ({ userId, username, action, details, ip }
 };
 
 /**
- * Specifically logs authorization failures (403).
+ * Specifically logs authentication or authorization failures (401/403).
  */
-export const logAuthFailure = async (req: Request, details: string) => {
+export const logSecurityFailure = async (req: Request, reason: string, isForbidden: boolean = false) => {
     const user = req.user;
     return await logSecurityEvent({
         userId: user?.id,
         username: user?.username || 'Guest',
-        action: AuditAction.FORBIDDEN_ACTION,
+        action: isForbidden ? AuditAction.FORBIDDEN_ACTION : AuditAction.UNAUTHORIZED_ACCESS,
         details: {
             path: req.path,
             method: req.method,
-            reason: details,
-            userAgent: req.get('user-agent')
+            reason: reason,
+            userAgent: req.get('user-agent') || 'Unknown'
         },
         ip: req.ip
     });
 };
+

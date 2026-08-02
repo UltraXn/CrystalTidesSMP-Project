@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, Mock } from 'vitest';
 import * as apiService from './apiService';
 import { supabase } from './supabaseClient';
 
@@ -20,6 +20,7 @@ vi.mock('./supabaseClient', () => ({
 describe('apiService', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        (supabase.auth.getSession as Mock).mockResolvedValue({ data: { session: null } });
         // Mock global fetch
         global.fetch = vi.fn();
     });
@@ -27,7 +28,7 @@ describe('apiService', () => {
     describe('fetchServerResources', () => {
         it('should fetch server resources successfully', async () => {
             const mockData = { players: 10, maxPlayers: 100 };
-            (global.fetch as any).mockResolvedValue({
+            (global.fetch as Mock).mockResolvedValue({
                 ok: true,
                 json: async () => mockData,
             });
@@ -38,7 +39,7 @@ describe('apiService', () => {
         });
 
         it('should throw error if fetch fails', async () => {
-            (global.fetch as any).mockResolvedValue({
+            (global.fetch as Mock).mockResolvedValue({
                 ok: false,
             });
 
@@ -49,7 +50,7 @@ describe('apiService', () => {
     describe('fetchStaffList', () => {
         it('should return staff list from data property if available', async () => {
             const mockStaff = [{ id: 1, name: 'Staff 1' }];
-            (global.fetch as any).mockResolvedValue({
+            (global.fetch as Mock).mockResolvedValue({
                 ok: true,
                 json: async () => ({ data: mockStaff }),
             });
@@ -59,7 +60,7 @@ describe('apiService', () => {
         });
 
         it('should return empty array if response is not an array', async () => {
-            (global.fetch as any).mockResolvedValue({
+            (global.fetch as Mock).mockResolvedValue({
                 ok: true,
                 json: async () => ({ unexpected: 'format' }),
             });
@@ -72,11 +73,11 @@ describe('apiService', () => {
     describe('getHeaders', () => {
         it('should include auth token in headers if session exists', async () => {
             const mockToken = 'mock-jwt-token';
-            (supabase.auth.getSession as any).mockResolvedValue({
+            (supabase.auth.getSession as Mock).mockResolvedValue({
                 data: { session: { access_token: mockToken } }
             });
 
-            (global.fetch as any).mockResolvedValue({
+            (global.fetch as Mock).mockResolvedValue({
                 ok: true,
                 json: async () => ({ success: true }),
             });

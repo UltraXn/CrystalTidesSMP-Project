@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
+import { useQuery } from "@tanstack/react-query"
 import { useParams, Link, useNavigate } from "react-router-dom"
 import { User, Calendar, ArrowLeft, Eye, Reply, Send, Edit, Trash2, Check, X, Image as ImageIcon, Pin, Lock, Unlock } from "lucide-react"
 import Loader from "../components/UI/Loader"
@@ -7,6 +8,7 @@ import RoleBadge from "../components/User/RoleBadge"
 import PollDisplay from "../components/Forum/PollDisplay"
 import { useTranslation } from "react-i18next"
 import { supabase } from '../services/supabaseClient'
+import { uploadImage } from '../services/uploadService'
 import MarkdownRenderer from "../components/UI/MarkdownRenderer"
 import { slugify } from "../utils/slugify"
 
@@ -78,30 +80,50 @@ const RANK_IMAGES: Record<string, string> = {
 
 // Simple helper to compress images (reused)
 const compressImage = async (file: File): Promise<Blob> => {
-    return new Promise((resolve, reject) => {
+    const objectUrl = URL.createObjectURL(file)
+    return await new Promise<Blob>((resolve, reject) => {
         const img = new Image()
-        img.src = URL.createObjectURL(file)
+        img.onerror = () => {
+            URL.revokeObjectURL(objectUrl)
+            reject(new Error('Image load failed'))
+        }
         img.onload = () => {
             const canvas = document.createElement('canvas')
             const ctx = canvas.getContext('2d')
             const MAX_SIZE = 1920
             let width = img.width
             let height = img.height
-            if (width > height) {
-                if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; }
-            } else {
-                if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; }
+
+            if (width > MAX_SIZE || height > MAX_SIZE) {
+                if (width > height) {
+                    height = Math.round((height * MAX_SIZE) / width)
+                    width = MAX_SIZE
+                } else {
+                    width = Math.round((width * MAX_SIZE) / height)
+                    height = MAX_SIZE
+                }
             }
+
             canvas.width = width
             canvas.height = height
+
             if (ctx) {
                 ctx.drawImage(img, 0, 0, width, height)
+                canvas.toBlob(
+                    (blob) => {
+                        URL.revokeObjectURL(objectUrl)
+                        if (blob) resolve(blob)
+                        else reject(new Error('Canvas toBlob failed'))
+                    },
+                    'image/webp',
+                    0.8
+                )
+            } else {
+                URL.revokeObjectURL(objectUrl)
+                reject(new Error('Could not get canvas context'))
             }
-            canvas.toBlob((blob) => {
-                if (blob) resolve(blob); else reject(new Error("Compression failed"))
-            }, 'image/webp', 0.8)
         }
-        img.onerror = (err) => reject(err)
+        img.src = objectUrl
     })
 }
 
@@ -136,16 +158,13 @@ export default function ForumThread() {
     const id = params.id || params.type // This is the slug or ID from the URL
     const { user } = useAuth()
     const navigate = useNavigate()
-    const [thread, setThread] = useState<Thread | null>(null)
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState<string | null>(null)
-
-    // Editing State
+    const [overrideThread, setThread] = useState<Thread | null>(null)
+    const [overrideComments, setComments] = useState<Comment[]>([])
     const [isEditingThread, setIsEditingThread] = useState(false)
     const [editThreadData, setEditThreadData] = useState({ title: "", content: "" })
-
-    // Estado para comentarios
-    const [comments, setComments] = useState<Comment[]>([])
+    const isSubmittingRef = useRef(false)
+    const isSubmitting = isSubmittingRef.current
+    const setIsSubmitting = (val: boolean) => { isSubmittingRef.current = val }
     const [newComment, setNewComment] = useState("")
     const [editingPostId, setEditingPostId] = useState<string | number | null>(null)
     const [editPostContent, setEditPostContent] = useState("")
@@ -155,90 +174,82 @@ export default function ForumThread() {
     const { t, i18n } = useTranslation()
 
     const [deleteModal, setDeleteModal] = useState<{ type: 'thread' | 'post', id: string | number } | null>(null)
+    const { data: threadQueryData, isLoading: threadLoading, error: threadError } = useQuery({
+        queryKey: ['forumThreadDetail', type, id],
+        queryFn: async () => {
+            if (!id) return null;
+            const threadPromise = isTopic
+                ? fetch(`${API_URL}/forum/thread/${id}`)
+                : fetch(`${API_URL}/news/${id}`);
 
-    useEffect(() => {
-        const fetchAllData = async () => {
-            setLoading(true)
-            try {
-                // Fetch Thread
-                const threadPromise = isTopic 
-                    ? fetch(`${API_URL}/forum/thread/${id}`)
-                    : fetch(`${API_URL}/news/${id}`)
+            const threadRes = await threadPromise;
+            if (!threadRes.ok) throw new Error("Not Found");
+            const threadData = await threadRes.json();
 
-                const threadRes = await threadPromise
-                if (!threadRes.ok) throw new Error("Not Found")
-                const threadData = await threadRes.json()
+            const parsedThread: Thread = {
+                id: threadData.id,
+                title: threadData.title,
+                content: threadData.content,
+                title_en: threadData.title_en,
+                content_en: threadData.content_en,
+                author: isTopic ? (threadData.author_name || "Anónimo") : "CrystalTidesSMP",
+                author_id: isTopic ? threadData.user_id : threadData.author_id,
+                author_avatar: isTopic ? threadData.author_avatar : "/images/ui/logo.webp",
+                author_role: isTopic ? threadData.author_role : "staff",
+                date: new Date(threadData.created_at).toLocaleDateString(),
+                longDate: new Date(threadData.created_at).toLocaleDateString() + " " + new Date(threadData.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                image: isTopic ? null : threadData.image,
+                tag: isTopic ? (categoryNames[threadData.category_id] || "General") : threadData.category,
+                category_id: threadData.category_id,
+                views: threadData.views || 0,
+                poll: threadData.poll || null,
+                pinned: threadData.pinned || false,
+                locked: threadData.locked || false,
+                author_data_fresh: threadData.author_data_fresh
+            };
 
-                setThread({
-                    id: threadData.id,
-                    title: threadData.title,
-                    content: threadData.content,
-                    title_en: threadData.title_en,
-                    content_en: threadData.content_en,
-                    author: isTopic ? (threadData.author_name || "Anónimo") : "CrystalTidesSMP",
-                    author_id: isTopic ? threadData.user_id : threadData.author_id, // Important for ownership check
-                    author_avatar: isTopic ? threadData.author_avatar : "/images/ui/logo.webp", // Add avatar
-                    author_role: isTopic ? threadData.author_role : "staff",
-                    date: new Date(threadData.created_at).toLocaleDateString(),
-                    longDate: new Date(threadData.created_at).toLocaleDateString() + " " + new Date(threadData.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                    image: isTopic ? null : threadData.image,
-                    tag: isTopic ? (categoryNames[threadData.category_id] || "General") : threadData.category,
-                    category_id: threadData.category_id,
-                    views: threadData.views || 0,
-                    poll: threadData.poll || null,
-                    pinned: threadData.pinned || false,
-                    locked: threadData.locked || false,
-                    author_data_fresh: threadData.author_data_fresh
-                })
+            const commentsPromise = isTopic
+                ? fetch(`${API_URL}/forum/thread/${id}/posts`)
+                : fetch(`${API_URL}/news/${id}/comments`);
 
-                setEditThreadData({ title: threadData.title, content: threadData.content })
+            const commentsRes = await commentsPromise;
+            const commentsData = await commentsRes.json();
+            const parsedComments: Comment[] = Array.isArray(commentsData) ? commentsData.map((c: { 
+                id: string | number, 
+                author_name?: string, 
+                user_name?: string, 
+                author_id?: string, 
+                user_id?: string, 
+                author_avatar?: string, 
+                user_avatar?: string, 
+                author_role?: string, 
+                user_role?: string, 
+                content: string, 
+                content_en?: string, 
+                created_at: string, 
+                image_url?: string, 
+                author_data_fresh?: unknown 
+            }) => ({
+                id: c.id,
+                user: (isTopic ? c.author_name : c.user_name) || "Anónimo",
+                user_id: c.author_id || c.user_id || null,
+                avatar: (isTopic ? c.author_avatar : c.user_avatar) || null,
+                role: (isTopic ? c.author_role : c.user_role) || "user",
+                content: c.content,
+                date: new Date(c.created_at).toLocaleDateString() + " " + new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                author_data_fresh: c.author_data_fresh as ForumAuthorData
+            })) : [];
 
-                // Fetch Comments
-                const commentsPromise = isTopic
-                     ? fetch(`${API_URL}/forum/thread/${id}/posts`)
-                     : fetch(`${API_URL}/news/${id}/comments`)
-                
-                const commentsRes = await commentsPromise
-                const commentsData = await commentsRes.json()
-                
-                if (Array.isArray(commentsData)) {
-                    setComments(commentsData.map((c: { 
-                        id: string | number, 
-                        author_name?: string, 
-                        user_name?: string, 
-                        user_id?: string, 
-                        author_avatar?: string, 
-                        user_avatar?: string, 
-                        author_role?: string, 
-                        user_role?: string, 
-                        created_at: string, 
-                        content: string,
-                        author_data_fresh?: ForumAuthorData
-                    }) => ({
-                        id: c.id,
-                        user: (isTopic ? c.author_name : c.user_name) || "Anónimo",
-                        user_id: c.user_id || null, // Include for both types
-                        avatar: (isTopic ? c.author_avatar : c.user_avatar) || null,
-                        role: (isTopic ? c.author_role : c.user_role) || "user",
-                        date: new Date(c.created_at).toLocaleDateString() + " " + new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                        content: c.content,
-                        author_data_fresh: c.author_data_fresh
-                    })))
-                } else {
-                    setComments([])
-                }
+            return { thread: parsedThread, comments: parsedComments };
+        },
+        enabled: Boolean(id),
+        staleTime: 30_000,
+    });
 
-                setLoading(false)
-
-            } catch (err: unknown) {
-                console.error(err)
-                setError(t('forum_thread.thread_error'))
-                setLoading(false)
-            }
-        }
-
-        fetchAllData()
-    }, [id, type, isTopic, API_URL, t])
+    const thread = threadQueryData?.thread ?? overrideThread;
+    const comments = threadQueryData?.comments ?? overrideComments;
+    const loading = threadLoading;
+    const error = threadError ? (threadError as Error).message : null;
 
     const isAdmin = () => {
         if (!user) return false;
@@ -254,7 +265,8 @@ export default function ForumThread() {
     }
 
     const handleUpdateThread = async () => {
-        if (!editThreadData.title.trim() || !editThreadData.content.trim()) return;
+        if (isSubmitting || !editThreadData.title.trim() || !editThreadData.content.trim()) return;
+        setIsSubmitting(true);
         try {
             const { data: { session } } = await supabase.auth.getSession();
             const token = session?.access_token;
@@ -273,11 +285,12 @@ export default function ForumThread() {
             } else {
                 alert("Error al actualizar");
             }
-        } catch (e: unknown) { console.error(e); }
+        } catch (e: unknown) { console.error(e); } finally { setIsSubmitting(false); }
     }
 
     const togglePin = async () => {
-        if (!thread) return;
+        if (isSubmitting || !thread) return;
+        setIsSubmitting(true);
         try {
             const { data: { session } } = await supabase.auth.getSession();
             const token = session?.access_token;
@@ -292,11 +305,12 @@ export default function ForumThread() {
                 body: JSON.stringify({ pinned: newValue })
             });
             if (res.ok) setThread({ ...thread, pinned: newValue });
-        } catch (e: unknown) { console.error(e); }
+        } catch (e: unknown) { console.error(e); } finally { setIsSubmitting(false); }
     }
 
     const toggleLock = async () => {
-        if (!thread) return;
+        if (isSubmitting || !thread) return;
+        setIsSubmitting(true);
         try {
             const { data: { session } } = await supabase.auth.getSession();
             const token = session?.access_token;
@@ -311,7 +325,7 @@ export default function ForumThread() {
                 body: JSON.stringify({ locked: newValue })
             });
             if (res.ok) setThread({ ...thread, locked: newValue });
-        } catch (e: unknown) { console.error(e); }
+        } catch (e: unknown) { console.error(e); } finally { setIsSubmitting(false); }
     }
 
     const handleDeleteThread = () => {
@@ -345,8 +359,11 @@ export default function ForumThread() {
         setDeleteModal({ type: 'post', id: postId });
     }
 
+    const deletingRef = useRef(false);
+
     const executeDelete = async () => {
-        if (!deleteModal) return;
+        if (!deleteModal || deletingRef.current) return;
+        deletingRef.current = true;
         
         try {
             const { data: { session } } = await supabase.auth.getSession();
@@ -379,6 +396,7 @@ export default function ForumThread() {
             console.error(e); 
             alert("Error de conexión");
         } finally {
+            deletingRef.current = false;
             setDeleteModal(null);
         }
     }
@@ -387,6 +405,14 @@ export default function ForumThread() {
     // Reply Image State
     const [pendingImageRepl, setPendingImageRepl] = useState<PendingImageRepl | null>(null)
 
+    useEffect(() => {
+        return () => {
+            if (pendingImageRepl?.preview) {
+                URL.revokeObjectURL(pendingImageRepl.preview);
+            }
+        };
+    }, [pendingImageRepl?.preview])
+
     const handleReplImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
         if (!file) return
@@ -394,6 +420,7 @@ export default function ForumThread() {
 
         try {
             const blob = await compressImage(file)
+            if (pendingImageRepl?.preview) URL.revokeObjectURL(pendingImageRepl.preview)
             setPendingImageRepl({
                 blob,
                 preview: URL.createObjectURL(blob)
@@ -410,18 +437,15 @@ export default function ForumThread() {
     const handlePostComment = async (e: React.FormEvent) => {
         e.preventDefault()
         const currentUser = user;
-        if (!currentUser || (!newComment.trim() && !pendingImageRepl)) return
+        if (isSubmittingRef.current || !currentUser || (!newComment.trim() && !pendingImageRepl)) return
+        setIsSubmitting(true)
 
         let finalContent = newComment
 
         try {
-             // 1. Upload Image (Deferred)
+             // 1. Upload Image (Deferred) — server-validated in backend
              if (pendingImageRepl) {
-                const fileName = `repl_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.webp`
-                const { error } = await supabase.storage.from('forum-uploads').upload(fileName, pendingImageRepl.blob, { contentType: 'image/webp' })
-                if (error) throw error
-                const { data: { publicUrl } } = supabase.storage.from('forum-uploads').getPublicUrl(fileName)
-                
+                const publicUrl = await uploadImage(pendingImageRepl.blob, 'forum-uploads')
                 finalContent += `\n\n![Imagen](${publicUrl})`
              }
 
@@ -477,6 +501,8 @@ export default function ForumThread() {
         } catch (error: unknown) {
             console.error("Error posting comment:", error)
             alert(t('forum_thread.comment_error'))
+        } finally {
+            setIsSubmitting(false)
         }
     }
 
@@ -528,7 +554,7 @@ export default function ForumThread() {
                             {/* Thread Title Area - Edit or View */}
                             {isEditingThread ? (
                                 <div style={{ marginBottom: '1.5rem' }}>
-                                    <input 
+                                    <input aria-label={t('forum_thread.edit_title', 'Editar título del tema')} 
                                         className="form-input" 
                                         style={{ width: '100%', fontSize: '1.5rem', marginBottom: '1rem', background: 'rgba(0,0,0,0.3)', border: '1px solid #444', color: '#fff' }}
                                         value={editThreadData.title}
@@ -579,7 +605,7 @@ export default function ForumThread() {
                                                 </div>
 
                                                 {/* Premium Tooltip implementation - Sync with ProfileWall */}
-                                                <div className="absolute bottom-full left-0 mb-4 opacity-0 group-hover/author:opacity-100 transition-all duration-200 pointer-events-none z-50 w-72 bg-[#0a0a0a]/98 border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-2xl p-5 translate-y-2 group-hover/author:translate-y-0 text-left">
+                                                <div className="absolute bottom-full left-0 mb-4 opacity-0 group-hover/author:opacity-100 transition-colors duration-200 pointer-events-none z-50 w-72 bg-[#0a0a0a]/98 border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-2xl p-5 translate-y-2 group-hover/author:translate-y-0 text-left">
                                                     <div className="flex items-center gap-4 mb-4 border-b border-white/5 pb-4">
                                                         <img src={displayAvatar} className="w-12 h-12 rounded-xl shadow-inner border border-white/10" alt="Avatar" />
                                                         <div className="flex-1 min-w-0">
@@ -622,20 +648,20 @@ export default function ForumThread() {
                                         {/* Mod Tools - Only for Staff */}
                                         {isAdmin() && (
                                             <div className="flex items-center gap-2 bg-black/20 p-1.5 rounded-lg border border-white/5">
-                                                <button onClick={togglePin} className="p-1 hover:bg-white/5 rounded transition-colors" title={thread.pinned ? "Desfijar" : "Fijar"}>
-                                                    <Pin size={14} className={thread.pinned ? 'text-(--accent)' : 'text-gray-500'} style={{ transform: thread.pinned ? 'rotate(0deg)' : 'rotate(45deg)', transition: 'all 0.3s' }} />
+                                                <button type="button" onClick={togglePin} className="p-1 hover:bg-white/5 rounded transition-colors" title={thread.pinned ? "Desfijar" : "Fijar"}>
+                                                    <Pin size={14} className={thread.pinned ? 'text-(--accent)' : 'text-gray-500'} style={{ transform: thread.pinned ? 'rotate(0deg)' : 'rotate(45deg)', transition: "color 0.3s, background-color 0.3s, border-color 0.3s, opacity 0.3s" }} />
                                                 </button>
-                                                <button onClick={toggleLock} className="p-1 hover:bg-white/5 rounded transition-colors" title={thread.locked ? "Desbloquear" : "Bloquear"}>
+                                                <button type="button" onClick={toggleLock} className="p-1 hover:bg-white/5 rounded transition-colors" title={thread.locked ? "Desbloquear" : "Bloquear"}>
                                                     {thread.locked ? <Lock size={14} className="text-red-500" /> : <Unlock size={14} className="text-gray-500" />}
                                                 </button>
                                             </div>
                                         )}
                                         
                                         <div className="flex items-center gap-2">
-                                            <button onClick={() => setIsEditingThread(true)} className="p-2 bg-(--accent)/10 hover:bg-(--accent)/20 text-(--accent) rounded-xl transition-all" title="Editar">
+                                            <button type="button" onClick={() => setIsEditingThread(true)} className="p-2 bg-(--accent)/10 hover:bg-(--accent)/20 text-(--accent) rounded-xl transition-colors" title="Editar">
                                                 <Edit size={16} />
                                             </button>
-                                            <button onClick={handleDeleteThread} className="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl transition-all" title="Eliminar">
+                                            <button type="button" onClick={handleDeleteThread} className="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl transition-colors" title="Eliminar">
                                                 <Trash2 size={16} />
                                             </button>
                                         </div>
@@ -643,10 +669,10 @@ export default function ForumThread() {
                                 )}
                                 {isEditingThread && (
                                     <div className="flex items-center gap-3">
-                                        <button onClick={handleUpdateThread} className="btn-primary" style={{ padding: '0.5rem 1rem', display: 'flex', gap: '0.5rem', fontSize: '0.8rem' }}>
+                                        <button type="button" onClick={handleUpdateThread} className="btn-primary" style={{ padding: '0.5rem 1rem', display: 'flex', gap: '0.5rem', fontSize: '0.8rem' }}>
                                             <Check size={16} /> Guardar
                                         </button>
-                                        <button onClick={() => setIsEditingThread(false)} className="btn-secondary" style={{ padding: '0.5rem 1rem', display: 'flex', gap: '0.5rem', fontSize: '0.8rem' }}>
+                                        <button type="button" onClick={() => setIsEditingThread(false)} className="btn-secondary" style={{ padding: '0.5rem 1rem', display: 'flex', gap: '0.5rem', fontSize: '0.8rem' }}>
                                             <X size={16} /> Cancelar
                                         </button>
                                     </div>
@@ -656,7 +682,7 @@ export default function ForumThread() {
 
                         {/* Thread Content Area - Edit or View */}
                         {isEditingThread ? (
-                            <textarea 
+                            <textarea aria-label={t('forum_thread.edit_content', 'Editar contenido del tema')} 
                                 className="form-textarea"
                                 value={editThreadData.content} 
                                 onChange={e => setEditThreadData({...editThreadData, content: e.target.value})}
@@ -717,7 +743,7 @@ export default function ForumThread() {
                                                 </div>
 
                                                 {/* Premium Tooltip implementation - Sync with ProfileWall */}
-                                                <div className="absolute bottom-full left-0 mb-3 opacity-0 group-hover/comment:opacity-100 transition-all duration-300 pointer-events-none z-50 w-64 bg-[#0a0a0a]/95 border border-white/10 rounded-xl shadow-2xl backdrop-blur-xl p-4 translate-y-2 group-hover/comment:translate-y-0 text-left">
+                                                <div className="absolute bottom-full left-0 mb-3 opacity-0 group-hover/comment:opacity-100 transition-colors duration-300 pointer-events-none z-50 w-64 bg-[#0a0a0a]/95 border border-white/10 rounded-xl shadow-2xl backdrop-blur-xl p-4 translate-y-2 group-hover/comment:translate-y-0 text-left">
                                                     <div className="flex items-center gap-3 mb-3 border-b border-white/5 pb-3">
                                                         <img src={displayAvatar} className="w-10 h-10 rounded-lg shadow-inner border border-white/10" alt="Avatar" />
                                                         <div className="min-w-0 flex-1">
@@ -782,8 +808,8 @@ export default function ForumThread() {
                                         {/* Actions for Comment */}
                                         {isOwnerOrAdmin(comment.user_id) && editingPostId !== comment.id && (
                                             <div className="flex items-center gap-2">
-                                                <button onClick={() => { setEditingPostId(comment.id); setEditPostContent(comment.content); }} className="text-[11px] font-black uppercase tracking-tighter text-gray-500 hover:text-(--accent) transition-colors">Editar</button>
-                                                <button onClick={() => handleDeletePost(comment.id)} className="text-[11px] font-black uppercase tracking-tighter text-red-500/70 hover:text-red-500 transition-colors">Eliminar</button>
+                                                <button type="button" aria-label={t('forum_thread.edit_comment', 'Editar comentario')} onClick={() => { setEditingPostId(comment.id); setEditPostContent(comment.content); }} className="text-[11px] font-black uppercase tracking-tighter text-gray-500 hover:text-(--accent) transition-colors">Editar</button>
+                                                <button type="button" aria-label={t('forum_thread.delete_comment', 'Eliminar comentario')} onClick={() => handleDeletePost(comment.id)} className="text-[11px] font-black uppercase tracking-tighter text-red-500/70 hover:text-red-500 transition-colors">Eliminar</button>
                                             </div>
                                         )}
                                     </div>
@@ -791,15 +817,15 @@ export default function ForumThread() {
 
                                     {editingPostId === comment.id ? (
                                         <div style={{ marginTop: '0.5rem' }}>
-                                            <textarea 
+                                            <textarea aria-label={t('forum_thread.edit_comment', 'Editar comentario')} 
                                                 value={editPostContent}
                                                 onChange={e => setEditPostContent(e.target.value)}
                                                 style={{ width: '100%', background: '#222', border: '1px solid #444', color: '#fff', padding: '0.5rem', borderRadius: '4px' }}
                                                 rows={3}
                                             />
                                             <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
-                                                <button onClick={() => handleUpdatePost(comment.id)} className="btn-primary" style={{ fontSize: '0.8rem', padding: '0.3rem 0.8rem' }}>Guardar</button>
-                                                <button onClick={() => setEditingPostId(null)} className="btn-secondary" style={{ fontSize: '0.8rem', padding: '0.3rem 0.8rem' }}>Cancelar</button>
+                                                <button type="button" aria-label={t('common.save', 'Guardar')} onClick={() => handleUpdatePost(comment.id)} className="btn-primary" style={{ fontSize: '0.8rem', padding: '0.3rem 0.8rem' }}>Guardar</button>
+                                                <button type="button" aria-label={t('common.cancel', 'Cancelar')} onClick={() => setEditingPostId(null)} className="btn-secondary" style={{ fontSize: '0.8rem', padding: '0.3rem 0.8rem' }}>Cancelar</button>
                                             </div>
                                         </div>
                                     ) : (
@@ -828,7 +854,7 @@ export default function ForumThread() {
                                      onFocus={(e) => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)'}
                                      onBlur={(e) => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'}
                                 >
-                                    <textarea 
+                                    <textarea aria-label={t('forum_thread.write_reply', 'Escribir respuesta...')} 
                                         className="form-textarea" 
                                         placeholder={t('forum_thread.write_reply')} 
                                         rows={3} 
@@ -854,7 +880,7 @@ export default function ForumThread() {
                                                 <div style={{ fontSize: '0.8rem', color: '#ccc' }}>
                                                     <div style={{ fontWeight: 'bold', color: '#fff' }}>Imagen lista</div>
                                                 </div>
-                                                <button type="button" onClick={clearReplImage} style={{background:'transparent', border:'none', color:'#ef4444', cursor:'pointer', padding: '0 0.5rem', fontSize:'1.1rem'}}><X /></button>
+                                                <button aria-label={t('common.remove', 'Eliminar imagen')} type="button" onClick={clearReplImage} style={{background:'transparent', border:'none', color:'#ef4444', cursor:'pointer', padding: '0 0.5rem', fontSize:'1.1rem'}}><X /></button>
                                             </div>
                                         </div>
                                     )}
@@ -877,13 +903,13 @@ export default function ForumThread() {
                                             display: 'flex', 
                                             alignItems: 'center', 
                                             justifyContent: 'center',
-                                            transition: 'all 0.2s'
+                                            transition: "color 0.2s, background-color 0.2s, border-color 0.2s, opacity 0.2s"
                                         }}
                                         onMouseEnter={(e) => {e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#fff'}}
                                         onMouseLeave={(e) => {e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = pendingImageRepl ? 'var(--accent)' : '#aaa'}}
                                         >
                                             <ImageIcon />
-                                            <input type="file" accept="image/*" onChange={handleReplImageSelect} style={{ display: 'none' }} />
+                                            <input aria-label={t('create_thread.form.attach_image', 'Adjuntar imagen')} type="file" accept="image/*" onChange={handleReplImageSelect} style={{ display: 'none' }} />
                                         </label>
 
                                         <button type="submit" disabled={(!newComment.trim() && !pendingImageRepl)} style={{
@@ -960,14 +986,14 @@ export default function ForumThread() {
                                     : "Esta acción eliminará el comentario permanentemente."}
                             </p>
                             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-                                <button 
+                                <button aria-label="Action" type="button" 
                                     className="btn-secondary" 
                                     onClick={() => setDeleteModal(null)}
                                     style={{ flex: 1 }}
                                 >
                                     Cancelar
                                 </button>
-                                <button 
+                                <button aria-label="Action" type="button" 
                                     className="btn-primary" 
                                     onClick={executeDelete}
                                     style={{ 

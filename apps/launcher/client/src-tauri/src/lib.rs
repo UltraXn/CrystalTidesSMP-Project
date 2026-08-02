@@ -1,9 +1,11 @@
+mod agent;
 mod anticheat;
 mod archive;
 mod core_init;
 mod crash_reporter;
 mod errors;
 mod github_release;
+mod gpu_preset;
 mod hardware;
 mod hashing;
 mod java_manager;
@@ -503,7 +505,12 @@ pub fn run() {
             hardware::detect_hardware_profile,
             r2_sync::download_mods_parallel,
             anticheat::generate_integrity_report,
-            crash_reporter::analyze_game_crash
+            crash_reporter::analyze_game_crash,
+            gpu_preset::detect_gpu_profile,
+            gpu_preset::apply_gpu_options,
+            agent::prepare_crystal_agent,
+            agent::get_agent_jvm_args,
+            agent::get_agent_benchmark_status
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

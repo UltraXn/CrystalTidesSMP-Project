@@ -11,11 +11,15 @@
 		},
 		{
 			"path": "../../../AppData/Roaming/.minecraft/mods"
+		},
+		{
+			"path": "../../Importante Minecraft/blueprints"
 		}
 	],
 	"settings": {
 		"java.configuration.updateBuildConfiguration": "automatic",
 		"java.compile.nullAnalysis.mode": "automatic",
-		"chatgpt.openOnStartup": true
+		"chatgpt.openOnStartup": true,
+		"powershell.cwd": "crystaltides"
 	}
 }

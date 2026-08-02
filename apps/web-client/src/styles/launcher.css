@@ -1,0 +1,201 @@
+/* ═══════════════════════════════════════
+   CrystalTides Launcher CSS Styles (Web Preview Sync)
+   ═══════════════════════════════════════ */
+
+.glass-card {
+  background: var(--surface-low, rgba(15, 23, 42, 0.35));
+  border: 1px solid var(--border-low, rgba(255, 255, 255, 0.08));
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border-radius: 18px !important;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card-hover:hover {
+  transform: translateY(-2px);
+  border-color: rgba(45, 212, 191, 0.3) !important;
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5), 
+              0 0 25px 0 var(--accent-glow, rgba(45, 212, 191, 0.2));
+}
+
+/* Reusable premium button styles */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+}
+
+.btn:active {
+  transform: translateY(0) scale(0.97);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent, #2DD4BF) 0%, var(--primary, #0F766E) 100%) !important;
+  color: #06070B !important;
+  box-shadow: 0 4px 14px 0 var(--accent-glow, rgba(45, 212, 191, 0.2)) !important;
+  border: 1px solid rgba(255, 255, 255, 0.35) !important;
+}
+
+.btn-primary:hover {
+  border-color: rgba(255, 255, 255, 0.55) !important;
+  box-shadow: 0 6px 22px 0 rgba(45, 212, 191, 0.45),
+              0 0 12px 0 var(--primary-glow, rgba(15, 118, 110, 0.3)) !important;
+  filter: brightness(1.05);
+}
+
+.btn-secondary {
+  background-color: rgba(255, 255, 255, 0.03) !important;
+  color: var(--accent, #2DD4BF) !important;
+  border: 1px solid rgba(45, 212, 191, 0.2) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+}
+
+.btn-secondary:hover {
+  background-color: rgba(45, 212, 191, 0.05) !important;
+  border-color: var(--accent, #2DD4BF) !important;
+  box-shadow: 0 4px 15px 0 var(--accent-glow, rgba(45, 212, 191, 0.2)) !important;
+  color: #FFFFFF !important;
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, var(--danger, #EF4444) 0%, #B91C1C 100%) !important;
+  color: #FFFFFF !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 4px 14px 0 rgba(239, 68, 68, 0.25) !important;
+}
+
+.btn-ghost {
+  background-color: transparent !important;
+  color: rgba(243, 244, 246, 0.6) !important;
+}
+
+.btn-ghost:hover {
+  background-color: rgba(255, 255, 255, 0.03) !important;
+  color: #FFFFFF !important;
+}
+
+/* ── Form Controls & Dropdowns ── */
+.launcher-container input[type="text"],
+.launcher-container input[type="email"],
+.launcher-container input[type="password"],
+.launcher-container input[type="number"],
+.launcher-container select,
+.launcher-container textarea {
+  font-family: system-ui, -apple-system, sans-serif;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1.5px solid rgba(255, 255, 255, 0.08);
+  background-color: rgba(0, 0, 0, 0.25);
+  color: #FFFFFF;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, background-color 0.25s ease;
+  box-sizing: border-box;
+}
+
+.launcher-container select {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.4)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-size: 12px 12px !important;
+  background-position: right 12px center !important;
+  padding-right: 36px !important;
+  cursor: pointer;
+}
+
+.launcher-container select option {
+  background-color: #0B0D14 !important;
+  color: #FFFFFF !important;
+}
+
+/* ── Tab Navigation ── */
+.tab-btn {
+  flex: none;
+  background: transparent;
+  border: 1px solid transparent;
+  border-bottom: 2px solid transparent;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 20px;
+  cursor: pointer;
+  border-radius: 10px 10px 0 0;
+  transition: color 0.25s ease, border-color 0.25s ease, background-color 0.25s ease;
+  text-align: center;
+  position: relative;
+}
+
+.tab-btn:hover {
+  color: rgba(255, 255, 255, 0.85);
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.tab-btn.active {
+  color: #2DD4BF !important;
+  background-color: rgba(45, 212, 191, 0.06) !important;
+  border-bottom-color: #2DD4BF !important;
+  box-shadow: inset 0 -2px 6px -4px rgba(45, 212, 191, 0.3);
+}
+
+/* ── Filter Chip / Pill ── */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid transparent;
+  background-color: rgba(255, 255, 255, 0.02);
+  color: rgba(255, 255, 255, 0.55);
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.chip:hover {
+  background-color: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.85);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.chip.active {
+  background-color: rgba(45, 212, 191, 0.12) !important;
+  color: #2DD4BF !important;
+  border-color: rgba(45, 212, 191, 0.35) !important;
+  font-weight: 700;
+  box-shadow: 0 0 8px rgba(45, 212, 191, 0.08);
+}
+
+/* Custom Scrollbar for Launcher UI */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}

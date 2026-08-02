@@ -26,7 +26,7 @@ const YoutubeIcon = ({ size = 20 }: { size?: number }) => (
 );
 import MinecraftAvatar from '../UI/MinecraftAvatar';
 
-export interface StaffCardData {
+interface StaffCardData {
     id: number | string;
     name: string;
     mc_nickname?: string;
@@ -37,7 +37,7 @@ export interface StaffCardData {
     socials?: { twitter?: string; discord?: string; youtube?: string; twitch?: string; };
 }
 
-export interface StaffCardProps {
+interface StaffCardProps {
     data: StaffCardData;
     status: { mc: string; discord: string };
     roleBadge?: string | null;
@@ -49,7 +49,7 @@ export interface StaffCardProps {
     style?: React.CSSProperties;
 }
 
-export const StaffCard: React.FC<StaffCardProps> = ({ 
+const StaffCard: React.FC<StaffCardProps> = ({ 
     data, 
     status, 
     roleBadge, 
@@ -106,7 +106,7 @@ export const StaffCard: React.FC<StaffCardProps> = ({
                 
                 {roleBadge ? (
                     <div className="role-badge-img">
-                        <img src={roleBadge} alt={data.role} />
+                        <img src={roleBadge} alt={data.role} width={87} height={14} loading="lazy" decoding="async" />
                     </div>
                 ) : (
                     <span className="staff-role-badge" style={{ color: data.color, background: `${data.color}15`, border: `1px solid ${data.color}30` }}>
@@ -127,18 +127,18 @@ export const StaffCard: React.FC<StaffCardProps> = ({
                     </div>
                 )}
                 {data.socials?.twitch && (
-                    <a href={`https://twitch.tv/${data.socials.twitch}`} target="_blank" rel="noopener noreferrer" className="staff-social-link twitch">
+                    <a href={`https://twitch.tv/${data.socials.twitch}`} target="_blank" rel="noopener noreferrer" aria-label={`Twitch de ${data.name}`} className="staff-social-link twitch">
                         <TwitchIcon size={20} />
                         <CheckCircle className="verified-dot" size={14} />
                     </a>
                 )}
                 {data.socials?.twitter && (
-                    <a href={data.socials.twitter} target="_blank" rel="noopener noreferrer" className="staff-social-link twitter">
+                    <a href={data.socials.twitter} target="_blank" rel="noopener noreferrer" aria-label={`Twitter de ${data.name}`} className="staff-social-link twitter">
                         <TwitterIcon size={20} />
                     </a>
                 )}
                 {data.socials?.youtube && (
-                    <a href={data.socials.youtube} target="_blank" rel="noopener noreferrer" className="staff-social-link youtube">
+                    <a href={data.socials.youtube} target="_blank" rel="noopener noreferrer" aria-label={`YouTube de ${data.name}`} className="staff-social-link youtube">
                         <YoutubeIcon size={20} />
                     </a>
                 )}
@@ -148,10 +148,10 @@ export const StaffCard: React.FC<StaffCardProps> = ({
             </div>
 
             <div className="staff-card-actions">
-                <button onClick={onEdit} className="staff-btn-edit">
+                <button type="button" onClick={onEdit} aria-label={`Editar a ${data.name}`} className="staff-btn-edit">
                     <Edit size={16} /> Edit
                 </button>
-                <button onClick={onDelete} className="staff-btn-delete" title="Delete">
+                <button type="button" onClick={onDelete} aria-label={`Eliminar a ${data.name}`} className="staff-btn-delete" title="Delete">
                     <Trash2 size={16} />
                 </button>
             </div>

@@ -1,0 +1,26 @@
+# CrystalTides SMP
+
+> CrystalTides SMP es un servidor de Minecraft Survival SMP (Java Edition 1.21+) con una comunidad hispanohablante activa, eventos en vivo, economía propia, contenido personalizado y herramientas web avanzadas.
+
+## Información General
+
+- **Sitio Web Oficial**: https://crystaltidessmp.net
+- **IP del Servidor**: mc.crystaltidessmp.net
+- **Plataforma**: Minecraft Java Edition (Versiones 1.21.x)
+- **Idiomas Soportados**: Español, Inglés
+- **Comunidad**: Discord Oficial de La Pecerita
+
+## Secciones Principales
+
+- [Reglamento Oficial](https://crystaltidessmp.net/rules): Normas de convivencia, sanciones y reglamento del servidor de Minecraft.
+- [Donadores y Apoyo](https://crystaltidessmp.net/donors): Lista de apoyadores, donadores y benefactores de la comunidad.
+- [Noticias y Actualizaciones](https://crystaltidessmp.net/news): Notas de parches, anuncios oficiales y novedades de temporada.
+- [Foro de la Comunidad](https://crystaltidessmp.net/forum): Foro de debate, historias de jugadores y discusiones generales.
+- [Wiki & Guías de Juego](https://crystaltidessmp.net/wiki): Guías completas de comandos, mecánicas RPG, profesiones y tutoriales.
+- [Buzón de Sugerencias](https://crystaltidessmp.net/suggestions): Sugerencias públicas e ideas votadas por los jugadores.
+- [Centro de Soporte](https://crystaltidessmp.net/support): Ayuda técnica, reporte de fallos y sistema de tickets.
+- [Mapa Interactivo Dynmap](https://crystaltidessmp.net/map): Mapa 2D/3D en tiempo real de los reinos y construcciones.
+
+## Optional
+
+- [Launcher Oficial CrystalTides](https://crystaltidessmp.net/support): Cliente personalizado de entrada rápida al servidor en 1-Click.

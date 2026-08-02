@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react"
+import { useState } from "react"
+import { useQuery } from "@tanstack/react-query"
 import { useParams, useNavigate } from "react-router-dom"
 import { useTranslation } from "react-i18next"
-import { motion } from "framer-motion"
+import { m as motion } from "framer-motion"
 import { User, Medal, Gamepad2, Home, Twitter, Twitch, Youtube } from "lucide-react"
 import Loader from "../components/UI/Loader"
 import { MEDAL_ICONS } from "../utils/MedalIcons"
@@ -14,6 +15,7 @@ import { supabase } from "../services/supabaseClient"
 import Toast, { ToastType } from "../components/UI/Toast"
 import ProfileHeader from "../components/User/ProfileHeader"
 import PlayerStatsGrid from "../components/User/PlayerStatsGrid"
+import "../styles/pages/public_profile.css"
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
@@ -51,7 +53,7 @@ interface Profile {
     full_name?: string;
 }
 
-interface PlayerStats {
+export interface PlayerStats {
     playtime: string;
     kills: number;
     mob_kills: number;
@@ -73,12 +75,7 @@ export default function PublicProfile() {
     const isAdmin = checkIsAdmin(currentUser)
 
     
-    const [profile, setProfile] = useState<Profile | null>(null)
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState<string | null>(null)
-    const [medalDefinitions, setMedalDefinitions] = useState<MedalDefinition[]>([])
-    const [playerStats, setPlayerStats] = useState<PlayerStats | null>(null)
-    const [statsLoading, setStatsLoading] = useState(false)
+    const [overrideProfile, setProfile] = useState<Profile | null>(null)
     const [givingKarma, setGivingKarma] = useState(false)
     const [toast, setToast] = useState<{ visible: boolean; message: string; type: ToastType }>({
         visible: false,
@@ -129,80 +126,73 @@ export default function PublicProfile() {
         finally { setGivingKarma(false); }
     };
 
-    useEffect(() => {
-        const fetchData = async () => {
-            setLoading(true)
-            setError(null)
-            try {
-                // 1. Fetch Profile
-                const resUser = await fetch(`${API_URL}/users/profile/${username}`)
-                if (!resUser.ok) {
-                    if(resUser.status === 404) throw new Error(t('profile.not_found', 'Usuario no encontrado'))
-                    throw new Error("Error loading profile")
-                }
-                
-                const contentType = resUser.headers.get("content-type");
-                let response;
-                if (contentType && contentType.includes("application/json")) {
-                    response = await resUser.json()
-                } else {
-                    throw new Error("Invalid response format from server")
-                }
-                if (!response.success || !response.data) throw new Error("Invalid response format")
-                const userData = response.data
-                setProfile(userData)
-
-                // 2. Fetch Medals Definitions (if user has medals)
-                if (userData.medals && userData.medals.length > 0) {
-                    const resSettings = await fetch(`${API_URL}/settings`)
-                    if (resSettings.ok) {
-                        const contentType = resSettings.headers.get("content-type");
-                        if (contentType && contentType.includes("application/json")) {
-                            const settings = await resSettings.json()
-                            if (settings.medal_definitions) {
-                                try {
-                                    const parsed = typeof settings.medal_definitions === 'string' 
-                                        ? JSON.parse(settings.medal_definitions) 
-                                        : settings.medal_definitions
-                                    setMedalDefinitions(Array.isArray(parsed) ? parsed : [])
-                                } catch (e) {
-                                    console.warn("Failed to parse medals", e)
-                                }
+    const { data: profileQueryData, isLoading: queryLoading, error: queryError } = useQuery({
+        queryKey: ['publicProfile', username],
+        queryFn: async () => {
+            if (!username) return null;
+            const resUser = await fetch(`${API_URL}/users/profile/${username}`);
+            if (!resUser.ok) {
+                if (resUser.status === 404) throw new Error(t('profile.not_found', 'Usuario no encontrado'));
+                throw new Error("Error loading profile");
+            }
+            const contentType = resUser.headers.get("content-type");
+            if (!contentType || !contentType.includes("application/json")) {
+                throw new Error("Invalid response format from server");
+            }
+            const response = await resUser.json();
+            if (!response.success || !response.data) throw new Error("Invalid response format");
+            
+            const userData = response.data;
+            let medalDefs: MedalDefinition[] = [];
+            if (userData.medals && userData.medals.length > 0) {
+                const resSettings = await fetch(`${API_URL}/settings`);
+                if (resSettings.ok) {
+                    const cType = resSettings.headers.get("content-type");
+                    if (cType && cType.includes("application/json")) {
+                        const settings = await resSettings.json();
+                        if (settings.medal_definitions) {
+                            try {
+                                const parsed = typeof settings.medal_definitions === 'string'
+                                    ? JSON.parse(settings.medal_definitions)
+                                    : settings.medal_definitions;
+                                medalDefs = Array.isArray(parsed) ? parsed : [];
+                            } catch (e) {
+                                console.warn("Failed to parse medals", e);
                             }
                         }
                     }
                 }
-
-                if (userData.public_stats) {
-                    setStatsLoading(true)
-                    try {
-                        // Use Minecraft Nick/UUID if available, else fallback to username (sanitized)
-                        const statsIdentifier = userData.minecraft_uuid || userData.minecraft_nick || userData.original_username || username;
-                        const resStats = await fetch(`${API_URL}/player-stats/${statsIdentifier}`)
-                        if (resStats.ok) {
-                            const contentType = resStats.headers.get("content-type");
-                            if (contentType && contentType.includes("application/json")) {
-                                const response = await resStats.json()
-                                if (response.success && response.data) {
-                                    setPlayerStats(response.data)
-                                } else {
-                                    setPlayerStats(response)
-                                }
-                            }
-                        }
-                    } catch (e) { console.warn("Failed to fetch stats", e) }
-                    finally { setStatsLoading(false) }
-                }
-            } catch (err) {
-                console.error(err)
-                setError(err instanceof Error ? err.message : "Unknown error")
-            } finally {
-                setLoading(false)
             }
-        }
+            return { profile: userData, medalDefinitions: medalDefs };
+        },
+        enabled: Boolean(username),
+        staleTime: 30_000,
+    });
 
-        if (username) fetchData()
-    }, [username, t])
+    const profile = profileQueryData?.profile ?? overrideProfile;
+    const medalDefinitions = profileQueryData?.medalDefinitions ?? [];
+    const loading = queryLoading;
+    const error = queryError ? (queryError as Error).message : null;
+
+    const statsIdentifier = profile?.public_stats ? (profile.minecraft_uuid || profile.minecraft_nick || profile.original_username || username) : null;
+
+    const { data: playerStats = null, isLoading: statsLoading } = useQuery({
+        queryKey: ['publicProfileStats', statsIdentifier, API_URL],
+        queryFn: async () => {
+            if (!statsIdentifier) return null;
+            const resStats = await fetch(`${API_URL}/player-stats/${statsIdentifier}`);
+            if (resStats.ok) {
+                const contentType = resStats.headers.get("content-type");
+                if (contentType && contentType.includes("application/json")) {
+                    const response = await resStats.json();
+                    return response.success && response.data ? response.data : response;
+                }
+            }
+            return null;
+        },
+        enabled: Boolean(statsIdentifier && profile?.public_stats),
+        staleTime: 30_000,
+    });
 
     if (loading) return <div className="layout-center"><Loader /></div>
     
@@ -245,7 +235,7 @@ export default function PublicProfile() {
                     {t('profile.not_found_desc', 'No hemos podido encontrar a ningún usuario con ese nombre. Quizás se ha perdido en el mar o nunca existió.')}
                 </p>
                 
-                <button 
+                <button type="button" 
                     className="nav-btn primary" 
                     onClick={() => navigate('/')}
                     style={{ 
@@ -276,68 +266,6 @@ export default function PublicProfile() {
             />
             
             <div className="profile-content">
-                <style>{`
-                 /* Layout */
-                .profile-content {
-                    width: 100%;
-                    max-width: 1200px;
-                    padding: 0 1.5rem;
-                    display: grid;
-                    grid-template-columns: 350px 1fr;
-                    gap: 2rem;
-                    margin: 0 auto 10rem;
-                }
-                .profile-main {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 2rem;
-                }
-                .profile-sidebar {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 2rem;
-                }
-                 @media (max-width: 900px) {
-                    .profile-content {
-                        grid-template-columns: 1fr;
-                    }
-                }
-                
-                /* Glassmorphism Cards (Still needed for SkinViewer wrapper) */
-                .premium-card {
-                    background: rgba(255, 255, 255, 0.03);
-                    backdrop-filter: blur(12px);
-                    -webkit-backdrop-filter: blur(12px);
-                    border: 1px solid rgba(255, 255, 255, 0.06);
-                    border-radius: 24px;
-                    padding: 2rem;
-                    position: relative;
-                    transition: all 0.3s ease;
-                }
-                .premium-card:hover {
-                    border-color: rgba(255, 255, 255, 0.12);
-                    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
-                }
-                .premium-card h3 {
-                    font-size: 0.9rem;
-                    text-transform: uppercase;
-                    letter-spacing: 2px;
-                    color: rgba(255,255,255,0.4);
-                    margin-bottom: 1.5rem;
-                    display: flex;
-                    align-items: center;
-                    gap: 0.8rem;
-                }
-                 .skin-preview-premium {
-                    width: 100%;
-                    aspect-ratio: 3/4;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    position: relative;
-                }
-                `}</style>
-
                 {/* Left Column: Stats & Skin */}
                 <div className="profile-sidebar">
                      {/* Skin Showcase */}
@@ -376,11 +304,14 @@ export default function PublicProfile() {
                                         <motion.div 
                                             whileHover={{ scale: 1.1 }} 
                                             whileTap={{ scale: 0.95 }} 
+                                            role="button"
+                                            tabIndex={0}
                                             style={{ cursor: 'pointer' }} 
                                             onClick={() => {
                                                 navigator.clipboard.writeText(profile.social_discord!);
                                                 showToast(t('common.copied', 'Copiado al portapapeles'), 'success');
                                             }} 
+                                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigator.clipboard.writeText(profile.social_discord!); showToast(t('common.copied', 'Copiado al portapapeles'), 'success'); } }}
                                             title={profile.social_discord}
                                         >
                                             <svg stroke="currentColor" fill="currentColor" strokeWidth="0" viewBox="0 0 640 512" height="20" width="20" xmlns="http://www.w3.org/2000/svg" style={{ color: '#5865F2' }}>

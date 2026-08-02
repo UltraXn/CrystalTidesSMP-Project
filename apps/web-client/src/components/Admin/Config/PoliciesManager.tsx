@@ -1,6 +1,7 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useReducer } from 'react'
 import { Save, AlertTriangle, Shield, FileText, RefreshCw, Check, Globe } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import "../../../styles/admin/policies_manager.css"
 import Loader from '../../UI/Loader'
 import { 
     usePolicies, 
@@ -8,6 +9,30 @@ import {
     useTranslateText, 
     Policy 
 } from '../../../hooks/useAdminData'
+
+interface FormState {
+    title: string
+    content: string
+    titleEn: string
+    contentEn: string
+}
+type FormAction = 
+    | { type: 'SET_FORM'; payload: FormState }
+    | { type: 'UPDATE_FIELD'; field: keyof FormState; value: string }
+    | { type: 'SET_TRANSLATIONS'; titleEn: string; contentEn: string }
+
+const formReducer = (state: FormState, action: FormAction): FormState => {
+    switch (action.type) {
+        case 'SET_FORM':
+            return action.payload
+        case 'UPDATE_FIELD':
+            return { ...state, [action.field]: action.value }
+        case 'SET_TRANSLATIONS':
+            return { ...state, titleEn: action.titleEn, contentEn: action.contentEn }
+        default:
+            return state
+    }
+}
 
 export default function PoliciesManager() {
     const { t } = useTranslation()
@@ -22,28 +47,49 @@ export default function PoliciesManager() {
     const [editLang, setEditLang] = useState<'es' | 'en'>('es')
     const [message, setMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null)
 
-    // Form state
-    const [title, setTitle] = useState('')
-    const [content, setContent] = useState('')
-    const [titleEn, setTitleEn] = useState('')
-    const [contentEn, setContentEn] = useState('')
+    const [formState, dispatchForm] = useReducer(formReducer, {
+        title: '',
+        content: '',
+        titleEn: '',
+        contentEn: ''
+    })
+    const { title, content, titleEn, contentEn } = formState
+
+    const setTitle = (val: string) => dispatchForm({ type: 'UPDATE_FIELD', field: 'title', value: val })
+    const setContent = (val: string) => dispatchForm({ type: 'UPDATE_FIELD', field: 'content', value: val })
+    const setTitleEn = (val: string) => dispatchForm({ type: 'UPDATE_FIELD', field: 'titleEn', value: val })
+    const setContentEn = (val: string) => dispatchForm({ type: 'UPDATE_FIELD', field: 'contentEn', value: val })
 
     const currentPolicy = useMemo(() => 
         policies.find((p: Policy) => p.slug === selectedSlug) || null
     , [policies, selectedSlug])
 
-    // Sync form with selected policy
-    useEffect(() => {
-        if (currentPolicy) {
-            // Defer state updates to avoid synchronous setState warning during render
-            Promise.resolve().then(() => {
-                setTitle(currentPolicy.title || '')
-                setContent(currentPolicy.content || '')
-                setTitleEn(currentPolicy.title_en || '')
-                setContentEn(currentPolicy.content_en || '')
-            });
+    // Sync form with selected policy — run directly in event handler
+    const syncFormFromPolicy = (policy: Policy | null) => {
+        if (policy) {
+            dispatchForm({
+                type: 'SET_FORM',
+                payload: {
+                    title: policy.title || '',
+                    content: policy.content || '',
+                    titleEn: policy.title_en || '',
+                    contentEn: policy.content_en || ''
+                }
+            })
         }
-    }, [currentPolicy])
+    }
+
+    // Initial sync on mount
+    useEffect(() => {
+        syncFormFromPolicy(currentPolicy)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+
+    const handleSelectPolicy = (slug: string) => {
+        setSelectedSlug(slug)
+        const policy = policies.find((p: Policy) => p.slug === slug) || null
+        syncFormFromPolicy(policy)
+    }
 
     const handleAutoTranslate = async () => {
         if (!title || !content) return
@@ -117,9 +163,9 @@ export default function PoliciesManager() {
                     </h4>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
                         {policies.map((p: Policy) => (
-                            <button
+                            <button type="button"
                                 key={p.slug}
-                                onClick={() => setSelectedSlug(p.slug)}
+                                onClick={() => handleSelectPolicy(p.slug)}
                                 className="hover-lift"
                                 style={{
                                     display: 'flex',
@@ -134,7 +180,7 @@ export default function PoliciesManager() {
                                     cursor: 'pointer',
                                     textAlign: 'center',
                                     fontWeight: selectedSlug === p.slug ? '800' : '500',
-                                    transition: 'all 0.2s',
+                                    transition: "color 0.2s, background-color 0.2s, border-color 0.2s, opacity 0.2s",
                                     position: 'relative',
                                     overflow: 'hidden',
                                     width: '100%'
@@ -182,7 +228,7 @@ export default function PoliciesManager() {
                                     flexWrap: 'wrap' 
                                 }}>
                                     <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                                        <button 
+                                        <button type="button" 
                                             onClick={() => setEditLang('es')}
                                             style={{
                                                 background: 'none', border: 'none',
@@ -192,13 +238,13 @@ export default function PoliciesManager() {
                                                 display: 'flex', alignItems: 'center', gap: '8px',
                                                 borderBottom: editLang === 'es' ? '2px solid var(--accent)' : '2px solid transparent',
                                                 paddingBottom: '0.5rem',
-                                                transition: 'all 0.2s',
+                                                transition: "color 0.2s, background-color 0.2s, border-color 0.2s, opacity 0.2s",
                                                 whiteSpace: 'nowrap'
                                             }}
                                         >
                                             <span style={{ fontSize: '1.2rem' }}>🇪🇸</span> Español (Principal)
                                         </button>
-                                        <button 
+                                        <button type="button" 
                                             onClick={() => setEditLang('en')}
                                             style={{
                                                 background: 'none', border: 'none',
@@ -208,7 +254,7 @@ export default function PoliciesManager() {
                                                 display: 'flex', alignItems: 'center', gap: '8px',
                                                 borderBottom: editLang === 'en' ? '2px solid var(--accent)' : '2px solid transparent',
                                                 paddingBottom: '0.5rem',
-                                                transition: 'all 0.2s',
+                                                transition: "color 0.2s, background-color 0.2s, border-color 0.2s, opacity 0.2s",
                                                 whiteSpace: 'nowrap'
                                             }}
                                         >
@@ -217,7 +263,7 @@ export default function PoliciesManager() {
                                     </div>
                                     
                                     {editLang === 'en' && (
-                                        <button
+                                        <button type="button"
                                             onClick={handleAutoTranslate}
                                             disabled={translating || !title || !content}
                                             style={{
@@ -233,7 +279,7 @@ export default function PoliciesManager() {
                                                 gap: '8px',
                                                 fontWeight: '600',
                                                 fontSize: '0.85rem',
-                                                transition: 'all 0.2s',
+                                                transition: "color 0.2s, background-color 0.2s, border-color 0.2s, opacity 0.2s",
                                                 flexShrink: 0
                                             }}
                                             className="hover-lift"
@@ -249,10 +295,10 @@ export default function PoliciesManager() {
                                 </div>
 
                                 <div style={{ marginBottom: '2rem', textAlign: 'center' }}>
-                                    <label style={{ display: 'block', marginBottom: '0.8rem', color: 'rgba(255,255,255,0.5)', fontSize: '0.85rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                    <label htmlFor="policy-doc-title" style={{ display: 'block', marginBottom: '0.8rem', color: 'rgba(255,255,255,0.5)', fontSize: '0.85rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                                         {t('admin.settings.policies.field_title', 'Título del Documento')} ({editLang.toUpperCase()})
                                     </label>
-                                    <input
+                                    <input id="policy-doc-title"
                                         className="admin-input-premium"
                                         value={editLang === 'es' ? title : titleEn}
                                         onChange={(e) => editLang === 'es' ? setTitle(e.target.value) : setTitleEn(e.target.value)}
@@ -263,13 +309,13 @@ export default function PoliciesManager() {
 
                                 <div>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem' }}>
-                                        <label style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.85rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                        <label htmlFor="policy-doc-content" style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.85rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                                             {t('admin.settings.policies.field_content', 'Contenido (Markdown)')} ({editLang.toUpperCase()})
                                         </label>
                                         <span style={{ fontSize: '0.75rem', color: 'var(--accent)', background: 'rgba(var(--accent-rgb), 0.1)', padding: '4px 8px', borderRadius: '4px', fontWeight: 'bold' }}>Markdown Soportado</span>
                                     </div>
                                     <div className="custom-scrollbar" style={{ borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', overflow: 'hidden' }}>
-                                        <textarea
+                                        <textarea id="policy-doc-content"
                                             className="admin-textarea"
                                             value={editLang === 'es' ? content : contentEn}
                                             onChange={(e) => editLang === 'es' ? setContent(e.target.value) : setContentEn(e.target.value)}
@@ -310,7 +356,7 @@ export default function PoliciesManager() {
                                     )}
                                 </div>
                                 <div style={{ display: 'flex', gap: '1rem', width: '100%', order: 1 }}>
-                                    <button 
+                                    <button type="button" 
                                         className="hover-lift" 
                                         onClick={handleReset}
                                         disabled={loading || saving}
@@ -328,7 +374,7 @@ export default function PoliciesManager() {
                                     >
                                         <RefreshCw className={loading ? 'infinite-rotate' : ''} size={18} /> {t('admin.common.reset', 'Restablecer')}
                                     </button>
-                                    <button 
+                                    <button type="button" 
                                         className="modal-btn-primary hover-lift" 
                                         onClick={handleSave}
                                         disabled={saving || loading || !title.trim() || !content.trim()}
@@ -353,11 +399,6 @@ export default function PoliciesManager() {
                         </div>
                     )}
                 </div>
-                <style>{`
-                    @keyframes spin { 100% { transform: rotate(360deg); } }
-                    .infinite-rotate { animation: spin 1s linear infinite; }
-                    .admin-textarea:focus { box-shadow: inset 0 0 0 1px var(--accent); }
-                `}</style>
             </div>
         </div>
     )

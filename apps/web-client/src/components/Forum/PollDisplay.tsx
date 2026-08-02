@@ -89,9 +89,10 @@ export default function PollDisplay({ poll, refreshPoll, onVote }: PollDisplayPr
             }
             setVoted(true)
             if (refreshPoll) refreshPoll()
-        } catch (err: any) { 
+        } catch (err) { 
             console.error(err);
-            alert(err.message || 'Error inesperado al votar');
+            const errorMessage = err instanceof Error ? err.message : 'Error inesperado al votar';
+            alert(errorMessage);
         }
         finally { setVoting(false) }
     }
@@ -104,7 +105,7 @@ export default function PollDisplay({ poll, refreshPoll, onVote }: PollDisplayPr
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
                 {poll.options.map(opt => (
-                    <div key={opt.id} onClick={() => !voted && handleVote(opt.id)} style={{ 
+                    <div key={opt.id} onClick={() => !voted && handleVote(opt.id)} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (!voted) handleVote(opt.id); } }} style={{
                         position: 'relative', height: '40px', background: 'rgba(255,255,255,0.05)', borderRadius: '6px', overflow: 'hidden', cursor: voted ? 'default' : 'pointer'
                     }}>
                         <div style={{ 

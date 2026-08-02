@@ -17,30 +17,23 @@ interface StaffListProps {
     syncing?: boolean;
 }
 
+const RANK_BADGES: Record<string, string> = {
+    'Neroferno': '/ranks/rank-neroferno.png',
+    'Killuwu': '/ranks/rank-killu.png',
+    'Developer': '/ranks/developer.png',
+    'Admin': '/ranks/admin.png',
+    'Moderator': '/ranks/moderator.png',
+    'Helper': '/ranks/helper.png',
+    'Usuario': '/ranks/user.png',
+    'Staff': '/ranks/staff.png'
+};
+
+const getRoleBadge = (role: string) => {
+    return RANK_BADGES[role] || null;
+};
+
 export default function StaffList({ cards, onlineStatus, onDragEnd, onEdit, onDelete, onSync, onAdd, syncing = false }: StaffListProps) {
     const { t } = useTranslation();
-
-    // Helper to duplicate PRESET logic or pass it down? 
-    // Ideally we pass a helper or the badge URL directly. 
-    // For now, I'll rely on a simple helper inside or simple logic.
-    // The original code used a helper accessing PRESET_ROLES.
-    // To keep this pure, I'll move the badge map here or assume the Card handles it if passed?
-    // StaffCardComponent takes `roleBadge` as prop.
-    
-    const RANK_BADGES: Record<string, string> = {
-        'Neroferno': '/ranks/rank-neroferno.png',
-        'Killuwu': '/ranks/rank-killu.png',
-        'Developer': '/ranks/developer.png',
-        'Admin': '/ranks/admin.png',
-        'Moderator': '/ranks/moderator.png',
-        'Helper': '/ranks/helper.png',
-        'Usuario': '/ranks/user.png',
-        'Staff': '/ranks/staff.png'
-    };
-
-    const getRoleBadge = (role: string) => {
-        return RANK_BADGES[role] || null;
-    };
 
     return (
         <>
@@ -83,7 +76,7 @@ export default function StaffList({ cards, onlineStatus, onDragEnd, onEdit, onDe
                     <Users size={48} style={{ marginBottom: '1rem' }} />
                     <p>{t('admin.staff.empty')}</p>
                     <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1rem' }}>
-                        <button onClick={onSync} className="btn-secondary" disabled={syncing} style={{ minWidth: '160px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                        <button type="button" onClick={onSync} className="btn-secondary" disabled={syncing} style={{ minWidth: '160px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                              {syncing ? (
                                 <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                     <RefreshCw className="spin-icon" size={16} /> {t('admin.staff.syncing')}
@@ -92,7 +85,7 @@ export default function StaffList({ cards, onlineStatus, onDragEnd, onEdit, onDe
                                 t('admin.staff.sync_btn')
                              )}
                         </button>
-                        <button onClick={onAdd} className="btn-primary">{t('admin.staff.add_manual')}</button>
+                        <button type="button" onClick={onAdd} className="btn-primary">{t('admin.staff.add_manual')}</button>
                     </div>
                 </div>
             )}

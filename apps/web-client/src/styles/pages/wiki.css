@@ -1,0 +1,102 @@
+.wiki-container {
+    color: #fff;
+}
+.wiki-sidebar {
+    width: 320px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 100px;
+    height: calc(100vh - 140px);
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+.wiki-main {
+    flex: 1;
+    min-width: 0;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    padding: 3rem;
+    backdrop-filter: blur(10px);
+}
+.wiki-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.8rem 1.2rem;
+    border-radius: 10px;
+    text-decoration: none;
+    color: #aaa;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+    font-size: 0.9rem;
+}
+.wiki-nav-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+}
+.wiki-nav-item.active {
+    background: var(--accent-dim, rgba(22, 140, 128, 0.1));
+    border-color: var(--accent, #168C80);
+    color: #fff;
+}
+.search-box {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 0.8rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+.search-box input {
+    background: none;
+    border: none;
+    color: #fff;
+    outline: none;
+    width: 100%;
+    font-size: 0.9rem;
+}
+.article-content {
+    line-height: 1.8;
+    color: #ccc;
+}
+.article-content h1, .article-content h2, .article-content h3 {
+    color: #fff;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+}
+.article-content a {
+    color: var(--accent, #168C80);
+    text-decoration: none;
+}
+.article-content a:hover {
+    text-decoration: underline;
+}
+.article-content code {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.9em;
+}
+.article-content blockquote {
+    border-left: 4px solid var(--accent, #168C80);
+    padding-left: 1.5rem;
+    margin-left: 0;
+    font-style: italic;
+    color: #aaa;
+}
+
+@media (max-width: 1024px) {
+    .wiki-container {
+        flex-direction: column;
+    }
+    .wiki-sidebar {
+        width: 100%;
+        position: relative;
+        top: 0;
+        height: auto;
+    }
+}

@@ -95,7 +95,7 @@ export const updateRule = async (req: Request, res: Response) => {
         const id = ensureString(req.params.id);
         const updates = req.body;
 
-        const updatedRule = await ruleService.updateRule(parseInt(id), {
+        const updatedRule = await ruleService.updateRule(Number.parseInt(id, 10), {
             category: updates.category,
             title: updates.title,
             title_en: updates.title_en,
@@ -126,7 +126,7 @@ export const deleteRule = async (req: Request, res: Response) => {
     try {
         const id = ensureString(req.params.id);
 
-        await ruleService.deleteRule(parseInt(id));
+        await ruleService.deleteRule(Number.parseInt(id, 10));
 
         // Audit Log
         const editor = (req as AuthenticatedRequest).user;

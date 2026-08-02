@@ -24,3 +24,16 @@ export const updateDonationSchema = z.object({
         status: z.enum(['pending', 'completed', 'cancelled', 'refunded']).optional()
     })
 });
+
+export const kofiWebhookSchema = z.object({
+    message_id: z.string().min(1, 'message_id is required'),
+    timestamp: z.string().datetime().optional().or(z.literal('')),
+    type: z.string().optional(),
+    from_name: z.string().max(200).optional(),
+    message: z.string().max(2000).optional().or(z.literal('')),
+    amount: z.union([z.string(), z.number()]),
+    currency: z.string().length(3),
+    url: z.string().url().optional().or(z.literal('')),
+    is_public: z.boolean().optional(),
+    verification_token: z.string().min(1)
+});

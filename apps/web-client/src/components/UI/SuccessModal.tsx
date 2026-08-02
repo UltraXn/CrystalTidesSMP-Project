@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from 'framer-motion'
+import { m, AnimatePresence } from 'framer-motion'
 import { CheckCircle2 } from 'lucide-react'
 
 interface SuccessModalProps {
@@ -15,7 +15,7 @@ export default function SuccessModal({ isOpen, onClose, title, message, buttonTe
 
     return (
         <AnimatePresence>
-            <motion.div
+            <m.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -34,7 +34,7 @@ export default function SuccessModal({ isOpen, onClose, title, message, buttonTe
                     zIndex: 2000
                 }}
             >
-                <motion.div
+                <m.div
                     initial={{ scale: 0.9, y: 20, opacity: 0 }}
                     animate={{ scale: 1, y: 0, opacity: 1 }}
                     exit={{ scale: 0.9, y: 20, opacity: 0 }}
@@ -54,6 +54,8 @@ export default function SuccessModal({ isOpen, onClose, title, message, buttonTe
                         <img
                             src="/images/ui/logo.webp"
                             alt="CrystalTides"
+                            width={80}
+                            height={80}
                             style={{ width: '80px', height: 'auto', filter: 'drop-shadow(0 0 10px rgba(137, 217, 209, 0.5))' }}
                         />
                         <div style={{
@@ -87,15 +89,15 @@ export default function SuccessModal({ isOpen, onClose, title, message, buttonTe
                         {message}
                     </p>
 
-                    <button
+                    <button type="button"
                         onClick={onAction || onClose}
                         className="btn-submit"
                         style={{ margin: 0 }}
                     >
                         {buttonText}
                     </button>
-                </motion.div>
-            </motion.div>
+                </m.div>
+            </m.div>
         </AnimatePresence>
     )
 }

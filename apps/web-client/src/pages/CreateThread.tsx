@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { BarChart3, X, Plus, CheckCircle2, Image as ImageIcon } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../services/supabaseClient'
+import { uploadImage } from '../services/uploadService'
 import Section from '../components/Layout/Section'
 import { useTranslation } from 'react-i18next'
 
@@ -13,6 +14,55 @@ interface PendingImage {
 }
 
 const API_URL = import.meta.env.VITE_API_URL
+
+// Utility to compress image to WebP
+const compressImage = async (file: File): Promise<Blob> => {
+    const objectUrl = URL.createObjectURL(file)
+    return await new Promise<Blob>((resolve, reject) => {
+        const img = new Image()
+        img.onerror = () => {
+            URL.revokeObjectURL(objectUrl)
+            reject(new Error('Image load failed'))
+        }
+        img.onload = () => {
+            const canvas = document.createElement('canvas')
+            const ctx = canvas.getContext('2d')
+            const MAX_SIZE = 1920
+            let width = img.width
+            let height = img.height
+
+            if (width > MAX_SIZE || height > MAX_SIZE) {
+                if (width > height) {
+                    height = Math.round((height * MAX_SIZE) / width)
+                    width = MAX_SIZE
+                } else {
+                    width = Math.round((width * MAX_SIZE) / height)
+                    height = MAX_SIZE
+                }
+            }
+
+            canvas.width = width
+            canvas.height = height
+
+            if (ctx) {
+                ctx.drawImage(img, 0, 0, width, height)
+                canvas.toBlob(
+                    (blob) => {
+                        URL.revokeObjectURL(objectUrl)
+                        if (blob) resolve(blob)
+                        else reject(new Error('Canvas toBlob failed'))
+                    },
+                    'image/webp',
+                    0.8
+                )
+            } else {
+                URL.revokeObjectURL(objectUrl)
+                reject(new Error('Could not get canvas context'))
+            }
+        }
+        img.src = objectUrl
+    })
+}
 
 export default function CreateThread() {
     const { user } = useAuth()
@@ -33,50 +83,6 @@ export default function CreateThread() {
     const [submitting, setSubmitting] = useState(false)
     // State for deferred upload
     const [pendingImage, setPendingImage] = useState<PendingImage | null>(null)
-
-    // Utility to compress image to WebP
-    const compressImage = async (file: File): Promise<Blob> => {
-        return new Promise((resolve, reject) => {
-            const img = new Image()
-            img.src = URL.createObjectURL(file)
-            img.onload = () => {
-                const canvas = document.createElement('canvas')
-                const ctx = canvas.getContext('2d')
-                
-                // Max dimension rule (1920px)
-                const MAX_SIZE = 1920
-                let width = img.width
-                let height = img.height
-                
-                if (width > height) {
-                    if (width > MAX_SIZE) {
-                        height *= MAX_SIZE / width
-                        width = MAX_SIZE
-                    }
-                } else {
-                    if (height > MAX_SIZE) {
-                        width *= MAX_SIZE / height
-                        height = MAX_SIZE
-                    }
-                }
-
-                canvas.width = width
-                canvas.height = height
-                if (ctx) {
-                    ctx.drawImage(img, 0, 0, width, height)
-                }
-                
-                canvas.toBlob((blob) => {
-                    if (blob) {
-                        resolve(blob) 
-                    } else {
-                        reject(new Error("Compression failed"))
-                    }
-                }, 'image/webp', 0.8) // 0.8 Quality = Great balance
-            }
-            img.onerror = (err) => reject(err)
-        })
-    }
 
     const handleImageSelection = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
@@ -115,23 +121,8 @@ export default function CreateThread() {
 
     const uploadPendingImage = async () => {
         if (!pendingImage) return null
-
-        const fileName = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}.webp`
-        const { error } = await supabase.storage
-            .from('forum-uploads')
-            .upload(fileName, pendingImage.blob, {
-                contentType: 'image/webp',
-                cacheControl: '3600',
-                upsert: false
-            })
-
-        if (error) throw error
-
-        const { data: { publicUrl } } = supabase.storage
-            .from('forum-uploads')
-            .getPublicUrl(fileName)
-            
-        return publicUrl
+        // Server-validated upload (magic bytes checked in backend)
+        return await uploadImage(pendingImage.blob, 'forum-uploads')
     }
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -215,8 +206,8 @@ export default function CreateThread() {
                     
                     {/* Category Select */}
                     <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-                        <label className="form-label" style={{ display: 'block', marginBottom: '0.5rem', color: '#ccc' }}>{t('create_thread.form.category')}</label>
-                        <select 
+                        <label htmlFor="thread-category" className="form-label" style={{ display: 'block', marginBottom: '0.5rem', color: '#ccc' }}>{t('create_thread.form.category')}</label>
+                        <select id="thread-category" 
                             className="form-input" 
                             value={categoryId} 
                             onChange={e => setCategoryId(e.target.value)}
@@ -229,8 +220,8 @@ export default function CreateThread() {
                     </div>
 
                     <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-                        <label className="form-label" style={{ display: 'block', marginBottom: '0.5rem', color: '#ccc' }}>{t('create_thread.form.title')}</label>
-                        <input 
+                        <label htmlFor="thread-title" className="form-label" style={{ display: 'block', marginBottom: '0.5rem', color: '#ccc' }}>{t('create_thread.form.title')}</label>
+                        <input id="thread-title" 
                             className="form-input" 
                             value={title} 
                             onChange={e => setTitle(e.target.value)} 
@@ -241,16 +232,16 @@ export default function CreateThread() {
                     </div>
 
                     <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-                        <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', color: '#ccc' }}>
-                            {t('create_thread.form.content')}
+                        <div className="form-label" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', color: '#ccc' }}>
+                            <label htmlFor="create-thread-content">{t('create_thread.form.content')}</label>
                             { !pendingImage && (
                                 <label className="btn-secondary" style={{ padding: '0.2rem 0.5rem', fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                                     <ImageIcon size={14} /> {t('create_thread.form.attach_image')}
-                                    <input type="file" accept="image/*" onChange={handleImageSelection} style={{ display: 'none' }} />
+                                    <input aria-label={t('create_thread.form.attach_image', 'Adjuntar imagen')} type="file" accept="image/*" onChange={handleImageSelection} style={{ display: 'none' }} />
                                 </label>
                             )}
-                        </label>
-                        <textarea 
+                        </div>
+                        <textarea id="create-thread-content"
                             className="form-input" 
                             value={content} 
                             onChange={e => setContent(e.target.value)} 
@@ -279,7 +270,7 @@ export default function CreateThread() {
 
                     {/* Poll Section Toggle */}
                     <div style={{ marginBottom: '2rem', padding: '1.5rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', border: showPoll ? '1px solid var(--accent)' : '1px dashed #444' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }} onClick={() => setShowPoll(!showPoll)}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }} onClick={() => setShowPoll(!showPoll)} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setShowPoll(!showPoll); } }}>
                             <h4 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', color: showPoll ? 'var(--accent)' : '#aaa' }}>
                                 <BarChart3 size={18} /> {t('create_thread.form.add_poll')}
                             </h4>
@@ -301,8 +292,8 @@ export default function CreateThread() {
 
                                 {isDiscordPoll ? (
                                     <div>
-                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: '#aaa' }}>{t('create_thread.form.discord_link_label')}</label>
-                                        <input 
+                                        <label htmlFor="thread-discord-link" style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: '#aaa' }}>{t('create_thread.form.discord_link_label')}</label>
+                                        <input id="thread-discord-link" 
                                             value={discordLink} 
                                             onChange={e => setDiscordLink(e.target.value)} 
                                             placeholder="https://discord.com/channels/..." 
@@ -314,26 +305,27 @@ export default function CreateThread() {
                                     </div>
                                 ) : (
                                     <div>
-                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: '#aaa' }}>{t('create_thread.form.poll_question')}</label>
-                                        <input 
+                                        <label htmlFor="thread-poll-question" style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: '#aaa' }}>{t('create_thread.form.poll_question')}</label>
+                                        <input id="thread-poll-question" 
                                             value={pollQuestion} 
                                             onChange={e => setPollQuestion(e.target.value)} 
                                             placeholder="¿Pregunta?" 
                                             style={{ width: '100%', padding: '0.7rem', background: '#222', border: '1px solid #555', color: '#fff', borderRadius: '4px', marginBottom: '1rem' }}
                                         />
                                         
-                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: '#aaa' }}>{t('create_thread.form.options')}</label>
+                                        <div style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: '#aaa' }}>{t('create_thread.form.options')}</div>
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                                             {pollOptions.map((opt, idx) => (
-                                                <div key={idx} style={{ display: 'flex', gap: '0.5rem' }}>
-                                                    <input 
+                                                // react-doctor-disable-next-line no-array-index-as-key -- editable option list: option text changes per keystroke and may be empty/duplicated, so positional key is intended
+                                                <div key={`item-${idx}`} style={{ display: 'flex', gap: '0.5rem' }}>
+                                                    <input aria-label={`Opción ${idx + 1}`} 
                                                         value={opt} 
                                                         onChange={e => updateOption(idx, e.target.value)} 
                                                         placeholder={`Opción ${idx + 1}`}
                                                         style={{ flexGrow: 1, padding: '0.6rem', background: '#222', border: '1px solid #555', color: '#fff', borderRadius: '4px' }}
                                                     />
                                                     {pollOptions.length > 2 && (
-                                                    <button type="button" onClick={() => setPollOptions(pollOptions.filter((_, i) => i !== idx))} className="btn-icon delete" style={{ background: '#333', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0 1rem' }}>
+                                                    <button aria-label={t('common.delete', 'Eliminar')} type="button" onClick={() => setPollOptions(pollOptions.filter((_, i) => i !== idx))} className="btn-icon delete" style={{ background: '#333', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0 1rem' }}>
                                                             <X size={16} />
                                                         </button>
                                                     )}

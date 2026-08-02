@@ -1,4 +1,282 @@
 {
+    "seo": {
+        "title": "CrystalTides SMP | Best English Minecraft Survival moded Server 1.21.1",
+        "description": "CrystalTides SMP: Best English Minecraft Survival moded Server 1.21.1 featuring custom mechanics, active international community, and unique survival experience.",
+        "keywords": "Best English Minecraft Survival moded Server 1.21.1, English Minecraft Server, Modded Survival SMP, Minecraft 1.21.1, CrystalTides"
+    },
+    "about": {
+        "features": {
+            "title": "Featured Features",
+            "subtitle": "Custom-built systems designed exclusively to deliver polished, immersive, and enduring gameplay.",
+            "proximity": {
+                "title": "Proximity Voice Chat",
+                "tag": "IMMERSION",
+                "desc": "Communicate with other players using integrated proximity voice chat. Hear whispers in city alleys, make secret deals, or shout warnings in intense battles."
+            },
+            "economy": {
+                "title": "Crystal Economy",
+                "tag": "TRADE",
+                "desc": "A dynamic financial ecosystem. Mine unstable crystals in the depths, refine them in refineries, and use them to acquire ships, trade at auctions, or pay city taxes."
+            },
+            "nations": {
+                "title": "Nations & Empires",
+                "tag": "POLITICS",
+                "desc": "Found your own town or join an existing nation. Enact laws, manage municipal treasuries, sign peace treaties, or declare territorial wars to expand your empire."
+            }
+        },
+        "roles": {
+            "badge": "Custom Mechanics System Built to Measure",
+            "title": "Choose Your Path in CrystalTides",
+            "subtitle": "The main goal of the server is to be fun and have a great time playing, whether relaxing (chill) with friends or tryharding to climb the rankings. Your progress unlocks cosmetic titles and prestige levels.",
+            "step1_title": "1. Play Your Way",
+            "step1_desc": "Build, fight, trade, or explore freely. No playstyle restrictions.",
+            "step2_title": "2. Progression Titles",
+            "step2_desc": "Accumulate blocks, kills, KilluCoins, or streak days to unlock progressive titles.",
+            "step3_title": "3. Prestige & Top #1",
+            "step3_desc": "Advance through 5 global Prestige tiers and compete for the supreme rank in your branch.",
+            "radar": {
+                "builder": "Builder",
+                "fighter": "Fighter",
+                "merchant": "Merchant",
+                "constancy": "Constancy",
+                "explorer": "Explorer"
+            },
+            "prestige_desc": "Prestige Tiers reward the dedication of players who max out their mastery statistics in CrystalTides.",
+            "prestige": {
+                "tier1": {
+                    "name": "Prestige I (Copper)",
+                    "badge": "⭐ PRESTIGE I",
+                    "req": "Initial streak or level 2 milestone"
+                },
+                "tier2": {
+                    "name": "Prestige II (Iron)",
+                    "badge": "⭐⭐ PRESTIGE II",
+                    "req": "Intermediate streak or level 3 milestone"
+                },
+                "tier3": {
+                    "name": "Prestige III (Gold)",
+                    "badge": "⭐⭐⭐ PRESTIGE III",
+                    "req": "14-day streak or level 4 milestone"
+                },
+                "tier4": {
+                    "name": "Prestige IV (Diamond)",
+                    "badge": "⭐⭐⭐⭐ PRESTIGE IV",
+                    "req": "30-day streak or Server Top 5"
+                },
+                "tier5": {
+                    "name": "Prestige V (Iridium)",
+                    "badge": "💎 PRESTIGE V",
+                    "req": "Undisputed Mastery #1"
+                }
+            },
+            "custom_branch": "Custom Progression Branch",
+            "metric_label": "Metric:",
+            "radar_view": "Radar View",
+            "loading_radar": "Loading radar...",
+            "titles_tab": "Titles (1-5)",
+            "prestige_tab": "Prestige",
+            "level": "LEVEL {{level}}",
+            "top": "⭐ TOP",
+            "track_progress": "Track Your Progress in Real-Time",
+            "track_desc": "Link your Minecraft account to update your badges.",
+            "view_status": "View My Status",
+            "rules": {
+                "header": "Mastery Regulations & Rules",
+                "sub": "Requirements to dispute the Top #1 spot",
+                "top_honor": "Top #1 Honor Title",
+                "specific_rules": "Specific Rules",
+                "max_rank_title": "Maximum Rank Rules",
+                "req_label": "Maximum Rank Requirement:",
+                "max_rank_req": "You must be the player with the highest points/stats in the category you excel in.",
+                "limit_label": "Limit of 1 Active Rank:",
+                "limit_active": "You can only hold 1 maximum title simultaneously at any given time.",
+                "transfer_label": "Direct Transfer:",
+                "transfer": "Transferred if another player surpasses your score. 1v1 Duel is exclusive to Warlord."
+            },
+            "branch": {
+                "constructor": {
+                    "title": "Builder & Colonizer",
+                    "subtitle": "Architectural Art & Kingdoms",
+                    "desc": "Master the art of architecture and found kingdoms. Design protected megastructures and connect the world through trade routes, ports, and cities.",
+                    "formula": "Blocks mined + placed. Each block milestone grants you a new building rank.",
+                    "metric": "Blocks Mined + Placed",
+                    "topTitle": "Supreme Master Builder",
+                    "topReq": "Highest combined sum of mined and placed blocks on the server",
+                    "rule": {
+                        "0": "Blocks must be placed and mined organically by playing in the survival world.",
+                        "1": "Artificial block looping (repeatedly breaking and placing the same block with scripts or macros) is strictly prohibited.",
+                        "2": "Megastructures in protected claims receive official validation on the interactive server map."
+                    },
+                    "rank": {
+                        "1": {
+                            "name": "Initiate",
+                            "req": "0 blocks"
+                        },
+                        "2": {
+                            "name": "Novice",
+                            "req": "1,000 blocks"
+                        },
+                        "3": {
+                            "name": "Skilled",
+                            "req": "10,000 blocks"
+                        },
+                        "4": {
+                            "name": "Architect",
+                            "req": "50,000 blocks"
+                        },
+                        "5": {
+                            "name": "Master Builder",
+                            "req": "Server Top #1"
+                        }
+                    }
+                },
+                "luchador": {
+                    "title": "Fighter & Gladiator",
+                    "subtitle": "PvP, Mobs & Dungeons",
+                    "desc": "Conquer the depths and dominate the arena. Defeat bosses in weekly dungeons, secure event control chests, and lead your clan to glory.",
+                    "formula": "15 pts per player PvP kill and 1 pt per hostile mob eliminated.",
+                    "metric": "PvP (x15 pts) + Mobs (x1 pt)",
+                    "topTitle": "Warlord",
+                    "topReq": "Highest combined score of PvP Kills and Dungeon boss defeats on the server",
+                    "rule": {
+                        "0": "PvP kills count only between distinct players without clan alliance.",
+                        "1": "Kill farming (repeatedly killing the same account or alts) results in a complete reset of combat stats.",
+                        "2": "Dungeons and control events award temporary score multipliers during weekly events."
+                    },
+                    "rank": {
+                        "1": {
+                            "name": "Recruit",
+                            "req": "0 pts"
+                        },
+                        "2": {
+                            "name": "Novice",
+                            "req": "50 pts"
+                        },
+                        "3": {
+                            "name": "Warrior",
+                            "req": "500 pts"
+                        },
+                        "4": {
+                            "name": "Master of Arms",
+                            "req": "2,500 pts"
+                        },
+                        "5": {
+                            "name": "Warlord",
+                            "req": "Server Top #1"
+                        }
+                    }
+                },
+                "mercader": {
+                    "title": "Merchant & Tycoon",
+                    "subtitle": "Economy & KilluCoins",
+                    "desc": "Control server markets. Trade with players, auction rare items, and accumulate KilluCoins to rule the financial leaderboards.",
+                    "formula": "Logarithmic scale (100 × log₁₀(KilluCoins)). The higher your capital, the higher your economic rank.",
+                    "metric": "100 × log₁₀(KilluCoins)",
+                    "topTitle": "Supreme Guildmaster",
+                    "topReq": "Highest accumulated fortune in KilluCoins (logarithmic scale)",
+                    "rule": {
+                        "0": "Financial balances are audited in real time via the server economic plugin.",
+                        "1": "Fictitious transfers or temporary KilluCoin loans between secondary accounts before ranking cutoff are prohibited.",
+                        "2": "Player shops and auction sales award commercial prestige bonuses."
+                    },
+                    "rank": {
+                        "1": {
+                            "name": "Peddler",
+                            "req": "0 KC"
+                        },
+                        "2": {
+                            "name": "Novice",
+                            "req": "1,000 KC"
+                        },
+                        "3": {
+                            "name": "Prosperous",
+                            "req": "10,000 KC"
+                        },
+                        "4": {
+                            "name": "Noble",
+                            "req": "50,000 KC"
+                        },
+                        "5": {
+                            "name": "Grand Guildmaster",
+                            "req": "Server Top #1"
+                        }
+                    }
+                },
+                "constancia": {
+                    "title": "Constancy & Loyalty",
+                    "subtitle": "Daily Streaks & Fidelity",
+                    "desc": "Loyalty has rewards. Maintain daily login streaks, participate actively in events, and strengthen the server community.",
+                    "formula": "Quadratic growth (Streak Days)². Rewards maximum fidelity without breaking daily logins.",
+                    "metric": "(Streak Days)²",
+                    "topTitle": "Unshakable Supreme",
+                    "topReq": "Longest uninterrupted daily login streak with highest quadratic score on the server",
+                    "rule": {
+                        "0": "Daily streaks reset if you fail to log in for at least 15 active minutes within a 24-hour window.",
+                        "1": "Excessive AFK with automated machines to inflate playtime without active gameplay is prohibited.",
+                        "2": "Active members receive daily reward multipliers and loyalty reward chests."
+                    },
+                    "rank": {
+                        "1": {
+                            "name": "Visitor",
+                            "req": "0 days"
+                        },
+                        "2": {
+                            "name": "Traveler",
+                            "req": "7 days"
+                        },
+                        "3": {
+                            "name": "Devoted",
+                            "req": "14 days"
+                        },
+                        "4": {
+                            "name": "Dedicated",
+                            "req": "30 days"
+                        },
+                        "5": {
+                            "name": "Unshakable",
+                            "req": "Server Top #1"
+                        }
+                    }
+                },
+                "explorador": {
+                    "title": "Explorer & Cartographer",
+                    "subtitle": "Journeys & Rare Biomes",
+                    "desc": "Traverse the far reaches of the survival world, discover legendary structures, claim treasure maps, and chart uncharted lands.",
+                    "formula": "10 pts per active playtime hour + 1 pt per km (1,000 blocks) traveled in Minecraft.",
+                    "metric": "Hours (x10) + Km",
+                    "topTitle": "Supreme Master Explorer",
+                    "topReq": "Highest combined score of active playtime hours and distance traveled",
+                    "rule": {
+                        "0": "Distance counts across all movement types (walking, riding, flying with elytra).",
+                        "1": "Automated elytra or boat looping scripts without manual navigation are monitored and penalized.",
+                        "2": "Discovering rare biomes and structures unlocks bonus exploration score."
+                    },
+                    "rank": {
+                        "1": {
+                            "name": "Novice",
+                            "req": "0 pts"
+                        },
+                        "2": {
+                            "name": "Curious",
+                            "req": "100 pts"
+                        },
+                        "3": {
+                            "name": "Mapper",
+                            "req": "500 pts"
+                        },
+                        "4": {
+                            "name": "Pioneer",
+                            "req": "2,000 pts"
+                        },
+                        "5": {
+                            "name": "Expert Explorer",
+                            "req": "Server Top #1"
+                        }
+                    }
+                }
+            }
+        }
+    },
     "common": {
         "back": "Back",
         "back_home": "Back to Home",
@@ -16,6 +294,126 @@
         "copied": "Copied",
         "anonymous": "Anonymous",
         "back_forum": "Back to Forum"
+    },
+    "hero": {
+        "welcome": "WELCOME TO",
+        "title": "CRYSTALTIDES SMP",
+        "subtitle": "Immerse yourself in a world of adventure, community, and limitless creativity. Join us! We await you ✨",
+        "description": "Immerse yourself in a world of adventure, community, and limitless creativity. Join us! We await you ✨",
+        "edition": "JAVA EDITION",
+        "copy_ip": "COPY IP",
+        "copied": "COPIED!",
+        "players_online": "Players Online",
+        "kofi_text": "Support us on Ko-fi!",
+        "status": {
+            "offline": "OFFLINE",
+            "online": "ONLINE"
+        }
+    },
+    "nav": {
+        "kofi": "KO-FI",
+        "donators": "DONORS",
+        "donors": "DONORS"
+    },
+    "history_section": {
+        "title": "CrystalTides SMP History",
+        "desc": "Welcome to the history of CrystalTides SMP, where you can explore the project timeline and milestones.",
+        "stage1": {
+            "stageName": "STATION 01",
+            "title": "Killufishies' Fishbowl",
+            "subtitle": "Community Origins on Twitch",
+            "badge": "✦ THE ORIGINS",
+            "summary": "The birth of our story on Killu's Twitch streams: a dedicated space for art, illustration, and initial casual gaming nights.",
+            "f1_title": "Illustration Streams",
+            "f1_desc": "Active drawing & fanart community",
+            "f2_title": "Minigame Nights",
+            "f2_desc": "Early moments of chill & gaming"
+        },
+        "stage2": {
+            "stageName": "STATION 02",
+            "title": "Staff Creation",
+            "subtitle": "Formation of Dev, Art & QA Core Team",
+            "badge": "✦ STAFF CORE",
+            "banner_badge": "✦ OUR BRAND & SERVER ORIGIN ✦",
+            "banner_text": "What began as a great friendship gave birth to something wonderful. CrystalTidesSMP is not just a server; it is the reflection of our commitment to building a transparent digital home, crafted with empathy and by listening to our community.",
+            "summary": "The official team forms: Killu leading voice & community, Nero on tech & infrastructure, Churly on UI design, and Japa on game testing."
+        },
+        "members": {
+            "killu": {
+                "role": "Director & Community",
+                "desc": "Passionate, cheerful, and the protective soul of the Fishbowl. Creates a welcoming vibe, organizes events, and guides with human warmth.",
+                "tag1": "Charismatic",
+                "tag2": "Events",
+                "tag3": "Lead Voice"
+            },
+            "nero": {
+                "role": "Dev Lead & Infra",
+                "desc": "Logical mind injected with technical euphoria. Obsessed with server performance, custom patches, and clean bug-free code.",
+                "tag1": "Tech Euphoria",
+                "tag2": "Fullstack Infra",
+                "tag3": "Zero Bugs"
+            },
+            "churly": {
+                "role": "Design & Art Lead",
+                "desc": "Visual perfectionist, creative and aesthetic visionary. Designs interfaces, art concepts, and unique visual identities.",
+                "tag1": "Artistic Vision",
+                "tag2": "UI/UX Lead",
+                "tag3": "Polished Aesthetic"
+            },
+            "japa": {
+                "role": "QA & BetaTester",
+                "desc": "Curious, persistent, and relentless seeking to break mechanics to improve them. Killu's personal fault-proof agent of chaos.",
+                "tag1": "Chaos Agent",
+                "tag2": "QA Tester",
+                "tag3": "Solid Gameplay"
+            }
+        },
+        "stage3": {
+            "stageName": "STATION 03",
+            "title": "Evolution to CrystalTides SMP",
+            "subtitle": "RPG System, LIVE Economy & Nether Bosses",
+            "badge": "✦ EVOLUTION",
+            "summary": "The fishbowl evolved into CrystalTides SMP, a brand new server with fresh mechanics and epic bosses.",
+            "live_combat": "🔴 WATCH LIVE COMBAT RECORD",
+            "wither_boss": "Wither Terror Boss Fight",
+            "nether_raid": "NETHER RAID",
+            "nether_citadel": "Nether Citadel",
+            "community": "COMMUNITY",
+            "sakura_forest": "Sakura Forest",
+            "showdown": "SHOWDOWN",
+            "nether_battle": "Nether Battle",
+            "economy": "ECONOMY",
+            "grand_vault": "Grand Vault",
+            "f1_title": "mcMMO Skills",
+            "f1_desc": "Complete RPG system for mastery & combat",
+            "f2_title": "Killupesos Economy",
+            "f2_desc": "Origin of the 7-currency financial ecosystem",
+            "f3_title": "Forgotten Terror Boss",
+            "f3_desc": "Weekly dungeon and Nether battles",
+            "f4_title": "Waystones Network",
+            "f4_desc": "Teleportation and survival map landmarks"
+        },
+        "stage4": {
+            "stageName": "STATION 04",
+            "title": "Dedicated Era & Launcher",
+            "subtitle": "Dedicated Servers, Official Domain & Future",
+            "badge": "✦ DEDICATED ERA",
+            "summary": "Migration to enterprise Ubuntu Server infrastructure (MySQL, Redis, distributed nodes), official domain, and Launcher Beta.",
+            "new_hosting": "NEW HOSTING",
+            "ubuntu_tps": "Sustained 20 TPS Ubuntu",
+            "daily_rewards": "DAILY REWARDS",
+            "daily_loot": "Rewards & Loot for Joining",
+            "new_stats": "NEW STATISTICS",
+            "live_metrics": "Live Metrics & Kills",
+            "improved_economy": "IMPROVED ECONOMY",
+            "economy_system": "Upgraded Economy System",
+            "f1_title": "Dedicated Ubuntu Node",
+            "f1_desc": "Solid 20 TPS with distributed nodes",
+            "f2_title": "Mc.CrystalTidesSMP.net",
+            "f2_desc": "Official direct connection domain",
+            "f3_title": "Official Launcher Beta",
+            "f3_desc": "Optimized 1-Click game entry"
+        }
     },
     "forum_category": {
         "back_link": "Back to Forum",
@@ -91,7 +489,8 @@
         "register": "Register",
         "wiki": "Guide",
         "support": "Support",
-        "gacha": "Gacha"
+        "gacha": "Gacha",
+        "logged_in_as": "Logged in as"
     },
     "features": {
         "economy_title": "Dynamic Economy",
@@ -103,7 +502,7 @@
     },
     "home": {
         "title": "About the Server",
-        "description": "CrystalTides is not merely a territory, it is the living legacy of four primordial entities. It was forged by the union of an Aquatic Sovereign, master of the depths; an Abyssal Presence, unfathomable, owner of the mind and secrets, answering to no laws or factions but its own will; a Traveler of the Stars, bearer of cosmic vision and unmatched strategic warfare; and an Earthly Force, rooted in the ancient mysteries of these lands.\n\nToday, CrystalTides is a crucible of wonders, a magical world shaped by this divine alliance where every corner breathes the essence of its founders: the tide, the abyss, the cosmos, and the earth.",
+        "description": "CrystalTides is a unique survival RPG universe where the forces of the tide, the abyss, the cosmos, and the earth collide. Choose your path, forge alliances in a living world, master the crystal economy, and write your own legend.",
         "join_us_twitch": "If you want to see how a hyperactive aquatic creature spends her time, go check out Killubysmali on Twitch. She might draw a masterpiece, give you a English MASTER class, or play Repo as if her life depended on it.",
         "join_us_discord": "Craving more madness? Join 'La Pecerita de killu' on Discord. But beware: the fearsome Killujaiba lurks in those deep waters, hymns to the Ocean Man are sung (take me by the hand, lead me to the land~ 🎵), and there is still collective trauma over Killu's Little Spoon (which she lost...).",
         "stats": {
@@ -222,21 +621,23 @@
         "loading_news": "Loading news...",
         "view_all_news": "View all"
     },
-    "hero": {
-        "welcome": "Welcome to",
-        "description": "Dive into a world of adventure, community, and limitless creativity. Join us! We await you ✨",
-        "players_online": "Players Online",
-        "connect": "Connect to Server",
-        "java_edition": "Java Edition",
-        "copy_ip": "Copy IP",
-        "copied": "Copied!",
-        "kofi_text": "Donate on Ko-Fi!"
-    },
     "rules": {
         "title": "Server Rules",
+        "search_placeholder": "Search rules... (e.g. pvp, chat, claims)",
         "delete_confirm": "Are you sure you want to delete this rule?",
         "delete_error": "Error deleting rule",
         "save_error": "Error saving rule",
+        "view_more": "View details ↓",
+        "view_less": "View less ↑",
+        "allowed": "ALLOWED",
+        "forbidden": "FORBIDDEN / PUNISHABLE",
+        "useful_commands": "USEFUL COMMANDS",
+        "copied": "Copied to clipboard:",
+        "severity": {
+            "mild": "Mild",
+            "serious": "Serious",
+            "critical": "Critical"
+        },
         "categories": {
             "general": "General",
             "comportamiento": "Behavior",
@@ -353,6 +754,7 @@
             "soon": "Coming Soon",
             "finished": "Finished"
         },
+        "view_podium": "View Podium 🏆",
         "items": {
             "1": {
                 "title": "Master Builder",
@@ -469,6 +871,7 @@
             "developer": "Developer"
         },
         "nav": {
+            "profile": "View Profile",
             "overview": "Overview",
             "posts": "My Posts",
             "achievements": "Achievements",
@@ -488,6 +891,7 @@
             "not_linked_title": "Link your account!",
             "not_linked_msg": "To see your real-time stats (money, playtime, kills), you need to verify that you own the Minecraft account.",
             "verify_btn": "Verify Now",
+            "formula_header": "How is each Score calculated?",
             "playstyle": {
                 "title": "Playstyle",
                 "metrics_title": "Playstyle Metrics",
@@ -502,12 +906,75 @@
                 "pts_kill": "pts (Kill x10)",
                 "hours": "hours",
                 "pts_formula": "pts (H x0.2 + Rank)",
-                "social_note": "* Social: +30 pts for Donor, Founder, Killu, Neroferno, Developer or Staff rank."
+                "social_note": "* Social: +30 pts for Donor, Founder, Killu, Neroferno, Developer or Staff rank.",
+                "blocks_formula": "Mined + Placed Blocks",
+                "pvp_formula": "PvP (x15) + Mobs (x1)",
+                "merchant_formula": "100 × log₁₀(KilluCoins)",
+                "constancy_formula": "(Streak Days)²",
+                "explorer_formula": "Hours (x10) + Km"
+            },
+            "prestige": {
+                "title": "Sistema de Prestigios de Estilo de Juego",
+                "level1": "⭐ Prestige I",
+                "level2": "⭐⭐ Prestige II",
+                "level3": "⭐⭐⭐ Prestige III",
+                "level4": "⭐⭐⭐⭐ Prestige IV",
+                "level5": "💎 Prestige V",
+                "bonus1": "+5% KC Diarios",
+                "bonus2": "+10% KC Diarios",
+                "bonus3_discount": "+15% KC + Descuento",
+                "bonus3_aura": "+15% KC + Aura",
+                "bonus5_swords": "+25% KC + Espadas",
+                "tag_neon": "[P5] Neon",
+                "active": "Activo",
+                "locked": "Bloqueado",
+                "max_reached": "¡Felicidades! Has alcanzado el Nivel Máximo V de Prestigio en {{branch}}.",
+                "req_met": "¡Requisito Cumplido! Eres el #1 del servidor en {{branch}}. Puedes ascender al Nivel {{level}}.",
+                "locked_msg": "Bloqueado: Debes ser el jugador #1 con Rango Máximo en {{branch}} para ascender.",
+                "btn_req": "🔒 Requisito: Alcanzar Rango Máximo",
+                "btn_max": "👑 Prestigio Máximo Alcanzado",
+                "btn_ascend": "⭐ Ascender a Prestigio {{level}}",
+                "arch": {
+                    "constructor": {
+                        "p1": "Iniciado de Piedra",
+                        "p2": "Constructor Consagrado",
+                        "p3": "Gran Arquitecto",
+                        "p4": "Maestro Constructor",
+                        "p5": "Arquitecto Mítico"
+                    },
+                    "luchador": {
+                        "p1": "Guerrero de Bronce",
+                        "p2": "Campeón de Batalla",
+                        "p3": "Señor de Guerra",
+                        "p4": "Maestro de Armas",
+                        "p5": "Gladiador Supremo"
+                    },
+                    "mercader": {
+                        "p1": "Mercader Próspero",
+                        "p2": "Comerciante de Élite",
+                        "p3": "Barón Financiero",
+                        "p4": "Gran Maestro Gremial",
+                        "p5": "Magnate Legendario"
+                    },
+                    "constancia": {
+                        "p1": "Devoto del Servidor",
+                        "p2": "Pilar Inquebrantable",
+                        "p3": "Guardián de Racha",
+                        "p4": "Leyenda Inquebrantable",
+                        "p5": "Titán Eterno"
+                    },
+                    "explorador": {
+                        "p1": "Navegante de Reinos",
+                        "p2": "Mapeador Ancestral",
+                        "p3": "Pionero del Horizonte",
+                        "p4": "Explorador Experto",
+                        "p5": "Conquistador de Mundos"
+                    }
+                }
             }
         },
         "medals_title": "My Medals",
         "no_medals": "You don't have any special medals yet.",
-
         "unlink_confirm_title": "Unlink Account",
         "unlink_confirm_msg": "Are you sure? You might lose access to certain features.",
         "stats": {
@@ -712,7 +1179,6 @@
             "msg": "You do not have the necessary permissions to be here.",
             "back_home": "Back to Home"
         },
-
         "panel_subtitle": "Administrative Control Panel",
         "tabs": {
             "general": "General",
@@ -947,7 +1413,6 @@
                     "no_events": "No tasks in this range"
                 }
             },
-
             "notes": {
                 "title": "Quick Notes",
                 "new_note_btn": "New Note",
@@ -964,7 +1429,6 @@
                 }
             }
         },
-
         "dashboard": {
             "stats": {
                 "server_status": "Server Status",
@@ -1084,8 +1548,6 @@
                 "mo": "Months"
             }
         },
-
-
         "wiki": {
             "manager_title": "Wiki Manager",
             "search_placeholder": "Search articles...",
@@ -1116,8 +1578,6 @@
                 "ranks": "Ranks"
             }
         },
-
-
         "2fa": {
             "title": "Security Verification",
             "desc": "Enter your 2FA code to access the Admin Panel.",
@@ -1502,8 +1962,24 @@
             "filter_web": "WEB",
             "filter_game": "GAME"
         },
-
-
+        "audit": {
+            "title": "Audit Log",
+            "subtitle": "Detailed history of all administrative actions and system events.",
+            "search_placeholder": "Search by user, action or details...",
+            "source_all": "ALL",
+            "source_web": "WEB",
+            "source_game": "GAME",
+            "source_security": "Alert",
+            "source_security-auditor": "Security",
+            "showing": "Showing {{count}} of {{total}} events",
+            "no_logs_found": "No logs found",
+            "try_adjust_filters": "Try adjusting the filters or search term.",
+            "table_date": "DATE",
+            "table_user": "USER",
+            "table_source": "SOURCE",
+            "table_action": "ACTION",
+            "table_details": "DETAILS"
+        },
         "events": {
             "title": "Events & Contests Management",
             "loading": "Loading events...",
@@ -1546,11 +2022,11 @@
             "error_delete": "Error deleting",
             "delete_tooltip": "Delete",
             "registrations": {
-                 "title": "Registrations",
-                 "empty": "No registrations yet.",
-                 "loading": "Loading...",
-                 "unknown_user": "Unknown User",
-                 "view_tooltip": "View Registrations"
+                "title": "Registrations",
+                "empty": "No registrations yet.",
+                "loading": "Loading...",
+                "unknown_user": "Unknown User",
+                "view_tooltip": "View Registrations"
             },
             "form_extras": {
                 "title_es": "Title (Spanish)",
@@ -1618,7 +2094,7 @@
     },
     "staff": {
         "title": "Our Team",
-        "subtitle": "Meet the people who make CrystalTides possible.",
+        "subtitle": "A team of 4 people united by passion, code, art, and controlled chaos: Killu's voice & community, Nero's euphoric infrastructure, Churly's clean aesthetic, and Japa's relentless testing.",
         "hiring_title": "We're hiring!",
         "hiring_action": "Apply here",
         "loading": "Loading team..."
@@ -1702,7 +2178,11 @@
         }
     },
     "gacha": {
-        "hero_title": "CRYSTALTIDES GACHA",
+        "hero_title": "Crystal Slot",
+        "hero_subtitle": "Spin the machine and get cosmetics, pets, and legendary items",
+        "probability_rates": "Obtain Probabilities",
+        "history_title": "Reward History",
+        "view_all": "View All",
         "tiers": {
             "bronze": "BRONZE",
             "silver": "SILVER",

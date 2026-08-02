@@ -11,11 +11,11 @@ const upload = multer({
     storage: multer.memoryStorage(),
     limits: { fileSize: 100 * 1024 * 1024 }, // 100 MB limit
     fileFilter: (req, file, cb) => {
-        // Only allow .jar files for mods (MIME type check)
+        // Only allow .jar files for mods (MIME type + extension check)
         const allowedMimeTypes = ['application/java-archive', 'application/x-java-archive', 'application/octet-stream'];
         const isJar = file.originalname.toLowerCase().endsWith('.jar');
         
-        if (allowedMimeTypes.includes(file.mimetype) || isJar) {
+        if (allowedMimeTypes.includes(file.mimetype) && isJar) {
             cb(null, true);
         } else {
             cb(new Error('Invalid file type. Only .jar files are allowed.'));

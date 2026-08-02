@@ -21,10 +21,10 @@ export default function SuggestionDeleteModal({ isOpen, onClose, onConfirm }: Su
                 <h3 style={{ marginBottom: '0.5rem', color: '#fff' }}>{t('admin.suggestions.delete_modal.title')}</h3>
                 <p style={{ marginBottom: '2rem', color: '#aaa', fontSize: '0.9rem', lineHeight: '1.5' }}>{t('admin.suggestions.delete_modal.desc')}</p>
                 <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-                    <button onClick={onClose} className="btn-secondary" style={{ flex: 1 }}>
+                    <button type="button" onClick={onClose} className="btn-secondary" style={{ flex: 1 }}>
                         {t('admin.suggestions.delete_modal.cancel')}
                     </button>
-                    <button onClick={onConfirm} className="btn-primary" style={{ background: '#ef4444', borderColor: '#ef4444', flex: 1 }}>
+                    <button type="button" onClick={onConfirm} className="btn-primary" style={{ background: '#ef4444', borderColor: '#ef4444', flex: 1 }}>
                         {t('admin.suggestions.delete_modal.confirm')}
                     </button>
                 </div>

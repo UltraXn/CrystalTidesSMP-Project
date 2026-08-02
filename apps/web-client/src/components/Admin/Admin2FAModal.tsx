@@ -4,6 +4,7 @@ import { Shield, Unlock, X } from 'lucide-react';
 import { useVerifyAdmin2FA } from '../../hooks/useAdminData';
 import { setAdminToken } from '../../services/adminAuth';
 import Loader from '../UI/Loader';
+import "../../styles/admin/admin2fa_modal.css";
 
 interface Admin2FAModalProps {
     isOpen: boolean;
@@ -60,7 +61,7 @@ export default function Admin2FAModal({ isOpen, onVerified, onClose }: Admin2FAM
                 flexDirection: 'column',
                 gap: '1.5rem'
             }}>
-                <button 
+                <button aria-label="Action" type="button" 
                     onClick={onClose}
                     style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', transition: 'color 0.2s' }}
                     className="hover:text-white"
@@ -87,8 +88,7 @@ export default function Admin2FAModal({ isOpen, onVerified, onClose }: Admin2FAM
 
                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                     <div style={{ position: 'relative' }}>
-                        <input
-                            autoFocus
+                        <input aria-label={t('admin.2fa.code_label', 'Código de autenticación 2FA')}
                             type="text"
                             maxLength={6}
                             value={code}
@@ -105,7 +105,7 @@ export default function Admin2FAModal({ isOpen, onVerified, onClose }: Admin2FAM
                                 letterSpacing: '8px', 
                                 outline: 'none',
                                 fontWeight: '700',
-                                transition: 'all 0.2s'
+                                transition: "color 0.2s, background-color 0.2s, border-color 0.2s, opacity 0.2s"
                             }}
                         />
                          {error && (
@@ -122,7 +122,7 @@ export default function Admin2FAModal({ isOpen, onVerified, onClose }: Admin2FAM
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                        <button
+                        <button 
                             type="submit"
                             disabled={loading || code.length !== 6}
                             className="btn-primary"
@@ -132,13 +132,13 @@ export default function Admin2FAModal({ isOpen, onVerified, onClose }: Admin2FAM
                                 background: '#ef4444', color: 'white', border: 'none', 
                                 cursor: (loading || code.length !== 6) ? 'not-allowed' : 'pointer',
                                 opacity: (loading || code.length !== 6) ? 0.5 : 1,
-                                transition: 'all 0.2s ease'
+                                transition: "color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease"
                             }}
                         >
-                            {loading ? <Loader minimal size={20} /> : <><Unlock /> {t('admin.2fa.verify', 'Verificar Acceso')}</>}
+                            {loading ? <Loader minimal /> : <><Unlock /> {t('admin.2fa.verify', 'Verificar Acceso')}</>}
                         </button>
                         
-                        <button
+                        <button 
                             type="button"
                             onClick={onClose}
                             style={{ 
@@ -155,14 +155,6 @@ export default function Admin2FAModal({ isOpen, onVerified, onClose }: Admin2FAM
                         </button>
                     </div>
                 </form>
-                <style>{`
-                    @keyframes shake {
-                        10%, 90% { transform: translate3d(-1px, 0, 0); }
-                        20%, 80% { transform: translate3d(2px, 0, 0); }
-                        30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
-                        40%, 60% { transform: translate3d(4px, 0, 0); }
-                    }
-                `}</style>
             </div>
         </div>
     );

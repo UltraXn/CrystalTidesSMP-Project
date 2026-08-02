@@ -17,6 +17,7 @@ export default function Map() {
                 <iframe
                     src={MAP_URL}
                     title="Live Server Map"
+                    sandbox="allow-scripts"
                     style={{
                         width: '100%',
                         height: '100%',

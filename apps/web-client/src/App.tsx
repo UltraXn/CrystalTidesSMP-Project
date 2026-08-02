@@ -1,5 +1,6 @@
 import { lazy } from "react"
 import { createBrowserRouter, RouterProvider } from "react-router-dom"
+import { MotionConfig, LazyMotion, domAnimation } from "framer-motion"
 import LazyWrapper from "./components/Utils/LazyWrapper"
 import { SidebarProvider } from "./context/SidebarContext"
 import RootLayout from "./components/Layout/RootLayout"
@@ -20,7 +21,7 @@ const PublicProfile = lazy(() => import("./pages/PublicProfile"))
 const Account = lazy(() => import("./pages/Account"))
 const Gacha = lazy(() => import("./pages/Gacha"))
 const AdminPanel = lazy(() => import("./pages/AdminPanel"))
-const Map = lazy(() => import("./pages/Map"))
+const MapPage = lazy(() => import("./pages/Map"))
 const Status = lazy(() => import("./pages/Status"))
 
 // Forum Lazy
@@ -34,6 +35,9 @@ const Support = lazy(() => import("./pages/Support"))
 const TicketDetail = lazy(() => import("./pages/TicketDetail"))
 const PolicyPage = lazy(() => import("./pages/PolicyPage"))
 const Wiki = lazy(() => import("./pages/Wiki"))
+const AboutRedesign = lazy(() => import("./pages/AboutRedesign"))
+
+
 const router = createBrowserRouter([
     {
         path: "/",
@@ -56,7 +60,7 @@ const router = createBrowserRouter([
             { path: "forum/:id", element: <LazyWrapper><ForumCategory /></LazyWrapper> },
             { path: "forum/thread/:id", element: <LazyWrapper><ForumThread /></LazyWrapper> },
             { path: "forum/thread/:type/:id", element: <LazyWrapper><ForumThread /></LazyWrapper> },
-            { path: "map", element: <LazyWrapper><Map /></LazyWrapper> },
+            { path: "map", element: <LazyWrapper><MapPage /></LazyWrapper> },
             { path: "status", element: <LazyWrapper><Status /></LazyWrapper> },
             
             { path: "support", element: <LazyWrapper><Support /></LazyWrapper> },
@@ -64,6 +68,7 @@ const router = createBrowserRouter([
             { path: "policies/:slug", element: <LazyWrapper><PolicyPage /></LazyWrapper> },
             { path: "wiki", element: <LazyWrapper><Wiki /></LazyWrapper> },
             { path: "wiki/:slug", element: <LazyWrapper><Wiki /></LazyWrapper> },
+            { path: "about-redesign", element: <LazyWrapper><AboutRedesign /></LazyWrapper> },
 
             { path: "verify", element: <LazyWrapper><Verify /></LazyWrapper> },
             { path: "maintenance", element: <LazyWrapper><Maintenance /></LazyWrapper> },
@@ -75,6 +80,7 @@ const router = createBrowserRouter([
             { path: "contests", element: <Home /> },
             { path: "stories", element: <Home /> },
 
+
             { path: "*", element: <LazyWrapper><NotFound /></LazyWrapper> }
         ]
     }
@@ -82,8 +88,12 @@ const router = createBrowserRouter([
 
 export default function App() {
   return (
-    <SidebarProvider>
-        <RouterProvider router={router} />
-    </SidebarProvider>
+    <LazyMotion features={domAnimation}>
+      <MotionConfig reducedMotion="never">
+        <SidebarProvider>
+            <RouterProvider router={router} />
+        </SidebarProvider>
+      </MotionConfig>
+    </LazyMotion>
   )
 }

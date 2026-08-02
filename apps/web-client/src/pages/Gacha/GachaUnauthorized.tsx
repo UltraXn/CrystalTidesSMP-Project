@@ -5,9 +5,10 @@ import { useNavigate } from 'react-router-dom';
 
 interface GachaUnauthorizedProps {
     userRole: string;
+    onMockLogin?: (role: 'user' | 'admin') => void;
 }
 
-export const GachaUnauthorized: React.FC<GachaUnauthorizedProps> = ({ userRole }) => {
+export const GachaUnauthorized: React.FC<GachaUnauthorizedProps> = ({ userRole, onMockLogin }) => {
     const { t } = useTranslation();
     const navigate = useNavigate();
 
@@ -45,10 +46,29 @@ export const GachaUnauthorized: React.FC<GachaUnauthorizedProps> = ({ userRole }
                      CURRENT STATUS: <span className="role-text">{userRole || 'Guest'}</span>
                 </div>
                 
-                <button className="unauthorized-btn-premium" onClick={() => navigate('/')}>
+                <button type="button" className="unauthorized-btn-premium" onClick={() => navigate('/')}>
                     <span className="btn-shine"></span>
                     {t('gacha.unauthorized.back')}
                 </button>
+
+                {onMockLogin && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && (
+                    <div className="dev-bypass-box">
+                        <div className="dev-bypass-divider">
+                            <span>ENTORNO DE DESARROLLO</span>
+                        </div>
+                        <p className="dev-bypass-tip">
+                            Simula un usuario en local para probar el diseño y la funcionalidad del slot machine:
+                        </p>
+                        <div className="dev-bypass-buttons">
+                            <button aria-label="Action" type="button" className="dev-bypass-btn user-btn" onClick={() => onMockLogin('user')}>
+                                Vista Usuario Estándar
+                            </button>
+                            <button aria-label="Action" type="button" className="dev-bypass-btn admin-btn" onClick={() => onMockLogin('admin')}>
+                                Vista Administrador (Dev Bar)
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

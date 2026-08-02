@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+import { m as motion } from 'framer-motion'
 import { Wrench } from 'lucide-react'
 import { Link } from 'react-router-dom' // For admin login link if needed
 

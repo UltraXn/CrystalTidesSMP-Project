@@ -3,9 +3,10 @@ import QRCode from 'qrcode';
 import jwt from 'jsonwebtoken';
 import supabase from '../config/supabaseClient.js';
 
-import crypto from 'crypto';
-
-const ADMIN_JWT_SECRET = process.env.ADMIN_JWT_SECRET || crypto.randomBytes(64).toString('hex');
+const ADMIN_JWT_SECRET = process.env.ADMIN_JWT_SECRET || (process.env.NODE_ENV === 'test' ? 'test-admin-jwt-secret' : undefined);
+if (!ADMIN_JWT_SECRET) {
+    throw new Error('ADMIN_JWT_SECRET environment variable is required');
+}
 
 export const generateSecret = (email: string) => {
     const secret = speakeasy.generateSecret({
@@ -66,7 +67,7 @@ export const signAdminToken = (userId: string, role: string) => {
     return jwt.sign(
         { sub: userId, role, verified: true },
         ADMIN_JWT_SECRET,
-        { expiresIn: '1h' }
+        { expiresIn: '15m' }
     );
 };
 
