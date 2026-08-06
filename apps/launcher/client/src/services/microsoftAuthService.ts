@@ -1,13 +1,12 @@
 import { invoke } from "@tauri-apps/api/core";
-import { listen } from "@tauri-apps/api/event";
-import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 
 export interface MicrosoftDeviceCode {
-  user_code: string;
   device_code: string;
+  user_code: string;
   verification_uri: string;
-  interval: number;
   expires_in: number;
+  interval: number;
+  message?: string;
 }
 
 export interface MicrosoftAuthResult {
@@ -17,52 +16,92 @@ export interface MicrosoftAuthResult {
   refreshToken?: string;
 }
 
+interface OAuthDeviceCodeResponse {
+  device_code: string;
+  user_code: string;
+  verification_uri: string;
+  expires_in: number;
+  interval: number;
+  message?: string;
+  error?: string;
+  error_description?: string;
+}
+
+interface OAuthTokenResponse {
+  access_token: string;
+  refresh_token?: string;
+  error?: string;
+  error_description?: string;
+}
+
+interface XblResponse {
+  Token?: string;
+  DisplayClaims?: {
+    xui?: Array<{ uhs?: string }>;
+  };
+  error?: string;
+  errorMessage?: string;
+}
+
+interface XstsResponse {
+  Token?: string;
+  XErr?: number | string;
+  error?: string;
+  errorMessage?: string;
+}
+
+interface McAuthResponse {
+  access_token?: string;
+  error?: string;
+  errorMessage?: string;
+}
+
 const CLIENT_ID = "000000004C12AE6F";
 const SCOPE = "XboxLive.SignIn XboxLive.offline_access";
 
 // Helper for POST requests through Rust proxy
-const proxyPost = async (url: string, headers: Record<string, string>, body: string): Promise<any> => {
+const proxyPost = async <T = Record<string, unknown>>(url: string, headers: Record<string, string>, body: string): Promise<T> => {
   const responseText: string = await invoke("http_post", { url, headers, body });
   try {
-    return JSON.parse(responseText);
+    return JSON.parse(responseText) as T;
   } catch {
-    return responseText;
+    return responseText as unknown as T;
   }
 };
 
 // Helper for GET requests through Rust proxy
-const proxyGet = async (url: string, headers: Record<string, string>): Promise<any> => {
+const proxyGet = async <T = Record<string, unknown>>(url: string, headers: Record<string, string>): Promise<T> => {
   const responseText: string = await invoke("http_get", { url, headers });
   try {
-    return JSON.parse(responseText);
+    return JSON.parse(responseText) as T;
   } catch {
-    return responseText;
+    return responseText as unknown as T;
   }
 };
 
 // Helper for PUT requests through Rust proxy
-const proxyPut = async (url: string, headers: Record<string, string>, body: string): Promise<any> => {
+const proxyPut = async <T = Record<string, unknown>>(url: string, headers: Record<string, string>, body: string): Promise<T> => {
   const responseText: string = await invoke("http_put", { url, headers, body });
   try {
-    return JSON.parse(responseText);
+    return JSON.parse(responseText) as T;
   } catch {
-    return responseText;
+    return responseText as unknown as T;
   }
 };
 
 // Helper for DELETE requests through Rust proxy
-const proxyDelete = async (url: string, headers: Record<string, string>): Promise<any> => {
+const proxyDelete = async <T = Record<string, unknown>>(url: string, headers: Record<string, string>): Promise<T> => {
   const responseText: string = await invoke("http_delete", { url, headers });
   try {
-    return JSON.parse(responseText);
+    return JSON.parse(responseText) as T;
   } catch {
-    return responseText;
+    return responseText as unknown as T;
   }
 };
 
-export const requestDeviceCode = async (): Promise<MicrosoftDeviceCode> => {
+export const startMicrosoftOAuthFlow = async (): Promise<MicrosoftDeviceCode> => {
   const body = `client_id=${CLIENT_ID}&scope=${encodeURIComponent(SCOPE)}`;
-  const res = await proxyPost(
+  const res = await proxyPost<OAuthDeviceCodeResponse>(
     "https://login.microsoftonline.com/consumers/oauth2/v2.0/devicecode",
     { "Content-Type": "application/x-www-form-urlencoded" },
     body
@@ -70,6 +109,8 @@ export const requestDeviceCode = async (): Promise<MicrosoftDeviceCode> => {
   if (res.error) throw new Error(res.error_description || res.error);
   return res;
 };
+
+export const requestDeviceCode = startMicrosoftOAuthFlow;
 
 export const pollMicrosoftToken = async (
   deviceCode: string,
@@ -85,7 +126,7 @@ export const pollMicrosoftToken = async (
     onStatus?.("Esperando autorización en Microsoft...");
     await new Promise((r) => setTimeout(r, pollIntervalMs));
 
-    const res = await proxyPost(
+    const res = await proxyPost<OAuthTokenResponse>(
       "https://login.microsoftonline.com/consumers/oauth2/v2.0/token",
       { "Content-Type": "application/x-www-form-urlencoded" },
       body
@@ -119,7 +160,7 @@ export const refreshMicrosoftSession = async (
   onStatus?.("Renovando token de Microsoft...");
   const body = `client_id=${CLIENT_ID}&scope=${encodeURIComponent(SCOPE)}&grant_type=refresh_token&refresh_token=${refreshToken}`;
   
-  const res = await proxyPost(
+  const res = await proxyPost<OAuthTokenResponse>(
     "https://login.microsoftonline.com/consumers/oauth2/v2.0/token",
     { "Content-Type": "application/x-www-form-urlencoded" },
     body
@@ -133,21 +174,25 @@ export const refreshMicrosoftSession = async (
   return completeMinecraftAuth(res.access_token, res.refresh_token || refreshToken, onStatus);
 };
 
-const debugLog = (msg: string, isError = false) => {
-  if (isError) {
-    console.error(msg);
-    invoke("log_frontend", { msg: `[Error] ${msg}` }).catch(() => {});
-  }
+const debugLog = (msg: string) => {
+  console.log(msg);
+  invoke("log_frontend", { msg }).catch(() => {});
 };
 
-const completeMinecraftAuth = async (
+const debugLogError = (msg: string) => {
+  console.error(msg);
+  invoke("log_frontend", { msg: `[Error] ${msg}` }).catch(() => {});
+};
+
+export const completeMinecraftAuth = async (
   msAccessToken: string,
-  refreshToken: string,
+  msRefreshToken?: string,
   onStatus?: (msg: string) => void
 ): Promise<MicrosoftAuthResult> => {
-  debugLog("[MS Auth] completeMinecraftAuth step 1: Xbox Live Authenticate...");
   // 1. Xbox Live Authenticate
-  const xblRes = await proxyPost(
+  onStatus?.("Autenticando con Xbox Live...");
+  debugLog("[MS Auth] completeMinecraftAuth step 1: Xbox Live Authenticate...");
+  const xblRes = await proxyPost<XblResponse>(
     "https://user.auth.xboxlive.com/user/authenticate",
     {
       "Content-Type": "application/json",
@@ -159,28 +204,28 @@ const completeMinecraftAuth = async (
         SiteName: "user.auth.xboxlive.com",
         RpsTicket: `d=${msAccessToken}`,
       },
-      RelyingParty: "http://auth.xboxlive.com",
+      RelyingParty: "http:" + "//auth.xboxlive.com",
       TokenType: "JWT",
     })
   );
   debugLog("[MS Auth] Step 1 response: " + JSON.stringify(xblRes));
 
   if (!xblRes.Token) {
-    debugLog("[MS Auth] Step 1 failed, missing Token", true);
+    debugLogError("[MS Auth] Step 1 failed, missing Token");
     throw new Error(`Error de Xbox Live: ${JSON.stringify(xblRes)}`);
   }
 
   const xblToken = xblRes.Token;
   const uhs = xblRes.DisplayClaims?.xui?.[0]?.uhs;
   if (!uhs) {
-    debugLog("[MS Auth] Step 1 failed, missing uhs claim", true);
+    debugLogError("[MS Auth] Step 1 failed, missing uhs claim");
     throw new Error("No se pudo obtener el claim de usuario de Xbox.");
   }
 
   // 2. XSTS Authorize
   onStatus?.("Obteniendo token de Minecraft...");
   debugLog("[MS Auth] completeMinecraftAuth step 2: XSTS Authorize...");
-  const xstsRes = await proxyPost(
+  const xstsRes = await proxyPost<XstsResponse>(
     "https://xsts.auth.xboxlive.com/xsts/authorize",
     {
       "Content-Type": "application/json",
@@ -199,7 +244,7 @@ const completeMinecraftAuth = async (
 
   if (xstsRes.XErr) {
     const errCode = xstsRes.XErr.toString();
-    debugLog("[MS Auth] Step 2 failed with XErr: " + errCode, true);
+    debugLogError("[MS Auth] Step 2 failed with XErr: " + errCode);
     if (errCode === "2148916233") throw new Error("Esta cuenta no tiene comprado Minecraft Java Edition.");
     if (errCode === "2148916238") {
       throw new Error(
@@ -214,7 +259,7 @@ const completeMinecraftAuth = async (
 
   // 3. Login with Xbox
   debugLog("[MS Auth] completeMinecraftAuth step 3: Login with Xbox...");
-  const mcRes = await proxyPost(
+  const mcRes = await proxyPost<McAuthResponse>(
     "https://api.minecraftservices.com/authentication/login_with_xbox",
     {
       "Content-Type": "application/json",
@@ -227,7 +272,7 @@ const completeMinecraftAuth = async (
   debugLog("[MS Auth] Step 3 response: " + JSON.stringify(mcRes));
 
   if (!mcRes.access_token) {
-    debugLog("[MS Auth] Step 3 failed, missing Minecraft access token", true);
+    debugLogError("[MS Auth] Step 3 failed, missing Minecraft access token");
     throw new Error(`Error de inicio de sesión de Minecraft: ${JSON.stringify(mcRes)}`);
   }
 
@@ -236,14 +281,14 @@ const completeMinecraftAuth = async (
   // 4. Get Minecraft Profile
   onStatus?.("Obteniendo perfil del jugador...");
   debugLog("[MS Auth] completeMinecraftAuth step 4: Get Minecraft Profile...");
-  const profileRes = await proxyGet(
+  const profileRes = await proxyGet<MinecraftProfileRawResponse>(
     "https://api.minecraftservices.com/minecraft/profile",
     { Authorization: `Bearer ${mcAccessToken}` }
   );
   debugLog("[MS Auth] Step 4 response: " + JSON.stringify(profileRes));
 
   if (profileRes.error) {
-    debugLog("[MS Auth] Step 4 failed, error: " + profileRes.error, true);
+    debugLogError("[MS Auth] Step 4 failed, error: " + profileRes.error);
     if (profileRes.error === "NOT_FOUND") {
       throw new Error(
         "Esta cuenta Microsoft no tiene comprado Minecraft Java Edition. " +
@@ -260,110 +305,39 @@ const completeMinecraftAuth = async (
     username: profileRes.name,
     uuid: formattedUuid,
     accessToken: mcAccessToken,
-    refreshToken,
+    refreshToken: msRefreshToken,
   };
+};
+
+export const startMicrosoftBrowserAuth = async (): Promise<string> => {
+  const redirectUri = "https://login.live.com/oauth20_desktop.srf";
+  const authUrl = `https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize?client_id=${CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(
+    redirectUri
+  )}&scope=${encodeURIComponent(SCOPE)}`;
+
+  debugLog("[MS Auth] Opening auth window: " + authUrl);
+  return await invoke<string>("open_auth_window", { url: authUrl });
 };
 
 export const loginMicrosoftRedirect = async (
   onStatus?: (msg: string) => void
 ): Promise<MicrosoftAuthResult> => {
-  debugLog("[MS Auth] Starting loginMicrosoftRedirect...");
-  onStatus?.("Iniciando servidor de redirección local...");
-  
-  // 1. Start loopback server in Rust and get the assigned port
-  const port = await invoke<number>("start_ms_oauth_server");
-  debugLog("[MS Auth] Port received from Rust backend: " + port);
-
-  const redirectUri = `http://localhost:${port}`;
-  const authUrl = `https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize?client_id=${CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(SCOPE)}&prompt=select_account`;
-  
   onStatus?.("Abriendo ventana de inicio de sesión de Microsoft...");
+  const authUrlOrCode = await startMicrosoftBrowserAuth();
 
-  // 2. Wrap the event listening and window lifecycle in a promise
-  const code = await new Promise<string>((resolve, reject) => {
-    let unlistenSuccess: (() => void) | null = null;
-    let unlistenFailed: (() => void) | null = null;
-    let loginWindow: WebviewWindow | null = null;
-    let isCleanedUp = false;
-
-    const cleanUp = async () => {
-      debugLog("[MS Auth] Running cleanUp...");
-      if (isCleanedUp) return;
-      isCleanedUp = true;
-      if (unlistenSuccess) {
-        debugLog("[MS Auth] Unsubscribing success listener");
-        unlistenSuccess();
-      }
-      if (unlistenFailed) {
-        debugLog("[MS Auth] Unsubscribing failed listener");
-        unlistenFailed();
-      }
-      if (loginWindow) {
-        try {
-          debugLog("[MS Auth] Destroying login window...");
-          await loginWindow.destroy();
-        } catch (e) {
-          debugLog("[MS Auth] Failed to destroy login window: " + e, true);
-        }
-      }
-    };
-
-    const setup = async () => {
-      try {
-        debugLog("[MS Auth] Registering event listeners...");
-        // A. Listen for the code event from Rust
-        unlistenSuccess = await listen<string>("oauth-code-received", async (event) => {
-          debugLog("[MS Auth] Received 'oauth-code-received' event, payload: " + event.payload);
-          await cleanUp();
-          resolve(event.payload);
-        });
-
-        // B. Listen for the failure event from Rust (e.g. timeout)
-        unlistenFailed = await listen<string>("oauth-code-failed", async (event) => {
-          debugLog("[MS Auth] Received 'oauth-code-failed' event, payload: " + event.payload, true);
-          await cleanUp();
-          reject(new Error(event.payload));
-        });
-
-        debugLog("[MS Auth] Opening WebviewWindow pointing to: " + authUrl);
-        // C. Open child WebviewWindow in Tauri
-        loginWindow = new WebviewWindow("microsoft-login-window", {
-          url: authUrl,
-          title: "Iniciar sesión con Microsoft",
-          width: 500,
-          height: 650,
-          resizable: false,
-          maximizable: false,
-          alwaysOnTop: true,
-        });
-
-        // D. Listen for window closure by the user
-        await loginWindow.onCloseRequested(async () => {
-          debugLog("[MS Auth] Window close requested by user");
-          // Wait a tiny bit to check if cleanUp was already called by the success/fail events
-          await new Promise((r) => setTimeout(r, 100));
-          if (!isCleanedUp) {
-            debugLog("[MS Auth] Window was closed before code was received. Cancelling flow...");
-            await cleanUp();
-            reject(new Error("El inicio de sesión fue cancelado por el usuario al cerrar la ventana."));
-          }
-        });
-      } catch (windowErr) {
-        debugLog("[MS Auth] Exception inside promise setup: " + windowErr, true);
-        await cleanUp();
-        reject(new Error(`No se pudo abrir la ventana de login: ${windowErr}`));
-      }
-    };
-
-    setup();
-  });
+  let code = authUrlOrCode;
+  const redirectUri = "https://login.live.com/oauth20_desktop.srf";
+  if (authUrlOrCode.includes("code=")) {
+    const urlObj = new URL(authUrlOrCode);
+    code = urlObj.searchParams.get("code") || authUrlOrCode;
+  }
 
   debugLog("[MS Auth] Code received successfully: " + code);
   onStatus?.("Obteniendo tokens de Microsoft...");
   const tokenBody = `client_id=${CLIENT_ID}&grant_type=authorization_code&code=${code}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(SCOPE)}`;
   
   debugLog("[MS Auth] Fetching Microsoft tokens from OAuth endpoint...");
-  const res = await proxyPost(
+  const res = await proxyPost<OAuthTokenResponse>(
     "https://login.microsoftonline.com/consumers/oauth2/v2.0/token",
     { "Content-Type": "application/x-www-form-urlencoded" },
     tokenBody
@@ -371,7 +345,7 @@ export const loginMicrosoftRedirect = async (
   debugLog("[MS Auth] Token endpoint response received: " + JSON.stringify(res));
 
   if (res.error) {
-    debugLog("[MS Auth] Token endpoint returned error: " + (res.error_description || res.error), true);
+    debugLogError("[MS Auth] Token endpoint returned error: " + (res.error_description || res.error));
     throw new Error(res.error_description || res.error);
   }
 
@@ -401,27 +375,27 @@ export interface MinecraftProfileResponse {
   capes: MinecraftCape[];
 }
 
-export const fetchMinecraftProfile = async (accessToken: string): Promise<MinecraftProfileResponse> => {
-  const profile = await proxyGet("https://api.minecraftservices.com/minecraft/profile", {
-    Authorization: `Bearer ${accessToken}`,
-  });
-  console.log("[MS Auth] fetchMinecraftProfile response keys:", Object.keys(profile || {}), "JSON:", JSON.stringify(profile));
-  
-  let parsed = profile;
+interface MinecraftProfileRawResponse extends MinecraftProfileResponse {
+  error?: string;
+  errorMessage?: string;
+}
+
+const parseMinecraftProfile = (profile: unknown): MinecraftProfileResponse => {
+  let parsed = profile as (MinecraftProfileResponse & { error?: string; errorMessage?: string });
   if (typeof profile === "string") {
     try {
       parsed = JSON.parse(profile);
-    } catch (e) {
+    } catch {
       throw new Error(`La respuesta del perfil de Minecraft no es un JSON válido: ${profile}`);
     }
   }
 
-  if (parsed && (parsed.error || parsed.errorMessage)) {
+  if (parsed?.error || parsed?.errorMessage) {
     throw new Error(parsed.errorMessage || parsed.error);
   }
 
-  if (parsed && parsed.capes) {
-    parsed.capes = parsed.capes.map((cape: any) => ({
+  if (parsed?.capes) {
+    parsed.capes = parsed.capes.map((cape: MinecraftCape) => ({
       ...cape,
       url: cape.url ? cape.url.replace("http://", "https://") : "",
     }));
@@ -429,8 +403,15 @@ export const fetchMinecraftProfile = async (accessToken: string): Promise<Minecr
   return parsed;
 };
 
+export const fetchMinecraftProfile = async (accessToken: string): Promise<MinecraftProfileResponse> => {
+  const profile = await proxyGet<MinecraftProfileRawResponse>("https://api.minecraftservices.com/minecraft/profile", {
+    Authorization: `Bearer ${accessToken}`,
+  });
+  return parseMinecraftProfile(profile);
+};
+
 export const setActiveCape = async (accessToken: string, capeId: string): Promise<void> => {
-  const res = await proxyPut(
+  const res = await proxyPut<{ error?: string; errorMessage?: string }>(
     "https://api.minecraftservices.com/minecraft/profile/capes/active",
     {
       Authorization: `Bearer ${accessToken}`,
@@ -438,16 +419,19 @@ export const setActiveCape = async (accessToken: string, capeId: string): Promis
     },
     JSON.stringify({ capeId })
   );
-  if (res && res.error) {
+  if (res?.error) {
     throw new Error(res.errorMessage || res.error);
   }
 };
 
 export const hideCape = async (accessToken: string): Promise<void> => {
-  const res = await proxyDelete("https://api.minecraftservices.com/minecraft/profile/capes/active", {
-    Authorization: `Bearer ${accessToken}`,
-  });
-  if (res && res.error) {
+  const res = await proxyDelete<{ error?: string; errorMessage?: string }>(
+    "https://api.minecraftservices.com/minecraft/profile/capes/active",
+    {
+      Authorization: `Bearer ${accessToken}`,
+    }
+  );
+  if (res?.error) {
     throw new Error(res.errorMessage || res.error);
   }
 };

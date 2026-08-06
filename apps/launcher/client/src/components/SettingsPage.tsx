@@ -25,7 +25,7 @@ export const SettingsPage: React.FC = () => {
   const [isLinking, setIsLinking] = useState(false);
   const [linkError, setLinkError] = useState<string | null>(null);
 
-  const handleLinkCrystal = async (e?: React.FormEvent) => {
+  const handleLinkCrystal = async (e?: React.SyntheticEvent) => {
     if (e) e.preventDefault();
     const cleanEmail = crystalEmail.trim();
     const cleanPassword = crystalPassword.trim();
@@ -39,9 +39,9 @@ export const SettingsPage: React.FC = () => {
       await loginCrystal(cleanEmail, cleanPassword);
       setCrystalEmail("");
       setCrystalPassword("");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Crystal login error:", err);
-      setLinkError(err.message || "Credenciales incorrectas o error al conectar.");
+      setLinkError(err instanceof Error ? err.message : "Credenciales incorrectas o error al conectar.");
     } finally {
       setIsLinking(false);
     }
@@ -106,7 +106,7 @@ export const SettingsPage: React.FC = () => {
           <div style={sectionStyle}>
             <h4 style={{ margin: 0, fontSize: 15, fontWeight: "bold", color: "#FFFFFF", display: "flex", alignItems: "center", gap: 8 }}>
               <img src="/logo.png" style={{ width: 18, height: 18, objectFit: "contain", imageRendering: "pixelated" }} alt="Logo" />
-              Cuenta de CrystalTides
+              <span>Cuenta de CrystalTides</span>
             </h4>
             
             {crystalSession ? (
@@ -136,6 +136,7 @@ export const SettingsPage: React.FC = () => {
                   </div>
                 </div>
                 <button
+                  type="button"
                   onClick={logoutCrystal}
                   style={{
                     background: "rgba(239, 68, 68, 0.1)",
@@ -183,8 +184,9 @@ export const SettingsPage: React.FC = () => {
                   )}
                   <div style={{ display: "flex", gap: 12 }}>
                     <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 4 }}>
-                      <label style={labelStyle}>Correo de la Web</label>
+                      <label htmlFor="crystal-email" style={labelStyle}>Correo de la Web</label>
                       <input
+                        id="crystal-email"
                         type="text"
                         placeholder="tu_correo@ejemplo.com"
                         value={crystalEmail}
@@ -195,8 +197,9 @@ export const SettingsPage: React.FC = () => {
                       />
                     </div>
                     <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 4 }}>
-                      <label style={labelStyle}>Contraseña</label>
+                      <label htmlFor="crystal-password" style={labelStyle}>Contraseña</label>
                       <input
+                        id="crystal-password"
                         type="password"
                         placeholder="••••••••"
                         value={crystalPassword}
@@ -360,8 +363,9 @@ export const SettingsPage: React.FC = () => {
             <h4 style={{ margin: 0, fontSize: 15, fontWeight: "bold", color: "#FFFFFF" }}>🖥️ Resolución</h4>
             <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
               <div style={{ flex: 1 }}>
-                <label style={labelStyle}>Ancho</label>
+                <label htmlFor="resolution-width" style={labelStyle}>Ancho</label>
                 <input
+                  id="resolution-width"
                   type="number"
                   value={width}
                   onChange={(e) => setWidth(Number(e.target.value))}
@@ -371,8 +375,9 @@ export const SettingsPage: React.FC = () => {
               </div>
               <span style={{ color: "rgba(255,255,255,0.3)", marginTop: 20 }}>×</span>
               <div style={{ flex: 1 }}>
-                <label style={labelStyle}>Alto</label>
+                <label htmlFor="resolution-height" style={labelStyle}>Alto</label>
                 <input
+                  id="resolution-height"
                   type="number"
                   value={height}
                   onChange={(e) => setHeight(Number(e.target.value))}
@@ -415,8 +420,9 @@ export const SettingsPage: React.FC = () => {
             {autoConnect && (
               <div style={{ display: "flex", gap: 12 }}>
                 <div style={{ flex: 3 }}>
-                  <label style={labelStyle}>Host</label>
+                  <label htmlFor="srv-host" style={labelStyle}>Host</label>
                   <input
+                    id="srv-host"
                     type="text"
                     value={serverHost}
                     onChange={(e) => setServerHost(e.target.value)}
@@ -424,8 +430,9 @@ export const SettingsPage: React.FC = () => {
                   />
                 </div>
                 <div style={{ flex: 1 }}>
-                  <label style={labelStyle}>Puerto</label>
+                  <label htmlFor="srv-port" style={labelStyle}>Puerto</label>
                   <input
+                    id="srv-port"
                     type="number"
                     value={serverPort}
                     onChange={(e) => setServerPort(Number(e.target.value))}
@@ -443,8 +450,9 @@ export const SettingsPage: React.FC = () => {
             <h4 style={{ margin: 0, fontSize: 15, fontWeight: "bold", color: "#FFFFFF" }}>🎮 Versión del Juego</h4>
             <div style={{ display: "flex", gap: 12 }}>
               <div style={{ flex: 1 }}>
-                <label style={labelStyle}>Minecraft</label>
+                <label htmlFor="opt-mcversion" style={labelStyle}>Minecraft</label>
                 <select
+                  id="opt-mcversion"
                   value={settings.mcVersion}
                   onChange={(e) => setSettings({ ...settings, mcVersion: e.target.value })}
                   style={{ marginTop: 4 }}
@@ -455,8 +463,9 @@ export const SettingsPage: React.FC = () => {
                 </select>
               </div>
               <div style={{ flex: 1 }}>
-                <label style={labelStyle}>Mod Loader</label>
+                <label htmlFor="opt-loaderType" style={labelStyle}>Mod Loader</label>
                 <select
+                  id="opt-loaderType"
                   value={settings.loaderType}
                   onChange={(e) => setSettings({ ...settings, loaderType: e.target.value })}
                   style={{ marginTop: 4 }}

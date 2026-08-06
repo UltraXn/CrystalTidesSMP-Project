@@ -32,25 +32,29 @@ export const UninstallerModePage: React.FC = () => {
 
       try {
         await invoke("perform_uninstallation", { path: installPath });
-      } catch {
-        // Fallback registry & shortcut cleanup
+      } catch (err) {
+        console.warn("Error en limpieza de registro:", err);
       }
 
       await new Promise((r) => setTimeout(r, 1000));
 
       try {
         await invoke("schedule_self_deletion", { path: installPath });
-      } catch {}
+      } catch (err) {
+        console.warn("Error programando auto-eliminación:", err);
+      }
 
       setStep("done");
       setTimeout(async () => {
         try {
           const win = getCurrentWindow();
           await win.close();
-        } catch {}
+        } catch (err) {
+          console.warn("Error cerrando ventana:", err);
+        }
       }, 2500);
-    } catch (err: any) {
-      setErrorMessage(err.message || String(err));
+    } catch (err: unknown) {
+      setErrorMessage(err instanceof Error ? err.message : String(err));
       setStep("error");
     }
   };
@@ -59,7 +63,9 @@ export const UninstallerModePage: React.FC = () => {
     try {
       const win = getCurrentWindow();
       await win.close();
-    } catch {}
+    } catch (err) {
+      console.warn("Error cerrando ventana:", err);
+    }
   };
 
   return (
@@ -162,6 +168,7 @@ export const UninstallerModePage: React.FC = () => {
 
               <div style={{ display: "flex", gap: 12, width: "100%", marginTop: 4 }}>
                 <button
+                  type="button"
                   onClick={handleClose}
                   style={{
                     flex: 1,
@@ -178,6 +185,7 @@ export const UninstallerModePage: React.FC = () => {
                   CANCELAR
                 </button>
                 <button
+                  type="button"
                   onClick={handleRunUninstall}
                   style={{
                     flex: 1,
@@ -224,6 +232,7 @@ export const UninstallerModePage: React.FC = () => {
 
           {(step === "done" || step === "error") && (
             <button
+              type="button"
               onClick={handleClose}
               style={{
                 width: "100%",

@@ -16,176 +16,222 @@ export interface LaunchParams {
   javaPath?: string;
 }
 
+interface VersionLibraryRule {
+  action: string;
+  os?: { name?: string };
+}
+
+interface VersionLibrary {
+  rules?: VersionLibraryRule[];
+  downloads?: { artifact?: { path?: string } };
+  name?: string;
+}
+
+interface VersionManifest {
+  mainClass?: string;
+  libraries?: VersionLibrary[];
+  minecraftArguments?: string;
+  arguments?: { game?: unknown[] };
+}
+
+const isLibraryAllowed = (lib: VersionLibrary): boolean => {
+  if (!lib.rules) return true;
+  return !lib.rules.some((rule) => rule.action === "allow" && rule.os?.name === "osx");
+};
+
+const resolveLibraryPath = (lib: VersionLibrary): string | null => {
+  if (lib.downloads?.artifact?.path) {
+    return lib.downloads.artifact.path;
+  }
+  if (!lib.name) return null;
+
+  const parts = lib.name.split(":");
+  if (parts.length < 3) return null;
+
+  const group = parts[0].replace(/\./g, "/");
+  const artifact = parts[1];
+  const version = parts[2];
+  return `${group}/${artifact}/${version}/${artifact}-${version}.jar`;
+};
+
+const buildClasspath = (
+  gameDirectory: string,
+  versionId: string,
+  versionData: VersionManifest
+): string => {
+  const classpathList: string[] = [`${gameDirectory}/versions/${versionId}/${versionId}.jar`];
+
+  const libraries = versionData.libraries;
+  if (!Array.isArray(libraries)) {
+    return classpathList.map((p) => p.replace(/\//g, "\\")).join(";");
+  }
+
+  for (const lib of libraries) {
+    if (!isLibraryAllowed(lib)) continue;
+    const relPath = resolveLibraryPath(lib);
+    if (relPath) {
+      classpathList.push(`${gameDirectory}/libraries/${relPath}`);
+    }
+  }
+
+  return classpathList.map((p) => p.replace(/\//g, "\\")).join(";");
+};
+
+const buildJvmArgs = (
+  params: LaunchParams,
+  gameDirectory: string,
+  versionId: string,
+  mainClass: string,
+  cpString: string
+): string[] => {
+  const args: string[] = [`-Xmx${params.maxRam}M`, `-Xms${params.minRam}M`];
+
+  if (params.javaArgs && params.javaArgs.trim().length > 0) {
+    args.push(...params.javaArgs.trim().split(/\s+/));
+  } else if (params.useOptimization) {
+    args.push(
+      "-XX:+UnlockExperimentalVMOptions",
+      "-XX:+UseG1GC",
+      "-XX:G1NewSizePercent=20",
+      "-XX:G1ReservePercent=20",
+      "-XX:MaxGCPauseMillis=50",
+      "-XX:G1HeapRegionSize=32M",
+      "-Djava.net.preferIPv4Stack=true"
+    );
+  } else {
+    args.push("-XX:+UseG1GC");
+  }
+
+  const nativesPath = `${gameDirectory}/versions/${versionId}/natives`.replace(/\//g, "\\");
+  args.push(`-Djava.library.path=${nativesPath}`, "-cp", cpString, mainClass);
+
+  return args;
+};
+
+const buildGameArgs = (
+  versionData: VersionManifest,
+  params: LaunchParams,
+  versionId: string,
+  gameDirectory: string
+): string[] => {
+  const rawGameArgs: string[] = versionData.minecraftArguments
+    ? versionData.minecraftArguments.split(" ")
+    : ((versionData.arguments?.game || []).filter((arg): arg is string => typeof arg === "string"));
+
+  const placeholders: Record<string, string> = {
+    auth_player_name: params.username,
+    version_name: versionId,
+    game_directory: gameDirectory,
+    assets_root: `${gameDirectory}/assets`,
+    assets_index_name: params.mcVersion,
+    auth_uuid: params.uuid,
+    auth_access_token: params.accessToken,
+    user_type: "legacy",
+    version_type: "release",
+    clientid: params.uuid,
+    auth_xuid: params.uuid,
+  };
+
+  return rawGameArgs.map((rawArg) => {
+    let arg = rawArg;
+    for (const [key, val] of Object.entries(placeholders)) {
+      const pattern = "${" + key + "}";
+      arg = arg.split(pattern).join(val);
+    }
+    return arg;
+  });
+};
+
+const resolveVersionId = (params: LaunchParams): string => {
+  if (params.loaderType && params.loaderVersion) {
+    if (params.loaderType === "neoforge") {
+      return `neoforge-${params.loaderVersion}`;
+    }
+    if (params.loaderType === "fabric") {
+      return `fabric-loader-${params.loaderVersion}-${params.mcVersion}`;
+    }
+  }
+  return params.mcVersion;
+};
+
+const readVersionManifest = async (
+  gameDirectory: string,
+  versionId: string,
+  mcVersion: string
+): Promise<VersionManifest> => {
+  const versionJsonPath = `${gameDirectory}/versions/${versionId}/${versionId}.json`;
+  try {
+    const versionJsonContent = await invoke<string>("read_text_file", { path: versionJsonPath });
+    return JSON.parse(versionJsonContent);
+  } catch {
+    if (versionId !== mcVersion) {
+      const vanillaJsonPath = `${gameDirectory}/versions/${mcVersion}/${mcVersion}.json`;
+      const vanillaContent = await invoke<string>("read_text_file", { path: vanillaJsonPath });
+      return JSON.parse(vanillaContent);
+    }
+    throw new Error(`No se encontró el manifiesto de versión en: ${versionJsonPath}`);
+  }
+};
+
 export const launchGame = async (
   params: LaunchParams,
   onProgress?: (status: string, progress: number) => void
-): Promise<void> => {
+): Promise<number> => {
   try {
     onProgress?.("Resolviendo directorios del juego...", 0.05);
 
-    const homeDir: string | null = await invoke("get_home_dir");
+    const homeDir = await invoke<string | null>("get_home_dir");
     if (!homeDir) throw new Error("No se pudo obtener el directorio del usuario.");
 
     const normalizedHome = homeDir.replace(/\\/g, "/");
-    
-    // Use the mods path as default if not specified (~/.crystaltides)
     const gameDirectory = params.gameDir || `${normalizedHome}/.crystaltides`;
-    
-    // 1. Resolve required Java major version and ensure it exists
+
     onProgress?.("Comprobando entorno de Java...", 0.1);
     const requiredJavaVersion = getJavaVersionForMinecraft(params.mcVersion);
     const runtimesDir = `${normalizedHome}/.crystaltides/runtimes`;
-    // Use custom javaPath if specified, otherwise ensure/install adoptium java
-    const javaPath = params.javaPath || await ensureJava(requiredJavaVersion, runtimesDir);
+    const javaPath = params.javaPath || (await ensureJava(requiredJavaVersion, runtimesDir));
 
-    // 2. Read version JSON to get classpath and main class
     onProgress?.("Cargando perfil de Minecraft...", 0.2);
-    
-    // Resolve version ID (Vanilla vs Modded)
-    let versionId = params.mcVersion;
-    if (params.loaderType && params.loaderVersion) {
-      if (params.loaderType === "neoforge") {
-        versionId = `neoforge-${params.loaderVersion}`;
-      } else if (params.loaderType === "fabric") {
-        versionId = `fabric-loader-${params.loaderVersion}-${params.mcVersion}`;
-      }
-    }
-
-    const versionJsonPath = `${gameDirectory}/versions/${versionId}/${versionId}.json`;
-    let versionJsonContent: string;
-    try {
-      versionJsonContent = await invoke("read_text_file", { path: versionJsonPath });
-    } catch {
-      // If modded json is missing, check vanilla
-      if (versionId !== params.mcVersion) {
-        versionId = params.mcVersion;
-        const vanillaJsonPath = `${gameDirectory}/versions/${versionId}/${versionId}.json`;
-        versionJsonContent = await invoke("read_text_file", { path: vanillaJsonPath });
-      } else {
-        throw new Error(`No se encontró el manifiesto de versión en: ${versionJsonPath}`);
-      }
-    }
-
-    const versionData = JSON.parse(versionJsonContent);
+    const versionId = resolveVersionId(params);
+    const versionData = await readVersionManifest(gameDirectory, versionId, params.mcVersion);
     const mainClass = versionData.mainClass || "net.minecraft.client.main.Main";
 
-    // 3. Assemble classpath
     onProgress?.("Construyendo argumentos de ejecución...", 0.5);
-    const classpathList: string[] = [];
+    const cpString = buildClasspath(gameDirectory, versionId, versionData);
+    const jvmArgs = buildJvmArgs(params, gameDirectory, versionId, mainClass, cpString);
+    const gameArgs = buildGameArgs(versionData, params, versionId, gameDirectory);
+    const fullArgs = [...jvmArgs, ...gameArgs];
 
-    // Add version jar
-    classpathList.push(`${gameDirectory}/versions/${versionId}/${versionId}.jar`);
-
-    // Parse libraries from JSON
-    if (versionData.libraries && Array.isArray(versionData.libraries)) {
-      for (const lib of versionData.libraries) {
-        // Simple rules check
-        if (lib.rules) {
-          let allow = true;
-          for (const rule of lib.rules) {
-            if (rule.action === "allow" && rule.os?.name === "osx") allow = false; // Skip mac specific libraries on Windows
-          }
-          if (!allow) continue;
-        }
-
-        if (lib.downloads?.artifact?.path) {
-          classpathList.push(`${gameDirectory}/libraries/${lib.downloads.artifact.path}`);
-        } else if (lib.name) {
-          const parts = lib.name.split(":");
-          if (parts.length >= 3) {
-            const group = parts[0].replace(/\./g, "/");
-            const artifact = parts[1];
-            const version = parts[2];
-            const mavenPath = `${group}/${artifact}/${version}/${artifact}-${version}.jar`;
-            classpathList.push(`${gameDirectory}/libraries/${mavenPath}`);
-          }
-        }
-      }
-    }
-
-    // Join classpath
-    const cpSeparator = ";"; // Windows
-    const cpString = classpathList.map((p) => p.replace(/\//g, "\\")).join(cpSeparator);
-
-    // 4. Build Java Arguments
-    const args: string[] = [];
-
-    // JVM Args (RAM & GC)
-    args.push(`-Xmx${params.maxRam}M`);
-    args.push(`-Xms${params.minRam}M`);
-
-    if (params.javaArgs && params.javaArgs.trim().length > 0) {
-      const customArgs = params.javaArgs.trim().split(/\s+/);
-      args.push(...customArgs);
-    } else {
-      if (params.useOptimization) {
-        args.push("-XX:+UnlockExperimentalVMOptions");
-        args.push("-XX:+UseG1GC");
-        args.push("-XX:G1NewSizePercent=20");
-        args.push("-XX:G1ReservePercent=20");
-        args.push("-XX:MaxGCPauseMillis=50");
-        args.push("-XX:G1HeapRegionSize=32M");
-        args.push("-Djava.net.preferIPv4Stack=true");
-      } else {
-        args.push("-XX:+UseG1GC");
-      }
-    }
-
-    // Natives path override
-    const nativesPath = `${gameDirectory}/versions/${versionId}/natives`.replace(/\//g, "\\");
-    args.push(`-Djava.library.path=${nativesPath}`);
-
-    // Classpath definition
-    args.push("-cp");
-    args.push(cpString);
-
-    // Main class
-    args.push(mainClass);
-
-    // Minecraft Game Arguments (Replace Placeholders)
-    const gameArgs: string[] = [];
-    const rawGameArgs = versionData.minecraftArguments
-      ? versionData.minecraftArguments.split(" ")
-      : (versionData.arguments?.game || []).filter((arg: any) => typeof arg === "string");
-
-    // Push standard Minecraft arguments with substitutions
-    const placeholders: Record<string, string> = {
-      auth_player_name: params.username,
-      version_name: versionId,
-      game_directory: gameDirectory,
-      assets_root: `${gameDirectory}/assets`,
-      assets_index_name: params.mcVersion,
-      auth_uuid: params.uuid,
-      auth_access_token: params.accessToken,
-      user_type: "legacy",
-      version_type: "release",
-      clientid: params.uuid,
-      auth_xuid: params.uuid,
-    };
-
-    for (const rawArg of rawGameArgs) {
-      let arg = rawArg;
-      for (const [key, val] of Object.entries(placeholders)) {
-        arg = arg.replace(new RegExp(`\\\$\\\{${key}\\\}`, "g"), val);
-      }
-      gameArgs.push(arg);
-    }
-
-    args.push(...gameArgs);
-
-    // 5. Invoke native process launcher command
     onProgress?.("Iniciando Minecraft...", 0.9);
-    console.log(`Executing java at ${javaPath} with args:`, args);
+    console.log(`Executing java at ${javaPath} with args:`, fullArgs);
 
-    await invoke("launch_minecraft", {
+    const pid = await invoke<number>("launch_minecraft", {
       javaPath,
-      args,
+      args: fullArgs,
       gameDir: gameDirectory,
     });
 
     onProgress?.("¡Juego iniciado con éxito!", 1.0);
+    return pid;
   } catch (err) {
     console.error("Failed to launch game:", err);
     throw err;
+  }
+};
+
+export const killGame = async (): Promise<boolean> => {
+  try {
+    return await invoke<boolean>("kill_minecraft");
+  } catch (err) {
+    console.error("Failed to kill game process:", err);
+    return false;
+  }
+};
+
+export const checkGameRunning = async (): Promise<boolean> => {
+  try {
+    return await invoke<boolean>("is_game_running");
+  } catch {
+    return false;
   }
 };

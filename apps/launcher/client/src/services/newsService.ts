@@ -9,6 +9,15 @@ export interface NewsPost {
   createdAt: string;
 }
 
+interface RawNewsRow {
+  id: string;
+  title?: string;
+  content?: string;
+  category?: string;
+  image_url?: string;
+  created_at?: string;
+}
+
 const DUMMY_NEWS: NewsPost[] = [
   {
     id: "1",
@@ -47,13 +56,13 @@ export const fetchNews = async (limit = 20): Promise<NewsPost[]> => {
       return DUMMY_NEWS;
     }
 
-    return data.map((row: any) => ({
-      id: row.id,
+    return (data as unknown as RawNewsRow[]).map((row) => ({
+      id: String(row.id),
       title: row.title || "Sin título",
       content: row.content || "",
       category: row.category || "General",
       imageUrl: row.image_url,
-      createdAt: row.created_at,
+      createdAt: row.created_at || new Date().toISOString(),
     }));
   } catch (err) {
     console.warn("News service error, using dummy data:", err);

@@ -58,8 +58,8 @@ export const ProfileSelector: React.FC<ProfileSelectorProps> = ({
       cloneProfile(profileId);
       loadData();
       onProfileChanged?.();
-    } catch (err: any) {
-      alert(`Error al clonar el perfil: ${err.message || err}`);
+    } catch (err: unknown) {
+      alert(`Error al clonar el perfil: ${err instanceof Error ? err.message : String(err)}`);
     }
   };
 
@@ -70,8 +70,8 @@ export const ProfileSelector: React.FC<ProfileSelectorProps> = ({
         deleteProfile(profileId);
         loadData();
         onProfileChanged?.();
-      } catch (err: any) {
-        alert(err.message || "Error al eliminar el perfil");
+      } catch (err: unknown) {
+        alert(err instanceof Error ? err.message : "Error al eliminar el perfil");
       }
     }
   };
@@ -231,6 +231,7 @@ export const ProfileSelector: React.FC<ProfileSelectorProps> = ({
                   {/* Actions buttons */}
                   <div style={{ display: "flex", gap: 4 }} onClick={(e) => e.stopPropagation()}>
                     <button
+                      type="button"
                       onClick={() => {
                         setIsOpen(false);
                         onEditProfile(p);
@@ -248,6 +249,7 @@ export const ProfileSelector: React.FC<ProfileSelectorProps> = ({
                       ✏️
                     </button>
                     <button
+                      type="button"
                       onClick={(e) => handleClone(e, p.id)}
                       title="Clonar perfil"
                       style={{
@@ -263,6 +265,7 @@ export const ProfileSelector: React.FC<ProfileSelectorProps> = ({
                     </button>
                     {p.id !== "default-profile-id" && (
                       <button
+                        type="button"
                         onClick={(e) => handleDelete(e, p.id)}
                         title="Eliminar perfil"
                         style={{
@@ -284,6 +287,7 @@ export const ProfileSelector: React.FC<ProfileSelectorProps> = ({
           </div>
 
           <button
+            type="button"
             onClick={() => {
               setIsOpen(false);
               onCreateProfile();

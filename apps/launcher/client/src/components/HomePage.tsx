@@ -437,6 +437,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
             <div style={{ fontSize: 11, marginTop: 1 }}>{statusMeta()}</div>
           </div>
           <button
+            type="button"
             onClick={handleCopyIp}
             title="Copiar IP"
             style={{
@@ -500,6 +501,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
               Novedades
             </h2>
             <button
+              type="button"
               onClick={() => onNavigate?.("news")}
               style={{
                 background: "none",
@@ -654,6 +656,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
 
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                         <button
+                          type="button"
                           onClick={() => onNavigate?.("news")}
                           style={{
                             background: "rgba(255, 255, 255, 0.12)",
@@ -694,6 +697,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                             {/* Prev / Next Arrows */}
                             <div style={{ display: "flex", gap: 6 }}>
                               <button
+                                type="button"
                                 onClick={() => setActiveNewsIndex((prev) => (prev - 1 + news.length) % news.length)}
                                 style={{
                                   width: 30,
@@ -714,6 +718,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                                 ◀
                               </button>
                               <button
+                                type="button"
                                 onClick={() => setActiveNewsIndex((prev) => (prev + 1) % news.length)}
                                 style={{
                                   width: 30,
@@ -739,6 +744,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                             <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
                               {news.map((item, idx) => (
                                 <button
+                                  type="button"
                                   key={item.id || item.title || `news-dot-${idx}`}
                                   onClick={() => setActiveNewsIndex(idx)}
                                   style={{
@@ -845,6 +851,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                 }}>
                   {/* Left Arrow */}
                   <button
+                    type="button"
                     onClick={() => {
                       if (userCapes.length === 0) return;
                       let nextIndex = selectedCapeIndex - 1;
@@ -885,6 +892,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
 
                   {/* Right Arrow */}
                   <button
+                    type="button"
                     onClick={() => {
                       if (userCapes.length === 0) return;
                       let nextIndex = selectedCapeIndex + 1;
@@ -912,6 +920,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
 
                 {/* Action Button */}
                 <button
+                  type="button"
                   disabled={isEquippingCape}
                   onClick={async () => {
                     if (!currentSession?.accessToken) return;
@@ -1015,6 +1024,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
 
         {/* Botón JUGAR con progreso integrado */}
         <button
+          type="button"
           onClick={handlePlay}
           disabled={isLaunching}
           style={{

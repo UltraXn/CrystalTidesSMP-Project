@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { fetchMinecraftProfile, setActiveCape, hideCape, type MinecraftCape } from "../services/microsoftAuthService";
 import { CrystalCard } from "./CrystalCard";
 import { CrystalButton } from "./CrystalButton";
 import { invoke } from "@tauri-apps/api/core";
-import { useRef } from "react";
 
 interface CapeCanvasProps {
   url: string;
@@ -24,11 +23,7 @@ const CapeCanvas: React.FC<CapeCanvasProps> = ({ url, style }) => {
       if (!ctx) return;
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-
       ctx.imageSmoothingEnabled = false;
-      (ctx as any).mozImageSmoothingEnabled = false;
-      (ctx as any).webkitImageSmoothingEnabled = false;
-      (ctx as any).msImageSmoothingEnabled = false;
 
       const w = img.naturalWidth;
       const h = img.naturalHeight;
@@ -81,7 +76,7 @@ export const CapeManagerDialog: React.FC<CapeManagerDialogProps> = ({
   const proxyCapesList = async (capesList: MinecraftCape[]) => {
     return Promise.all(
       capesList.map(async (cape) => {
-        if (cape.url && cape.url.startsWith("http")) {
+        if (cape.url?.startsWith("http")) {
           try {
             const b64 = await invoke<string>("fetch_image_base64", { url: cape.url });
             return { ...cape, url: b64 };
@@ -94,26 +89,26 @@ export const CapeManagerDialog: React.FC<CapeManagerDialogProps> = ({
     );
   };
 
-  const loadCapes = async () => {
+  const loadCapes = React.useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
       const profile = await fetchMinecraftProfile(accessToken);
       const proxied = await proxyCapesList(profile.capes || []);
       setCapes(proxied);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error fetching capes:", err);
       setError("No se pudieron cargar tus capas oficiales. Por favor, reintenta.");
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [accessToken]);
 
   useEffect(() => {
     if (isOpen && accessToken) {
       loadCapes();
     }
-  }, [isOpen, accessToken]);
+  }, [isOpen, accessToken, loadCapes]);
 
   if (!isOpen) return null;
 
@@ -129,7 +124,7 @@ export const CapeManagerDialog: React.FC<CapeManagerDialogProps> = ({
       
       const activeCape = updatedProfile.capes?.find((c) => c.state === "ACTIVE");
       onCapeChanged(activeCape?.url);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error equipping cape:", err);
       setError("No se pudo equipar la capa. Inténtalo de nuevo.");
     } finally {
@@ -147,7 +142,7 @@ export const CapeManagerDialog: React.FC<CapeManagerDialogProps> = ({
       const proxied = await proxyCapesList(updatedProfile.capes || []);
       setCapes(proxied);
       onCapeChanged(undefined);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error unequipping cape:", err);
       setError("No se pudo desequipar la capa. Inténtalo de nuevo.");
     } finally {
@@ -155,34 +150,169 @@ export const CapeManagerDialog: React.FC<CapeManagerDialogProps> = ({
     }
   };
 
+  const renderCapesContent = () => {
+    if (isLoading) {
+      return (
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: 200, gap: 12 }}>
+          <div
+            style={{
+              width: 32,
+              height: 32,
+              border: "3px solid rgba(45, 212, 191, 0.1)",
+              borderTopColor: "var(--primary)",
+              borderRadius: "50%",
+              animation: "spin 1s linear infinite",
+            }}
+          />
+          <span style={{ fontSize: 13, color: "rgba(255,255,255,0.5)" }}>Consultando inventario de capas...</span>
+        </div>
+      );
+    }
+
+    if (capes.length === 0) {
+      return (
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: 200, color: "rgba(255,255,255,0.4)", textAlign: "center" }}>
+          <span style={{ fontSize: 32, marginBottom: 8 }}>🛡️</span>
+          <span style={{ fontSize: 13, fontWeight: 600 }}>No se encontraron capas en esta cuenta</span>
+          <span style={{ fontSize: 11, marginTop: 4, color: "rgba(255,255,255,0.3)" }}>
+            Las capas se consiguen en eventos oficiales de Mojang, migraciones de cuenta o aniversarios.
+          </span>
+        </div>
+      );
+    }
+
+    return (
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
+          gap: 16,
+          padding: "4px 0",
+        }}
+      >
+        {capes.map((cape) => {
+          const isActive = cape.state === "ACTIVE";
+          const isProcessing = actionLoadingId === cape.id;
+
+          return (
+            <CrystalCard
+              key={cape.id}
+              enableHoverEffect={!isProcessing}
+              style={{
+                padding: 14,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                backgroundColor: isActive ? "rgba(45, 212, 191, 0.04)" : "rgba(255, 255, 255, 0.01)",
+                borderColor: isActive ? "rgba(45, 212, 191, 0.3)" : "rgba(255,255,255,0.06)",
+                boxShadow: isActive ? "0 0 16px rgba(45, 212, 191, 0.1)" : "none",
+                position: "relative",
+                transition: "all 0.25s ease",
+              }}
+            >
+              {/* Cape Preview (styled to look like a mini vertical cape banner) */}
+              <div
+                style={{
+                  width: 50,
+                  height: 80,
+                  borderRadius: 6,
+                  overflow: "hidden",
+                  backgroundColor: "rgba(0,0,0,0.3)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  marginBottom: 10,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  position: "relative",
+                  boxShadow: "inset 0 4px 10px rgba(0,0,0,0.5)",
+                }}
+              >
+                <CapeCanvas url={cape.url} />
+              </div>
+
+              {/* Cape Name */}
+              <span
+                style={{
+                  fontSize: 12,
+                  fontWeight: 600,
+                  textAlign: "center",
+                  marginBottom: 12,
+                  color: "#FFF",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  width: "100%",
+                }}
+                title={cape.alias}
+              >
+                {cape.alias}
+              </span>
+
+              {/* Action Button */}
+              {isActive ? (
+                <CrystalButton
+                  text={isProcessing ? "Quitando..." : "Desequipar"}
+                  variant="ghost"
+                  size="sm"
+                  onPressed={() => handleUnequip(cape.id)}
+                  disabled={actionLoadingId !== null}
+                  style={{
+                    width: "100%",
+                    fontSize: 11,
+                    padding: "4px 8px",
+                    borderColor: "rgba(239, 68, 68, 0.4)",
+                    color: "#FF8B8B",
+                  }}
+                />
+              ) : (
+                <CrystalButton
+                  text={isProcessing ? "Equipando..." : "Equipar"}
+                  variant="primary"
+                  size="sm"
+                  onPressed={() => handleEquip(cape.id)}
+                  disabled={actionLoadingId !== null}
+                  style={{
+                    width: "100%",
+                    fontSize: 11,
+                    padding: "4px 8px",
+                  }}
+                />
+              )}
+            </CrystalCard>
+          );
+        })}
+      </div>
+    );
+  };
+
   return (
     <div
+      onClick={onClose}
       style={{
         position: "fixed",
         inset: 0,
-        backgroundColor: "rgba(3, 4, 7, 0.8)",
+        backgroundColor: "rgba(0, 0, 0, 0.75)",
         backdropFilter: "blur(12px)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         zIndex: 1000,
-        animation: "fadeIn 0.25s ease-out",
+        padding: 24,
       }}
     >
       <div
+        onClick={(e) => e.stopPropagation()}
         style={{
-          background: "rgba(10, 11, 18, 0.9)",
-          border: "1px solid rgba(45, 212, 191, 0.15)",
-          borderRadius: 24,
-          padding: 28,
+          width: "100%",
           maxWidth: 580,
-          width: "90%",
-          maxHeight: "85vh",
+          backgroundColor: "#0B0F19",
+          border: "1px solid rgba(255, 255, 255, 0.08)",
+          borderRadius: 24,
+          padding: 24,
+          boxShadow: "0 24px 48px rgba(0, 0, 0, 0.8)",
           display: "flex",
           flexDirection: "column",
-          boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 40px rgba(45, 212, 191, 0.04)",
-          animation: "scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
-          color: "#FFF",
+          maxHeight: "85vh",
         }}
       >
         {/* Header */}
@@ -196,6 +326,7 @@ export const CapeManagerDialog: React.FC<CapeManagerDialogProps> = ({
             </span>
           </div>
           <button
+            type="button"
             onClick={onClose}
             style={{
               background: "rgba(255,255,255,0.03)",
@@ -230,147 +361,23 @@ export const CapeManagerDialog: React.FC<CapeManagerDialogProps> = ({
           <div
             style={{
               padding: "10px 14px",
-              backgroundColor: "rgba(239, 68, 68, 0.08)",
+              borderRadius: 10,
+              backgroundColor: "rgba(239, 68, 68, 0.1)",
               border: "1px solid rgba(239, 68, 68, 0.2)",
-              borderRadius: 12,
-              color: "#FF9E9E",
+              color: "#FCA5A5",
               fontSize: 12,
               marginBottom: 16,
-              textAlign: "left",
             }}
           >
             ⚠️ {error}
           </div>
         )}
 
-        {/* Content Area */}
-        <div style={{ flex: 1, overflowY: "auto", paddingRight: 4, minHeight: 180 }}>
-          {isLoading ? (
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: 200, gap: 12 }}>
-              <div
-                style={{
-                  width: 32,
-                  height: 32,
-                  border: "3px solid rgba(45, 212, 191, 0.1)",
-                  borderTopColor: "var(--primary)",
-                  borderRadius: "50%",
-                  animation: "spin 1s linear infinite",
-                }}
-              />
-              <span style={{ fontSize: 13, color: "rgba(255,255,255,0.5)" }}>Consultando inventario de capas...</span>
-            </div>
-          ) : capes.length === 0 ? (
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: 200, color: "rgba(255,255,255,0.4)", textAlign: "center" }}>
-              <span style={{ fontSize: 32, marginBottom: 8 }}>🛡️</span>
-              <span style={{ fontSize: 13, fontWeight: 600 }}>No se encontraron capas en esta cuenta</span>
-              <span style={{ fontSize: 11, marginTop: 4, color: "rgba(255,255,255,0.3)" }}>
-                Las capas se consiguen en eventos oficiales de Mojang, migraciones de cuenta o aniversarios.
-              </span>
-            </div>
-          ) : (
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
-                gap: 16,
-                padding: "4px 0",
-              }}
-            >
-              {capes.map((cape) => {
-                const isActive = cape.state === "ACTIVE";
-                const isProcessing = actionLoadingId === cape.id;
-
-                return (
-                  <CrystalCard
-                    key={cape.id}
-                    enableHoverEffect={!isProcessing}
-                    style={{
-                      padding: 14,
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      backgroundColor: isActive ? "rgba(45, 212, 191, 0.04)" : "rgba(255, 255, 255, 0.01)",
-                      borderColor: isActive ? "rgba(45, 212, 191, 0.3)" : "rgba(255,255,255,0.06)",
-                      boxShadow: isActive ? "0 0 16px rgba(45, 212, 191, 0.1)" : "none",
-                      position: "relative",
-                      transition: "all 0.25s ease",
-                    }}
-                  >
-                    {/* Cape Preview (styled to look like a mini vertical cape banner) */}
-                     <div
-                      style={{
-                        width: 50,
-                        height: 80,
-                        borderRadius: 6,
-                        overflow: "hidden",
-                        backgroundColor: "rgba(0,0,0,0.3)",
-                        border: "1px solid rgba(255,255,255,0.08)",
-                        marginBottom: 10,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        position: "relative",
-                        boxShadow: "inset 0 4px 10px rgba(0,0,0,0.5)",
-                      }}
-                    >
-                      <CapeCanvas url={cape.url} />
-                    </div>
-
-                    {/* Cape Name */}
-                    <span
-                      style={{
-                        fontSize: 12,
-                        fontWeight: 600,
-                        textAlign: "center",
-                        marginBottom: 12,
-                        color: "#FFF",
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        width: "100%",
-                      }}
-                      title={cape.alias}
-                    >
-                      {cape.alias}
-                    </span>
-
-                    {/* Action Button */}
-                    {isActive ? (
-                      <CrystalButton
-                        text={isProcessing ? "Quitando..." : "Desequipar"}
-                        variant="ghost"
-                        size="sm"
-                        onPressed={() => handleUnequip(cape.id)}
-                        disabled={actionLoadingId !== null}
-                        style={{
-                          width: "100%",
-                          fontSize: 11,
-                          padding: "4px 8px",
-                          borderColor: "rgba(239, 68, 68, 0.4)",
-                          color: "#FF8B8B",
-                        }}
-                      />
-                    ) : (
-                      <CrystalButton
-                        text={isProcessing ? "Equipando..." : "Equipar"}
-                        variant="primary"
-                        size="sm"
-                        onPressed={() => handleEquip(cape.id)}
-                        disabled={actionLoadingId !== null}
-                        style={{
-                          width: "100%",
-                          fontSize: 11,
-                          padding: "4px 8px",
-                        }}
-                      />
-                    )}
-                  </CrystalCard>
-                );
-              })}
-            </div>
-          )}
+        {/* Content Container */}
+        <div style={{ flex: 1, overflowY: "auto", minHeight: 200, paddingRight: 4 }}>
+          {renderCapesContent()}
         </div>
-
+        
         {/* Styles for loader spinning */}
         <style>{`
           @keyframes spin {

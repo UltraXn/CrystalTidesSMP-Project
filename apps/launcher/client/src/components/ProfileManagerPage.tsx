@@ -48,8 +48,8 @@ export const ProfileManagerPage: React.FC = () => {
     try {
       cloneProfile(id);
       loadProfiles();
-    } catch (err: any) {
-      alert(err.message || "Error al clonar el perfil");
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "Error al clonar el perfil");
     }
   };
 
@@ -63,8 +63,8 @@ export const ProfileManagerPage: React.FC = () => {
       try {
         deleteProfile(id);
         loadProfiles();
-      } catch (err: any) {
-        alert(err.message || "Error al eliminar el perfil");
+      } catch (err: unknown) {
+        alert(err instanceof Error ? err.message : "Error al eliminar el perfil");
       }
     }
   };
@@ -77,6 +77,7 @@ export const ProfileManagerPage: React.FC = () => {
           title="Gestión de Perfiles"
         />
         <button
+          type="button"
           onClick={handleCreateNew}
           className="btn btn-primary"
           style={{
@@ -195,6 +196,7 @@ export const ProfileManagerPage: React.FC = () => {
                   {/* Action group left */}
                   <div style={{ display: "flex", gap: 6 }}>
                     <button
+                      type="button"
                       onClick={() => handleEdit(p)}
                       title="Editar perfil"
                       style={{
@@ -219,6 +221,7 @@ export const ProfileManagerPage: React.FC = () => {
                       ✏️ Editar
                     </button>
                     <button
+                      type="button"
                       onClick={() => handleClone(p.id)}
                       title="Clonar perfil"
                       style={{
@@ -244,6 +247,7 @@ export const ProfileManagerPage: React.FC = () => {
                     </button>
                     {p.id !== "default-profile-id" && (
                       <button
+                        type="button"
                         onClick={() => handleDelete(p.id, p.name)}
                         title="Eliminar perfil"
                         style={{
@@ -273,6 +277,7 @@ export const ProfileManagerPage: React.FC = () => {
                   {/* Set active toggle button */}
                   {!isActive && (
                     <button
+                      type="button"
                       onClick={() => handleSetActive(p.id)}
                       className="btn btn-secondary btn-sm"
                       style={{

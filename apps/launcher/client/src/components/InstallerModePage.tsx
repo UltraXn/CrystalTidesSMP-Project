@@ -59,8 +59,8 @@ export const InstallerModePage: React.FC<InstallerModePageProps> = ({ onFinish }
       setProgress(1.0);
       setStatusText("¡Instalación completada con éxito!");
       setStep("finish");
-    } catch (err: any) {
-      setErrorMessage(err.message || String(err));
+    } catch (err: unknown) {
+      setErrorMessage(err instanceof Error ? err.message : String(err));
       setStatusText("Ocurrió un error durante la instalación.");
     }
   };
@@ -171,24 +171,27 @@ export const InstallerModePage: React.FC<InstallerModePageProps> = ({ onFinish }
                 />
                 <label htmlFor="terms-check" style={{ fontSize: 11.5, color: "rgba(255,255,255,0.75)", lineHeight: 1.4, cursor: "pointer" }}>
                   Acepto los{" "}
-                  <span
+                  <button
+                    type="button"
                     onClick={(e) => { e.preventDefault(); setShowTermsModal("terms"); }}
-                    style={{ color: "#2DD4BF", textDecoration: "underline", fontWeight: 600 }}
+                    style={{ background: "none", border: "none", padding: 0, font: "inherit", color: "#2DD4BF", textDecoration: "underline", fontWeight: 600, cursor: "pointer" }}
                   >
                     Términos de Servicio
-                  </span>{" "}
+                  </button>{" "}
                   y la{" "}
-                  <span
+                  <button
+                    type="button"
                     onClick={(e) => { e.preventDefault(); setShowTermsModal("privacy"); }}
-                    style={{ color: "#2DD4BF", textDecoration: "underline", fontWeight: 600 }}
+                    style={{ background: "none", border: "none", padding: 0, font: "inherit", color: "#2DD4BF", textDecoration: "underline", fontWeight: 600, cursor: "pointer" }}
                   >
                     Política de Privacidad
-                  </span>{" "}
+                  </button>{" "}
                   de CrystalTidesSMP.
                 </label>
               </div>
 
               <button
+                type="button"
                 disabled={!acceptedTerms}
                 onClick={() => setStep("directory")}
                 style={{
@@ -218,25 +221,48 @@ export const InstallerModePage: React.FC<InstallerModePageProps> = ({ onFinish }
           {step === "directory" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 16, width: "100%", textAlign: "left" }}>
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                <label style={{ fontSize: 11, fontWeight: 700, color: "var(--accent)", textTransform: "uppercase" }}>
-                  📁 Carpeta de Instalación
+                <label htmlFor="install-directory-input" style={{ fontSize: 11, fontWeight: 700, color: "#2DD4BF", letterSpacing: "0.05em" }}>
+                  DIRECTORIO DE INSTALACIÓN
                 </label>
                 <div style={{ display: "flex", gap: 8 }}>
                   <input
+                    id="install-directory-input"
                     type="text"
+                    readOnly
                     value={installPath}
-                    onChange={(e) => setInstallPath(e.target.value)}
                     style={{
                       flex: 1,
-                      backgroundColor: "rgba(0,0,0,0.3)",
-                      border: "1px solid rgba(255,255,255,0.15)",
+                      backgroundColor: "rgba(0, 0, 0, 0.4)",
+                      border: "1px solid rgba(255, 255, 255, 0.15)",
                       borderRadius: 8,
                       padding: "8px 12px",
                       color: "#FFF",
                       fontSize: 12,
-                      fontFamily: "monospace",
                     }}
                   />
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        const selected = await invoke<string | null>("select_folder");
+                        if (selected) setInstallPath(selected);
+                      } catch (err) {
+                        console.error("Error al seleccionar carpeta:", err);
+                      }
+                    }}
+                    style={{
+                      padding: "0 14px",
+                      borderRadius: 8,
+                      border: "1px solid rgba(255, 255, 255, 0.2)",
+                      background: "rgba(255, 255, 255, 0.05)",
+                      color: "#FFF",
+                      fontSize: 12,
+                      fontWeight: 600,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Examinar...
+                  </button>
                 </div>
                 <span style={{ fontSize: 10.5, color: "rgba(255,255,255,0.4)" }}>
                   Ruta recomendada para aislar los mods de tu .minecraft habitual.
@@ -245,6 +271,7 @@ export const InstallerModePage: React.FC<InstallerModePageProps> = ({ onFinish }
 
               <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
                 <button
+                  type="button"
                   onClick={() => setStep("welcome")}
                   style={{
                     flex: 1,
@@ -261,6 +288,7 @@ export const InstallerModePage: React.FC<InstallerModePageProps> = ({ onFinish }
                   ATRÁS
                 </button>
                 <button
+                  type="button"
                   onClick={handleStartInstall}
                   style={{
                     flex: 2,
@@ -321,6 +349,7 @@ export const InstallerModePage: React.FC<InstallerModePageProps> = ({ onFinish }
           {step === "finish" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 14, width: "100%" }}>
               <button
+                type="button"
                 onClick={onFinish}
                 style={{
                   width: "100%",
@@ -347,7 +376,10 @@ export const InstallerModePage: React.FC<InstallerModePageProps> = ({ onFinish }
       {/* Legal Modal Overlay */}
       {showTermsModal && (
         <div
+          role="button"
+          tabIndex={0}
           onClick={() => setShowTermsModal(null)}
+          onKeyDown={(e) => { if (e.key === "Escape" || e.key === "Enter") setShowTermsModal(null); }}
           style={{
             position: "fixed",
             inset: 0,
@@ -361,6 +393,8 @@ export const InstallerModePage: React.FC<InstallerModePageProps> = ({ onFinish }
           }}
         >
           <div
+            role="dialog"
+            aria-modal="true"
             onClick={(e) => e.stopPropagation()}
             style={{
               width: 500,
@@ -379,6 +413,7 @@ export const InstallerModePage: React.FC<InstallerModePageProps> = ({ onFinish }
                 {showTermsModal === "terms" ? "📜 Términos de Servicio" : "🔒 Política de Privacidad"}
               </h3>
               <button
+                type="button"
                 onClick={() => setShowTermsModal(null)}
                 style={{ background: "none", border: "none", color: "#FFF", fontSize: 16, cursor: "pointer" }}
               >
@@ -410,6 +445,7 @@ export const InstallerModePage: React.FC<InstallerModePageProps> = ({ onFinish }
               )}
             </div>
             <button
+              type="button"
               onClick={() => setShowTermsModal(null)}
               style={{
                 alignSelf: "flex-end",

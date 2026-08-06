@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, type FormEvent } from "react";
 import { useAuth, SavedAccount } from "../services/authContext";
 import { CrystalCard } from "./CrystalCard";
 import { CrystalButton } from "./CrystalButton";
@@ -23,7 +23,7 @@ export const LoginPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleGuestSubmit = async (e: React.FormEvent) => {
+  const handleGuestSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (nickname.trim().length < 3) {
       setError("El nombre de usuario debe tener al menos 3 caracteres.");
@@ -33,11 +33,16 @@ export const LoginPage: React.FC = () => {
     setError(null);
     try {
       await loginGuest(nickname.trim());
-    } catch (err: any) {
-      setError(err.message || "Error al ingresar como invitado.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err));
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const getAccountIcon = (type: string) => {
+    if (type === "guest") return "👤";
+    return "🎮";
   };
 
 
@@ -46,8 +51,8 @@ export const LoginPage: React.FC = () => {
     setError(null);
     try {
       await loginMicrosoft();
-    } catch (err: any) {
-      setError(err.message || "Error de autenticación con Microsoft.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Error de autenticación con Microsoft.");
     } finally {
       setIsLoading(false);
     }
@@ -58,8 +63,8 @@ export const LoginPage: React.FC = () => {
     setError(null);
     try {
       await selectAccount(account.id);
-    } catch (err: any) {
-      setError(`Error al cambiar de cuenta: ${err.message || err}`);
+    } catch (err: unknown) {
+      setError(`Error al cambiar de cuenta: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setIsLoading(false);
     }
@@ -170,6 +175,7 @@ export const LoginPage: React.FC = () => {
         }}>
           {tabs.filter(t => t.show).map((tab) => (
             <button
+              type="button"
               key={tab.id}
               onClick={() => { setActiveTab(tab.id); setError(null); }}
               className={`tab-btn ${activeTab === tab.id ? "active" : ""}`}
@@ -204,7 +210,15 @@ export const LoginPage: React.FC = () => {
             {savedAccounts.map((account) => (
               <div
                 key={account.id}
+                role="button"
+                tabIndex={0}
                 onClick={() => !isLoading && handleAccountSelect(account)}
+                onKeyDown={(e) => {
+                  if ((e.key === "Enter" || e.key === " ") && !isLoading) {
+                    e.preventDefault();
+                    handleAccountSelect(account);
+                  }
+                }}
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -248,7 +262,7 @@ export const LoginPage: React.FC = () => {
                         alt="Minecraft avatar" 
                       />
                     ) : (
-                      account.type === "guest" ? "👤" : "🎮"
+                      getAccountIcon(account.type)
                     )}
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
@@ -259,6 +273,7 @@ export const LoginPage: React.FC = () => {
                   </div>
                 </div>
                 <button
+                  type="button"
                   onClick={(e) => { e.stopPropagation(); removeAccount(account.id); }}
                   style={{
                     background: "none",
@@ -287,10 +302,11 @@ export const LoginPage: React.FC = () => {
         {activeTab === "guest" && (
           <form onSubmit={handleGuestSubmit} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
             <div style={{ display: "flex", flexDirection: "column", gap: 6, alignItems: "flex-start" }}>
-              <label style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: 1 }}>
+              <label htmlFor="guest-nickname" style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: 1 }}>
                 Nombre de Usuario
               </label>
               <input
+                id="guest-nickname"
                 type="text"
                 placeholder="Ej. NachoPlayer"
                 value={nickname}

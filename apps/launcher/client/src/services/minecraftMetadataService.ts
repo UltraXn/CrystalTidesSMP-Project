@@ -1,11 +1,25 @@
 import { invoke } from "@tauri-apps/api/core";
 
+interface MojangVersionItem {
+  id: string;
+  type: string;
+}
+
+interface FabricLoaderItem {
+  version: string;
+  stable: boolean;
+}
+
+interface ForgeVersionItem {
+  version: string;
+}
+
 export const fetchVanillaVersions = async (): Promise<string[]> => {
   try {
     const url = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json";
     const responseText: string = await invoke("http_get", { url, headers: {} });
-    const data = JSON.parse(responseText);
-    const versions: any[] = data.versions || [];
+    const data = JSON.parse(responseText) as { versions?: MojangVersionItem[] };
+    const versions = data.versions || [];
     return versions
       .filter((v) => v.type === "release")
       .map((v) => v.id);
@@ -19,7 +33,7 @@ export const fetchFabricLoaderVersions = async (): Promise<string[]> => {
   try {
     const url = "https://meta.fabricmc.net/v2/versions/loader";
     const responseText: string = await invoke("http_get", { url, headers: {} });
-    const loaders: any[] = JSON.parse(responseText);
+    const loaders = JSON.parse(responseText) as FabricLoaderItem[];
     return loaders
       .filter((l) => l.stable === true)
       .map((l) => l.version);
@@ -33,8 +47,8 @@ export const fetchNeoForgeVersions = async (mcVersion: string): Promise<string[]
   try {
     const url = "https://maven.neoforged.net/api/maven/versions/releases/net/neoforged/neoforge";
     const responseText: string = await invoke("http_get", { url, headers: {} });
-    const data = JSON.parse(responseText);
-    const versions: string[] = data.versions || [];
+    const data = JSON.parse(responseText) as { versions?: string[] };
+    const versions = data.versions || [];
     
     // Filter NeoForge versions matching this Minecraft version
     const filtered = versions.filter((v) => {
@@ -69,8 +83,8 @@ export const fetchForgeVersions = async (mcVersion: string): Promise<string[]> =
   try {
     const url = `https://bmclapi2.bangbang93.com/forge/${mcVersion}`;
     const responseText: string = await invoke("http_get", { url, headers: {} });
-    const forges: any[] = JSON.parse(responseText);
-    const versions = forges.map((f) => f.version as string);
+    const forges = JSON.parse(responseText) as ForgeVersionItem[];
+    const versions = forges.map((f) => f.version);
     // Sort descending
     return versions.sort((a, b) => b.localeCompare(a, undefined, { numeric: true }));
   } catch (err) {

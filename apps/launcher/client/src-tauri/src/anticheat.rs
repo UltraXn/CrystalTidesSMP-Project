@@ -23,7 +23,7 @@ pub fn generate_hwid() -> String {
     hasher.update(arch.as_bytes());
     hasher.update(hostname.as_bytes());
     
-    format!("{:x}", hasher.finalize())
+    hex::encode(hasher.finalize())
 }
 
 /// Calcula un hash determinista SHA-256 de todos los mods instalados en el directorio del perfil
