@@ -23,11 +23,6 @@ on:
         required: true
         type: boolean
         default: true
-      deploy_bot:
-        description: 'Deploy Discord Bot'
-        required: true
-        type: boolean
-        default: true
 
 env:
   PROJECT_ID: crystaltides-prod
@@ -214,54 +209,3 @@ jobs:
           region: ${{ env.REGION }}
           image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/frontend:${{ github.sha }}
           flags: '--memory=512Mi --cpu=1 --port=8080'
-
-  deploy-bot:
-    name: Deploy Discord Bot
-    needs: [test]
-    if: |
-      github.ref == 'refs/heads/main' && (
-        (github.event_name == 'push' && needs.test.outputs.bot == 'true') ||
-        (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_bot == 'true')
-      )
-    runs-on: ubuntu-latest
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-    permissions:
-      contents: 'read'
-      id-token: 'write'
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          # Architectural test requirement: submodules: recursive
-          submodules: recursive
-
-      - name: Package Bot Source
-        run: |
-          tar -czf bot-src.tar.gz package.json package-lock.json apps/discord-bot packages/shared packages/eslint-config apps/web-server/package.json apps/web-client/package.json apps/game-bridge/package.json
-          cp deploy/oracle-cloud/compose.yml ./compose.yml
-          cp deploy/oracle-cloud/frps.toml ./frps.toml
-          cp deploy/oracle-cloud/Caddyfile ./Caddyfile
-
-      - name: Copy Bot Source to OCI VM
-        uses: appleboy/scp-action@master
-        with:
-          host: 150.136.151.234
-          username: ubuntu
-          key: ${{ secrets.OCI_SSH_KEY }}
-          source: "bot-src.tar.gz,compose.yml,frps.toml,Caddyfile"
-          target: "~/oracle-cloud/"
-
-      - name: Build and Relaunch Bot Container on OCI VM
-        uses: appleboy/ssh-action@master
-        with:
-          host: 150.136.151.234
-          username: ubuntu
-          key: ${{ secrets.OCI_SSH_KEY }}
-          script: |
-            cd ~/oracle-cloud
-            tar -xzf bot-src.tar.gz
-            docker build -t crystaltides-bot:latest -f crystaltides/apps/discord-bot/Dockerfile ./crystaltides
-            docker compose up -d
-            rm -rf crystaltides bot-src.tar.gz
