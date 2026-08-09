@@ -104,5 +104,5 @@ jobs:
             docker build --no-cache -t crystaltides-bot:latest \
               -f crystaltides/apps/discord-bot/Dockerfile \
               ./crystaltides
-            docker compose up -d bot
+            docker compose up -d --force-recreate bot
             rm -rf crystaltides bot-src.tar.gz
