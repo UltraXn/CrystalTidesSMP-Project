@@ -59,7 +59,9 @@ jobs:
           node-version: 24
 
       - name: Install Dependencies
-        run: npm install --workspace=discord-bot --include-workspace-root --no-audit --legacy-peer-deps
+        run: |
+          npm install --workspace=discord-bot --include-workspace-root --no-audit --legacy-peer-deps
+          npm install --workspace=discord-bot --no-save --legacy-peer-deps @napi-rs/canvas-linux-arm64-gnu
 
       - name: Build Bot & Shared Packages
         run: npx turbo run build --filter=discord-bot --filter=@crystaltides/shared
