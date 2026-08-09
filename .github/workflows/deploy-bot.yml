@@ -20,6 +20,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          submodules: true
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -29,7 +31,7 @@ jobs:
       # Only install the bot workspace and its internal deps (shared, etc.)
       # --install-strategy=nested avoids hoisting conflicts with root overrides
       - name: Install Bot Dependencies
-        run: npm install --workspace=apps/discord-bot --include-workspace-root --no-audit --install-strategy=nested
+        run: npm install --workspace=discord-bot --include-workspace-root --no-audit --install-strategy=nested
 
       - name: Typecheck Discord Bot
         working-directory: apps/discord-bot
@@ -48,6 +50,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          submodules: true
 
       # The Dockerfile expects the monorepo root as build context.
       # Pack everything under a top-level 'crystaltides/' prefix so the
