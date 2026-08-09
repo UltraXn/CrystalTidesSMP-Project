@@ -101,7 +101,7 @@ jobs:
           script: |
             cd ~/oracle-cloud
             tar -xzf bot-src.tar.gz
-            docker build -t crystaltides-bot:latest \
+            docker build --no-cache -t crystaltides-bot:latest \
               -f crystaltides/apps/discord-bot/Dockerfile \
               ./crystaltides
             docker compose up -d bot
