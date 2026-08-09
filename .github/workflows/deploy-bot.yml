@@ -20,8 +20,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          submodules: true
+
+      - name: Checkout Discord Bot Submodule
+        run: git submodule update --init apps/discord-bot
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -50,8 +51,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          submodules: true
+
+      - name: Checkout Discord Bot Submodule
+        run: git submodule update --init apps/discord-bot
 
       # The Dockerfile expects the monorepo root as build context.
       # Pack everything under a top-level 'crystaltides/' prefix so the
