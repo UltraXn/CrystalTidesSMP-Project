@@ -4,30 +4,48 @@ services:
   # 🗄️ Database for Pelican Panel
   database:
     image: mariadb:10.11
-    restart: always
+    restart: unless-stopped
+    stop_grace_period: 30s
     environment:
       MYSQL_DATABASE: pelican
       MYSQL_USER: pelican
-      MYSQL_PASSWORD: pelican_db_password_change_me
-      MYSQL_ROOT_PASSWORD: pelican_root_password_change_me
+      MYSQL_PASSWORD: ${PELICAN_DB_PASSWORD:-pelican_db_password_change_me}
+      MYSQL_ROOT_PASSWORD: ${PELICAN_ROOT_PASSWORD:-pelican_root_password_change_me}
     volumes:
       - db-data:/var/lib/mysql
+    mem_limit: 1g
+    cpus: 1.50
+    pids_limit: 256
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - pelican-network
 
   # ⚡ Redis Cache & Queue
   cache:
     image: redis:7-alpine
-    restart: always
+    restart: unless-stopped
     volumes:
       - redis-data:/data
+    mem_limit: 256m
+    cpus: 0.50
+    pids_limit: 128
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - pelican-network
 
   # 🦅 Pelican Panel Web Application
   panel:
-    image: ghcr.io/pelican-dev/panel:latest
-    restart: always
+    image: ghcr.io/pelican-dev/panel:1.0.0
+    restart: unless-stopped
+    stop_grace_period: 30s
     environment:
       APP_ENV: production
       APP_DEBUG: 'false'
@@ -41,13 +59,21 @@ services:
       DB_PORT: 3306
       DB_DATABASE: pelican
       DB_USERNAME: pelican
-      DB_PASSWORD: pelican_db_password_change_me
+      DB_PASSWORD: ${PELICAN_DB_PASSWORD:-pelican_db_password_change_me}
       CACHE_DRIVER: redis
       SESSION_DRIVER: redis
       QUEUE_CONNECTION: redis
       REDIS_HOST: cache
     volumes:
       - panel-data:/var/www/html/storage
+    mem_limit: 1g
+    cpus: 1.50
+    pids_limit: 256
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     depends_on:
       - database
       - cache
@@ -57,7 +83,7 @@ services:
   # 🗺️ FRP Server (Fast Reverse Proxy)
   frps:
     image: fatedier/frps:v0.54.0
-    restart: always
+    restart: unless-stopped
     ports:
       - '7000:7000' # FRP Control port (frpc connects here)
       - '25565:25565' # Minecraft proxy port (players connect here)
@@ -66,6 +92,13 @@ services:
     volumes:
       - ./frps.toml:/etc/frp/frps.toml
     command: -c /etc/frp/frps.toml
+    mem_limit: 256m
+    cpus: 0.50
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - pelican-network
 
@@ -74,7 +107,7 @@ services:
     image: hashicorp/vault:1.15.0
     container_name: crystaltides-vault
     environment:
-      VAULT_DEV_ROOT_TOKEN_ID: crystaltides-root-token
+      VAULT_DEV_ROOT_TOKEN_ID: ${VAULT_DEV_ROOT_TOKEN_ID:-crystaltides-root-token}
       VAULT_DEV_LISTEN_ADDRESS: 0.0.0.0:8200
       VAULT_ADDR: http://127.0.0.1:8200
     cap_add:
@@ -82,7 +115,7 @@ services:
     command: server -dev -dev-listen-address=0.0.0.0:8200
     volumes:
       - vault-data:/vault/file
-    restart: always
+    restart: unless-stopped
     mem_limit: 256m
     cpus: 0.50
     pids_limit: 128
@@ -106,7 +139,7 @@ services:
       - .env.bot
     volumes:
       - ./id_minecraft_pem:/app/id_minecraft_pem:ro
-    restart: always
+    restart: unless-stopped
     mem_limit: 512m
     cpus: 1.0
     pids_limit: 256
@@ -121,7 +154,7 @@ services:
   # 🔒 Caddy (Automated SSL Reverse Proxy)
   caddy:
     image: caddy:2-alpine
-    restart: always
+    restart: unless-stopped
     ports:
       - '80:80'
       - '443:443'
@@ -129,6 +162,13 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile
       - caddy-data:/data
       - caddy-config:/config
+    mem_limit: 256m
+    cpus: 0.50
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     depends_on:
       - panel
     networks:
