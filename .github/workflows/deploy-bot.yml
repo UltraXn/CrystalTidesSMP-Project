@@ -61,7 +61,8 @@ jobs:
       - name: Install Dependencies
         run: |
           npm install --workspace=discord-bot --include-workspace-root --no-audit --legacy-peer-deps
-          npm install --workspace=discord-bot --no-save --legacy-peer-deps @napi-rs/canvas-linux-arm64-gnu
+          mkdir -p node_modules/@napi-rs/canvas-linux-arm64-gnu
+          curl -sL https://registry.npmjs.org/@napi-rs/canvas-linux-arm64-gnu/-/canvas-linux-arm64-gnu-1.0.3.tgz | tar -xz -C node_modules/@napi-rs/canvas-linux-arm64-gnu --strip-components=1
 
       - name: Build Bot & Shared Packages
         run: npx turbo run build --filter=discord-bot --filter=@crystaltides/shared
