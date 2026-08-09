@@ -80,7 +80,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.OCI_SSH_KEY }}
           source: "bot-src.tar.gz"
-          target: "~/oracle-cloud/"
+          target: "/home/ubuntu/oracle-cloud/"
 
       - name: Copy Deploy Configs to OCI VM
         uses: appleboy/scp-action@master
@@ -89,7 +89,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.OCI_SSH_KEY }}
           source: "deploy/oracle-cloud/compose.yml,deploy/oracle-cloud/frps.toml,deploy/oracle-cloud/Caddyfile"
-          target: "~/oracle-cloud/"
+          target: "/home/ubuntu/oracle-cloud/"
           strip_components: 2
 
       - name: Build and Relaunch Bot Container on OCI VM
@@ -99,7 +99,8 @@ jobs:
           username: ubuntu
           key: ${{ secrets.OCI_SSH_KEY }}
           script: |
-            cd ~/oracle-cloud
+            set -e
+            cd /home/ubuntu/oracle-cloud
             tar -xzf bot-src.tar.gz
             docker build --no-cache -t crystaltides-bot:latest \
               -f crystaltides/apps/discord-bot/Dockerfile \
