@@ -2,3 +2,13 @@
 	path = apps/launcher
 	url = https://github.com/UltraXn/crystal-launcher.git
 	branch = dev
+
+[submodule "apps/discord-bot"]
+	path = apps/discord-bot
+	url = https://github.com/UltraXn/CrystalTidesSMP-Bot-DC.git
+	branch = main
+
+[submodule "plugins/crystalcore"]
+	path = plugins/crystalcore
+	url = https://github.com/UltraXn/CrystalCore.git
+	branch = main
