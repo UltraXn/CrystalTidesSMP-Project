@@ -65,7 +65,9 @@ jobs:
           curl -sL https://registry.npmjs.org/@napi-rs/canvas-linux-arm64-gnu/-/canvas-linux-arm64-gnu-1.0.3.tgz | tar -xz -C node_modules/@napi-rs/canvas-linux-arm64-gnu --strip-components=1
 
       - name: Build Bot & Shared Packages
-        run: npx turbo run build --filter=discord-bot --filter=@crystaltides/shared
+        run: |
+          npx turbo run build --filter=@crystaltides/shared
+          cd apps/discord-bot && npx tsc
 
       - name: Package Bot Runtime
         run: |
