@@ -26,8 +26,10 @@ jobs:
         with:
           node-version: 24
 
-      - name: Install Dependencies
-        run: npm install --no-audit
+      # Only install the bot workspace and its internal deps (shared, etc.)
+      # --install-strategy=nested avoids hoisting conflicts with root overrides
+      - name: Install Bot Dependencies
+        run: npm install --workspace=apps/discord-bot --include-workspace-root --no-audit --install-strategy=nested
 
       - name: Typecheck Discord Bot
         working-directory: apps/discord-bot
@@ -47,21 +49,39 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # The Dockerfile expects the monorepo root as build context.
+      # Pack everything under a top-level 'crystaltides/' prefix so the
+      # VPS can extract and docker-build with the correct paths.
       - name: Package Bot Source
         run: |
-          tar -czf bot-src.tar.gz package.json package-lock.json apps/discord-bot packages/shared packages/eslint-config apps/web-server/package.json apps/web-client/package.json apps/game-bridge/package.json
-          cp deploy/oracle-cloud/compose.yml ./compose.yml
-          cp deploy/oracle-cloud/frps.toml ./frps.toml
-          cp deploy/oracle-cloud/Caddyfile ./Caddyfile
+          tar -czf bot-src.tar.gz \
+            --transform='s,^,crystaltides/,' \
+            package.json package-lock.json turbo.json \
+            apps/discord-bot \
+            packages/shared \
+            packages/eslint-config/package.json \
+            apps/web-server/package.json \
+            apps/web-client/package.json \
+            apps/game-bridge/package.json
 
-      - name: Copy Bot Source to OCI VM
+      - name: Copy Files to OCI VM
         uses: appleboy/scp-action@master
         with:
           host: 150.136.151.234
           username: ubuntu
           key: ${{ secrets.OCI_SSH_KEY }}
-          source: "bot-src.tar.gz,compose.yml,frps.toml,Caddyfile"
+          source: "bot-src.tar.gz"
           target: "~/oracle-cloud/"
+
+      - name: Copy Deploy Configs to OCI VM
+        uses: appleboy/scp-action@master
+        with:
+          host: 150.136.151.234
+          username: ubuntu
+          key: ${{ secrets.OCI_SSH_KEY }}
+          source: "deploy/oracle-cloud/compose.yml,deploy/oracle-cloud/frps.toml,deploy/oracle-cloud/Caddyfile"
+          target: "~/oracle-cloud/"
+          strip_components: 2
 
       - name: Build and Relaunch Bot Container on OCI VM
         uses: appleboy/ssh-action@master
@@ -72,6 +92,8 @@ jobs:
           script: |
             cd ~/oracle-cloud
             tar -xzf bot-src.tar.gz
-            docker build -t crystaltides-bot:latest -f crystaltides/apps/discord-bot/Dockerfile ./crystaltides
-            docker compose up -d
+            docker build -t crystaltides-bot:latest \
+              -f crystaltides/apps/discord-bot/Dockerfile \
+              ./crystaltides
+            docker compose up -d bot
             rm -rf crystaltides bot-src.tar.gz
