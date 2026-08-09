@@ -30,9 +30,8 @@ jobs:
           node-version: 24
 
       # Only install the bot workspace and its internal deps (shared, etc.)
-      # --install-strategy=nested avoids hoisting conflicts with root overrides
       - name: Install Bot Dependencies
-        run: npm install --workspace=discord-bot --include-workspace-root --no-audit --install-strategy=nested
+        run: npm install --workspace=discord-bot --include-workspace-root --no-audit --legacy-peer-deps
 
       - name: Typecheck Discord Bot
         working-directory: apps/discord-bot
