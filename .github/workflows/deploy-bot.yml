@@ -29,7 +29,6 @@ jobs:
         with:
           node-version: 24
 
-      # Only install the bot workspace and its internal deps (shared, etc.)
       - name: Install Bot Dependencies
         run: npm install --workspace=discord-bot --include-workspace-root --no-audit --legacy-peer-deps
 
@@ -54,10 +53,18 @@ jobs:
       - name: Checkout Discord Bot Submodule
         run: git submodule update --init apps/discord-bot
 
-      # The Dockerfile expects the monorepo root as build context.
-      # Pack everything under a top-level 'crystaltides/' prefix so the
-      # VPS can extract and docker-build with the correct paths.
-      - name: Package Bot Source
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install Dependencies
+        run: npm install --workspace=discord-bot --include-workspace-root --no-audit --legacy-peer-deps
+
+      - name: Build Bot & Shared Packages
+        run: npx turbo run build --filter=discord-bot --filter=@crystaltides/shared
+
+      - name: Package Bot Runtime
         run: |
           mkdir -p apps/game-bridge
           if [ ! -f apps/game-bridge/package.json ]; then
@@ -65,7 +72,7 @@ jobs:
           fi
           tar -czf bot-src.tar.gz \
             --transform='s,^,crystaltides/,' \
-            package.json package-lock.json turbo.json \
+            package.json package-lock.json turbo.json node_modules \
             apps/discord-bot \
             packages/shared \
             packages/eslint-config/package.json \
