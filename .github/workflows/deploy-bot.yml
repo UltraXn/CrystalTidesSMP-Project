@@ -59,6 +59,10 @@ jobs:
       # VPS can extract and docker-build with the correct paths.
       - name: Package Bot Source
         run: |
+          mkdir -p apps/game-bridge
+          if [ ! -f apps/game-bridge/package.json ]; then
+            echo '{"name":"@crystaltides/game-bridge","version":"1.0.0"}' > apps/game-bridge/package.json
+          fi
           tar -czf bot-src.tar.gz \
             --transform='s,^,crystaltides/,' \
             package.json package-lock.json turbo.json \
