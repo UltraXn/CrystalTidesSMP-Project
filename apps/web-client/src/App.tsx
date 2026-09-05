@@ -13,6 +13,7 @@ const Login = lazy(() => import("./pages/Login"))
 const Register = lazy(() => import("./pages/Register"))
 const RegisterSuccess = lazy(() => import("./pages/RegisterSuccess"))
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"))
+const ResetPassword = lazy(() => import("./pages/ResetPassword"))
 const Verify = lazy(() => import("./pages/Verify"))
 const Maintenance = lazy(() => import("./pages/Maintenance"))
 const NotFound = lazy(() => import("./pages/NotFound"))
@@ -36,6 +37,7 @@ const TicketDetail = lazy(() => import("./pages/TicketDetail"))
 const PolicyPage = lazy(() => import("./pages/PolicyPage"))
 const Wiki = lazy(() => import("./pages/Wiki"))
 const AboutRedesign = lazy(() => import("./pages/AboutRedesign"))
+const LauncherPage = lazy(() => import("./pages/LauncherPage"))
 
 
 const router = createBrowserRouter([
@@ -50,6 +52,7 @@ const router = createBrowserRouter([
             { path: "account", element: <LazyWrapper minHeight="80vh"><Account /></LazyWrapper> },
             { path: "login", element: <LazyWrapper><Login /></LazyWrapper> },
             { path: "forgot-password", element: <LazyWrapper><ForgotPassword /></LazyWrapper> },
+            { path: "reset-password", element: <LazyWrapper><ResetPassword /></LazyWrapper> },
             { path: "register", element: <LazyWrapper><Register /></LazyWrapper> },
             { path: "register/success", element: <LazyWrapper><RegisterSuccess /></LazyWrapper> },
             { path: "gacha", element: <LazyWrapper><Gacha /></LazyWrapper> },
@@ -69,6 +72,7 @@ const router = createBrowserRouter([
             { path: "wiki", element: <LazyWrapper><Wiki /></LazyWrapper> },
             { path: "wiki/:slug", element: <LazyWrapper><Wiki /></LazyWrapper> },
             { path: "about-redesign", element: <LazyWrapper><AboutRedesign /></LazyWrapper> },
+            { path: "launcher", element: <LazyWrapper><LauncherPage /></LazyWrapper> },
 
             { path: "verify", element: <LazyWrapper><Verify /></LazyWrapper> },
             { path: "maintenance", element: <LazyWrapper><Maintenance /></LazyWrapper> },

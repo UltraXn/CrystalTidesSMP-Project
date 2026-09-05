@@ -20,6 +20,6 @@ When("selecciono la categoría {string} en los filtros", (category: string) => {
   cy.get('select').last().select(category);
 });
 
-Then("el Panel debe listar solo los mobs con la etiqueta {string}", (category: string) => {
+Then("el Panel debe listar solo los mobs con la etiqueta {string}", (_category: string) => {
   cy.get('.article-card').should("exist");
 });

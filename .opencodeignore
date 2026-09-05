@@ -1,0 +1,27 @@
+# Heavy build & dependency directories
+node_modules/
+**/node_modules/
+.opencode/node_modules/
+target/
+dist/
+build/
+storybook-static/
+.turbo/
+.trunk/
+.wrangler/
+.unlazy/
+.gemini/
+.idea/
+.vscode/
+
+# Lock files and logs
+*.lock
+package-lock.json
+*.log
+*.tmp
+
+# Knowledge graph cache & deep raw files
+graphify-out/obsidian/
+graphify-out/raw/
+.aider.*
+

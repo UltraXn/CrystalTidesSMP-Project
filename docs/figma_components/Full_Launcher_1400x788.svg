@@ -1,0 +1,240 @@
+<svg width="1400" height="788" viewBox="0 0 1400 788" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="1400" y2="788" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#050307"/>
+      <stop offset="50%" stop-color="#090510"/>
+      <stop offset="100%" stop-color="#040206"/>
+    </linearGradient>
+    <linearGradient id="launchGrad" x1="0" y1="0" x2="290" y2="76" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#34D399"/>
+      <stop offset="40%" stop-color="#2DD4BF"/>
+      <stop offset="100%" stop-color="#14B8A6"/>
+    </linearGradient>
+    <linearGradient id="glassCardGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.04"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.015"/>
+    </linearGradient>
+    <filter id="purpleGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="20" result="blur" />
+    </filter>
+    <filter id="tealGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="14" result="blur" />
+    </filter>
+  </defs>
+
+  <rect id="Background" width="1400" height="788" fill="url(#bgGrad)"/>
+  <circle id="AmbientPurple" cx="540" cy="220" r="300" fill="#7E22CE" fill-opacity="0.07" filter="url(#purpleGlow)"/>
+  <circle id="AmbientTeal" cx="260" cy="260" r="200" fill="#0D9488" fill-opacity="0.05" filter="url(#tealGlow)"/>
+
+  <!-- 1. LEFT SIDEBAR -->
+  <g id="Sidebar" transform="translate(0, 0)">
+    <rect width="74" height="788" fill="#060308" stroke="#FFFFFF" stroke-opacity="0.06" stroke-width="1"/>
+    <g id="Logo" transform="translate(20, 20)">
+      <rect width="34" height="34" rx="9" fill="#2DD4BF" fill-opacity="0.15" stroke="#2DD4BF" stroke-width="1.2"/>
+      <text x="17" y="23" fill="#2DD4BF" font-family="Inter, sans-serif" font-size="17" font-weight="900" text-anchor="middle">C</text>
+    </g>
+    <line x1="24" y1="72" x2="50" y2="72" stroke="#FFFFFF" stroke-opacity="0.08" stroke-width="1"/>
+    <g id="Nav_Home" transform="translate(17, 88)">
+      <rect width="40" height="40" rx="11" fill="#A855F7" fill-opacity="0.16" stroke="#A855F7" stroke-width="1.2"/>
+      <path d="M12 26V17L20 11L28 17V26C28 27.1 27.1 28 26 28H14C12.9 28 12 27.1 12 26Z" stroke="#C084FC" stroke-width="1.8" fill="none"/>
+    </g>
+    <g id="Nav_Accounts" transform="translate(17, 144)">
+      <circle cx="20" cy="14" r="7.5" stroke="#FFFFFF" stroke-opacity="0.4" stroke-width="1.8" fill="none"/>
+      <path d="M9 31C9 26 14 23.5 20 23.5C26 23.5 31 26 31 31" stroke="#FFFFFF" stroke-opacity="0.4" stroke-width="1.8" fill="none"/>
+    </g>
+    <g id="Nav_Notifications" transform="translate(17, 198)">
+      <path d="M14 17C14 13.7 16.7 11 20 11C23.3 11 26 13.7 26 17V24L29 27H11L14 24V17Z" stroke="#FFFFFF" stroke-opacity="0.4" stroke-width="1.8" fill="none"/>
+      <circle cx="26" cy="12" r="2.5" fill="#2DD4BF"/>
+    </g>
+    <line x1="24" y1="246" x2="50" y2="246" stroke="#FFFFFF" stroke-opacity="0.08" stroke-width="1"/>
+    <g id="Nav_Chat" transform="translate(17, 262)">
+      <rect x="10" y="12" width="20" height="15" rx="4" stroke="#FFFFFF" stroke-opacity="0.4" stroke-width="1.8" fill="none"/>
+      <path d="M14 27L10 31V27H14Z" fill="#FFFFFF" fill-opacity="0.4"/>
+    </g>
+    <g id="Nav_Mods" transform="translate(17, 312)">
+      <rect x="10" y="10" width="20" height="20" rx="5" stroke="#FFFFFF" stroke-opacity="0.4" stroke-width="1.8" fill="none"/>
+      <line x1="10" y1="20" x2="30" y2="20" stroke="#FFFFFF" stroke-opacity="0.4" stroke-width="1.8"/>
+    </g>
+    <g id="Nav_Stats" transform="translate(17, 362)">
+      <circle cx="20" cy="20" r="10" stroke="#FFFFFF" stroke-opacity="0.4" stroke-width="1.8" fill="none"/>
+      <polyline points="20,14 20,20 25,22" stroke="#FFFFFF" stroke-opacity="0.4" stroke-width="1.8" fill="none"/>
+    </g>
+    <g id="Nav_Locker" transform="translate(17, 412)">
+      <rect x="10" y="10" width="20" height="20" rx="4" stroke="#FFFFFF" stroke-opacity="0.4" stroke-width="1.8" fill="none"/>
+      <circle cx="20" cy="20" r="3.5" stroke="#FFFFFF" stroke-opacity="0.4" stroke-width="1.5" fill="none"/>
+    </g>
+    <line x1="24" y1="676" x2="50" y2="676" stroke="#FFFFFF" stroke-opacity="0.08" stroke-width="1"/>
+    <g id="Nav_Store" transform="translate(17, 692)">
+      <circle cx="14" cy="25" r="2.2" fill="#FFFFFF" fill-opacity="0.4"/>
+      <circle cx="25" cy="25" r="2.2" fill="#FFFFFF" fill-opacity="0.4"/>
+      <path d="M10 11H13L16 20H27L29 13H15" stroke="#FFFFFF" stroke-opacity="0.4" stroke-width="1.8" fill="none"/>
+    </g>
+    <g id="Nav_Settings" transform="translate(17, 736)">
+      <circle cx="20" cy="18" r="4.5" stroke="#FFFFFF" stroke-opacity="0.4" stroke-width="1.8" fill="none"/>
+      <path d="M20 9V11 M20 25V27 M11 18H13 M27 18H29" stroke="#FFFFFF" stroke-opacity="0.4" stroke-width="1.8"/>
+    </g>
+  </g>
+
+  <!-- 2. TOP HEADER -->
+  <g id="TopHeader" transform="translate(74, 0)">
+    <rect x="32" y="12" width="138" height="26" rx="7" fill="#FFFFFF" fill-opacity="0.03" stroke="#FFFFFF" stroke-opacity="0.08"/>
+    <circle cx="46" cy="25" r="3.5" fill="#2DD4BF"/>
+    <text x="56" y="29" fill="#FFFFFF" font-family="Inter, sans-serif" font-size="11.5" font-weight="700">Crystal Client</text>
+    <text x="132" y="29" fill="#FFFFFF" fill-opacity="0.35" font-family="Inter, sans-serif" font-size="10.5">0.9.2</text>
+
+    <rect x="180" y="12" width="102" height="26" rx="7" fill="#2DD4BF" fill-opacity="0.08" stroke="#2DD4BF" stroke-opacity="0.25"/>
+    <circle cx="193" cy="25" r="3.5" fill="#2DD4BF"/>
+    <text x="204" y="29" fill="#2DD4BF" font-family="Inter, sans-serif" font-size="11" font-weight="800">9101 Online</text>
+
+    <g transform="translate(980, 14)">
+      <rect x="0" y="3" width="13" height="1.8" fill="#FFFFFF" fill-opacity="0.4"/>
+      <rect x="24" y="0" width="12" height="12" rx="1.5" stroke="#FFFFFF" stroke-opacity="0.4" stroke-width="1.5" fill="none"/>
+      <path d="M48 0L59 11 M59 0L48 11" stroke="#FFFFFF" stroke-opacity="0.4" stroke-width="1.5"/>
+    </g>
+  </g>
+
+  <!-- 3. HERO GREETING -->
+  <g id="HeroGreeting" transform="translate(106, 68)">
+    <text x="0" y="26" fill="#FFFFFF" font-family="Inter, sans-serif" font-size="24" font-weight="800" letter-spacing="-0.02em">Good to see you,</text>
+    <rect x="202" y="4" width="26" height="26" rx="6" fill="#2DD4BF" fill-opacity="0.2" stroke="#FFFFFF" stroke-opacity="0.15"/>
+    <text x="238" y="26" fill="#FFFFFF" font-family="Inter, sans-serif" font-size="24" font-weight="800" letter-spacing="-0.02em">UltraXn</text>
+    <path d="M336 20L342 26L348 20" stroke="#FFFFFF" stroke-opacity="0.6" stroke-width="2.2" fill="none"/>
+
+    <text x="0" y="52" fill="#FFFFFF" fill-opacity="0.45" font-family="Inter, sans-serif" font-size="11.5" font-weight="500">
+      Last played: <tspan fill="#FFFFFF" font-weight="700">CrystalTides SMP</tspan> • 16 hours ago
+    </text>
+    <text x="0" y="68" fill="#FFFFFF" fill-opacity="0.45" font-family="Inter, sans-serif" font-size="11.5" font-weight="500">
+      Total playtime: <tspan fill="#FFFFFF" font-weight="700">1,364h</tspan>
+    </text>
+  </g>
+
+  <!-- 4. ACTION DECK -->
+  <g id="ActionDeck" transform="translate(106, 164)">
+    <g id="LaunchButton">
+      <rect x="0" y="6" width="290" height="70" rx="15" fill="#2DD4BF" fill-opacity="0.25" filter="url(#tealGlow)"/>
+      <rect x="0" y="0" width="290" height="76" rx="15" fill="url(#launchGrad)" stroke="#FFFFFF" stroke-opacity="0.3" stroke-width="1.2"/>
+      <text x="145" y="40" fill="#041A16" font-family="Inter, sans-serif" font-size="28" font-weight="900" letter-spacing="0.18em" text-anchor="middle">LAUNCH</text>
+      <text x="145" y="60" fill="#041A16" fill-opacity="0.85" font-family="Inter, sans-serif" font-size="11.5" font-weight="800" letter-spacing="0.04em" text-anchor="middle">Neoforge 1.21.1</text>
+      <g id="ChangeVersionTab" transform="translate(50, 76)">
+        <path d="M0 0 H190 V16 C190 20.4 186.4 24 182 24 H8 C3.6 24 0 20.4 0 16 V0 Z" fill="#0C0913" stroke="#FFFFFF" stroke-opacity="0.12" stroke-width="1"/>
+        <text x="95" y="16" fill="#FFFFFF" fill-opacity="0.75" font-family="Inter, sans-serif" font-size="9.5" font-weight="800" letter-spacing="0.08em" text-anchor="middle">CAMBIAR VERSIÓN ∨</text>
+      </g>
+    </g>
+
+    <g id="LatestProfiles" transform="translate(318, 0)">
+      <text x="0" y="-8" fill="#FFFFFF" fill-opacity="0.4" font-family="Inter, sans-serif" font-size="10.5" font-weight="800" letter-spacing="0.08em">LATEST PROFILES</text>
+      <rect x="0" y="0" width="310" height="44" rx="11" fill="#FFFFFF" fill-opacity="0.025" stroke="#FFFFFF" stroke-opacity="0.07" stroke-width="1"/>
+      <rect x="10" y="8" width="28" height="28" rx="7" fill="#EF4444" fill-opacity="0.15"/>
+      <circle cx="24" cy="22" r="5" fill="#EF4444"/>
+      <text x="48" y="21" fill="#FFFFFF" font-family="Inter, sans-serif" font-size="12.5" font-weight="700">Hypixel Bedwars</text>
+      <text x="48" y="34" fill="#FFFFFF" fill-opacity="0.45" font-family="Inter, sans-serif" font-size="10" font-weight="600">Forge 1.8.9</text>
+      <circle cx="292" cy="22" r="3.5" fill="#2DD4BF"/>
+
+      <rect x="0" y="52" width="310" height="44" rx="11" fill="#FFFFFF" fill-opacity="0.025" stroke="#FFFFFF" stroke-opacity="0.07" stroke-width="1"/>
+      <rect x="10" y="60" width="28" height="28" rx="7" fill="#F59E0B" fill-opacity="0.15"/>
+      <circle cx="24" cy="74" r="5" fill="#F59E0B"/>
+      <text x="48" y="73" fill="#FFFFFF" fill-opacity="0.85" font-family="Inter, sans-serif" font-size="12.5" font-weight="700">WorldEdit</text>
+      <text x="48" y="86" fill="#FFFFFF" fill-opacity="0.4" font-family="Inter, sans-serif" font-size="10" font-weight="600">Fabric 1.21.11</text>
+    </g>
+
+    <g id="Partners" transform="translate(652, 0)">
+      <text x="0" y="-8" fill="#FFFFFF" fill-opacity="0.4" font-family="Inter, sans-serif" font-size="10.5" font-weight="800" letter-spacing="0.08em">PARTNERS</text>
+      <rect x="0" y="0" width="330" height="96" rx="14" fill="#FFFFFF" fill-opacity="0.02" stroke="#FFFFFF" stroke-opacity="0.06" stroke-width="1"/>
+      <g transform="translate(24, 16)">
+        <circle cx="20" cy="18" r="16" fill="#FFFFFF" fill-opacity="0.06" stroke="#FFFFFF" stroke-opacity="0.1"/>
+        <circle cx="68" cy="18" r="16" fill="#FFFFFF" fill-opacity="0.06" stroke="#FFFFFF" stroke-opacity="0.1"/>
+        <circle cx="116" cy="18" r="16" fill="#FFFFFF" fill-opacity="0.06" stroke="#FFFFFF" stroke-opacity="0.1"/>
+        <circle cx="164" cy="18" r="16" fill="#FFFFFF" fill-opacity="0.06" stroke="#FFFFFF" stroke-opacity="0.1"/>
+        <circle cx="212" cy="18" r="16" fill="#FFFFFF" fill-opacity="0.06" stroke="#FFFFFF" stroke-opacity="0.1"/>
+        <circle cx="260" cy="18" r="16" fill="#FFFFFF" fill-opacity="0.06" stroke="#FFFFFF" stroke-opacity="0.1"/>
+        <circle cx="20" cy="54" r="16" fill="#FFFFFF" fill-opacity="0.06" stroke="#FFFFFF" stroke-opacity="0.1"/>
+        <circle cx="68" cy="54" r="16" fill="#FFFFFF" fill-opacity="0.06" stroke="#FFFFFF" stroke-opacity="0.1"/>
+        <circle cx="116" cy="54" r="16" fill="#FFFFFF" fill-opacity="0.06" stroke="#FFFFFF" stroke-opacity="0.1"/>
+        <circle cx="164" cy="54" r="16" fill="#FFFFFF" fill-opacity="0.06" stroke="#FFFFFF" stroke-opacity="0.1"/>
+        <circle cx="212" cy="54" r="16" fill="#FFFFFF" fill-opacity="0.06" stroke="#FFFFFF" stroke-opacity="0.1"/>
+        <circle cx="260" cy="54" r="16" fill="#FFFFFF" fill-opacity="0.06" stroke="#FFFFFF" stroke-opacity="0.1"/>
+      </g>
+    </g>
+  </g>
+
+  <!-- 5. NEWS FEED -->
+  <g id="NewsFeed" transform="translate(106, 308)">
+    <text x="0" y="0" fill="#FFFFFF" fill-opacity="0.4" font-family="Inter, sans-serif" font-size="11" font-weight="800" letter-spacing="0.08em">NEWS FEED</text>
+    
+    <g id="NewsCard1" transform="translate(0, 16)">
+      <rect width="476" height="140" rx="14" fill="url(#glassCardGrad)" stroke="#FFFFFF" stroke-opacity="0.07" stroke-width="1"/>
+      <rect x="14" y="14" width="168" height="112" rx="10" fill="#150E24" stroke="#FFFFFF" stroke-opacity="0.08"/>
+      <text x="200" y="38" fill="#FFFFFF" font-family="Inter, sans-serif" font-size="15" font-weight="800">CHANGELOG</text>
+      <text x="200" y="58" fill="#FFFFFF" fill-opacity="0.45" font-family="Inter, sans-serif" font-size="11.5">• Performance optimizations</text>
+      <text x="200" y="74" fill="#FFFFFF" fill-opacity="0.45" font-family="Inter, sans-serif" font-size="11.5">• General bug fixes &amp; stability</text>
+      <rect x="200" y="96" width="94" height="26" rx="6" fill="#FFFFFF" fill-opacity="0.06" stroke="#FFFFFF" stroke-opacity="0.1"/>
+      <text x="247" y="113" fill="#FFFFFF" fill-opacity="0.8" font-family="Inter, sans-serif" font-size="10" font-weight="700" text-anchor="middle">READ MORE</text>
+    </g>
+
+    <g id="NewsCard2" transform="translate(500, 16)">
+      <rect width="476" height="140" rx="14" fill="url(#glassCardGrad)" stroke="#FFFFFF" stroke-opacity="0.07" stroke-width="1"/>
+      <rect x="14" y="14" width="168" height="112" rx="10" fill="#150E24" stroke="#FFFFFF" stroke-opacity="0.08"/>
+      <rect x="24" y="24" width="84" height="20" rx="5" fill="#2DD4BF" fill-opacity="0.16" stroke="#2DD4BF" stroke-opacity="0.3"/>
+      <text x="66" y="38" fill="#2DD4BF" font-family="Inter, sans-serif" font-size="9" font-weight="800" text-anchor="middle">NEW VERSION!</text>
+      <text x="200" y="38" fill="#FFFFFF" font-family="Inter, sans-serif" font-size="15" font-weight="800">Minecraft 1.21.1</text>
+      <text x="200" y="58" fill="#FFFFFF" fill-opacity="0.45" font-family="Inter, sans-serif" font-size="11.5">Ready in CrystalTides</text>
+      <rect x="200" y="96" width="94" height="26" rx="6" fill="#FFFFFF" fill-opacity="0.06" stroke="#FFFFFF" stroke-opacity="0.1"/>
+      <text x="247" y="113" fill="#FFFFFF" fill-opacity="0.8" font-family="Inter, sans-serif" font-size="10" font-weight="700" text-anchor="middle">READ MORE</text>
+    </g>
+
+    <g id="Banner1" transform="translate(0, 172)">
+      <rect width="476" height="124" rx="14" fill="url(#glassCardGrad)" stroke="#FFFFFF" stroke-opacity="0.06" stroke-width="1"/>
+      <text x="24" y="44" fill="#F59E0B" font-family="Inter, sans-serif" font-size="10.5" font-weight="800" letter-spacing="0.08em">PARTNER PROGRAM</text>
+      <text x="24" y="74" fill="#FFFFFF" font-family="Inter, sans-serif" font-size="20" font-weight="900">BECOME A CREATOR</text>
+      <text x="24" y="96" fill="#FFFFFF" fill-opacity="0.45" font-family="Inter, sans-serif" font-size="11.5">Get your custom code, earn revenue, and unlock exclusive cosmetics.</text>
+    </g>
+
+    <g id="Banner2" transform="translate(500, 172)">
+      <rect width="476" height="124" rx="14" fill="url(#glassCardGrad)" stroke="#FFFFFF" stroke-opacity="0.06" stroke-width="1"/>
+      <text x="24" y="44" fill="#EF4444" font-family="Inter, sans-serif" font-size="10.5" font-weight="800" letter-spacing="0.08em">NEW MODS!</text>
+      <text x="24" y="74" fill="#FFFFFF" font-family="Inter, sans-serif" font-size="20" font-weight="900">NEW MODULES &amp; HUD</text>
+      <text x="24" y="96" fill="#FFFFFF" fill-opacity="0.45" font-family="Inter, sans-serif" font-size="11.5">Advanced keystrokes, combat HUD, and weather changer.</text>
+    </g>
+  </g>
+
+  <!-- 6. RIGHT FRIENDS PANEL -->
+  <g id="FriendsPanel" transform="translate(1128, 0)">
+    <rect width="272" height="788" fill="#060308" stroke="#FFFFFF" stroke-opacity="0.06" stroke-width="1"/>
+    <text x="20" y="36" fill="#FFFFFF" font-family="Inter, sans-serif" font-size="15" font-weight="800">Friends</text>
+    <line x1="90" y1="22" x2="90" y2="38" stroke="#FFFFFF" stroke-opacity="0.15" stroke-width="1"/>
+    <text x="104" y="36" fill="#FFFFFF" fill-opacity="0.4" font-family="Inter, sans-serif" font-size="15" font-weight="600">Requests</text>
+    <rect x="20" y="56" width="232" height="36" rx="9" fill="#FFFFFF" fill-opacity="0.03" stroke="#FFFFFF" stroke-opacity="0.08"/>
+    <circle cx="38" cy="74" r="4.5" stroke="#FFFFFF" stroke-opacity="0.35" stroke-width="1.5" fill="none"/>
+    <line x1="42" y1="78" x2="46" y2="82" stroke="#FFFFFF" stroke-opacity="0.35" stroke-width="1.5"/>
+    <text x="54" y="78" fill="#FFFFFF" fill-opacity="0.3" font-family="Inter, sans-serif" font-size="12">Find a player...</text>
+    <text x="20" y="122" fill="#FFFFFF" fill-opacity="0.45" font-family="Inter, sans-serif" font-size="11" font-weight="800">8 ONLINE</text>
+    
+    <g transform="translate(20, 136)">
+      <rect x="0" y="0" width="32" height="32" rx="8" fill="#2DD4BF" fill-opacity="0.15"/>
+      <circle cx="30" cy="30" r="3.5" fill="#2DD4BF" stroke="#060308" stroke-width="1.5"/>
+      <text x="42" y="16" fill="#FFFFFF" font-family="Inter, sans-serif" font-size="13" font-weight="700">172px</text>
+      <text x="42" y="28" fill="#2DD4BF" font-family="Inter, sans-serif" font-size="10.5" font-weight="600">In-game: Hypixel</text>
+    </g>
+
+    <g transform="translate(20, 180)">
+      <rect x="0" y="0" width="32" height="32" rx="8" fill="#A855F7" fill-opacity="0.15"/>
+      <circle cx="30" cy="30" r="3.5" fill="#2DD4BF" stroke="#060308" stroke-width="1.5"/>
+      <text x="42" y="16" fill="#FFFFFF" font-family="Inter, sans-serif" font-size="13" font-weight="700">daaaavidds</text>
+      <text x="42" y="28" fill="#2DD4BF" font-family="Inter, sans-serif" font-size="10.5" font-weight="600">In-game: Singleplayer</text>
+    </g>
+
+    <g transform="translate(20, 224)">
+      <rect x="0" y="0" width="32" height="32" rx="8" fill="#3B82F6" fill-opacity="0.15"/>
+      <circle cx="30" cy="30" r="3.5" fill="#2DD4BF" stroke="#060308" stroke-width="1.5"/>
+      <text x="42" y="16" fill="#FFFFFF" font-family="Inter, sans-serif" font-size="13" font-weight="700">masaya46</text>
+      <text x="42" y="28" fill="#FFFFFF" fill-opacity="0.4" font-family="Inter, sans-serif" font-size="10.5">In Launcher</text>
+    </g>
+
+    <text x="20" y="286" fill="#FFFFFF" fill-opacity="0.3" font-family="Inter, sans-serif" font-size="11" font-weight="800">34 OFFLINE</text>
+    <g transform="translate(20, 300)">
+      <rect x="0" y="0" width="32" height="32" rx="8" fill="#FFFFFF" fill-opacity="0.05"/>
+      <text x="42" y="16" fill="#FFFFFF" fill-opacity="0.6" font-family="Inter, sans-serif" font-size="13" font-weight="600">XerxerBro</text>
+      <text x="42" y="28" fill="#FFFFFF" fill-opacity="0.25" font-family="Inter, sans-serif" font-size="10.5">Offline for 3 days</text>
+    </g>
+  </g>
+</svg>

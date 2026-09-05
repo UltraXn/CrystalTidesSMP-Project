@@ -27,7 +27,7 @@ ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL \
 COPY . .
 RUN npx turbo run build --filter=@crystaltides/client...
 
-FROM nginxinc/nginx-unprivileged:alpine AS runner
+FROM nginxinc/nginx-unprivileged:1.27-alpine AS runner
 USER root
 RUN apk add --no-cache curl
 USER 101

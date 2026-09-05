@@ -14,45 +14,92 @@
     <link rel="canonical" href="https://crystaltidessmp.net/" />
     <link rel="alternate" type="text/plain" href="/llms.txt" title="LLMs.txt" />
     
-    <!-- Open Graph / Facebook -->
+    <!-- Universal Open Graph (Discord, Reddit, WhatsApp, Facebook, LinkedIn, Telegram) -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://crystaltidessmp.net/" />
     <meta property="og:site_name" content="CrystalTides SMP" />
-    <meta
-      property="og:title"
-      content="CrystalTides SMP - Servidor de Minecraft"
-    />
-    <meta
-      property="og:description"
-      content="Únete a la mejor comunidad de Minecraft SMP. Aventuras, eventos y diversión sin límites."
-    />
-    <meta property="og:image" content="/images/ui/logo.webp" />
+    <meta property="og:title" content="CrystalTides SMP - Servidor de Minecraft Survival 1.21+" />
+    <meta property="og:description" content="Servidor de Minecraft Java Edition (1.21+) con comunidad activa, economía, jefes RPG 3D, eventos en vivo y lanzador oficial en 1-Click." />
+    <meta property="og:image" content="https://crystaltidessmp.net/images/ui/logo.webp" />
+    <meta property="og:image:secure_url" content="https://crystaltidessmp.net/images/ui/logo.webp" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="CrystalTides SMP Minecraft Server" />
 
-    <!-- Twitter Cards -->
+    <!-- Twitter / X Cards -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="CrystalTides SMP - Servidor de Minecraft" />
-    <meta name="twitter:description" content="CrystalTides SMP: Servidor de Minecraft Java Edition con comunidad, aventuras y diversión." />
-    <meta name="twitter:image" content="/images/ui/logo.webp" />
+    <meta name="twitter:site" content="@CrystalTidesSMP" />
+    <meta name="twitter:creator" content="@CrystalTidesSMP" />
+    <meta name="twitter:title" content="CrystalTides SMP - Servidor de Minecraft Survival 1.21+" />
+    <meta name="twitter:description" content="Servidor de Minecraft Java Edition (1.21+) con comunidad activa, economía, jefes RPG 3D y eventos en vivo." />
+    <meta name="twitter:image" content="https://crystaltidessmp.net/images/ui/logo.webp" />
 
+    <!-- Theme Color for Discord Embed Accent & Mobile Browsers -->
     <meta name="theme-color" content="#0F969C" />
     <title>CrystalTides SMP - Servidor de Minecraft Survival</title>
 
-    <!-- Schema.org JSON-LD Structured Data for Google -->
+    <!-- Schema.org JSON-LD Structured Data Graph for Google & AI LLMs (GEO/AIO) -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": "VideoGame",
-      "name": "CrystalTides SMP",
-      "description": "Servidor de Minecraft Java Edition (1.21+) con supervivencia, comunidad, eventos y experiencias personalizadas.",
-      "url": "https://crystaltidessmp.net",
-      "genre": ["Survival", "SMP", "Multiplayer"],
-      "gamePlatform": ["PC", "Java Edition"],
-      "inLanguage": "es",
-      "author": {
-        "@type": "Organization",
-        "name": "CrystalTides SMP Team",
-        "url": "https://crystaltidessmp.net"
-      }
+      "@graph": [
+        {
+          "@type": "VideoGame",
+          "@id": "https://crystaltidessmp.net/#game",
+          "name": "CrystalTides SMP",
+          "description": "Servidor de Minecraft Java Edition (1.21+) con supervivencia modded, comunidad activa, economía, eventos y mecánicas exclusivas.",
+          "url": "https://crystaltidessmp.net",
+          "genre": ["Survival", "SMP", "Multiplayer", "RPG"],
+          "gamePlatform": ["PC", "Java Edition"],
+          "inLanguage": ["es", "en"],
+          "author": {
+            "@type": "Organization",
+            "name": "CrystalTides SMP Team",
+            "url": "https://crystaltidessmp.net"
+          }
+        },
+        {
+          "@type": "FAQPage",
+          "@id": "https://crystaltidessmp.net/#faq",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "¿Cuál es la IP del servidor CrystalTides SMP?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "La IP oficial para unirse a CrystalTides SMP en Minecraft Java Edition (1.21.x) es mc.crystaltidessmp.net."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "¿Qué versión de Minecraft es necesaria para jugar en CrystalTides SMP?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "CrystalTides SMP es compatible con Minecraft Java Edition versiones 1.21 y superiores."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "¿Qué características tiene el servidor CrystalTides SMP?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "El servidor incluye supervivencia RPG modded con jefes 3D, economía propia con KilluCoins, sistema Gacha cosmético, mapa dinámico 2D/3D (Dynmap), foro de la comunidad y soporte técnico."
+              }
+            }
+          ]
+        }
+      ]
+    }
+    </script>
+    <!-- Speculation Rules API for instant prefetching on supported Chromium browsers -->
+    <script type="speculationrules">
+    {
+      "prefetch": [
+        {
+          "source": "list",
+          "urls": ["/wiki", "/forum", "/gacha", "/rules", "/status", "/donors", "/blog"]
+        }
+      ]
     }
     </script>
   </head>

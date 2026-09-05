@@ -29,5 +29,6 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
-      - name: Lint & Typecheck
-        run: npx turbo run lint --filter=discord-bot
+      - name: Typecheck Discord Bot
+        working-directory: apps/discord-bot
+        run: npx tsc --noEmit

@@ -1,0 +1,63 @@
+<svg width="980" height="110" viewBox="0 0 980 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="btnGrad" x1="0" y1="0" x2="290" y2="76" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#34D399"/>
+      <stop offset="40%" stop-color="#2DD4BF"/>
+      <stop offset="100%" stop-color="#14B8A6"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="12" result="blur" />
+    </filter>
+  </defs>
+
+  <!-- 1. LAUNCH BUTTON -->
+  <g id="LaunchButton">
+    <rect x="0" y="6" width="290" height="70" rx="15" fill="#2DD4BF" fill-opacity="0.25" filter="url(#glow)"/>
+    <rect x="0" y="0" width="290" height="76" rx="15" fill="url(#btnGrad)" stroke="#FFFFFF" stroke-opacity="0.3" stroke-width="1.2"/>
+    <text x="145" y="40" fill="#041A16" font-family="Inter, sans-serif" font-size="28" font-weight="900" letter-spacing="0.18em" text-anchor="middle">LAUNCH</text>
+    <text x="145" y="60" fill="#041A16" fill-opacity="0.85" font-family="Inter, sans-serif" font-size="11.5" font-weight="800" letter-spacing="0.04em" text-anchor="middle">Neoforge 1.21.1</text>
+    <!-- Change version tab -->
+    <g id="ChangeVersionTab" transform="translate(50, 76)">
+      <path d="M0 0 H190 V16 C190 20.4 186.4 24 182 24 H8 C3.6 24 0 20.4 0 16 V0 Z" fill="#0C0913" stroke="#FFFFFF" stroke-opacity="0.12" stroke-width="1"/>
+      <text x="95" y="16" fill="#FFFFFF" fill-opacity="0.75" font-family="Inter, sans-serif" font-size="9.5" font-weight="800" letter-spacing="0.08em" text-anchor="middle">CAMBIAR VERSIÓN ∨</text>
+    </g>
+  </g>
+
+  <!-- 2. LATEST PROFILES -->
+  <g id="LatestProfiles" transform="translate(320, 0)">
+    <text x="0" y="-8" fill="#FFFFFF" fill-opacity="0.4" font-family="Inter, sans-serif" font-size="10.5" font-weight="800" letter-spacing="0.08em">LATEST PROFILES</text>
+    <rect x="0" y="0" width="310" height="44" rx="11" fill="#FFFFFF" fill-opacity="0.025" stroke="#FFFFFF" stroke-opacity="0.07" stroke-width="1"/>
+    <rect x="10" y="8" width="28" height="28" rx="7" fill="#EF4444" fill-opacity="0.15"/>
+    <circle cx="24" cy="22" r="5" fill="#EF4444"/>
+    <text x="48" y="21" fill="#FFFFFF" font-family="Inter, sans-serif" font-size="12.5" font-weight="700">Hypixel Bedwars</text>
+    <text x="48" y="34" fill="#FFFFFF" fill-opacity="0.45" font-family="Inter, sans-serif" font-size="10" font-weight="600">Forge 1.8.9</text>
+    <circle cx="292" cy="22" r="3.5" fill="#2DD4BF"/>
+
+    <rect x="0" y="52" width="310" height="44" rx="11" fill="#FFFFFF" fill-opacity="0.025" stroke="#FFFFFF" stroke-opacity="0.07" stroke-width="1"/>
+    <rect x="10" y="60" width="28" height="28" rx="7" fill="#F59E0B" fill-opacity="0.15"/>
+    <circle cx="24" cy="74" r="5" fill="#F59E0B"/>
+    <text x="48" y="73" fill="#FFFFFF" fill-opacity="0.85" font-family="Inter, sans-serif" font-size="12.5" font-weight="700">WorldEdit</text>
+    <text x="48" y="86" fill="#FFFFFF" fill-opacity="0.4" font-family="Inter, sans-serif" font-size="10" font-weight="600">Fabric 1.21.11</text>
+  </g>
+
+  <!-- 3. PARTNERS -->
+  <g id="Partners" transform="translate(660, 0)">
+    <text x="0" y="-8" fill="#FFFFFF" fill-opacity="0.4" font-family="Inter, sans-serif" font-size="10.5" font-weight="800" letter-spacing="0.08em">PARTNERS</text>
+    <rect x="0" y="0" width="320" height="96" rx="14" fill="#FFFFFF" fill-opacity="0.02" stroke="#FFFFFF" stroke-opacity="0.06" stroke-width="1"/>
+    <g transform="translate(24, 16)">
+      <circle cx="20" cy="18" r="16" fill="#FFFFFF" fill-opacity="0.06" stroke="#FFFFFF" stroke-opacity="0.1"/>
+      <circle cx="68" cy="18" r="16" fill="#FFFFFF" fill-opacity="0.06" stroke="#FFFFFF" stroke-opacity="0.1"/>
+      <circle cx="116" cy="18" r="16" fill="#FFFFFF" fill-opacity="0.06" stroke="#FFFFFF" stroke-opacity="0.1"/>
+      <circle cx="164" cy="18" r="16" fill="#FFFFFF" fill-opacity="0.06" stroke="#FFFFFF" stroke-opacity="0.1"/>
+      <circle cx="212" cy="18" r="16" fill="#FFFFFF" fill-opacity="0.06" stroke="#FFFFFF" stroke-opacity="0.1"/>
+      <circle cx="260" cy="18" r="16" fill="#FFFFFF" fill-opacity="0.06" stroke="#FFFFFF" stroke-opacity="0.1"/>
+
+      <circle cx="20" cy="54" r="16" fill="#FFFFFF" fill-opacity="0.06" stroke="#FFFFFF" stroke-opacity="0.1"/>
+      <circle cx="68" cy="54" r="16" fill="#FFFFFF" fill-opacity="0.06" stroke="#FFFFFF" stroke-opacity="0.1"/>
+      <circle cx="116" cy="54" r="16" fill="#FFFFFF" fill-opacity="0.06" stroke="#FFFFFF" stroke-opacity="0.1"/>
+      <circle cx="164" cy="54" r="16" fill="#FFFFFF" fill-opacity="0.06" stroke="#FFFFFF" stroke-opacity="0.1"/>
+      <circle cx="212" cy="54" r="16" fill="#FFFFFF" fill-opacity="0.06" stroke="#FFFFFF" stroke-opacity="0.1"/>
+      <circle cx="260" cy="54" r="16" fill="#FFFFFF" fill-opacity="0.06" stroke="#FFFFFF" stroke-opacity="0.1"/>
+    </g>
+  </g>
+</svg>

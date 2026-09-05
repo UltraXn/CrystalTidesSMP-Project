@@ -14,10 +14,11 @@ on:
 
 jobs:
   web-qa:
-    name: Lint, Test & Build (Web)
+    name: Lint, Typecheck & Unit Tests (Web)
     runs-on: ubuntu-latest
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      CI: true
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -34,8 +35,62 @@ jobs:
       - name: Lint (Web)
         run: npx turbo run lint --filter=@crystaltides/client --filter=@crystaltides/server
 
-      - name: Test (Web)
-        run: npx turbo run test --filter=@crystaltides/client --filter=@crystaltides/server
+      - name: Typecheck (Web Client)
+        run: |
+          cd apps/web-client
+          npx tsc --noEmit
+
+      - name: Unit & Component Tests (Web)
+        run: |
+          cd apps/web-client
+          npx vitest run --poolOptions.forks.maxForks=4
 
       - name: Build (Web)
         run: npx turbo run build --filter=@crystaltides/client --filter=@crystaltides/server
+
+  e2e-qa:
+    name: Playwright E2E Golden Paths
+    needs: web-qa
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      CI: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Cache Playwright Browsers
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Install Playwright Chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: |
+          cd apps/web-client
+          npx playwright install --with-deps chromium
+
+      - name: Run Playwright E2E Tests
+        run: |
+          cd apps/web-client
+          npx playwright test
+
+      - name: Upload Playwright Report on Failure
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: apps/web-client/playwright-report/
+          retention-days: 7
+

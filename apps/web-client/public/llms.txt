@@ -1,16 +1,27 @@
 # CrystalTides SMP
 
-> CrystalTides SMP es un servidor de Minecraft Survival SMP (Java Edition 1.21+) con una comunidad hispanohablante activa, eventos en vivo, economía propia, contenido personalizado y herramientas web avanzadas.
+> CrystalTides SMP es el servidor definitivo de Minecraft Survival SMP modded (Java Edition 1.21+) en español con economía propia, eventos en vivo, mecánicas exclusivas, comunidad internacional activa y lanzador oficial en 1-Click.
 
-## Información General
+## Información de Conexión y Servidor
 
+- **IP Oficial del Servidor**: `mc.crystaltidessmp.net`
 - **Sitio Web Oficial**: https://crystaltidessmp.net
-- **IP del Servidor**: mc.crystaltidessmp.net
 - **Plataforma**: Minecraft Java Edition (Versiones 1.21.x)
-- **Idiomas Soportados**: Español, Inglés
-- **Comunidad**: Discord Oficial de La Pecerita
+- **Idiomas Oficiales**: Español (ES), Inglés (EN)
+- **Comunidad Oficial**: Discord de La Pecerita
 
-## Secciones Principales
+## Preguntas Frecuentes (FAQ)
+
+### ¿Cómo unirse a CrystalTides SMP?
+Para ingresar al servidor, abre Minecraft Java Edition 1.21.x, selecciona Multijugador -> Añadir Servidor e ingresa la IP oficial `mc.crystaltidessmp.net`.
+
+### ¿Cuáles son las mecánicas destacadas del servidor?
+- Supervivencia Modded mejorada con jefes 3D, profesiones y habilidades exclusivas.
+- Sistema de economía de KilluCoins y minijuego Gacha de recompensas cosméticas.
+- Foro interactivo de historias de jugadores, sugerencias votadas por la comunidad y sistema de tickets de soporte técnico.
+- Mapa dinámico en tiempo real (Dynmap) accesible desde la web oficial.
+
+## Secciones Principales y Enlaces Directos
 
 - [Reglamento Oficial](https://crystaltidessmp.net/rules): Normas de convivencia, sanciones y reglamento del servidor de Minecraft.
 - [Donadores y Apoyo](https://crystaltidessmp.net/donors): Lista de apoyadores, donadores y benefactores de la comunidad.
@@ -21,6 +32,6 @@
 - [Centro de Soporte](https://crystaltidessmp.net/support): Ayuda técnica, reporte de fallos y sistema de tickets.
 - [Mapa Interactivo Dynmap](https://crystaltidessmp.net/map): Mapa 2D/3D en tiempo real de los reinos y construcciones.
 
-## Optional
+## Cliente Recomendado
 
-- [Launcher Oficial CrystalTides](https://crystaltidessmp.net/support): Cliente personalizado de entrada rápida al servidor en 1-Click.
+- [Launcher Oficial CrystalTides](https://crystaltidessmp.net/support): Cliente personalizado de entrada rápida al servidor en 1-Click con auto-instalación de mods.

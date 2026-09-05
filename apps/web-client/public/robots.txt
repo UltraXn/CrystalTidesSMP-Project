@@ -3,6 +3,19 @@ Allow: /
 Disallow: /admin
 Disallow: /api
 
-# Sitemap
-Sitemap: https://crystaltidessmp.net/sitemap.xml
+# AI & LLM Crawlers (GEO / AIO Optimization)
+User-agent: GPTBot
+Allow: /
 
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+# Sitemap & LLM Specifications
+Sitemap: https://crystaltidessmp.net/sitemap.xml
+# LLMs Specification: https://crystaltidessmp.net/llms.txt

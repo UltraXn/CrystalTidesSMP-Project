@@ -30,7 +30,7 @@ jobs:
           cache: npm
 
       - name: Setup Rust
-        uses: actions-rust-lang/setup-rust-toolchain@9399c7bb15dca21d154c549629122736449bd0aa # v1.11.0
+        uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           toolchain: stable
           cache: true
@@ -44,9 +44,10 @@ jobs:
         run: npm ci
 
       - name: Verify Rust workspace
+        working-directory: apps/launcher
         run: |
-          cargo check --workspace
-          cargo test --workspace
+          cargo check
+          cargo test
 
       - name: TypeScript check — Launcher Client
         working-directory: apps/launcher/client

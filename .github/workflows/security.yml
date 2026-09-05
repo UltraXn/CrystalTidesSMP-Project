@@ -135,3 +135,48 @@ jobs:
           target: http://localhost:5173
           rules_file_name: .zap/rules.tsv
           fail_action: false
+
+  docker-scout:
+    name: Docker Scout Container Vulnerability Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Web Client Image for Scan
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/web-client/Dockerfile
+          load: true
+          tags: crystaltides-web:test
+
+      - name: Docker Scout Vulnerability Scan
+        uses: docker/scout-action@v1
+        with:
+          command: quickview,cve
+          image: crystaltides-web:test
+          only-severities: critical,high
+          exit-code: false
+
+  trivy-scan:
+    name: Trivy Container & Infrastructure Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Run Trivy vulnerability scanner on Repo & Dockerfiles
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'table'
+          exit-code: '0'
+          ignore-unfixed: true
+          severity: 'CRITICAL,HIGH'
+
+

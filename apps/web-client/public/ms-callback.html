@@ -55,10 +55,11 @@
         const error = params.get("error_description") || params.get("error");
 
         if (window.opener && !window.opener.closed) {
+          const targetOrigin = window.location.origin;
           if (code) {
-            window.opener.postMessage({ type: "MS_AUTH_CODE", code: code }, "*");
+            window.opener.postMessage({ type: "MS_AUTH_CODE", code: code }, targetOrigin);
           } else if (error) {
-            window.opener.postMessage({ type: "MS_AUTH_ERROR", error: error }, "*");
+            window.opener.postMessage({ type: "MS_AUTH_ERROR", error: error }, targetOrigin);
           }
         }
       } catch (err) {
