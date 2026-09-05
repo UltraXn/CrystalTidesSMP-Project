@@ -1,0 +1,223 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# 🧬 Stryker Mutation Testing | Parallel Matrix Pipeline
+# ─────────────────────────────────────────────────────────────────────────────
+# Runs mutation testing across web-client and web-server in parallel groups.
+# Designed to bypass Windows libuv socket instability by running on Linux.
+# Uploads per-group HTML reports as artifacts for visual review.
+# ─────────────────────────────────────────────────────────────────────────────
+
+name: "🧬 Mutation Testing | Stryker Matrix"
+
+on:
+  workflow_dispatch:
+    inputs:
+      groups:
+        description: "Comma-separated groups to run (all, ui, launcher, admin, features, server)"
+        required: false
+        default: "all"
+      concurrency_level:
+        description: "Stryker concurrency per runner (1-4)"
+        required: false
+        default: "4"
+  schedule:
+    # Every Saturday at 03:00 UTC
+    - cron: "0 3 * * 6"
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: "24"
+  CI: true
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+# Cancel previous runs of the same workflow on the same ref
+concurrency:
+  group: mutation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ───────────────────────────────────────────────────────────────────────────
+  # Phase 1: Discover which groups to run
+  # ───────────────────────────────────────────────────────────────────────────
+  prepare:
+    name: "📋 Prepare Matrix"
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.build-matrix.outputs.matrix }}
+    steps:
+      - name: Build matrix from input
+        id: build-matrix
+        shell: bash
+        run: |
+          INPUT="${{ github.event.inputs.groups || 'all' }}"
+
+          ALL_GROUPS='[
+            {"group":"ui",       "app":"web-client", "mutate":"src/components/UI/**/*.tsx,src/components/UI/**/*.ts",           "tests":"src/__tests__/components/UI/**"},
+            {"group":"launcher", "app":"web-client", "mutate":"src/components/Launcher/**/*.tsx,src/components/Launcher/**/*.ts", "tests":"src/__tests__/components/Launcher/**"},
+            {"group":"admin",    "app":"web-client", "mutate":"src/components/Admin/**/*.tsx,src/components/Admin/**/*.ts",       "tests":"src/__tests__/components/Admin/**"},
+            {"group":"features", "app":"web-client", "mutate":"src/components/Forum/**/*.tsx,src/components/Forum/**/*.ts,src/components/Profile/**/*.tsx,src/components/Profile/**/*.ts,src/components/Gacha/**/*.tsx,src/components/Gacha/**/*.ts,src/components/Support/**/*.tsx,src/components/Support/**/*.ts,src/components/Wiki/**/*.tsx,src/components/Wiki/**/*.ts,src/components/User/**/*.tsx,src/components/User/**/*.ts,src/components/Account/**/*.tsx,src/components/Account/**/*.ts", "tests":"src/__tests__/components/Forum/**,src/__tests__/components/Profile/**,src/__tests__/components/Gacha/**,src/__tests__/components/Support/**,src/__tests__/components/Wiki/**,src/__tests__/components/User/**,src/__tests__/components/Account/**"},
+            {"group":"layout",   "app":"web-client", "mutate":"src/components/Layout/**/*.tsx,src/components/Layout/**/*.ts,src/components/Hero/**/*.tsx,src/components/Hero/**/*.ts,src/components/Home/**/*.tsx,src/components/Home/**/*.ts,src/components/Server/**/*.tsx,src/components/Server/**/*.ts,src/components/Effects/**/*.tsx,src/components/Effects/**/*.ts,src/components/Widgets/**/*.tsx,src/components/Widgets/**/*.ts", "tests":"src/__tests__/components/Layout/**,src/__tests__/components/Hero/**,src/__tests__/components/Home/**,src/__tests__/components/Server/**,src/__tests__/components/Effects/**,src/__tests__/components/Widgets/**"},
+            {"group":"utils",    "app":"web-client", "mutate":"src/utils/**/*.ts,src/hooks/**/*.ts,src/services/**/*.ts",       "tests":"src/__tests__/utils/**,src/__tests__/hooks/**,src/__tests__/services/**"},
+            {"group":"server",   "app":"web-server", "mutate":"services/**/*.ts,middleware/**/*.ts,controllers/**/*.ts,routes/**/*.ts,utils/**/*.ts", "tests":"__tests__/**"}
+          ]'
+
+          if [ "$INPUT" = "all" ]; then
+            MATRIX="$ALL_GROUPS"
+          else
+            # Filter to only requested groups
+            MATRIX=$(echo "$ALL_GROUPS" | jq -c --arg groups "$INPUT" '
+              [.[] | select(.group as $g | ($groups | split(",") | map(gsub("\\s";"")) | index($g)) != null)]
+            ')
+          fi
+
+          echo "matrix={\"include\":$(echo $MATRIX | jq -c '.')}" >> "$GITHUB_OUTPUT"
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # Phase 2: Run Stryker in parallel per group
+  # ───────────────────────────────────────────────────────────────────────────
+  mutate:
+    name: "🧬 Mutate: ${{ matrix.group }}"
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.prepare.outputs.matrix) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Generate Stryker Config
+        working-directory: apps/${{ matrix.app }}
+        shell: bash
+        run: |
+          CONCURRENCY="${{ github.event.inputs.concurrency_level || '4' }}"
+
+          # Build mutate array from comma-separated globs
+          IFS=',' read -ra MUTATE_GLOBS <<< "${{ matrix.mutate }}"
+          MUTATE_JSON=$(printf '%s\n' "${MUTATE_GLOBS[@]}" | jq -R . | jq -s .)
+          # Add exclusion patterns
+          MUTATE_JSON=$(echo "$MUTATE_JSON" | jq '. + ["!**/*.test.ts", "!**/*.test.tsx", "!**/__tests__/**", "!**/*.stories.tsx"]')
+
+          cat > stryker.ci.json <<EOF
+          {
+            "\$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
+            "packageManager": "npm",
+            "reporters": ["html", "clear-text", "progress", "json"],
+            "testRunner": "vitest",
+            "coverageAnalysis": "perTest",
+            "concurrency": ${CONCURRENCY},
+            "timeoutMS": 30000,
+            "timeoutFactor": 3,
+            "cleanTempDir": "always",
+            "mutate": $(echo "$MUTATE_JSON" | jq -c '.'),
+            "vitest": {
+              "configFile": "vitest.config.ts"
+            },
+            "htmlReporter": {
+              "fileName": "reports/mutation/${{ matrix.group }}/index.html"
+            },
+            "jsonReporter": {
+              "fileName": "reports/mutation/${{ matrix.group }}/mutation.json"
+            },
+            "thresholds": {
+              "high": 80,
+              "low": 60,
+              "break": null
+            }
+          }
+          EOF
+
+          echo "=== Generated Stryker CI config for group: ${{ matrix.group }} ==="
+          cat stryker.ci.json
+
+      - name: Run Stryker Mutations
+        working-directory: apps/${{ matrix.app }}
+        run: npx stryker run stryker.ci.json
+        env:
+          STRYKER_DASHBOARD_API_KEY: ${{ secrets.STRYKER_DASHBOARD_API_KEY }}
+
+      - name: Upload Mutation Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mutation-report-${{ matrix.group }}
+          path: apps/${{ matrix.app }}/reports/mutation/${{ matrix.group }}/
+          retention-days: 30
+          if-no-files-found: warn
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # Phase 3: Consolidate results
+  # ───────────────────────────────────────────────────────────────────────────
+  summary:
+    name: "📊 Mutation Summary"
+    needs: mutate
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Download all reports
+        uses: actions/download-artifact@v4
+        with:
+          pattern: mutation-report-*
+          path: reports/
+          merge-multiple: false
+
+      - name: Generate Summary
+        shell: bash
+        run: |
+          echo "## 🧬 Mutation Testing Results" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Group | Mutants | Killed | Survived | Score |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|-------|---------|--------|----------|-------|" >> "$GITHUB_STEP_SUMMARY"
+
+          TOTAL_KILLED=0
+          TOTAL_SURVIVED=0
+          TOTAL_MUTANTS=0
+
+          for dir in reports/mutation-report-*/; do
+            GROUP=$(basename "$dir" | sed 's/mutation-report-//')
+            JSON_FILE=$(find "$dir" -name "mutation.json" -type f 2>/dev/null | head -1)
+
+            if [ -f "$JSON_FILE" ]; then
+              KILLED=$(jq '[.files[].mutants[] | select(.status == "Killed")] | length' "$JSON_FILE" 2>/dev/null || echo 0)
+              SURVIVED=$(jq '[.files[].mutants[] | select(.status == "Survived")] | length' "$JSON_FILE" 2>/dev/null || echo 0)
+              TIMEOUT=$(jq '[.files[].mutants[] | select(.status == "Timeout")] | length' "$JSON_FILE" 2>/dev/null || echo 0)
+              TOTAL=$(jq '[.files[].mutants[]] | length' "$JSON_FILE" 2>/dev/null || echo 0)
+
+              EFFECTIVE_KILLED=$((KILLED + TIMEOUT))
+              if [ "$TOTAL" -gt 0 ]; then
+                SCORE=$(echo "scale=1; $EFFECTIVE_KILLED * 100 / $TOTAL" | bc)
+              else
+                SCORE="N/A"
+              fi
+
+              TOTAL_KILLED=$((TOTAL_KILLED + EFFECTIVE_KILLED))
+              TOTAL_SURVIVED=$((TOTAL_SURVIVED + SURVIVED))
+              TOTAL_MUTANTS=$((TOTAL_MUTANTS + TOTAL))
+
+              echo "| **${GROUP}** | ${TOTAL} | ${EFFECTIVE_KILLED} ✅ | ${SURVIVED} 🧟 | ${SCORE}% |" >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "| **${GROUP}** | — | — | — | ⚠️ No report |" >> "$GITHUB_STEP_SUMMARY"
+            fi
+          done
+
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "$TOTAL_MUTANTS" -gt 0 ]; then
+            GLOBAL_SCORE=$(echo "scale=1; $TOTAL_KILLED * 100 / $TOTAL_MUTANTS" | bc)
+            echo "### 🎯 Global Score: **${GLOBAL_SCORE}%** (${TOTAL_KILLED}/${TOTAL_MUTANTS} killed)" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "> 🕐 Run triggered: $(date -u '+%Y-%m-%d %H:%M UTC')" >> "$GITHUB_STEP_SUMMARY"
+          echo "> 📋 Reports available as downloadable artifacts" >> "$GITHUB_STEP_SUMMARY"
