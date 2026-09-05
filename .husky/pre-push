@@ -1,0 +1,45 @@
+#!/usr/bin/env sh
+# ─────────────────────────────────────────────────────────────────────────────
+# CrystalTides Pre-push Hook — Guardrails against repo corruption & leaks
+# ─────────────────────────────────────────────────────────────────────────────
+
+current_branch=$(git branch --show-current)
+
+# 1. Block accidental direct push to main
+if [ "$current_branch" = "main" ]; then
+  echo "❌ [PRE-PUSH GUARD] Direct push to 'main' is prohibited by GitFlow policy."
+  echo "👉 Push to 'develop' or open a Pull Request."
+  exit 1
+fi
+
+# 2. Guard against committing secret files (.env, *.pem, id_rsa)
+secret_patterns='(\.env(\..+)?$|.*id_rsa.*|.*\.pem$|.*\.key$)'
+leaked_files=$(git diff --name-only @{u}..HEAD 2>/dev/null | grep -E "$secret_patterns" || true)
+
+if [ -n "$leaked_files" ]; then
+  echo "❌ [PRE-PUSH GUARD] Detected potential secret files in outgoing commits:"
+  echo "$leaked_files"
+  echo "👉 Remove secrets before pushing to remote."
+  exit 1
+fi
+
+# 3. Guard against committing huge binary blobs (> 15MB)
+max_bytes=15728640
+large_files=$(git diff --name-only @{u}..HEAD 2>/dev/null | while read -r file; do
+  if [ -f "$file" ]; then
+    size=$(wc -c < "$file" 2>/dev/null || echo 0)
+    if [ "$size" -gt "$max_bytes" ]; then
+      echo "$file ($(( size / 1024 / 1024 )) MB)"
+    fi
+  fi
+done)
+
+if [ -n "$large_files" ]; then
+  echo "❌ [PRE-PUSH GUARD] Detected large binary file (> 15MB) in outgoing commits:"
+  echo "$large_files"
+  echo "👉 Upload heavy 3D assets to Cloudflare R2 instead of Git."
+  exit 1
+fi
+
+echo "✅ [PRE-PUSH GUARD] All pre-push checks passed."
+exit 0

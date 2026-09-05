@@ -1,25 +1,36 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalEnv": [
-    "VITE_SUPABASE_URL",
-    "VITE_SUPABASE_ANON_KEY",
-    "VITE_API_URL"
-  ],
+  "globalEnv": ["VITE_SUPABASE_URL", "VITE_SUPABASE_ANON_KEY", "VITE_API_URL"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
+      "inputs": [
+        "src/**",
+        "public/**",
+        "package.json",
+        "tsconfig*.json",
+        "vite.config.*",
+        "!**/*.test.*",
+        "!**/*.spec.*",
+        "!**/*.stories.*"
+      ],
       "outputs": ["dist/**", ".next/**"],
-      "env": [
-        "VITE_SUPABASE_URL",
-        "VITE_SUPABASE_ANON_KEY",
-        "VITE_API_URL"
-      ]
+      "env": ["VITE_SUPABASE_URL", "VITE_SUPABASE_ANON_KEY", "VITE_API_URL"]
     },
     "lint": {
+      "inputs": ["src/**", ".eslintrc*", "eslint.config.*", "package.json", "tsconfig*.json"],
       "outputs": []
     },
     "test": {
       "dependsOn": ["^build"],
+      "inputs": [
+        "src/**",
+        "test/**",
+        "__tests__/**",
+        "vitest.config.*",
+        "package.json",
+        "tsconfig*.json"
+      ],
       "outputs": []
     },
     "dev": {

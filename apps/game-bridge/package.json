@@ -1,0 +1,11 @@
+{
+  "name": "@crystaltides/game-bridge",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build:java": "cd java-agent && mvn package",
+    "build:rust": "cd native-core && cargo build --release",
+    "build": "npm run build:java && npm run build:rust",
+    "lint": "echo 'No linting for game-bridge yet'"
+  }
+}

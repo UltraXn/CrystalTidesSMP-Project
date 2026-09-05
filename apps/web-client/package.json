@@ -20,6 +20,7 @@
     "test:cypress": "cypress run",
     "cy:open": "cypress open",
     "export:penpot": "node scripts/export-to-penpot.cjs",
+    "generate:models-manifest": "tsx scripts/generate-models-manifest.ts",
     "storybook": "storybook dev -p 6006"
   },
   "dependencies": {

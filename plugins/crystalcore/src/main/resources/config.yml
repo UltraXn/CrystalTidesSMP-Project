@@ -1,0 +1,38 @@
+server-id: 'survival'
+
+database:
+  host: '127.0.0.1'
+  port: '3306'
+  name: 'your_database'
+  user: 'root'
+  password: 'password'
+
+redis:
+  enabled: true
+  host: '127.0.0.1'
+  port: 6379
+  password: ''
+  timeout: 2000
+
+# Polling interval in ticks (20 ticks = 1 second)
+polling-interval: 40
+
+modules:
+  DatabaseModule: true
+  Profiles: true
+  WebBridgeModule: true
+  BancoBridge: true
+  StaffStatus: true
+  GachaScanner: true
+  WebSocket: true
+
+gacha:
+  # Map CustomModelData to Tier ID
+  items:
+    1001: 'tier_bronce'
+    1002: 'tier_plata'
+    1003: 'tier_oro'
+
+websocket:
+  port: 8887
+  secret-token: 'change_me_to_something_secure'

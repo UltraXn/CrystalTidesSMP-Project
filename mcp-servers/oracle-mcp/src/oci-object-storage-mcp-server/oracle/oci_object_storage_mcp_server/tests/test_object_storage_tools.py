@@ -1,0 +1,576 @@
+"""
+Copyright (c) 2025, Oracle and/or its affiliates.
+Licensed under the Universal Permissive License v1.0 as shown at
+https://oss.oracle.com/licenses/upl.
+"""
+
+from unittest.mock import MagicMock, create_autospec, mock_open, patch
+
+import oci
+import pytest
+from fastmcp import Client
+from fastmcp.server.dependencies import AccessToken
+from oracle.oci_object_storage_mcp_server import server
+from oracle.oci_object_storage_mcp_server.models import (
+    Bucket,
+    BucketSummary,
+    ListObjects,
+    ObjectSummary,
+    ObjectVersionCollection,
+    ObjectVersionSummary,
+)
+from oracle.oci_object_storage_mcp_server.server import mcp
+
+
+class TestObjectStorageTools:
+    @pytest.mark.asyncio
+    @patch("oracle.oci_object_storage_mcp_server.server.get_object_storage_client")
+    async def test_get_namespace(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_get_client.return_value = mock_client
+
+        mock_namespace_response = create_autospec(oci.response.Response)
+        mock_namespace_response.data = "test_namespace"
+        mock_client.get_namespace.return_value = mock_namespace_response
+
+        async with Client(mcp) as client:
+            response = await client.call_tool("get_namespace", {"compartment_id": "test_compartment"})
+            result = response.content[0].text
+
+        assert result == "test_namespace"
+
+    @pytest.mark.asyncio
+    @patch("oracle.oci_object_storage_mcp_server.server.get_object_storage_client")
+    async def test_list_buckets(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_get_client.return_value = mock_client
+
+        mock_namespace_response = create_autospec(oci.response.Response)
+        mock_namespace_response.data = "test_namespace"
+        mock_client.get_namespace.return_value = mock_namespace_response
+
+        mock_list_response = create_autospec(oci.response.Response)
+        mock_list_response.data = [
+            BucketSummary(
+                name="bucket1",
+                etag="etag1",
+                time_created="2021-01-01T00:00:00.000Z",
+            )
+        ]
+        mock_client.list_buckets.return_value = mock_list_response
+
+        async with Client(mcp) as client:
+            result = (
+                await client.call_tool("list_buckets", {"compartment_id": "test_compartment"})
+            ).structured_content["result"]
+
+        assert len(result) == 1
+        assert result[0]["name"] == "bucket1"
+
+    @pytest.mark.asyncio
+    @patch("oracle.oci_object_storage_mcp_server.server.get_object_storage_client")
+    async def test_get_bucket_details(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_get_client.return_value = mock_client
+
+        mock_namespace_response = create_autospec(oci.response.Response)
+        mock_namespace_response.data = "test_namespace"
+        mock_client.get_namespace.return_value = mock_namespace_response
+
+        mock_get_response = create_autospec(oci.response.Response)
+        mock_get_response.data = Bucket(
+            name="bucket1",
+            etag="etag1",
+            time_created="2021-01-01T00:00:00.000Z",
+            approximate_size=100,
+            approximate_count=10,
+            auto_tiering="INFREQUENT",
+        )
+        mock_client.get_bucket.return_value = mock_get_response
+
+        async with Client(mcp) as client:
+            result = (
+                await client.call_tool(
+                    name="get_bucket_details",
+                    arguments={
+                        "bucket_name": "bucket1",
+                        "compartment_id": "test_compartment",
+                    },
+                )
+            ).structured_content
+
+        assert result["name"] == "bucket1"
+        assert result["approximate_size"] == 100
+
+    @pytest.mark.asyncio
+    @patch("oracle.oci_object_storage_mcp_server.server.get_object_storage_client")
+    async def test_list_objects(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_get_client.return_value = mock_client
+
+        mock_namespace_response = create_autospec(oci.response.Response)
+        mock_namespace_response.data = "test_namespace"
+        mock_client.get_namespace.return_value = mock_namespace_response
+
+        mock_list_response = create_autospec(oci.response.Response)
+        mock_list_response.data = ListObjects(
+            objects=[
+                ObjectSummary(
+                    name="object1",
+                    size=100,
+                    time_modified="2021-01-01T00:00:00.000Z",
+                    archival_state="ARCHIVED",
+                    storage_tier="STANDARD",
+                )
+            ]
+        )
+        mock_client.list_objects.return_value = mock_list_response
+
+        async with Client(mcp) as client:
+            result = (
+                await client.call_tool(
+                    "list_objects",
+                    {
+                        "bucket_name": "bucket1",
+                        "compartment_id": "test_compartment",
+                    },
+                )
+            ).structured_content["objects"]
+
+        assert len(result) == 1
+        assert result[0]["name"] == "object1"
+
+    @pytest.mark.asyncio
+    @patch("oracle.oci_object_storage_mcp_server.server.get_object_storage_client")
+    async def test_list_object_versions(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_get_client.return_value = mock_client
+
+        mock_namespace_response = create_autospec(oci.response.Response)
+        mock_namespace_response.data = "test_namespace"
+        mock_client.get_namespace.return_value = mock_namespace_response
+
+        mock_list_response = create_autospec(oci.response.Response)
+        mock_list_response.data = ObjectVersionCollection(
+            items=[
+                ObjectVersionSummary(
+                    name="object1",
+                    time_modified="2021-01-01T00:00:00.000Z",
+                    is_delete_marker=False,
+                    version_id="version_1",
+                )
+            ]
+        )
+        mock_client.list_object_versions.return_value = mock_list_response
+
+        async with Client(mcp) as client:
+            result = (
+                await client.call_tool(
+                    "list_object_versions",
+                    {
+                        "bucket_name": "bucket1",
+                        "compartment_id": "test_compartment",
+                    },
+                )
+            ).structured_content
+
+        assert len(result["items"]) == 1
+        assert result["items"][0]["name"] == "object1"
+        assert result["items"][0]["version_id"] == "version_1"
+
+    @pytest.mark.asyncio
+    @patch("oracle.oci_object_storage_mcp_server.server.get_object_storage_client")
+    async def test_get_object(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_get_client.return_value = mock_client
+
+        mock_namespace_response = create_autospec(oci.response.Response)
+        mock_namespace_response.data = "test_namespace"
+        mock_client.get_namespace.return_value = mock_namespace_response
+
+        mock_get_response = create_autospec(oci.response.Response)
+        mock_get_response.data = ObjectSummary(name="object1", size=42)
+        mock_client.get_object.return_value = mock_get_response
+
+        async with Client(mcp) as client:
+            result = (
+                await client.call_tool(
+                    "get_object",
+                    {
+                        "bucket_name": "bucket1",
+                        "compartment_id": "test_compartment",
+                        "object_name": "object1",
+                    },
+                )
+            ).structured_content
+
+        assert result["name"] == "object1"
+        assert result["size"] == 42
+
+    @pytest.mark.asyncio
+    @patch("oracle.oci_object_storage_mcp_server.server.get_object_storage_client")
+    async def test_upload_object_success(self, mock_get_client, tmp_path, monkeypatch):
+        mock_client = MagicMock()
+        mock_get_client.return_value = mock_client
+        monkeypatch.setenv("OCI_MCP_UPLOAD_ROOT", str(tmp_path))
+
+        mock_namespace_response = create_autospec(oci.response.Response)
+        mock_namespace_response.data = "test_namespace"
+        mock_client.get_namespace.return_value = mock_namespace_response
+
+        p = tmp_path / "file.txt"
+        p.write_bytes(b"hello world")
+
+        async with Client(mcp) as client:
+            result = (
+                await client.call_tool(
+                    "upload_object",
+                    {
+                        "bucket_name": "bucket1",
+                        "compartment_id": "test_compartment",
+                        "file_path": str(p),
+                        "object_name": "file.txt",
+                    },
+                )
+            ).structured_content
+
+        assert result["message"] == "Object uploaded successfully"
+        mock_client.put_object.assert_called_once()
+
+    @pytest.mark.asyncio
+    @patch("oracle.oci_object_storage_mcp_server.server.get_object_storage_client")
+    async def test_upload_object_error(self, mock_get_client, tmp_path, monkeypatch):
+        mock_client = MagicMock()
+        mock_get_client.return_value = mock_client
+        monkeypatch.setenv("OCI_MCP_UPLOAD_ROOT", str(tmp_path))
+
+        mock_namespace_response = create_autospec(oci.response.Response)
+        mock_namespace_response.data = "test_namespace"
+        mock_client.get_namespace.return_value = mock_namespace_response
+
+        bad_path = tmp_path / "does_not_exist.bin"
+
+        async with Client(mcp) as client:
+            result = (
+                await client.call_tool(
+                    "upload_object",
+                    {
+                        "bucket_name": "bucket1",
+                        "compartment_id": "test_compartment",
+                        "file_path": str(bad_path),
+                        "object_name": "file.bin",
+                    },
+                )
+            ).structured_content
+
+        assert "error" in result
+        assert "No such file" in result["error"] or "No such file or directory" in result["error"]
+
+    @pytest.mark.asyncio
+    @patch("oracle.oci_object_storage_mcp_server.server.get_object_storage_client")
+    async def test_upload_object_rejects_file_outside_upload_root(
+        self, mock_get_client, tmp_path, monkeypatch
+    ):
+        upload_root = tmp_path / "uploads"
+        upload_root.mkdir()
+        outside_file = tmp_path / "outside.txt"
+        outside_file.write_text("secret", encoding="utf-8")
+        monkeypatch.setenv("OCI_MCP_UPLOAD_ROOT", str(upload_root))
+
+        async with Client(mcp) as client:
+            result = (
+                await client.call_tool(
+                    "upload_object",
+                    {
+                        "bucket_name": "bucket1",
+                        "compartment_id": "test_compartment",
+                        "file_path": str(outside_file),
+                        "object_name": "outside.txt",
+                    },
+                )
+            ).structured_content
+
+        assert "outside configured upload root" in result["error"]
+        mock_get_client.assert_not_called()
+
+
+class TestServer:
+    @patch("oracle.oci_object_storage_mcp_server.server.oci.auth.signers.TokenExchangeSigner", return_value="signer")
+    @patch("oracle.oci_object_storage_mcp_server.server.get_access_token")
+    def test_http_signer_uses_region_without_loading_config(self, mock_get_access_token, mock_signer, monkeypatch):
+        mock_get_access_token.return_value = AccessToken(token="token", client_id="client", scopes=[], claims={})
+        monkeypatch.setenv("ORACLE_MCP_HOST", "127.0.0.1")
+        monkeypatch.setenv("ORACLE_MCP_PORT", "8888")
+        monkeypatch.setenv("IDCS_DOMAIN", "idcs.example.com")
+        monkeypatch.setenv("IDCS_CLIENT_ID", "client-id")
+        monkeypatch.setenv("IDCS_CLIENT_SECRET", "client-secret")
+        monkeypatch.setenv("OCI_REGION", "us-phoenix-1")
+
+        config, signer = server._get_http_config_and_signer()
+
+        assert config["region"] == "us-phoenix-1"
+        assert signer == "signer"
+        mock_signer.assert_called_once()
+
+    @patch("oracle.oci_object_storage_mcp_server.server.oci.auth.signers.TokenExchangeSigner", return_value="signer")
+    @patch("oracle.oci_object_storage_mcp_server.server.get_access_token")
+    def test_http_signer_accepts_unicode_idcs_domain(self, mock_get_access_token, mock_signer, monkeypatch):
+        mock_get_access_token.return_value = AccessToken(token="token", client_id="client", scopes=[], claims={})
+        monkeypatch.setenv("ORACLE_MCP_HOST", "127.0.0.1")
+        monkeypatch.setenv("ORACLE_MCP_PORT", "8888")
+        monkeypatch.setenv("IDCS_DOMAIN", "muenchen.xn--exmple-cua.test")
+        monkeypatch.setenv("IDCS_CLIENT_ID", "client-id")
+        monkeypatch.setenv("IDCS_CLIENT_SECRET", "client-secret")
+        monkeypatch.setenv("OCI_REGION", "us-phoenix-1")
+
+        config, signer = server._get_http_config_and_signer()
+
+        assert config["region"] == "us-phoenix-1"
+        assert signer == "signer"
+        mock_signer.assert_called_once_with(
+            "token",
+            "https://muenchen.xn--exmple-cua.test",
+            "client-id",
+            "client-secret",
+            region="us-phoenix-1",
+        )
+
+    @patch("oracle.oci_object_storage_mcp_server.server.get_access_token", return_value=None)
+    def test_http_signer_requires_authenticated_token(self, _mock_get_access_token, monkeypatch):
+        monkeypatch.setenv("ORACLE_MCP_HOST", "127.0.0.1")
+        monkeypatch.setenv("ORACLE_MCP_PORT", "8888")
+
+        with pytest.raises(RuntimeError, match="authenticated IDCS access token"):
+            server._get_http_config_and_signer()
+
+    def test_http_signer_requires_region(self, monkeypatch):
+        monkeypatch.setattr(server, "get_access_token", lambda: AccessToken(token="token", client_id="client", scopes=[], claims={}))
+        monkeypatch.setenv("ORACLE_MCP_HOST", "127.0.0.1")
+        monkeypatch.setenv("ORACLE_MCP_PORT", "8888")
+        monkeypatch.setenv("IDCS_DOMAIN", "idcs.example.com")
+        monkeypatch.setenv("IDCS_CLIENT_ID", "client-id")
+        monkeypatch.setenv("IDCS_CLIENT_SECRET", "client-secret")
+
+        with pytest.raises(RuntimeError, match="OCI_REGION"):
+            server._get_http_config_and_signer()
+
+    @patch("oracle.oci_object_storage_mcp_server.server.OCIProvider")
+    @patch("oracle.oci_object_storage_mcp_server.server.mcp.run")
+    @patch("os.getenv")
+    def test_main_with_host_and_port(self, mock_getenv, mock_mcp_run, mock_provider):
+        mock_env = {
+            "ORACLE_MCP_HOST": "1.2.3.4",
+            "ORACLE_MCP_PORT": "8888",
+            "IDCS_DOMAIN": "idcs.example.com",
+            "IDCS_CLIENT_ID": "client-id",
+            "IDCS_CLIENT_SECRET": "client-secret",
+            "IDCS_AUDIENCE": "mcp-audience",
+            "ORACLE_MCP_BASE_URL": "https://mcp.example.com",
+        }
+
+        mock_getenv.side_effect = lambda x, d=None: mock_env.get(x, d)
+        mock_provider.return_value = MagicMock()
+
+        server.main()
+        mock_provider.assert_called_once_with(
+            config_url="https://idcs.example.com/.well-known/openid-configuration",
+            client_id="client-id",
+            client_secret="client-secret",
+            audience="mcp-audience",
+            required_scopes=f"openid profile email oci_mcp.{server.__project__.removeprefix('oracle.oci-').removesuffix('-mcp-server').replace('-', '_')}.invoke".split(),
+            base_url="https://mcp.example.com",
+        )
+        mock_mcp_run.assert_called_once_with(
+            transport="http",
+            host=mock_env["ORACLE_MCP_HOST"],
+            port=int(mock_env["ORACLE_MCP_PORT"]),
+        )
+
+    @patch("oracle.oci_object_storage_mcp_server.server.OCIProvider")
+    @patch("oracle.oci_object_storage_mcp_server.server.mcp.run")
+    @patch("os.getenv")
+    def test_main_with_custom_scopes_and_unicode_domain(self, mock_getenv, mock_mcp_run, mock_provider):
+        mock_env = {
+            "ORACLE_MCP_HOST": "1.2.3.4",
+            "ORACLE_MCP_PORT": "8888",
+            "IDCS_DOMAIN": "muenchen.xn--exmple-cua.test",
+            "IDCS_CLIENT_ID": "client-id",
+            "IDCS_CLIENT_SECRET": "client-secret",
+            "IDCS_AUDIENCE": "mcp-audience",
+            "ORACLE_MCP_BASE_URL": "https://mcp.example.com",
+            "IDCS_REQUIRED_SCOPES": "openid email custom.scope",
+        }
+
+        mock_getenv.side_effect = lambda x, d=None: mock_env.get(x, d)
+        mock_provider.return_value = MagicMock()
+
+        server.main()
+
+        mock_provider.assert_called_once_with(
+            config_url="https://muenchen.xn--exmple-cua.test/.well-known/openid-configuration",
+            client_id="client-id",
+            client_secret="client-secret",
+            audience="mcp-audience",
+            required_scopes=["openid", "email", "custom.scope"],
+            base_url="https://mcp.example.com",
+        )
+        mock_mcp_run.assert_called_once_with(
+            transport="http",
+            host="1.2.3.4",
+            port=8888,
+        )
+
+    @patch("oracle.oci_object_storage_mcp_server.server.mcp.run")
+    @patch("os.getenv")
+    def test_main_without_host_and_port(self, mock_getenv, mock_mcp_run):
+        mock_getenv.return_value = None
+        import oracle.oci_object_storage_mcp_server.server as server
+
+        server.main()
+        mock_mcp_run.assert_called_once_with()
+
+    @patch("oracle.oci_object_storage_mcp_server.server.mcp.run")
+    @patch("os.getenv")
+    def test_main_with_only_host(self, mock_getenv, mock_mcp_run):
+        mock_env = {
+            "ORACLE_MCP_HOST": "1.2.3.4",
+        }
+        mock_getenv.side_effect = lambda x, d=None: mock_env.get(x, d)
+
+        server.main()
+        mock_mcp_run.assert_called_once_with()
+
+    @patch("oracle.oci_object_storage_mcp_server.server.mcp.run")
+    @patch("os.getenv")
+    def test_main_with_only_port(self, mock_getenv, mock_mcp_run):
+        mock_env = {
+            "ORACLE_MCP_PORT": "8888",
+        }
+        mock_getenv.side_effect = lambda x, d=None: mock_env.get(x, d)
+
+        server.main()
+        mock_mcp_run.assert_called_once_with()
+
+    @patch("os.getenv")
+    def test_main_with_http_missing_idcs_env(self, mock_getenv):
+        mock_env = {
+            "ORACLE_MCP_HOST": "1.2.3.4",
+            "ORACLE_MCP_PORT": "8888",
+        }
+        mock_getenv.side_effect = lambda x, d=None: mock_env.get(x, d)
+
+        with pytest.raises(RuntimeError, match="HTTP transport requires IDCS authentication"):
+            server.main()
+
+
+class TestGetClient:
+    @patch("oracle.oci_object_storage_mcp_server.server.oci.object_storage.ObjectStorageClient")
+    @patch("oracle.oci_object_storage_mcp_server.server._get_http_config_and_signer")
+    def test_get_object_storage_client_http(self, mock_http_config_and_signer, mock_client):
+        mock_http_config_and_signer.return_value = ({"region": "us-phoenix-1"}, "signer")
+
+        result = server.get_object_storage_client()
+
+        mock_client.assert_called_once()
+        assert mock_client.call_args.kwargs["signer"] == "signer"
+        assert result == mock_client.return_value
+
+    @patch("oracle.oci_object_storage_mcp_server.server.oci.object_storage.ObjectStorageClient")
+    @patch("oracle.oci_object_storage_mcp_server.server.oci.auth.signers.SecurityTokenSigner")
+    @patch("oracle.oci_object_storage_mcp_server.server.oci.signer.load_private_key_from_file")
+    @patch(
+        "oracle.oci_object_storage_mcp_server.server.open",
+        new_callable=mock_open,
+        read_data="SECURITY_TOKEN",
+    )
+    @patch("oracle.oci_object_storage_mcp_server.server.oci.config.from_file")
+    @patch("oracle.oci_object_storage_mcp_server.server.os.getenv")
+    def test_get_object_storage_client_with_profile_env(
+        self,
+        mock_getenv,
+        mock_from_file,
+        mock_open_file,
+        mock_load_private_key,
+        mock_security_token_signer,
+        mock_client,
+    ):
+        # Arrange: provide profile via env var and minimal config dict
+        mock_getenv.side_effect = lambda k, default=None: (
+            "MYPROFILE" if k == "OCI_CONFIG_PROFILE" else default
+        )
+        config = {
+            "key_file": "/abs/path/to/key.pem",
+            "security_token_file": "/abs/path/to/token",
+        }
+        mock_from_file.return_value = config
+        private_key_obj = object()
+        mock_load_private_key.return_value = private_key_obj
+
+        # Act
+        result = server.get_object_storage_client()
+
+        # Assert calls
+        mock_from_file.assert_called_once_with(
+            file_location=oci.config.DEFAULT_LOCATION,
+            profile_name="MYPROFILE",
+        )
+        mock_open_file.assert_called_once_with("/abs/path/to/token", "r")
+        mock_security_token_signer.assert_called_once_with("SECURITY_TOKEN", private_key_obj)
+        # Ensure user agent was set on the same config dict passed into client
+        args, _ = mock_client.call_args
+        passed_config = args[0]
+        assert passed_config is config
+        expected_user_agent = (
+            f"{server.__project__.split('oracle.', 1)[1].split('-server', 1)[0]}/{server.__version__}"  # noqa
+        )
+        assert passed_config.get("additional_user_agent") == expected_user_agent
+        # And we returned the client instance
+        assert result == mock_client.return_value
+
+    @patch("oracle.oci_object_storage_mcp_server.server.oci.object_storage.ObjectStorageClient")
+    @patch("oracle.oci_object_storage_mcp_server.server.oci.auth.signers.SecurityTokenSigner")
+    @patch("oracle.oci_object_storage_mcp_server.server.oci.signer.load_private_key_from_file")
+    @patch(
+        "oracle.oci_object_storage_mcp_server.server.open",
+        new_callable=mock_open,
+        read_data="TOK",
+    )
+    @patch("oracle.oci_object_storage_mcp_server.server.oci.config.from_file")
+    @patch("oracle.oci_object_storage_mcp_server.server.os.getenv")
+    def test_get_object_storage_client_uses_default_profile_when_env_missing(
+        self,
+        mock_getenv,
+        mock_from_file,
+        mock_open_file,
+        mock_load_private_key,
+        mock_security_token_signer,
+        mock_client,
+    ):
+        # Arrange: no env var present; from_file should be called with DEFAULT_PROFILE
+        mock_getenv.side_effect = lambda k, default=None: default
+        config = {"key_file": "/k.pem", "security_token_file": "/tkn"}
+        mock_from_file.return_value = config
+        priv = object()
+        mock_load_private_key.return_value = priv
+
+        # Act
+        srv_client = server.get_object_storage_client()
+
+        # Assert: profile defaulted
+        mock_from_file.assert_called_once_with(
+            file_location=oci.config.DEFAULT_LOCATION,
+            profile_name=oci.config.DEFAULT_PROFILE,
+        )
+        # Token file opened and read
+        mock_open_file.assert_called_once_with("/tkn", "r")
+        mock_security_token_signer.assert_called_once()
+        signer_args, _ = mock_security_token_signer.call_args
+        assert signer_args[0] == "TOK"
+        assert signer_args[1] is priv
+        # additional_user_agent set on original config and passed through
+        cc_args, _ = mock_client.call_args
+        assert cc_args[0] is config
+        assert "additional_user_agent" in config
+        assert isinstance(config["additional_user_agent"], str) and "/" in config["additional_user_agent"]
+        # Returned object is client instance
+        assert srv_client is mock_client.return_value

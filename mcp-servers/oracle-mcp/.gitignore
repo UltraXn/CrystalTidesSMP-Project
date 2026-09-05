@@ -1,0 +1,39 @@
+**/__pycache__/**
+
+# Virtual environment
+venv/
+.env/
+.venv/
+ENV/
+env/
+env.bak/
+venv.bak/
+
+# Python uv
+.python-version
+
+# VScode
+.vscode
+
+# Mac files
+.DS_Store
+
+#IDE
+.idea
+.gemini
+.cursor
+
+# test environments
+.env
+
+.coverage*
+htmlcov/
+
+# Maven
+**/target/
+
+# GoldenGate MCP local runtime artifacts
+**/logs/
+**/oracle-goldengate-mcp-server.env
+**/build/**
+

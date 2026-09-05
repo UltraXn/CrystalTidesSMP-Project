@@ -1,0 +1,25 @@
+# Rust
+/native-core/target/
+**/*.rs.bk
+
+# Java
+/java-agent/target/
+**/*.class
+/test-env/com/
+
+# Binaries
+*.dll
+*.exe
+*.jar
+!/test-env/agent.jar # Keeping the test agent for now
+!/test-env/game_bridge_core.dll
+
+# OS
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/
+
+# Build caches
+.turbo/
