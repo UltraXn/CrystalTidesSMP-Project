@@ -1,0 +1,26 @@
+# Dependencies & Build
+node_modules/
+dist/
+.turbo/
+
+# Mutation Testing
+.stryker-tmp/
+reports/
+*.stryker.log
+
+# Testing & E2E Artifacts
+coverage/
+playwright-report/
+blob-report/
+test-results/
+cypress/videos/
+cypress/screenshots/
+
+# Storybook
+storybook-static/
+*storybook.log
+
+# Environment & Logs
+.env.local
+.env.*.local
+*.log

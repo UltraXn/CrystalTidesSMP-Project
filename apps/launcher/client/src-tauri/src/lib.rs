@@ -15,6 +15,8 @@ mod neoforge;
 mod r2_sync;
 mod system;
 
+use tauri::Manager;
+
 #[tauri::command]
 fn init_core() -> bool {
     core_init::init_core()
@@ -227,6 +229,80 @@ async fn fetch_image_base64(url: String) -> Result<String, String> {
     use base64::Engine;
     let b64 = base64::engine::general_purpose::STANDARD.encode(&bytes);
     Ok(format!("data:image/png;base64,{}", b64))
+}
+
+#[tauri::command]
+async fn open_microsoft_auth_window(app_handle: tauri::AppHandle) -> Result<String, String> {
+    use tauri::{Manager, WebviewUrl, WebviewWindowBuilder};
+    use std::sync::{Arc, Mutex};
+    use tokio::sync::oneshot;
+
+    // Destroy existing window if already open
+    if let Some(existing) = app_handle.get_webview_window("microsoft-login-window") {
+        let _ = existing.destroy();
+    }
+
+    let auth_url = "https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize?client_id=3974b918-cd84-4d60-8955-2ad65234d16b&response_type=code&redirect_uri=https%3A%2F%2Flogin.live.com%2Foauth20_desktop.srf&scope=XboxLive.SignIn%20XboxLive.offline_access&prompt=select_account";
+
+    let (tx, rx) = oneshot::channel::<Result<String, String>>();
+    let tx_mutex = Arc::new(Mutex::new(Some(tx)));
+    let tx_nav = tx_mutex.clone();
+
+    let window = WebviewWindowBuilder::new(
+        &app_handle,
+        "microsoft-login-window",
+        WebviewUrl::External(auth_url.parse().map_err(|e| format!("Invalid URL: {}", e))?)
+    )
+    .title("CrystalTides - Iniciar sesión con Microsoft")
+    .inner_size(520.0, 680.0)
+    .resizable(false)
+    .always_on_top(true)
+    .on_navigation(move |url| {
+        let url_str = url.as_str();
+        if url_str.starts_with("https://crystaltidessmp.net/ms-callback.html")
+            || url_str.starts_with("http://localhost:5173/ms-callback.html")
+            || url_str.starts_with("https://login.live.com/oauth20_desktop.srf")
+        {
+            if let Some(query) = url.query() {
+                for pair in query.split('&') {
+                    let mut parts = pair.splitn(2, '=');
+                    if let (Some(k), Some(v)) = (parts.next(), parts.next()) {
+                        if k == "code" {
+                            if let Some(sender) = tx_nav.lock().unwrap().take() {
+                                let _ = sender.send(Ok(v.to_string()));
+                            }
+                            return false;
+                        } else if k == "error" {
+                            if let Some(sender) = tx_nav.lock().unwrap().take() {
+                                let _ = sender.send(Err(format!("Error de Microsoft: {}", v)));
+                            }
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+        true
+    })
+    .build()
+    .map_err(|e| format!("Failed to create auth window: {}", e))?;
+
+    let window_clone = window.clone();
+    let tx_close = tx_mutex.clone();
+    window.on_window_event(move |event| {
+        if let tauri::WindowEvent::CloseRequested { .. } = event {
+            if let Some(sender) = tx_close.lock().unwrap().take() {
+                let _ = sender.send(Err("El usuario cerró la ventana de inicio de sesión.".to_string()));
+            }
+        }
+    });
+
+    let code_res = rx.await.map_err(|_| "La ventana de inicio de sesión se cerró inesperadamente.".to_string())?;
+
+    // Close window upon completion
+    let _ = window_clone.destroy();
+
+    code_res
 }
 
 #[tauri::command]
@@ -467,6 +543,21 @@ fn open_folder(path: String) -> Result<(), String> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        // ── Single Instance: prevent duplicate launcher processes ──
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+            if let Some(w) = app.get_webview_window("main") {
+                let _ = w.unminimize();
+                let _ = w.show();
+                let _ = w.set_focus();
+            }
+        }))
+        // ── Window State: remember position, size & monitor across restarts ──
+        .plugin(tauri_plugin_window_state::Builder::new().build())
+        // ── Deep Link: handle crystaltides:// protocol URLs ──
+        .plugin(tauri_plugin_deep_link::init())
+        // ── Positioner: center / tray-anchor window placement ──
+        .plugin(tauri_plugin_positioner::init())
+        // ── Existing plugins ──
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .invoke_handler(tauri::generate_handler![
@@ -502,6 +593,7 @@ pub fn run() {
             http_delete,
             fetch_image_base64,
             start_ms_oauth_server,
+            open_microsoft_auth_window,
             hardware::detect_hardware_profile,
             r2_sync::download_mods_parallel,
             anticheat::generate_integrity_report,

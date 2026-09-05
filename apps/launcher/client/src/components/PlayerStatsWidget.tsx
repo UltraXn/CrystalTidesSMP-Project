@@ -290,7 +290,7 @@ export function PlayerStatsWidget({ username }: PlayerStatsWidgetProps) {
         [keyName]: nextLevel
       } : null);
 
-      alert(`🎉 ¡Felicidades! Has ascendido exitosamente al Prestigio ${nextLevel} en ${prestigeTab.toUpperCase()}! (+${nextLevel * 5}% KC Diarios)`);
+      alert(`¡Felicidades! Has ascendido exitosamente al Prestigio ${nextLevel} en ${prestigeTab.toUpperCase()}! (+${nextLevel * 5}% KC Diarios)`);
     } catch {
       alert("Error al procesar el ascenso.");
     } finally {
@@ -325,7 +325,7 @@ export function PlayerStatsWidget({ username }: PlayerStatsWidgetProps) {
           {/* Radar Card */}
           <div style={{ padding: 20, borderRadius: 16, background: "rgba(15, 23, 42, 0.75)", border: "1px solid rgba(255,255,255,0.08)", backdropFilter: "blur(14px)", display: "flex", flexDirection: "column", alignItems: "center" }}>
             <div style={{ fontSize: 11, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.06em", color: "rgba(255,255,255,0.5)", marginBottom: 10 }}>
-              📊 Radar de Estilo de Juego (Histórico Total)
+              Radar de Estilo de Juego (Histórico Total)
             </div>
 
             {/* SVG Diagram */}
@@ -548,7 +548,7 @@ export function PlayerStatsWidget({ username }: PlayerStatsWidgetProps) {
             {/* Tarjeta Amarilla de Reglas Top 1 */}
             <div style={{ marginTop: 4, padding: 12, borderRadius: 12, background: "rgba(245, 158, 11, 0.1)", border: "1px solid rgba(245, 158, 11, 0.25)", fontSize: 10.5, color: "#FDE68A", lineHeight: 1.4 }}>
               <div style={{ fontWeight: 900, color: "#F59E0B", marginBottom: 6, fontSize: 11, display: "flex", alignItems: "center", gap: 4 }}>
-                🏆 Reglas del Rango Máximo
+                Reglas del Rango Máximo
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 10 }}>
                 <div>• <strong>Requisito Rango Máximo:</strong> Debes ser el jugador con más puntos/estadística de la categoría en la que estás destacando.</div>
@@ -563,7 +563,7 @@ export function PlayerStatsWidget({ username }: PlayerStatsWidgetProps) {
       {/* Panel Completo Inferior (Full-Width): Sistema de Prestigios Bloqueado / Funcional */}
       <div style={{ padding: 20, borderRadius: 16, background: "linear-gradient(135deg, rgba(88, 28, 135, 0.25) 0%, rgba(0,0,0,0.5) 100%)", border: "1px solid rgba(168, 85, 247, 0.3)", display: "flex", flexDirection: "column", gap: 14, boxShadow: "0 10px 30px rgba(0,0,0,0.4)" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid rgba(168,85,247,0.2)", paddingBottom: 12, flexWrap: "wrap", gap: 8 }}>
-          <span style={{ fontSize: 13, fontWeight: 900, color: "#FFF", display: "flex", alignItems: "center", gap: 6 }}>⭐ Sistema de Prestigios de Estilo de Juego</span>
+          <span style={{ fontSize: 13, fontWeight: 900, color: "#FFF", display: "flex", alignItems: "center", gap: 6 }}>Sistema de Prestigios de Estilo de Juego</span>
           {/* Tabs de Selección */}
           <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
             {(["constructor", "luchador", "mercader", "constancia", "explorador"] as const).map((key) => {
@@ -606,39 +606,39 @@ export function PlayerStatsWidget({ username }: PlayerStatsWidgetProps) {
         {(() => {
           const archetypeMockups = {
             constructor: [
-              { levelNum: 1, level: "⭐ Prestigio I", rankName: "Iniciado de Piedra", bonus: "+5% KC Diarios", tag: "[P1]", color: "#F59E0B", border: "rgba(245,158,11,0.3)", bg: "rgba(245,158,11,0.1)", item: "https://minecraft.wiki/w/Special:Redirect/file/Cobblestone.png" },
-              { levelNum: 2, level: "⭐⭐ Prestigio II", rankName: "Constructor Consagrado", bonus: "+10% KC Diarios", tag: "[P2]", color: "#CBD5E1", border: "rgba(203,213,225,0.3)", bg: "rgba(203,213,225,0.1)", item: "https://minecraft.wiki/w/Special:Redirect/file/Iron_Pickaxe.png" },
-              { levelNum: 3, level: "⭐⭐⭐ Prestigio III", rankName: "Gran Arquitecto", bonus: "+15% KC", tag: "[P3]", color: "#FACC15", border: "rgba(250,204,21,0.3)", bg: "rgba(250,204,21,0.1)", item: "https://minecraft.wiki/w/Special:Redirect/file/Golden_Pickaxe.png" },
-              { levelNum: 4, level: "⭐⭐⭐⭐ Prestigio IV", rankName: "Maestro Constructor", bonus: "+20% KC", tag: "[P4]", color: "#22D3EE", border: "rgba(34,211,238,0.3)", bg: "rgba(34,211,238,0.1)", item: "https://minecraft.wiki/w/Special:Redirect/file/Diamond_Pickaxe.png" },
-              { levelNum: 5, level: "💎 Prestigio V", rankName: "Arquitecto Mítico", bonus: "+25% KC + Title", tag: "[P5]", color: "#E879F9", border: "rgba(232,121,249,0.4)", bg: "rgba(232,121,249,0.15)", item: "https://minecraft.wiki/w/Special:Redirect/file/Beacon.png" },
+              { levelNum: 1, level: "Prestigio I", rankName: "Iniciado de Piedra", bonus: "+5% KC Diarios", tag: "[P1]", color: "#F59E0B", border: "rgba(245,158,11,0.3)", bg: "rgba(245,158,11,0.1)", item: "https://minecraft.wiki/w/Special:Redirect/file/Cobblestone.png" },
+              { levelNum: 2, level: "Prestigio II", rankName: "Constructor Consagrado", bonus: "+10% KC Diarios", tag: "[P2]", color: "#CBD5E1", border: "rgba(203,213,225,0.3)", bg: "rgba(203,213,225,0.1)", item: "https://minecraft.wiki/w/Special:Redirect/file/Iron_Pickaxe.png" },
+              { levelNum: 3, level: "Prestigio III", rankName: "Gran Arquitecto", bonus: "+15% KC", tag: "[P3]", color: "#FACC15", border: "rgba(250,204,21,0.3)", bg: "rgba(250,204,21,0.1)", item: "https://minecraft.wiki/w/Special:Redirect/file/Golden_Pickaxe.png" },
+              { levelNum: 4, level: "Prestigio IV", rankName: "Maestro Constructor", bonus: "+20% KC", tag: "[P4]", color: "#22D3EE", border: "rgba(34,211,238,0.3)", bg: "rgba(34,211,238,0.1)", item: "https://minecraft.wiki/w/Special:Redirect/file/Diamond_Pickaxe.png" },
+              { levelNum: 5, level: "Prestigio V", rankName: "Arquitecto Mítico", bonus: "+25% KC + Title", tag: "[P5]", color: "#E879F9", border: "rgba(232,121,249,0.4)", bg: "rgba(232,121,249,0.15)", item: "https://minecraft.wiki/w/Special:Redirect/file/Beacon.png" },
             ],
             luchador: [
-              { levelNum: 1, level: "⭐ Prestigio I", rankName: "Guerrero de Bronce", bonus: "+5% KC Diarios", tag: "[P1]", color: "#F59E0B", border: "rgba(245,158,11,0.3)", bg: "rgba(245,158,11,0.1)", item: "https://minecraft.wiki/w/Special:Redirect/file/Wooden_Sword.png" },
-              { levelNum: 2, level: "⭐⭐ Prestigio II", rankName: "Campeón de Batalla", bonus: "+10% KC Diarios", tag: "[P2]", color: "#CBD5E1", border: "rgba(203,213,225,0.3)", bg: "rgba(203,213,225,0.1)", item: "https://minecraft.wiki/w/Special:Redirect/file/Iron_Sword.png" },
-              { levelNum: 3, level: "⭐⭐⭐ Prestigio III", rankName: "Señor de Guerra", bonus: "+15% KC", tag: "[P3]", color: "#FACC15", border: "rgba(250,204,21,0.3)", bg: "rgba(250,204,21,0.1)", item: "https://minecraft.wiki/w/Special:Redirect/file/Golden_Sword.png" },
-              { levelNum: 4, level: "⭐⭐⭐⭐ Prestigio IV", rankName: "Maestro de Armas", bonus: "+20% KC", tag: "[P4]", color: "#22D3EE", border: "rgba(34,211,238,0.3)", bg: "rgba(34,211,238,0.1)", item: "https://minecraft.wiki/w/Special:Redirect/file/Diamond_Sword.png" },
-              { levelNum: 5, level: "💎 Prestigio V", rankName: "Gladiador Supremo", bonus: "+25% KC + Espadas", tag: "[P5]", color: "#E879F9", border: "rgba(232,121,249,0.4)", bg: "rgba(232,121,249,0.15)", item: "https://minecraft.wiki/w/Special:Redirect/file/Mace.png" },
+              { levelNum: 1, level: "Prestigio I", rankName: "Guerrero de Bronce", bonus: "+5% KC Diarios", tag: "[P1]", color: "#F59E0B", border: "rgba(245,158,11,0.3)", bg: "rgba(245,158,11,0.1)", item: "https://minecraft.wiki/w/Special:Redirect/file/Wooden_Sword.png" },
+              { levelNum: 2, level: "Prestigio II", rankName: "Campeón de Batalla", bonus: "+10% KC Diarios", tag: "[P2]", color: "#CBD5E1", border: "rgba(203,213,225,0.3)", bg: "rgba(203,213,225,0.1)", item: "https://minecraft.wiki/w/Special:Redirect/file/Iron_Sword.png" },
+              { levelNum: 3, level: "Prestigio III", rankName: "Señor de Guerra", bonus: "+15% KC", tag: "[P3]", color: "#FACC15", border: "rgba(250,204,21,0.3)", bg: "rgba(250,204,21,0.1)", item: "https://minecraft.wiki/w/Special:Redirect/file/Golden_Sword.png" },
+              { levelNum: 4, level: "Prestigio IV", rankName: "Maestro de Armas", bonus: "+20% KC", tag: "[P4]", color: "#22D3EE", border: "rgba(34,211,238,0.3)", bg: "rgba(34,211,238,0.1)", item: "https://minecraft.wiki/w/Special:Redirect/file/Diamond_Sword.png" },
+              { levelNum: 5, level: "Prestigio V", rankName: "Gladiador Supremo", bonus: "+25% KC + Espadas", tag: "[P5]", color: "#E879F9", border: "rgba(232,121,249,0.4)", bg: "rgba(232,121,249,0.15)", item: "https://minecraft.wiki/w/Special:Redirect/file/Mace.png" },
             ],
             mercader: [
-              { levelNum: 1, level: "⭐ Prestigio I", rankName: "Mercader Próspero", bonus: "+5% KC Diarios", tag: "[P1]", color: "#F59E0B", border: "rgba(245,158,11,0.3)", bg: "rgba(245,158,11,0.1)", item: "/images/killucoins/coin_cobre.webp" },
-              { levelNum: 2, level: "⭐⭐ Prestigio II", rankName: "Comerciante de Élite", bonus: "+10% KC Diarios", tag: "[P2]", color: "#CBD5E1", border: "rgba(203,213,225,0.3)", bg: "rgba(203,213,225,0.1)", item: "/images/killucoins/coin_plata.webp" },
-              { levelNum: 3, level: "⭐⭐⭐ Prestigio III", rankName: "Barón Financiero", bonus: "+15% KC", tag: "[P3]", color: "#FACC15", border: "rgba(250,204,21,0.3)", bg: "rgba(250,204,21,0.1)", item: "/images/killucoins/coin_oro.webp" },
-              { levelNum: 4, level: "⭐⭐⭐⭐ Prestigio IV", rankName: "Gran Maestro Gremial", bonus: "+20% KC", tag: "[P4]", color: "#22D3EE", border: "rgba(34,211,238,0.3)", bg: "rgba(34,211,238,0.1)", item: "/images/killucoins/coin_diamante.webp" },
-              { levelNum: 5, level: "💎 Prestigio V", rankName: "Magnate Legendario", bonus: "+25% KC + Rain", tag: "[P5]", color: "#E879F9", border: "rgba(232,121,249,0.4)", bg: "rgba(232,121,249,0.15)", item: "/images/killucoins/coin_iridium.webp" },
+              { levelNum: 1, level: "Prestigio I", rankName: "Mercader Próspero", bonus: "+5% KC Diarios", tag: "[P1]", color: "#F59E0B", border: "rgba(245,158,11,0.3)", bg: "rgba(245,158,11,0.1)", item: "/images/killucoins/coin_cobre.webp" },
+              { levelNum: 2, level: "Prestigio II", rankName: "Comerciante de Élite", bonus: "+10% KC Diarios", tag: "[P2]", color: "#CBD5E1", border: "rgba(203,213,225,0.3)", bg: "rgba(203,213,225,0.1)", item: "/images/killucoins/coin_plata.webp" },
+              { levelNum: 3, level: "Prestigio III", rankName: "Barón Financiero", bonus: "+15% KC", tag: "[P3]", color: "#FACC15", border: "rgba(250,204,21,0.3)", bg: "rgba(250,204,21,0.1)", item: "/images/killucoins/coin_oro.webp" },
+              { levelNum: 4, level: "Prestigio IV", rankName: "Gran Maestro Gremial", bonus: "+20% KC", tag: "[P4]", color: "#22D3EE", border: "rgba(34,211,238,0.3)", bg: "rgba(34,211,238,0.1)", item: "/images/killucoins/coin_diamante.webp" },
+              { levelNum: 5, level: "Prestigio V", rankName: "Magnate Legendario", bonus: "+25% KC + Rain", tag: "[P5]", color: "#E879F9", border: "rgba(232,121,249,0.4)", bg: "rgba(232,121,249,0.15)", item: "/images/killucoins/coin_iridium.webp" },
             ],
             constancia: [
-              { levelNum: 1, level: "⭐ Prestigio I", rankName: "Devoto del Servidor", bonus: "+5% KC Diarios", tag: "[P1]", color: "#F59E0B", border: "rgba(245,158,11,0.3)", bg: "rgba(245,158,11,0.1)", item: "https://minecraft.wiki/w/Special:Redirect/file/Clock.png" },
-              { levelNum: 2, level: "⭐⭐ Prestigio II", rankName: "Pilar Inquebrantable", bonus: "+10% KC Diarios", tag: "[P2]", color: "#CBD5E1", border: "rgba(203,213,225,0.3)", bg: "rgba(203,213,225,0.1)", item: "https://minecraft.wiki/w/Special:Redirect/file/Compass.png" },
-              { levelNum: 3, level: "⭐⭐⭐ Prestigio III", rankName: "Guardián de Racha", bonus: "+15% KC", tag: "[P3]", color: "#FACC15", border: "rgba(250,204,21,0.3)", bg: "rgba(250,204,21,0.1)", item: "https://minecraft.wiki/w/Special:Redirect/file/Bottle_o%27_Enchanting.png" },
-              { levelNum: 4, level: "⭐⭐⭐⭐ Prestigio IV", rankName: "Leyenda Inquebrantable", bonus: "+20% KC", tag: "[P4]", color: "#22D3EE", border: "rgba(34,211,238,0.3)", bg: "rgba(34,211,238,0.1)", item: "https://minecraft.wiki/w/Special:Redirect/file/Totem_of_Undying.png" },
-              { levelNum: 5, level: "💎 Prestigio V", rankName: "Titán Eterno", bonus: "+25% KC + Totem", tag: "[P5]", color: "#E879F9", border: "rgba(232,121,249,0.4)", bg: "rgba(232,121,249,0.15)", item: "https://minecraft.wiki/w/Special:Redirect/file/Nether_Star.png" },
+              { levelNum: 1, level: "Prestigio I", rankName: "Devoto del Servidor", bonus: "+5% KC Diarios", tag: "[P1]", color: "#F59E0B", border: "rgba(245,158,11,0.3)", bg: "rgba(245,158,11,0.1)", item: "https://minecraft.wiki/w/Special:Redirect/file/Clock.png" },
+              { levelNum: 2, level: "Prestigio II", rankName: "Pilar Inquebrantable", bonus: "+10% KC Diarios", tag: "[P2]", color: "#CBD5E1", border: "rgba(203,213,225,0.3)", bg: "rgba(203,213,225,0.1)", item: "https://minecraft.wiki/w/Special:Redirect/file/Compass.png" },
+              { levelNum: 3, level: "Prestigio III", rankName: "Guardián de Racha", bonus: "+15% KC", tag: "[P3]", color: "#FACC15", border: "rgba(250,204,21,0.3)", bg: "rgba(250,204,21,0.1)", item: "https://minecraft.wiki/w/Special:Redirect/file/Bottle_o%27_Enchanting.png" },
+              { levelNum: 4, level: "Prestigio IV", rankName: "Leyenda Inquebrantable", bonus: "+20% KC", tag: "[P4]", color: "#22D3EE", border: "rgba(34,211,238,0.3)", bg: "rgba(34,211,238,0.1)", item: "https://minecraft.wiki/w/Special:Redirect/file/Totem_of_Undying.png" },
+              { levelNum: 5, level: "Prestigio V", rankName: "Titán Eterno", bonus: "+25% KC + Totem", tag: "[P5]", color: "#E879F9", border: "rgba(232,121,249,0.4)", bg: "rgba(232,121,249,0.15)", item: "https://minecraft.wiki/w/Special:Redirect/file/Nether_Star.png" },
             ],
             explorador: [
-              { levelNum: 1, level: "⭐ Prestigio I", rankName: "Navegante de Reinos", bonus: "+5% KC Diarios", tag: "[P1]", color: "#F59E0B", border: "rgba(245,158,11,0.3)", bg: "rgba(245,158,11,0.1)", item: "https://minecraft.wiki/w/Special:Redirect/file/Leather_Boots_(item)_JE2.png" },
-              { levelNum: 2, level: "⭐⭐ Prestigio II", rankName: "Mapeador Ancestral", bonus: "+10% KC Diarios", tag: "[P2]", color: "#CBD5E1", border: "rgba(203,213,225,0.3)", bg: "rgba(203,213,225,0.1)", item: "https://minecraft.wiki/w/Special:Redirect/file/Spyglass.png" },
-              { levelNum: 3, level: "⭐⭐⭐ Prestigio III", rankName: "Pionero del Horizonte", bonus: "+15% KC", tag: "[P3]", color: "#FACC15", border: "rgba(250,204,21,0.3)", bg: "rgba(250,204,21,0.1)", item: "https://minecraft.wiki/w/Special:Redirect/file/Empty_Map.png" },
-              { levelNum: 4, level: "⭐⭐⭐⭐ Prestigio IV", rankName: "Explorador Experto", bonus: "+20% KC", tag: "[P4]", color: "#22D3EE", border: "rgba(34,211,238,0.3)", bg: "rgba(34,211,238,0.1)", item: "https://minecraft.wiki/w/Special:Redirect/file/Elytra.png" },
-              { levelNum: 5, level: "💎 Prestigio V", rankName: "Conquistador de Mundos", bonus: "+25% KC + Trail", tag: "[P5]", color: "#E879F9", border: "rgba(232,121,249,0.4)", bg: "rgba(232,121,249,0.15)", item: "https://minecraft.wiki/w/Special:Redirect/file/Recovery_Compass.png" },
+              { levelNum: 1, level: "Prestigio I", rankName: "Navegante de Reinos", bonus: "+5% KC Diarios", tag: "[P1]", color: "#F59E0B", border: "rgba(245,158,11,0.3)", bg: "rgba(245,158,11,0.1)", item: "https://minecraft.wiki/w/Special:Redirect/file/Leather_Boots_(item)_JE2.png" },
+              { levelNum: 2, level: "Prestigio II", rankName: "Mapeador Ancestral", bonus: "+10% KC Diarios", tag: "[P2]", color: "#CBD5E1", border: "rgba(203,213,225,0.3)", bg: "rgba(203,213,225,0.1)", item: "https://minecraft.wiki/w/Special:Redirect/file/Spyglass.png" },
+              { levelNum: 3, level: "Prestigio III", rankName: "Pionero del Horizonte", bonus: "+15% KC", tag: "[P3]", color: "#FACC15", border: "rgba(250,204,21,0.3)", bg: "rgba(250,204,21,0.1)", item: "https://minecraft.wiki/w/Special:Redirect/file/Empty_Map.png" },
+              { levelNum: 4, level: "Prestigio IV", rankName: "Explorador Experto", bonus: "+20% KC", tag: "[P4]", color: "#22D3EE", border: "rgba(34,211,238,0.3)", bg: "rgba(34,211,238,0.1)", item: "https://minecraft.wiki/w/Special:Redirect/file/Elytra.png" },
+              { levelNum: 5, level: "Prestigio V", rankName: "Conquistador de Mundos", bonus: "+25% KC + Trail", tag: "[P5]", color: "#E879F9", border: "rgba(232,121,249,0.4)", bg: "rgba(232,121,249,0.15)", item: "https://minecraft.wiki/w/Special:Redirect/file/Recovery_Compass.png" },
             ],
           };
           const list = archetypeMockups[prestigeTab];
@@ -680,9 +680,9 @@ export function PlayerStatsWidget({ username }: PlayerStatsWidgetProps) {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 10, borderTop: "1px solid rgba(168,85,247,0.2)", fontSize: 11, color: "rgba(255,255,255,0.7)" }}>
           {isCurrentCategoryTop1 ? (
             currentPrestigeLevel >= 5 ? (
-              <span>👑 <em>¡Felicidades! Has alcanzado el <strong>Nivel Máximo V de Prestigio</strong> en {prestigeTab.toUpperCase()}.</em></span>
+              <span><em>¡Felicidades! Has alcanzado el <strong>Nivel Máximo V de Prestigio</strong> en {prestigeTab.toUpperCase()}.</em></span>
             ) : (
-              <span>✨ <em>¡Requisito Cumplido! Eres el #1 del servidor en <strong>{prestigeTab.toUpperCase()}</strong>. Puedes ascender al Nivel {currentPrestigeLevel + 1}.</em></span>
+              <span><em>¡Requisito Cumplido! Eres el #1 del servidor en <strong>{prestigeTab.toUpperCase()}</strong>. Puedes ascender al Nivel {currentPrestigeLevel + 1}.</em></span>
             )
           ) : (
             <span style={{ color: "#FCA5A5", display: "flex", alignItems: "center", gap: 4 }}>
@@ -709,13 +709,13 @@ export function PlayerStatsWidget({ username }: PlayerStatsWidgetProps) {
           >
             {!isCurrentCategoryTop1 ? (
               <>
-                <Lock size={13} /> 🔒 Requisito: Alcanzar Rango Máximo
+                <Lock size={13} /> Requisito: Alcanzar Rango Máximo
               </>
             ) : currentPrestigeLevel >= 5 ? (
-              "👑 Prestigio Máximo Alcanzado"
+              "Prestigio Máximo Alcanzado"
             ) : (
               <>
-                <Sparkles size={13} /> ⭐ Ascender a Prestigio {currentPrestigeLevel + 1}
+                <Sparkles size={13} /> Ascender a Prestigio {currentPrestigeLevel + 1}
               </>
             )}
           </button>
@@ -727,7 +727,7 @@ export function PlayerStatsWidget({ username }: PlayerStatsWidgetProps) {
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", backdropFilter: "blur(8px)", zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
           <div style={{ background: "#0F172A", border: "1px solid rgba(168,85,247,0.4)", borderRadius: 16, padding: 20, maxWidth: 360, width: "100%", color: "#FFF", display: "flex", flexDirection: "column", gap: 14 }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid rgba(168,85,247,0.2)", paddingBottom: 10 }}>
-              <span style={{ fontWeight: 800, fontSize: 13, color: "#C084FC" }}>Confirmar Ascenso ⭐</span>
+              <span style={{ fontWeight: 800, fontSize: 13, color: "#C084FC" }}>Confirmar Ascenso</span>
               <button onClick={() => setShowAscendModal(false)} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.6)", fontSize: 16, cursor: "pointer" }}>✕</button>
             </div>
             <p style={{ fontSize: 11, color: "rgba(255,255,255,0.8)", lineHeight: 1.4, margin: 0 }}>

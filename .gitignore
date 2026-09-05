@@ -58,10 +58,26 @@ CrystalTidesSMP SV DEV/
 # Extra ignores
 build/
 target/
+**/target/
+**/src-tauri/target/
 .trunk/
 bun.lock
 windows/
 ~/
+
+# 3D Models & Game Binaries (Served via Cloudflare R2 CDN)
+apps/web-client/public/models/**
+!apps/web-client/public/models/manifest.json
+models/
+docs/CoinMachines/
+*.bbmodel
+
+# Database & Local Stores
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.db-wal
+*.db-shm
 
 # Graphify
 graphify-out/
@@ -88,6 +104,8 @@ full_lint_log.txt
 rd_report.txt
 *.tsbuildinfo
 vite.config.d.ts
+.wrangler/
+**/.wrangler/
 
 # Temporary Directories
 tmp/
@@ -98,4 +116,77 @@ tmp/
 vault-env.yaml
 .opencode/
 
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+*.tfvars
+!*.tfvars.example
+*.tfplan
+override.tf
+override.tf.json
 
+
+# Stryker Mutation Testing
+.stryker-tmp/
+**/.stryker-tmp/
+stryker.log
+*.stryker.log
+reports/mutation/
+**/reports/mutation/
+reports/mutation.html
+**/reports/mutation.html
+
+# Test & E2E Artifacts
+coverage/
+**/coverage/
+.nyc_output/
+playwright-report/
+**/playwright-report/
+blob-report/
+**/blob-report/
+test-results/
+**/test-results/
+cypress/videos/
+**/cypress/videos/
+cypress/screenshots/
+**/cypress/screenshots/
+.vitest/
+**/.vitest/
+
+# Scratch & Temporary
+scratch/
+**/scratch/
+tmp/
+**/.tmp/
+*.tmp
+*.bak
+*.swp
+*.swo
+*~
+nohup.out
+
+# Python cache & artifacts
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+.pytest_cache/
+**/.pytest_cache/
+
+# OS & Desktop junk
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Certificates & Private Keys (Defense-in-depth)
+*.pem
+*.key
+*.pfx
+*.p12
+
+.aider*

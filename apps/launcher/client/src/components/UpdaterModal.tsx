@@ -73,9 +73,13 @@ export const UpdaterModal: React.FC<UpdaterModalProps> = ({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            fontSize: 22,
+            color: "#2DD4BF",
           }}>
-            🚀
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
           </div>
           <div>
             <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: "#FFF" }}>
@@ -107,8 +111,13 @@ export const UpdaterModal: React.FC<UpdaterModalProps> = ({
 
         {/* Error */}
         {error && (
-          <div style={{ fontSize: 12, color: "#F87171", background: "rgba(239, 68, 68, 0.1)", padding: 10, borderRadius: 8 }}>
-            ⚠️ {error}
+          <div style={{ fontSize: 12, color: "#F87171", background: "rgba(239, 68, 68, 0.1)", padding: 10, borderRadius: 8, display: "flex", alignItems: "center", gap: 8 }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#F87171" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            <span>{error}</span>
           </div>
         )}
 

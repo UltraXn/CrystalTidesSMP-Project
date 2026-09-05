@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Tauri & Build Artifacts
+src-tauri/target/
+target/
+.turbo/

@@ -4,7 +4,7 @@ export interface Profile {
   mcVersion: string;
   loaderType: "vanilla" | "neoforge" | "fabric" | "forge" | "";
   loaderVersion: string;
-  iconPath: string; // E.g., "🌊", "🎮", "🧱"
+  iconPath: string; // E.g., "box", "compass", "layers"
   gameDir?: string; // Custom game directory
   isolateSaves: boolean;
   minRam?: number; // In MB, optional override
@@ -25,7 +25,7 @@ const DEFAULT_PROFILE: Profile = {
   mcVersion: "1.21.1",
   loaderType: "neoforge",
   loaderVersion: "21.1.65",
-  iconPath: "🌊",
+  iconPath: "box",
   isolateSaves: false,
   useOptimization: true,
   created: new Date().toISOString(),

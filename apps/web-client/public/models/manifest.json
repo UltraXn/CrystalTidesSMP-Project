@@ -85,68 +85,13 @@
   },
   {
     "modId": "dustydecorations",
-    "name": "gifulamp",
-    "geoPath": "dustydecorations\\gifulamp.geo.json"
-  },
-  {
-    "modId": "dustydecorations",
-    "name": "gifulampitem",
-    "geoPath": "dustydecorations\\gifulampitem.geo.json"
-  },
-  {
-    "modId": "dustydecorations",
-    "name": "moviecamerafilming",
-    "geoPath": "dustydecorations\\moviecamerafilming.geo.json"
-  },
-  {
-    "modId": "dustydecorations",
     "name": "nautilusgolem",
     "geoPath": "dustydecorations\\nautilusgolem.geo.json"
-  },
-  {
-    "modId": "dustydecorations",
-    "name": "nautilus_seaglass_chime",
-    "geoPath": "dustydecorations\\nautilus_seaglass_chime.geo.json"
-  },
-  {
-    "modId": "dustydecorations",
-    "name": "gifulampitem",
-    "geoPath": "dustydecorations\\gifulampitem.geo.json"
-  },
-  {
-    "modId": "fdbosses",
-    "name": "boss_spawner",
-    "geoPath": "fdbosses\\boss_spawner.geo.json"
   },
   {
     "modId": "fdbosses",
     "name": "chesed",
     "geoPath": "fdbosses\\chesed.geo.json"
-  },
-  {
-    "modId": "fdbosses",
-    "name": "chesed_crystal",
-    "geoPath": "fdbosses\\chesed_crystal.geo.json"
-  },
-  {
-    "modId": "fdbosses",
-    "name": "chesed_kinetic_field",
-    "geoPath": "fdbosses\\chesed_kinetic_field.geo.json"
-  },
-  {
-    "modId": "fdbosses",
-    "name": "chesed_monolith",
-    "geoPath": "fdbosses\\chesed_monolith.geo.json"
-  },
-  {
-    "modId": "fdbosses",
-    "name": "chesed_ray_reflector",
-    "geoPath": "fdbosses\\chesed_ray_reflector.geo.json"
-  },
-  {
-    "modId": "fdbosses",
-    "name": "electric_orb",
-    "geoPath": "fdbosses\\electric_orb.geo.json"
   },
   {
     "modId": "fdbosses",
@@ -160,88 +105,8 @@
   },
   {
     "modId": "fdbosses",
-    "name": "malkuth_boss_spawner",
-    "geoPath": "fdbosses\\malkuth_boss_spawner.geo.json"
-  },
-  {
-    "modId": "fdbosses",
-    "name": "malkuth_boulder_fire",
-    "geoPath": "fdbosses\\malkuth_boulder_fire.geo.json"
-  },
-  {
-    "modId": "fdbosses",
-    "name": "malkuth_boulder_ice",
-    "geoPath": "fdbosses\\malkuth_boulder_ice.geo.json"
-  },
-  {
-    "modId": "fdbosses",
-    "name": "malkuth_cannon",
-    "geoPath": "fdbosses\\malkuth_cannon.geo.json"
-  },
-  {
-    "modId": "fdbosses",
-    "name": "malkuth_cannon_projectile",
-    "geoPath": "fdbosses\\malkuth_cannon_projectile.geo.json"
-  },
-  {
-    "modId": "fdbosses",
-    "name": "malkuth_crush_attack",
-    "geoPath": "fdbosses\\malkuth_crush_attack.geo.json"
-  },
-  {
-    "modId": "fdbosses",
-    "name": "malkuth_earthquake_part",
-    "geoPath": "fdbosses\\malkuth_earthquake_part.geo.json"
-  },
-  {
-    "modId": "fdbosses",
-    "name": "malkuth_platform",
-    "geoPath": "fdbosses\\malkuth_platform.geo.json"
-  },
-  {
-    "modId": "fdbosses",
-    "name": "malkuth_repair_crystal",
-    "geoPath": "fdbosses\\malkuth_repair_crystal.geo.json"
-  },
-  {
-    "modId": "fdbosses",
-    "name": "malkuth_screen",
-    "geoPath": "fdbosses\\malkuth_screen.geo.json"
-  },
-  {
-    "modId": "fdbosses",
-    "name": "malkuth_sword",
-    "geoPath": "fdbosses\\malkuth_sword.geo.json"
-  },
-  {
-    "modId": "fdbosses",
     "name": "malkuth_warrior",
     "geoPath": "fdbosses\\malkuth_warrior.geo.json"
-  },
-  {
-    "modId": "fdbosses",
-    "name": "test",
-    "geoPath": "fdbosses\\test.geo.json"
-  },
-  {
-    "modId": "fdbosses",
-    "name": "test2",
-    "geoPath": "fdbosses\\test2.geo.json"
-  },
-  {
-    "modId": "fdbosses",
-    "name": "uldera_crystal",
-    "geoPath": "fdbosses\\uldera_crystal.geo.json"
-  },
-  {
-    "modId": "fdbosses",
-    "name": "wip",
-    "geoPath": "fdbosses\\wip.geo.json"
-  },
-  {
-    "modId": "fdlib",
-    "name": "test",
-    "geoPath": "fdlib\\test.geo.json"
   },
   {
     "modId": "mobs_of_mythology",
@@ -264,20 +129,17 @@
   {
     "modId": "mobs_of_mythology",
     "name": "drake",
-    "geoPath": "mobs_of_mythology\\drake.geo.json",
-    "texturePath": "mobs_of_mythology\\drake"
+    "geoPath": "mobs_of_mythology\\drake.geo.json"
   },
   {
     "modId": "mobs_of_mythology",
     "name": "kobold",
-    "geoPath": "mobs_of_mythology\\kobold.geo.json",
-    "texturePath": "mobs_of_mythology\\kobold"
+    "geoPath": "mobs_of_mythology\\kobold.geo.json"
   },
   {
     "modId": "mobs_of_mythology",
     "name": "kobold_warrior",
-    "geoPath": "mobs_of_mythology\\kobold_warrior.geo.json",
-    "texturePath": "mobs_of_mythology\\kobold_warrior"
+    "geoPath": "mobs_of_mythology\\kobold_warrior.geo.json"
   },
   {
     "modId": "mobs_of_mythology",
@@ -288,8 +150,7 @@
   {
     "modId": "mobs_of_mythology",
     "name": "sporeling",
-    "geoPath": "mobs_of_mythology\\sporeling.geo.json",
-    "texturePath": "mobs_of_mythology\\sporeling"
+    "geoPath": "mobs_of_mythology\\sporeling.geo.json"
   },
   {
     "modId": "mobs_of_mythology",
@@ -299,105 +160,15 @@
   },
   {
     "modId": "mowziesmobs",
-    "name": "animated_player",
-    "geoPath": "mowziesmobs\\animated_player.geo.json"
-  },
-  {
-    "modId": "mowziesmobs",
-    "name": "animated_player_first_person",
-    "geoPath": "mowziesmobs\\animated_player_first_person.geo.json"
-  },
-  {
-    "modId": "mowziesmobs",
     "name": "bluff",
     "geoPath": "mowziesmobs\\bluff.geo.json",
     "texturePath": "mowziesmobs\\bluff.png"
   },
   {
     "modId": "mowziesmobs",
-    "name": "boulder_1",
-    "geoPath": "mowziesmobs\\boulder_1.geo.json"
-  },
-  {
-    "modId": "mowziesmobs",
-    "name": "boulder_2",
-    "geoPath": "mowziesmobs\\boulder_2.geo.json"
-  },
-  {
-    "modId": "mowziesmobs",
-    "name": "boulder_3",
-    "geoPath": "mowziesmobs\\boulder_3.geo.json"
-  },
-  {
-    "modId": "mowziesmobs",
-    "name": "earthrend_gauntlet",
-    "geoPath": "mowziesmobs\\earthrend_gauntlet.geo.json"
-  },
-  {
-    "modId": "mowziesmobs",
-    "name": "earth_spike",
-    "geoPath": "mowziesmobs\\earth_spike.geo.json"
-  },
-  {
-    "modId": "mowziesmobs",
-    "name": "geomancer_armor",
-    "geoPath": "mowziesmobs\\geomancer_armor.geo.json"
-  },
-  {
-    "modId": "mowziesmobs",
-    "name": "geomancy_pillar",
-    "geoPath": "mowziesmobs\\geomancy_pillar.geo.json"
-  },
-  {
-    "modId": "mowziesmobs",
-    "name": "gong",
-    "geoPath": "mowziesmobs\\gong.geo.json"
-  },
-  {
-    "modId": "mowziesmobs",
-    "name": "mask_bliss",
-    "geoPath": "mowziesmobs\\mask_bliss.geo.json"
-  },
-  {
-    "modId": "mowziesmobs",
-    "name": "mask_faith",
-    "geoPath": "mowziesmobs\\mask_faith.geo.json"
-  },
-  {
-    "modId": "mowziesmobs",
-    "name": "mask_fear",
-    "geoPath": "mowziesmobs\\mask_fear.geo.json"
-  },
-  {
-    "modId": "mowziesmobs",
-    "name": "mask_fury",
-    "geoPath": "mowziesmobs\\mask_fury.geo.json"
-  },
-  {
-    "modId": "mowziesmobs",
-    "name": "mask_misery",
-    "geoPath": "mowziesmobs\\mask_misery.geo.json"
-  },
-  {
-    "modId": "mowziesmobs",
-    "name": "mask_rage",
-    "geoPath": "mowziesmobs\\mask_rage.geo.json"
-  },
-  {
-    "modId": "mowziesmobs",
-    "name": "rock_sling",
-    "geoPath": "mowziesmobs\\rock_sling.geo.json"
-  },
-  {
-    "modId": "mowziesmobs",
     "name": "sculptor",
     "geoPath": "mowziesmobs\\sculptor.geo.json",
     "texturePath": "mowziesmobs\\sculptor.png"
-  },
-  {
-    "modId": "mowziesmobs",
-    "name": "sculptor_staff",
-    "geoPath": "mowziesmobs\\sculptor_staff.geo.json"
   },
   {
     "modId": "mowziesmobs",
@@ -415,16 +186,6 @@
     "name": "umvuthi",
     "geoPath": "mowziesmobs\\umvuthi.geo.json",
     "texturePath": "mowziesmobs\\umvuthi.png"
-  },
-  {
-    "modId": "punchy",
-    "name": "player",
-    "geoPath": "punchy\\player.geo.json"
-  },
-  {
-    "modId": "punchy",
-    "name": "player_3_per",
-    "geoPath": "punchy\\player_3_per.geo.json"
   },
   {
     "modId": "ribbits",
@@ -477,78 +238,635 @@
     "geoPath": "ribbits\\sorcerer_ribbit.geo.json"
   },
   {
+    "modId": "crittersandcompanions",
+    "name": "baby_leaf_insect",
+    "geoPath": "crittersandcompanions\\\\baby_leaf_insect.geo.json",
+    "texturePath": "crittersandcompanions\\\\baby_leaf_insect_1.png"
+  },
+  {
+    "modId": "crittersandcompanions",
+    "name": "baby_roly_poly",
+    "geoPath": "crittersandcompanions\\\\baby_roly_poly.geo.json",
+    "texturePath": "crittersandcompanions\\\\baby_roly_poly.png"
+  },
+  {
+    "modId": "crittersandcompanions",
+    "name": "baby_sea_bunny",
+    "geoPath": "crittersandcompanions\\\\baby_sea_bunny.geo.json",
+    "texturePath": "crittersandcompanions\\\\baby_sea_bunny_1.png"
+  },
+  {
+    "modId": "crittersandcompanions",
+    "name": "baby_shima_enaga",
+    "geoPath": "crittersandcompanions\\\\baby_shima_enaga.geo.json",
+    "texturePath": "crittersandcompanions\\\\baby_shima_enaga.png"
+  },
+  {
+    "modId": "crittersandcompanions",
+    "name": "baby_snail",
+    "geoPath": "crittersandcompanions\\\\baby_snail.geo.json",
+    "texturePath": "crittersandcompanions\\\\baby_snail.png"
+  },
+  {
+    "modId": "crittersandcompanions",
+    "name": "ladybug",
+    "geoPath": "crittersandcompanions\\\\ladybug.geo.json",
+    "texturePath": "crittersandcompanions\\\\ladybug.png"
+  },
+  {
+    "modId": "crittersandcompanions",
+    "name": "mud_ball",
+    "geoPath": "crittersandcompanions\\\\mud_ball.geo.json",
+    "texturePath": "crittersandcompanions\\\\mud_ball.png"
+  },
+  {
+    "modId": "crittersandcompanions",
+    "name": "roly_poly",
+    "geoPath": "crittersandcompanions\\\\roly_poly.geo.json",
+    "texturePath": "crittersandcompanions\\\\roly_poly_1.png"
+  },
+  {
+    "modId": "crittersandcompanions",
+    "name": "roly_poly_chest",
+    "geoPath": "crittersandcompanions\\\\roly_poly_chest.geo.json",
+    "texturePath": "crittersandcompanions\\\\roly_poly_chest.png"
+  },
+  {
+    "modId": "crittersandcompanions",
+    "name": "snail",
+    "geoPath": "crittersandcompanions\\\\snail.geo.json",
+    "texturePath": "crittersandcompanions\\\\snail_1.png"
+  },
+  {
+    "modId": "crittersandcompanions",
+    "name": "stag_beetle",
+    "geoPath": "crittersandcompanions\\\\stag_beetle.geo.json",
+    "texturePath": "crittersandcompanions\\\\stag_beetle_1.png"
+  },
+  {
+    "modId": "crittersandcompanions",
+    "name": "stick_bug",
+    "geoPath": "crittersandcompanions\\\\stick_bug.geo.json",
+    "texturePath": "crittersandcompanions\\\\stick_bug_1.png"
+  },
+  {
+    "modId": "crittersandcompanions",
+    "name": "weevil",
+    "geoPath": "crittersandcompanions\\\\weevil.geo.json",
+    "texturePath": "crittersandcompanions\\\\weevil.png"
+  },
+  {
+    "modId": "crittersandcompanions",
+    "name": "acorn",
+    "geoPath": "crittersandcompanions\\\\acorn.geo.json",
+    "texturePath": "crittersandcompanions\\\\acorn.png"
+  },
+  {
+    "modId": "dustydecorations",
+    "name": "gifulamp",
+    "geoPath": "dustydecorations\\\\gifulamp.geo.json"
+  },
+  {
+    "modId": "dustydecorations",
+    "name": "gifulampitem",
+    "geoPath": "dustydecorations\\\\gifulampitem.geo.json"
+  },
+  {
+    "modId": "dustydecorations",
+    "name": "irondoorknock",
+    "geoPath": "dustydecorations\\\\irondoorknock.geo.json",
+    "texturePath": "dustydecorations\\\\irondoorknocker.png"
+  },
+  {
+    "modId": "dustydecorations",
+    "name": "liondoorknock",
+    "geoPath": "dustydecorations\\\\liondoorknock.geo.json",
+    "texturePath": "dustydecorations\\\\liondoorknocker.png"
+  },
+  {
+    "modId": "dustydecorations",
+    "name": "moviecamerafilming",
+    "geoPath": "dustydecorations\\\\moviecamerafilming.geo.json"
+  },
+  {
+    "modId": "dustydecorations",
+    "name": "nautilus_seaglass_chime",
+    "geoPath": "dustydecorations\\\\nautilus_seaglass_chime.geo.json"
+  },
+  {
+    "modId": "fdbosses",
+    "name": "boss_spawner",
+    "geoPath": "fdbosses\\\\boss_spawner.geo.json",
+    "texturePath": "fdbosses\\\\boss_spawner.png"
+  },
+  {
+    "modId": "fdbosses",
+    "name": "chesed_crystal",
+    "geoPath": "fdbosses\\\\chesed_crystal.geo.json",
+    "texturePath": "fdbosses\\\\chesed_crystal.png"
+  },
+  {
+    "modId": "fdbosses",
+    "name": "chesed_item",
+    "geoPath": "fdbosses\\\\chesed_item.geo.json",
+    "texturePath": "fdbosses\\\\chesed_item.png"
+  },
+  {
+    "modId": "fdbosses",
+    "name": "chesed_kinetic_field",
+    "geoPath": "fdbosses\\\\chesed_kinetic_field.geo.json"
+  },
+  {
+    "modId": "fdbosses",
+    "name": "chesed_monolith",
+    "geoPath": "fdbosses\\\\chesed_monolith.geo.json",
+    "texturePath": "fdbosses\\\\chesed_monolith.png"
+  },
+  {
+    "modId": "fdbosses",
+    "name": "chesed_ray_reflector",
+    "geoPath": "fdbosses\\\\chesed_ray_reflector.geo.json",
+    "texturePath": "fdbosses\\\\chesed_ray_reflector.png"
+  },
+  {
+    "modId": "fdbosses",
+    "name": "clock_arrow",
+    "geoPath": "fdbosses\\\\clock_arrow.geo.json",
+    "texturePath": "fdbosses\\\\clock_arrow.png"
+  },
+  {
+    "modId": "fdbosses",
+    "name": "clock_pendulum",
+    "geoPath": "fdbosses\\\\clock_pendulum.geo.json",
+    "texturePath": "fdbosses\\\\clock_pendulum.png"
+  },
+  {
+    "modId": "fdbosses",
+    "name": "divine_gear",
+    "geoPath": "fdbosses\\\\divine_gear.geo.json",
+    "texturePath": "fdbosses\\\\divine_gear.png"
+  },
+  {
+    "modId": "fdbosses",
+    "name": "electric_orb",
+    "geoPath": "fdbosses\\\\electric_orb.geo.json",
+    "texturePath": "fdbosses\\\\electric_orb.png"
+  },
+  {
+    "modId": "fdbosses",
+    "name": "gear_attack",
+    "geoPath": "fdbosses\\\\gear_attack.geo.json",
+    "texturePath": "fdbosses\\\\gear_attack.png"
+  },
+  {
+    "modId": "fdbosses",
+    "name": "geburah_bell",
+    "geoPath": "fdbosses\\\\geburah_bell.geo.json",
+    "texturePath": "fdbosses\\\\geburah_bell.png"
+  },
+  {
+    "modId": "fdbosses",
+    "name": "geburah_no_core",
+    "geoPath": "fdbosses\\\\geburah_no_core.geo.json"
+  },
+  {
+    "modId": "fdbosses",
+    "name": "judgement_ball",
+    "geoPath": "fdbosses\\\\judgement_ball.geo.json",
+    "texturePath": "fdbosses\\\\judgement_ball.png"
+  },
+  {
+    "modId": "fdbosses",
+    "name": "judgement_bird",
+    "geoPath": "fdbosses\\\\judgement_bird.geo.json",
+    "texturePath": "fdbosses\\\\judgement_bird.png"
+  },
+  {
+    "modId": "fdbosses",
+    "name": "justice_hammer",
+    "geoPath": "fdbosses\\\\justice_hammer.geo.json",
+    "texturePath": "fdbosses\\\\justice_hammer.png"
+  },
+  {
+    "modId": "fdbosses",
+    "name": "justitia",
+    "geoPath": "fdbosses\\\\justitia.geo.json",
+    "texturePath": "fdbosses\\\\justitia.png"
+  },
+  {
+    "modId": "fdbosses",
+    "name": "malkuth_boss_spawner",
+    "geoPath": "fdbosses\\\\malkuth_boss_spawner.geo.json",
+    "texturePath": "fdbosses\\\\malkuth_boss_spawner_emissive.png"
+  },
+  {
+    "modId": "fdbosses",
+    "name": "malkuth_boulder_fire",
+    "geoPath": "fdbosses\\\\malkuth_boulder_fire.geo.json"
+  },
+  {
+    "modId": "fdbosses",
+    "name": "malkuth_boulder_ice",
+    "geoPath": "fdbosses\\\\malkuth_boulder_ice.geo.json"
+  },
+  {
+    "modId": "fdbosses",
+    "name": "malkuth_cannon",
+    "geoPath": "fdbosses\\\\malkuth_cannon.geo.json",
+    "texturePath": "fdbosses\\\\malkuth_cannon.png"
+  },
+  {
+    "modId": "fdbosses",
+    "name": "malkuth_cannon_projectile",
+    "geoPath": "fdbosses\\\\malkuth_cannon_projectile.geo.json"
+  },
+  {
+    "modId": "fdbosses",
+    "name": "malkuth_crush_attack",
+    "geoPath": "fdbosses\\\\malkuth_crush_attack.geo.json"
+  },
+  {
+    "modId": "fdbosses",
+    "name": "malkuth_earthquake_part",
+    "geoPath": "fdbosses\\\\malkuth_earthquake_part.geo.json"
+  },
+  {
+    "modId": "fdbosses",
+    "name": "malkuth_fist",
+    "geoPath": "fdbosses\\\\malkuth_fist.geo.json",
+    "texturePath": "fdbosses\\\\malkuth_fist_chain_segment.png"
+  },
+  {
+    "modId": "fdbosses",
+    "name": "malkuth_fist_flying",
+    "geoPath": "fdbosses\\\\malkuth_fist_flying.geo.json",
+    "texturePath": "fdbosses\\\\malkuth_fist_flying.png"
+  },
+  {
+    "modId": "fdbosses",
+    "name": "malkuth_platform",
+    "geoPath": "fdbosses\\\\malkuth_platform.geo.json",
+    "texturePath": "fdbosses\\\\malkuth_platform.png"
+  },
+  {
+    "modId": "fdbosses",
+    "name": "malkuth_repair_crystal",
+    "geoPath": "fdbosses\\\\malkuth_repair_crystal.geo.json"
+  },
+  {
+    "modId": "fdbosses",
+    "name": "malkuth_screen",
+    "geoPath": "fdbosses\\\\malkuth_screen.geo.json",
+    "texturePath": "fdbosses\\\\malkuth_screen.png"
+  },
+  {
+    "modId": "fdbosses",
+    "name": "malkuth_sword",
+    "geoPath": "fdbosses\\\\malkuth_sword.geo.json",
+    "texturePath": "fdbosses\\\\malkuth_sword_fire.png"
+  },
+  {
+    "modId": "fdbosses",
+    "name": "netzach",
+    "geoPath": "fdbosses\\\\netzach.geo.json",
+    "texturePath": "fdbosses\\\\netzach.png"
+  },
+  {
+    "modId": "fdbosses",
+    "name": "netzach_cane",
+    "geoPath": "fdbosses\\\\netzach_cane.geo.json",
+    "texturePath": "fdbosses\\\\netzach_cane.png"
+  },
+  {
+    "modId": "fdbosses",
+    "name": "uldera_crystal",
+    "geoPath": "fdbosses\\\\uldera_crystal.geo.json"
+  },
+  {
+    "modId": "mowziesmobs",
+    "name": "boulder_1",
+    "geoPath": "mowziesmobs\\\\boulder_1.geo.json"
+  },
+  {
+    "modId": "mowziesmobs",
+    "name": "boulder_2",
+    "geoPath": "mowziesmobs\\\\boulder_2.geo.json"
+  },
+  {
+    "modId": "mowziesmobs",
+    "name": "boulder_3",
+    "geoPath": "mowziesmobs\\\\boulder_3.geo.json"
+  },
+  {
+    "modId": "mowziesmobs",
+    "name": "earthrend_gauntlet",
+    "geoPath": "mowziesmobs\\\\earthrend_gauntlet.geo.json",
+    "texturePath": "mowziesmobs\\\\earthrend_gauntlet.png"
+  },
+  {
+    "modId": "mowziesmobs",
+    "name": "earth_spike",
+    "geoPath": "mowziesmobs\\\\earth_spike.geo.json"
+  },
+  {
+    "modId": "mowziesmobs",
+    "name": "elokosa",
+    "geoPath": "mowziesmobs\\\\elokosa.geo.json",
+    "texturePath": "mowziesmobs\\\\elokosa.png"
+  },
+  {
+    "modId": "mowziesmobs",
+    "name": "geomancer_armor",
+    "geoPath": "mowziesmobs\\\\geomancer_armor.geo.json",
+    "texturePath": "mowziesmobs\\\\geomancer_armor.png"
+  },
+  {
+    "modId": "mowziesmobs",
+    "name": "geomancy_pillar",
+    "geoPath": "mowziesmobs\\\\geomancy_pillar.geo.json"
+  },
+  {
+    "modId": "mowziesmobs",
+    "name": "gong",
+    "geoPath": "mowziesmobs\\\\gong.geo.json",
+    "texturePath": "mowziesmobs\\\\gong.png"
+  },
+  {
+    "modId": "mowziesmobs",
+    "name": "mask_bliss",
+    "geoPath": "mowziesmobs\\\\mask_bliss.geo.json"
+  },
+  {
+    "modId": "mowziesmobs",
+    "name": "mask_faith",
+    "geoPath": "mowziesmobs\\\\mask_faith.geo.json"
+  },
+  {
+    "modId": "mowziesmobs",
+    "name": "mask_fear",
+    "geoPath": "mowziesmobs\\\\mask_fear.geo.json"
+  },
+  {
+    "modId": "mowziesmobs",
+    "name": "mask_fury",
+    "geoPath": "mowziesmobs\\\\mask_fury.geo.json"
+  },
+  {
+    "modId": "mowziesmobs",
+    "name": "mask_misery",
+    "geoPath": "mowziesmobs\\\\mask_misery.geo.json"
+  },
+  {
+    "modId": "mowziesmobs",
+    "name": "mask_rage",
+    "geoPath": "mowziesmobs\\\\mask_rage.geo.json"
+  },
+  {
+    "modId": "mowziesmobs",
+    "name": "rock_sling",
+    "geoPath": "mowziesmobs\\\\rock_sling.geo.json"
+  },
+  {
+    "modId": "mowziesmobs",
+    "name": "sculptor_staff",
+    "geoPath": "mowziesmobs\\\\sculptor_staff.geo.json",
+    "texturePath": "mowziesmobs\\\\sculptor_staff.png"
+  },
+  {
     "modId": "ribbits",
     "name": "umbrella_1",
-    "geoPath": "ribbits\\umbrella_1.geo.json"
+    "geoPath": "ribbits\\\\umbrella_1.geo.json"
   },
   {
     "modId": "ribbits",
     "name": "umbrella_2",
-    "geoPath": "ribbits\\umbrella_2.geo.json"
+    "geoPath": "ribbits\\\\umbrella_2.geo.json"
   },
   {
     "modId": "ribbits",
     "name": "umbrella_3",
-    "geoPath": "ribbits\\umbrella_3.geo.json"
+    "geoPath": "ribbits\\\\umbrella_3.geo.json"
   },
   {
-    "modId": "ribbits",
-    "name": "umbrella_1",
-    "geoPath": "ribbits\\umbrella_1.geo.json"
+    "modId": "cataclysm",
+    "name": "deepling",
+    "geoPath": "cataclysm\\\\deepling.geo.json",
+    "texturePath": "cataclysm\\\\deepling_1.png"
   },
   {
-    "modId": "ribbits",
-    "name": "umbrella_2",
-    "geoPath": "ribbits\\umbrella_2.geo.json"
+    "modId": "cataclysm",
+    "name": "deepling_brute",
+    "geoPath": "cataclysm\\\\deepling_brute.geo.json",
+    "texturePath": "cataclysm\\\\deepling_brute.png"
   },
   {
-    "modId": "ribbits",
-    "name": "umbrella_3",
-    "geoPath": "ribbits\\umbrella_3.geo.json"
+    "modId": "cataclysm",
+    "name": "deepling_angler",
+    "geoPath": "cataclysm\\\\deepling_angler.geo.json",
+    "texturePath": "cataclysm\\\\deepling_angler.png"
   },
   {
-    "modId": "ribbits",
-    "name": "umbrella_1",
-    "geoPath": "ribbits\\umbrella_1.geo.json"
+    "modId": "cataclysm",
+    "name": "deepling_priest",
+    "geoPath": "cataclysm\\\\deepling_priest.geo.json",
+    "texturePath": "cataclysm\\\\deepling_priest.png"
   },
   {
-    "modId": "ribbits",
-    "name": "umbrella_2",
-    "geoPath": "ribbits\\umbrella_2.geo.json"
+    "modId": "cataclysm",
+    "name": "deepling_warlock",
+    "geoPath": "cataclysm\\\\deepling_warlock.geo.json",
+    "texturePath": "cataclysm\\\\deepling_warlock.png"
   },
   {
-    "modId": "ribbits",
-    "name": "umbrella_3",
-    "geoPath": "ribbits\\umbrella_3.geo.json"
+    "modId": "cataclysm",
+    "name": "ender_golem",
+    "geoPath": "cataclysm\\\\ender_golem.geo.json",
+    "texturePath": "cataclysm\\\\ender_golem.png"
   },
   {
-    "modId": "ribbits",
-    "name": "umbrella_1",
-    "geoPath": "ribbits\\umbrella_1.geo.json"
+    "modId": "cataclysm",
+    "name": "ender_guardian",
+    "geoPath": "cataclysm\\\\ender_guardian.geo.json",
+    "texturePath": "cataclysm\\\\ender_guardian.png"
   },
   {
-    "modId": "ribbits",
-    "name": "umbrella_2",
-    "geoPath": "ribbits\\umbrella_2.geo.json"
+    "modId": "cataclysm",
+    "name": "ignis",
+    "geoPath": "cataclysm\\\\ignis.geo.json",
+    "texturePath": "cataclysm\\\\ignis_armor_crack1.png"
   },
   {
-    "modId": "ribbits",
-    "name": "umbrella_3",
-    "geoPath": "ribbits\\umbrella_3.geo.json"
+    "modId": "cataclysm",
+    "name": "netherite_monstrosity",
+    "geoPath": "cataclysm\\\\netherite_monstrosity.geo.json",
+    "texturePath": "cataclysm\\\\netherite_monstrosity.png"
   },
   {
-    "modId": "ribbits",
-    "name": "umbrella_1",
-    "geoPath": "ribbits\\umbrella_1.geo.json"
+    "modId": "cataclysm",
+    "name": "the_leviathan",
+    "geoPath": "cataclysm\\\\the_leviathan.geo.json",
+    "texturePath": "cataclysm\\\\the_leviathan.png"
   },
   {
-    "modId": "ribbits",
-    "name": "umbrella_2",
-    "geoPath": "ribbits\\umbrella_2.geo.json"
+    "modId": "cataclysm",
+    "name": "the_baby_leviathan",
+    "geoPath": "cataclysm\\\\the_baby_leviathan.geo.json",
+    "texturePath": "cataclysm\\\\the_baby_leviathan.png"
   },
   {
-    "modId": "ribbits",
-    "name": "umbrella_3",
-    "geoPath": "ribbits\\umbrella_3.geo.json"
+    "modId": "cataclysm",
+    "name": "amethyst_crab",
+    "geoPath": "cataclysm\\\\amethyst_crab.geo.json",
+    "texturePath": "cataclysm\\\\amethyst_crab.png"
+  },
+  {
+    "modId": "cataclysm",
+    "name": "ancient_remnant_rework",
+    "geoPath": "cataclysm\\\\ancient_remnant_rework.geo.json",
+    "texturePath": "cataclysm\\\\ancient_remnant.png"
+  },
+  {
+    "modId": "cataclysm",
+    "name": "ignited_berserker",
+    "geoPath": "cataclysm\\\\ignited_berserker.geo.json",
+    "texturePath": "cataclysm\\\\ignited_berserker.png"
+  },
+  {
+    "modId": "cataclysm",
+    "name": "ignited_revenant",
+    "geoPath": "cataclysm\\\\ignited_revenant.geo.json",
+    "texturePath": "cataclysm\\\\revenant_body.png"
+  },
+  {
+    "modId": "cataclysm",
+    "name": "koboleton",
+    "geoPath": "cataclysm\\\\koboleton.geo.json",
+    "texturePath": "cataclysm\\\\koboleton.png"
+  },
+  {
+    "modId": "cataclysm",
+    "name": "maledictus",
+    "geoPath": "cataclysm\\\\maledictus.geo.json",
+    "texturePath": "cataclysm\\\\maledictus_armor.png"
+  },
+  {
+    "modId": "cataclysm",
+    "name": "aptrgangr",
+    "geoPath": "cataclysm\\\\aptrgangr.geo.json",
+    "texturePath": "cataclysm\\\\aptrgangr.png"
+  },
+  {
+    "modId": "cataclysm",
+    "name": "draugr",
+    "geoPath": "cataclysm\\\\draugr.geo.json",
+    "texturePath": "cataclysm\\\\draugr.png"
+  },
+  {
+    "modId": "cataclysm",
+    "name": "coralssus",
+    "geoPath": "cataclysm\\\\coralssus.geo.json",
+    "texturePath": "cataclysm\\\\coralssus_fire.png"
+  },
+  {
+    "modId": "cataclysm",
+    "name": "coral_golem",
+    "geoPath": "cataclysm\\\\coral_golem.geo.json",
+    "texturePath": "cataclysm\\\\coral_golem.png"
+  },
+  {
+    "modId": "cataclysm",
+    "name": "lionfish",
+    "geoPath": "cataclysm\\\\lionfish.geo.json",
+    "texturePath": "cataclysm\\\\lionfish.png"
+  },
+  {
+    "modId": "cataclysm",
+    "name": "wadjet",
+    "geoPath": "cataclysm\\\\wadjet.geo.json",
+    "texturePath": "cataclysm\\\\wadjet.png"
+  },
+  {
+    "modId": "friendsandfoes",
+    "name": "coppergolem",
+    "geoPath": "friendsandfoes\\\\coppergolem.geo.json",
+    "texturePath": "friendsandfoes\\\\copper_golem.png"
+  },
+  {
+    "modId": "friendsandfoes",
+    "name": "crab",
+    "geoPath": "friendsandfoes\\\\crab.geo.json",
+    "texturePath": "friendsandfoes\\\\crab.png"
+  },
+  {
+    "modId": "friendsandfoes",
+    "name": "glare",
+    "geoPath": "friendsandfoes\\\\glare.geo.json",
+    "texturePath": "friendsandfoes\\\\flowering_glare.png"
+  },
+  {
+    "modId": "friendsandfoes",
+    "name": "icechunk",
+    "geoPath": "friendsandfoes\\\\icechunk.geo.json"
+  },
+  {
+    "modId": "friendsandfoes",
+    "name": "mauler",
+    "geoPath": "friendsandfoes\\\\mauler.geo.json",
+    "texturePath": "friendsandfoes\\\\mauler_badlands.png"
+  },
+  {
+    "modId": "friendsandfoes",
+    "name": "rascal",
+    "geoPath": "friendsandfoes\\\\rascal.geo.json",
+    "texturePath": "friendsandfoes\\\\rascal.png"
+  },
+  {
+    "modId": "friendsandfoes",
+    "name": "tuffgolem",
+    "geoPath": "friendsandfoes\\\\tuffgolem.geo.json",
+    "texturePath": "friendsandfoes\\\\tuff_golem.png"
+  },
+  {
+    "modId": "friendsandfoes",
+    "name": "wildfire",
+    "geoPath": "friendsandfoes\\\\wildfire.geo.json",
+    "texturePath": "friendsandfoes\\\\wildfire.png"
+  },
+  {
+    "modId": "upgrade_aquatic",
+    "name": "goose",
+    "geoPath": "upgrade_aquatic\\\\goose.geo.json"
+  },
+  {
+    "modId": "upgrade_aquatic",
+    "name": "flare",
+    "geoPath": "upgrade_aquatic\\\\flare.geo.json"
+  },
+  {
+    "modId": "upgrade_aquatic",
+    "name": "lionfish",
+    "geoPath": "upgrade_aquatic\\\\lionfish.geo.json"
+  },
+  {
+    "modId": "upgrade_aquatic",
+    "name": "nautilus",
+    "geoPath": "upgrade_aquatic\\\\nautilus.geo.json"
+  },
+  {
+    "modId": "upgrade_aquatic",
+    "name": "thrasher",
+    "geoPath": "upgrade_aquatic\\\\thrasher.geo.json"
+  },
+  {
+    "modId": "variantsandventures",
+    "name": "murk",
+    "geoPath": "variantsandventures\\\\murk.geo.json",
+    "texturePath": "variantsandventures\\\\murk_purple.png"
+  },
+  {
+    "modId": "artifacts",
+    "name": "mimic",
+    "geoPath": "artifacts\\\\mimic.geo.json",
+    "texturePath": "artifacts\\\\mimic.png"
   }
 ]

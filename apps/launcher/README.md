@@ -1,18 +1,18 @@
-# 🚀 CrystalLauncher - Client & Installer Suite
+# 🚀 CrystalTides Launcher - Client & Installer Suite
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Tauri](https://img.shields.io/badge/Tauri-v2.0-FFC107.svg?logo=tauri)
 ![React](https://img.shields.io/badge/React-19.0-61DAFB.svg?logo=react)
 ![Rust](https://img.shields.io/badge/Rust-2024-000000.svg?logo=rust)
 
-**CrystalLauncher** es la suite nativa de escritorio oficial para el servidor de Minecraft **CrystalTidesSMP (Java Edition 1.21.1)**. Diseñada sobre **Tauri v2 + Rust + React 19**, ofrece un rendimiento ultra liviano, bajo consumo de memoria RAM y arranque instantáneo.
+**CrystalTides Launcher** es la suite nativa de escritorio oficial para el servidor de Minecraft **CrystalTidesSMP (Java Edition 1.21.1)**. Diseñada sobre **Tauri v2 + Rust + React 19**, ofrece un rendimiento ultra liviano, bajo consumo de memoria RAM y arranque instantáneo.
 
 ---
 
 ## 🏗️ Estructura de la Suite (`workspaces`)
 
 ```
-crystal-launcher/
+crystaltides-launcher/
 ├── client/          # Cliente principal (Autenticación Microsoft, Mod Sync, Skin Viewer 3D, Stats)
 ├── installer/       # Instalador visual animado con burbujas de vidrio y creador de accesos directos
 └── uninstaller/     # Desinstalador limpio para eliminar cachés y binarios locales
@@ -58,6 +58,12 @@ npm run dev
 # 3. Compilar los binarios de producción (.exe / .msi / .app):
 npm run build:tauri
 ```
+
+---
+
+## 📐 Especificaciones de Ventana & Layout
+
+Para consultar las medidas estándar, breakpoints y límites mínimos (`minWidth: 1080px`, `minHeight: 640px`), revisa el documento [WINDOW_SPECS.md](./WINDOW_SPECS.md).
 
 ---
 

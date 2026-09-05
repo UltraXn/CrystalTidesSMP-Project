@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   Gift,
   Trophy,
@@ -23,24 +23,24 @@ export interface RoadmapDay {
 }
 
 const WEEKS = [
-  { id: 0, label: "Todo el Mes (30 Días)", icon: "🗓️" },
-  { id: 1, label: "Semana 1 (Días 1-7)", icon: "🥉" },
-  { id: 2, label: "Semana 2 (Días 8-14)", icon: "🥈" },
-  { id: 3, label: "Semana 3 (Días 15-21)", icon: "🥇" },
-  { id: 4, label: "Semana 4 (Días 22-30)", icon: "👑" },
+  { id: 0, label: "Todo el Mes (30 Días)" },
+  { id: 1, label: "Semana 1 (Días 1-7)" },
+  { id: 2, label: "Semana 2 (Días 8-14)" },
+  { id: 3, label: "Semana 3 (Días 15-21)" },
+  { id: 4, label: "Semana 4 (Días 22-30)" },
 ];
 
 const PRESTIGE_TIERS: Record<number, { name: string; color: string; badge: string; bonus: number }> = {
-  1: { name: "Prestigio Bronce", color: "#CD7F32", badge: "🥉 BRONCE", bonus: 15 },
-  2: { name: "Prestigio Plata", color: "#94A3B8", badge: "🥈 PLATA", bonus: 30 },
-  3: { name: "Prestigio Oro", color: "#F59E0B", badge: "🥇 ORO", bonus: 45 },
-  4: { name: "Prestigio Diamante", color: "#38BDF8", badge: "💎 DIAMANTE", bonus: 60 },
-  5: { name: "Prestigio Esmeralda", color: "#10B981", badge: "✳️ ESMERALDA", bonus: 75 },
-  6: { name: "Prestigio Iridium", color: "#E879F9", badge: "👑 IRIDIUM MÁXIMO", bonus: 100 },
+  1: { name: "Prestigio Bronce", color: "#CD7F32", badge: "BRONCE", bonus: 15 },
+  2: { name: "Prestigio Plata", color: "#94A3B8", badge: "PLATA", bonus: 30 },
+  3: { name: "Prestigio Oro", color: "#F59E0B", badge: "ORO", bonus: 45 },
+  4: { name: "Prestigio Diamante", color: "#38BDF8", badge: "DIAMANTE", bonus: 60 },
+  5: { name: "Prestigio Esmeralda", color: "#10B981", badge: "ESMERALDA", bonus: 75 },
+  6: { name: "Prestigio Iridium", color: "#E879F9", badge: "IRIDIUM MÁXIMO", bonus: 100 },
 };
 
 const getPrestigeInfo = (level: number) => {
-  return PRESTIGE_TIERS[level] || { name: `Prestigio Nivel ${level}`, color: "#2DD4BF", badge: `⭐ NIVEL ${level}`, bonus: level * 15 };
+  return PRESTIGE_TIERS[level] || { name: `Prestigio Nivel ${level}`, color: "#2DD4BF", badge: `NIVEL ${level}`, bonus: level * 15 };
 };
 
 export function RewardsPage() {
@@ -59,11 +59,7 @@ export function RewardsPage() {
   const [claiming, setClaiming] = useState(false);
   const [claimMsg, setClaimMsg] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchRoadmapData();
-  }, [currentSession]);
-
-  const fetchRoadmapData = async () => {
+  const fetchRoadmapData = useCallback(async () => {
     try {
       const [resConfig, resStreak] = await Promise.all([
         fetch("https://api.crystaltidessmp.net/api/roadmap/config").then((r) => r.json()),
@@ -85,7 +81,7 @@ export function RewardsPage() {
           day: i + 1,
           title:
             i === 29
-              ? "Día 30: 👑 JACKPOT IRIDIUM X50"
+              ? "Día 30: JACKPOT IRIDIUM X50"
               : i === 6
               ? "Día 7: Cofre de Cobre"
               : i === 13
@@ -102,7 +98,11 @@ export function RewardsPage() {
         }))
       );
     }
-  };
+  }, [currentSession]);
+
+  useEffect(() => {
+    fetchRoadmapData();
+  }, [fetchRoadmapData]);
 
   const handleClaim = async () => {
     setClaiming(true);
@@ -115,13 +115,13 @@ export function RewardsPage() {
       });
       const data = await res.json();
       if (data.success) {
-        setClaimMsg(`🎉 ¡${data.data.message}! Nuevo Saldo: ${data.data.newBalance} KC`);
+        setClaimMsg(`¡${data.data.message}! Nuevo Saldo: ${data.data.newBalance} KC`);
         setStreak((prev) => ({ ...prev, canClaim: false }));
       } else {
-        setClaimMsg(`⚠️ ${data.message || "Error al reclamar recompensa"}`);
+        setClaimMsg(data.message || "Error al reclamar recompensa");
       }
     } catch {
-      setClaimMsg("🎉 ¡Recompensa reclamada con éxito! (+100 KC acreditados)");
+      setClaimMsg("¡Recompensa reclamada con éxito! (+100 KC acreditados)");
       setStreak((prev) => ({ ...prev, canClaim: false }));
     } finally {
       setClaiming(false);
@@ -135,7 +135,7 @@ export function RewardsPage() {
         itemTitle: "Jackpot Iridium",
         subtext: "Logro Mítico + 125K KC",
         color: "#E879F9",
-        badge: "👑 IRIDIUM",
+        badge: "IRIDIUM",
         imageSrc: "/images/killucoins/coin_iridium.webp",
         fallbackIcon: <Trophy size={28} color="#E879F9" />,
         boxGradient: "linear-gradient(135deg, rgba(232, 121, 249, 0.35) 0%, rgba(15, 23, 42, 0.95) 100%)",
@@ -150,7 +150,7 @@ export function RewardsPage() {
           itemTitle: "Giro Gacha Bronce",
           subtext: "1x Ficha de Bronce",
           color: "#CD7F32",
-          badge: "🎰 GACHA BRONCE",
+          badge: "GACHA BRONCE",
           imageSrc: "/images/killucoins/coin_cobre.webp",
           fallbackIcon: <Sparkles size={24} color="#CD7F32" />,
           boxGradient: "linear-gradient(135deg, rgba(205, 127, 50, 0.2) 0%, rgba(15, 23, 42, 0.85) 100%)",
@@ -161,7 +161,7 @@ export function RewardsPage() {
           itemTitle: "Giro Gacha Plata",
           subtext: "1x Ficha de Plata",
           color: "#38BDF8",
-          badge: "🎰 GACHA PLATA",
+          badge: "GACHA PLATA",
           imageSrc: "/images/killucoins/coin_plata.webp",
           fallbackIcon: <Sparkles size={24} color="#38BDF8" />,
           boxGradient: "linear-gradient(135deg, rgba(56, 189, 248, 0.2) 0%, rgba(15, 23, 42, 0.85) 100%)",
@@ -172,7 +172,7 @@ export function RewardsPage() {
           itemTitle: "Giro Gacha Oro",
           subtext: "1x Ficha Dorada",
           color: "#F59E0B",
-          badge: "🎰 GACHA ORO",
+          badge: "GACHA ORO",
           imageSrc: "/images/killucoins/coin_oro.webp",
           fallbackIcon: <Sparkles size={24} color="#F59E0B" />,
           boxGradient: "linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(15, 23, 42, 0.85) 100%)",
@@ -183,7 +183,7 @@ export function RewardsPage() {
           itemTitle: "Giro Gacha Mítico",
           subtext: "1x Ficha Iridium",
           color: "#E879F9",
-          badge: "🎰 GACHA MÍTICO",
+          badge: "GACHA MÍTICO",
           imageSrc: "/images/killucoins/coin_iridium.webp",
           fallbackIcon: <Sparkles size={24} color="#E879F9" />,
           boxGradient: "linear-gradient(135deg, rgba(232, 121, 249, 0.2) 0%, rgba(15, 23, 42, 0.85) 100%)",
@@ -198,7 +198,7 @@ export function RewardsPage() {
         itemTitle: "Lingotes de Cobre",
         subtext: `+${(day.reward_value * day.multiplier).toLocaleString()} KC`,
         color: "#CD7F32",
-        badge: "📦 BOTÍN SEMANA 1",
+        badge: "BOTÍN SEMANA 1",
         imageSrc: "/images/items/Raw_Copper_JE3_BE2.png",
         fallbackIcon: <Package size={26} color="#CD7F32" />,
         boxGradient: "linear-gradient(135deg, rgba(205, 127, 50, 0.25) 0%, rgba(15, 23, 42, 0.85) 100%)",
@@ -211,7 +211,7 @@ export function RewardsPage() {
         itemTitle: "Lingote de Hierro",
         subtext: `+${(day.reward_value * day.multiplier).toLocaleString()} KC`,
         color: "#38BDF8",
-        badge: "📦 BOTÍN SEMANA 2",
+        badge: "BOTÍN SEMANA 2",
         imageSrc: "/images/items/Iron_Ingot_JE3_BE2.png",
         fallbackIcon: <Package size={26} color="#38BDF8" />,
         boxGradient: "linear-gradient(135deg, rgba(56, 189, 248, 0.25) 0%, rgba(15, 23, 42, 0.85) 100%)",
@@ -224,7 +224,7 @@ export function RewardsPage() {
         itemTitle: "Bloque de Oro",
         subtext: `+${(day.reward_value * day.multiplier).toLocaleString()} KC`,
         color: "#F59E0B",
-        badge: "📦 BOTÍN SEMANA 3",
+        badge: "BOTÍN SEMANA 3",
         imageSrc: "/images/items/Gold_block.webp",
         fallbackIcon: <Package size={26} color="#F59E0B" />,
         boxGradient: "linear-gradient(135deg, rgba(245, 158, 11, 0.25) 0%, rgba(15, 23, 42, 0.85) 100%)",
@@ -237,7 +237,7 @@ export function RewardsPage() {
         itemTitle: "Bloque Esmeralda",
         subtext: `+${(day.reward_value * day.multiplier).toLocaleString()} KC`,
         color: "#10B981",
-        badge: "💎 BOTÍN ÉPICO",
+        badge: "BOTÍN ÉPICO",
         imageSrc: "/images/items/Bloque_Esmeralda.webp",
         fallbackIcon: <Package size={26} color="#10B981" />,
         boxGradient: "linear-gradient(135deg, rgba(16, 185, 129, 0.25) 0%, rgba(15, 23, 42, 0.85) 100%)",
@@ -250,7 +250,7 @@ export function RewardsPage() {
         itemTitle: "Estrella del Nether",
         subtext: "Víspera de Jackpot",
         color: "#F43F5E",
-        badge: "⭐ VÍSPEIRA JACKPOT",
+        badge: "VÍSPERA JACKPOT",
         imageSrc: "/images/items/Nether_Star.gif",
         fallbackIcon: <Sparkles size={26} color="#F43F5E" />,
         boxGradient: "linear-gradient(135deg, rgba(244, 63, 94, 0.25) 0%, rgba(15, 23, 42, 0.85) 100%)",
@@ -260,20 +260,20 @@ export function RewardsPage() {
 
     // KilluCoins según el multiplicador/semana
     let coinTexture = "/images/killucoins/coin_cobre.webp";
-    let coinBadge = "🪙 COBRE";
+    let coinBadge = "COBRE";
     let coinColor = "#CD7F32";
 
     if (day.multiplier === 2 || (day.day >= 8 && day.day <= 14)) {
       coinTexture = "/images/killucoins/coin_plata.webp";
-      coinBadge = "🪙 PLATA x2";
+      coinBadge = "PLATA x2";
       coinColor = "#38BDF8";
     } else if (day.multiplier === 5 || (day.day >= 15 && day.day <= 21)) {
       coinTexture = "/images/killucoins/coin_oro.webp";
-      coinBadge = "🪙 ORO x5";
+      coinBadge = "ORO x5";
       coinColor = "#F59E0B";
     } else if (day.multiplier >= 10 || day.day >= 22) {
       coinTexture = "/images/killucoins/coin_esmeralda.webp";
-      coinBadge = "💎 ESMERALDA x10";
+      coinBadge = "ESMERALDA x10";
       coinColor = "#10B981";
     }
 
@@ -315,7 +315,7 @@ export function RewardsPage() {
       };
     if (tabId === 4)
       return {
-        title: "Semana 4: Épico Final & 👑 Jackpot Iridium (x50)",
+        title: "Semana 4: Épico Final & Jackpot Iridium (x50)",
         desc: "Días 22 al 30 • Multiplicadores x10, Estrella del Nether y Recompensa Leyenda",
       };
     return {
@@ -490,7 +490,7 @@ export function RewardsPage() {
           <Trophy size={32} color="#E879F9" />
           <div>
             <div style={{ fontSize: 15, fontWeight: 900, color: "#E879F9" }}>
-              🏆 ¡LOGRO MÁXIMO DESBLOQUEADO: Leyenda de CrystalTides!
+              ¡LOGRO MÁXIMO DESBLOQUEADO: Leyenda de CrystalTides!
             </div>
             <div style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", marginTop: 2 }}>
               Completaste la racha mensual perfecta. Tienes el badge dorado en tu perfil y el título exclusivo en el servidor.
@@ -524,7 +524,6 @@ export function RewardsPage() {
                 transition: "all 0.2s ease",
               }}
             >
-              <span>{w.icon}</span>
               <span>{w.label}</span>
             </button>
           );

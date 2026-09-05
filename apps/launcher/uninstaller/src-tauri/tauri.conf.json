@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "CTLauncher Uninstaller",
+  "productName": "CrystalTides Launcher Uninstaller",
   "version": "0.1.0",
-  "identifier": "net.crystaltides.uninstaller",
+  "identifier": "net.crystaltides.launcher.uninstaller",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:14220",
@@ -13,7 +13,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "CTLauncher Uninstaller",
+        "title": "CrystalTides Launcher Uninstaller",
         "width": 620,
         "height": 520,
         "resizable": false,

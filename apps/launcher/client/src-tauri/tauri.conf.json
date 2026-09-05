@@ -13,10 +13,14 @@
     "windows": [
       {
         "label": "main",
-        "title": "CrystalTides Launcher",
-        "width": 1280,
-        "height": 720,
-        "decorations": false
+        "title": "Crystal Client",
+        "width": 1386,
+        "height": 782,
+        "minWidth": 1100,
+        "minHeight": 680,
+        "resizable": true,
+        "decorations": false,
+        "center": true
       }
     ],
     "security": {
@@ -47,6 +51,11 @@
         "https://github.com/UltraXn/crystal-launcher/releases/latest/download/latest.json"
       ],
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IGF1dG91cGRhdGUgcHVibGljIGtleQpSV1N5TWpCa3JvVktGSmJndmRhbWR2bXNzZXZzYm1zZXZzYm1zZXZzYm1zZWQK"
+    },
+    "deep-link": {
+      "desktop": {
+        "schemes": ["crystaltides"]
+      }
     }
   }
 }

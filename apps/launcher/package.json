@@ -1,8 +1,8 @@
 {
-  "name": "crystal-launcher-suite",
+  "name": "crystaltides-launcher-suite",
   "version": "2.0.0",
   "private": true,
-  "description": "Oficial Desktop Launcher & Installer Suite for CrystalTides SMP (Tauri v2 + React 19 + Rust)",
+  "description": "Official Desktop Launcher & Installer Suite for CrystalTides SMP (Tauri v2 + React 19 + Rust)",
   "type": "module",
   "workspaces": [
     "client",
