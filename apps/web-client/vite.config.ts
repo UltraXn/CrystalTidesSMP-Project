@@ -1,21 +1,23 @@
 import { defineConfig } from "vitest/config";
 import type { PluginOption } from "vite";
 import react from "@vitejs/plugin-react";
-import tailwindcss from "@tailwindcss/vite";
 import { boneyardPlugin } from "boneyard-js/vite";
 import path from "path";
 import { fileURLToPath } from "url";
 
-export default defineConfig(() => {
+export default defineConfig(async () => {
   const dirname = path.dirname(fileURLToPath(import.meta.url));
+
+  const plugins: PluginOption[] = [react() as unknown as PluginOption];
+  if (!process.env.VITEST) {
+    const tailwindcss = (await import("@tailwindcss/vite")).default;
+    plugins.push(tailwindcss());
+  }
+  plugins.push(boneyardPlugin());
 
   return {
     envDir: "../../",
-    plugins: [
-      react() as unknown as PluginOption,
-      ...(process.env.VITEST ? [] : [tailwindcss()]),
-      boneyardPlugin(),
-    ],
+    plugins,
     esbuild: {
       drop: (process.env.NODE_ENV === "production"
         ? ["console", "debugger"]
