@@ -1,68 +1,77 @@
-import { defineConfig } from 'vitest/config';
-import type { PluginOption } from 'vite';
-import react from '@vitejs/plugin-react';
-import tailwindcss from '@tailwindcss/vite';
-import { boneyardPlugin } from 'boneyard-js/vite';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import { defineConfig } from "vitest/config";
+import type { PluginOption } from "vite";
+import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
+import { boneyardPlugin } from "boneyard-js/vite";
+import path from "path";
+import { fileURLToPath } from "url";
 
 export default defineConfig(() => {
   const dirname = path.dirname(fileURLToPath(import.meta.url));
 
   return {
-    envDir: '../../',
-    plugins: [react() as unknown as PluginOption, tailwindcss(), boneyardPlugin()],
+    envDir: "../../",
+    plugins: [
+      react() as unknown as PluginOption,
+      ...(process.env.VITEST ? [] : [tailwindcss()]),
+      boneyardPlugin(),
+    ],
     esbuild: {
-      drop: (process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : []) as ('console' | 'debugger')[],
+      drop: (process.env.NODE_ENV === "production"
+        ? ["console", "debugger"]
+        : []) as ("console" | "debugger")[],
     },
     build: {
-      outDir: 'dist',
+      outDir: "dist",
       emptyOutDir: true,
       sourcemap: false,
-      target: 'es2020',
+      target: "es2020",
       cssCodeSplit: true,
       chunkSizeWarningLimit: 1000,
       rollupOptions: {
         output: {
           manualChunks: {
-            'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-            'motion-vendor': ['framer-motion', 'gsap'],
-            'icons-vendor': ['lucide-react'],
-            'dnd-vendor': ['@hello-pangea/dnd'],
-            'three-vendor': ['three', 'skinview3d', 'react-skinview3d'],
-            'chart-vendor': ['recharts'],
-            'utils-vendor': ['date-fns', 'zod', 'i18next', 'react-i18next'],
+            "react-vendor": ["react", "react-dom", "react-router-dom"],
+            "motion-vendor": ["framer-motion", "gsap"],
+            "icons-vendor": ["lucide-react"],
+            "dnd-vendor": ["@hello-pangea/dnd"],
+            "three-vendor": ["three", "skinview3d", "react-skinview3d"],
+            "chart-vendor": ["recharts"],
+            "utils-vendor": ["date-fns", "zod", "i18next", "react-i18next"],
           },
         },
       },
     },
     resolve: {
       alias: {
-        '@': path.resolve(dirname, 'src'),
-        '/src': path.resolve(dirname, 'src'),
-        '@crystaltides/shared': path.resolve(dirname, '../../packages/shared/src/index.ts'),
+        "@": path.resolve(dirname, "src"),
+        "/src": path.resolve(dirname, "src"),
+        "@crystaltides/shared": path.resolve(
+          dirname,
+          "../../packages/shared/src/index.ts",
+        ),
       },
-      dedupe: ['three'],
+      dedupe: ["three"],
     },
     server: {
-      allowedHosts: ['crystaltidessmp.net'],
+      allowedHosts: ["crystaltidessmp.net"],
       proxy: {
-        '/api': {
-          target: process.env.VITE_PROXY_TARGET || 'http://localhost:3001',
+        "/api": {
+          target: process.env.VITE_PROXY_TARGET || "http://localhost:3001",
           changeOrigin: true,
           secure: false,
         },
       },
       fs: {
-        allow: ['..'],
+        allow: [".."],
       },
     },
     test: {
       globals: true,
-      environment: 'jsdom',
-      setupFiles: ['./src/test/setup.ts'],
-      include: ['./src/**/*.{test,spec}.{ts,tsx}'],
-      root: '.',
+      environment: "jsdom",
+      setupFiles: ["./src/test/setup.ts"],
+      include: ["./src/**/*.{test,spec}.{ts,tsx}"],
+      root: ".",
     },
   };
 });
