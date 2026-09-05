@@ -97,7 +97,9 @@ jobs:
           cache: npm
 
       - name: Install Dependencies
-        run: npm ci || npm install --legacy-peer-deps
+        run: |
+          npm ci || npm install --legacy-peer-deps
+          npm i --no-save @tailwindcss/oxide-linux-x64-gnu || true
 
       - name: Generate Stryker Config
         working-directory: apps/${{ matrix.app }}
