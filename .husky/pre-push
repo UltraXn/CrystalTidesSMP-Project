@@ -12,9 +12,9 @@ if [ "$current_branch" = "main" ]; then
   exit 1
 fi
 
-# 2. Guard against committing secret files (.env, *.pem, id_rsa)
-secret_patterns='(\.env(\..+)?$|.*id_rsa.*|.*\.pem$|.*\.key$)'
-leaked_files=$(git diff --name-only @{u}..HEAD 2>/dev/null | grep -E "$secret_patterns" || true)
+# 2. Guard against committing secret files (.env, *.pem, id_rsa) but allow .example / .template
+secret_patterns='(\.env(\.(local|production|development|staging|test))?$|.*id_rsa.*|.*\.pem$|.*\.key$)'
+leaked_files=$(git diff --name-only @{u}..HEAD 2>/dev/null | grep -E "$secret_patterns" | grep -v -E '\.(example|sample|template)$' || true)
 
 if [ -n "$leaked_files" ]; then
   echo "❌ [PRE-PUSH GUARD] Detected potential secret files in outgoing commits:"
