@@ -1,0 +1,18 @@
+{
+  "packageManager": "npm",
+  "reporters": ["html", "clear-text", "progress"],
+  "testRunner": "vitest",
+  "coverageAnalysis": "perTest",
+  "tsconfigFile": "",
+  "concurrency": 1,
+  "vitest": {
+    "related": true
+  },
+  "mutate": [
+    "src/components/UI/ConfirmationModal.tsx",
+    "src/components/Launcher/ProfileSelector.tsx",
+    "!**/*.test.ts",
+    "!**/*.test.tsx",
+    "!**/__tests__/**"
+  ]
+}
