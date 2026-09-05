@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { buildDungeonMasterPrompt } from '../services/prompts/dungeonMasterPrompt.js'
 import { buildPressAgentPrompt } from '../services/prompts/pressAgentPrompt.js'
+import { buildBossPollPrompt } from '../services/prompts/bossPollPrompt.js'
 import { generateResilientLLMResponse } from '../services/llmFallbackPipeline.js'
 
 describe('🧠 Intelligence Loop - Prompts & Resilient LLM Pipeline', () => {
@@ -33,6 +34,19 @@ describe('🧠 Intelligence Loop - Prompts & Resilient LLM Pipeline', () => {
     expect(prompt).toContain('## 👑 5. FARÁNDULA Y JUGADOR MVP')
   })
 
+  it('debe construir el System Prompt de Encuesta de Jefes con opciones de Flash Bounty', () => {
+    const ragContext = 'cataclysm:ignis|type:boss|mowziesmobs:frostmaw'
+    const recentKills = 'Ignis derrotado ayer por 4 jugadores'
+
+    const prompt = buildBossPollPrompt(ragContext, recentKills)
+
+    expect(prompt).toContain('Oráculo de Calamidades')
+    expect(prompt).toContain('cataclysm:ignis')
+    expect(prompt).toContain('Flash Bounty')
+    expect(prompt).toContain('closes_in_days')
+    expect(prompt).toContain('options')
+  })
+
   it('debe responder con el motor de plantilla local si falla o no hay API key de terceros', async () => {
     const result = await generateResilientLLMResponse({
       systemPrompt: 'Eres El Dungeon Master de CrystalTides SMP',
@@ -44,3 +58,4 @@ describe('🧠 Intelligence Loop - Prompts & Resilient LLM Pipeline', () => {
     expect(['gemini', 'groq', 'openrouter', 'local_template']).toContain(result.provider)
   })
 })
+
