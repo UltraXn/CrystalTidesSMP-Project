@@ -1,0 +1,46 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# .gitattributes — Enforce consistent line endings and diff behavior
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Auto-detect text files and normalize to LF in the repo
+* text=auto eol=lf
+
+# Force text for known source types
+*.ts    text eol=lf
+*.tsx   text eol=lf
+*.js    text eol=lf
+*.jsx   text eol=lf
+*.mjs   text eol=lf
+*.cjs   text eol=lf
+*.css   text eol=lf
+*.html  text eol=lf
+*.json  text eol=lf
+*.yaml  text eol=lf
+*.yml   text eol=lf
+*.toml  text eol=lf
+*.md    text eol=lf
+*.sql   text eol=lf
+*.sh    text eol=lf
+*.rs    text eol=lf
+*.tf    text eol=lf
+
+# Binary — never touch
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.webp  binary
+*.woff  binary
+*.woff2 binary
+*.ttf   binary
+*.eot   binary
+*.zip   binary
+*.tar   binary
+*.gz    binary
+*.glb   binary
+*.gltf  binary
+
+# Lock files — treat as generated
+package-lock.json  text eol=lf -diff linguist-generated=true
+Cargo.lock         text eol=lf -diff linguist-generated=true
