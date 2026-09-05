@@ -53,13 +53,13 @@ jobs:
           INPUT="${{ github.event.inputs.groups || 'all' }}"
 
           ALL_GROUPS='[
-            {"group":"ui",       "app":"web-client", "mutate":"src/components/UI/**/*.tsx,src/components/UI/**/*.ts",           "tests":"src/__tests__/components/UI/**"},
-            {"group":"launcher", "app":"web-client", "mutate":"src/components/Launcher/**/*.tsx,src/components/Launcher/**/*.ts", "tests":"src/__tests__/components/Launcher/**"},
-            {"group":"admin",    "app":"web-client", "mutate":"src/components/Admin/**/*.tsx,src/components/Admin/**/*.ts",       "tests":"src/__tests__/components/Admin/**"},
-            {"group":"features", "app":"web-client", "mutate":"src/components/Forum/**/*.tsx,src/components/Forum/**/*.ts,src/components/Profile/**/*.tsx,src/components/Profile/**/*.ts,src/components/Gacha/**/*.tsx,src/components/Gacha/**/*.ts,src/components/Support/**/*.tsx,src/components/Support/**/*.ts,src/components/Wiki/**/*.tsx,src/components/Wiki/**/*.ts,src/components/User/**/*.tsx,src/components/User/**/*.ts,src/components/Account/**/*.tsx,src/components/Account/**/*.ts", "tests":"src/__tests__/components/Forum/**,src/__tests__/components/Profile/**,src/__tests__/components/Gacha/**,src/__tests__/components/Support/**,src/__tests__/components/Wiki/**,src/__tests__/components/User/**,src/__tests__/components/Account/**"},
-            {"group":"layout",   "app":"web-client", "mutate":"src/components/Layout/**/*.tsx,src/components/Layout/**/*.ts,src/components/Hero/**/*.tsx,src/components/Hero/**/*.ts,src/components/Home/**/*.tsx,src/components/Home/**/*.ts,src/components/Server/**/*.tsx,src/components/Server/**/*.ts,src/components/Effects/**/*.tsx,src/components/Effects/**/*.ts,src/components/Widgets/**/*.tsx,src/components/Widgets/**/*.ts", "tests":"src/__tests__/components/Layout/**,src/__tests__/components/Hero/**,src/__tests__/components/Home/**,src/__tests__/components/Server/**,src/__tests__/components/Effects/**,src/__tests__/components/Widgets/**"},
-            {"group":"utils",    "app":"web-client", "mutate":"src/utils/**/*.ts,src/hooks/**/*.ts,src/services/**/*.ts",       "tests":"src/__tests__/utils/**,src/__tests__/hooks/**,src/__tests__/services/**"},
-            {"group":"server",   "app":"web-server", "mutate":"services/**/*.ts,middleware/**/*.ts,controllers/**/*.ts,routes/**/*.ts,utils/**/*.ts", "tests":"__tests__/**"}
+            {"group":"ui",       "app":"web-client", "mutate":"src/components/UI/**/*.tsx,src/components/UI/**/*.ts",           "tests":"src/__tests__/components/UI/**", "dir":"src/__tests__/components/UI"},
+            {"group":"launcher", "app":"web-client", "mutate":"src/components/Launcher/**/*.tsx,src/components/Launcher/**/*.ts", "tests":"src/__tests__/components/Launcher/**", "dir":"src/__tests__/components/Launcher"},
+            {"group":"admin",    "app":"web-client", "mutate":"src/components/Admin/**/*.tsx,src/components/Admin/**/*.ts",       "tests":"src/__tests__/components/Admin/**", "dir":"src/__tests__/components/Admin"},
+            {"group":"features", "app":"web-client", "mutate":"src/components/Forum/**/*.tsx,src/components/Forum/**/*.ts,src/components/Profile/**/*.tsx,src/components/Profile/**/*.ts,src/components/Gacha/**/*.tsx,src/components/Gacha/**/*.ts,src/components/Support/**/*.tsx,src/components/Support/**/*.ts,src/components/Wiki/**/*.tsx,src/components/Wiki/**/*.ts,src/components/User/**/*.tsx,src/components/User/**/*.ts,src/components/Account/**/*.tsx,src/components/Account/**/*.ts", "tests":"src/__tests__/components/Forum/**,src/__tests__/components/Profile/**,src/__tests__/components/Gacha/**,src/__tests__/components/Support/**,src/__tests__/components/Wiki/**,src/__tests__/components/User/**,src/__tests__/components/Account/**", "dir":"src/__tests__/components"},
+            {"group":"layout",   "app":"web-client", "mutate":"src/components/Layout/**/*.tsx,src/components/Layout/**/*.ts,src/components/Hero/**/*.tsx,src/components/Hero/**/*.ts,src/components/Home/**/*.tsx,src/components/Home/**/*.ts,src/components/Server/**/*.tsx,src/components/Server/**/*.ts,src/components/Effects/**/*.tsx,src/components/Effects/**/*.ts,src/components/Widgets/**/*.tsx,src/components/Widgets/**/*.ts", "tests":"src/__tests__/components/Layout/**,src/__tests__/components/Hero/**,src/__tests__/components/Home/**,src/__tests__/components/Server/**,src/__tests__/components/Effects/**,src/__tests__/components/Widgets/**", "dir":"src/__tests__/components"},
+            {"group":"utils",    "app":"web-client", "mutate":"src/utils/**/*.ts,src/hooks/**/*.ts,src/services/**/*.ts",       "tests":"src/__tests__/utils/**,src/__tests__/hooks/**,src/__tests__/services/**", "dir":"src/__tests__"},
+            {"group":"server",   "app":"web-server", "mutate":"services/**/*.ts,middleware/**/*.ts,controllers/**/*.ts,routes/**/*.ts,utils/**/*.ts", "tests":"__tests__/**", "dir":"__tests__"}
           ]'
 
           if [ "$INPUT" = "all" ]; then
@@ -105,7 +105,7 @@ jobs:
         working-directory: apps/${{ matrix.app }}
         shell: bash
         run: |
-          CONCURRENCY="${{ github.event.inputs.concurrency_level || '4' }}"
+          CONCURRENCY="${{ github.event.inputs.concurrency_level || '2' }}"
 
           # Build mutate array from comma-separated globs
           IFS=',' read -ra MUTATE_GLOBS <<< "${{ matrix.mutate }}"
@@ -140,7 +140,8 @@ jobs:
             "tsconfigFile": "",
             "mutate": $(echo "$MUTATE_JSON" | jq -c '.'),
             "vitest": {
-              "configFile": "${CONFIG_FILE}"
+              "configFile": "${CONFIG_FILE}",
+              "dir": "${{ matrix.dir }}"
             },
             "htmlReporter": {
               "fileName": "reports/mutation/${{ matrix.group }}/index.html"
