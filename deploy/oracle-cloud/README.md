@@ -2,6 +2,10 @@
 
 Esta guía explica detalladamente cómo desplegar el plano de control (Pelican Panel, FRP Server y Bot de Discord) en tu instancia gratuita de Oracle Cloud, y cómo reconectar tu laptop y celular Termux.
 
+> ⚡ **¿Quieres automatizar todo esto con 1 comando?**
+> Ya tienes disponible el módulo de infraestructura como código en [**`deploy/oracle-cloud/terraform/`**](file:///c:/Users/nacho/Desktop/Portafolio/crystaltides/deploy/oracle-cloud/terraform/).
+> Terraform crea la VCN, abre los puertos en la Security List, levanta la VM Ampere A1 e instala Docker automáticamente.
+
 ---
 
 ## 🛠️ Paso 1: Configurar la VM y Red en Oracle Cloud Console

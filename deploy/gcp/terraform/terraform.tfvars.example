@@ -1,0 +1,30 @@
+# =========================================================================
+# 📋 Plantilla de Configuración de Terraform para Google Cloud (GCP)
+# Copia este archivo a 'terraform.tfvars' y completa tus valores reales.
+# =========================================================================
+
+project_id  = "crystaltides-prod"
+region      = "us-central1"
+environment = "production"
+
+# Repositorio de Artifact Registry
+artifact_repo_name = "crystaltides-repo"
+
+# Servicios de Cloud Run
+backend_service_name  = "crystaltides-backend"
+frontend_service_name = "crystaltides-web"
+
+# Recursos de cómputo
+backend_cpu      = "1"
+backend_memory   = "1Gi"
+backend_port     = 3001
+
+frontend_cpu     = "1"
+frontend_memory  = "512Mi"
+frontend_port    = 8080
+
+enable_public_access = true
+
+# Service Account para GitHub Actions (GCP_CREDENTIALS)
+create_github_deployer_sa = true
+github_deployer_sa_name   = "github-actions-deployer"

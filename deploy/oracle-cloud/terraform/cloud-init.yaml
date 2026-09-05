@@ -1,0 +1,153 @@
+#cloud-config
+# =========================================================================
+# 🚀 Hardened Cloud-Init Automation for CrystalTides OCI Instance
+# OS: Ubuntu 24.04 LTS (ARM64 Ampere / x86_64)
+# Standards: linux-sysadmin-pro & cybersecurity-defsecops
+# =========================================================================
+
+package_update: true
+package_upgrade: true
+
+packages:
+  - apt-transport-https
+  - ca-certificates
+  - curl
+  - gnupg
+  - lsb-release
+  - git
+  - iptables-persistent
+  - netfilter-persistent
+  - fail2ban
+  - docker.io
+  - docker-compose-v2
+
+write_files:
+  # 1. Configurar apertura del firewall interno de iptables en Ubuntu OCI
+  - path: /etc/iptables/rules.v4
+    permissions: '0644'
+    content: |
+      *filter
+      :INPUT ACCEPT [0:0]
+      :FORWARD ACCEPT [0:0]
+      :OUTPUT ACCEPT [0:0]
+      -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+      -A INPUT -p icmp -j ACCEPT
+      -A INPUT -i lo -j ACCEPT
+      -A INPUT -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT
+      -A INPUT -p tcp -m state --state NEW -m tcp --dport 80 -j ACCEPT
+      -A INPUT -p tcp -m state --state NEW -m tcp --dport 443 -j ACCEPT
+      -A INPUT -p tcp -m state --state NEW -m tcp --dport 7000 -j ACCEPT
+      -A INPUT -p tcp -m state --state NEW -m tcp --dport 8023 -j ACCEPT
+      -A INPUT -p tcp -m state --state NEW -m tcp --dport 8022 -j ACCEPT
+      -A INPUT -p tcp -m state --state NEW -m tcp --dport 2022 -j ACCEPT
+      -A INPUT -p tcp -m state --state NEW -m tcp --dport 25565 -j ACCEPT
+      -A INPUT -p udp -m state --state NEW -m udp --dport 25565 -j ACCEPT
+      COMMIT
+
+  # 2. Kernel & Network Performance Tuning (Minecraft, FRP, Caddy)
+  - path: /etc/sysctl.d/99-crystaltides.conf
+    permissions: '0644'
+    content: |
+      # Virtual Memory Tuning (Prevent JVM/Minecraft lag from swapping)
+      vm.swappiness = 10
+      vm.vfs_cache_pressure = 50
+      vm.dirty_background_ratio = 5
+      vm.dirty_ratio = 10
+
+      # File Descriptors limit
+      fs.file-max = 2097152
+
+      # Network Backlog & Connection Queues
+      net.core.somaxconn = 65535
+      net.core.netdev_max_backlog = 16384
+      net.ipv4.tcp_max_syn_backlog = 8192
+
+      # TCP Buffers
+      net.ipv4.tcp_rmem = 4096 87380 16777216
+      net.ipv4.tcp_wmem = 4096 65536 16777216
+
+      # Google BBR Congestion Control (Ultra-low latency for Minecraft/FRP)
+      net.core.default_qdisc = fq
+      net.ipv4.tcp_congestion_control = bbr
+
+      # TCP Keepalive
+      net.ipv4.tcp_keepalive_time = 300
+      net.ipv4.tcp_keepalive_intvl = 15
+      net.ipv4.tcp_keepalive_probes = 5
+
+  # 3. Fail2ban Brute-force Defense for SSH
+  - path: /etc/fail2ban/jail.d/99-crystaltides-ssh.local
+    permissions: '0644'
+    content: |
+      [DEFAULT]
+      bantime = 1h
+      findtime = 10m
+      maxretry = 3
+      banaction = iptables-multiport
+
+      [sshd]
+      enabled = true
+      port = 22,8022
+      mode = aggressive
+
+  # 4. SSH Hardening (Strict Keys Only)
+  - path: /etc/ssh/sshd_config.d/99-hardened.conf
+    permissions: '0644'
+    content: |
+      PasswordAuthentication no
+      ChallengeResponseAuthentication no
+      KbdInteractiveAuthentication no
+      PermitRootLogin no
+      MaxAuthTries 3
+      ClientAliveInterval 300
+      ClientAliveCountMax 2
+      X11Forwarding no
+
+  # 5. Global Docker Daemon Log Rotation Guard
+  - path: /etc/docker/daemon.json
+    permissions: '0644'
+    content: |
+      {
+        "log-driver": "json-file",
+        "log-opts": {
+          "max-size": "10m",
+          "max-file": "3"
+        }
+      }
+
+runcmd:
+  # 1. Aplicar reglas de iptables persistentes
+  - netfilter-persistent reload
+
+  # 2. Aplicar afinamiento de kernel inmediato
+  - sysctl --system
+
+  # 3. Configurar y activar Fail2ban
+  - systemctl enable --now fail2ban
+  - systemctl restart fail2ban
+
+  # 4. Recargar SSH con hardening
+  - systemctl reload sshd || systemctl reload ssh
+
+  # 5. Configurar Docker
+  - systemctl daemon-reload
+  - systemctl enable --now docker
+  - systemctl restart docker
+  - usermod -aG docker ubuntu
+
+  # 6. Hardening de memoria compartida (/dev/shm sin ejecución)
+  - mount -o remount,noexec,nosuid,nodev /dev/shm || true
+
+  # 7. Configurar Swapfile de 4GB para estabilidad de RAM
+  - fallocate -l 4G /swapfile || dd if=/dev/zero of=/swapfile bs=1M count=4096
+  - chmod 600 /swapfile
+  - mkswap /swapfile
+  - swapon /swapfile
+  - echo '/swapfile none swap sw 0 0' >> /etc/fstab
+
+  # 8. Crear estructura de carpetas
+  - mkdir -p /home/ubuntu/crystaltides/deploy/oracle-cloud
+  - chown -R ubuntu:ubuntu /home/ubuntu/crystaltides
+
+  # 9. Mensaje de bienvenida y verificación
+  - echo "✅ CrystalTides OCI Hardened Instance Provisioned Successfully" > /var/log/crystaltides_bootstrap.log

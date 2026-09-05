@@ -1,23 +1,50 @@
+# =========================================================================
+# 🔒 Hardened Caddyfile for CrystalTides OCI Deployment
+# Standards: cybersecurity-defsecops (OWASP & CIS Hardening)
+# =========================================================================
+
+(security_headers) {
+    header {
+        Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        Permissions-Policy "camera=(), microphone=(), geolocation=()"
+        -Server
+    }
+}
+
+# 🦅 Pelican Panel Web & API
 panel.crystaltidessmp.net {
+    import security_headers
     reverse_proxy panel:80
 }
 
+# 🔑 HashiCorp Vault (Legacy / Temporario)
 vault.crystaltidessmp.net {
     reverse_proxy crystaltides-vault:8200
 }
 
+# 🤖 Discord Bot Webhook & Health
 bot.crystaltidessmp.net {
+    import security_headers
     reverse_proxy crystaltides-bot:3002
 }
 
+# 🗺️ Pelican Daemon Remote Node via FRP
 node.crystaltidessmp.net {
+    import security_headers
     reverse_proxy frps:8082
 }
 
+# 🗺️ Pelican Daemon Local VPS Node
 node-vps.crystaltidessmp.net {
+    import security_headers
     reverse_proxy 127.0.0.1:8080
 }
 
+# 🌐 Fallback HTTP IP Direct Access
 http://150.136.151.234 {
+    import security_headers
     reverse_proxy panel:80
 }

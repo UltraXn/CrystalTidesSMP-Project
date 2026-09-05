@@ -1,9 +1,19 @@
+# =========================================================================
+# 🗺️ Fast Reverse Proxy Server (FRPS) Configuration
+# CrystalTides Minecraft & Node Ingress
+# =========================================================================
+
 bindPort = 7000
+
 [auth]
+# ⚠️ IMPORTANTE DE SEGURIDAD:
+# Este token autentica los clientes FRP (Laptop de desarrollo, Termux en celular, etc.).
+# Si cambias este valor, debes actualizarlo también en:
+# - deploy/oracle-cloud/frpc.toml.laptop
+# - deploy/oracle-cloud/frpc.toml.phone
 token = "CrystalTidesFRP2026"
 
-# Port range for exposed local services (TCP/UDP)
-# We can allow ports 8000 to 9000, and 25565
+# Rango estricto de puertos permitidos para tunelización (Evita secuestro de puertos reservados)
 allowPorts = [
     { start = 8000, end = 9000 },
     { start = 25565, end = 25565 }
