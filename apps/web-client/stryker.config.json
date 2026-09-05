@@ -3,6 +3,7 @@
   "reporters": ["html", "clear-text", "progress"],
   "testRunner": "vitest",
   "coverageAnalysis": "perTest",
+  "tsconfigFile": "",
   "concurrency": 1,
   "vitest": {
     "related": true
