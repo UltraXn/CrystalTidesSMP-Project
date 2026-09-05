@@ -39,8 +39,7 @@ const CATEGORIES = [
 ];
 
 const resolveGameDir = async (): Promise<string | null> => {
-  const homeDir: string | null = await invoke("get_home_dir");
-  if (!homeDir) return null;
+  const homeDir: string | null = await invoke("get_home_dir").catch(() => null);
   return resolveProfileGameDir(getActiveProfile(), homeDir || undefined);
 };
 
@@ -255,9 +254,7 @@ export const ModManagerPage: React.FC = () => {
     setSyncProgress(0);
 
     try {
-      const homeDir: string | null = await invoke("get_home_dir");
-      if (!homeDir) throw new Error("No se pudo obtener el directorio personal.");
-
+      const homeDir: string | null = await invoke("get_home_dir").catch(() => null);
       const resolvedGameDir = resolveProfileGameDir(activeProfile, homeDir || undefined);
 
       await syncOfficialMods(resolvedGameDir, (status, progress) => {
@@ -283,9 +280,7 @@ export const ModManagerPage: React.FC = () => {
     setInstallStatus((prev) => ({ ...prev, [mod.id]: "Instalando..." }));
 
     try {
-      const homeDir: string | null = await invoke("get_home_dir");
-      if (!homeDir) throw new Error("No se pudo obtener el directorio personal.");
-
+      const homeDir: string | null = await invoke("get_home_dir").catch(() => null);
       const resolvedGameDir = resolveProfileGameDir(activeProfile, homeDir || undefined);
 
       let fileName = "";
@@ -382,28 +377,42 @@ export const ModManagerPage: React.FC = () => {
         title="Gestión de Mods"
       />
 
-      {/* Tabs Menu */}
-      <div style={{
+      {/* Top Navigation Tabs */}
+      <div role="tablist" aria-label="Secciones del administrador de mods" style={{
         display: "flex",
         gap: 8,
-        borderBottom: "1px solid var(--border-low)",
-        paddingBottom: 0,
-        marginTop: 20,
+        padding: 4,
+        borderRadius: 10,
+        backgroundColor: "rgba(0, 0, 0, 0.35)",
+        border: "1px solid rgba(255, 255, 255, 0.06)",
+        marginTop: 16,
         marginBottom: 20,
       }}>
-        <button aria-label="Action" type="button"
+        <button
+          role="tab"
+          aria-selected={activeTab === "installed"}
+          aria-label="Ver mods instalados"
+          type="button"
           onClick={() => setActiveTab("installed")}
           className={`tab-btn ${activeTab === "installed" ? "active" : ""}`}
         >
           📂 Mods Instalados
         </button>
-        <button aria-label="Action" type="button"
+        <button
+          role="tab"
+          aria-selected={activeTab === "sync"}
+          aria-label="Sincronizar mods oficiales"
+          type="button"
           onClick={() => setActiveTab("sync")}
           className={`tab-btn ${activeTab === "sync" ? "active" : ""}`}
         >
           📦 Sincronizar Oficiales
         </button>
-        <button aria-label="Action" type="button"
+        <button
+          role="tab"
+          aria-selected={activeTab === "search"}
+          aria-label="Buscador de mods en línea"
+          type="button"
           onClick={() => {
             setActiveTab("search");
             if (searchResults.length === 0) {
@@ -444,7 +453,7 @@ export const ModManagerPage: React.FC = () => {
                 }}
               >
                 <span style={{ color: "rgba(255,255,255,0.25)", fontSize: 16, marginRight: 10 }}>🔍</span>
-                <input aria-label="Input field"
+                <input aria-label="Filtrar mods instalados por nombre"
                   type="text"
                   placeholder="Buscar en tus mods instalados..."
                   value={installedFilter}
@@ -462,7 +471,7 @@ export const ModManagerPage: React.FC = () => {
                 />
               </div>
 
-              <button aria-label="Action" type="button"
+              <button aria-label="Abrir carpeta de mods local" type="button"
                 onClick={handleOpenModsFolder}
                 className="btn btn-secondary pressable"
                 style={{ height: 44, display: "flex", alignItems: "center", gap: 8, padding: "0 16px" }}
@@ -470,11 +479,10 @@ export const ModManagerPage: React.FC = () => {
                 📂 Carpeta Mods
               </button>
 
-              <button aria-label="Action" type="button"
+              <button aria-label="Recargar lista de mods instalados" type="button"
                 onClick={loadInstalled}
                 className="btn btn-secondary pressable"
                 style={{ height: 44, width: 44, padding: 0, display: "flex", alignItems: "center", justifyContent: "center" }}
-                title="Recargar"
               >
                 🔄
               </button>
@@ -639,7 +647,8 @@ export const ModManagerPage: React.FC = () => {
                           <span style={{ fontSize: 11, color: mod.enabled ? "var(--accent)" : "rgba(255,255,255,0.3)" }}>
                             {mod.enabled ? "Activo" : "Inactivo"}
                           </span>
-                          <input aria-label="Input field"
+                          <input
+                            aria-label={`Activar o desactivar mod ${title || mod.filename}`}
                             type="checkbox"
                             checked={mod.enabled}
                             disabled={mod.official || isBusy}
@@ -805,7 +814,10 @@ export const ModManagerPage: React.FC = () => {
                   </div>
                 )}
 
-                <button aria-label="Action" type="button"
+                <button
+                  aria-label="Sincronizar mods con el servidor"
+                  aria-busy={isSyncing}
+                  type="button"
                   onClick={handleSync}
                   disabled={isSyncing}
                   className="btn btn-primary btn-md pressable"
@@ -918,8 +930,9 @@ export const ModManagerPage: React.FC = () => {
                   e.currentTarget.style.boxShadow = "none";
                 }}
               >
-                <span style={{ color: "rgba(255,255,255,0.25)", fontSize: 16, marginRight: 10 }}>🔍</span>
-                <input aria-label="Input field"
+                <span style={{ color: "rgba(255,255,255,0.25)", fontSize: 16, marginRight: 10 }} aria-hidden="true">🔍</span>
+                <input
+                  aria-label={`Buscar mods en ${selectedSource === "curseforge" ? "CurseForge" : "Modrinth"}`}
                   type="text"
                   placeholder={`Buscar mods en ${selectedSource === "curseforge" ? "CurseForge" : "Modrinth"}...`}
                   value={searchQuery}
@@ -950,7 +963,8 @@ export const ModManagerPage: React.FC = () => {
                 boxSizing: "border-box",
               }}>
                 <span style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", whiteSpace: "nowrap" }}>Ordenar por:</span>
-                <select aria-label="Select option"
+                <select 
+                  aria-label="Ordenar mods por criterio"
                   value={selectedSort}
                   onChange={(e) => setSelectedSort(e.target.value)}
                   style={{
@@ -988,7 +1002,8 @@ export const ModManagerPage: React.FC = () => {
                 boxSizing: "border-box",
               }}>
                 <span style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", whiteSpace: "nowrap" }}>Cantidad:</span>
-                <select aria-label="Select option"
+                <select 
+                  aria-label="Cantidad de mods por página"
                   value={pageSize}
                   onChange={(e) => setPageSize(Number(e.target.value))}
                   style={{
@@ -1013,7 +1028,9 @@ export const ModManagerPage: React.FC = () => {
                 </select>
               </div>
 
-              <button aria-label="Action"
+              <button
+                aria-label="Buscar mods"
+                aria-busy={isSearching}
                 type="submit"
                 className="btn btn-primary pressable"
                 style={{ height: 44, padding: "0 24px" }}
@@ -1030,7 +1047,8 @@ export const ModManagerPage: React.FC = () => {
                   Para buscar y descargar mods desde CurseForge, ingresa tu clave API personal de CurseForge a continuación. La clave se guardará de forma segura en tu navegador.
                 </p>
                 <div style={{ display: "flex", gap: 10 }}>
-                  <input aria-label="Input field"
+                  <input
+                    aria-label="Clave API de CurseForge"
                     type="password"
                     placeholder="Clave API (x-api-key)..."
                     value={cfApiKeyInput}
@@ -1046,7 +1064,9 @@ export const ModManagerPage: React.FC = () => {
                       outline: "none",
                     }}
                   />
-                  <button aria-label="Action" type="button"
+                  <button
+                    aria-label="Guardar clave API de CurseForge"
+                    type="button"
                     onClick={saveCfApiKey}
                     className="btn btn-primary pressable"
                     style={{
@@ -1186,7 +1206,10 @@ export const ModManagerPage: React.FC = () => {
                                 {status}
                               </span>
                             )}
-                            <button aria-label="Action" type="button"
+                            <button
+                              aria-label={`${status ? "Reinstalar" : "Instalar"} mod ${result.title}`}
+                              aria-busy={isInstalling}
+                              type="button"
                               onClick={() => handleInstallMod(result)}
                               disabled={isInstalling}
                               className={`btn ${status ? "btn-secondary" : "btn-primary"} btn-sm pressable`}
@@ -1285,7 +1308,10 @@ export const ModManagerPage: React.FC = () => {
                             return pages.map((p) => {
                               const isCurrent = p === currentPage;
                               return (
-                                <button aria-label="Action" type="button"
+                                <button
+                                  aria-label={`Ir a página ${p}`}
+                                  aria-current={isCurrent ? "page" : undefined}
+                                  type="button"
                                   key={`page-${p}`}
                                   onClick={() => handlePageChange(p)}
                                   disabled={isSearching}
@@ -1378,7 +1404,10 @@ export const ModManagerPage: React.FC = () => {
                 borderRadius: 12,
                 border: "1.5px solid var(--border-low)"
               }}>
-                <button aria-label="Action" type="button"
+                <button
+                  aria-label="Buscar en Modrinth"
+                  aria-pressed={selectedSource === "modrinth"}
+                  type="button"
                   onClick={() => setSelectedSource("modrinth")}
                   className={`chip pressable ${selectedSource === "modrinth" ? "active" : ""}`}
                   style={{ flex: 1, borderRadius: 8, justifyContent: "center", gap: 8 }}
@@ -1400,7 +1429,10 @@ export const ModManagerPage: React.FC = () => {
                   }} />
                   Modrinth
                 </button>
-                <button aria-label="Action" type="button"
+                <button
+                  aria-label="Buscar en CurseForge"
+                  aria-pressed={selectedSource === "curseforge"}
+                  type="button"
                   onClick={() => setSelectedSource("curseforge")}
                   className={`chip pressable ${selectedSource === "curseforge" ? "active" : ""}`}
                   style={{
@@ -1439,7 +1471,8 @@ export const ModManagerPage: React.FC = () => {
             <div style={{ textAlign: "left" }}>
               <span className="section-label">Versión de Minecraft</span>
               <div style={{ marginTop: 6 }}>
-                <select aria-label="Select option"
+                <select
+                  aria-label="Filtrar por versión de Minecraft"
                   value={selectedVersion}
                   onChange={(e) => setSelectedVersion(e.target.value)}
                 >
@@ -1455,7 +1488,10 @@ export const ModManagerPage: React.FC = () => {
               <span className="section-label">Cargador (Mod Loader)</span>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 8 }}>
                 {["fabric", "forge", "neoforge", "quilt"].map((loader) => (
-                  <button aria-label="Action" type="button"
+                  <button
+                    aria-label={`Filtrar por cargador ${loader}`}
+                    aria-pressed={selectedLoader === loader}
+                    type="button"
                     key={loader}
                     onClick={() => setSelectedLoader(loader)}
                     className={`chip pressable ${selectedLoader === loader ? "active" : ""}`}
@@ -1470,14 +1506,20 @@ export const ModManagerPage: React.FC = () => {
             <div style={{ textAlign: "left" }}>
               <span className="section-label">Categorías de Mods</span>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 8 }}>
-                <button aria-label="Action" type="button"
+                <button
+                  aria-label="Mostrar todas las categorías de mods"
+                  aria-pressed={selectedCategory === null}
+                  type="button"
                   onClick={() => setSelectedCategory(null)}
                   className={`chip pressable ${selectedCategory === null ? "active-white" : ""}`}
                 >
                   🌟 Todos
                 </button>
                 {CATEGORIES.map((cat) => (
-                  <button aria-label="Action" type="button"
+                  <button
+                    aria-label={`Filtrar categoría ${cat.label}`}
+                    aria-pressed={selectedCategory === cat.value}
+                    type="button"
                     key={cat.value}
                     onClick={() => setSelectedCategory(cat.value)}
                     className={`chip pressable ${selectedCategory === cat.value ? "active-white" : ""}`}

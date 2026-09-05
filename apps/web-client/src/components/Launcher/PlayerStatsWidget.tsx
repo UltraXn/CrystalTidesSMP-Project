@@ -554,7 +554,7 @@ export function PlayerStatsWidget({ username }: PlayerStatsWidgetProps) {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid rgba(168,85,247,0.2)", paddingBottom: 12, flexWrap: "wrap", gap: 8 }}>
           <span style={{ fontSize: 13, fontWeight: 900, color: "#FFF", display: "flex", alignItems: "center", gap: 6 }}>⭐ Sistema de Prestigios de Estilo de Juego</span>
           {/* Tabs de Selección */}
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+          <div role="tablist" aria-label="Pestañas de arquetipos de prestigio" style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
             {(["constructor", "luchador", "mercader", "constancia", "explorador"] as const).map((key) => {
               const tabsConfig = {
                 constructor: { label: "Constructor", icon: "https://minecraft.wiki/w/Special:Redirect/file/Crafting_Table.png" },
@@ -566,7 +566,11 @@ export function PlayerStatsWidget({ username }: PlayerStatsWidgetProps) {
               const item = tabsConfig[key];
               const isActive = prestigeTab === key;
               return (
-                <button aria-label="Action" type="button"
+                <button
+                  role="tab"
+                  aria-selected={isActive}
+                  aria-label={`Ver prestigio de arquetipo ${item.label}`}
+                  type="button"
                   key={key}
                   onClick={() => setPrestigeTab(key)}
                   style={{
@@ -679,7 +683,9 @@ export function PlayerStatsWidget({ username }: PlayerStatsWidgetProps) {
             </span>
           )}
 
-          <button aria-label="Action" type="button"
+          <button
+            aria-label={!isCurrentCategoryTop1 ? "Ascenso bloqueado: debes alcanzar el rango máximo" : currentPrestigeLevel >= 5 ? "Prestigio máximo alcanzado" : `Ascender a prestigio nivel ${currentPrestigeLevel + 1}`}
+            type="button"
             disabled={!isCurrentCategoryTop1 || currentPrestigeLevel >= 5}
             onClick={() => setShowAscendModal(true)}
             style={{
@@ -713,18 +719,26 @@ export function PlayerStatsWidget({ username }: PlayerStatsWidgetProps) {
 
       {/* Modal Ascenso */}
       {showAscendModal && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", backdropFilter: "blur(8px)", zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="ascend-modal-title"
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", backdropFilter: "blur(8px)", zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
+        >
           <div style={{ background: "#0F172A", border: "1px solid rgba(168,85,247,0.4)", borderRadius: 16, padding: 20, maxWidth: 360, width: "100%", color: "#FFF", display: "flex", flexDirection: "column", gap: 14 }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid rgba(168,85,247,0.2)", paddingBottom: 10 }}>
-              <span style={{ fontWeight: 800, fontSize: 13, color: "#C084FC" }}>Confirmar Ascenso ⭐</span>
-              <button aria-label="Action" type="button" onClick={() => setShowAscendModal(false)} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.6)", fontSize: 16, cursor: "pointer" }}>✕</button>
+              <span id="ascend-modal-title" style={{ fontWeight: 800, fontSize: 13, color: "#C084FC" }}>Confirmar Ascenso ⭐</span>
+              <button aria-label="Cerrar ventana de ascenso" type="button" onClick={() => setShowAscendModal(false)} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.6)", fontSize: 16, cursor: "pointer" }}>✕</button>
             </div>
             <p style={{ fontSize: 11, color: "rgba(255,255,255,0.8)", lineHeight: 1.4, margin: 0 }}>
               ¿Deseas ascender al <strong>Nivel {currentPrestigeLevel + 1} de Prestigio</strong> en <strong>{prestigeTab.toUpperCase()}</strong> para ganar +5% en multiplicadores de KilluCoins diarios?
             </p>
             <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, paddingTop: 4 }}>
-              <button aria-label="Action" type="button" onClick={() => setShowAscendModal(false)} style={{ padding: "6px 14px", borderRadius: 8, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", fontSize: 11, color: "#FFF", cursor: "pointer" }}>Cancelar</button>
-              <button aria-label="Action" type="button"
+              <button type="button" onClick={() => setShowAscendModal(false)} style={{ padding: "6px 14px", borderRadius: 8, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", fontSize: 11, color: "#FFF", cursor: "pointer" }}>Cancelar</button>
+              <button
+                aria-label="Confirmar ascenso"
+                aria-busy={isAscending}
+                type="button"
                 disabled={isAscending}
                 onClick={handleConfirmAscend}
                 style={{ padding: "6px 14px", borderRadius: 8, background: "#9333EA", border: "1px solid #C084FC", fontSize: 11, fontWeight: 800, color: "#FFF", cursor: "pointer" }}

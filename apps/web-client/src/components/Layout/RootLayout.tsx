@@ -77,6 +77,14 @@ export default function RootLayout() {
             <StatusHandler maintenanceActive={maintenanceMode} />
             <ScrollToHash />
             
+            {/* Accessible skip link for keyboard navigation */}
+            <a
+                href="#main-content"
+                className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-250 focus:px-4 focus:py-2 focus:bg-white focus:text-black focus:font-black focus:text-xs focus:uppercase focus:tracking-widest focus:rounded-xl focus:shadow-2xl focus:ring-2 focus:ring-(--accent)"
+            >
+                Saltar al contenido principal
+            </a>
+
             {showHeader && (
                 <>
                     <BroadcastAlert />
@@ -86,7 +94,7 @@ export default function RootLayout() {
                 </>
             )}
 
-            <main className="flex-1 flex flex-col w-full">
+            <main id="main-content" tabIndex={-1} className="flex-1 flex flex-col w-full outline-none">
                 <Outlet />
             </main>
 

@@ -59,17 +59,22 @@ export default function DonationFormModal({ isOpen, onClose, onSave, initialData
     };
 
     return (
-        <div className="sync-modal-overlay">
-            <div className="sync-modal-content" style={{ maxWidth: '700px' }}>
+        <div className="sync-modal-overlay" role="presentation">
+            <div className="sync-modal-content" role="dialog" aria-modal="true" aria-labelledby="donation-modal-title" style={{ maxWidth: '700px' }}>
                 <div className="modal-accent-line"></div>
                 
                 <div className="poll-form-header">
-                    <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '12px', color: '#fff', fontSize: '1.5rem', fontWeight: '900' }}>
-                        <CircleDollarSign style={{ color: 'var(--accent)' }} />
+                    <h3 id="donation-modal-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '12px', color: '#fff', fontSize: '1.5rem', fontWeight: '900' }}>
+                        <CircleDollarSign style={{ color: 'var(--accent)' }} aria-hidden="true" />
                         {formData.id ? t('admin.donations.edit_title') : t('admin.donations.new_btn')}
                     </h3>
-                    <button aria-label="Action" type="button" onClick={onClose} className="btn-close-mini">
-                        <X />
+                    <button 
+                        aria-label={t('common.close', 'Cerrar ventana')} 
+                        type="button" 
+                        onClick={onClose} 
+                        className="btn-close-mini"
+                    >
+                        <X aria-hidden="true" />
                     </button>
                 </div>
                 

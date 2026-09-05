@@ -104,9 +104,10 @@ export default function DonationsManager({ mockDonations }: DonationsManagerProp
                 
                 <div className="donations-actions" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', width: '100%' }}>
                     <div className="poll-search-wrapper" style={{ flex: '1 1 100%', minWidth: '200px', maxWidth: '100%' }}>
-                        <Search className="search-icon" />
-                        <input aria-label="Input field" 
-                            type="text" 
+                        <Search className="search-icon" aria-hidden="true" />
+                        <input 
+                            aria-label={t('admin.donations.search_ph', 'Buscar donaciones')} 
+                            type="search" 
                             placeholder={t('admin.donations.search_ph')}
                             value={search}
                             onChange={(e) => { setSearch(e.target.value); setPage(1); }}

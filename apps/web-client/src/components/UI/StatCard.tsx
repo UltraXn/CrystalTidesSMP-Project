@@ -7,8 +7,14 @@ export interface StatCardProps {
     color?: string;
     icon: React.ReactNode;
 }
-
 export function StatCard({ title, value, percent, color = 'var(--accent)', icon }: StatCardProps) {
+    const isHex = typeof color === 'string' && color.startsWith('#') && color.length === 7;
+    const iconBg = isHex
+        ? `rgba(${parseInt(color.slice(1,3), 16)}, ${parseInt(color.slice(3,5), 16)}, ${parseInt(color.slice(5,7), 16)}, 0.1)`
+        : `color-mix(in srgb, ${color} 10%, transparent)`;
+    const iconBorder = isHex ? `${color}20` : `color-mix(in srgb, ${color} 20%, transparent)`;
+    const iconShadow = isHex ? `${color}30` : `color-mix(in srgb, ${color} 30%, transparent)`;
+
     return (
         <div style={{ 
             background: 'rgba(10, 10, 15, 0.6)', 
@@ -34,13 +40,13 @@ export function StatCard({ title, value, percent, color = 'var(--accent)', icon 
                 </div>
             </div>
             <div style={{
-                background: `rgba(${parseInt(color.slice(1,3), 16)}, ${parseInt(color.slice(3,5), 16)}, ${parseInt(color.slice(5,7), 16)}, 0.1)`,
+                background: iconBg,
                 width: '56px', height: '56px',
                 borderRadius: '16px',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 color: color, fontSize: '1.5rem',
-                border: `1px solid ${color}20`,
-                boxShadow: `0 8px 20px -5px ${color}30`
+                border: `1px solid ${iconBorder}`,
+                boxShadow: `0 8px 20px -5px ${iconShadow}`
             }}>
                 {icon}
             </div>

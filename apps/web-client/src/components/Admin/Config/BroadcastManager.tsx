@@ -25,7 +25,7 @@ const getTypeColor = (type: BroadcastConfig['type']) => {
     }
 };
 
-export default function BroadcastManager({ settings, onUpdate, saving }: BroadcastManagerProps) {
+export default function BroadcastManager({ settings, onUpdate, saving }: Readonly<BroadcastManagerProps>) {
     const { t } = useTranslation();
     
     // Internal state for the form

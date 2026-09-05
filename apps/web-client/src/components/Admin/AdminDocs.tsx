@@ -328,12 +328,15 @@ export default function AdminDocs({ mockDocs }: AdminDocsProps = {}) {
                     {docs.map(doc => {
                         const Icon = ICON_MAP[doc.id] || Book;
                         return (
-                            <button aria-label="Action" type="button"
+                            <button 
+                                aria-label={t('admin.docs.view_doc', `Ver documento: ${doc.title}`)} 
+                                aria-current={activeTab === doc.id ? 'page' : undefined}
+                                type="button"
                                 key={doc.id}
                                 onClick={() => { setActiveTab(doc.id); setIsEditing(false); }}
                                 className={`sidebar-btn ${activeTab === doc.id ? 'active' : ''}`}
                             >
-                                <Icon />
+                                <Icon aria-hidden="true" />
                                 {doc.title}
                             </button>
                         );
@@ -343,14 +346,17 @@ export default function AdminDocs({ mockDocs }: AdminDocsProps = {}) {
 
             {/* Mobile Dropdown */}
             <div className="mobile-dropdown-container">
-                <button aria-label="Action" type="button" 
+                <button 
+                    aria-label={t('admin.docs.toggle_doc_menu', 'Alternar menú de documentación')} 
+                    aria-expanded={mobileMenuOpen}
+                    type="button" 
                     className="mobile-dropdown-btn"
                     onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 >
                     <span style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-                        <ActiveIcon color="var(--accent)" /> {activeDoc.title}
+                        <ActiveIcon color="var(--accent)" aria-hidden="true" /> {activeDoc.title}
                     </span>
-                    <ChevronDown style={{ transform: mobileMenuOpen ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s' }} />
+                    <ChevronDown style={{ transform: mobileMenuOpen ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s' }} aria-hidden="true" />
                 </button>
                 
                 {mobileMenuOpen && (
@@ -388,14 +394,32 @@ export default function AdminDocs({ mockDocs }: AdminDocsProps = {}) {
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
                             {isEditing ? (
                                 <>
-                                    <button type="button" onClick={handleReset} className="btn-secondary" style={{ padding: '0.5rem 1rem', background: 'rgba(255,255,255,0.05)' }} title={t('admin.docs.reset')}>
-                                        <Undo2 />
+                                    <button 
+                                        aria-label={t('admin.docs.reset', 'Restablecer documento')}
+                                        type="button" 
+                                        onClick={handleReset} 
+                                        className="btn-secondary" 
+                                        style={{ padding: '0.5rem 1rem', background: 'rgba(255,255,255,0.05)' }} 
+                                        title={t('admin.docs.reset')}
+                                    >
+                                        <Undo2 aria-hidden="true" />
                                     </button>
-                                    <button type="button" onClick={() => setIsEditing(false)} className="btn-secondary" style={{ color: '#ef4444' }}>
-                                        <X /> {t('admin.actions.cancel')}
+                                    <button 
+                                        type="button" 
+                                        onClick={() => setIsEditing(false)} 
+                                        className="btn-secondary" 
+                                        style={{ color: '#ef4444' }}
+                                    >
+                                        <X aria-hidden="true" /> {t('admin.actions.cancel')}
                                     </button>
-                                    <button type="button" onClick={handleSave} className="btn-primary" disabled={saving}>
-                                        <Save /> {saving ? t('admin.docs.saving') : t('admin.actions.save')}
+                                    <button 
+                                        aria-busy={saving}
+                                        type="button" 
+                                        onClick={handleSave} 
+                                        className="btn-primary" 
+                                        disabled={saving}
+                                    >
+                                        <Save aria-hidden="true" /> {saving ? t('admin.docs.saving') : t('admin.actions.save')}
                                     </button>
                                 </>
                             ) : (

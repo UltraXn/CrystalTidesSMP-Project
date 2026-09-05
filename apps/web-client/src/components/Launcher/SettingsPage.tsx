@@ -150,7 +150,7 @@ export const SettingsPage: React.FC = () => {
                     <RoleBadge role={crystalSession.role} size="md" style={{ marginTop: 4 }} />
                   </div>
                 </div>
-                <button aria-label="Action" type="button"
+                <button aria-label="Desvincular cuenta web de CrystalTides" type="button"
                   onClick={logoutCrystal}
                   style={{
                     background: "rgba(239, 68, 68, 0.1)",
@@ -222,7 +222,7 @@ export const SettingsPage: React.FC = () => {
                       />
                     </div>
                   </div>
-                  <button aria-label="Action"
+                  <button aria-label="Conectar cuenta web"
                     type="button"
                     disabled={isLinking}
                     onClick={handleLinkCrystal}
@@ -270,7 +270,8 @@ export const SettingsPage: React.FC = () => {
                 <span style={{ fontSize: 11, color: "rgba(255,255,255,0.45)" }}>Elige si prefieres mostrar tu foto de la web o la cabeza de Minecraft en el launcher</span>
               </div>
               <div style={{ display: "flex", gap: 6 }}>
-                <button aria-label="Action"
+                <button aria-label="Usar foto de perfil web"
+                  aria-pressed={(settings.avatarPreference || "web") === "web"}
                   type="button"
                   onClick={() => {
                     const updated = saveSettings({ avatarPreference: "web" });
@@ -291,7 +292,8 @@ export const SettingsPage: React.FC = () => {
                 >
                   🌊 Foto Web
                 </button>
-                <button aria-label="Action"
+                <button aria-label="Usar cabeza de Minecraft"
+                  aria-pressed={settings.avatarPreference === "minecraft"}
                   type="button"
                   onClick={() => {
                     const updated = saveSettings({ avatarPreference: "minecraft" });
@@ -338,7 +340,7 @@ export const SettingsPage: React.FC = () => {
               </div>
             </div>
             <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-              <input aria-label="Input field"
+              <input
                 type="checkbox"
                 id="opt-jvm"
                 checked={settings.useOptimization}
@@ -359,7 +361,9 @@ export const SettingsPage: React.FC = () => {
             <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.5)" }}>
               Deja vacío para usar el Java automático gestionado por el launcher.
             </p>
-            <input aria-label="Input field"
+            <input
+              id="settings-java-path"
+              aria-label="Ruta personalizada del ejecutable de Java"
               type="text"
               placeholder="C:\Program Files\Java\jdk-21\bin\java.exe"
               value={javaPath}

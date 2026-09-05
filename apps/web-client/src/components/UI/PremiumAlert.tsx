@@ -27,24 +27,28 @@ export default function PremiumAlert({
             primary: '#ef4444',
             glow: 'rgba(239, 68, 68, 0.2)',
             icon: AlertCircle,
+            iconLabel: 'Alert Circle',
             defaultTitle: t('admin.alerts.error_title', 'Error')
         },
         success: {
             primary: '#10b981',
             glow: 'rgba(16, 185, 129, 0.2)',
             icon: CheckCircle2,
+            iconLabel: 'Check Circle',
             defaultTitle: t('admin.alerts.success_title', 'Éxito')
         },
         warning: {
             primary: '#facc15',
             glow: 'rgba(250, 204, 21, 0.2)',
             icon: AlertTriangle,
+            iconLabel: 'Alert Triangle',
             defaultTitle: t('admin.alerts.warning_title', 'Atención')
         },
         info: {
             primary: '#3b82f6',
             glow: 'rgba(59, 130, 246, 0.2)',
             icon: Info,
+            iconLabel: 'Info',
             defaultTitle: t('admin.alerts.info_title', 'Información')
         }
     };
@@ -57,6 +61,9 @@ export default function PremiumAlert({
             {isOpen && (
                 <div className="modal-overlay" style={{ zIndex: 1000000, backdropFilter: 'blur(12px)', background: 'rgba(0,0,0,0.8)' }}>
                     <m.div 
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="premium-alert-title"
                         initial={{ opacity: 0, scale: 0.9, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -105,11 +112,11 @@ export default function PremiumAlert({
                                     background: `${currentTheme.primary}15`,
                                     border: `1px solid ${currentTheme.primary}30`
                                 }}>
-                                    <Icon size={40} color={currentTheme.primary} />
+                                    <Icon size={40} color={currentTheme.primary} role="img" aria-label={currentTheme.iconLabel} />
                                 </div>
                             </div>
 
-                            <h3 style={{ 
+                            <h3 id="premium-alert-title" style={{ 
                                 marginBottom: '1rem', 
                                 color: '#fff', 
                                 fontSize: '1.6rem', 

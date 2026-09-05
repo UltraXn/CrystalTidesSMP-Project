@@ -48,9 +48,17 @@ export const GachaHistory: React.FC<GachaHistoryProps> = ({
             onClick={onClose}
             style={{ '--tier-accent-color': tierColor } as React.CSSProperties}
         >
-            <div className="gacha-history-drawer" onClick={e => e.stopPropagation()}>
+            <div 
+                role="dialog"
+                aria-modal="true"
+                aria-label={t('gacha.history_title', 'Historial de Premios')}
+                className="gacha-history-drawer" 
+                onClick={e => e.stopPropagation()}
+            >
                 <button type="button" 
                     className="history-handle-btn" 
+                    aria-label={isOpen ? t('common.close', 'Cerrar historial') : t('gacha.open_history', 'Abrir historial')}
+                    aria-expanded={isOpen}
                     onClick={(e) => {
                         e.stopPropagation();
                         if (isOpen) {
@@ -61,28 +69,28 @@ export const GachaHistory: React.FC<GachaHistoryProps> = ({
                     }}
                     style={{ '--tier-accent-color': tierColor } as React.CSSProperties}
                 >
-                    <Clock size={18} />
+                    <Clock size={18} aria-hidden="true" />
                     <span>Historial</span>
                 </button>
                 <div className="history-header">
                     <div className="header-title">
-                        <Clock size={20} style={{ color: tierColor }} />
+                        <Clock size={20} aria-hidden="true" style={{ color: tierColor }} />
                         <h2>{t('gacha.history_title', 'Historial de Premios')}</h2>
                     </div>
-                    <button aria-label="Action" type="button" className="close-btn" onClick={onClose}>
-                        <X size={24} />
+                    <button aria-label={t('common.close', 'Cerrar historial')} type="button" className="close-btn" onClick={onClose}>
+                        <X size={24} aria-hidden="true" />
                     </button>
                 </div>
 
                 <div className="history-content">
                     {loading ? (
-                        <div className="history-loader">
+                        <div role="status" aria-live="polite" className="history-loader">
                             <div className="spinner" style={{ borderTopColor: tierColor }}></div>
                             <p>Cargando historial...</p>
                         </div>
                     ) : history.length === 0 ? (
-                        <div className="history-empty">
-                            <Trash2 size={48} opacity={0.2} />
+                        <div role="status" aria-live="polite" className="history-empty">
+                            <Trash2 size={48} opacity={0.2} aria-hidden="true" />
                             <p>No tienes premios registrados aún.</p>
                             <span>¡Prueba suerte en la máquina!</span>
                         </div>

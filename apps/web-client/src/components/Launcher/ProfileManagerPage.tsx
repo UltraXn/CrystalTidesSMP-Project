@@ -76,7 +76,9 @@ export const ProfileManagerPage: React.FC = () => {
           eyebrow="Configuración"
           title="Gestión de Perfiles"
         />
-        <button aria-label="Action" type="button"
+        <button
+          aria-label="Crear nuevo perfil de Minecraft"
+          type="button"
           onClick={handleCreateNew}
           className="btn btn-primary"
           style={{
@@ -194,9 +196,11 @@ export const ProfileManagerPage: React.FC = () => {
                 }}>
                   {/* Action group left */}
                   <div style={{ display: "flex", gap: 6 }}>
-                    <button type="button"
+                    <button
+                      type="button"
                       onClick={() => handleEdit(p)}
                       title="Editar perfil"
+                      aria-label={`Editar perfil ${p.name}`}
                       style={{
                         padding: "6px 12px",
                         fontSize: 12,
@@ -218,9 +222,11 @@ export const ProfileManagerPage: React.FC = () => {
                     >
                       ✏️ Editar
                     </button>
-                    <button type="button"
+                    <button
+                      type="button"
                       onClick={() => handleClone(p.id)}
                       title="Clonar perfil"
+                      aria-label={`Clonar perfil ${p.name}`}
                       style={{
                         padding: "6px 10px",
                         fontSize: 12,
@@ -243,9 +249,11 @@ export const ProfileManagerPage: React.FC = () => {
                       👥 Clonar
                     </button>
                     {p.id !== "default-profile-id" && (
-                      <button type="button"
+                      <button
+                        type="button"
                         onClick={() => handleDelete(p.id, p.name)}
                         title="Eliminar perfil"
+                        aria-label={`Eliminar perfil ${p.name}`}
                         style={{
                           padding: "6px 10px",
                           fontSize: 12,
@@ -272,7 +280,9 @@ export const ProfileManagerPage: React.FC = () => {
 
                   {/* Set active toggle button */}
                   {!isActive && (
-                    <button aria-label="Action" type="button"
+                    <button
+                      aria-label={`Activar perfil ${p.name}`}
+                      type="button"
                       onClick={() => handleSetActive(p.id)}
                       className="btn btn-secondary btn-sm"
                       style={{

@@ -21,11 +21,13 @@ export const GachaMachine: React.FC<GachaMachineProps> = ({
     return (
         <div
             id="gacha_machine_card"
+            role="region"
+            aria-label={`Máquina tragamonedas ${selectedTier.name}`}
             className={`slot-machine-wrapper ${isOpening ? 'is-opening' : ''} tier-${selectedTier.id}`}
             style={{ '--tier-color': selectedTier.color } as React.CSSProperties}
         >
             <div className="slot-machine-frame">
-                <div className="slot-machine-lights left">
+                <div className="slot-machine-lights left" aria-hidden="true">
                     {[...Array(8)].map((_, i) => (
                         <div key={`item-${i}`} className={`led ${isOpening ? 'animating' : ''}`} />
                     ))}

@@ -53,6 +53,7 @@ async function translateText(text: string): Promise<string> {
 }
 
 const MedalCard = ({ medal, onSave, onDelete }: { medal: Medal, onSave: (m: Medal) => void, onDelete: () => void }) => {
+    const { t } = useTranslation();
     const [isEditing, setIsEditing] = useState(false);
 
     const [isTranslating, setIsTranslating] = useState(false);
@@ -133,7 +134,8 @@ const MedalCard = ({ medal, onSave, onDelete }: { medal: Medal, onSave: (m: Meda
                             const IconComp = MEDAL_ICONS[(isEditing ? formData.icon : medal.icon) as keyof typeof MEDAL_ICONS] || MedalIcon;
                             return <IconComp size={20} style={{ color: isEditing ? formData.color : medal.color }} />;
                         })()}
-                        <select aria-label="Select option" 
+                        <select 
+                            aria-label={t('admin.gamification.select_icon', 'Icono de la medalla')} 
                             value={isEditing ? formData.icon : medal.icon} 
                             onChange={(e) => handleChange('icon', e.target.value)}
                             disabled={!isEditing}
@@ -144,7 +146,8 @@ const MedalCard = ({ medal, onSave, onDelete }: { medal: Medal, onSave: (m: Meda
                             ))}
                         </select>
                     </div>
-                    <input aria-label="Input field" 
+                    <input 
+                        aria-label={t('admin.gamification.select_color', 'Color de la medalla')} 
                         type="color" 
                         value={isEditing ? formData.color : medal.color} 
                         onChange={(e) => handleChange('color', e.target.value)}
@@ -157,20 +160,44 @@ const MedalCard = ({ medal, onSave, onDelete }: { medal: Medal, onSave: (m: Meda
                 <div className="action-buttons">
                     {isEditing ? (
                         <>
-                            <button aria-label="Action" type="button" className="save-btn" onClick={handleSave} title="Guardar">
-                                <Check size={18} />
+                            <button 
+                                aria-label={t('common.save', 'Guardar medalla')} 
+                                type="button" 
+                                className="save-btn" 
+                                onClick={handleSave} 
+                                title="Guardar"
+                            >
+                                <Check size={18} aria-hidden="true" />
                             </button>
-                            <button aria-label="Action" type="button" className="cancel-btn" onClick={handleCancel} title="Cancelar">
-                                <X size={18} />
+                            <button 
+                                aria-label={t('common.cancel', 'Cancelar edición de medalla')} 
+                                type="button" 
+                                className="cancel-btn" 
+                                onClick={handleCancel} 
+                                title="Cancelar"
+                            >
+                                <X size={18} aria-hidden="true" />
                             </button>
                         </>
                     ) : (
                         <>
-                            <button type="button" className="edit-btn" onClick={() => setIsEditing(true)} title="Editar">
-                                <Pencil size={18} />
+                            <button 
+                                aria-label={t('common.edit', 'Editar medalla')} 
+                                type="button" 
+                                className="edit-btn" 
+                                onClick={() => setIsEditing(true)} 
+                                title="Editar"
+                            >
+                                <Pencil size={18} aria-hidden="true" />
                             </button>
-                            <button aria-label="Action" type="button" className="delete-btn" onClick={onDelete} title="Eliminar">
-                                <Trash2 size={18} />
+                            <button 
+                                aria-label={t('common.delete', 'Eliminar medalla')} 
+                                type="button" 
+                                className="delete-btn" 
+                                onClick={onDelete} 
+                                title="Eliminar"
+                            >
+                                <Trash2 size={18} aria-hidden="true" />
                             </button>
                         </>
                     )}
@@ -179,7 +206,8 @@ const MedalCard = ({ medal, onSave, onDelete }: { medal: Medal, onSave: (m: Meda
 
             <div className="card-body">
                 {/* Spanish Fields */}
-                <input aria-label="Input field" 
+                <input 
+                    aria-label={t('admin.gamification.name_es', 'Nombre de la medalla en español')} 
                     type="text" 
                     value={isEditing ? formData.name : medal.name} 
                     placeholder="Nombre (ES)"
@@ -188,7 +216,8 @@ const MedalCard = ({ medal, onSave, onDelete }: { medal: Medal, onSave: (m: Meda
                     readOnly={!isEditing}
                     style={{ opacity: isEditing ? 1 : 0.8 }}
                 />
-                <textarea aria-label="Text input" 
+                <textarea 
+                    aria-label={t('admin.gamification.desc_es', 'Descripción de la medalla en español')} 
                     value={isEditing ? formData.description : medal.description} 
                     placeholder="Descripción (ES)"
                     onChange={(e) => handleChange('description', e.target.value)}
@@ -203,7 +232,9 @@ const MedalCard = ({ medal, onSave, onDelete }: { medal: Medal, onSave: (m: Meda
                     <div style={{ marginTop: '0.5rem', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '0.5rem' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                             <div style={{ fontSize: '0.7rem', color: '#666', textTransform: 'uppercase', fontWeight: 'bold' }}>VERSION INGLÉS</div>
-                            <button aria-label="Action" type="button" 
+                            <button 
+                                aria-label={t('admin.gamification.auto_translate', 'Traducir medalla automáticamente al inglés')} 
+                                type="button" 
                                 onClick={handleAutoTranslate}
                                 disabled={isTranslating}
                                 style={{ 
@@ -213,11 +244,12 @@ const MedalCard = ({ medal, onSave, onDelete }: { medal: Medal, onSave: (m: Meda
                                 }}
                                 title="Traducir Automatically (via MyMemory API)"
                             >
-                                <Languages size={12} className={isTranslating ? "animate-spin" : ""} /> 
+                                <Languages size={12} className={isTranslating ? "animate-spin" : ""} aria-hidden="true" /> 
                                 {isTranslating ? "Translating..." : "Auto-Translate"}
                             </button>
                         </div>
-                        <input aria-label="Input field" 
+                        <input 
+                            aria-label={t('admin.gamification.name_en', 'Nombre de la medalla en inglés')} 
                             type="text" 
                             value={formData.name_en || ''} 
                             placeholder="Name (EN)"
@@ -225,7 +257,8 @@ const MedalCard = ({ medal, onSave, onDelete }: { medal: Medal, onSave: (m: Meda
                             className="input-premium"
                             style={{ fontSize: '0.9rem', marginBottom: '0.25rem' }}
                         />
-                        <textarea aria-label="Text input" 
+                        <textarea 
+                            aria-label={t('admin.gamification.desc_en', 'Descripción de la medalla en inglés')} 
                             value={formData.description_en || ''} 
                             placeholder="Description (EN)"
                             onChange={(e) => handleChange('description_en', e.target.value)}
@@ -236,7 +269,8 @@ const MedalCard = ({ medal, onSave, onDelete }: { medal: Medal, onSave: (m: Meda
                 )}
 
                 {isEditing && (
-                    <input aria-label="Input field"
+                    <input 
+                        aria-label={t('admin.gamification.image_url', 'URL manual de imagen de la medalla')}
                         type="text"
                         placeholder="O URL manual imagen..."
                         value={formData.image_url || ''}
@@ -252,6 +286,7 @@ const MedalCard = ({ medal, onSave, onDelete }: { medal: Medal, onSave: (m: Meda
 };
 
 const AchievementCard = ({ achievement, onSave, onDelete }: { achievement: Achievement, onSave: (a: Achievement) => void, onDelete: () => void }) => {
+    const { t } = useTranslation();
     const [isEditing, setIsEditing] = useState(false);
 
     const [isTranslating, setIsTranslating] = useState(false);
@@ -324,8 +359,8 @@ const AchievementCard = ({ achievement, onSave, onDelete }: { achievement: Achie
                         )}
                     </div>
                 )}
-
-                <input aria-label="Input field" 
+                <input 
+                    aria-label={t('admin.gamification.icon_input', 'Icono o emoji del logro')} 
                     type="text" 
                     value={isEditing ? formData.icon : achievement.icon} 
                     onChange={(e) => handleChange('icon', e.target.value)}
@@ -338,7 +373,8 @@ const AchievementCard = ({ achievement, onSave, onDelete }: { achievement: Achie
             
             <div className="achievement-details">
                 <div className="row">
-                    <input aria-label="Input field" 
+                    <input 
+                        aria-label={t('admin.gamification.achievement_name_es', 'Nombre del logro en español')} 
                         type="text"
                         value={isEditing ? formData.name : achievement.name}
                         onChange={(e) => handleChange('name', e.target.value)}
@@ -347,7 +383,8 @@ const AchievementCard = ({ achievement, onSave, onDelete }: { achievement: Achie
                         readOnly={!isEditing}
                         style={{ opacity: isEditing ? 1 : 0.8 }}
                     />
-                    <input aria-label="Input field" 
+                    <input 
+                        aria-label={t('admin.gamification.criteria_es', 'Criterio del logro en español')} 
                         type="text"
                         value={isEditing ? formData.criteria : achievement.criteria}
                         onChange={(e) => handleChange('criteria', e.target.value)}
@@ -357,7 +394,8 @@ const AchievementCard = ({ achievement, onSave, onDelete }: { achievement: Achie
                         style={{ opacity: isEditing ? 1 : 0.8 }}
                     />
                 </div>
-                <textarea aria-label="Text input" 
+                <textarea 
+                    aria-label={t('admin.gamification.achievement_desc_es', 'Descripción del logro en español')} 
                     value={isEditing ? formData.description : achievement.description}
                     onChange={(e) => handleChange('description', e.target.value)}
                     className="textarea-premium"
@@ -371,7 +409,9 @@ const AchievementCard = ({ achievement, onSave, onDelete }: { achievement: Achie
                     <div style={{ marginTop: '0.5rem', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '0.5rem' }}>
                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                             <div style={{ fontSize: '0.7rem', color: '#666', textTransform: 'uppercase', fontWeight: 'bold' }}>VERSION INGLÉS</div>
-                            <button aria-label="Action" type="button" 
+                            <button 
+                                aria-label={t('admin.gamification.auto_translate', 'Traducir logro automáticamente al inglés')} 
+                                type="button" 
                                 onClick={handleAutoTranslate}
                                 disabled={isTranslating}
                                 style={{ 
@@ -381,12 +421,13 @@ const AchievementCard = ({ achievement, onSave, onDelete }: { achievement: Achie
                                 }}
                                 title="Traducir Automatically (via MyMemory API)"
                             >
-                                <Languages size={12} className={isTranslating ? "animate-spin" : ""} /> 
+                                <Languages size={12} className={isTranslating ? "animate-spin" : ""} aria-hidden="true" /> 
                                 {isTranslating ? "Translating..." : "Auto-Translate"}
                             </button>
                         </div>
                         <div className="row" style={{ marginTop: '0.25rem' }}>
-                            <input aria-label="Input field" 
+                            <input 
+                                aria-label={t('admin.gamification.achievement_name_en', 'Nombre del logro en inglés')} 
                                 type="text"
                                 value={formData.name_en || ''}
                                 onChange={(e) => handleChange('name_en', e.target.value)}
@@ -394,7 +435,8 @@ const AchievementCard = ({ achievement, onSave, onDelete }: { achievement: Achie
                                 placeholder="Name (EN)"
                                 style={{ fontSize: '0.9rem' }}
                             />
-                            <input aria-label="Input field" 
+                            <input 
+                                aria-label={t('admin.gamification.criteria_en', 'Criterio del logro en inglés')} 
                                 type="text"
                                 value={formData.criteria_en || ''}
                                 onChange={(e) => handleChange('criteria_en', e.target.value)}
@@ -403,7 +445,8 @@ const AchievementCard = ({ achievement, onSave, onDelete }: { achievement: Achie
                                 style={{ fontSize: '0.9rem' }}
                             />
                         </div>
-                        <textarea aria-label="Text input" 
+                        <textarea 
+                            aria-label={t('admin.gamification.achievement_desc_en', 'Descripción del logro en inglés')} 
                             value={formData.description_en || ''}
                             onChange={(e) => handleChange('description_en', e.target.value)}
                             className="textarea-premium"
@@ -417,20 +460,44 @@ const AchievementCard = ({ achievement, onSave, onDelete }: { achievement: Achie
             <div className="achievement-actions action-buttons" style={{ flexDirection: 'column' }}>
                 {isEditing ? (
                     <>
-                        <button aria-label="Action" type="button" className="save-btn" onClick={handleSave} title="Guardar">
-                            <Check size={18} />
+                        <button 
+                            aria-label={t('common.save', 'Guardar logro')} 
+                            type="button" 
+                            className="save-btn" 
+                            onClick={handleSave} 
+                            title="Guardar"
+                        >
+                            <Check size={18} aria-hidden="true" />
                         </button>
-                        <button aria-label="Action" type="button" className="cancel-btn" onClick={handleCancel} title="Cancelar">
-                            <X size={18} />
+                        <button 
+                            aria-label={t('common.cancel', 'Cancelar edición de logro')} 
+                            type="button" 
+                            className="cancel-btn" 
+                            onClick={handleCancel} 
+                            title="Cancelar"
+                        >
+                            <X size={18} aria-hidden="true" />
                         </button>
                     </>
                 ) : (
                     <>
-                        <button type="button" className="edit-btn" onClick={() => setIsEditing(true)} title="Editar">
-                            <Pencil size={18} />
+                        <button 
+                            aria-label={t('common.edit', 'Editar logro')} 
+                            type="button" 
+                            className="edit-btn" 
+                            onClick={() => setIsEditing(true)} 
+                            title="Editar"
+                        >
+                            <Pencil size={18} aria-hidden="true" />
                         </button>
-                        <button aria-label="Action" type="button" className="delete-btn" onClick={onDelete} title="Eliminar">
-                            <Trash2 size={18} />
+                        <button 
+                            aria-label={t('common.delete', 'Eliminar logro')} 
+                            type="button" 
+                            className="delete-btn" 
+                            onClick={onDelete} 
+                            title="Eliminar"
+                        >
+                            <Trash2 size={18} aria-hidden="true" />
                         </button>
                     </>
                 )}
@@ -522,18 +589,22 @@ export default function GamificationManager() {
     return (
         <div className="gamification-container">
             <div className="gamification-header">
-                <div className="gamification-tabs">
+                <div className="gamification-tabs" role="tablist" aria-label={t('admin.gamification.tabs', 'Secciones de gamificación')}>
                     <button type="button" 
+                        role="tab"
+                        aria-selected={activeTab === 'medals'}
                         className={`tab-btn ${activeTab === 'medals' ? 'active' : ''}`}
                         onClick={() => setActiveTab('medals')}
                     >
-                        <MedalIcon size={18} /> {t('admin.gamification.medals_tab')}
+                        <MedalIcon size={18} aria-hidden="true" /> {t('admin.gamification.medals_tab')}
                     </button>
                     <button type="button" 
+                        role="tab"
+                        aria-selected={activeTab === 'achievements'}
                         className={`tab-btn ${activeTab === 'achievements' ? 'active' : ''}`}
                         onClick={() => setActiveTab('achievements')}
                     >
-                        <Trophy size={18} /> {t('admin.gamification.achievements_tab')}
+                        <Trophy size={18} aria-hidden="true" /> {t('admin.gamification.achievements_tab')}
                     </button>
                 </div>
                 <button type="button" 
@@ -543,7 +614,7 @@ export default function GamificationManager() {
                         handleAdd();
                     }}
                 >
-                    <Plus size={16} /> 
+                    <Plus size={16} aria-hidden="true" /> 
                     {activeTab === 'medals' ? t('admin.gamification.add_medal') : t('admin.gamification.add_achievement')}
                 </button>
             </div>

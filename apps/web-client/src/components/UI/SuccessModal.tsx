@@ -35,6 +35,9 @@ export default function SuccessModal({ isOpen, onClose, title, message, buttonTe
                 }}
             >
                 <m.div
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="success-modal-title"
                     initial={{ scale: 0.9, y: 20, opacity: 0 }}
                     animate={{ scale: 1, y: 0, opacity: 1 }}
                     exit={{ scale: 0.9, y: 20, opacity: 0 }}
@@ -70,11 +73,11 @@ export default function SuccessModal({ isOpen, onClose, title, message, buttonTe
                             justifyContent: 'center',
                             boxShadow: '0 4px 6px rgba(0,0,0,0.3)'
                         }}>
-                            <CheckCircle2 color="white" size={16} />
+                            <CheckCircle2 color="white" size={16} role="img" aria-label="Check Circle" />
                         </div>
                     </div>
 
-                    <h2 style={{
+                    <h2 id="success-modal-title" style={{
                         fontSize: '1.8rem',
                         marginBottom: '1rem',
                         background: 'linear-gradient(to right, #fff, #89D9D1)',

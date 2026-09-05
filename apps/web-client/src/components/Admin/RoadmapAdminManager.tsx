@@ -94,7 +94,10 @@ export default function RoadmapAdminManager() {
           </p>
         </div>
 
-        <button aria-label="Action" type="button"
+        <button
+          aria-label="Guardar configuración del roadmap"
+          aria-busy={saving}
+          type="button"
           onClick={handleSave}
           disabled={saving}
           style={{
@@ -112,12 +115,12 @@ export default function RoadmapAdminManager() {
             boxShadow: "0 4px 16px rgba(45, 212, 191, 0.3)",
           }}
         >
-          <Save size={16} /> {saving ? "Guardando..." : "Guardar Cambios"}
+          <Save size={16} aria-hidden="true" /> {saving ? "Guardando..." : "Guardar Cambios"}
         </button>
       </div>
 
       {msg && (
-        <div style={{ padding: "12px 16px", borderRadius: 10, background: "rgba(45,212,191,0.15)", border: "1px solid #2DD4BF", color: "#2DD4BF", marginBottom: 20, fontSize: 13 }}>
+        <div role="status" aria-live="polite" style={{ padding: "12px 16px", borderRadius: 10, background: "rgba(45,212,191,0.15)", border: "1px solid #2DD4BF", color: "#2DD4BF", marginBottom: 20, fontSize: 13 }}>
           {msg}
         </div>
       )}

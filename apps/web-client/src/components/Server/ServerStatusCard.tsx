@@ -82,7 +82,7 @@ export default function ServerStatusCard({ status, serverIp = "mc.crystaltidesSM
                         border: isOnline ? '2px solid var(--success)' : '2px solid var(--error)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center'
                     }}>
-                            <img src="/images/server_icon.png" alt="Server Icon" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            <img src="/images/server_icon.png" alt={cleanMotd || "CrystalTides SMP"} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     </div>
 
                 </div>
@@ -95,6 +95,7 @@ export default function ServerStatusCard({ status, serverIp = "mc.crystaltidesSM
                                 {serverIp}
                                 <button type="button" 
                                     onClick={handleCopy}
+                                    aria-label={copied ? t('common.copied') : t('common.copy')}
                                     style={{ 
                                         background: copied ? 'var(--success)' : 'rgba(255,255,255,0.1)', 
                                         color: '#fff',
@@ -107,7 +108,7 @@ export default function ServerStatusCard({ status, serverIp = "mc.crystaltidesSM
                                         transition: "color 0.2s, background-color 0.2s, border-color 0.2s, opacity 0.2s"
                                     }}
                                 >
-                                    {copied ? <CheckCircle /> : <Copy />}
+                                    {copied ? <CheckCircle aria-hidden="true" /> : <Copy aria-hidden="true" />}
                                     <span style={{ fontWeight: 'bold' }}>{copied ? t('common.copied') : t('common.copy')}</span>
                                 </button>
                             </h2>
@@ -125,8 +126,12 @@ export default function ServerStatusCard({ status, serverIp = "mc.crystaltidesSM
                         </div>
                     </div>
 
-                    {/* Player Bar */}
                     <div 
+                        role="progressbar"
+                        aria-valuenow={playerCount}
+                        aria-valuemin={0}
+                        aria-valuemax={maxPlayers}
+                        aria-label={t('status.players')}
                         className="w-full h-3 rounded-full overflow-hidden relative mb-2 border"
                         style={{
                             background: isOnline ? 'rgba(74, 222, 128, 0.05)' : 'rgba(239, 68, 68, 0.05)',
@@ -147,7 +152,7 @@ export default function ServerStatusCard({ status, serverIp = "mc.crystaltidesSM
                     </div>
                     <div className="flex justify-between text-sm text-gray-400">
                         <span>{t('status.version')}: {status?.version || "1.21.1"}</span>
-                        <span>{t('status.players')}: <strong className="text-white">{playerCount}</strong> / {maxPlayers}</span>
+                        <span className="tabular-nums">{t('status.players')}: <strong className="text-white">{playerCount}</strong> / {maxPlayers}</span>
                     </div>
                 </div>
             </div>

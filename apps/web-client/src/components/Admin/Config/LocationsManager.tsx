@@ -174,8 +174,13 @@ export default function LocationsManager() {
                         <h4 style={{ margin: 0, fontSize: '1.2rem', fontWeight: '800', color: '#fff', display: 'flex', alignItems: 'center', gap: '10px' }}>
                             {editingId ? <><Edit2 style={{ color: '#facc15' }} /> {t('locations_manager.edit_title', 'Editar Registro')}</> : <><Plus style={{ color: 'var(--accent)' }} /> {t('locations_manager.create_title', 'Nuevo Registro')}</>}
                         </h4>
-                        <button aria-label="Action" type="button" onClick={resetForm} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer' }}>
-                            <X size={20} />
+                        <button 
+                            aria-label={t('common.close', 'Cerrar formulario de localización')} 
+                            type="button" 
+                            onClick={resetForm} 
+                            style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer' }}
+                        >
+                            <X size={20} aria-hidden="true" />
                         </button>
                     </div>
 
@@ -232,7 +237,7 @@ export default function LocationsManager() {
                                             type="number"
                                             className="admin-input-premium" 
                                             value={formData.sort_order}
-                                            onChange={e => setFormData({...formData, sort_order: parseInt(e.target.value) || 0})}
+                                            onChange={e => setFormData({...formData, sort_order: Number.parseInt(e.target.value, 10) || 0})}
                                             style={{ width: '100%', padding: '1rem' }}
                                         />
                                     </div>
@@ -311,22 +316,29 @@ export default function LocationsManager() {
                                         <img src={`https://minotar.net/helm/${auth.name}/24.png`} alt="" style={{ width: '20px', height: '20px', borderRadius: '4px' }} />
                                         <span style={{ fontSize: '0.85rem', fontWeight: '700', color: '#fff' }}>{auth.name}</span>
                                         <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', color: '#60a5fa', fontWeight: '900' }}>{auth.role}</span>
-                                        <button aria-label="Action" type="button" onClick={() => removeAuthor(idx)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer', display: 'flex' }}>
-                                            <X size={12} />
+                                        <button 
+                                            aria-label={t('locations_manager.form.remove_author', `Eliminar autor: ${auth.name}`)} 
+                                            type="button" 
+                                            onClick={() => removeAuthor(idx)} 
+                                            style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer', display: 'flex' }}
+                                        >
+                                            <X size={12} aria-hidden="true" />
                                         </button>
                                     </div>
                                 ))}
                             </div>
 
                             <div className="author-controls">
-                                <input aria-label="Input field" 
+                                <input 
+                                    aria-label={t('locations_manager.form.author_nick', 'Nick del Autor')} 
                                     className="admin-input-premium" 
                                     placeholder={t('locations_manager.form.author_nick', 'Nick del Autor')}
                                     value={newAuthor.name}
                                     onChange={e => setNewAuthor({...newAuthor, name: e.target.value})}
                                     style={{ flexGrow: 1, padding: '0.8rem' }}
                                 />
-                                <select aria-label="Select option" 
+                                <select 
+                                    aria-label={t('locations_manager.form.author_role', 'Rol del autor')} 
                                     className="admin-select-premium"
                                     value={newAuthor.role}
                                     onChange={e => setNewAuthor({...newAuthor, role: e.target.value})}
@@ -334,8 +346,14 @@ export default function LocationsManager() {
                                 >
                                     {AUTHOR_ROLES.map(r => <option key={r} value={r} style={{ background: '#0b0b10' }}>{r}</option>)}
                                 </select>
-                                <button aria-label="Action" type="button" onClick={addAuthor} className="modal-btn-primary hover-lift" style={{ padding: '0 1.2rem', borderRadius: '12px' }}>
-                                    <Plus />
+                                <button 
+                                    aria-label={t('locations_manager.form.add_author', 'Añadir autor')} 
+                                    type="button" 
+                                    onClick={addAuthor} 
+                                    className="modal-btn-primary hover-lift" 
+                                    style={{ padding: '0 1.2rem', borderRadius: '12px' }}
+                                >
+                                    <Plus aria-hidden="true" />
                                 </button>
                             </div>
                         </div>
@@ -380,11 +398,21 @@ export default function LocationsManager() {
                                 <img src={loc.image_url || ''} alt={loc.title} style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.6 }} />
                             )}
                             <div style={{ position: 'absolute', top: '15px', right: '15px', display: 'flex', gap: '8px' }}>
-                                <button aria-label="Action" type="button" onClick={() => handleEdit(loc)} style={{ padding: '8px', background: 'rgba(255,255,255,0.1)', color: '#fff', borderRadius: '10px', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer' }}>
-                                    <Edit2 size={14} />
+                                <button 
+                                    aria-label={t('locations_manager.edit_location', `Editar localización: ${loc.title}`)} 
+                                    type="button" 
+                                    onClick={() => handleEdit(loc)} 
+                                    style={{ padding: '8px', background: 'rgba(255,255,255,0.1)', color: '#fff', borderRadius: '10px', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer' }}
+                                >
+                                    <Edit2 size={14} aria-hidden="true" />
                                 </button>
-                                <button aria-label="Action" type="button" onClick={() => setDeleteConfirmId(loc.id)} style={{ padding: '8px', background: 'rgba(239, 68, 68, 0.2)', color: '#ef4444', borderRadius: '10px', backdropFilter: 'blur(10px)', border: '1px solid rgba(239, 68, 68, 0.2)', cursor: 'pointer' }}>
-                                    <Trash2 size={14} />
+                                <button 
+                                    aria-label={t('locations_manager.delete_location', `Eliminar localización: ${loc.title}`)} 
+                                    type="button" 
+                                    onClick={() => setDeleteConfirmId(loc.id)} 
+                                    style={{ padding: '8px', background: 'rgba(239, 68, 68, 0.2)', color: '#ef4444', borderRadius: '10px', backdropFilter: 'blur(10px)', border: '1px solid rgba(239, 68, 68, 0.2)', cursor: 'pointer' }}
+                                >
+                                    <Trash2 size={14} aria-hidden="true" />
                                 </button>
                             </div>
                             <div style={{ position: 'absolute', bottom: '15px', left: '15px', background: 'rgba(0,0,0,0.6)', padding: '4px 10px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 'bold', color: 'var(--accent)', border: '1px solid rgba(255,255,255,0.1)' }}>

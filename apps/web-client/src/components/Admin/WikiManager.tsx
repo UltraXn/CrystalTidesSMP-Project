@@ -43,10 +43,10 @@ export default function WikiManager({ mockArticles }: WikiManagerProps = {}) {
         new Set([
             ...articles
                 .map((a: WikiArticle) => a.boss_mod_name)
-                .filter((mod): mod is string => Boolean(mod && mod.trim())),
+                .filter((mod): mod is string => Boolean(mod?.trim())),
             ...savedCustomMods
         ])
-    ).sort();
+    ).sort((a, b) => a.localeCompare(b));
 
     const handleSave = async (formData: Partial<WikiArticle>) => {
         if (!formData.title || !formData.slug || !formData.content) return
@@ -128,10 +128,11 @@ export default function WikiManager({ mockArticles }: WikiManagerProps = {}) {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', gap: '1rem', flexWrap: 'wrap' }}>
                     <div className="search-box-wrapper" style={{ flex: 1, minWidth: '280px' }}>
                         <div className="search-box">
-                            <Search className="search-icon" size={18} />
-                            <input aria-label="Input field" 
-                                type="text" 
-                                placeholder="Buscar por título, slug o mod..." 
+                            <Search className="search-icon" size={18} aria-hidden="true" />
+                            <input 
+                                aria-label={t('admin.wiki.search_placeholder', 'Buscar por título, slug o mod')} 
+                                type="search" 
+                                placeholder={t('admin.wiki.search_placeholder', 'Buscar por título, slug o mod...')} 
                                 value={searchTerm}
                                 onChange={e => setSearchTerm(e.target.value)}
                             />
@@ -139,7 +140,7 @@ export default function WikiManager({ mockArticles }: WikiManagerProps = {}) {
                     </div>
 
                     <button type="button" className="btn-primary" onClick={startNew} style={{ whiteSpace: 'nowrap' }}>
-                        <Plus size={16} /> {t('admin.wiki.create_btn')}
+                        <Plus size={16} aria-hidden="true" /> {t('admin.wiki.create_btn')}
                     </button>
                 </div>
 
@@ -176,7 +177,7 @@ export default function WikiManager({ mockArticles }: WikiManagerProps = {}) {
                             type="button"
                             onClick={() => {
                                 const newMod = prompt("Escribe el nombre del nuevo Mod para registrar como filtro en el servidor (ej. Twilight Forest, Alex's Mobs, Create Mod):");
-                                if (newMod && newMod.trim()) {
+                                if (newMod?.trim()) {
                                     const modName = newMod.trim();
                                     const saved = JSON.parse(localStorage.getItem('crystaltides_custom_mods') || '[]');
                                     if (!saved.includes(modName)) {

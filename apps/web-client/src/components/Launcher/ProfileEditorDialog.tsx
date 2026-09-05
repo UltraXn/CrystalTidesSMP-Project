@@ -40,13 +40,13 @@ export const ProfileEditorDialog: React.FC<ProfileEditorDialogProps> = ({
   const isEdit = !!profile;
 
   // Form states
-  const [name, setName] = useState("");
-  const [iconPath, setIconPath] = useState("🌊");
-  const [mcVersion, setMcVersion] = useState("1.21.1");
-  const [loaderType, setLoaderType] = useState<"vanilla" | "neoforge" | "fabric" | "forge" | "">("neoforge");
-  const [loaderVersion, setLoaderVersion] = useState("21.1.65");
-  const [isolateSaves, setIsolateSaves] = useState(false);
-  const [gameDir, setGameDir] = useState("");
+  const [name, setName] = useState(profile?.name ?? "Nuevo Perfil");
+  const [iconPath, setIconPath] = useState(profile?.iconPath ?? "🌊");
+  const [mcVersion, setMcVersion] = useState(profile?.mcVersion ?? "1.21.1");
+  const [loaderType, setLoaderType] = useState<"vanilla" | "neoforge" | "fabric" | "forge" | "">(profile?.loaderType ?? "neoforge");
+  const [loaderVersion, setLoaderVersion] = useState(profile?.loaderVersion ?? "21.1.65");
+  const [isolateSaves, setIsolateSaves] = useState(profile?.isolateSaves ?? false);
+  const [gameDir, setGameDir] = useState(profile?.gameDir ?? "");
 
   // Dynamic versions lists
   const [vanillaVersions, setVanillaVersions] = useState<string[]>([]);
@@ -54,14 +54,14 @@ export const ProfileEditorDialog: React.FC<ProfileEditorDialogProps> = ({
   const [isLoadingVersions, setIsLoadingVersions] = useState(false);
   
   // RAM Customization
-  const [useCustomRam, setUseCustomRam] = useState(false);
-  const [minRam, setMinRam] = useState(2048);
-  const [maxRam, setMaxRam] = useState(4096);
-  const [useOptimization, setUseOptimization] = useState(true);
+  const [useCustomRam, setUseCustomRam] = useState(profile ? (profile.minRam !== undefined || profile.maxRam !== undefined) : false);
+  const [minRam, setMinRam] = useState(profile?.minRam ?? 2048);
+  const [maxRam, setMaxRam] = useState(profile?.maxRam ?? 4096);
+  const [useOptimization, setUseOptimization] = useState(profile?.useOptimization ?? true);
 
   // Advanced
-  const [javaArgs, setJavaArgs] = useState("");
-  const [javaPath, setJavaPath] = useState("");
+  const [javaArgs, setJavaArgs] = useState(profile?.javaArgs ?? "");
+  const [javaPath, setJavaPath] = useState(profile?.javaPath ?? "");
 
   const [prevProfile, setPrevProfile] = useState(profile);
   if (profile !== prevProfile) {
@@ -137,7 +137,7 @@ export const ProfileEditorDialog: React.FC<ProfileEditorDialogProps> = ({
         if (!ignore) {
           setLoaderVersions(list);
           if (list.length > 0) {
-            if (!profile || profile.loaderType !== loaderType || !list.includes(loaderVersion)) {
+            if (!profile || profile.loaderType !== loaderType) {
               setLoaderVersion(list[0]);
             }
           } else {
@@ -152,7 +152,7 @@ export const ProfileEditorDialog: React.FC<ProfileEditorDialogProps> = ({
     };
     loadLoaders();
     return () => { ignore = true; };
-  }, [loaderType, mcVersion, profile, loaderVersion]);
+  }, [loaderType, mcVersion, profile]);
 
   const handleSave = () => {
     if (!name.trim()) {
@@ -189,7 +189,7 @@ export const ProfileEditorDialog: React.FC<ProfileEditorDialogProps> = ({
   };
 
   return (
-    <div className="modal-overlay">
+    <div role="dialog" aria-modal="true" aria-labelledby="profile-editor-title" className="modal-overlay">
       <CrystalCard
         className="modal-content"
         style={{
@@ -212,10 +212,10 @@ export const ProfileEditorDialog: React.FC<ProfileEditorDialogProps> = ({
             alignItems: "center",
           }}
         >
-          <h2 style={{ margin: 0, fontSize: 18, fontWeight: "bold", color: "#FFFFFF" }}>
+          <h2 id="profile-editor-title" style={{ margin: 0, fontSize: 18, fontWeight: "bold", color: "#FFFFFF" }}>
             {isEdit ? "Editar Perfil" : "Crear Perfil"}
           </h2>
-          <button aria-label="Action" type="button"
+          <button aria-label="Cerrar editor de perfil" type="button"
             onClick={onClose}
             style={{
               background: "none",
@@ -259,7 +259,7 @@ export const ProfileEditorDialog: React.FC<ProfileEditorDialogProps> = ({
             <div style={labelStyle}>Icono</div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 4 }}>
               {EMOJIS.map((emoji) => (
-                <button aria-label="Action" type="button"
+                <button aria-label={`Seleccionar icono ${emoji}`} aria-pressed={iconPath === emoji} type="button"
                   key={emoji}
                   onClick={() => setIconPath(emoji)}
                   style={{
@@ -356,7 +356,7 @@ export const ProfileEditorDialog: React.FC<ProfileEditorDialogProps> = ({
           {/* Isolation & Directory */}
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-              <input aria-label="Input field"
+              <input
                 type="checkbox"
                 id="isolate-saves"
                 checked={isolateSaves}
@@ -388,7 +388,7 @@ export const ProfileEditorDialog: React.FC<ProfileEditorDialogProps> = ({
           {/* Custom RAM */}
           <div style={{ display: "flex", flexDirection: "column", gap: 12, borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: 16 }}>
             <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-              <input aria-label="Input field"
+              <input
                 type="checkbox"
                 id="custom-ram"
                 checked={useCustomRam}
@@ -434,7 +434,7 @@ export const ProfileEditorDialog: React.FC<ProfileEditorDialogProps> = ({
             )}
 
             <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-              <input aria-label="Input field"
+              <input
                 type="checkbox"
                 id="use-optimization"
                 checked={useOptimization}

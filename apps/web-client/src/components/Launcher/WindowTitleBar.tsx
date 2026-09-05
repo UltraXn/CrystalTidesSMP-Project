@@ -46,7 +46,7 @@ export const WindowTitleBar: React.FC = () => {
         position: "sticky",
         top: 0,
         zIndex: 9999,
-        borderRadius: "24px 24px 0 0",
+        borderRadius: 0,
       }}
     >
       {/* Title / Logo */}
@@ -77,6 +77,7 @@ export const WindowTitleBar: React.FC = () => {
       <div className="titlebar-no-drag" style={{ display: "flex", gap: 4 }} onMouseDown={(e) => e.stopPropagation()}>
         <button type="button"
           onClick={handleMinimize}
+          aria-label="Minimizar ventana"
           style={{
             width: 32,
             height: 24,
@@ -101,10 +102,11 @@ export const WindowTitleBar: React.FC = () => {
           }}
           title="Minimizar"
         >
-          ─
+          <span aria-hidden="true">─</span>
         </button>
         <button type="button"
           onClick={handleClose}
+          aria-label="Cerrar ventana"
           style={{
             width: 32,
             height: 24,
@@ -129,7 +131,7 @@ export const WindowTitleBar: React.FC = () => {
           }}
           title="Cerrar"
         >
-          ✕
+          <span aria-hidden="true">✕</span>
         </button>
       </div>
     </div>

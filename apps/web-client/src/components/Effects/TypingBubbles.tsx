@@ -36,7 +36,7 @@ export default function TypingBubbles() {
     }, []);
 
     return createPortal(
-        <div className="typing-bubbles-container">
+        <div className="typing-bubbles-container" aria-hidden="true">
             {bubbles.map((bubble) => (
                 <div
                     key={bubble.id}

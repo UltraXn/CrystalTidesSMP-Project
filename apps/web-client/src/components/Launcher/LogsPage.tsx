@@ -35,7 +35,9 @@ export const LogsPage: React.FC = () => {
         title="Registros del Launcher"
         trailing={
           <div style={{ display: "flex", gap: 8 }}>
-            <button aria-label="Action" type="button"
+            <button
+              aria-label="Actualizar registros"
+              type="button"
               onClick={refresh}
               style={{
                 background: "none",
@@ -47,9 +49,11 @@ export const LogsPage: React.FC = () => {
                 fontSize: 13,
               }}
             >
-              🔄
+              <span aria-hidden="true">🔄</span>
             </button>
-            <button aria-label="Action" type="button"
+            <button
+              aria-label="Copiar registros al portapapeles"
+              type="button"
               onClick={handleCopy}
               style={{
                 background: "none",
@@ -61,9 +65,11 @@ export const LogsPage: React.FC = () => {
                 fontSize: 13,
               }}
             >
-              📋 Copiar
+              <span aria-hidden="true">📋</span> Copiar
             </button>
-            <button aria-label="Action" type="button"
+            <button
+              aria-label="Limpiar registros"
+              type="button"
               onClick={handleClear}
               style={{
                 background: "none",
@@ -75,7 +81,7 @@ export const LogsPage: React.FC = () => {
                 fontSize: 13,
               }}
             >
-              🗑️ Limpiar
+              <span aria-hidden="true">🗑️</span> Limpiar
             </button>
           </div>
         }
@@ -92,13 +98,13 @@ export const LogsPage: React.FC = () => {
           color: "rgba(255,255,255,0.7)",
         }}>
           {logs.length === 0 ? (
-            <p style={{ textAlign: "center", color: "rgba(255,255,255,0.4)", paddingTop: 40 }}>
+            <p role="status" aria-live="polite" style={{ textAlign: "center", color: "rgba(255,255,255,0.4)", paddingTop: 40 }}>
               No hay registros disponibles.
             </p>
           ) : (
             logs.map((entry) => (
               <div key={`${entry.timestamp}-${entry.level}-${entry.message}`} style={{ display: "flex", gap: 8 }}>
-                <span style={{ color: "rgba(255,255,255,0.3)", minWidth: 170, flexShrink: 0 }}>
+                <span style={{ color: "rgba(255,255,255,0.3)", minWidth: 170, flexShrink: 0, fontVariantNumeric: "tabular-nums" }}>
                   {new Date(entry.timestamp).toLocaleTimeString()}
                 </span>
                 <span style={{ color: levelColor(entry.level), minWidth: 50, fontWeight: "bold" }}>

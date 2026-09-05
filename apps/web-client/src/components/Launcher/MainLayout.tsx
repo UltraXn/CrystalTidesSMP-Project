@@ -12,6 +12,10 @@ import { SettingsPage } from "./SettingsPage";
 import { LogsPage } from "./LogsPage";
 import { RewardsPage } from "./RewardsPage";
 import { PlayerStatsWidget } from "./PlayerStatsWidget";
+import { SocialPanel } from "./SocialPanel";
+import { VersionSwitcherModal } from "./VersionSwitcherModal";
+import { CrashModal } from "./CrashModal";
+import { Users, AlertTriangle, Layers } from "lucide-react";
 
 interface SidebarItem {
   icon: React.ReactNode;
@@ -115,8 +119,12 @@ export const MainLayout: React.FC = () => {
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [logoFailed, setLogoFailed] = useState(false);
   const [showAccountMenu, setShowAccountMenu] = useState(false);
+  const [showSocial, setShowSocial] = useState(false);
+  const [showVersionSwitcher, setShowVersionSwitcher] = useState(false);
+  const [showCrashModal, setShowCrashModal] = useState(false);
+
   const [avatarPref, setAvatarPref] = useState<"web" | "minecraft">(
-    () => getSettings().avatarPreference || "web"
+    getSettings().avatarPreference || "web"
   );
 
   useEffect(() => {
@@ -138,6 +146,17 @@ export const MainLayout: React.FC = () => {
   };
 
   const renderPage = () => {
+    if (showVersionSwitcher) {
+      return (
+        <VersionSwitcherModal
+          onSelectVersion={(_v, _loader) => {
+            setShowVersionSwitcher(false);
+          }}
+          onClose={() => setShowVersionSwitcher(false)}
+        />
+      );
+    }
+
     switch (activePage) {
       case "profiles": return <ProfileManagerPage />;
       case "news": return <NewsPage />;
@@ -155,22 +174,49 @@ export const MainLayout: React.FC = () => {
               Consulta tu progreso semanal e histórico en CrystalTides SMP.
             </p>
           </div>
-          <PlayerStatsWidget username={crystalSession?.username || currentSession?.username || "Invitado"} />
+          {crystalSession?.username ? (
+            <PlayerStatsWidget username={crystalSession.username} />
+          ) : (
+            <div style={{
+              padding: 28,
+              borderRadius: 16,
+              background: "rgba(15, 23, 42, 0.65)",
+              border: "1px solid rgba(45, 212, 191, 0.2)",
+              textAlign: "center",
+              color: "rgba(255,255,255,0.8)",
+              marginTop: 20,
+            }}>
+              <div style={{ fontSize: 32, marginBottom: 8 }}>🔒</div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: "#2DD4BF", marginBottom: 6 }}>
+                Autenticación Requerida
+              </div>
+              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", maxWidth: 460, margin: "0 auto" }}>
+                Inicia sesión con tu **Cuenta Web oficial de CrystalTides SMP** para consultar tus estadísticas semanales, racha, KilluCoins e historial de juego de forma 100% segura.
+              </div>
+            </div>
+          )}
         </div>
       );
-      default: return <HomePage onNavigate={setActivePage} />;
+      default: return (
+        <HomePage
+          onNavigate={(page) => {
+            setShowVersionSwitcher(false);
+            setActivePage(page);
+          }}
+        />
+      );
     }
   };
 
   return (
-    <div className="launcher-container" style={{
+    <div style={{
       display: "flex",
       flexDirection: "column",
       width: "100%",
       height: "100%",
+      background: "radial-gradient(ellipse at 50% 0%, #0d121c 0%, #060305 100%)",
       overflow: "hidden",
       position: "relative",
-      background: "radial-gradient(ellipse at 30% 0%, var(--background-alt) 0%, var(--background) 75%)",
     }}>
       <WindowTitleBar />
 
@@ -182,21 +228,21 @@ export const MainLayout: React.FC = () => {
         overflow: "hidden",
         position: "relative",
       }}>
-        {/* 🧼 Burbujas de ambiente Pixel Art */}
+        {/* 🧼 Ambient Particles */}
         <AmbientBubbles />
 
         {/* Sidebar */}
         <nav style={{
-          width: 84,
-          minWidth: 84,
+          width: 74,
+          minWidth: 74,
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          paddingTop: 18,
+          paddingTop: 16,
           paddingBottom: 16,
-          borderRight: "1px solid var(--border-low)",
-          backgroundColor: "rgba(8, 10, 15, 0.75)",
-          backdropFilter: "blur(10px)",
+          borderRight: "1px solid rgba(255, 255, 255, 0.06)",
+          backgroundColor: "rgba(7, 4, 10, 0.95)",
+          backdropFilter: "blur(16px)",
           boxSizing: "border-box",
           zIndex: 10,
         }}>
@@ -204,50 +250,58 @@ export const MainLayout: React.FC = () => {
           <div
             className="octopus-logo-box"
             style={{
-              width: 48,
-              height: 48,
+              width: 44,
+              height: 44,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              borderRadius: 16,
-              background: "linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%)",
-              border: "1.5px solid rgba(45, 212, 191, 0.3)",
-              marginBottom: 26,
+              borderRadius: 12,
+              background: "rgba(255, 255, 255, 0.04)",
+              border: "1px solid rgba(255, 255, 255, 0.09)",
+              marginBottom: 16,
               cursor: "pointer",
               userSelect: "none",
               overflow: "hidden"
             }}
-            title="CrystalTides SMP"
+            title="CrystalTides Launcher"
+            onClick={() => {
+              setShowVersionSwitcher(false);
+              setActivePage("home");
+            }}
           >
-          {logoFailed ? (
-            <span style={{ fontSize: 24, userSelect: "none" }}>💎</span>
-          ) : (
-            <img
-              src="/logo.png"
-              className="octopus-logo-img"
-              style={{ width: "84%", height: "84%", objectFit: "contain" }}
-              alt="CrystalTides Logo"
-              onError={(e) => {
-                if (!e.currentTarget.dataset.fallback) {
-                  e.currentTarget.dataset.fallback = "true";
-                  e.currentTarget.src = "/server_icon.png";
-                } else {
-                  setLogoFailed(true);
-                }
-              }}
-            />
-          )}
+            {logoFailed ? (
+              <span style={{ fontSize: 22, userSelect: "none" }}>💎</span>
+            ) : (
+              <img
+                src="/logo.png"
+                className="octopus-logo-img"
+                style={{ width: "80%", height: "80%", objectFit: "contain" }}
+                alt="CrystalTides Logo"
+                onError={(e) => {
+                  if (!e.currentTarget.dataset.fallback) {
+                    e.currentTarget.dataset.fallback = "true";
+                    e.currentTarget.src = "/server_icon.png";
+                  } else {
+                    setLogoFailed(true);
+                  }
+                }}
+              />
+            )}
           </div>
 
           {/* Nav Items */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 6, width: "100%", alignItems: "center", padding: "0 10px", boxSizing: "border-box" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 5, width: "100%", alignItems: "center", padding: "0 8px", boxSizing: "border-box" }}>
             {NAV_ITEMS.map((item) => {
-              const isActive = activePage === item.id;
+              const isActive = !showVersionSwitcher && activePage === item.id;
               const isHovered = hoveredItem === item.id;
               return (
-                <button type="button"
+                <button
+                  type="button"
                   key={item.id}
-                  onClick={() => setActivePage(item.id)}
+                  onClick={() => {
+                    setShowVersionSwitcher(false);
+                    setActivePage(item.id);
+                  }}
                   onMouseEnter={() => setHoveredItem(item.id)}
                   onMouseLeave={() => setHoveredItem(null)}
                   title={item.label}
@@ -256,54 +310,178 @@ export const MainLayout: React.FC = () => {
                     display: "flex",
                     flexDirection: "column",
                     alignItems: "center",
-                    gap: 4,
-                    padding: "9px 0 7px",
-                    borderRadius: 12,
+                    gap: 3,
+                    padding: "8px 0 6px",
+                    borderRadius: 10,
                     border: "1px solid transparent",
                     backgroundColor: isActive
-                      ? "rgba(45, 212, 191, 0.12)"
+                      ? "rgba(255, 255, 255, 0.08)"
                       : isHovered
-                        ? "rgba(255, 255, 255, 0.04)"
+                        ? "rgba(255, 255, 255, 0.03)"
                         : "transparent",
-                    borderColor: isActive ? "rgba(45, 212, 191, 0.3)" : "transparent",
-                    color: isActive ? "var(--accent)" : isHovered ? "#FFF" : "rgba(255, 255, 255, 0.55)",
+                    borderColor: isActive
+                      ? "rgba(45, 212, 191, 0.3)"
+                      : "transparent",
+                    color: isActive ? "#FFFFFF" : isHovered ? "#E2E8F0" : "rgba(255, 255, 255, 0.4)",
                     cursor: "pointer",
-                    transition: "color 150ms ease, background-color 150ms ease, border-color 150ms ease, opacity 150ms ease",
+                    transition: "all 160ms ease",
+                    position: "relative",
+                    boxShadow: isActive ? "0 2px 8px rgba(0, 0, 0, 0.25)" : "none",
+                    fontFamily: "var(--font-family)",
                   }}
                 >
-                  {item.icon}
-                  <span style={{ fontSize: 10, fontWeight: isActive ? 700 : 500 }}>{item.label}</span>
+                  <span style={{
+                    display: "flex",
+                    color: isActive ? "#2DD4BF" : "inherit",
+                    transform: isHovered ? "scale(1.05)" : "scale(1)",
+                    transition: "transform 160ms ease",
+                  }}>
+                    {item.icon}
+                  </span>
+                  <span style={{
+                    fontSize: 9.5,
+                    fontWeight: isActive ? 700 : 500,
+                    letterSpacing: "0.02em",
+                    color: isActive ? "#FFFFFF" : "inherit",
+                  }}>
+                    {item.label}
+                  </span>
+
+                  {/* Active indicator bar */}
+                  {isActive && (
+                    <div style={{
+                      position: "absolute",
+                      left: -8,
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      width: 3,
+                      height: 20,
+                      borderRadius: "0 3px 3px 0",
+                      backgroundColor: "#2DD4BF",
+                    }} />
+                  )}
                 </button>
               );
             })}
-          </div>
 
-          {/* Footer del sidebar: Avatar + Logout */}
-          <div style={{ marginTop: "auto", display: "flex", flexDirection: "column", alignItems: "center", gap: 10, width: "100%" }}>
+            {/* Quick Version Switcher Button */}
             <button
               type="button"
-              onClick={() => setShowAccountMenu(true)}
-              title="Cambiar de Cuenta"
+              onClick={() => setShowVersionSwitcher(!showVersionSwitcher)}
+              title="Selector de Versiones"
               style={{
-                width: 42,
-                height: 42,
-                borderRadius: 14,
-                overflow: "hidden",
-                border: showAccountMenu ? "2px solid var(--accent)" : "1.5px solid var(--border-low)",
-                backgroundColor: "rgba(255, 255, 255, 0.05)",
+                width: "100%",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: 3,
+                padding: "8px 0 6px",
+                borderRadius: 10,
+                border: showVersionSwitcher ? "1px solid rgba(45, 212, 191, 0.4)" : "1px solid transparent",
+                backgroundColor: showVersionSwitcher ? "rgba(45, 212, 191, 0.15)" : "transparent",
+                color: showVersionSwitcher ? "#2DD4BF" : "rgba(255, 255, 255, 0.4)",
+                cursor: "pointer",
+                transition: "all 160ms ease",
+              }}
+            >
+              <Layers size={18} color={showVersionSwitcher ? "#2DD4BF" : "currentColor"} />
+              <span style={{ fontSize: 9, fontWeight: 700 }}>Versiones</span>
+            </button>
+          </div>
+
+          {/* Spacer */}
+          <div style={{ flex: 1 }} />
+
+          {/* Quick Actions (Social Panel & Diagnostic simulation) */}
+          <div style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 8,
+            width: "100%",
+            marginBottom: 12,
+            paddingTop: 8,
+            borderTop: "1px solid rgba(255, 255, 255, 0.06)",
+          }}>
+            {/* Social toggle */}
+            <button
+              type="button"
+              onClick={() => setShowSocial(!showSocial)}
+              title="Amigos en Línea"
+              style={{
+                width: 38,
+                height: 38,
+                borderRadius: 10,
+                border: showSocial ? "1px solid rgba(45, 212, 191, 0.5)" : "1px solid rgba(255, 255, 255, 0.08)",
+                backgroundColor: showSocial ? "rgba(45, 212, 191, 0.15)" : "rgba(255, 255, 255, 0.03)",
+                color: showSocial ? "#2DD4BF" : "rgba(255, 255, 255, 0.6)",
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                transition: "color 150ms ease, background-color 150ms ease, border-color 150ms ease, opacity 150ms ease",
+                position: "relative",
+              }}
+            >
+              <Users size={16} />
+              <span style={{
+                position: "absolute",
+                top: 4,
+                right: 4,
+                width: 7,
+                height: 7,
+                borderRadius: "50%",
+                backgroundColor: "#2DD4BF",
+              }} />
+            </button>
+
+            {/* Crash modal simulation toggle */}
+            <button
+              type="button"
+              onClick={() => setShowCrashModal(true)}
+              title="Simular Diagnóstico de Crash"
+              style={{
+                width: 38,
+                height: 38,
+                borderRadius: 10,
+                border: "1px solid rgba(239, 68, 68, 0.2)",
+                backgroundColor: "rgba(239, 68, 68, 0.05)",
+                color: "#EF4444",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <AlertTriangle size={15} />
+            </button>
+          </div>
+
+          {/* User avatar + logout */}
+          <div style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 10,
+            width: "100%",
+          }}>
+            <button
+              type="button"
+              onClick={() => setShowAccountMenu(!showAccountMenu)}
+              title="Cambiar de Cuenta"
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 12,
+                overflow: "hidden",
+                border: showAccountMenu ? "2px solid #2DD4BF" : "1px solid rgba(255, 255, 255, 0.12)",
+                backgroundColor: "rgba(255, 255, 255, 0.04)",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                transition: "all 160ms ease",
                 position: "relative",
                 padding: 0,
-              }}
-              onMouseEnter={(e) => {
-                if (!showAccountMenu) e.currentTarget.style.borderColor = "rgba(45, 212, 191, 0.6)";
-              }}
-              onMouseLeave={(e) => {
-                if (!showAccountMenu) e.currentTarget.style.borderColor = "var(--border-low)";
               }}
             >
               {getDisplayAvatarSrc(crystalSession, currentSession) ? (
@@ -327,34 +505,28 @@ export const MainLayout: React.FC = () => {
                 onNavigateSettings={() => setActivePage("settings")}
               />
             )}
-            <button aria-label="Action" type="button"
+
+            <button
+              type="button"
               onClick={logout}
               title="Cerrar sesión"
               style={{
-                width: 40,
-                height: 40,
-                borderRadius: 12,
-                border: "1px solid rgba(239, 68, 68, 0.25)",
+                width: 38,
+                height: 38,
+                borderRadius: 10,
+                border: "1px solid rgba(239, 68, 68, 0.2)",
                 backgroundColor: "transparent",
-                color: "var(--danger)",
+                color: "#EF4444",
                 fontSize: 16,
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                transition: "color 200ms ease, background-color 200ms ease, border-color 200ms ease, opacity 200ms ease",
+                transition: "all 160ms ease",
                 padding: 0,
               }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "rgba(239, 68, 68, 0.1)";
-                e.currentTarget.style.borderColor = "rgba(239, 68, 68, 0.5)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "transparent";
-                e.currentTarget.style.borderColor = "rgba(239, 68, 68, 0.25)";
-              }}
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
                 <polyline points="16 17 21 12 16 7" />
                 <line x1="21" y1="12" x2="9" y2="12" />
@@ -373,6 +545,16 @@ export const MainLayout: React.FC = () => {
         }}>
           {renderPage()}
         </main>
+
+        {/* Social Panel */}
+        <SocialPanel isOpen={showSocial} onClose={() => setShowSocial(false)} />
+
+        {/* Crash Diagnostic Modal */}
+        <CrashModal
+          isOpen={showCrashModal}
+          onClose={() => setShowCrashModal(false)}
+          onRelaunch={() => setShowCrashModal(false)}
+        />
       </div>
     </div>
   );

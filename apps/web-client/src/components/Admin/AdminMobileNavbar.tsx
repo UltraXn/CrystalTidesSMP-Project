@@ -19,17 +19,20 @@ export default function AdminMobileNavbar({ activeTab, setActiveTab, sidebarOpen
     ];
 
     return (
-        <div className="admin-mobile-navbar">
+        <nav aria-label={t('admin.nav.mobile', 'Navegación móvil del panel de administración')} className="admin-mobile-navbar">
             {navItems.map((item) => (
-                <button aria-label="Action" type="button"
+                <button
+                    type="button"
                     key={item.id}
+                    aria-label={item.label}
+                    aria-current={activeTab === item.id ? "page" : undefined}
                     className={`mobile-nav-item ${activeTab === item.id ? 'active' : ''}`}
                     onClick={() => {
                         setActiveTab(item.id);
                         setSidebarOpen(false); // Close sidebar if open when switching main tabs
                     }}
                 >
-                    <span className="icon">{item.icon}</span>
+                    <span className="icon" aria-hidden="true">{item.icon}</span>
                     <span className="label">{item.label}</span>
                     {activeTab === item.id && (
                         <motion.div 
@@ -42,13 +45,17 @@ export default function AdminMobileNavbar({ activeTab, setActiveTab, sidebarOpen
             ))}
 
             {/* Menu Toggle */}
-            <button type="button"
+            <button
+                type="button"
+                aria-label={sidebarOpen ? t('admin.sidebar_close', 'Cerrar menú lateral') : t('admin.sidebar_open', 'Abrir menú lateral')}
+                aria-expanded={sidebarOpen}
+                aria-controls="admin-sidebar"
                 className={`mobile-nav-item ${sidebarOpen ? 'active' : ''}`}
                 onClick={() => setSidebarOpen(!sidebarOpen)}
             >
-                <span className="icon">{sidebarOpen ? <X size={20} /> : <Menu size={20} />}</span>
+                <span className="icon" aria-hidden="true">{sidebarOpen ? <X size={20} /> : <Menu size={20} />}</span>
                 <span className="label">{sidebarOpen ? t('admin.close', 'Cerrar') : t('admin.menu', 'Menú')}</span>
             </button>
-        </div>
+        </nav>
     );
 }

@@ -1,150 +1,78 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useParams, Link } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { m as motion, AnimatePresence } from "framer-motion"
-import { Book, Search, ChevronRight, Clock, Tag, BookOpen, Skull } from "lucide-react"
+import { 
+    ChevronLeft, ChevronRight, Clock, Tag, 
+    BookOpen, Flame, Skull, Heart, 
+    Search, ArrowRight, Book, MapPin, Sparkles
+} from "lucide-react"
 import ReactMarkdown from "react-markdown"
-import { getWikiArticles, getWikiArticle, WikiArticle, WIKI_CATEGORIES } from "../services/wikiService"
+import { getWikiArticles, getWikiArticle, WikiArticle } from "../services/wikiService"
 import Loader from "../components/UI/Loader"
 import { useSEO } from "../hooks/useSEO"
+import WikiTreeSidebar from "../components/Wiki/WikiTreeSidebar"
 import WikiBoss3DCard from "../components/Wiki/WikiBoss3DCard"
+import { FALLBACK_ARTICLES } from "../data/fallbackArticles"
 import "../styles/pages/wiki.css"
-
-// Fallback canonical articles if API data is loading or empty
-const FALLBACK_ARTICLES: WikiArticle[] = [
-    // 📚 Guías del Servidor
-    {
-        id: 101,
-        slug: 'comandos-y-protecciones',
-        title: 'Comandos Básicos y Protecciones de Terreno',
-        category: '📚 Guías del Servidor',
-        content: `## Bienvenid@ a CrystalTides SMP 1.21+
-
-Para proteger tus construcciones y cofres frente a explosiones y otros jugadores, utiliza los siguientes comandos esenciales:
-
-- \`/claim\` - Reclamar la parcela actual de 16x16 bloques.
-- \`/trust <jugador>\` - Otorgar permisos de construcción a un amigo.
-- \`/untrust <jugador>\` - Revocar permisos de un jugador.
-- \`/sethome <nombre>\` - Guardar un punto de teletransporte personal.
-- \`/home <nombre>\` - Teletransportarte a tu hogar guardado.
-
-### Reglas de Convivencia
-1. No utilizar hacks ni clientes modificados no autorizados.
-2. Respetar el comercio y las subastas en el Mercado Bursátil.`,
-        author_id: 'system',
-        created_at: '2026-08-01T00:00:00Z',
-        updated_at: '2026-08-01T00:00:00Z'
-    },
-    {
-        id: 102,
-        slug: 'economia-kc',
-        title: 'Guía del Sistema Económico y KilluCoins (KC)',
-        category: '📚 Guías del Servidor',
-        content: `## Guía de Economía Bursátil y KilluCoins (KC)
-
-Las **KilluCoins (KC)** son la moneda oficial del servidor. Puedes obtener saldo de las siguientes formas:
-
-- **Caza de Jefes & Mobs**: Elimina entidades en mazmorras para recibir KC al instante.
-- **Sugerencias Aprobadas**: Envía propuestas en la pestaña \`/suggestions\` para recibir +100 KC inmediatos y +500 KC al ser aprobadas por la IA.
-- **Comercio en la Bolsa**: Vende minerales y recursos en el Mercado Dinámico.`,
-        author_id: 'system',
-        created_at: '2026-08-01T00:00:00Z',
-        updated_at: '2026-08-01T00:00:00Z'
-    },
-
-    // 🐉 Bestiario & Criaturas 3D
-    {
-        id: 201,
-        slug: 'ignis',
-        title: '#001 • Ignis (Jefe Imperial del Fuego)',
-        category: '🐉 Bestiario & Criaturas 3D',
-        description: 'Jefe supremo de Cataclysm invocado con Burning Ashes en el Altar Imperial del Nether.',
-        model_3d_url: '/models/cataclysm/ignis.gltf',
-        boss_hp: '2,400 HP',
-        boss_damage: '45 (Ignora Armadura)',
-        boss_location: 'Altar Imperial del Nether',
-        boss_drops: ['Ignitium Ingot (100%)', 'Incinerator (25%)', 'Music Disc - Ignis (10%)'],
-        content: 'Entidad imperial del fuego que invoca columnas de lava y escudos térmicos impenetrales.',
-        author_id: 'system',
-        created_at: '2026-08-01T00:00:00Z',
-        updated_at: '2026-08-01T00:00:00Z'
-    },
-    {
-        id: 202,
-        slug: 'netherite-monstrosity',
-        title: '#002 • Netherite Monstrosity',
-        category: '🐉 Bestiario & Criaturas 3D',
-        description: 'Bestia colosal forjada en netherite líquido que habita en la Soul Forge.',
-        model_3d_url: '/models/cataclysm/netherite_monstrosity.gltf',
-        boss_hp: '1,800 HP',
-        boss_damage: '60 (Ondas Sísmicas)',
-        boss_location: 'Soul Forge (Nether)',
-        boss_drops: ['Infernal Forge (100%)', 'Monstrous Horn (50%)', 'Monstrous Core (100%)'],
-        content: 'Monstruosidad gigante que destruye el terreno generando terremotos con su martillo infernal.',
-        author_id: 'system',
-        created_at: '2026-08-01T00:00:00Z',
-        updated_at: '2026-08-01T00:00:00Z'
-    },
-    {
-        id: 203,
-        slug: 'leviathan',
-        title: '#003 • Leviathan (Leviatán Abisal)',
-        category: '🐉 Bestiario & Criaturas 3D',
-        description: 'Terror oceánico sumergido en las ruinas abisales de la Sunken City.',
-        model_3d_url: '/models/cataclysm/leviathan.gltf',
-        boss_hp: '1,500 HP',
-        boss_damage: '40 (Mordida Marina)',
-        boss_location: 'Sunken City (Océano Profundo)',
-        boss_drops: ['Tidal Claws (100%)', 'Abyssal Egg (15%)'],
-        content: 'Depredador marino supremo que manipula corrientes de agua y presión oceánica.',
-        author_id: 'system',
-        created_at: '2026-08-01T00:00:00Z',
-        updated_at: '2026-08-01T00:00:00Z'
-    },
-    {
-        id: 204,
-        slug: 'forgotten-wither',
-        title: '#004 • The Forgotten Wither',
-        category: '🐉 Bestiario & Criaturas 3D',
-        description: 'Jefe Supremo del Nether e invocación de las Mazmorras Olvidadas.',
-        model_3d_url: '/models/toro_wither.gltf',
-        boss_hp: '1,500 HP (Fase II: 3,000 HP)',
-        boss_damage: '35 (Decaimiento Oscuro)',
-        boss_location: 'Ruinas Olvidadas (Nether)',
-        boss_drops: ['Cráneo de Tormenta Olvidada (100%)', 'Estrella de las Sombras (100%)', 'Lingote de Netherita Ancestral (50%)'],
-        content: 'Wither ancestral reanimado con tres cráneos oscuros y cargas sísmicas.',
-        author_id: 'system',
-        created_at: '2026-08-01T00:00:00Z',
-        updated_at: '2026-08-01T00:00:00Z'
-    }
-];
 
 export default function Wiki() {
     const { slug } = useParams()
     const { t } = useTranslation()
 
     useSEO({
-        title: 'Guía de Juego, Bestiario y Comandos (Wiki)',
+        title: slug ? `Wiki - ${slug.replace(/-/g, ' ').toUpperCase()}` : 'Guía de Juego, Bestiario y Comandos (Wiki)',
         description: 'Manual completo del jugador para CrystalTides SMP 1.21+. Tutoriales, Bestiario con Tarjetas 3D Interactivas, protecciones y economía.',
         keywords: 'wiki minecraft, bestiario minecraft, comandos smp, guia minecraft, protecciones minecraft, economia minecraft',
-        canonical: 'https://crystaltidessmp.net/wiki'
+        canonical: `https://crystaltidessmp.net/wiki${slug ? `/${slug}` : ''}`
     });
 
     const [articles, setArticles] = useState<WikiArticle[]>([])
     const [currentArticle, setCurrentArticle] = useState<WikiArticle | null>(null)
     const [loading, setLoading] = useState(true)
     const [articleLoading, setArticleLoading] = useState(false)
-    const [searchTerm, setSearchTerm] = useState("")
+    const [portalSearch, setPortalSearch] = useState("")
 
     useEffect(() => {
         let ignore = false
         const fetchArticles = async () => {
             try {
                 const data = await getWikiArticles()
-                if (!ignore && data && data.length > 0) {
-                    setArticles(data)
-                } else if (!ignore) {
-                    setArticles(FALLBACK_ARTICLES)
+                if (!ignore) {
+                    if (data && data.length > 0) {
+                        const cleanedData = data.map(remote => ({
+                            ...remote,
+                            title: remote.title.replace(/^[•#\d\s.-]+/, '').trim()
+                        }));
+                        const merged: WikiArticle[] = FALLBACK_ARTICLES.map(f => ({
+                            ...f,
+                            title: f.title.replace(/^[•#\d\s.-]+/, '').trim()
+                        }));
+                        cleanedData.forEach(remote => {
+                            const matchIndex = merged.findIndex(m => 
+                                m.slug === remote.slug || 
+                                m.title.toLowerCase().trim() === remote.title.toLowerCase().trim() ||
+                                (m.slug.includes('wither') && remote.slug.includes('wither'))
+                            );
+                            if (matchIndex !== -1) {
+                                merged[matchIndex] = {
+                                    ...merged[matchIndex],
+                                    ...remote,
+                                    model_3d_url: remote.model_3d_url || merged[matchIndex].model_3d_url,
+                                    model_3d_url_phase_2: remote.model_3d_url_phase_2 || merged[matchIndex].model_3d_url_phase_2,
+                                    texture_url: remote.texture_url || merged[matchIndex].texture_url,
+                                    boss_phases: remote.boss_phases || merged[matchIndex].boss_phases,
+                                    boss_phase_1_attacks: remote.boss_phase_1_attacks || merged[matchIndex].boss_phase_1_attacks,
+                                    boss_phase_2_attacks: remote.boss_phase_2_attacks || merged[matchIndex].boss_phase_2_attacks,
+                                };
+                            } else {
+                                merged.push(remote);
+                            }
+                        });
+                        setArticles(merged);
+                    } else {
+                        setArticles(FALLBACK_ARTICLES);
+                    }
                 }
             } catch {
                 if (!ignore) setArticles(FALLBACK_ARTICLES)
@@ -164,11 +92,26 @@ export default function Wiki() {
                 return
             }
             setArticleLoading(true)
+            const localMatch = FALLBACK_ARTICLES.find(a => a.slug === slug || a.slug === slug.replace(/_/g, '-'));
             try {
                 const data = await getWikiArticle(slug)
-                if (!ignore) setCurrentArticle(data)
+                if (!ignore) {
+                    if (data) {
+                        setCurrentArticle({
+                            ...localMatch,
+                            ...data,
+                            model_3d_url: data?.model_3d_url || localMatch?.model_3d_url,
+                            model_3d_url_phase_2: data?.model_3d_url_phase_2 || localMatch?.model_3d_url_phase_2,
+                            texture_url: data?.texture_url || localMatch?.texture_url,
+                            boss_phases: data?.boss_phases || localMatch?.boss_phases,
+                            boss_phase_1_attacks: data?.boss_phase_1_attacks || localMatch?.boss_phase_1_attacks,
+                            boss_phase_2_attacks: data?.boss_phase_2_attacks || localMatch?.boss_phase_2_attacks,
+                        } as WikiArticle);
+                    } else if (localMatch) {
+                        setCurrentArticle(localMatch);
+                    }
+                }
             } catch {
-                const localMatch = FALLBACK_ARTICLES.find(a => a.slug === slug);
                 if (!ignore) setCurrentArticle(localMatch || null)
             } finally {
                 setArticleLoading(false)
@@ -180,180 +123,349 @@ export default function Wiki() {
         }
     }, [slug])
 
-    const filteredArticles = articles.filter(a => 
-        a.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        a.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (a.boss_mod_name || '').toLowerCase().includes(searchTerm.toLowerCase())
+    // Compute Previous and Next articles for browsing
+    const { prevArticle, nextArticle } = useMemo(() => {
+        if (!slug || articles.length === 0) return { prevArticle: null, nextArticle: null }
+        const currentIndex = articles.findIndex(a => a.slug === slug || a.slug === slug.replace(/_/g, '-'))
+        if (currentIndex === -1) return { prevArticle: null, nextArticle: null }
+
+        const prev = currentIndex > 0 ? articles[currentIndex - 1] : articles[articles.length - 1]
+        const next = currentIndex < articles.length - 1 ? articles[currentIndex + 1] : articles[0]
+        return { prevArticle: prev, nextArticle: next }
+    }, [articles, slug])
+
+    // Filter articles for portal view
+    const portalArticles = useMemo(() => {
+        if (!portalSearch.trim()) return articles
+        const q = portalSearch.toLowerCase()
+        return articles.filter(a => 
+            a.title.toLowerCase().includes(q) ||
+            a.category.toLowerCase().includes(q) ||
+            (a.boss_mod_name || '').toLowerCase().includes(q) ||
+            (a.content || '').toLowerCase().includes(q)
+        )
+    }, [articles, portalSearch])
+
+    const bossesCount = articles.filter(a => a.category === 'bosses').length
+    const hostilesCount = articles.filter(a => a.category === 'mobs_hostiles').length
+    const crittersCount = articles.filter(a => a.category === 'mobs_pacificos').length
+    const guidesCount = articles.filter(a => a.category === 'guias_generales' || a.category === 'comandos').length
+
+    const isMobArticle = currentArticle && (
+        !!currentArticle.model_3d_url ||
+        currentArticle.category === 'bosses' ||
+        currentArticle.category === 'mobs_hostiles' ||
+        currentArticle.category === 'mobs_pacificos'
     )
 
-    const categoryOrder = ['bosses', 'mobs_hostiles', 'mobs_pacificos', 'aquaculture', 'mercaderes', 'guias_generales', 'guias_items', 'comandos'];
-    const rawCategories = Array.from(new Set(articles.map(a => a.category)));
-    const categories = rawCategories.sort((a, b) => {
-        const indexA = categoryOrder.indexOf(a);
-        const indexB = categoryOrder.indexOf(b);
-        if (indexA !== -1 && indexB !== -1) return indexA - indexB;
-        if (indexA !== -1) return -1;
-        if (indexB !== -1) return 1;
-        return a.localeCompare(b);
-    });
-
     return (
-        <div className="wiki-container flex min-h-screen pt-20 pb-6 px-4 md:px-8 max-w-400 mx-auto gap-8">
-            {/* Unified Wiki Sidebar containing both Guides & Pokédex Bestiary Entries */}
-            <aside className="wiki-sidebar">
-                <div className="search-box">
-                    <Search className="text-white/30" size={16} />
-                    <input aria-label="Input field" 
-                        type="text" 
-                        placeholder={t('wiki.search_placeholder', 'Buscar por título, mod o guía...')} 
-                        value={searchTerm}
-                        onChange={e => setSearchTerm(e.target.value)}
-                    />
-                </div>
+        <div className="wiki-container min-h-screen pt-24 pb-20 px-4 md:px-8 max-w-437.5 mx-auto flex flex-col lg:flex-row gap-8 items-start">
+            {/* 1. Iconic Left Navigation Tree Sidebar (Always Available) */}
+            <WikiTreeSidebar articles={articles} />
 
-                <div className="overflow-y-auto pr-2 space-y-6">
-                    {loading ? (
-                        <Loader text="" />
-                    ) : categories.map(cat => {
-                        const catInfo = WIKI_CATEGORIES.find(c => c.id === cat);
-                        const catLabel = catInfo ? `${catInfo.icon} ${catInfo.name}` : cat.replace(/_/g, ' ').toUpperCase();
+            {/* 2. Main Wiki Content Area (Full Width Space) */}
+            <div className="flex-1 min-w-0 w-full space-y-6">
+                {loading ? (
+                    <div className="flex justify-center items-center py-32 bg-neutral-900/80 rounded-3xl border border-neutral-800 shadow-xl">
+                        <Loader text={t('wiki.loading_catalog', 'Abriendo los tomos de la Wiki...')} />
+                    </div>
+                ) : !slug ? (
+                    /* ------------------------------------------------------------- */
+                    /* A. WIKI MAIN PORTAL / DIRECTORY (When at /wiki)               */
+                    /* ------------------------------------------------------------- */
+                    <div className="space-y-8">
+                        {/* Portal Hero Banner (Clean Neutral Dark) */}
+                        <div className="relative overflow-hidden rounded-3xl bg-neutral-900 border border-neutral-800 p-8 sm:p-12 shadow-xl backdrop-blur-xl">
+                            <div className="relative z-10 space-y-4 max-w-4xl">
+                                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-neutral-800 border border-neutral-700 text-neutral-300 text-xs font-bold uppercase tracking-wider">
+                                    <BookOpen size={14} />
+                                    <span>Enciclopedia Oficial 1.21+</span>
+                                </div>
+                                <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight">
+                                    Bienvenido a la Wiki de CrystalTides
+                                </h1>
+                                <p className="text-neutral-400 text-sm sm:text-base leading-relaxed font-normal">
+                                    El compendio definitivo para aventureros de CrystalTides SMP. Consulta información técnica, modelos 3D de criaturas con sus animaciones, estadísticas de combate, comandos esenciales y guías de economía.
+                                </p>
+                            </div>
+                        </div>
 
-                        return (
-                            <div key={cat}>
-                                <h4 className="flex items-center gap-2 text-xs uppercase tracking-widest text-white/50 font-black mb-3 px-2">
-                                    {cat.includes('boss') || cat.includes('hostile') ? <Skull size={14} className="text-red-400" /> : <BookOpen size={14} className="text-accent" />}
-                                    {catLabel}
-                                </h4>
-                                <div className="space-y-1">
-                                    {filteredArticles.reduce<React.ReactNode[]>((acc, article) => {
-                                        if (article.category === cat) {
-                                            acc.push(
-                                                <Link 
-                                                    key={article.id} 
-                                                    to={`/wiki/${article.slug}`}
-                                                    className={`wiki-nav-item ${slug === article.slug ? 'active' : ''}`}
-                                                >
-                                                    <ChevronRight size={14} className={slug === article.slug ? 'text-accent' : 'opacity-0'} />
-                                                    {article.title}
-                                                </Link>
-                                            );
-                                        }
-                                        return acc;
-                                    }, [])}
+                        {/* Portal Hub Quick Category Links */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div className="p-5 rounded-2xl bg-neutral-900 border border-neutral-800 space-y-2">
+                                <div className="flex justify-between items-center text-red-400">
+                                    <Flame size={20} />
+                                    <span className="text-xs font-mono font-bold">{bossesCount} Jefes</span>
+                                </div>
+                                <h3 className="text-sm font-bold text-white">Jefes Imperiales</h3>
+                                <p className="text-xs text-neutral-400">Bosses míticos con múltiples fases y botines épicos.</p>
+                            </div>
+
+                            <div className="p-5 rounded-2xl bg-neutral-900 border border-neutral-800 space-y-2">
+                                <div className="flex justify-between items-center text-purple-400">
+                                    <Skull size={20} />
+                                    <span className="text-xs font-mono font-bold">{hostilesCount} Mobs</span>
+                                </div>
+                                <h3 className="text-sm font-bold text-white">Hostiles Míticos</h3>
+                                <p className="text-xs text-neutral-400">Depredadores y constructos que patrullan el mundo.</p>
+                            </div>
+
+                            <div className="p-5 rounded-2xl bg-neutral-900 border border-neutral-800 space-y-2">
+                                <div className="flex justify-between items-center text-emerald-400">
+                                    <Heart size={20} />
+                                    <span className="text-xs font-mono font-bold">{crittersCount} Especies</span>
+                                </div>
+                                <h3 className="text-sm font-bold text-white">Fauna & Compañeros</h3>
+                                <p className="text-xs text-neutral-400">Criaturas pacíficas y mascotas domesticables.</p>
+                            </div>
+
+                            <div className="p-5 rounded-2xl bg-neutral-900 border border-neutral-800 space-y-2">
+                                <div className="flex justify-between items-center text-blue-400">
+                                    <Book size={20} />
+                                    <span className="text-xs font-mono font-bold">{guidesCount} Guías</span>
+                                </div>
+                                <h3 className="text-sm font-bold text-white">Guías & Servidor</h3>
+                                <p className="text-xs text-neutral-400">Comandos esenciales y sistema de KilluCoins.</p>
+                            </div>
+                        </div>
+
+                        {/* Portal Index Table / Directory */}
+                        <div className="bg-neutral-900 rounded-3xl border border-neutral-800 p-6 md:p-8 shadow-xl space-y-6">
+                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-neutral-800">
+                                <div>
+                                    <h2 className="text-xl font-bold text-white tracking-tight">
+                                        Índice Maestro de Artículos
+                                    </h2>
+                                    <p className="text-xs text-neutral-400 mt-0.5">
+                                        Selecciona cualquier entidad o guía de la lista o desde la barra lateral izquierda.
+                                    </p>
+                                </div>
+                                <div className="relative w-full sm:w-80">
+                                    <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-500" />
+                                    <input
+                                        type="text"
+                                        placeholder="Buscar por título o mod..."
+                                        value={portalSearch}
+                                        onChange={e => setPortalSearch(e.target.value)}
+                                        className="w-full pl-9 pr-4 py-2 rounded-xl bg-neutral-950 border border-neutral-800 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-neutral-600 transition-colors"
+                                    />
                                 </div>
                             </div>
-                        );
-                    })}
-                </div>
-            </aside>
 
-            {/* Main Article Content Display Screen */}
-            <main className="wiki-main flex-1">
-                <AnimatePresence mode="wait">
-                    {articleLoading ? (
-                        <motion.div 
-                            key="loader"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="flex justify-center items-center h-full"
-                        >
-                            <Loader text={t('wiki.loading_article', 'Abriendo tomo...')} />
-                        </motion.div>
-                    ) : null}
+                            <div className="divide-y divide-neutral-800/80">
+                                {portalArticles.map(art => {
+                                    const is3D = !!art.model_3d_url
 
-                    {!loading && currentArticle ? (
-                        <motion.article 
-                            key={currentArticle.id}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -20 }}
-                        >
-                            {/* Check if current article is a Bestiary Entry or has 3D model */}
-                            {(currentArticle.model_3d_url ||
-                              currentArticle.category?.toLowerCase().includes('boss') ||
-                              currentArticle.category?.toLowerCase().includes('cataclysm') ||
-                              currentArticle.category?.toLowerCase().includes('mowzie') ||
-                              currentArticle.category?.toLowerCase().includes('qliphoth') ||
-                              currentArticle.category?.toLowerCase().includes('deeper') ||
-                              currentArticle.category?.toLowerCase().includes('mythology') ||
-                              currentArticle.category?.toLowerCase().includes('aquatic') ||
-                              currentArticle.category?.toLowerCase().includes('artifacts') ||
-                              currentArticle.category?.toLowerCase().includes('supplementaries') ||
-                              currentArticle.category?.toLowerCase().includes('ribbits') ||
-                              currentArticle.category?.toLowerCase().includes('critters') ||
-                              currentArticle.category?.toLowerCase().includes('piglin') ||
-                              currentArticle.category?.toLowerCase().includes('variants') ||
-                              currentArticle.title?.toLowerCase().includes('#')) ? (
-                                /* 🐉 Mob Article: Renders category-aware 3D Card directly */
-                                <WikiBoss3DCard 
-                                    category={currentArticle.category}
-                                    modelPath={currentArticle.model_3d_url}
-                                    modelPathPhase2={currentArticle.model_3d_url_phase_2}
-                                    bossName={currentArticle.title}
-                                    subtitle={currentArticle.boss_subtitle || currentArticle.category || 'Entidad Modificada'}
-                                    hp={currentArticle.boss_hp || '100 HP'}
-                                    hpPhase2={currentArticle.boss_hp_phase_2}
-                                    damage={currentArticle.boss_damage || 'Ataque Estándar'}
-                                    damagePhase2={currentArticle.boss_damage_phase_2}
-                                    armor={currentArticle.boss_armor || 'Sin Armadura'}
-                                    speed={currentArticle.boss_speed || 'Velocidad Normal'}
-                                    location={currentArticle.boss_location || 'Overworld / Estructura'}
-                                    spawnMethod={currentArticle.boss_spawn_method || 'Generación Natural'}
-                                    description={currentArticle.content || currentArticle.description}
-                                    drops={currentArticle.boss_drops || []}
-                                    kcReward={currentArticle.boss_kc_reward || 0}
-                                    phases={currentArticle.boss_phases}
-                                    phase1Attacks={currentArticle.boss_phase_1_attacks}
-                                    phase2Attacks={currentArticle.boss_phase_2_attacks}
-                                    cardTheme={currentArticle.card_theme}
-                                    threatLabel={currentArticle.threat_label}
-                                    hpLabel={currentArticle.hp_label}
-                                    damageLabel={currentArticle.damage_label}
-                                    speedLabel={currentArticle.speed_label}
-                                    locationLabel={currentArticle.location_label}
-                                    dropsLabel={currentArticle.drops_label}
-                                    bountyLabel={currentArticle.bounty_label}
-                                />
-                            ) : (
-                                /* 📚 Standard Guide Article: Renders clean Markdown text */
-                                <>
-                                    <header className="mb-12 border-b border-white/10 pb-8">
-                                        <div className="flex items-center gap-4 text-xs text-white/40 mb-4">
-                                            <span className="flex items-center gap-1"><Clock size={12} /> {new Date(currentArticle.updated_at).toLocaleDateString()}</span>
-                                            <span className="flex items-center gap-1 capitalize"><Tag size={12} /> {currentArticle.category}</span>
+                                    return (
+                                        <Link
+                                            key={art.id}
+                                            to={`/wiki/${art.slug}`}
+                                            className="group flex flex-col sm:flex-row sm:items-center justify-between py-3.5 px-3 rounded-xl hover:bg-neutral-800/60 transition-colors gap-2"
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-lg bg-neutral-950 border border-neutral-800 flex items-center justify-center text-neutral-400 shrink-0 group-hover:text-white transition-colors">
+                                                    {art.category === 'bosses' ? <Flame size={16} className="text-red-400" /> :
+                                                     art.category === 'mobs_hostiles' ? <Skull size={16} className="text-purple-400" /> :
+                                                     art.category === 'mobs_pacificos' ? <Heart size={16} className="text-emerald-400" /> :
+                                                     <BookOpen size={16} className="text-blue-400" />}
+                                                </div>
+                                                <div>
+                                                    <div className="text-sm font-bold text-white group-hover:text-neutral-200 transition-colors flex items-center gap-2">
+                                                        <span>{art.title}</span>
+                                                        {is3D && (
+                                                            <span className="text-[9px] px-1.5 py-0.2 rounded bg-neutral-800 text-neutral-300 font-mono font-semibold border border-neutral-700">
+                                                                3D
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <div className="text-xs text-neutral-500 flex items-center gap-2 mt-0.5">
+                                                        <span className="capitalize">{art.category.replace(/_/g, ' ')}</span>
+                                                        {art.boss_mod_name && <span>• {art.boss_mod_name}</span>}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center gap-4 text-xs font-semibold text-neutral-400 shrink-0">
+                                                {art.boss_hp && (
+                                                    <span className="text-neutral-300 font-mono">{art.boss_hp}</span>
+                                                )}
+                                                {art.boss_kc_reward ? (
+                                                    <span className="text-amber-400 font-mono font-bold">+{art.boss_kc_reward} KC</span>
+                                                ) : null}
+                                                <ArrowRight size={14} className="text-neutral-600 group-hover:text-neutral-300 transition-colors" />
+                                            </div>
+                                        </Link>
+                                    )
+                                })}
+                            </div>
+                        </div>
+                    </div>
+                ) : (
+                    /* ------------------------------------------------------------- */
+                    /* B. WIKI ARTICLE DEEP-DIVE (When at /wiki/:slug)               */
+                    /* ------------------------------------------------------------- */
+                    <div className="space-y-6">
+                        {/* Top Breadcrumb & Next/Prev Entity Toolbar */}
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-neutral-900 p-3.5 rounded-2xl border border-neutral-800 shadow-md">
+                            <div className="flex items-center gap-2 text-xs text-neutral-400">
+                                <Link to="/wiki" className="hover:text-white transition-colors font-medium">
+                                    Wiki
+                                </Link>
+                                <ChevronRight size={12} />
+                                <span className="capitalize text-neutral-300 font-medium">
+                                    {currentArticle?.category?.replace(/_/g, ' ') || 'General'}
+                                </span>
+                                <ChevronRight size={12} />
+                                <span className="text-white font-bold truncate max-w-65">
+                                    {currentArticle?.title}
+                                </span>
+                            </div>
+
+                            {/* Previous & Next Article Switchers */}
+                            <div className="flex items-center gap-2 text-xs font-semibold self-end sm:self-auto">
+                                {prevArticle && (
+                                    <Link
+                                        to={`/wiki/${prevArticle.slug}`}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-950 hover:bg-neutral-800 text-neutral-300 hover:text-white border border-neutral-800 transition-colors"
+                                        title={prevArticle.title}
+                                    >
+                                        <ChevronLeft size={13} />
+                                        <span className="truncate max-w-32.5">{prevArticle.title.split('(')[0].trim()}</span>
+                                    </Link>
+                                )}
+                                {nextArticle && (
+                                    <Link
+                                        to={`/wiki/${nextArticle.slug}`}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-950 hover:bg-neutral-800 text-neutral-300 hover:text-white border border-neutral-800 transition-colors"
+                                        title={nextArticle.title}
+                                    >
+                                        <span className="truncate max-w-32.5">{nextArticle.title.split('(')[0].trim()}</span>
+                                        <ChevronRight size={13} />
+                                    </Link>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Main Article Display (Full Width Space) */}
+                        <AnimatePresence mode="wait">
+                            {articleLoading ? (
+                                <div className="flex justify-center items-center py-32 bg-neutral-900/80 rounded-3xl border border-neutral-800 shadow-xl">
+                                    <Loader text={t('wiki.loading_article', 'Abriendo artículo e invocando modelo...')} />
+                                </div>
+                            ) : currentArticle ? (
+                                <motion.div
+                                    key={currentArticle.slug}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
+                                    transition={{ duration: 0.2 }}
+                                    className="space-y-6"
+                                >
+                                    {isMobArticle ? (
+                                        /* 🐉 Full 3D Interactive Boss & Mob Card (Clean Dark Design) */
+                                        <div className="space-y-6">
+                                            <WikiBoss3DCard 
+                                                category={currentArticle.category}
+                                                modelPath={currentArticle.model_3d_url}
+                                                textureUrl={currentArticle.texture_url}
+                                                modelPathPhase2={currentArticle.model_3d_url_phase_2}
+                                                bossName={currentArticle.title}
+                                                subtitle={currentArticle.boss_subtitle || currentArticle.category || 'Entidad Modificada'}
+                                                hp={currentArticle.boss_hp || '100 HP'}
+                                                hpPhase2={currentArticle.boss_hp_phase_2}
+                                                damage={currentArticle.boss_damage || 'Ataque Estándar'}
+                                                damagePhase2={currentArticle.boss_damage_phase_2}
+                                                armor={currentArticle.boss_armor || 'Sin Armadura'}
+                                                speed={currentArticle.boss_speed || 'Velocidad Normal'}
+                                                location={currentArticle.boss_location || 'Overworld / Estructura'}
+                                                spawnMethod={currentArticle.boss_spawn_method || 'Generación Natural'}
+                                                description={currentArticle.content || currentArticle.description}
+                                                drops={currentArticle.boss_drops || []}
+                                                kcReward={currentArticle.boss_kc_reward || 0}
+                                                phases={currentArticle.boss_phases}
+                                                phase1Attacks={currentArticle.boss_phase_1_attacks}
+                                                phase2Attacks={currentArticle.boss_phase_2_attacks}
+                                                cardTheme={currentArticle.card_theme}
+                                                threatLabel={currentArticle.threat_label}
+                                                hpLabel={currentArticle.hp_label}
+                                                damageLabel={currentArticle.damage_label}
+                                                speedLabel={currentArticle.speed_label}
+                                                locationLabel={currentArticle.location_label}
+                                                dropsLabel={currentArticle.drops_label}
+                                                bountyLabel={currentArticle.bounty_label}
+                                            />
+
+                                            {/* Lore & Extra Guides below the 3D showcase in wide layout */}
+                                            <div className="bg-neutral-900 p-6 md:p-8 rounded-2xl border border-neutral-800 shadow-xl space-y-4">
+                                                <div className="border-b border-neutral-800 pb-3 flex items-center justify-between">
+                                                    <h3 className="text-base font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                                                        <BookOpen size={16} className="text-neutral-400" />
+                                                        <span>Guía de Combate & Hábitat Detallado</span>
+                                                    </h3>
+                                                    {currentArticle.boss_mod_name && (
+                                                        <span className="text-xs font-medium text-neutral-400 bg-neutral-950 px-2.5 py-0.5 rounded border border-neutral-800">
+                                                            {currentArticle.boss_mod_name}
+                                                        </span>
+                                                    )}
+                                                </div>
+
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                                                    {currentArticle.boss_location && (
+                                                        <div className="p-3.5 rounded-xl bg-neutral-950 border border-neutral-800/80 space-y-1">
+                                                            <div className="text-xs font-bold uppercase tracking-wider text-neutral-300 flex items-center gap-1.5">
+                                                                <MapPin size={13} className="text-neutral-400" /> Ubicación & Biomas
+                                                            </div>
+                                                            <div className="text-neutral-300 font-medium">
+                                                                {currentArticle.boss_location}
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {currentArticle.boss_spawn_method && (
+                                                        <div className="p-3.5 rounded-xl bg-neutral-950 border border-neutral-800/80 space-y-1">
+                                                            <div className="text-xs font-bold uppercase tracking-wider text-neutral-300 flex items-center gap-1.5">
+                                                                <Sparkles size={13} className="text-neutral-400" /> Invocación / Aparición
+                                                            </div>
+                                                            <div className="text-neutral-300 font-medium">
+                                                                {currentArticle.boss_spawn_method}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
                                         </div>
-                                        <h1 className="text-4xl font-black mb-4 bg-linear-to-r from-white to-white/50 bg-clip-text text-transparent">
-                                            {currentArticle.title}
-                                        </h1>
-                                    </header>
+                                    ) : (
+                                        /* 📚 Standard Server Guide Article (Clean Minimalist Dark) */
+                                        <div className="bg-neutral-900 p-8 md:p-10 rounded-2xl border border-neutral-800 shadow-xl space-y-6">
+                                            <header className="border-b border-neutral-800 pb-5 space-y-3">
+                                                <div className="flex flex-wrap items-center gap-3 text-xs text-neutral-400">
+                                                    <span className="flex items-center gap-1.5 font-bold text-neutral-200 bg-neutral-800 px-2.5 py-0.5 rounded border border-neutral-700 capitalize">
+                                                        <Tag size={11} />
+                                                        {currentArticle.category.replace(/_/g, ' ')}
+                                                    </span>
+                                                    <span className="flex items-center gap-1 text-neutral-500 ml-auto text-[11px]">
+                                                        <Clock size={11} /> {currentArticle.updated_at ? new Date(currentArticle.updated_at).toLocaleDateString() : 'Oficial'}
+                                                    </span>
+                                                </div>
 
-                                    <div className="article-content">
-                                        <ReactMarkdown>
-                                            {currentArticle.content}
-                                        </ReactMarkdown>
-                                    </div>
-                                </>
-                            )}
-                        </motion.article>
-                    ) : null}
+                                                <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight leading-tight">
+                                                    {currentArticle.title}
+                                                </h1>
+                                            </header>
 
-                    {!loading && !currentArticle ? (
-                        <motion.div 
-                            key="empty"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className="flex flex-col items-center justify-center h-full text-center py-20"
-                        >
-                            <Book size={64} className="text-white/5 mb-6" />
-                            <h2 className="text-2xl font-bold mb-2">{t('wiki.welcome_title', 'Biblioteca de CrystalTides')}</h2>
-                            <p className="text-white/40 max-w-md">
-                                {t('wiki.welcome_desc', 'Selecciona una Guía o una Entidad del Bestiario de la izquierda para comenzar a explorar.')}
-                            </p>
-                        </motion.div>
-                    ) : null}
-                </AnimatePresence>
-            </main>
+                                            <div className="article-content prose prose-invert max-w-none text-neutral-300 leading-relaxed text-sm sm:text-base">
+                                                <ReactMarkdown>
+                                                    {currentArticle.content}
+                                                </ReactMarkdown>
+                                            </div>
+                                        </div>
+                                    )}
+                                </motion.div>
+                            ) : null}
+                        </AnimatePresence>
+                    </div>
+                )}
+            </div>
         </div>
     )
 }

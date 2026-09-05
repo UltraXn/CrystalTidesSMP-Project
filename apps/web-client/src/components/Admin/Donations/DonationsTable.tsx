@@ -99,11 +99,23 @@ export default function DonationsTable({
                                 </td>
                                 <td style={{ textAlign: 'right' }}>
                                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.6rem' }}>
-                                        <button type="button" onClick={() => onEdit(donation)} className="donor-btn-action edit" title={t('admin.polls.edit_btn')}>
-                                            <Edit2 size={14} />
+                                        <button 
+                                            aria-label={t('admin.donations.edit_donation', `Editar donación de ${donation.from_name || t('admin.donations.anonymous')}`)}
+                                            type="button" 
+                                            onClick={() => onEdit(donation)} 
+                                            className="donor-btn-action edit" 
+                                            title={t('admin.polls.edit_btn')}
+                                        >
+                                            <Edit2 size={14} aria-hidden="true" />
                                         </button>
-                                        <button type="button" onClick={() => onDelete(donation.id)} className="donor-btn-action delete" title={t('admin.donors.delete_btn')}>
-                                            <Trash2 size={14} />
+                                        <button 
+                                            aria-label={t('admin.donations.delete_donation', `Eliminar donación de ${donation.from_name || t('admin.donations.anonymous')}`)}
+                                            type="button" 
+                                            onClick={() => onDelete(donation.id)} 
+                                            className="donor-btn-action delete" 
+                                            title={t('admin.donors.delete_btn')}
+                                        >
+                                            <Trash2 size={14} aria-hidden="true" />
                                         </button>
                                     </div>
                                 </td>
@@ -115,22 +127,26 @@ export default function DonationsTable({
 
             {totalPages > 1 && (
                 <div className="premium-pagination">
-                    <button aria-label="Action" type="button" 
+                    <button 
+                        aria-label={t('common.prev_page', 'Página anterior')} 
+                        type="button" 
                         className="page-btn" 
                         onClick={() => setPage(p => Math.max(1, p - 1))}
                         disabled={page === 1}
                     >
-                        <ChevronLeft size={12} />
+                        <ChevronLeft size={12} aria-hidden="true" />
                     </button>
                     <div className="page-info">
-                        PAGINA <span>{page}</span> DE <span>{totalPages}</span>
+                        PAGINA <span className="tabular-nums">{page}</span> DE <span className="tabular-nums">{totalPages}</span>
                     </div>
-                    <button aria-label="Action" type="button" 
+                    <button 
+                        aria-label={t('common.next_page', 'Página siguiente')} 
+                        type="button" 
                         className="page-btn" 
                         onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                         disabled={page === totalPages}
                     >
-                        <ChevronRight size={12} />
+                        <ChevronRight size={12} aria-hidden="true" />
                     </button>
                 </div>
             )}

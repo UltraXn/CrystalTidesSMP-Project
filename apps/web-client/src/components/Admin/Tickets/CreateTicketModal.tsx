@@ -69,15 +69,21 @@ export default function CreateTicketModal({ onClose, onSuccess, user }: CreateTi
 
     return createPortal(
         <div className="modal-overlay" style={{ backdropFilter: 'blur(10px)', background: 'rgba(0,0,0,0.7)' }}>
-             <div className="admin-card modal-content" style={{ 
-                width: '500px', 
-                maxWidth: '90%', 
-                border: '1px solid rgba(255,255,255,0.1)', 
-                boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
-                background: '#111',
-                borderRadius: '24px',
-                padding: '0'
-            }}>
+             <div
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="create-ticket-modal-title"
+                className="admin-card modal-content"
+                style={{ 
+                    width: '500px', 
+                    maxWidth: '90%', 
+                    border: '1px solid rgba(255,255,255,0.1)', 
+                    boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
+                    background: '#111',
+                    borderRadius: '24px',
+                    padding: '0'
+                }}
+             >
                 <div style={{ 
                     display: 'flex', 
                     justifyContent: 'space-between', 
@@ -87,15 +93,17 @@ export default function CreateTicketModal({ onClose, onSuccess, user }: CreateTi
                     alignItems: 'center',
                     background: 'rgba(255,255,255,0.02)'
                 }}>
-                    <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.8rem', fontSize: '1.2rem', color: '#fff' }}>
-                        <TicketIcon style={{ color: 'var(--accent)' }} /> {t('admin.tickets.create_modal.title', 'Nuevo Ticket')}
+                    <h3 id="create-ticket-modal-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.8rem', fontSize: '1.2rem', color: '#fff' }}>
+                        <TicketIcon style={{ color: 'var(--accent)' }} aria-hidden="true" /> {t('admin.tickets.create_modal.title', 'Nuevo Ticket')}
                     </h3>
-                    <button aria-label="Action" type="button" 
+                    <button
+                        aria-label={t('common.close', 'Cerrar modal')}
+                        type="button" 
                         onClick={onClose} 
                         className="hover-rotate"
                         style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', fontSize: '1.2rem' }}
                     >
-                        <X />
+                        <X aria-hidden="true" />
                     </button>
                 </div>
                 

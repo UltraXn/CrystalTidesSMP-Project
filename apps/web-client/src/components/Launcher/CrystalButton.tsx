@@ -34,6 +34,7 @@ export const CrystalButton: React.FC<CrystalButtonProps> = ({
         if (!isButtonDisabled) onPressed?.();
       }}
       disabled={isButtonDisabled}
+      aria-busy={isLoading}
       className={`btn btn-${variant} btn-${size} ${className}`}
       style={{
         opacity: isButtonDisabled ? 0.5 : 1,
@@ -42,11 +43,11 @@ export const CrystalButton: React.FC<CrystalButtonProps> = ({
       }}
     >
       {isLoading && (
-        <span className="loader-spinner" style={{ marginRight: 8 }}>
+        <span className="loader-spinner" style={{ marginRight: 8 }} aria-hidden="true">
           ⏳
         </span>
       )}
-      {!isLoading && icon && <span style={{ marginRight: 8 }}>{icon}</span>}
+      {!isLoading && icon && <span style={{ marginRight: 8 }} aria-hidden="true">{icon}</span>}
       <span>{text}</span>
     </button>
   );

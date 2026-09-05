@@ -84,9 +84,23 @@ const CustomToolbar = (props: ToolbarProps<CalendarEvent, object>) => {
   return (
     <div className="calendar-toolbar-custom">
       <div className="toolbar-left">
-        <button aria-label="Action" type="button" className="nav-btn-round" onClick={() => onNavigate('PREV')}><ChevronLeft /></button>
+        <button 
+          aria-label={t('admin.staff_hub.calendar.prev', 'Periodo anterior')} 
+          type="button" 
+          className="nav-btn-round" 
+          onClick={() => onNavigate('PREV')}
+        >
+          <ChevronLeft aria-hidden="true" />
+        </button>
         <button type="button" className="today-btn-premium" onClick={() => onNavigate('TODAY')}>{t('status.today', 'Hoy')}</button>
-        <button aria-label="Action" type="button" className="nav-btn-round" onClick={() => onNavigate('NEXT')}><ChevronRight /></button>
+        <button 
+          aria-label={t('admin.staff_hub.calendar.next', 'Periodo siguiente')} 
+          type="button" 
+          className="nav-btn-round" 
+          onClick={() => onNavigate('NEXT')}
+        >
+          <ChevronRight aria-hidden="true" />
+        </button>
       </div>
       
       <div className="toolbar-center">
@@ -94,10 +108,11 @@ const CustomToolbar = (props: ToolbarProps<CalendarEvent, object>) => {
       </div>
 
       <div className="toolbar-right">
-        <div className="view-switcher-pill">
+        <div className="view-switcher-pill" role="group" aria-label={t('admin.staff_hub.calendar.view_selector', 'Seleccionar vista del calendario')}>
           {['month', 'week', 'day', 'agenda'].map((v) => (
             <button type="button" 
               key={v}
+              aria-pressed={view === v}
               className={`switcher-btn ${view === v ? 'active' : ''}`}
               onClick={() => onView(v as View)}
             >

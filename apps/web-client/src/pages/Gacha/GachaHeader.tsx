@@ -42,10 +42,12 @@ export const GachaHeader: React.FC<GachaHeaderProps> = ({
             {canAccessDev && (
                 <div className="admin-toggle-wrapper">
                     <button type="button"
+                        aria-pressed={isDevMode}
+                        aria-label={isDevMode ? t('gacha.admin.disable') : t('gacha.admin.enable')}
                         className={`admin-mode-toggle ${isDevMode ? 'active' : ''}`}
                         onClick={() => setIsDevMode(!isDevMode)}
                     >
-                        <AlertTriangle size={14} className="warn-icon" />
+                        <AlertTriangle size={14} aria-hidden="true" className="warn-icon" />
                         <span className="toggle-label">{isDevMode ? t('gacha.admin.disable') : t('gacha.admin.enable')}</span>
                     </button>
                 </div>
@@ -57,14 +59,14 @@ export const GachaHeader: React.FC<GachaHeaderProps> = ({
                         <span className="dev-label">RESULTADO FORZADO:</span>
                         <div className="dev-btn-group">
                             {(['random', 'win', 'loss'] as const).map((mode) => (
-                                <button aria-label="Action" type="button"
+                                <button aria-label={`Modo forzado: ${mode}`} aria-pressed={testForceResult === mode} type="button"
                                     key={mode}
                                     className={`dev-btn ${testForceResult === mode ? 'active' : ''} ${mode}`}
                                     onClick={() => setTestForceResult(mode)}
                                 >
-                                    {mode === 'win' && <CheckCircle size={12} />}
-                                    {mode === 'loss' && <XCircle size={12} />}
-                                    {mode === 'random' && <RefreshCcw size={12} />}
+                                    {mode === 'win' && <CheckCircle size={12} aria-hidden="true" />}
+                                    {mode === 'loss' && <XCircle size={12} aria-hidden="true" />}
+                                    {mode === 'random' && <RefreshCcw size={12} aria-hidden="true" />}
                                     <span>{mode.toUpperCase()}</span>
                                 </button>
                             ))}
@@ -73,7 +75,7 @@ export const GachaHeader: React.FC<GachaHeaderProps> = ({
                     <div className="dev-separator"></div>
                     <div className="dev-section consumption-mode">
                         <span className="dev-label">CONSUMO REAL:</span>
-                        <button aria-label="Action" type="button"
+                        <button aria-label="Alternar consumo real de saldo" aria-pressed={forceDeduction} type="button"
                             className={`dev-toggle-btn ${forceDeduction ? 'active' : ''}`}
                             onClick={() => setForceDeduction(!forceDeduction)}
                         >
@@ -91,13 +93,13 @@ export const GachaHeader: React.FC<GachaHeaderProps> = ({
                                 className="dev-btn add-btn"
                                 onClick={() => addFunds(500000)}
                             >
-                                <span>+500k KC</span>
+                                <span className="tabular-nums">+500k KC</span>
                             </button>
                             <button type="button"
                                 className="dev-btn add-btn"
                                 onClick={() => addFunds(5000000)}
                             >
-                                <span>+5M KC</span>
+                                <span className="tabular-nums">+5M KC</span>
                             </button>
                         </div>
                     </div>
@@ -106,7 +108,7 @@ export const GachaHeader: React.FC<GachaHeaderProps> = ({
                         <span className="dev-label">PROBAR MÁQUINA:</span>
                         <div className="dev-btn-group">
                             {GACHA_TIERS.map((tier) => (
-                                <button aria-label="Action" type="button"
+                                <button aria-label={`Seleccionar máquina ${tier.name}`} aria-pressed={selectedTier.id === tier.id} type="button"
                                     key={tier.id}
                                     className={`dev-tier-btn ${selectedTier.id === tier.id ? 'active' : ''}`}
                                     onClick={() => {

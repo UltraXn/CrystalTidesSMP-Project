@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import ReactMarkdown from 'react-markdown';
 import { Heart, Smile, Shield, Compass, MapPin, Sparkles, Gift, Maximize2, RotateCcw } from 'lucide-react';
+import { resolveAssetUrl } from '../../utils/assetUtils';
 
 export interface WikiCompanion3DCardProps {
     minimal3dOnly?: boolean;
@@ -110,7 +111,7 @@ export const WikiCompanion3DCard: React.FC<WikiCompanion3DCardProps> = ({
 
         const loader = new GLTFLoader();
         loader.load(
-            modelPath,
+            resolveAssetUrl(modelPath),
             (gltf) => {
                 modelGroup.clear();
                 const loadedModel = gltf.scene;
@@ -250,11 +251,11 @@ export const WikiCompanion3DCard: React.FC<WikiCompanion3DCardProps> = ({
 
                         {/* Controls */}
                         <div className="absolute top-3 right-3 z-20 flex items-center gap-1.5">
-                            <button type="button" onClick={resetView} className="p-1.5 rounded-lg bg-black/60 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20 transition-all" title="Reiniciar Cámara">
-                                <RotateCcw className="w-3.5 h-3.5" />
+                            <button type="button" onClick={resetView} aria-label="Reiniciar cámara" className="p-1.5 rounded-lg bg-black/60 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20 transition-all cursor-pointer" title="Reiniciar Cámara">
+                                <RotateCcw aria-hidden="true" className="w-3.5 h-3.5" />
                             </button>
-                            <button type="button" onClick={toggleFullscreen} className="p-1.5 rounded-lg bg-black/60 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20 transition-all" title="Pantalla Completa">
-                                <Maximize2 className="w-3.5 h-3.5" />
+                            <button type="button" onClick={toggleFullscreen} aria-label="Pantalla completa" className="p-1.5 rounded-lg bg-black/60 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20 transition-all cursor-pointer" title="Pantalla Completa">
+                                <Maximize2 aria-hidden="true" className="w-3.5 h-3.5" />
                             </button>
                         </div>
                     </div>

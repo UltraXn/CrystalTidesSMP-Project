@@ -84,16 +84,27 @@ export default function PollFormModal({ onClose, onSubmit, poll, creating, butto
 
     return (
         <div className="sync-modal-overlay">
-            <div className="sync-modal-content poll-modal-content" style={{ maxWidth: '750px' }}>
+            <div
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="poll-form-modal-title"
+                className="sync-modal-content poll-modal-content"
+                style={{ maxWidth: '750px' }}
+            >
                 <div className="modal-accent-line"></div>
                 
                 <div className="poll-form-header">
-                    <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '12px', color: '#fff', fontSize: '1.5rem', fontWeight: '900' }}>
-                        <BarChart3 style={{ color: 'var(--accent)' }} />
+                    <h3 id="poll-form-modal-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '12px', color: '#fff', fontSize: '1.5rem', fontWeight: '900' }}>
+                        <BarChart3 style={{ color: 'var(--accent)' }} aria-hidden="true" />
                         {isEdit ? t('admin.polls.edit_title', 'Editar Encuesta') : t('admin.polls.create_title')}
                     </h3>
-                    <button aria-label="Action" type="button" onClick={onClose} className="btn-close-mini">
-                        <X />
+                    <button
+                        aria-label={t('common.close', 'Cerrar modal')}
+                        type="button"
+                        onClick={onClose}
+                        className="btn-close-mini"
+                    >
+                        <X aria-hidden="true" />
                     </button>
                 </div>
                 
@@ -138,10 +149,11 @@ export default function PollFormModal({ onClose, onSubmit, poll, creating, butto
                                 {options.map((opt, idx) => (
                                     // react-doctor-disable-next-line no-array-index-as-key -- editable option list: labels change per keystroke and may be empty/duplicated, so positional key is intended
                                     <div key={`item-${idx}`} className="poll-option-edit-card">
-                                        <div className="poll-option-index">{idx + 1}</div>
+                                        <div className="poll-option-index" style={{ fontVariantNumeric: 'tabular-nums' }}>{idx + 1}</div>
                                         
                                         <div className="poll-option-inputs">
-                                            <input aria-label="Input field" 
+                                            <input
+                                                aria-label={`${t('admin.polls.form_extras.option_es', 'Opción en español')} ${idx + 1}`}
                                                 className="admin-input-premium" 
                                                 value={opt.label} 
                                                 onChange={e => updateOption(idx, 'label', e.target.value)} 
@@ -149,13 +161,21 @@ export default function PollFormModal({ onClose, onSubmit, poll, creating, butto
                                                 required
                                             />
                                             <div style={{display:'flex', gap:'10px'}}>
-                                                 <input aria-label="Input field" 
+                                                 <input
+                                                     aria-label={`${t('admin.polls.form_extras.option_en', 'Opción en inglés')} ${idx + 1}`}
                                                      className="admin-input-premium" 
                                                      value={opt.labelEn} 
                                                      onChange={e => updateOption(idx, 'labelEn', e.target.value)} 
                                                      placeholder={t('admin.polls.form_extras.option_en')}
                                                  />
-                                                 <button aria-label="Action" type="button" onClick={() => onTranslate(opt.label, 'options', idx)} className="btn-secondary" style={{padding:'0 1rem', borderRadius: '12px'}} disabled={translatingField === `option-${idx}`}>
+                                                 <button
+                                                     aria-label={`Traducir opción ${idx + 1}`}
+                                                     type="button"
+                                                     onClick={() => onTranslate(opt.label, 'options', idx)}
+                                                     className="btn-secondary"
+                                                     style={{padding:'0 1rem', borderRadius: '12px'}}
+                                                     disabled={translatingField === `option-${idx}`}
+                                                 >
                                                      {translatingField === `option-${idx}` ? <Loader2 className="spin"/> : <Languages size={18} />}
                                                  </button>
                                             </div>
@@ -164,6 +184,7 @@ export default function PollFormModal({ onClose, onSubmit, poll, creating, butto
                                         {options.length > 2 && (
                                             <button 
                                                 type="button" 
+                                                aria-label={`${t('admin.polls.form_extras.delete_option', 'Eliminar opción')} ${idx + 1}`}
                                                 onClick={() => removeOption(idx)} 
                                                 className="poll-btn-action delete"
                                                 style={{ height: '42px' }}

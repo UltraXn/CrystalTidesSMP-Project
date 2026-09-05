@@ -206,7 +206,7 @@ export default function PolicyPage() {
                         ul: ({ ...props }) => <ul style={{ marginBottom: '2rem', paddingLeft: '1.5rem' }} {...props} />,
                         li: ({ ...props }) => <li style={{ marginBottom: '0.8rem', paddingLeft: '0.5rem' }} {...props} />,
                         strong: ({ ...props }) => <strong style={{ color: '#fff', fontWeight: 700 }} {...props} />,
-                        a: ({ ...props }) => <a style={{ color: 'var(--accent)', textDecoration: 'none', borderBottom: '1px solid rgba(var(--accent-rgb), 0.3)', transition: "color 0.2s, background-color 0.2s, border-color 0.2s, opacity 0.2s" }} {...props} />,
+                        a: ({ ...props }) => <a target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)', textDecoration: 'none', borderBottom: '1px solid rgba(var(--accent-rgb), 0.3)', transition: "color 0.2s, background-color 0.2s, border-color 0.2s, opacity 0.2s" }} {...props} />,
                         blockquote: ({ ...props }) => <blockquote style={{ borderLeft: '4px solid var(--accent)', paddingLeft: '1.5rem', color: '#aaa', fontStyle: 'italic', background: 'rgba(255,255,255,0.02)', padding: '1.5rem', borderRadius: '0 12px 12px 0', margin: '2rem 0' }} {...props} />
                     }}>
                         {displayContent}

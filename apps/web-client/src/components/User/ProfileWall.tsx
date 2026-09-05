@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next"
 import { m as motion, AnimatePresence } from "framer-motion"
 import { Trash2, Send, MessageCircle } from "lucide-react"
 import { useAuth } from "../../context/AuthContext"
+import { getUserRole } from "../../utils/roleUtils"
 import { getProfileComments, postProfileComment, deleteProfileComment, ProfileComment } from "../../services/profileCommentService"
 import Loader from "../UI/Loader"
 
@@ -200,7 +201,7 @@ export default function ProfileWall({ profileId, isAdmin, mockComments }: Profil
                                         ? mcNick 
                                         : (authorMetadata?.full_name || authorMetadata?.username || comment.author?.username || t('common.anonymous', 'Anónimo')));
 
-                                    const roleRaw = isMe ? user?.user_metadata?.role : comment.author?.role;
+                                    const roleRaw = isMe ? (user ? getUserRole(user) : null) : comment.author?.role;
                                     const role = String(roleRaw || 'user').toLowerCase();
                                     const roleImage = RANK_IMAGES[role] || (role.includes('donador') ? RANK_IMAGES['donador'] : RANK_IMAGES['user']);
 

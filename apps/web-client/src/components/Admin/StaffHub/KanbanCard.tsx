@@ -26,23 +26,27 @@ export default function KanbanCard({ card, onDragStart, onDelete, onEdit }: Kanb
                 </span>
                 <div className="card-actions">
                     {onEdit && (
-                        <button aria-label="Action" type="button" 
+                        <button 
+                            aria-label={t('admin.staff_hub.kanban.edit_task', `Editar tarea: ${card.title}`)} 
+                            type="button" 
                             className="card-action-btn edit"
                             onClick={(e) => { e.stopPropagation(); onEdit(card); }}
                         >
-                            <Edit2 size={14} />
+                            <Edit2 size={14} aria-hidden="true" />
                         </button>
                     )}
                     {onDelete && (
-                        <button aria-label="Action" type="button" 
+                        <button 
+                            aria-label={t('admin.staff_hub.kanban.delete_task', `Eliminar tarea: ${card.title}`)} 
+                            type="button" 
                             className="card-action-btn delete"
                             onClick={(e) => { e.stopPropagation(); onDelete(card.id); }}
                         >
-                            <Trash2 size={14} />
+                            <Trash2 size={14} aria-hidden="true" />
                         </button>
                     )}
                     <div className="card-grip">
-                        <GripVertical size={16} />
+                        <GripVertical size={16} aria-hidden="true" />
                     </div>
                 </div>
             </div>

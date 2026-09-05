@@ -5,24 +5,30 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
-export default function Tutorial() {
+export default function Tutorial({ forceOpen = false }: { forceOpen?: boolean }) {
     const { t, i18n } = useTranslation();
     const { user, loading } = useAuth();
-    const [isOpen, setIsOpen] = useState(false);
+    const [isOpen, setIsOpen] = useState(forceOpen);
     const [step, setStep] = useState(0);
     const navigate = useNavigate();
 
     useEffect(() => {
-        // Only show if user is NOT logged in and NOT loading
+        if (forceOpen) {
+            setIsOpen(true);
+            return;
+        }
+        if (sessionStorage.getItem('tutorial_dismissed') === 'true') {
+            return;
+        }
         if (!loading && !user) {
             const timer = setTimeout(() => setIsOpen(true), 1500);
             return () => clearTimeout(timer);
         }
-    }, [user, loading]);
+    }, [user, loading, forceOpen]);
 
     const handleClose = () => {
         setIsOpen(false);
-        // We don't save to localStorage anymore as per request to show EVERY time for guests
+        sessionStorage.setItem('tutorial_dismissed', 'true');
     };
 
     const nextStep = () => {

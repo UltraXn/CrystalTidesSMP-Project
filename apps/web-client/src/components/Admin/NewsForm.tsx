@@ -201,7 +201,8 @@ export default function NewsForm({ initialData, onSave, onCancel }: NewsFormProp
                                 >
                                     <ImageIcon /> {t('admin.news.insert_image')}
                                 </button>
-                                <input aria-label="Input field" 
+                                <input 
+                                    aria-label={t('admin.news.upload_content_image', 'Subir imagen para el contenido de la noticia')} 
                                     type="file" 
                                     ref={contentFileInputRef} 
                                     style={{display: 'none'}} 

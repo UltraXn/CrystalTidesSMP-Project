@@ -454,7 +454,7 @@ export default function Rules() {
 
     return (
         <>
-            <Section title={t('rules.title') || "Normas del Servidor"}>
+            <Section title={t('rules.title') || "Normas del Servidor"} headingLevel="h1">
             <div className="flex flex-col items-center w-full pb-20 relative z-10">
                 {/* Header Section */}
                 <div className="w-full max-w-5xl mx-auto text-center mb-12 space-y-6">

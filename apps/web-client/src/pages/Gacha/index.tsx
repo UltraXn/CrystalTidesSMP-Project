@@ -407,8 +407,10 @@ export const Gacha = () => {
                     userId: activeUser.id,
                     tierId: selectedTier.id,
                     quantity: qty,
-                    testResult: userIsAdmin ? testForceResult : undefined,
-                    forceDeduction: userIsAdmin ? forceDeduction : undefined,
+                    ...(import.meta.env.DEV && userIsAdmin ? {
+                        testResult: testForceResult,
+                        forceDeduction: forceDeduction,
+                    } : {}),
                 }),
             });
             if (!res.ok) throw new Error(`HTTP Error ${res.status}`);

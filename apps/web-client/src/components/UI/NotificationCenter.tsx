@@ -14,16 +14,27 @@ interface Notification {
 
 const getIcon = (type: string) => {
     switch(type) {
-        case 'success': return <CheckCircle2 style={{ color: '#4CAF50' }} />;
-        case 'warning': return <AlertTriangle style={{ color: '#FFC107' }} />;
-        default: return <Info style={{ color: '#2196F3' }} />;
+        case 'success': return <CheckCircle2 role="img" aria-label="CheckCircle2" style={{ color: '#4CAF50' }} />;
+        case 'warning': return <AlertTriangle role="img" aria-label="AlertTriangle" style={{ color: '#FFC107' }} />;
+        default: return <Info role="img" aria-label="Info" style={{ color: '#2196F3' }} />;
     }
 };
 
-export default function NotificationCenter() {
+interface NotificationCenterProps {
+    initialOpen?: boolean;
+    mockNotifications?: Notification[];
+}
+
+export default function NotificationCenter({ initialOpen = false, mockNotifications }: NotificationCenterProps) {
     const { t } = useTranslation();
-    const [isOpen, setIsOpen] = useState(false);
-    const [notifications, setNotifications] = useState<Notification[]>([]);
+    const [isOpen, setIsOpen] = useState(initialOpen);
+    const [notifications, setNotifications] = useState<Notification[]>(
+        mockNotifications || [
+            { id: 1, type: 'success', title: 'Rango Activado', message: 'Tu membresía Donador ha sido sincronizada.', time: 'Hace 5 min', read: false },
+            { id: 2, type: 'warning', title: 'Mantenimiento', message: 'Reinicio programado a las 04:00 UTC.', time: 'Hace 1 hora', read: false },
+            { id: 3, type: 'info', title: 'Nuevo Parche', message: 'Se han añadido 12 nuevos items a la Wiki.', time: 'Hace 3 horas', read: true }
+        ]
+    );
     const containerRef = useRef<HTMLDivElement>(null);
 
     // Close when clicking outside
@@ -152,6 +163,7 @@ export default function NotificationCenter() {
                                         initial={{ opacity: 0 }}
                                         animate={{ opacity: 1 }}
                                         exit={{ opacity: 0, scale: 0.95 }}
+                                        className="notification-item"
                                         style={{
                                             padding: '1rem',
                                             borderBottom: '1px solid rgba(255,255,255,0.05)',

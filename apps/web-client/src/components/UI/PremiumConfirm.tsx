@@ -54,6 +54,9 @@ export default function PremiumConfirm({
             {isOpen && (
                 <div className="modal-overlay" style={{ zIndex: 1000000, backdropFilter: 'blur(12px)', background: 'rgba(0,0,0,0.8)' }}>
                     <m.div 
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="premium-confirm-title"
                         initial={{ opacity: 0, scale: 0.9, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -97,12 +100,12 @@ export default function PremiumConfirm({
                                     background: `${currentTheme.primary}15`,
                                     border: `1px solid ${currentTheme.primary}30`
                                 }}>
-                                    <AlertTriangle size={40} color={currentTheme.primary} />
+                                    <AlertTriangle size={40} color={currentTheme.primary} role="img" aria-label="Alert" />
 
                                 </div>
                             </div>
 
-                            <h3 style={{ 
+                            <h3 id="premium-confirm-title" style={{ 
                                 marginBottom: '1rem', 
                                 color: '#fff', 
                                 fontSize: '1.6rem', 

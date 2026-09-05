@@ -56,7 +56,7 @@ const Snowfall = () => {
     const snowflakes = useMemo(() => generateSnowflakes(50), []);
 
     return createPortal(
-        <div className="snow-container">
+        <div className="snow-container" aria-hidden="true">
             {snowflakes.map((flake: Snowflake) => (
                 <div
                     key={flake.id}

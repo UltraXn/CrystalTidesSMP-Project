@@ -10,8 +10,12 @@ interface BroadcastConfig {
     message: string;
 }
 
-export default function BroadcastAlert() {
-    const [overrideConfig, setOverrideConfig] = useState<BroadcastConfig | null>(null);
+interface BroadcastAlertProps {
+    mockConfig?: BroadcastConfig;
+}
+
+export default function BroadcastAlert({ mockConfig }: BroadcastAlertProps = {}) {
+    const [overrideConfig, setOverrideConfig] = useState<BroadcastConfig | null>(mockConfig || null);
     const [visible, setVisible] = useState(true);
 
     const { data: fetchedConfig = null } = useQuery<BroadcastConfig | null>({

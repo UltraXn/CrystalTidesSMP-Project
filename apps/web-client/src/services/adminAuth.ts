@@ -1,26 +1,25 @@
-// react-doctor-ignore-next-line auth-token-in-web-storage -- Verified FP: 15-min tab-scoped admin 2FA challenge token in web client
-let adminToken: string | null = sessionStorage.getItem('admin_2fa_token');
+// Security Invariant: 2FA Session is tracked via HttpOnly Cookie on the server side.
+// No tokens are persisted in sessionStorage or localStorage to prevent XSS leakage.
+let adminTokenMemory: string | null = null;
 
 export const setAdminToken = (token: string) => {
-    adminToken = token;
-    // react-doctor-ignore-next-line auth-token-in-web-storage -- Verified FP: 15-min tab-scoped admin 2FA challenge token in web client
-    sessionStorage.setItem('admin_2fa_token', token);
+    adminTokenMemory = token;
 };
 
 export const getAdminToken = () => {
-    if (!adminToken) {
-        adminToken = sessionStorage.getItem('admin_2fa_token');
-    }
-    return adminToken;
+    return adminTokenMemory;
+};
+
+export const clearAdminToken = () => {
+    adminTokenMemory = null;
 };
 
 export const getAuthHeaders = (sessionToken: string | null) => {
     const headers: Record<string, string> = {};
     if (sessionToken) headers['Authorization'] = `Bearer ${sessionToken}`;
     
-    // Refresh token from storage just in case
-    const currentAdminToken = getAdminToken();
-    if (currentAdminToken) headers['x-admin-token'] = currentAdminToken;
+    // In-memory token fallback if needed for API headers
+    if (adminTokenMemory) headers['x-admin-token'] = adminTokenMemory;
     
     return headers;
 };

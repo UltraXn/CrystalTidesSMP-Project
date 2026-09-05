@@ -18,14 +18,14 @@ export default function UserMedalsModal({ user, availableMedals, onClose, onSave
 
     return (
         <div className="premium-modal-overlay">
-            <div className="premium-modal-content">
+            <div role="dialog" aria-modal="true" aria-labelledby="user-medals-modal-title" className="premium-modal-content">
                 <div className="modal-accent-line" />
                 <div className="modal-header-premium">
                     <div>
-                        <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '800' }}>Medallas de <span style={{color: 'var(--accent)'}}>{displayName}</span></h3>
+                        <h3 id="user-medals-modal-title" style={{ margin: 0, fontSize: '1.25rem', fontWeight: '800' }}>Medallas de <span style={{color: 'var(--accent)'}}>{displayName}</span></h3>
                         <p style={{ margin: '0.25rem 0 0', color: 'rgba(255,255,255,0.4)', fontSize: '0.85rem' }}>Asigna medallas especiales a este usuario</p>
                     </div>
-                    <button aria-label="Action" type="button" onClick={onClose} className="btn-close-premium"><X /></button>
+                    <button aria-label={t('common.close', 'Cerrar modal')} type="button" onClick={onClose} className="btn-close-premium"><X aria-hidden="true" /></button>
                 </div>
 
                 <div className="modal-body-premium">
@@ -36,6 +36,8 @@ export default function UserMedalsModal({ user, availableMedals, onClose, onSave
                                 <button
                                     type="button"
                                     key={medal.id}
+                                    aria-label={`${active ? 'Remover' : 'Asignar'} medalla ${medal.name || medal.id}`}
+                                    aria-pressed={active}
                                     onClick={() => onToggleMedal(medal.id as number)}
                                     style={{
                                         position: 'relative',

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react"
 import { useAuth } from "../context/AuthContext"
 import { useNavigate } from "react-router-dom"
+import { isStaff } from "../utils/roleUtils"
 import { 
     Shield, PieChart, Users, Ticket, Lightbulb, 
     BarChart3, Calendar, Newspaper, Gamepad2, IdCard, X, 
@@ -93,13 +94,13 @@ export default function AdminPanel() {
         }
     }, [user, loading, status2FA, show2FAModal]);
 
-    // Verificación Real de Permisos
-    const allowedRoles = ['admin', 'neroferno', 'killu', 'helper', 'developer', 'staff']
-    const isAdmin = allowedRoles.includes(user?.user_metadata?.role?.toLowerCase())
+    // Verificación Real de Permisos (Estándar Vibecoder: app_metadata autoritativo)
+    const isAdmin = isStaff(user);
     
     // Roles con acceso privilegiado (Configuración y Equipo)
     const superAdminRoles = ['neroferno', 'killu', 'developer'];
-    const hasSecureAccess = superAdminRoles.some(role => user?.user_metadata?.role?.toLowerCase().includes(role));
+    const appRole = (user?.app_metadata?.role || '').toLowerCase();
+    const hasSecureAccess = superAdminRoles.some(role => appRole.includes(role));
 
     useEffect(() => {
         if (!loading && !user) navigate('/login')
@@ -170,8 +171,13 @@ export default function AdminPanel() {
                         </div>
                     </div>
                     {isMobile && (
-                        <button aria-label="Action" type="button" onClick={() => setSidebarOpen(false)} className="admin-sidebar-close">
-                            <X size={20} />
+                        <button 
+                            aria-label={t('admin.sidebar.close', 'Cerrar menú lateral')} 
+                            type="button" 
+                            onClick={() => setSidebarOpen(false)} 
+                            className="admin-sidebar-close"
+                        >
+                            <X size={20} aria-hidden="true" />
                         </button>
                     )}
                 </div>
@@ -234,14 +240,20 @@ export default function AdminPanel() {
                     <div className="admin-header-right">
                         
                         {/* Language Toggle */}
-                        <div className="admin-lang-toggle">
-                            <button aria-label="Action" type="button" 
+                        <div className="admin-lang-toggle" role="group" aria-label={t('common.language_selector', 'Seleccionar idioma')}>
+                            <button 
+                                aria-label={t('admin.lang.es', 'Cambiar idioma a español')} 
+                                aria-pressed={i18n.language === 'es'}
+                                type="button" 
                                 onClick={() => i18n.changeLanguage('es')} 
                                 className={`lang-btn ${i18n.language === 'es' ? 'active' : ''}`}
                             >
                                 ES
                             </button>
-                            <button aria-label="Action" type="button" 
+                            <button 
+                                aria-label={t('admin.lang.en', 'Cambiar idioma a inglés')} 
+                                aria-pressed={i18n.language === 'en'}
+                                type="button" 
                                 onClick={() => i18n.changeLanguage('en')} 
                                 className={`lang-btn ${i18n.language === 'en' ? 'active' : ''}`}
                             >
@@ -324,11 +336,14 @@ interface SidebarItemProps {
 
 function SidebarItem({ active, onClick, label, icon }: Readonly<SidebarItemProps>) {
     return (
-        <button aria-label="Action" type="button"
+        <button 
+            aria-label={label}
+            aria-current={active ? 'page' : undefined}
+            type="button"
             className={`xp-sidebar-btn ${active ? 'active' : ''}`}
             onClick={onClick}
         >
-            <span className="icon">{icon}</span>
+            <span className="icon" aria-hidden="true">{icon}</span>
             {label}
         </button>
     )

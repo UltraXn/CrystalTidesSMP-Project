@@ -122,7 +122,8 @@ export default function UsersTable({ users, loading, hasSearched, canManageRoles
                             {canManageRoles && (
                                 <td className="user-cell-actions" style={{ border: '1px solid rgba(255,255,255,0.05)', borderLeft: 'none', borderRadius: '0 16px 16px 0', paddingRight: '1.25rem' }}>
                                     <div style={{ position: 'relative' }}>
-                                        <select aria-label="Select option" 
+                                        <select 
+                                            aria-label={t('admin.users.select_role', `Rol para ${u.username || 'usuario'}`)} 
                                             className="admin-select-premium" 
                                             style={{ padding: '0.6rem 2.5rem 0.6rem 1rem', fontSize: '0.85rem', minWidth: '140px', width: '100%', backgroundPosition: 'right 0.8rem center' }}
                                             value={u.role || 'user'}

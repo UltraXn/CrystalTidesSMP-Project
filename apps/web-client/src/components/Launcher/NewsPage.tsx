@@ -28,7 +28,10 @@ export const NewsPage: React.FC = () => {
         eyebrow="Noticias"
         title="Últimas Novedades"
         trailing={
-          <button aria-label="Action" type="button"
+          <button
+            aria-label="Actualizar noticias"
+            aria-busy={isLoading}
+            type="button"
             onClick={load}
             style={{
               background: "none",
@@ -40,7 +43,7 @@ export const NewsPage: React.FC = () => {
               fontSize: 13,
             }}
           >
-            🔄 Actualizar
+            <span aria-hidden="true">🔄</span> Actualizar
           </button>
         }
       />
@@ -53,7 +56,7 @@ export const NewsPage: React.FC = () => {
             <SkeletonLoader height={120} />
           </>
         ) : posts.length === 0 ? (
-          <p style={{ textAlign: "center", color: "rgba(255,255,255,0.5)", fontSize: 14 }}>
+          <p role="status" aria-live="polite" style={{ textAlign: "center", color: "rgba(255,255,255,0.5)", fontSize: 14 }}>
             No hay noticias disponibles por el momento.
           </p>
         ) : (

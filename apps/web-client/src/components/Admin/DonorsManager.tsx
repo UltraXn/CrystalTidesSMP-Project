@@ -231,7 +231,11 @@ export default function DonorsManager() {
 
             {/* ALERT TOAST */}
             {alert && (
-                <div style={{ position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 1000000, animation: 'slideUp 0.3s ease-out' }}>
+                <div 
+                    role="status" 
+                    aria-live="polite" 
+                    style={{ position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 1000000, animation: 'slideUp 0.3s ease-out' }}
+                >
                    <div style={{ 
                        background: 'rgba(0,0,0,0.8)', 
                        backdropFilter: 'blur(20px)', 
@@ -243,10 +247,15 @@ export default function DonorsManager() {
                        gap: '12px',
                        boxShadow: '0 20px 40px rgba(0,0,0,0.4)'
                    }}>
-                       {alert.type === 'error' ? <AlertCircle color="#ef4444" /> : <CheckCircle color="#10b981" />}
+                       {alert.type === 'error' ? <AlertCircle color="#ef4444" aria-hidden="true" /> : <CheckCircle color="#10b981" aria-hidden="true" />}
                        <span style={{ color: '#fff', fontWeight: 700, fontSize: '0.9rem' }}>{alert.message}</span>
-                       <button aria-label="Action" type="button" onClick={() => setAlert(null)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer', padding: '4px' }}>
-                           <X />
+                       <button 
+                           aria-label={t('common.dismiss', 'Descartar notificación')} 
+                           type="button" 
+                           onClick={() => setAlert(null)} 
+                           style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer', padding: '4px' }}
+                       >
+                           <X aria-hidden="true" />
                        </button>
                    </div>
                 </div>

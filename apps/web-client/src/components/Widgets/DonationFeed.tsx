@@ -22,7 +22,7 @@ interface DonationFeedProps {
 }
 
 export default function DonationFeed({ mockDonations }: DonationFeedProps = {}) {
-    const [donations, setDonations] = useState<Donation[]>([])
+    const [donations, setDonations] = useState<Donation[]>(mockDonations || [])
     const [loading, setLoading] = useState(!mockDonations)
     const [newDonationIds, setNewDonationIds] = useState<Set<string>>(new Set())
     const { t, i18n } = useTranslation()

@@ -422,25 +422,27 @@ export default function KanbanBoard({ mockTasks, mockGoogleEvents, mockNotionTas
 
             {/* Create Modal */}
             {showCreateModal && (
-                <div className="premium-modal-overlay">
-                    <div className="premium-modal-content">
+                <div className="premium-modal-overlay" role="presentation">
+                    <div className="premium-modal-content" role="dialog" aria-modal="true" aria-labelledby="kanban-modal-title">
                         <div className="modal-accent-line" />
                         
                         <div className="modal-header-premium">
                             <div>
-                                <h2 style={{ margin: 0, fontSize: '1.75rem', fontWeight: '950', color: '#fff', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                    {editingTask ? <Target color="var(--accent)" /> : <Plus color="var(--accent)" />}
+                                <h2 id="kanban-modal-title" style={{ margin: 0, fontSize: '1.75rem', fontWeight: '950', color: '#fff', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                    {editingTask ? <Target color="var(--accent)" aria-hidden="true" /> : <Plus color="var(--accent)" aria-hidden="true" />}
                                     {editingTask ? t('admin.staff_hub.kanban.create_modal.title_edit', 'Editar Tarea') : t('admin.staff_hub.kanban.create_modal.title_new', 'Nueva Tarea')}
                                 </h2>
                                 <p style={{ margin: '0.5rem 0 0', color: 'rgba(255,255,255,0.4)', fontSize: '0.9rem', fontWeight: 500 }}>
                                     {editingTask ? t('admin.staff_hub.kanban.create_modal.subtitle_edit', 'Actualiza los detalles de tu tarea') : t('admin.staff_hub.kanban.create_modal.subtitle_new', 'Planifica una nueva actividad para el equipo')}
                                 </p>
                             </div>
-                            <button aria-label="Action" type="button" 
+                            <button 
+                                aria-label={t('common.close', 'Cerrar ventana')} 
+                                type="button" 
                                 onClick={() => { setShowCreateModal(false); setEditingTask(null); }}
                                 className="btn-close-premium"
                             >
-                                <X />
+                                <X aria-hidden="true" />
                             </button>
                         </div>
 

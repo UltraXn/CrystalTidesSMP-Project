@@ -195,20 +195,25 @@ export default function TicketDetailModal({ ticket, onClose, refreshTickets, moc
             )}
             
             {!showBanModal && (
-                <div className="modal-content" style={{ maxHeight: '85vh', height: '85vh' }}>
+                <div role="dialog" aria-modal="true" aria-labelledby="ticket-modal-title" className="modal-content" style={{ maxHeight: '85vh', height: '85vh' }}>
                 
                     {/* Header Modal */}
                     <div style={{ padding: '1.5rem', borderBottom: '1px solid #333', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', background: '#222', borderTopLeftRadius: 'var(--radius)', borderTopRightRadius: 'var(--radius)' }}>
                         <div>
-                            <h2 style={{ margin: 0, fontSize: '1.4rem', color: '#fff' }}>{ticket.subject}</h2>
+                            <h2 id="ticket-modal-title" style={{ margin: 0, fontSize: '1.4rem', color: '#fff' }}>{ticket.subject}</h2>
                             <div style={{ display: 'flex', gap: '0.8rem', marginTop: '0.5rem', alignItems: 'center' }}>
                                 <span style={{color: '#888', fontFamily:'monospace'}}>#{ticket.id}</span>
                                 <PriorityBadge priority={ticket.priority} />
                                 <StatusBadge status={ticket.status} />
                             </div>
                         </div>
-                        <button aria-label="Action" type="button" onClick={onClose} style={{ background: 'transparent', border: 'none', color: '#aaa', cursor: 'pointer', padding: '0.5rem' }}>
-                            <X size={22} />
+                        <button
+                            aria-label={t('common.close', 'Cerrar ticket')}
+                            type="button"
+                            onClick={onClose}
+                            style={{ background: 'transparent', border: 'none', color: '#aaa', cursor: 'pointer', padding: '0.5rem' }}
+                        >
+                            <X size={22} aria-hidden="true" />
                         </button>
                     </div>
 
@@ -243,15 +248,23 @@ export default function TicketDetailModal({ ticket, onClose, refreshTickets, moc
                         
                         {ticket.status !== 'closed' ? (
                             <form onSubmit={handleSendMessage} style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
-                                <input aria-label="Input field" 
+                                <input
+                                    aria-label={t('admin.tickets.detail.reply_placeholder', 'Escribe una respuesta...')}
                                     className="admin-input" 
                                     value={newMessage} 
                                     onChange={e => setNewMessage(e.target.value)} 
                                     placeholder={t('admin.tickets.detail.reply_placeholder', 'Escribe una respuesta...')}
                                     style={{flex: 1, marginBottom: 0}}
                                 />
-                                <button aria-label="Action" type="submit" className="btn-primary" disabled={sending} style={{padding: '0 1.5rem'}}>
-                                    {sending ? <Loader2 className="animate-spin"/> : <Send />}
+                                <button
+                                    aria-label={t('admin.tickets.detail.send_reply', 'Enviar respuesta')}
+                                    aria-busy={sending}
+                                    type="submit"
+                                    className="btn-primary"
+                                    disabled={sending}
+                                    style={{padding: '0 1.5rem'}}
+                                >
+                                    {sending ? <Loader2 className="animate-spin" aria-hidden="true" /> : <Send aria-hidden="true" />}
                                 </button>
                             </form>
                         ) : (

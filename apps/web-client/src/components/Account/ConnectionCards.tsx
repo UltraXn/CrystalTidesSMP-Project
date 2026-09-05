@@ -86,6 +86,7 @@ const ConnectionCards: React.FC<ConnectionCardsProps> = ({
         if (!popupWindow) return;
 
         const messageHandler = async (event: MessageEvent) => {
+            if (event.origin !== window.location.origin) return;
             if (event.data?.type === "MS_AUTH_CODE" && event.data?.code) {
                 setMsStatusMsg("Autenticando con Microsoft y Xbox Live...");
                 try {

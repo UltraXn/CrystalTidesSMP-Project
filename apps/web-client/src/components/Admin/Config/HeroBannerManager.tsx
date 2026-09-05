@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { Image, Plus, Trash2, Edit2, Check, Link, Loader2, Upload } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { TFunction } from 'i18next';
 import { uploadImage as uploadImageSecure } from '../../../services/uploadService';
 
 export interface HeroSlide {
@@ -20,12 +21,12 @@ interface HeroBannerManagerProps {
     saving: string | null;
 }
 
-const DEFAULT_SLIDES = [
+const DEFAULT_SLIDES: HeroSlide[] = [
     {
         id: 1,
         image: 'https://images.unsplash.com/photo-1599939571322-792a326991f2?q=80&w=2574',
-        title: 'Bienvenidos a CrystalTides',
-        text: 'Únete a la aventura RPG más inmersiva de Minecraft.',
+        title: '¡Bienvenido a CrystalTides SMP!',
+        text: 'La experiencia survival definitiva en la versión 1.21.1',
         buttonText: 'Jugar Ahora',
         link: '/play'
     },
@@ -39,20 +40,121 @@ const DEFAULT_SLIDES = [
     }
 ];
 
-// Helper to generate IDs outside of component render scope to satisfy strict linter
 const generateId = () => Date.now();
 
-export default function HeroBannerManager({ settings, onUpdate, saving }: HeroBannerManagerProps) {
+const getHeroSlidesString = (hero_slides?: string | HeroSlide[]): string | null => {
+    if (!hero_slides) return null;
+    return typeof hero_slides === 'string' ? hero_slides : JSON.stringify(hero_slides);
+};
+
+const parseSlides = (slidesStr: string | null): HeroSlide[] => {
+    if (!slidesStr) return DEFAULT_SLIDES;
+    try {
+        const parsed = JSON.parse(slidesStr);
+        return Array.isArray(parsed) ? (parsed as HeroSlide[]) : DEFAULT_SLIDES;
+    } catch {
+        return DEFAULT_SLIDES;
+    }
+};
+
+function HeroSlideEditor({
+    formData,
+    setFormData,
+    activeEditIndex,
+    uploading,
+    fileInputRef,
+    handleFileChange,
+    handleFormSave,
+    onCancel,
+    saving,
+    t
+}: Readonly<{
+    formData: HeroSlide;
+    setFormData: React.Dispatch<React.SetStateAction<HeroSlide>>;
+    activeEditIndex: number | null;
+    uploading: boolean;
+    fileInputRef: React.RefObject<HTMLInputElement | null>;
+    handleFileChange: (e: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
+    handleFormSave: () => void;
+    onCancel: () => void;
+    saving: string | null;
+    t: TFunction;
+}>) {
+    return (
+        <div style={{ animation: 'fadeIn 0.3s' }}>
+            <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                {activeEditIndex !== null ? t('admin.settings.hero.edit_slide') : t('admin.settings.hero.new_slide')}
+            </h3>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div>
+                    <label htmlFor="hero-slide-image" className="admin-label">{t('admin.settings.hero.image_url')}</label>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <input id="hero-slide-image" className="admin-input" value={formData.image} onChange={e => setFormData({ ...formData, image: e.target.value })} placeholder="https://..." style={{ flex: 1 }} />
+                        <input
+                            aria-label={t('admin.settings.hero.upload_image', 'Subir imagen de banner')}
+                            type="file"
+                            ref={fileInputRef}
+                            style={{ display: 'none' }}
+                            onChange={handleFileChange}
+                            accept="image/*"
+                        />
+                        <button
+                            aria-label={t('admin.settings.hero.upload_image_btn', 'Subir imagen de banner desde archivo')}
+                            aria-busy={uploading}
+                            type="button"
+                            className="btn-secondary"
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={uploading}
+                            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', whiteSpace: 'nowrap' }}
+                        >
+                            {uploading ? <Loader2 className="spin" aria-hidden="true" /> : <Upload aria-hidden="true" />} Subir
+                        </button>
+                    </div>
+                    {formData.image && <img src={formData.image} alt="Preview" style={{ width: '100%', height: '150px', objectFit: 'cover', marginTop: '0.5rem', borderRadius: '4px', opacity: 0.7 }} />}
+                </div>
+                <div>
+                    <label htmlFor="hero-slide-title" className="admin-label">{t('admin.settings.hero.title_label')}</label>
+                    <input id="hero-slide-title" className="admin-input" value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} placeholder="Ej: Nueva Temporada" />
+                </div>
+                <div>
+                    <label htmlFor="hero-slide-subtitle" className="admin-label">{t('admin.settings.hero.subtitle_label')}</label>
+                    <input id="hero-slide-subtitle" className="admin-input" value={formData.text} onChange={e => setFormData({ ...formData, text: e.target.value })} placeholder="Descripción corta..." />
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1rem' }}>
+                    <div>
+                        <label htmlFor="hero-slide-btn-text" className="admin-label">{t('admin.settings.hero.btn_text')}</label>
+                        <input id="hero-slide-btn-text" className="admin-input" value={formData.buttonText} onChange={e => setFormData({ ...formData, buttonText: e.target.value })} placeholder="Ej: Jugar Ahora" />
+                    </div>
+                    <div>
+                        <label htmlFor="hero-slide-btn-link" className="admin-label">{t('admin.settings.hero.btn_link')}</label>
+                        <input id="hero-slide-btn-link" className="admin-input" value={formData.link} onChange={e => setFormData({ ...formData, link: e.target.value })} placeholder="/tienda o https://..." />
+                    </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem', flexWrap: 'wrap' }}>
+                    <button type="button" className="btn-primary" onClick={handleFormSave} disabled={saving === 'hero_slides'}>
+                        <Check /> {saving === 'hero_slides' ? t('admin.settings.saving') : t('admin.settings.hero.save_btn')}
+                    </button>
+                    <button type="button" className="btn-secondary" onClick={onCancel} style={{ background: 'transparent', border: '1px solid #444' }}>
+                        {t('admin.settings.hero.cancel_btn')}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+export default function HeroBannerManager({ settings, onUpdate, saving }: Readonly<HeroBannerManagerProps>) {
     const { t } = useTranslation();
     const [slides, setSlides] = useState<HeroSlide[]>([]);
     const [isEditing, setIsEditing] = useState(false);
     const [activeEditIndex, setActiveEditIndex] = useState<number | null>(null);
     const [prevSlidesStr, setPrevSlidesStr] = useState<string | null>(null);
-    
-    const [uploading, setUploading] = useState(false);
-    const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Form State
+    const [uploading, setUploading] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
+
     const [formData, setFormData] = useState<HeroSlide>({
         id: 0,
         image: '',
@@ -62,25 +164,16 @@ export default function HeroBannerManager({ settings, onUpdate, saving }: HeroBa
         link: ''
     });
 
-    // Pattern: Adjust state during render when props change
-    const slidesStr = settings?.hero_slides ? (typeof settings.hero_slides === 'string' ? settings.hero_slides : JSON.stringify(settings.hero_slides)) : null;
+    const slidesStr = getHeroSlidesString(settings?.hero_slides);
 
     if (slidesStr !== prevSlidesStr) {
         setPrevSlidesStr(slidesStr);
-        if (slidesStr) {
-            try {
-                const parsed = JSON.parse(slidesStr);
-                setSlides(Array.isArray(parsed) ? (parsed as HeroSlide[]) : (DEFAULT_SLIDES as HeroSlide[]));
-            } catch { setSlides(DEFAULT_SLIDES as HeroSlide[]); }
-        } else {
-            setSlides(DEFAULT_SLIDES as HeroSlide[]);
-        }
+        setSlides(parseSlides(slidesStr));
     }
 
     const uploadImage = async (file: File): Promise<string | null> => {
         try {
             setUploading(true);
-            // Server-validated upload (magic bytes checked in backend)
             return await uploadImageSecure(file, 'forum-uploads', 'hero-banners');
         } catch (error) {
             console.error('Error uploading image:', error);
@@ -89,7 +182,7 @@ export default function HeroBannerManager({ settings, onUpdate, saving }: HeroBa
         } finally {
             setUploading(false);
         }
-    }
+    };
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files || e.target.files.length === 0) return;
@@ -112,8 +205,13 @@ export default function HeroBannerManager({ settings, onUpdate, saving }: HeroBa
         setIsEditing(true);
     };
 
+    const saveSlides = (newSlides: HeroSlide[]) => {
+        setSlides(newSlides);
+        onUpdate('hero_slides', JSON.stringify(newSlides));
+    };
+
     const handleDelete = (index: number) => {
-        if(!window.confirm(t('admin.settings.hero.delete_confirm'))) return;
+        if (!window.confirm(t('admin.settings.hero.delete_confirm'))) return;
         const newSlides = slides.filter((_, i) => i !== index);
         saveSlides(newSlides);
     };
@@ -129,77 +227,27 @@ export default function HeroBannerManager({ settings, onUpdate, saving }: HeroBa
         setIsEditing(false);
     };
 
-    const saveSlides = (newSlides: HeroSlide[]) => {
-        setSlides(newSlides);
-        onUpdate('hero_slides', JSON.stringify(newSlides));
-    };
-
     if (isEditing) {
         return (
-            <div style={{ animation: 'fadeIn 0.3s' }}>
-                 <h3 style={{ marginBottom: '1.5rem', display:'flex', alignItems:'center', gap:'0.5rem' }}>
-                    {activeEditIndex !== null ? t('admin.settings.hero.edit_slide') : t('admin.settings.hero.new_slide')}
-                </h3>
-                
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    <div>
-                        <label htmlFor="hero-slide-image" className="admin-label">{t('admin.settings.hero.image_url')}</label>
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                            <input id="hero-slide-image" className="admin-input" value={formData.image} onChange={e => setFormData({...formData, image: e.target.value})} placeholder="https://..." style={{ flex: 1 }} />
-                            <input aria-label={t('admin.settings.hero.upload_image', 'Subir imagen de banner')}
-                                type="file"
-                                ref={fileInputRef}
-                                style={{ display: 'none' }}
-                                onChange={handleFileChange}
-                                accept="image/*"
-                            />
-                            <button aria-label="Action" type="button"
-                                className="btn-secondary"
-                                onClick={() => fileInputRef.current?.click()}
-                                disabled={uploading}
-                                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', whiteSpace: 'nowrap' }}
-                            >
-                                {uploading ? <Loader2 className="spin" /> : <Upload />} Subir
-                            </button>
-                        </div>
-                        {formData.image && <img src={formData.image} alt="Preview" style={{ width: '100%', height: '150px', objectFit: 'cover', marginTop: '0.5rem', borderRadius: '4px', opacity: 0.7 }} />}
-                    </div>
-                    <div>
-                        <label htmlFor="hero-slide-title" className="admin-label">{t('admin.settings.hero.title_label')}</label>
-                        <input id="hero-slide-title" className="admin-input" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} placeholder="Ej: Nueva Temporada" />
-                    </div>
-                    <div>
-                        <label htmlFor="hero-slide-subtitle" className="admin-label">{t('admin.settings.hero.subtitle_label')}</label>
-                        <input id="hero-slide-subtitle" className="admin-input" value={formData.text} onChange={e => setFormData({...formData, text: e.target.value})} placeholder="Descripción corta..." />
-                    </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1rem' }}>
-                        <div>
-                            <label htmlFor="hero-slide-btn-text" className="admin-label">{t('admin.settings.hero.btn_text')}</label>
-                            <input id="hero-slide-btn-text" className="admin-input" value={formData.buttonText} onChange={e => setFormData({...formData, buttonText: e.target.value})} placeholder="Ej: Jugar Ahora" />
-                        </div>
-                        <div>
-                            <label htmlFor="hero-slide-btn-link" className="admin-label">{t('admin.settings.hero.btn_link')}</label>
-                            <input id="hero-slide-btn-link" className="admin-input" value={formData.link} onChange={e => setFormData({...formData, link: e.target.value})} placeholder="/tienda o https://..." />
-                        </div>
-                    </div>
-
-                    <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem', flexWrap: 'wrap' }}>
-                        <button type="button" className="btn-primary" onClick={handleFormSave} disabled={saving === 'hero_slides'}>
-                           <Check /> {saving === 'hero_slides' ? t('admin.settings.saving') : t('admin.settings.hero.save_btn')}
-                        </button>
-                        <button type="button" className="btn-secondary" onClick={() => setIsEditing(false)} style={{ background: 'transparent', border: '1px solid #444' }}>
-                           {t('admin.settings.hero.cancel_btn')}
-                        </button>
-                    </div>
-                </div>
-            </div>
-        )
+            <HeroSlideEditor
+                formData={formData}
+                setFormData={setFormData}
+                activeEditIndex={activeEditIndex}
+                uploading={uploading}
+                fileInputRef={fileInputRef}
+                handleFileChange={handleFileChange}
+                handleFormSave={handleFormSave}
+                onCancel={() => setIsEditing(false)}
+                saving={saving}
+                t={t}
+            />
+        );
     }
 
     return (
         <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
-                <h3 style={{ margin: 0, display:'flex', alignItems:'center', gap:'0.5rem' }}>
+                <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <Image /> {t('admin.settings.hero.title')}
                 </h3>
                 <button type="button" onClick={handleCreate} className="btn-primary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.9rem' }}>
@@ -209,20 +257,18 @@ export default function HeroBannerManager({ settings, onUpdate, saving }: HeroBa
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 {slides.map((slide, i) => (
-                    <div key={slide.id || slide.image} style={{ 
-                        background: 'rgba(255,255,255,0.03)', 
+                    <div key={slide.id || slide.image} style={{
+                        background: 'rgba(255,255,255,0.03)',
                         border: '1px solid #333',
                         borderRadius: '8px',
                         overflow: 'hidden',
                         position: 'relative',
                         display: 'flex'
                     }}>
-                        {/* Image Preview */}
                         <div style={{ width: '120px', height: '100px', flexShrink: 0 }}>
                             <img src={slide.image} alt={slide.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         </div>
-                        
-                        {/* Check info */}
+
                         <div style={{ padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                             <h4 style={{ margin: '0 0 0.3rem', fontSize: '1rem' }}>{slide.title}</h4>
                             <p style={{ margin: 0, fontSize: '0.8rem', color: '#888' }}>{slide.text}</p>
@@ -233,20 +279,29 @@ export default function HeroBannerManager({ settings, onUpdate, saving }: HeroBa
                             )}
                         </div>
 
-                        {/* Actions */}
                         <div style={{ display: 'flex', flexDirection: 'column', borderLeft: '1px solid #333' }}>
-                            <button aria-label="Action" type="button" onClick={() => handleEdit(i)} style={{ flex: 1, padding: '0 1rem', background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer', borderBottom: '1px solid #333' }}>
-                                <Edit2 />
+                            <button 
+                                aria-label={t('admin.settings.hero.edit_slide', `Editar slide: ${slide.title}`)} 
+                                type="button" 
+                                onClick={() => handleEdit(i)} 
+                                style={{ flex: 1, padding: '0 1rem', background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer', borderBottom: '1px solid #333' }}
+                            >
+                                <Edit2 aria-hidden="true" />
                             </button>
-                            <button aria-label="Action" type="button" onClick={() => handleDelete(i)} style={{ flex: 1, padding: '0 1rem', background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer' }}>
-                                <Trash2 />
+                            <button 
+                                aria-label={t('admin.settings.hero.delete_slide', `Eliminar slide: ${slide.title}`)} 
+                                type="button" 
+                                onClick={() => handleDelete(i)} 
+                                style={{ flex: 1, padding: '0 1rem', background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer' }}
+                            >
+                                <Trash2 aria-hidden="true" />
                             </button>
                         </div>
                     </div>
                 ))}
-                
+
                 {slides.length === 0 && (
-                     <div style={{ textAlign: 'center', padding: '2rem', color: '#666', border: '1px dashed #444', borderRadius: '8px' }}>
+                    <div style={{ textAlign: 'center', padding: '2rem', color: '#666', border: '1px dashed #444', borderRadius: '8px' }}>
                         {t('admin.settings.hero.no_slides')}
                     </div>
                 )}

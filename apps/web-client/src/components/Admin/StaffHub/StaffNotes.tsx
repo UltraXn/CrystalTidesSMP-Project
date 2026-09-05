@@ -170,9 +170,12 @@ export default function StaffNotes() {
 
             {/* Create Note Modal */}
             {showCreateModal && (
-                <div className="modal-overlay">
+                <div className="modal-overlay" role="presentation">
                     <div 
                         className="modal-content" 
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="create-note-modal-title"
                         style={{ 
                             width: '400px', 
                             maxWidth: '90%', 
@@ -183,7 +186,7 @@ export default function StaffNotes() {
                         }}
                     >
                         <div style={{ padding: '1.5rem' }}>
-                            <h3 style={{ 
+                            <h3 id="create-note-modal-title" style={{ 
                                 margin: '0 0 1.5rem 0', 
                                 fontSize: '1.2rem',
                                 color: '#fff',
@@ -191,10 +194,11 @@ export default function StaffNotes() {
                                 alignItems: 'center',
                                 gap: '10px'
                             }}>
-                                <span style={{ color: 'var(--accent)', display:'flex' }}><Plus size={16}/></span> {t('admin.staff_hub.notes.create_modal.title', 'Nueva Nota')}
+                                <span style={{ color: 'var(--accent)', display:'flex' }}><Plus size={16} aria-hidden="true" /></span> {t('admin.staff_hub.notes.create_modal.title', 'Nueva Nota')}
                             </h3>
                             
-                            <textarea aria-label="Text input"
+                            <textarea 
+                                aria-label={t('admin.staff_hub.notes.create_modal.placeholder', 'Contenido de la nota')}
                                 autoFocus
                                 value={newNoteText}
                                 onChange={(e) => setNewNoteText(e.target.value)}

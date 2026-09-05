@@ -67,18 +67,20 @@ export default function PollHistoryTable({ polls, loading, page, totalPages, onP
                                             {poll.is_active && (
                                                 <button type="button" 
                                                     onClick={() => onClose(poll.id)}
+                                                    aria-label={`${t('admin.polls.close_btn', 'Finalizar encuesta')} ${poll.title}`}
                                                     title={t('admin.polls.close_btn')}
                                                     className="poll-btn-action"
                                                 >
-                                                    <Square size={16} fill="currentColor" />
+                                                    <Square size={16} fill="currentColor" aria-hidden="true" />
                                                 </button>
                                             )}
                                             <button type="button" 
                                                 onClick={() => onDelete(poll.id)}
+                                                aria-label={`${t('admin.polls.delete_tooltip', 'Eliminar encuesta')} ${poll.title}`}
                                                 title={t('admin.polls.delete_tooltip')}
                                                 className="poll-btn-action delete"
                                             >
-                                                <Trash2 />
+                                                <Trash2 aria-hidden="true" />
                                             </button>
                                         </div>
                                     </td>
@@ -92,10 +94,30 @@ export default function PollHistoryTable({ polls, loading, page, totalPages, onP
 
                     {/* Pagination */}
                     {totalPages > 1 && (
-                        <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '3rem', padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: '16px' }}>
-                            <button aria-label="Action" type="button" onClick={() => onPageChange(Math.max(1, page - 1))} disabled={page === 1} className="poll-tab-btn" style={{ padding: '0.5rem 1rem' }}>&lt;</button>
-                            <span style={{ display: 'flex', alignItems: 'center', color: 'rgba(255,255,255,0.4)', fontWeight: '800' }}>{t('admin.polls.pagination', { page, total: totalPages })}</span>
-                            <button aria-label="Action" type="button" onClick={() => onPageChange(Math.min(totalPages, page + 1))} disabled={page === totalPages} className="poll-tab-btn" style={{ padding: '0.5rem 1rem' }}>&gt;</button>
+                        <div role="navigation" aria-label={t('common.pagination', 'Paginación de encuestas')} style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '3rem', padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: '16px' }}>
+                            <button
+                                aria-label={t('common.previous', 'Página anterior')}
+                                type="button"
+                                onClick={() => onPageChange(Math.max(1, page - 1))}
+                                disabled={page === 1}
+                                className="poll-tab-btn"
+                                style={{ padding: '0.5rem 1rem' }}
+                            >
+                                &lt;
+                            </button>
+                            <span style={{ display: 'flex', alignItems: 'center', color: 'rgba(255,255,255,0.4)', fontWeight: '800', fontVariantNumeric: 'tabular-nums' }}>
+                                {t('admin.polls.pagination', { page, total: totalPages })}
+                            </span>
+                            <button
+                                aria-label={t('common.next', 'Página siguiente')}
+                                type="button"
+                                onClick={() => onPageChange(Math.min(totalPages, page + 1))}
+                                disabled={page === totalPages}
+                                className="poll-tab-btn"
+                                style={{ padding: '0.5rem 1rem' }}
+                            >
+                                &gt;
+                            </button>
                         </div>
                     )}
                 </div>

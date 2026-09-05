@@ -187,7 +187,8 @@ export default function SiteConfig() {
                             </div>
 
                             <label className="switch" style={{ margin: 0 }}>
-                                <input aria-label="Input field" 
+                                <input 
+                                    aria-label={t('admin.settings.maintenance.toggle', 'Alternar modo mantenimiento')} 
                                     type="checkbox" 
                                     checked={settings.maintenance_mode === 'true'} 
                                     onChange={() => {}} 
@@ -231,7 +232,8 @@ export default function SiteConfig() {
                                     <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', fontWeight: '600' }}>{t('admin.settings.recruitment.status_label')}</span>
                                 </div>
                                 <label className="switch">
-                                    <input aria-label="Input field" 
+                                    <input 
+                                        aria-label={t('admin.settings.recruitment.toggle', 'Alternar estado de reclutamiento')} 
                                         type="checkbox" 
                                         checked={settings.recruitment_status === 'true'} 
                                         onChange={(e) => handleUpdate('recruitment_status', String(e.target.checked))} 
@@ -250,13 +252,15 @@ export default function SiteConfig() {
                                         placeholder={t('admin.settings.recruitment.link_ph')} 
                                         style={{ height: '48px', padding: '0 1rem', borderRadius: '12px' }}
                                     />
-                                    <button aria-label="Action" type="button" 
+                                    <button
+                                        aria-label={t('admin.settings.save_recruitment_link', 'Guardar enlace de reclutamiento')}
+                                        type="button" 
                                         className="modal-btn-primary hover-lift" 
                                         disabled={updateSettingMutation.isPending && updateSettingMutation.variables?.key === 'recruitment_link'}
                                         onClick={() => handleUpdate('recruitment_link', settings.recruitment_link || '')}
                                         style={{ width: '48px', padding: 0, height: '48px', borderRadius: '12px', minWidth: '48px', justifyContent: 'center' }}
                                     >
-                                        <Save size={16} />
+                                        <Save size={16} aria-hidden="true" />
                                     </button>
                                 </div>
                             </div>
@@ -338,7 +342,10 @@ function ConfigSection({ title, icon, children, defaultOpen = false }: ConfigSec
             transition: "color 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
             boxShadow: isOpen ? '0 10px 30px rgba(0,0,0,0.2)' : 'none'
         }}>
-            <button aria-label="Action" type="button" 
+            <button
+                type="button" 
+                aria-expanded={isOpen}
+                aria-label={`${isOpen ? 'Colapsar' : 'Expandir'} sección ${title}`}
                 onClick={() => setIsOpen(!isOpen)}
                 style={{
                     width: '100%',

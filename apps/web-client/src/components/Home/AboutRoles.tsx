@@ -266,12 +266,16 @@ export default function AboutRoles() {
             {/* Grid de Selector de Ramas + Detalles */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start text-left w-full mx-auto">  
                 {/* Selector de 5 Ramas (Columna Izquierda) */}
-                <div className="lg:col-span-3 flex flex-col gap-3 my-auto">
+                <div role="tablist" aria-label={t('about.roles.branches_list', 'Ramas de progresión')} className="lg:col-span-3 flex flex-col gap-3 my-auto">
                     {roles.map((role) => {
                         const isActive = role.id === activeRoleId
                         return (
                             <button type="button"
                                 key={role.id}
+                                id={`role-tab-${role.id}`}
+                                role="tab"
+                                aria-selected={isActive}
+                                aria-controls={`role-panel-${role.id}`}
                                 onClick={() => setActiveRoleId(role.id)}
                                 className={`relative p-4 rounded-2xl border transition-colors duration-300 text-left cursor-pointer flex items-center justify-between group overflow-hidden backdrop-blur-md ${
                                     isActive 
@@ -333,6 +337,9 @@ export default function AboutRoles() {
                         <AnimatePresence mode="wait">
                             <motion.div
                                 key={currentRole.id}
+                                id={`role-panel-${currentRole.id}`}
+                                role="tabpanel"
+                                aria-labelledby={`role-tab-${currentRole.id}`}
                                 initial={{ opacity: 0, x: 20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: -20 }}

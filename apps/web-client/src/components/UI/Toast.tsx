@@ -29,9 +29,9 @@ export default function Toast({ message, type = 'info', isVisible, onClose, dura
 
     const getIcon = () => {
         switch (type) {
-            case 'success': return <CheckCircle2 size={20} />;
-            case 'error': return <AlertCircle size={20} />;
-            default: return <Info size={20} />;
+            case 'success': return <CheckCircle2 size={20} role="img" aria-label="Check Circle" />;
+            case 'error': return <AlertCircle size={20} role="img" aria-label="Alert Circle" />;
+            default: return <Info size={20} role="img" aria-label="Info" />;
         }
     };
 
@@ -49,6 +49,7 @@ export default function Toast({ message, type = 'info', isVisible, onClose, dura
         <AnimatePresence>
             {isVisible && (
                 <m.div
+                    role="alert"
                     initial={{ opacity: 0, y: -50, x: '-50%' }}
                     animate={{ opacity: 1, y: 0, x: '-50%' }}
                     exit={{ opacity: 0, y: -20, x: '-50%' }}

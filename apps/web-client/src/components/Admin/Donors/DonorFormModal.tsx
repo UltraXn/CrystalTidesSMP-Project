@@ -74,7 +74,7 @@ export default function DonorFormModal({ donor, isNew, onClose, onSave, saving }
                 setFormData(prev => ({ ...prev, [field]: data.translatedText }));
             }
         } catch (e) {
-            console.error("Translation fail", e);
+            console.error("Translation fail", e instanceof Error ? e.message : 'Unknown error');
             // Error handling could be passed up via callback if needed, 
             // but for now logging is sufficient as UI feedback is limited in this scope
         } finally {
@@ -90,17 +90,22 @@ export default function DonorFormModal({ donor, isNew, onClose, onSave, saving }
     if (!donor) return null;
 
     return (
-        <div className="sync-modal-overlay">
-            <div className="sync-modal-content" style={{ maxWidth: '850px' }}>
+        <div className="sync-modal-overlay" role="presentation">
+            <div className="sync-modal-content" role="dialog" aria-modal="true" aria-labelledby="donor-modal-title" style={{ maxWidth: '850px' }}>
                 <div className="modal-accent-line"></div>
                 
                 <div className="poll-form-header">
-                    <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '12px', color: '#fff', fontSize: '1.5rem', fontWeight: '900' }}>
-                        <Crown style={{ color: 'var(--accent)' }} />
+                    <h3 id="donor-modal-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '12px', color: '#fff', fontSize: '1.5rem', fontWeight: '900' }}>
+                        <Crown style={{ color: 'var(--accent)' }} aria-hidden="true" />
                         {isNew ? t('admin.donors.new_title') : t('admin.donors.edit_title')}
                     </h3>
-                    <button aria-label="Action" type="button" onClick={onClose} className="btn-close-mini">
-                        <X />
+                    <button 
+                        aria-label={t('common.close', 'Cerrar ventana')} 
+                        type="button" 
+                        onClick={onClose} 
+                        className="btn-close-mini"
+                    >
+                        <X aria-hidden="true" />
                     </button>
                 </div>
                 
@@ -120,7 +125,8 @@ export default function DonorFormModal({ donor, isNew, onClose, onSave, saving }
 
                             <div className="form-group">
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                                    <input aria-label="Input field" 
+                                    <input 
+                                        aria-label={t('admin.donors.form.is_premium', 'Es donador premium')} 
                                         type="checkbox" 
                                         id="isPremiumDonor"
                                         checked={formData.isPremium || false}
@@ -157,6 +163,7 @@ export default function DonorFormModal({ donor, isNew, onClose, onSave, saving }
                                             <button
                                                 type="button"
                                                 key={rank.id}
+                                                aria-pressed={isSelected}
                                                 onClick={() => {
                                                     const newRanks = isSelected
                                                         ? formData.ranks.filter(r => r !== rank.id)

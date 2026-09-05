@@ -58,6 +58,7 @@ export interface WikiArticle {
     category: string;
     description?: string;
     model_3d_url?: string;
+    texture_url?: string;
     model_3d_url_phase_2?: string;
     boss_subtitle?: string;
     boss_entity_type?: string;

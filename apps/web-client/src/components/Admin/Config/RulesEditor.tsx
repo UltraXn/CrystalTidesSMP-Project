@@ -272,8 +272,13 @@ export default function RulesEditor() {
                             <h4 id="rules-editor-dialog-title" style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#fff', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                 {editingRule ? <><Edit2 size={18} /> {t('admin.settings.rules.edit_title')}</> : <><Plus size={18} /> {t('admin.settings.rules.new_title')}</>}
                             </h4>
-                            <button aria-label="Action" type="button" onClick={handleCancel} style={{ background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer' }}>
-                                <X size={24} />
+                            <button 
+                                aria-label={t('common.close', 'Cerrar ventana')} 
+                                type="button" 
+                                onClick={handleCancel} 
+                                style={{ background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer' }}
+                            >
+                                <X size={24} aria-hidden="true" />
                             </button>
                         </div>
 
@@ -308,7 +313,8 @@ export default function RulesEditor() {
                                         onChange={(e) => setFormData({ ...formData, color: e.target.value })}
                                         style={{ width: '48px', height: '48px', padding: '0', border: 'none', borderRadius: '10px', background: 'none', cursor: 'pointer' }}
                                     />
-                                    <input aria-label="Input field"
+                                    <input 
+                                        aria-label={t('admin.settings.rules.color_hex', 'Código hexadecimal del color')}
                                         type="text"
                                         className="admin-input-premium"
                                         value={formData.color || '#6366f1'}
@@ -403,11 +409,23 @@ export default function RulesEditor() {
                                             <p style={{ margin: 0, fontSize: '0.9rem', color: 'rgba(255,255,255,0.6)', lineHeight: '1.5' }}>{rule.content}</p>
                                         </div>
                                         <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
-                                            <button aria-label="Action" type="button" onClick={() => handleEdit(rule)} className="hover-lift" style={{ background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)', color: 'rgba(255, 255, 255, 0.7)', padding: '0.5rem', borderRadius: '8px', cursor: 'pointer' }}>
-                                                <Edit2 size={18} />
+                                            <button 
+                                                aria-label={t('admin.settings.rules.edit_rule', `Editar regla: ${rule.title}`)} 
+                                                type="button" 
+                                                onClick={() => handleEdit(rule)} 
+                                                className="hover-lift" 
+                                                style={{ background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)', color: 'rgba(255, 255, 255, 0.7)', padding: '0.5rem', borderRadius: '8px', cursor: 'pointer' }}
+                                            >
+                                                <Edit2 size={18} aria-hidden="true" />
                                             </button>
-                                            <button aria-label="Action" type="button" onClick={() => handleDelete(rule.id)} className="hover-lift" style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', color: '#ef4444', padding: '0.5rem', borderRadius: '8px', cursor: 'pointer' }}>
-                                                <Trash2 size={18} />
+                                            <button 
+                                                aria-label={t('admin.settings.rules.delete_rule', `Eliminar regla: ${rule.title}`)} 
+                                                type="button" 
+                                                onClick={() => handleDelete(rule.id)} 
+                                                className="hover-lift" 
+                                                style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', color: '#ef4444', padding: '0.5rem', borderRadius: '8px', cursor: 'pointer' }}
+                                            >
+                                                <Trash2 size={18} aria-hidden="true" />
                                             </button>
                                         </div>
                                     </div>

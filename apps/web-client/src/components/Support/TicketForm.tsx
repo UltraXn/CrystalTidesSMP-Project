@@ -44,6 +44,9 @@ export default function TicketForm({ onClose, onSubmit }: TicketFormProps) {
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="ticket-form-title"
             className="modal-content"
             style={{
                 background: '#0B0C10', padding: '2.5rem', borderRadius: '2rem',
@@ -54,13 +57,13 @@ export default function TicketForm({ onClose, onSubmit }: TicketFormProps) {
         >
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
                 <div style={{ width: '3rem', height: '3rem', background: 'var(--accent-soft)', borderRadius: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Plus style={{ color: 'var(--accent)' }} />
+                    <Plus style={{ color: 'var(--accent)' }} aria-hidden="true" />
                 </div>
-                <h2 style={{ margin: 0, fontSize: '1.8rem' }}>{t('support.new_ticket_title')}</h2>
+                <h2 id="ticket-form-title" style={{ margin: 0, fontSize: '1.8rem' }}>{t('support.new_ticket_title')}</h2>
             </div>
 
             {generalError && (
-                <div style={{ color: '#ff6b6b', background: 'rgba(255, 107, 107, 0.1)', padding: '0.75rem', borderRadius: '8px', marginBottom: '1.5rem', textAlign: 'center', fontSize: '0.9rem', border: '1px solid rgba(255, 107, 107, 0.2)' }}>
+                <div role="alert" aria-live="polite" style={{ color: '#ff6b6b', background: 'rgba(255, 107, 107, 0.1)', padding: '0.75rem', borderRadius: '8px', marginBottom: '1.5rem', textAlign: 'center', fontSize: '0.9rem', border: '1px solid rgba(255, 107, 107, 0.2)' }}>
                     {generalError}
                 </div>
             )}
@@ -71,6 +74,8 @@ export default function TicketForm({ onClose, onSubmit }: TicketFormProps) {
                         <label htmlFor="ticket-category" style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--muted)' }}>{t('support.category', 'Category')}</label>
                         <select id="ticket-category" 
                             {...register('category')}
+                            aria-invalid={!!errors.category}
+                            aria-describedby={errors.category ? "ticket-category-error" : undefined}
                             style={{
                                 width: '100%', padding: '1rem', borderRadius: '1rem', 
                                 background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.05)', 
@@ -83,12 +88,14 @@ export default function TicketForm({ onClose, onSubmit }: TicketFormProps) {
                             <option value="billing">{t('support.categories.billing', 'Billing')}</option>
                             <option value="other">{t('support.categories.other', 'Other')}</option>
                         </select>
-                        {errors.category && <span style={{color: '#ff6b6b', fontSize: '0.8rem'}}>{errors.category.message}</span>}
+                        {errors.category && <span id="ticket-category-error" role="alert" style={{color: '#ff6b6b', fontSize: '0.8rem'}}>{errors.category.message}</span>}
                     </div>
                     <div>
                         <label htmlFor="ticket-priority" style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--muted)' }}>{t('support.priority', 'Priority')}</label>
                         <select id="ticket-priority" 
                             {...register('priority')}
+                            aria-invalid={!!errors.priority}
+                            aria-describedby={errors.priority ? "ticket-priority-error" : undefined}
                             style={{
                                 width: '100%', padding: '1rem', borderRadius: '1rem', 
                                 background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.05)', 
@@ -99,7 +106,7 @@ export default function TicketForm({ onClose, onSubmit }: TicketFormProps) {
                             <option value="medium">{t('support.priorities.medium', 'Medium')}</option>
                             <option value="high">{t('support.priorities.high', 'High')}</option>
                         </select>
-                        {errors.priority && <span style={{color: '#ff6b6b', fontSize: '0.8rem'}}>{errors.priority.message}</span>}
+                        {errors.priority && <span id="ticket-priority-error" role="alert" style={{color: '#ff6b6b', fontSize: '0.8rem'}}>{errors.priority.message}</span>}
                     </div>
                 </div>
 
@@ -109,13 +116,15 @@ export default function TicketForm({ onClose, onSubmit }: TicketFormProps) {
                         type="text" 
                         placeholder={t('support.subject_placeholder')}
                         {...register('title')} 
+                        aria-invalid={!!errors.title}
+                        aria-describedby={errors.title ? "ticket-subject-error" : undefined}
                         style={{
                             width: '100%', padding: '1rem', borderRadius: '1rem', 
                             background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.05)', 
                             color: 'white', outline: 'none'
                         }}
                     />
-                    {errors.title && <span style={{color: '#ff6b6b', fontSize: '0.8rem'}}>{errors.title.message}</span>}
+                    {errors.title && <span id="ticket-subject-error" role="alert" style={{color: '#ff6b6b', fontSize: '0.8rem'}}>{errors.title.message}</span>}
                 </div>
                 <div>
                     <label htmlFor="ticket-message" style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--muted)' }}>{t('support.message')}</label>
@@ -123,13 +132,15 @@ export default function TicketForm({ onClose, onSubmit }: TicketFormProps) {
                         rows={5}
                         placeholder={t('support.message_placeholder')}
                         {...register('description')}
+                        aria-invalid={!!errors.description}
+                        aria-describedby={errors.description ? "ticket-message-error" : undefined}
                         style={{
                             width: '100%', padding: '1rem', borderRadius: '1rem', 
                             background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.05)', 
                             color: 'white', outline: 'none', resize: 'none'
                         }}
                     ></textarea>
-                    {errors.description && <span style={{color: '#ff6b6b', fontSize: '0.8rem'}}>{errors.description.message}</span>}
+                    {errors.description && <span id="ticket-message-error" role="alert" style={{color: '#ff6b6b', fontSize: '0.8rem'}}>{errors.description.message}</span>}
                 </div>
                 <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
                     <button type="button" onClick={onClose} className="nav-btn" disabled={isSubmitting} style={{ flex: 1, padding: '1rem', background: 'rgba(255,255,255,0.05)' }}>

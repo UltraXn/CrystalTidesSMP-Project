@@ -77,6 +77,12 @@ async function fetchDailyQuests(): Promise<DailyQuest[]> {
   }
 }
 
+const isSafeImageUrl = (url: string): boolean => {
+  // eslint-disable-next-line no-control-regex -- Intentionally stripping control characters to prevent URL obfuscation
+  const cleaned = url.replace(/[\u0000-\u0020\u007F]+/g, '');
+  return cleaned.startsWith('/') || /^https?:\/\//i.test(cleaned);
+};
+
 /**
  * Renderizador de Markdown Enriquecido estilo Blog con soporte de Imágenes Inline `![alt](url)`
  */
@@ -94,7 +100,7 @@ export function RichBlogMarkdownRenderer({ markdown }: { readonly markdown: stri
 
         if (trimmed.startsWith('![')) {
           const match = /^!\[(.*?)\]\((.*?)\)$/.exec(trimmed)
-          if (match) {
+          if (match && isSafeImageUrl(match[2])) {
             return (
               <figure key={elementKey} className="my-6 space-y-2">
                 <img
@@ -154,14 +160,16 @@ export function RichBlogMarkdownRenderer({ markdown }: { readonly markdown: stri
           if (imgMatch.index > lastIdx) {
             parts.push(trimmed.substring(lastIdx, imgMatch.index))
           }
-          parts.push(
-            <img
-              key={`img_inline_${imgMatch.index}`}
-              src={imgMatch[2]}
-              alt={imgMatch[1] || 'Imagen inline'}
-              className="w-full rounded-2xl border border-white/10 shadow-xl my-4 object-cover max-h-100"
-            />
-          )
+          if (isSafeImageUrl(imgMatch[2])) {
+            parts.push(
+              <img
+                key={`img_inline_${imgMatch.index}`}
+                src={imgMatch[2]}
+                alt={imgMatch[1] || 'Imagen inline'}
+                className="w-full rounded-2xl border border-white/10 shadow-xl my-4 object-cover max-h-100"
+              />
+            )
+          }
           lastIdx = imgMatch.index + imgMatch[0].length
         }
 

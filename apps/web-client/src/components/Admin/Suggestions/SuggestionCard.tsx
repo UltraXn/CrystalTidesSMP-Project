@@ -103,33 +103,39 @@ export default function SuggestionCard({ suggestion: s, isExpanded, onToggleExpa
                 display: 'flex', alignItems: 'center', gap: '6px', minWidth: '160px', justifyContent: 'flex-end'
             }}>
                 {(s.status !== 'approved' && s.status !== 'implemented') && (
-                    <button aria-label="Action" type="button" 
+                    <button
+                        aria-label={`${t('admin.actions.approve', 'Aprobar')} sugerencia de ${s.nickname || 'usuario'}`}
+                        type="button" 
                         className="btn-action-icon btn-approve" 
                         title={t('admin.actions.approve', 'Aprobar')}
                         onClick={() => onUpdateStatus(s.id, 'approved')}
                         style={{ width: '32px', height: '32px', padding: 0, borderRadius: '8px' }}
                     >
-                        <Check size={14} />
+                        <Check size={14} aria-hidden="true" />
                     </button>
                 )}
                 {(s.status !== 'rejected') && (
-                    <button aria-label="Action" type="button" 
+                    <button
+                        aria-label={`${t('admin.actions.reject', 'Rechazar')} sugerencia de ${s.nickname || 'usuario'}`}
+                        type="button" 
                         className="btn-action-icon btn-reject" 
                         title={t('admin.actions.reject', 'Rechazar')}
                         onClick={() => onUpdateStatus(s.id, 'rejected')}
                         style={{ width: '32px', height: '32px', padding: 0, borderRadius: '8px' }}
                     >
-                        <X size={14} />
+                        <X size={14} aria-hidden="true" />
                     </button>
                 )}
                 
-                <button type="button" 
+                <button
+                    type="button"
+                    aria-label={`Eliminar sugerencia de ${s.nickname || 'usuario'}`}
                     onClick={() => onDelete(s.id)} 
                     className="btn-ghost-delete"
                     title="Eliminar"
                     style={{ width: '32px', height: '32px' }}
                 >
-                    <Trash2 size={14} />
+                    <Trash2 size={14} aria-hidden="true" />
                 </button>
             </div>
         </div>

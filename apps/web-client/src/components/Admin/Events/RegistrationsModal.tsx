@@ -39,17 +39,22 @@ export default function RegistrationsModal({ eventId, onClose, API_URL, mockRegi
     }, [eventId, API_URL, mockRegistrations]);
 
     return (
-        <div className="sync-modal-overlay" onClick={onClose}>
-            <div className="sync-modal-content poll-modal-content" style={{ maxWidth: '550px', maxHeight: '85vh', display:'flex', flexDirection:'column' }} onClick={e => e.stopPropagation()}>
+        <div className="sync-modal-overlay" onClick={onClose} role="presentation">
+            <div className="sync-modal-content poll-modal-content" role="dialog" aria-modal="true" aria-labelledby="registrations-modal-title" style={{ maxWidth: '550px', maxHeight: '85vh', display:'flex', flexDirection:'column' }} onClick={e => e.stopPropagation()}>
                 <div className="modal-accent-line"></div>
                 
                 <div className="poll-form-header" style={{ padding: '2rem 2.5rem', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                    <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '12px', fontSize: '1.4rem', fontWeight: '900', color: '#fff' }}>
-                        <Users style={{ color: 'var(--accent)' }} />
-                        {t('admin.events.registrations.title')} ({registrations.length})
+                    <h3 id="registrations-modal-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '12px', fontSize: '1.4rem', fontWeight: '900', color: '#fff' }}>
+                        <Users style={{ color: 'var(--accent)' }} aria-hidden="true" />
+                        {t('admin.events.registrations.title')} <span className="tabular-nums">({registrations.length})</span>
                     </h3>
-                    <button aria-label="Action" type="button" onClick={onClose} className="btn-close-mini">
-                        <X />
+                    <button 
+                        aria-label={t('common.close', 'Cerrar ventana')} 
+                        type="button" 
+                        onClick={onClose} 
+                        className="btn-close-mini"
+                    >
+                        <X aria-hidden="true" />
                     </button>
                 </div>
 

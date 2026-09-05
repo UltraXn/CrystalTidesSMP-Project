@@ -60,10 +60,10 @@ export const GachaUnauthorized: React.FC<GachaUnauthorizedProps> = ({ userRole, 
                             Simula un usuario en local para probar el diseño y la funcionalidad del slot machine:
                         </p>
                         <div className="dev-bypass-buttons">
-                            <button aria-label="Action" type="button" className="dev-bypass-btn user-btn" onClick={() => onMockLogin('user')}>
+                            <button aria-label="Simular vista de usuario estándar" type="button" className="dev-bypass-btn user-btn" onClick={() => onMockLogin('user')}>
                                 Vista Usuario Estándar
                             </button>
-                            <button aria-label="Action" type="button" className="dev-bypass-btn admin-btn" onClick={() => onMockLogin('admin')}>
+                            <button aria-label="Simular vista de administrador" type="button" className="dev-bypass-btn admin-btn" onClick={() => onMockLogin('admin')}>
                                 Vista Administrador (Dev Bar)
                             </button>
                         </div>

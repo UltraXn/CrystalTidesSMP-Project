@@ -81,9 +81,10 @@ export default function TicketsManager({ mockTickets, mockMessages }: TicketsMan
             {/* CARD HEADER */}
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2rem', flexWrap: 'wrap', gap: '1.5rem', alignItems: 'center' }}>
                 <div style={{ position: 'relative', width: '100%', maxWidth: '400px', flex: '1 1 auto' }}>
-                    <Search style={{ position: 'absolute', left: '1.2rem', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.4)' }} />
-                    <input aria-label="Input field" 
-                        type="text" 
+                    <Search style={{ position: 'absolute', left: '1.2rem', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.4)' }} aria-hidden="true" />
+                    <input 
+                        aria-label={t('admin.tickets.search_placeholder', 'Buscar tickets')} 
+                        type="search" 
                         placeholder={t('admin.tickets.search_placeholder', 'Buscar tickets...')} 
                         style={{ 
                             width: '100%', 

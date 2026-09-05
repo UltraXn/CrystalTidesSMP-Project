@@ -90,3 +90,25 @@
     animation: fade-in-up 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
 
+/* Accessibility: Support prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+
+    .animate-slow-zoom,
+    .pulse-glow,
+    .animate-jump:hover,
+    .spin,
+    .animate-fade-in-up,
+    .animate-pop-up {
+        animation: none !important;
+        transform: none !important;
+    }
+}
+

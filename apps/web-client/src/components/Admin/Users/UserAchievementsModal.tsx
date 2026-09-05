@@ -18,14 +18,14 @@ export default function UserAchievementsModal({ user, availableAchievements, onC
 
     return (
         <div className="premium-modal-overlay">
-            <div className="premium-modal-content">
+            <div role="dialog" aria-modal="true" aria-labelledby="user-achievements-modal-title" className="premium-modal-content">
                 <div className="modal-accent-line" />
                 <div className="modal-header-premium">
                     <div>
-                        <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '800' }}>{t('admin.users.achievements_of', 'Logros de')} <span style={{color: 'var(--accent)'}}>{displayName}</span></h3>
+                        <h3 id="user-achievements-modal-title" style={{ margin: 0, fontSize: '1.25rem', fontWeight: '800' }}>{t('admin.users.achievements_of', 'Logros de')} <span style={{color: 'var(--accent)'}}>{displayName}</span></h3>
                         <p style={{ margin: '0.25rem 0 0', color: 'rgba(255,255,255,0.4)', fontSize: '0.85rem' }}>{t('admin.users.assign_achievements', 'Asigna logros especiales manuales')}</p>
                     </div>
-                    <button aria-label="Action" type="button" onClick={onClose} className="btn-close-premium"><X /></button>
+                    <button aria-label={t('common.close', 'Cerrar modal')} type="button" onClick={onClose} className="btn-close-premium"><X aria-hidden="true" /></button>
                 </div>
 
                 <div className="modal-body-premium">
@@ -36,6 +36,8 @@ export default function UserAchievementsModal({ user, availableAchievements, onC
                                 <button
                                     type="button"
                                     key={achievement.id}
+                                    aria-label={`${active ? 'Remover' : 'Asignar'} logro ${achievement.name || achievement.id}`}
+                                    aria-pressed={active}
                                     onClick={() => onToggleAchievement(achievement.id)}
                                     style={{
                                         position: 'relative',

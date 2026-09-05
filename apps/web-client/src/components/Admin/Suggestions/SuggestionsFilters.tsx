@@ -14,7 +14,10 @@ const FilterButton = ({ type, icon, label, isActive, onClick }: { type: string, 
     const colors = type === 'All' ? { bg: 'rgba(255,255,255,0.1)', border: 'rgba(255,255,255,0.2)' } : getTypeColor(type);
     
     return (
-        <button aria-label="Action" type="button" 
+        <button
+            type="button" 
+            aria-label={label}
+            aria-pressed={isActive}
             onClick={onClick}
             style={{
                 display: 'flex', alignItems: 'center', gap: '8px',
@@ -29,7 +32,7 @@ const FilterButton = ({ type, icon, label, isActive, onClick }: { type: string, 
                 fontWeight: isActive ? 600 : 400
             }}
         >
-            {icon}
+            <span aria-hidden="true">{icon}</span>
             {label}
         </button>
     )
@@ -42,7 +45,10 @@ const StatusFilterButton = ({ status, label, activeStatus, setStatus }: { status
         : getStatusColor(status.toLowerCase());
 
     return (
-        <button aria-label="Action" type="button" 
+        <button
+            type="button" 
+            aria-label={label}
+            aria-pressed={isActive}
             onClick={() => setStatus(status)}
             style={{
                 display: 'flex', alignItems: 'center', gap: '8px',

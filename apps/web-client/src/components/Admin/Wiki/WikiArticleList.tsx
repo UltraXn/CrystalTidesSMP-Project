@@ -10,7 +10,7 @@ interface WikiArticleListProps {
     onDelete: (id: number) => void;
 }
 
-export default function WikiArticleList({ articles, loading, onEdit, onDelete }: WikiArticleListProps) {
+export default function WikiArticleList({ articles, loading, onEdit, onDelete }: Readonly<WikiArticleListProps>) {
     const { t } = useTranslation();
 
     if (loading) {
@@ -78,11 +78,11 @@ export default function WikiArticleList({ articles, loading, onEdit, onDelete }:
                             </div>
 
                             <div style={{ display: 'flex', gap: '0.3rem', marginLeft: 'auto' }}>
-                                <button aria-label="Action" type="button" onClick={() => onEdit(article)} style={{ padding: '0.4rem', background: 'rgba(255,255,255,0.05)', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', cursor: 'pointer' }} className="hover:text-amber-400">
-                                    <Edit size={13} />
+                                <button aria-label={`Editar artículo ${article.title}`} type="button" onClick={() => onEdit(article)} style={{ padding: '0.4rem', background: 'rgba(255,255,255,0.05)', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', cursor: 'pointer' }} className="hover:text-amber-400">
+                                    <Edit size={13} aria-hidden="true" />
                                 </button>
-                                <button aria-label="Action" type="button" onClick={() => onDelete(article.id)} style={{ padding: '0.4rem', background: 'rgba(239,68,68,0.1)', borderRadius: '6px', border: '1px solid rgba(239,68,68,0.2)', color: '#fca5a5', cursor: 'pointer' }} className="hover:text-red-400">
-                                    <Trash2 size={13} />
+                                <button aria-label={`Eliminar artículo ${article.title}`} type="button" onClick={() => onDelete(article.id)} style={{ padding: '0.4rem', background: 'rgba(239,68,68,0.1)', borderRadius: '6px', border: '1px solid rgba(239,68,68,0.2)', color: '#fca5a5', cursor: 'pointer' }} className="hover:text-red-400">
+                                    <Trash2 size={13} aria-hidden="true" />
                                 </button>
                             </div>
                         </div>

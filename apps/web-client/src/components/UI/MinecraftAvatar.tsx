@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface MinecraftAvatarProps {
-    src: string;
+    src?: string;
     alt?: string;
     size?: number;
     className?: string;
@@ -30,7 +30,7 @@ const MinecraftAvatar: React.FC<MinecraftAvatarProps> = ({
         const s = src.toLowerCase();
         return (
             s.includes('/skins/') ||
-            s.endsWith('.png') ||
+            s.includes('skin.png') ||
             s.includes('minotar.net/skin') ||
             s.includes('minecraftskins.com/uploads/skins') ||
             s.includes('textures.minecraft.net/texture') ||
@@ -48,6 +48,8 @@ const MinecraftAvatar: React.FC<MinecraftAvatarProps> = ({
             <img 
                 src={`https://mc-heads.net/avatar/${finalSrc}/${size}`}
                 alt={alt}
+                width={size}
+                height={size}
                 className={className}
                 style={{
                     width: '100%',
@@ -69,6 +71,8 @@ const MinecraftAvatar: React.FC<MinecraftAvatarProps> = ({
             <img 
                 src={finalSrc}
                 alt={alt}
+                width={size}
+                height={size}
                 className={className}
                 style={{
                     width: '100%',
@@ -92,6 +96,7 @@ const MinecraftAvatar: React.FC<MinecraftAvatarProps> = ({
      */
     return (
         <div 
+            role="img"
             className={`mc-head-crop ${className}`}
             style={{
                 width: '100%',

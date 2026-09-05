@@ -18,7 +18,7 @@ const AmbientBubbles = () => {
 
 
     return createPortal(
-        <div className="ambient-bubbles-container">
+        <div className="ambient-bubbles-container" aria-hidden="true">
             {bubbles.map((bubble) => (
                 <div
                     key={bubble.id}

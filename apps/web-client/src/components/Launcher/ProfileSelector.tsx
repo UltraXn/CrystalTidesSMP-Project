@@ -214,6 +214,7 @@ export const ProfileSelector: React.FC<ProfileSelectorProps> = ({
                 >
                   <button
                     type="button"
+                    aria-label={`Seleccionar perfil ${p.name}`}
                     onClick={() => handleSelect(p.id)}
                     style={{
                       display: "flex",
@@ -253,6 +254,7 @@ export const ProfileSelector: React.FC<ProfileSelectorProps> = ({
                   {/* Actions buttons */}
                   <div style={{ display: "flex", gap: 4 }}>
                     <button type="button"
+                      aria-label={`Editar perfil ${p.name}`}
                       onClick={() => {
                         setIsOpen(false);
                         onEditProfile(p);
@@ -270,6 +272,7 @@ export const ProfileSelector: React.FC<ProfileSelectorProps> = ({
                       ✏️
                     </button>
                     <button type="button"
+                      aria-label={`Clonar perfil ${p.name}`}
                       onClick={(e) => handleClone(e, p.id)}
                       title="Clonar perfil"
                       style={{
@@ -285,6 +288,7 @@ export const ProfileSelector: React.FC<ProfileSelectorProps> = ({
                     </button>
                     {p.id !== "default-profile-id" && (
                       <button type="button"
+                        aria-label={`Eliminar perfil ${p.name}`}
                         onClick={(e) => handleDelete(e, p.id)}
                         title="Eliminar perfil"
                         style={{
@@ -305,7 +309,7 @@ export const ProfileSelector: React.FC<ProfileSelectorProps> = ({
             })}
           </div>
 
-          <button aria-label="Action" type="button"
+          <button aria-label="Crear nuevo perfil" type="button"
             onClick={() => {
               setIsOpen(false);
               onCreateProfile();

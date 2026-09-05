@@ -148,14 +148,14 @@ export default function StaffFormModal({ userData, isNew, onClose, onSave, savin
     if (!userData && !isNew) return null;
 
     return (
-        <div className="staff-form-container">
+        <div role="dialog" aria-modal="true" aria-labelledby="staff-form-title" className="staff-form-container">
             <div className="staff-form-header">
-                    <h4>
-                    <UserPen style={{ marginRight: '8px', color: 'var(--accent)' }} />
+                    <h4 id="staff-form-title">
+                    <UserPen style={{ marginRight: '8px', color: 'var(--accent)' }} aria-hidden="true" />
                     {isNew ? t('admin.staff.form.new_title') : t('admin.staff.form.edit_title')}
                     {formData.name && <span className="preview-label">- {formData.name}</span>}
                     </h4>
-                    <button aria-label="Action" type="button" onClick={onClose} className="btn-close-mini"><X size={18} /></button>
+                    <button aria-label={t('common.close', 'Cerrar modal')} type="button" onClick={onClose} className="btn-close-mini"><X size={18} aria-hidden="true" /></button>
             </div>
 
             <form onSubmit={handleSubmit} className="staff-form-grid">
@@ -220,7 +220,8 @@ export default function StaffFormModal({ userData, isNew, onClose, onSave, savin
                             ))}
                         </select>
                         {!PRESET_ROLES.some(r => r.value === formData.role && r.value !== 'Custom') && (
-                            <input aria-label="Input field" 
+                            <input
+                                aria-label={t('admin.staff.form.custom_role_ph', 'Rol personalizado')}
                                 className="admin-input-premium" 
                                 style={{ marginTop: '0.5rem' }}
                                 value={formData.role} 

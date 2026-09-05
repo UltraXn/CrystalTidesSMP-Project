@@ -1,4 +1,4 @@
- 
+import React, { useEffect } from 'react'
 import { m, AnimatePresence } from 'framer-motion'
 import { AlertTriangle } from 'lucide-react'
 
@@ -24,6 +24,17 @@ export default function ConfirmationModal({
     isDanger = false,
     isLoading = false
 }: ConfirmationModalProps & { isLoading?: boolean }) {
+    useEffect(() => {
+        if (!isOpen) return;
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape' && !isLoading) {
+                onClose();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [isOpen, isLoading, onClose]);
+
     if (!isOpen) return null
 
     return (
@@ -33,6 +44,7 @@ export default function ConfirmationModal({
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 className="modal-overlay"
+                data-testid="confirmation-modal-overlay"
                 style={{
                     position: 'fixed',
                     top: 0,
@@ -49,6 +61,11 @@ export default function ConfirmationModal({
                 onClick={isLoading ? undefined : onClose}
             >
                 <m.div
+                    data-testid="confirmation-modal-container"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="confirmation-modal-title"
+                    aria-describedby="confirmation-modal-message"
                     initial={{ scale: 0.9, y: 20, opacity: 0 }}
                     animate={{ scale: 1, y: 0, opacity: 1 }}
                     exit={{ scale: 0.9, y: 20, opacity: 0 }}
@@ -83,21 +100,31 @@ export default function ConfirmationModal({
                         )}
                     </div>
 
-                    <h2 style={{
-                        fontSize: '1.5rem',
-                        marginBottom: '1rem',
-                        color: '#fff',
-                        fontWeight: '700'
-                    }}>
+                    <h2 
+                        id="confirmation-modal-title"
+                        data-testid="confirmation-modal-title"
+                        style={{
+                            fontSize: '1.5rem',
+                            marginBottom: '1rem',
+                            color: '#fff',
+                            fontWeight: '700'
+                        }}
+                    >
                         {title}
                     </h2>
 
-                    <p style={{ color: '#aaa', lineHeight: '1.6', marginBottom: '2rem', fontSize: '1rem' }}>
+                    <p 
+                        id="confirmation-modal-message"
+                        data-testid="confirmation-modal-message"
+                        style={{ color: '#aaa', lineHeight: '1.6', marginBottom: '2rem', fontSize: '1rem' }}
+                    >
                         {message}
                     </p>
 
                     <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-                        <button aria-label="Action" type="button"
+                        <button 
+                            type="button"
+                            data-testid="confirmation-modal-cancel"
                             onClick={onClose}
                             disabled={isLoading}
                             style={{
@@ -117,7 +144,9 @@ export default function ConfirmationModal({
                         >
                             {cancelText}
                         </button>
-                        <button aria-label="Action" type="button"
+                        <button 
+                            type="button"
+                            data-testid="confirmation-modal-confirm"
                             onClick={onConfirm}
                             disabled={isLoading}
                             style={{

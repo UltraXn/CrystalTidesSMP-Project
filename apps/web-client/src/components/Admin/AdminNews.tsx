@@ -111,9 +111,10 @@ export default function AdminNews({ user }: AdminNewsProps) {
         <div className="news-manager-container">
             <div className="news-header">
                 <div className="news-search-wrapper">
-                    <Search className="news-search-icon" />
-                    <input aria-label="Input field" 
-                        type="text" 
+                    <Search className="news-search-icon" aria-hidden="true" />
+                    <input 
+                        aria-label={t('admin.news.search_ph', 'Buscar noticias')} 
+                        type="search" 
                         placeholder={t('admin.news.search_ph')} 
                         value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value)}
@@ -121,7 +122,7 @@ export default function AdminNews({ user }: AdminNewsProps) {
                     />
                 </div>
                 <button type="button" className="btn-primary poll-new-btn" onClick={handleNew}>
-                    <Plus size={14} /> {t('admin.news.write_btn')}
+                    <Plus size={14} aria-hidden="true" /> {t('admin.news.write_btn')}
                 </button>
             </div>
 

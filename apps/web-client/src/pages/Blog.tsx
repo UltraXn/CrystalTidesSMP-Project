@@ -207,6 +207,39 @@ const CompactNewsCard = ({ article }: { article: Article }) => {
     )
 }
 
+const DEFAULT_FALLBACK_NEWS: Article[] = [
+    {
+        id: "fallback-1",
+        title: "Lanzamiento Oficial de CrystalTides SMP 1.21.1",
+        category: "Anuncio",
+        created_at: new Date().toISOString(),
+        content: "Bienvenido a CrystalTides SMP. Explora un mundo místico repleto de bossing, biomas abisales, mecánicas personalizadas y una comunidad vibrante.",
+        image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1200&q=80",
+        status: "Published",
+        slug: "lanzamiento-oficial-crystaltides-smp"
+    },
+    {
+        id: "fallback-2",
+        title: "Nuevo Sistema de Misiones y Recompensas Gacha",
+        category: "Sistema",
+        created_at: new Date(Date.now() - 86400000 * 2).toISOString(),
+        content: "Completa misiones diarias en el juego con /misiones para ganar KilluCoins (KC) y desbloquear ítems cosméticos en el altar.",
+        image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80",
+        status: "Published",
+        slug: "sistema-misiones-gacha"
+    },
+    {
+        id: "fallback-3",
+        title: "Gran Torneo de Pesca Abisal & Jefes de la Semana",
+        category: "Evento",
+        created_at: new Date(Date.now() - 86400000 * 5).toISOString(),
+        content: "Únete este fin de semana al evento comunitario de pesca y derrota a los jefes marinos para ganar trofeos exclusivos.",
+        image: "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=1200&q=80",
+        status: "Published",
+        slug: "torneo-pesca-abisal"
+    }
+];
+
 export default function Blog() {
     const { t } = useTranslation()
     const [selectedCategory, setSelectedCategory] = useState('Todos')
@@ -220,13 +253,18 @@ export default function Blog() {
 
     const API_URL = import.meta.env.VITE_API_URL || '/api'
 
-    const { data: news = [], isLoading: loading } = useQuery<Article[]>({
+    const { data: news = DEFAULT_FALLBACK_NEWS, isLoading: loading } = useQuery<Article[]>({
         queryKey: ['blogPublishedNews'],
         queryFn: async () => {
-            const res = await fetch(`${API_URL}/news`)
-            if (!res.ok) throw new Error("HTTP error " + res.status)
-            const data = await res.json()
-            return Array.isArray(data) ? data.filter(n => n.status === 'Published') : []
+            try {
+                const res = await fetch(`${API_URL}/news`)
+                if (!res.ok) return DEFAULT_FALLBACK_NEWS;
+                const data = await res.json()
+                const published = Array.isArray(data) ? data.filter(n => n.status === 'Published') : []
+                return published.length > 0 ? published : DEFAULT_FALLBACK_NEWS;
+            } catch {
+                return DEFAULT_FALLBACK_NEWS;
+            }
         },
         staleTime: 60_000,
     })

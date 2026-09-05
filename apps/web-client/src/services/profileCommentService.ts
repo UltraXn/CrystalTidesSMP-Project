@@ -75,10 +75,14 @@ export const postProfileComment = async (profileId: string, content: string): Pr
 }
 
 export const deleteProfileComment = async (commentId: number): Promise<void> => {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session?.user?.id) throw new Error("Debes iniciar sesión para eliminar comentarios")
+
     const { error } = await supabase
         .from('profile_comments')
         .delete()
         .eq('id', commentId)
+        .eq('author_id', session.user.id)
 
     if (error) throw error
 }

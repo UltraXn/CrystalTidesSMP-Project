@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import useEmblaCarousel from 'embla-carousel-react'
 import Autoplay from 'embla-carousel-autoplay'
 import Fade from 'embla-carousel-fade'
@@ -25,12 +25,19 @@ interface HeroBackgroundCarouselProps {
 
 const HeroBackgroundCarousel = ({ slides = [] }: HeroBackgroundCarouselProps) => {
     const [loadSecondary, setLoadSecondary] = useState(false)
+    const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const plugins = useMemo(() => {
+        const list = [Fade()];
+        if (!prefersReducedMotion) {
+            list.unshift(Autoplay({ delay: 6000, stopOnInteraction: false }));
+        }
+        return list;
+    }, [prefersReducedMotion]);
+
     const [emblaRef] = useEmblaCarousel(
-        { loop: true, watchDrag: false, duration: 40 },
-        [
-            Autoplay({ delay: 6000, stopOnInteraction: false }),
-            Fade()
-        ]
+        { loop: !prefersReducedMotion, watchDrag: false, duration: 40 },
+        plugins
     )
 
     useEffect(() => {
@@ -42,15 +49,16 @@ const HeroBackgroundCarousel = ({ slides = [] }: HeroBackgroundCarouselProps) =>
     const items: Slide[] = hasDynamicSlides ? slides : IMAGES.map(src => ({ image: src }));
 
     return (
-        <div className="absolute inset-0 z-0 overflow-hidden" ref={emblaRef}>
+        <div className="absolute inset-0 z-0 overflow-hidden" ref={emblaRef} aria-hidden={!hasDynamicSlides}>
             <div className="flex touch-pan-y h-full">
                 {items.map((slide, index) => (
                     <div className="relative flex-[0_0_100%] min-w-0 h-full overflow-hidden" key={slide.image}>
                         {(index === 0 || loadSecondary) && (
                             <img
                                 src={slide.image}
-                                alt={`Slide ${index + 1}`}
-                                className="absolute inset-0 w-full h-full object-cover animate-slow-zoom"
+                                alt=""
+                                aria-hidden="true"
+                                className="absolute inset-0 w-full h-full object-cover animate-slow-zoom motion-reduce:animate-none"
                                 fetchPriority={index === 0 ? "high" : "low"}
                                 loading={index === 0 ? "eager" : "lazy"}
                                 decoding="async"

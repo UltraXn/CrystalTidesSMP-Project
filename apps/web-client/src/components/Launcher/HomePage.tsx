@@ -338,7 +338,9 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
             <div style={{ fontSize: 13, fontWeight: 600, color: "#FFF" }}>{SERVER_IP}</div>
             <div style={{ fontSize: 11, marginTop: 1 }}>{statusMeta()}</div>
           </div>
-          <button aria-label="Action" type="button"
+          <button
+            aria-label={ipCopied ? "IP copiada al portapapeles" : "Copiar IP del servidor"}
+            type="button"
             onClick={handleCopyIp}
             title="Copiar IP"
             style={{
@@ -599,7 +601,9 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                             {/* Prev / Next Arrows */}
                             <div style={{ display: "flex", gap: 6 }}>
-                              <button aria-label="Action" type="button"
+                              <button
+                                aria-label="Noticia anterior"
+                                type="button"
                                 onClick={() => setActiveNewsIndex((prev) => (prev - 1 + news.length) % news.length)}
                                 style={{
                                   width: 30,
@@ -617,9 +621,11 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                                   transition: "color 0.2s, background-color 0.2s, border-color 0.2s, opacity 0.2s",
                                 }}
                               >
-                                ◀
+                                <span aria-hidden="true">◀</span>
                               </button>
-                              <button aria-label="Action" type="button"
+                              <button
+                                aria-label="Noticia siguiente"
+                                type="button"
                                 onClick={() => setActiveNewsIndex((prev) => (prev + 1) % news.length)}
                                 style={{
                                   width: 30,
@@ -637,14 +643,17 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                                   transition: "color 0.2s, background-color 0.2s, border-color 0.2s, opacity 0.2s",
                                 }}
                               >
-                                ▶
+                                <span aria-hidden="true">▶</span>
                               </button>
                             </div>
 
                             {/* Pagination Dots */}
                             <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
                               {news.map((post, idx) => (
-                                <button aria-label="Action" type="button"
+                                <button
+                                  aria-label={`Ir a noticia ${idx + 1}: ${post.title}`}
+                                  aria-pressed={activeNewsIndex === idx}
+                                  type="button"
                                   key={post.id}
                                   onClick={() => setActiveNewsIndex(idx)}
                                   style={{
@@ -750,7 +759,9 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                   border: "1px solid rgba(255, 255, 255, 0.05)",
                 }}>
                   {/* Left Arrow */}
-                  <button aria-label="Action" type="button"
+                  <button
+                    aria-label="Capa anterior"
+                    type="button"
                     onClick={() => {
                       if (userCapes.length === 0) return;
                       let nextIndex = selectedCapeIndex - 1;
@@ -772,7 +783,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                     onMouseEnter={(e) => e.currentTarget.style.color = "#2DD4BF"}
                     onMouseLeave={(e) => e.currentTarget.style.color = "rgba(255, 255, 255, 0.6)"}
                   >
-                    ◀
+                    <span aria-hidden="true">◀</span>
                   </button>
 
                   {/* Cape Name */}
@@ -790,7 +801,9 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                   </span>
 
                   {/* Right Arrow */}
-                  <button aria-label="Action" type="button"
+                  <button
+                    aria-label="Capa siguiente"
+                    type="button"
                     onClick={() => {
                       if (userCapes.length === 0) return;
                       let nextIndex = selectedCapeIndex + 1;
@@ -812,12 +825,15 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                     onMouseEnter={(e) => e.currentTarget.style.color = "#2DD4BF"}
                     onMouseLeave={(e) => e.currentTarget.style.color = "rgba(255, 255, 255, 0.6)"}
                   >
-                    ▶
+                    <span aria-hidden="true">▶</span>
                   </button>
                 </div>
 
                 {/* Action Button */}
-                <button aria-label="Action" type="button"
+                <button
+                  aria-label={selectedCapeIndex === -1 ? "Ocultar capa equipada" : `Equipar capa ${userCapes[selectedCapeIndex]?.alias || "Oficial"}`}
+                  aria-busy={isEquippingCape}
+                  type="button"
                   disabled={isEquippingCape}
                   onClick={async () => {
                     if (!currentSession?.accessToken) return;
@@ -918,8 +934,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
         </div>
       )}
 
-      {/* ── Dock: perfil + jugar ── */}
-      <section className="reveal-up" style={{ display: "flex", alignItems: "stretch", gap: 14, animationDelay: "0.18s", position: "relative", zIndex: 10, backgroundColor: "rgba(10, 14, 23, 0.95)", backdropFilter: "blur(16px)", padding: "10px 14px", borderRadius: "20px", border: "1px solid rgba(255, 255, 255, 0.12)", boxShadow: "0 -8px 32px rgba(0, 0, 0, 0.4)" }}>
+      {/* ── Dock: perfil + jugar (Clean Modrinth / Linear inspired) ── */}
+      <section className="reveal-up" style={{ display: "flex", alignItems: "stretch", gap: 12, animationDelay: "0.18s", position: "relative", zIndex: 10, backgroundColor: "rgba(11, 14, 21, 0.95)", backdropFilter: "blur(16px)", padding: "10px 12px", borderRadius: 14, border: "1px solid rgba(255, 255, 255, 0.08)", boxShadow: "0 4px 24px rgba(0, 0, 0, 0.4)" }}>
         <ProfileSelector
           key={profilesVersion}
           onEditProfile={(p) => {
@@ -933,28 +949,31 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
         />
 
         {/* Botón JUGAR con progreso integrado */}
-        <button aria-label="Action" type="button"
+        <button
+          aria-label={isLaunching ? "Iniciando Minecraft..." : isInGame ? "En partida de Minecraft" : "Iniciar juego"}
+          aria-busy={isLaunching}
+          type="button"
           onClick={handlePlay}
           disabled={isLaunching}
           style={{
             flex: 1,
             position: "relative",
             overflow: "hidden",
-            border: "1px solid rgba(255, 255, 255, 0.28)",
-            borderRadius: 14,
+            border: "1px solid rgba(255, 255, 255, 0.15)",
+            borderRadius: 12,
             background: isInGame
-              ? "linear-gradient(135deg, #34D399, #10B981)"
-              : "linear-gradient(135deg, var(--accent) 0%, #14B8A6 55%, var(--primary) 100%)",
-            color: "#052A26",
+              ? "linear-gradient(135deg, #059669 0%, #047857 100%)"
+              : "linear-gradient(135deg, #0d9488 0%, #0f766e 100%)",
+            color: "#FFFFFF",
             cursor: isLaunching ? "wait" : "pointer",
             fontFamily: "var(--font-family)",
-            fontSize: 17,
+            fontSize: 16,
             fontWeight: 800,
-            letterSpacing: "0.18em",
+            letterSpacing: "0.08em",
             textTransform: "uppercase",
-            boxShadow: "0 6px 24px rgba(45, 212, 191, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.35)",
-            height: 62,
-            transition: "transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), filter 0.2s ease, box-shadow 0.25s ease",
+            boxShadow: "0 2px 10px rgba(0, 0, 0, 0.3)",
+            height: 56,
+            transition: "all 0.18s cubic-bezier(0.4, 0, 0.2, 1)",
             padding: 0,
           }}
           onMouseEnter={(e) => {

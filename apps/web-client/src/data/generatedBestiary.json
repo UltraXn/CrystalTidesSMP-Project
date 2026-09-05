@@ -1,0 +1,511 @@
+[
+  {
+    "id": 5,
+    "slug": "the-forgotten-terror",
+    "title": "• The Forgotten Terror (Toro Wither Ancestral)",
+    "category": "bosses",
+    "boss_mod_name": "MythicMobs",
+    "boss_hp": "600 HP",
+    "boss_hp_phase_2": "800 HP",
+    "boss_damage": "20-35 HP por Habilidad",
+    "boss_damage_phase_2": "28-75 HP por Habilidad",
+    "boss_armor": "25 (Resistencia al Empuje: 1.0)",
+    "boss_speed": "0.35 (Velocidad de Vuelo Rango 64)",
+    "boss_location": "Ruinas Olvidadas del Nether (Altar Ancestral)",
+    "boss_spawn_method": "Invocado con el Cráneo de Tormenta Olvidada en el Altar Ancestral",
+    "boss_kc_reward": 4500,
+    "boss_drops": [
+      "Cráneo de Tormenta Olvidada (100%)",
+      "Estrella de las Sombras (100%)",
+      "Lingote de Netherita Ancestral (50%)"
+    ],
+    "card_theme": "red",
+    "threat_label": "MYTHICMOBS • JEFE SUPREMO ANCESTRAL DE LAS RUINAS DEL NETHER",
+    "hp_label": "SALUD DE FASE",
+    "damage_label": "ATAQUE & DAÑO",
+    "speed_label": "VELOCIDAD / RANGO",
+    "location_label": "UBICACIÓN & RITUAL DE INVOCACIÓN",
+    "drops_label": "BOTÍN & DROPS MÍTICOS",
+    "bounty_label": "RECOMPENSA DE CAZA",
+    "model_3d_url": "/models/toro_wither.gltf",
+    "model_3d_url_phase_2": "/models/toro_wither_terror.gltf",
+    "texture_url": "/models/toro_wither.png",
+    "boss_phases": [
+      {
+        "phase_number": 1,
+        "phase_name": "Fase I: Toro Wither (Forma Voladora) (600 HP)",
+        "model_3d_url": "/models/toro_wither.gltf",
+        "hp": "600 HP",
+        "damage": "20-35 HP por Habilidad",
+        "attacks": [
+          {
+            "name": "Zarpaso fatal",
+            "type": "MELEE",
+            "damage": "20 HP (Empuje + Combo)",
+            "description": "The Forgotten Terror arremete velozmente en el aire ejecutando una estocada frontal con sus garras de basalto y concreto. El impacto desestabiliza la guardia del jugador y causa un severo retroceso físico.",
+            "animation_clip": "claw2"
+          },
+          {
+            "name": "Zarpaso doble",
+            "type": "MELEE",
+            "damage": "35 HP Crítico",
+            "description": "Golpe cruzado con ambas garras que inflige daño masivo y desgarra armaduras.",
+            "animation_clip": "claw1"
+          },
+          {
+            "name": "Casteo Wither",
+            "type": "PROYECTIL",
+            "damage": "25 HP + Wither II",
+            "description": "Dispara una ráfaga de proyectiles de calaveras guiadas que persiguen a los jugadores cercanos.",
+            "animation_clip": "shoot"
+          },
+          {
+            "name": "Ciclón Wither",
+            "type": "AOE",
+            "damage": "30 HP en Área",
+            "description": "Giro concéntrico violento que repele flechas y desata una onda expansiva de energía oscura.",
+            "animation_clip": "roundhouse"
+          },
+          {
+            "name": "Quebranta armaduras",
+            "type": "DEBUFF",
+            "damage": "40 HP + Rompe Escudo",
+            "description": "Estocada descendente que inhabilita el escudo del jugador durante 5 segundos.",
+            "animation_clip": "overhead_swipe"
+          },
+          {
+            "name": "Pozos Wither",
+            "type": "ZONA",
+            "damage": "12/s Daño Continuo",
+            "description": "Engendra charcos de ácido y putrefacción oscura en el suelo de la arena.",
+            "animation_clip": "wither_pool"
+          }
+        ]
+      },
+      {
+        "phase_number": 2,
+        "phase_name": "Fase II: Wither Terror (DarkenSky & Sin Cabeza) (800 HP)",
+        "model_3d_url": "/models/toro_wither_terror.gltf",
+        "hp": "800 HP",
+        "damage": "28-75 HP por Habilidad",
+        "attacks": [
+          {
+            "name": "Impacto Aplastante de Terror",
+            "type": "MELEE / AOE",
+            "damage": "28 HP + Empuje Violento",
+            "description": "The Forgotten Terror desata puñetazos de fuerza bruta contra el terreno, generando una onda expansiva terrestre que causa 28 HP de daño físico y empuja fuertemente a los atacantes en un radio de 8 bloques.",
+            "animation_clip": "right_smash"
+          },
+          {
+            "name": "Barrido de Garras & Coletazo",
+            "type": "AOE MELEE",
+            "damage": "35 HP Físico",
+            "description": "Giro circular rasante a nivel del suelo que barre a múltiples jugadores a la vez.",
+            "animation_clip": "left_smash2"
+          },
+          {
+            "name": "Erupción Declamatoria (Decapitación <300 HP)",
+            "type": "CANALIZADO",
+            "damage": "DarkenSky + 50 HP Explosivo",
+            "description": "Al bajar de 300 HP, se decapita a sí mismo, oscurece el cielo entero y sostiene su cráneo invocador.",
+            "animation_clip": "head_off"
+          },
+          {
+            "name": "Frenesí de Sombras (Cráneo en Mano)",
+            "type": "PROYECTIL / MELEE",
+            "damage": "75 HP Crítico Masivo",
+            "description": "Ataques sin cooldown que desgarran armaduras y disparan proyectiles de cráneos oscuros.",
+            "animation_clip": "head_off_left_smash"
+          }
+        ]
+      }
+    ],
+    "content": "Jefe colosal y deidad destructiva de las Ruinas Olvidadas del Nether. Reanimado mediante tres cráneos de Wither en el Altar Ancestral, **The Forgotten Terror** evoluciona en dos fases brutales:\n\n* **Fase I: Aberración Ancestral** (600 HP) — Entidad voladora con zarpazos alternados, proyectiles guiados, pozos de veneno y ciclón circular de 14 bloques.\n* **Fase II: Wither Terror** (800 HP) — Manifestación terrestre con 90% de reducción de daño a proyectiles. Al bajar de 300 HP se decapita, obteniendo 99% de resistencia divina y doble velocidad."
+  },
+  {
+    "id": 11,
+    "slug": "chesed-sentinel-kinetic",
+    "title": "#005 • Chesed (Centinela Kinetic)",
+    "category": "bosses",
+    "boss_mod_name": "Qliphoth Awakening",
+    "boss_hp": "800 HP",
+    "boss_damage": "40 HP Cinético",
+    "boss_armor": "30 (Blindaje de Aleación)",
+    "boss_speed": "0.40 (Propulsión Vectorial)",
+    "boss_location": "Cámara del Núcleo Qliphoth",
+    "boss_spawn_method": "Activación de la Esfera de Fase en el Núcleo",
+    "boss_kc_reward": 3000,
+    "boss_drops": [
+      "Phase Sphere (100%)",
+      "Kinetic Core (50%)"
+    ],
+    "card_theme": "cyan",
+    "model_3d_url": "/models/qliphoth/chesed.gltf",
+    "texture_url": "/models/qliphoth/chesed.png",
+    "content": "Guardián biomecánico de las cámaras profundas de Qliphoth. Utiliza propulsión vectorial y descargas de energía cinética concentrada."
+  },
+  {
+    "id": 12,
+    "slug": "geburah-divine-war",
+    "title": "#006 • Geburah (Juicio Carmesí)",
+    "category": "bosses",
+    "boss_mod_name": "Qliphoth Awakening",
+    "boss_hp": "1200 HP",
+    "boss_damage": "60 HP Divino / Fuego",
+    "boss_armor": "35 (Armadura de Juicio)",
+    "boss_speed": "0.45 (Carga Relámpago)",
+    "boss_location": "Arena del Juicio Carmesí",
+    "boss_spawn_method": "Invocación con el Sello de Guerra Carmesí",
+    "boss_kc_reward": 3600,
+    "boss_drops": [
+      "Divine Gear (100%)",
+      "Crimson Edge (25%)"
+    ],
+    "card_theme": "red",
+    "model_3d_url": "/models/qliphoth/geburah.gltf",
+    "texture_url": "/models/qliphoth/geburah.png",
+    "content": "Manifestación divina de la guerra. Despliega torretas automáticas y tajos de espada ardiente de gran alcance."
+  },
+  {
+    "id": 13,
+    "slug": "malkuth-emberfrost",
+    "title": "#007 • Malkuth (Coloso Elemental)",
+    "category": "bosses",
+    "boss_mod_name": "Qliphoth Awakening",
+    "boss_hp": "900 HP",
+    "boss_damage": "45 HP Fuego / Hielo",
+    "boss_armor": "28 (Coraza Elemental)",
+    "boss_speed": "0.30 (Paso Telúrico)",
+    "boss_location": "Altar de los Elementos Opuestos",
+    "boss_spawn_method": "Canalización de Brasas Glaciales",
+    "boss_kc_reward": 3200,
+    "boss_drops": [
+      "Emberfrost Gauntlet (100%)",
+      "Elemental Essence (75%)"
+    ],
+    "card_theme": "amber",
+    "model_3d_url": "/models/qliphoth/malkuth.gltf",
+    "texture_url": "/models/qliphoth/malkuth.png",
+    "content": "Coloso ancestral que domina el equilibrio entre el fuego abrasador y la escarcha cero absoluto."
+  },
+  {
+    "id": 21,
+    "slug": "automaton-mythology",
+    "title": "Automaton (Gólem Mecánico Antiguo)",
+    "category": "mobs_hostiles",
+    "boss_mod_name": "Mythology Mobs",
+    "boss_hp": "120 HP",
+    "boss_damage": "18 HP Físico",
+    "boss_armor": "20 (Hierro Forjado)",
+    "boss_speed": "0.22",
+    "boss_location": "Ruinas y Templos Mecánicos",
+    "boss_spawn_method": "Generación Natural Subterránea",
+    "boss_kc_reward": 150,
+    "boss_drops": [
+      "Ancient Gear (100%)",
+      "Iron Ingot (200%)"
+    ],
+    "card_theme": "slate",
+    "model_3d_url": "/models/mythology/automaton.gltf",
+    "texture_url": "/models/mythology/automaton.png",
+    "content": "Constructo mecánico antiguo que patrulla las ruinas perdidas. Resistente a proyectiles y flechas convencionales."
+  },
+  {
+    "id": 22,
+    "slug": "chupacabra-mythology",
+    "title": "Chupacabra (Depredador Nocturno)",
+    "category": "mobs_hostiles",
+    "boss_mod_name": "Mythology Mobs",
+    "boss_hp": "65 HP",
+    "boss_damage": "14 HP (Robo de Vida)",
+    "boss_armor": "10 (Piel Endurecida)",
+    "boss_speed": "0.38",
+    "boss_location": "Desiertos y Sabanas Nocturnas",
+    "boss_spawn_method": "Generación Nocturna",
+    "boss_kc_reward": 90,
+    "boss_drops": [
+      "Chupacabra Claw (100%)",
+      "Leather (100%)"
+    ],
+    "card_theme": "purple",
+    "model_3d_url": "/models/mythology/chupacabra.gltf",
+    "texture_url": "/models/mythology/chupacabra.png",
+    "content": "Criatura ágil y sigilosa que acecha en la noche. Sus mordiscos drenan salud al jugador para regenerar la suya."
+  },
+  {
+    "id": 23,
+    "slug": "drake-mythology",
+    "title": "Drake (Dragón Terrestre Mítico)",
+    "category": "mobs_hostiles",
+    "boss_mod_name": "Mythology Mobs",
+    "boss_hp": "220 HP",
+    "boss_damage": "24 HP + Aliento Ígneo",
+    "boss_armor": "18 (Escamas Dragónicas)",
+    "boss_speed": "0.32",
+    "boss_location": "Picos Montañosos y Volcanes",
+    "boss_spawn_method": "Generación en Alturas",
+    "boss_kc_reward": 400,
+    "boss_drops": [
+      "Drake Scale (100%)",
+      "Drake Heart (25%)"
+    ],
+    "card_theme": "emerald",
+    "model_3d_url": "/models/mythology/drake.gltf",
+    "texture_url": "/models/mythology/drake.png",
+    "content": "Reptil colosal sin alas que habita en riscos montañosos. Arremete con gran fuerza y escupe conos de fuego."
+  },
+  {
+    "id": 24,
+    "slug": "wendigo-mythology",
+    "title": "Wendigo (Espíritu de los Bosques Helados)",
+    "category": "mobs_hostiles",
+    "boss_mod_name": "Mythology Mobs",
+    "boss_hp": "300 HP",
+    "boss_damage": "30 HP + Congelación",
+    "boss_armor": "15 (Espíritu Espectral)",
+    "boss_speed": "0.42",
+    "boss_location": "Taigas Nevadas y Bosques Oscuros",
+    "boss_spawn_method": "Invocado en Noches de Tormenta de Nieve",
+    "boss_kc_reward": 800,
+    "boss_drops": [
+      "Wendigo Antler (100%)",
+      "Frost Essence (50%)"
+    ],
+    "card_theme": "cyan",
+    "model_3d_url": "/models/mythology/wendigo.gltf",
+    "texture_url": "/models/mythology/wendigo.png",
+    "content": "Manifestación espectral del hambre y el invierno eterno. Puede abalanzarse sobre sus presas a velocidades extremas."
+  },
+  {
+    "id": 31,
+    "slug": "red-panda-companion",
+    "title": "Red Panda & Companions (Fauna de Compañía)",
+    "category": "mobs_pacificos",
+    "boss_mod_name": "Critters and Companions",
+    "boss_hp": "20 HP",
+    "boss_damage": "Pacífico (Domesticable)",
+    "boss_armor": "0",
+    "boss_speed": "0.25",
+    "boss_location": "Bosques de Bambú y Selvas Templadas",
+    "boss_spawn_method": "Generación Natural en Bosques",
+    "boss_kc_reward": 10,
+    "boss_drops": [
+      "Bambú (100%)"
+    ],
+    "card_theme": "amber",
+    "model_3d_url": "/models/critters/red_panda.gltf",
+    "texture_url": "/models/critters/red_panda.png",
+    "content": "Pequeño mamífero sociable y dócil. Puede domesticarse con brotes de bambú y frutas dulces para acompañar al jugador en sus viajes."
+  },
+  {
+    "id": 32,
+    "slug": "dragonfly-companion",
+    "title": "Dragonfly (Libélula de Pantano)",
+    "category": "mobs_pacificos",
+    "boss_mod_name": "Critters and Companions",
+    "boss_hp": "10 HP",
+    "boss_damage": "Pacífico",
+    "boss_armor": "0",
+    "boss_speed": "0.50 (Vuelo Rápido)",
+    "boss_location": "Pantanos y Manglares",
+    "boss_spawn_method": "Generación Natural cerca del Agua",
+    "boss_kc_reward": 5,
+    "boss_drops": [
+      "Alas de Libélula (50%)"
+    ],
+    "card_theme": "emerald",
+    "model_3d_url": "/models/critters/dragonfly.gltf",
+    "texture_url": "/models/critters/dragonfly.png",
+    "content": "Insecto volador ágil que habita en las marismas. Ayuda a controlar la población de mosquitos y criaturas pequeñas del agua."
+  },
+  {
+    "id": 33,
+    "slug": "ferret-companion",
+    "title": "Ferret (Hurón Silvestre)",
+    "category": "mobs_pacificos",
+    "boss_mod_name": "Critters and Companions",
+    "boss_hp": "16 HP",
+    "boss_damage": "Pacífico (Domesticable)",
+    "boss_armor": "0",
+    "boss_speed": "0.35",
+    "boss_location": "Praderas y Bosques Templados",
+    "boss_spawn_method": "Generación Natural",
+    "boss_kc_reward": 10,
+    "boss_drops": [
+      "Piel Fina (50%)"
+    ],
+    "card_theme": "slate",
+    "model_3d_url": "/models/critters/ferret.gltf",
+    "texture_url": "/models/critters/ferret.png",
+    "content": "Mamífero juguetón que puede buscar objetos pequeños y recolectar semillas para su dueño."
+  },
+  {
+    "id": 34,
+    "slug": "hedgehog-companion",
+    "title": "Hedgehog (Erizo de Campo)",
+    "category": "mobs_pacificos",
+    "boss_mod_name": "Critters and Companions",
+    "boss_hp": "12 HP",
+    "boss_damage": "Espinas Defensivas (4 HP)",
+    "boss_armor": "8 (Púas)",
+    "boss_speed": "0.18",
+    "boss_location": "Bosques y Llanuras",
+    "boss_spawn_method": "Generación Natural",
+    "boss_kc_reward": 10,
+    "boss_drops": [
+      "Púa de Erizo (100%)"
+    ],
+    "card_theme": "amber",
+    "model_3d_url": "/models/critters/hedgehog.gltf",
+    "texture_url": "/models/critters/hedgehog.png",
+    "content": "Pequeña criatura que se enrosca al sentirse amenazada, dañando a los atacantes con sus púas."
+  },
+  {
+    "id": 35,
+    "slug": "platypus-companion",
+    "title": "Platypus (Ornitorrinco)",
+    "category": "mobs_pacificos",
+    "boss_mod_name": "Critters and Companions",
+    "boss_hp": "14 HP",
+    "boss_damage": "Veneno Defensivo (6 HP)",
+    "boss_armor": "2",
+    "boss_speed": "0.30 (Nado Ágil)",
+    "boss_location": "Ríos y Deltas de Agua Dulce",
+    "boss_spawn_method": "Generación Acuática en Ríos",
+    "boss_kc_reward": 15,
+    "boss_drops": [
+      "Espolón Venenoso (50%)"
+    ],
+    "card_theme": "cyan",
+    "model_3d_url": "/models/critters/platypus.gltf",
+    "texture_url": "/models/critters/platypus.png",
+    "content": "Curioso animal semiacuático con pico de pato. Nada con gran destreza y puede bucear en busca de moluscos."
+  },
+  {
+    "id": 36,
+    "slug": "shima-enaga-companion",
+    "title": "Shima Enaga (Pájaro de Nieve)",
+    "category": "mobs_pacificos",
+    "boss_mod_name": "Critters and Companions",
+    "boss_hp": "8 HP",
+    "boss_damage": "Pacífico",
+    "boss_armor": "0",
+    "boss_speed": "0.45 (Vuelo Ligero)",
+    "boss_location": "Bosques Nevados y Taigas",
+    "boss_spawn_method": "Generación en Copas de Árboles Nevados",
+    "boss_kc_reward": 5,
+    "boss_drops": [
+      "Pluma Blanca (100%)"
+    ],
+    "card_theme": "slate",
+    "model_3d_url": "/models/critters/shima_enaga.gltf",
+    "texture_url": "/models/critters/shima_enaga.png",
+    "content": "Ave diminuta y esponjosa de plumaje blanco como la nieve. Canta al posarse en los hombros del jugador."
+  },
+  {
+    "id": 37,
+    "slug": "otter-companion",
+    "title": "Otter (Nutria de Río)",
+    "category": "mobs_pacificos",
+    "boss_mod_name": "Critters and Companions",
+    "boss_hp": "18 HP",
+    "boss_damage": "Pacífico (Pescador)",
+    "boss_armor": "2",
+    "boss_speed": "0.40 (Nado Rápido)",
+    "boss_location": "Ríos y Lagos Profundos",
+    "boss_spawn_method": "Generación en Ríos",
+    "boss_kc_reward": 15,
+    "boss_drops": [
+      "Pescado Crudo (100%)",
+      "Concha de Almeja (50%)"
+    ],
+    "card_theme": "cyan",
+    "model_3d_url": "/models/critters/otter.gltf",
+    "texture_url": "/models/critters/otter.png",
+    "content": "Nutria inteligente que puede pescar peces y abrir almejas marinas para entregárselas a su dueño."
+  },
+  {
+    "id": 38,
+    "slug": "koi-fish-companion",
+    "title": "Koi Fish (Pez Koi Ornamental)",
+    "category": "mobs_pacificos",
+    "boss_mod_name": "Critters and Companions",
+    "boss_hp": "10 HP",
+    "boss_damage": "Pacífico",
+    "boss_armor": "0",
+    "boss_speed": "0.28 (Acuático)",
+    "boss_location": "Estanques de Jardín y Ríos Suaves",
+    "boss_spawn_method": "Generación en Agua Dulce",
+    "boss_kc_reward": 8,
+    "boss_drops": [
+      "Escama Brillante (100%)"
+    ],
+    "card_theme": "amber",
+    "model_3d_url": "/models/critters/koi_fish.gltf",
+    "texture_url": "/models/critters/koi_fish.png",
+    "content": "Pez de vivos colores tradicionales que otorga beneficios de suerte y armonía al nadar en estanques cercanos a bases."
+  },
+  {
+    "id": 39,
+    "slug": "jumping-spider-companion",
+    "title": "Jumping Spider (Araña Saltarina Dócil)",
+    "category": "mobs_pacificos",
+    "boss_mod_name": "Critters and Companions",
+    "boss_hp": "12 HP",
+    "boss_damage": "Pacífico (Caza Plagas)",
+    "boss_armor": "4",
+    "boss_speed": "0.38 (Salto Potente)",
+    "boss_location": "Selvas y Huertos",
+    "boss_spawn_method": "Generación en Follaje",
+    "boss_kc_reward": 10,
+    "boss_drops": [
+      "Seda Fina (100%)"
+    ],
+    "card_theme": "purple",
+    "model_3d_url": "/models/critters/jumping_spider.gltf",
+    "texture_url": "/models/critters/jumping_spider.png",
+    "content": "Pequeña araña de grandes ojos que salta entre las hojas para cazar insectos y proteger los cultivos del jugador."
+  },
+  {
+    "id": 40,
+    "slug": "dumbo-octopus-companion",
+    "title": "Dumbo Octopus (Pulpo Dumbo Abisal)",
+    "category": "mobs_pacificos",
+    "boss_mod_name": "Critters and Companions",
+    "boss_hp": "15 HP",
+    "boss_damage": "Pacífico",
+    "boss_armor": "0",
+    "boss_speed": "0.25 (Nado Suave)",
+    "boss_location": "Fosas Oceánicas Profundas",
+    "boss_spawn_method": "Generación en Océanos Profundos",
+    "boss_kc_reward": 20,
+    "boss_drops": [
+      "Tinta Luminosa (100%)"
+    ],
+    "card_theme": "purple",
+    "model_3d_url": "/models/critters/dumbo_octopus.gltf",
+    "texture_url": "/models/critters/dumbo_octopus.png",
+    "content": "Cefalópodo de las profundidades marinas que aletea suavemente con sus apéndices similares a orejas."
+  },
+  {
+    "id": 41,
+    "slug": "sea-bunny-companion",
+    "title": "Sea Bunny (Babosa Marina de Marfil)",
+    "category": "mobs_pacificos",
+    "boss_mod_name": "Critters and Companions",
+    "boss_hp": "8 HP",
+    "boss_damage": "Pacífico (Bioluminiscente)",
+    "boss_armor": "0",
+    "boss_speed": "0.15",
+    "boss_location": "Arrecifes de Coral Cálidos",
+    "boss_spawn_method": "Generación en Arrecifes",
+    "boss_kc_reward": 12,
+    "boss_drops": [
+      "Mucílago Marino (100%)"
+    ],
+    "card_theme": "cyan",
+    "model_3d_url": "/models/critters/sea_bunny.gltf",
+    "texture_url": "/models/critters/sea_bunny.png",
+    "content": "Diminuto nudibranquio blanco con manchas negras y rinóforos parecidos a orejas de conejo. Emite una tenue bioluminiscencia en la oscuridad marina."
+  }
+]

@@ -21,7 +21,7 @@ export default function TicketTable({
     toggleSelectAll, 
     toggleSelectTicket, 
     onViewTicket 
-}: TicketTableProps) {
+}: Readonly<TicketTableProps>) {
     const { t } = useTranslation()
     const selectedSet = useMemo(() => new Set(selectedTicketIds), [selectedTicketIds]);
 
@@ -48,7 +48,8 @@ export default function TicketTable({
                 <thead>
                     <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', background: 'rgba(255,255,255,0.02)' }}>
                         <th style={{width: '50px', padding: '1.5rem 1rem', textAlign: 'center'}}>
-                            <input aria-label="Input field" 
+                            <input 
+                                aria-label={t('admin.tickets.select_all', 'Seleccionar todos los tickets')} 
                                 type="checkbox" 
                                 checked={tickets.length > 0 && selectedTicketIds.length === tickets.length}
                                 onChange={toggleSelectAll}
@@ -78,7 +79,8 @@ export default function TicketTable({
                             }}
                         >
                             <td onClick={e => e.stopPropagation()} style={{textAlign: 'center', padding: '1rem'}}>
-                                <input aria-label="Input field" 
+                                <input 
+                                    aria-label={t('admin.tickets.select_ticket', `Seleccionar ticket #${ticketItem.id}`)} 
                                     type="checkbox" 
                                     checked={selectedSet.has(ticketItem.id)}
                                     onChange={() => toggleSelectTicket(ticketItem.id)}

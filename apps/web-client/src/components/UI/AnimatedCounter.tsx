@@ -27,6 +27,12 @@ export default function AnimatedCounter({
         finalValue.current = value;
         startTime.current = null;
         
+        // Respetar preferencia de reducción de movimiento
+        if (typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            setDisplayValue(value);
+            return;
+        }
+
         // Función de animación
         const animate = (timestamp: number) => {
             if (!startTime.current) startTime.current = timestamp;
@@ -66,5 +72,5 @@ export default function AnimatedCounter({
     }), [decimals]);
     const formatted = formatter.format(displayValue);
 
-    return <span>{prefix}{formatted}{suffix}</span>;
+    return <span className="tabular-nums" style={{ fontVariantNumeric: 'tabular-nums' }}>{prefix}{formatted}{suffix}</span>;
 }

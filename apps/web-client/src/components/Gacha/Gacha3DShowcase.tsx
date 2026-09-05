@@ -12,6 +12,7 @@ import {
 } from './screenReels';
 import { reelsToImageStrips, type GachaSpinSync } from './gachaSpinSync';
 import type { GachaReward, MappedGachaResult } from '../../pages/Gacha/types';
+import { resolveAssetUrl } from '../../utils/assetUtils';
 import '../../styles/widgets/gacha_3d_showcase.css';
 
 interface Gacha3DShowcaseProps {
@@ -31,7 +32,7 @@ function getGltfBuffer(tierId: string): Promise<ArrayBuffer> {
   if (!gltfBufferCache.has(tierId)) {
     const fileLoader = new THREE.FileLoader();
     fileLoader.setResponseType('arraybuffer');
-    const promise = fileLoader.loadAsync(`/models/gacha/cabinet_${tierId}.glb`) as Promise<ArrayBuffer>;
+    const promise = fileLoader.loadAsync(resolveAssetUrl(`/models/gacha/cabinet_${tierId}.glb`)) as Promise<ArrayBuffer>;
     gltfBufferCache.set(tierId, promise);
   }
   return gltfBufferCache.get(tierId)!;

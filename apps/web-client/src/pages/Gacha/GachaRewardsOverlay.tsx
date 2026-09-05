@@ -66,7 +66,7 @@ export const GachaRewardsOverlay: React.FC<GachaRewardsOverlayProps> = ({
         const item = bulkRewards[0];
 
         return (
-            <div className="reward-overlay">
+            <div role="dialog" aria-modal="true" aria-labelledby="gacha-reward-title" aria-live="polite" className="reward-overlay">
                 <div className="reward-card">
                     <span className={`reward-rarity rarity-${item.rarity}`}>{item.rarity.toUpperCase()}</span>
                     <div className={`reward-icon rarity-${item.rarity}`}>
@@ -90,18 +90,18 @@ export const GachaRewardsOverlay: React.FC<GachaRewardsOverlayProps> = ({
                             }
 
                             if (loss) {
-                                return <Sparkles size={100} color="#94a3b8" strokeWidth={1.25} />;
+                                return <Sparkles size={100} color="#94a3b8" strokeWidth={1.25} aria-hidden="true" />;
                             }
 
-                            return <Trophy size={100} color="#ffd700" strokeWidth={1} />;
+                            return <Trophy size={100} color="#ffd700" strokeWidth={1} aria-hidden="true" />;
                         })()}
                     </div>
-                    <h3>{item.name}</h3>
+                    <h3 id="gacha-reward-title">{item.name}</h3>
                     <p>{isLossReward(item)
                         ? '¡Vuelve a intentarlo en la próxima tirada!' 
                         : '¡Has desbloqueado un nuevo objeto!'}</p>
-                    <button type="button" className="reward-close-btn accept-btn" onClick={() => setShowBulkRewards(false)}>
-                        <Check size={20} />
+                    <button type="button" aria-label="Aceptar y reclamar recompensa" className="reward-close-btn accept-btn" onClick={() => setShowBulkRewards(false)}>
+                        <Check size={20} aria-hidden="true" />
                         <span>ACEPTAR</span>
                     </button>
                 </div>
@@ -110,12 +110,12 @@ export const GachaRewardsOverlay: React.FC<GachaRewardsOverlayProps> = ({
     }
 
     return (
-        <div className="reward-overlay">
+        <div role="dialog" aria-modal="true" aria-labelledby="gacha-reward-title" aria-live="polite" className="reward-overlay">
             <div className="reward-card bulk-reward-card">
                 <div className="reward-glow" style={{ background: selectedTier.color }}></div>
                 <div className="reward-header">
-                    <Star size={24} color={selectedTier.color} fill={selectedTier.color} className="header-icon" />
-                    <h2>{t('gacha.results_title')} ({bulkRewards.length})</h2>
+                    <Star size={24} color={selectedTier.color} fill={selectedTier.color} aria-hidden="true" className="header-icon" />
+                    <h2 id="gacha-reward-title">{t('gacha.results_title')} ({bulkRewards.length})</h2>
                 </div>
                 
                 <div className="bulk-rewards-list custom-scrollbar">
@@ -150,10 +150,10 @@ export const GachaRewardsOverlay: React.FC<GachaRewardsOverlayProps> = ({
                                         }
 
                                         if (loss) {
-                                            return <Sparkles size={24} color="#94a3b8" strokeWidth={1.5} />;
+                                            return <Sparkles size={24} color="#94a3b8" strokeWidth={1.5} aria-hidden="true" />;
                                         }
 
-                                        return <Trophy size={24} color="#94a3b8" />;
+                                        return <Trophy size={24} color="#94a3b8" aria-hidden="true" />;
                                     })()}
                                 </div>
                                 <div className="bulk-item-info">
@@ -166,8 +166,8 @@ export const GachaRewardsOverlay: React.FC<GachaRewardsOverlayProps> = ({
                 </div>
 
                 <div className="reward-footer">
-                    <button type="button" className="reward-close-btn accept-btn" onClick={() => setShowBulkRewards(false)}>
-                        <Check size={20} />
+                    <button type="button" aria-label="Aceptar y reclamar recompensas" className="reward-close-btn accept-btn" onClick={() => setShowBulkRewards(false)}>
+                        <Check size={20} aria-hidden="true" />
                         <span>ACEPTAR</span>
                     </button>
                 </div>

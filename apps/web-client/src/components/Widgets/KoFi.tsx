@@ -83,7 +83,7 @@ const KoFiButton = ({ kofiId = "G2G03Y8FL", text = "¡Dona por Ko-Fi!" }: KoFiBu
         <a
             href={`https://ko-fi.com/${kofiId}`}
             target="_blank"
-            rel="noreferrer"
+            rel="noopener noreferrer"
             className='flex items-center gap-2 mt-6 px-6 py-2 bg-(--accent) text-black font-black uppercase tracking-widest rounded-xl hover:scale-105 transition-transform shadow-lg shadow-(--accent)/20 btn-donate-hero'
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}

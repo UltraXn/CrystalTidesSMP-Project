@@ -1,79 +1,103 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useState, useContext, useEffect, useMemo, useCallback } from 'react';
-import { supabase } from '../services/supabaseClient';
-import { User, Provider, AuthResponse, OAuthResponse } from '@supabase/supabase-js';
+import {
+  createContext,
+  useState,
+  useContext,
+  useEffect,
+  useMemo,
+  useCallback,
+} from "react";
+import { supabase } from "../services/supabaseClient";
+import {
+  User,
+  Provider,
+  AuthResponse,
+  OAuthResponse,
+} from "@supabase/supabase-js";
 
-interface AuthContextType {
-    user: User | null;
-    login: (email: string, password: string) => Promise<AuthResponse['data']>;
-    loginWithProvider: (provider: Provider) => Promise<OAuthResponse['data']>;
-    logout: () => Promise<void>;
-    register: (email: string, password: string, metadata?: Record<string, unknown>) => Promise<AuthResponse['data']>;
-    updateUser: (data: Record<string, unknown>) => Promise<User | undefined>;
-    loading: boolean;
+export interface AuthContextType {
+  user: User | null;
+  login: (email: string, password: string) => Promise<AuthResponse["data"]>;
+  loginWithProvider: (provider: Provider) => Promise<OAuthResponse["data"]>;
+  logout: () => Promise<void>;
+  register: (
+    email: string,
+    password: string,
+    metadata?: Record<string, unknown>,
+  ) => Promise<AuthResponse["data"]>;
+  updateUser: (data: Record<string, unknown>) => Promise<User | undefined>;
+  loading: boolean;
 }
 
-export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(
+  undefined,
+);
 
 export const useAuth = () => {
-    return useContext(AuthContext) as AuthContextType;
+  return useContext(AuthContext) as AuthContextType;
 };
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-    const [user, setUser] = useState<User | null>(null);
-    const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        // 1. Verificar sesión activa al inicio
-        const checkSession = async () => {
-            try {
-                // Usar getUser() en lugar de getSession() para asegurar datos frescos del servidor
-                const { data: { user } } = await supabase.auth.getUser();
-                setUser(user ?? null);
-            } catch (error) {
-                console.error("Error verificando sesión:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
+  useEffect(() => {
+    // 1. Verificar sesión activa al inicio
+    const checkSession = async () => {
+      try {
+        // Usar getUser() en lugar de getSession() para asegurar datos frescos del servidor
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        setUser(user ?? null);
+      } catch (error) {
+        console.error("Error verificando sesión:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-        checkSession();
+    checkSession();
 
-        // 2. Escuchar cambios de estado
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-            // Simplificado para evitar bucles infinitos y bloqueos
-            // session.user viene del token JWT. Si necesitamos datos frescos post-link,
-            // refreshSession() debe ser llamado explícitamente donde ocurra la acción.
-            setUser(session?.user ?? null);
-            setLoading(false);
-        });
+    // 2. Escuchar cambios de estado
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      // Simplificado para evitar bucles infinitos y bloqueos
+      // session.user viene del token JWT. Si necesitamos datos frescos post-link,
+      // refreshSession() debe ser llamado explícitamente donde ocurra la acción.
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
 
-        return () => subscription.unsubscribe();
-    }, []);
+    return () => subscription.unsubscribe();
+  }, []);
 
-    // 3. Revalidación Inteligente (Móvil/Tab Focus)
-    // Cuando el usuario vuelve a la pestaña, verificamos si sus permisos cambiaron en el servidor.
-    useEffect(() => {
-        const handleFocus = async () => {
-            if (document.visibilityState === 'visible') {
-                const { data: { user: freshUser } } = await supabase.auth.getUser();
-                if (freshUser) {
-                    setUser(freshUser); 
-                }
-            }
-        };
-
-        window.addEventListener('visibilitychange', handleFocus);
-        window.addEventListener('focus', handleFocus);
-        return () => {
-            window.removeEventListener('visibilitychange', handleFocus);
-            window.removeEventListener('focus', handleFocus);
+  // 3. Revalidación Inteligente (Móvil/Tab Focus)
+  // Cuando el usuario vuelve a la pestaña, verificamos si sus permisos cambiaron en el servidor.
+  useEffect(() => {
+    const handleFocus = async () => {
+      if (document.visibilityState === "visible") {
+        const {
+          data: { user: freshUser },
+        } = await supabase.auth.getUser();
+        if (freshUser) {
+          setUser(freshUser);
         }
-    }, []);
+      }
+    };
 
-    // 4. Auto-Sync Discord Username logic removed to prevent overwriting user preferences.
-    // The user should manually set their name if they want it to match Discord.
-    /*
+    window.addEventListener("visibilitychange", handleFocus);
+    window.addEventListener("focus", handleFocus);
+    return () => {
+      window.removeEventListener("visibilitychange", handleFocus);
+      window.removeEventListener("focus", handleFocus);
+    };
+  }, []);
+
+  // 4. Auto-Sync Discord Username logic removed to prevent overwriting user preferences.
+  // The user should manually set their name if they want it to match Discord.
+  /*
     useEffect(() => {
         if (!user) return;
         const syncDiscordProfile = async () => {
@@ -83,99 +107,121 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }, [user]);
     */
 
-    // Función de Login
-    const login = useCallback(async (email: string, password: string): Promise<AuthResponse['data']> => {
-        const { data, error } = await supabase.auth.signInWithPassword({
+  // Función de Login
+  const login = useCallback(
+    async (email: string, password: string): Promise<AuthResponse["data"]> => {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        // Report Security Alert (Fire and forget)
+        fetch(`${import.meta.env.VITE_API_URL}/logs/security/report`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
             email,
-            password
-        });
-        
-        if (error) {
-            // Report Security Alert (Fire and forget)
-            fetch(`${import.meta.env.VITE_API_URL}/logs/security/report`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    email, 
-                    details: error.message 
-                })
-            }).catch(console.error); // Ignore reporting errors
+            details: error.message,
+          }),
+        }).catch(console.error); // Ignore reporting errors
 
-            throw error;
-        }
-        return data;
-    }, []);
+        throw error;
+      }
+      return data;
+    },
+    [],
+  );
 
-    // Función de Logout
-    const logout = useCallback(async () => {
-        try {
-            const { error } = await supabase.auth.signOut();
-            if (error) throw error;
-        } catch (error) {
-            console.error("Error signing out:", error);
-        } finally {
-            setUser(null);
-        }
-    }, []);
+  // Función de Logout
+  const logout = useCallback(async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+    } catch (error) {
+      console.error("Error signing out:", error);
+    } finally {
+      setUser(null);
+    }
+  }, []);
 
-    // Función extra: Registro (Opcional, pero útil tenerla lista)
-    const register = useCallback(async (email: string, password: string, metadata: Record<string, unknown> = {}): Promise<AuthResponse['data']> => {
-        // Ensure we send the correct production URL if we are not on localhost (forcing HTTPS for prod)
-        const productionUrl = 'https://crystaltidessmp.net/login';
-        const redirectUrl = window.location.hostname.includes('localhost') 
-            ? window.location.origin + '/login' 
-            : productionUrl;
+  // Función extra: Registro (Opcional, pero útil tenerla lista)
+  const register = useCallback(
+    async (
+      email: string,
+      password: string,
+      metadata: Record<string, unknown> = {},
+    ): Promise<AuthResponse["data"]> => {
+      // Ensure we send the correct production URL if we are not on localhost (forcing HTTPS for prod)
+      const productionUrl = "https://crystaltidessmp.net/login";
+      const redirectUrl = window.location.hostname.includes("localhost")
+        ? window.location.origin + "/login"
+        : productionUrl;
 
-        console.log("Registering with Email Redirect:", redirectUrl);
+      console.log("Registering with Email Redirect:", redirectUrl);
 
-        const { data, error } = await supabase.auth.signUp({
-            email,
-            password,
-            options: {
-                data: metadata,
-                emailRedirectTo: redirectUrl
-            }
-        });
-        if (error) throw error;
-        return data;
-    }, []);
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: metadata,
+          emailRedirectTo: redirectUrl,
+        },
+      });
+      if (error) throw error;
+      return data;
+    },
+    [],
+  );
 
-    const loginWithProvider = useCallback(async (provider: Provider): Promise<OAuthResponse['data']> => {
-        const { data, error } = await supabase.auth.signInWithOAuth({
-            provider: provider,
-            options: {
-                redirectTo: window.location.origin + '/account'
-            }
-        });
-        if (error) throw error;
-        return data;
-    }, []);
+  const loginWithProvider = useCallback(
+    async (provider: Provider): Promise<OAuthResponse["data"]> => {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: provider,
+        options: {
+          redirectTo: window.location.origin + "/account",
+        },
+      });
+      if (error) throw error;
+      return data;
+    },
+    [],
+  );
 
-    const updateUser = useCallback(async (data: Record<string, unknown>): Promise<User | undefined> => {
-        const { data: { user: updatedUser }, error } = await supabase.auth.updateUser({
-            data: data
-        });
-        if (error) throw error;
-        // Solo actualizamos el estado si tenemos un usuario válido de vuelta
-        if (updatedUser) {
-            setUser(updatedUser);
-            return updatedUser;
-        }
-    }, []);
+  const updateUser = useCallback(
+    async (data: Record<string, unknown>): Promise<User | undefined> => {
+      const {
+        data: { user: updatedUser },
+        error,
+      } = await supabase.auth.updateUser({
+        data: data,
+      });
+      if (error) throw error;
+      // Solo actualizamos el estado si tenemos un usuario válido de vuelta
+      if (updatedUser) {
+        setUser(updatedUser);
+        return updatedUser;
+      }
+    },
+    [],
+  );
 
-    const value = useMemo(() => ({
-        user,
-        login,
-        loginWithProvider,
-        logout,
-        register,
-        updateUser,
-        loading
-    }), [user, loading, login, loginWithProvider, logout, register, updateUser]);
+  const value = useMemo(
+    () => ({
+      user,
+      login,
+      loginWithProvider,
+      logout,
+      register,
+      updateUser,
+      loading,
+    }),
+    [user, loading, login, loginWithProvider, logout, register, updateUser],
+  );
 
-    return (
-        <AuthContext.Provider value={value}>
-            {!loading && children}
-        </AuthContext.Provider>
-    );
+  return (
+    <AuthContext.Provider value={value}>
+      {!loading && children}
+    </AuthContext.Provider>
+  );
 };

@@ -41,12 +41,17 @@ export default function Admin2FAModal({ isOpen, onVerified, onClose }: Admin2FAM
     };
 
     return (
-        <div style={{
-            position: 'fixed', inset: 0, zIndex: 3000,
-            background: 'rgba(0,0,0,0.9)', backdropFilter: 'blur(10px)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            animation: 'fadeIn 0.2s'
-        }}>
+        <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="admin-2fa-title"
+            style={{
+                position: 'fixed', inset: 0, zIndex: 3000,
+                background: 'rgba(0,0,0,0.9)', backdropFilter: 'blur(10px)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                animation: 'fadeIn 0.2s'
+            }}
+        >
             <div style={{
                 background: '#0a0a0a', 
                 border: '1px solid rgba(255,50,50,0.2)',
@@ -61,12 +66,14 @@ export default function Admin2FAModal({ isOpen, onVerified, onClose }: Admin2FAM
                 flexDirection: 'column',
                 gap: '1.5rem'
             }}>
-                <button aria-label="Action" type="button" 
+                <button
+                    aria-label={t('admin.2fa.close', 'Cerrar modal de autenticación')}
+                    type="button" 
                     onClick={onClose}
                     style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', transition: 'color 0.2s' }}
                     className="hover:text-white"
                 >
-                    <X size={20} />
+                    <X size={20} aria-hidden="true" />
                 </button>
 
                 <div style={{ 
@@ -76,11 +83,11 @@ export default function Admin2FAModal({ isOpen, onVerified, onClose }: Admin2FAM
                     margin: '0 auto',
                     border: '1px solid rgba(239, 68, 68, 0.2)'
                 }}>
-                    <Shield size={36} />
+                    <Shield size={36} aria-hidden="true" />
                 </div>
 
                 <div>
-                    <h2 style={{ color: '#fff', marginBottom: '0.5rem', fontSize: '1.5rem', fontWeight: '800' }}>{t('admin.2fa.title', 'Acceso Restringido')}</h2>
+                    <h2 id="admin-2fa-title" style={{ color: '#fff', marginBottom: '0.5rem', fontSize: '1.5rem', fontWeight: '800' }}>{t('admin.2fa.title', 'Acceso Restringido')}</h2>
                     <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.95rem', lineHeight: '1.5' }}>
                         {t('admin.2fa.desc', 'Esta área requiere autenticación de dos factores. Ingresa tu código para continuar.')}
                     </p>
@@ -90,6 +97,9 @@ export default function Admin2FAModal({ isOpen, onVerified, onClose }: Admin2FAM
                     <div style={{ position: 'relative' }}>
                         <input aria-label={t('admin.2fa.code_label', 'Código de autenticación 2FA')}
                             type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            autoComplete="one-time-code"
                             maxLength={6}
                             value={code}
                             onChange={(e) => {
@@ -105,17 +115,22 @@ export default function Admin2FAModal({ isOpen, onVerified, onClose }: Admin2FAM
                                 letterSpacing: '8px', 
                                 outline: 'none',
                                 fontWeight: '700',
+                                fontVariantNumeric: 'tabular-nums',
                                 transition: "color 0.2s, background-color 0.2s, border-color 0.2s, opacity 0.2s"
                             }}
                         />
                          {error && (
-                            <div style={{ 
-                                color: '#ef4444', 
-                                fontSize: '0.9rem', 
-                                marginTop: '0.8rem',
-                                fontWeight: '600',
-                                animation: 'shake 0.4s cubic-bezier(.36,.07,.19,.97) both'
-                            }}>
+                            <div
+                                role="alert"
+                                aria-live="assertive"
+                                style={{ 
+                                    color: '#ef4444', 
+                                    fontSize: '0.9rem', 
+                                    marginTop: '0.8rem',
+                                    fontWeight: '600',
+                                    animation: 'shake 0.4s cubic-bezier(.36,.07,.19,.97) both'
+                                }}
+                            >
                                 {error}
                             </div>
                         )}
@@ -124,6 +139,7 @@ export default function Admin2FAModal({ isOpen, onVerified, onClose }: Admin2FAM
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
                         <button 
                             type="submit"
+                            aria-busy={loading}
                             disabled={loading || code.length !== 6}
                             className="btn-primary"
                             style={{ 

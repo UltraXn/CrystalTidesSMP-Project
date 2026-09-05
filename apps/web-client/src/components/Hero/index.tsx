@@ -196,24 +196,36 @@ export default function Hero({ mockSlides, mockPlayerCount, mockIsOnline }: Hero
                     {t('hero.subtitle', 'Sumérgete en un mundo de aventuras, comunidad y creatividad sin límites. ¡Únete a nosotros! Te esperamos✨')}
                 </p>
 
-                {/* Online Status Pill Button */}
-                <Link 
-                    to="/status"
-                    className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-black/70 border border-white/15 text-xs font-bold text-gray-200 mb-8 backdrop-blur-md shadow-[0_0_20px_rgba(0,0,0,0.6)] hover:border-[#89d9d1]/60 hover:scale-105 transition-all no-underline cursor-pointer group"
-                >
-                    <span 
-                        className="w-2.5 h-2.5 rounded-full transition-colors duration-300 group-hover:scale-110"
-                        style={{
-                            backgroundColor: isOnline ? '#4ade80' : '#ef4444',
-                            boxShadow: isOnline ? '0 0 12px #4ade80' : '0 0 12px #ef4444'
-                        }} 
-                    />
-                    <span className="group-hover:text-white transition-colors">
-                        {isOnline 
-                            ? `${playerCount} ${t('hero.players_online', 'Jugadores Online')}`
-                            : t('hero.status.offline', 'OFFLINE')}
-                    </span>
-                </Link>
+                {/* Online Status Pill & Launcher Link */}
+                <div className="flex flex-wrap items-center justify-center gap-3 mb-8">
+                    <Link 
+                        to="/status"
+                        className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-black/70 border border-white/15 text-xs font-bold text-gray-200 backdrop-blur-md shadow-[0_0_20px_rgba(0,0,0,0.6)] hover:border-[#89d9d1]/60 hover:scale-105 transition-all no-underline cursor-pointer group"
+                    >
+                        <span 
+                            className="w-2.5 h-2.5 rounded-full transition-colors duration-300 group-hover:scale-110"
+                            style={{
+                                backgroundColor: isOnline ? '#4ade80' : '#ef4444',
+                                boxShadow: isOnline ? '0 0 12px #4ade80' : '0 0 12px #ef4444'
+                            }} 
+                        />
+                        <span className="group-hover:text-white transition-colors">
+                            {isOnline 
+                                ? `${playerCount} ${t('hero.players_online', 'Jugadores Online')}`
+                                : t('hero.status.offline', 'OFFLINE')}
+                        </span>
+                    </Link>
+
+                    <Link 
+                        to="/launcher"
+                        className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-950/80 border border-[#89d9d1]/40 text-xs font-bold text-gray-200 backdrop-blur-md shadow-[0_0_20px_rgba(137,217,209,0.25)] hover:border-[#89d9d1] hover:scale-105 transition-all no-underline cursor-pointer group"
+                    >
+                        <span className="w-2 h-2 rounded-full bg-[#89d9d1] animate-pulse" />
+                        <span className="text-[#89d9d1] font-black uppercase tracking-wider text-[11px]">Launcher Oficial</span>
+                        <span className="text-gray-400 font-normal hidden sm:inline">• Rust 0.6s</span>
+                        <span className="text-[#89d9d1] group-hover:translate-x-0.5 transition-transform">&rarr;</span>
+                    </Link>
+                </div>
 
                 {/* Action Group */}
                 <div 

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 
 import { useAuth } from "../../context/AuthContext"
+import { getUserRole } from "../../utils/roleUtils"
 
 import { useTranslation } from 'react-i18next'
 import { supabase } from '../../services/supabaseClient'
@@ -38,7 +39,7 @@ export default function UsersManager() {
     const updateRoleMutation = useUpdateUserRole();
     const updateMetadataMutation = useUpdateUserMetadata();
  
-    const { user } = useAuth() as { user: UserDefinition | null } 
+    const { user } = useAuth(); 
  
     const availableMedals = adminSettings?.medals || [];
     const availableAchievements = adminSettings?.achievements || [];
@@ -61,7 +62,7 @@ export default function UsersManager() {
                 // Determine target user name for log
                 const targetUser = (fetchedUsers || []).find(u => u.id === userId);
                 const targetName = targetUser?.username || targetUser?.email || userId;
-                const adminName = user?.username || user?.email || 'Unknown Admin';
+                const adminName = user?.user_metadata?.username || user?.email || 'Unknown Admin';
 
                 // Send Log to Discord
                 sendDiscordLog(
@@ -130,7 +131,8 @@ export default function UsersManager() {
         setEditingUser({ ...editingUser, achievements: newAchievements });
     };
 
-    const canManageRoles = ['neroferno', 'killu', 'killuwu', 'developer'].includes(user?.user_metadata?.role || '');
+    const userRole = (user ? getUserRole(user) : null)?.toLowerCase() || '';
+    const canManageRoles = ['neroferno', 'killu', 'killuwu', 'developer'].includes(userRole);
 
     return (
         <div className="admin-card" style={{ background: 'rgba(10, 10, 15, 0.6)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255, 255, 255, 0.05)', borderRadius: '24px', padding: '1.5rem' }}>
@@ -142,17 +144,18 @@ export default function UsersManager() {
             {/* Search Bar */}
             <form onSubmit={handleSearch} style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
                 <div style={{ flex: '1 1 100%', minWidth: '200px', position: 'relative' }}>
-                    <input aria-label="Input field" 
-                        type="text" 
+                    <input 
+                        aria-label={t('admin.users.search_placeholder', 'Buscar usuarios')} 
+                        type="search" 
                         placeholder={t('admin.users.search_placeholder')} 
                         className="admin-input-premium" 
                         style={{ paddingLeft: '3rem', width: '100%' }}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
-                    <Search style={{ position: 'absolute', left: '1.2rem', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.3)' }} />
+                    <Search style={{ position: 'absolute', left: '1.2rem', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.3)' }} aria-hidden="true" />
                 </div>
-                <button type="submit" disabled={isLoadingUsers} className="modal-btn-primary" style={{ flex: '1 1 auto', minWidth: '140px', height: '52px', borderRadius: '16px', padding: '0 2rem' }}>
+                <button type="submit" disabled={isLoadingUsers} aria-busy={isLoadingUsers} className="modal-btn-primary" style={{ flex: '1 1 auto', minWidth: '140px', height: '52px', borderRadius: '16px', padding: '0 2rem' }}>
                     {isLoadingUsers ? t('common.searching', 'Buscando...') : t('admin.users.search_btn')}
                 </button>
             </form>

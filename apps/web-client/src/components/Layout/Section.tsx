@@ -4,6 +4,7 @@ import { useIntersectionObserver } from '../../hooks/useIntersectionObserver';
 
 interface SectionProps {
     title?: React.ReactNode;
+    headingLevel?: 'h1' | 'h2';
     children: React.ReactNode;
     delay?: number;
     direction?: 'up' | 'down' | 'left' | 'right';
@@ -25,6 +26,7 @@ const OBSERVER_OPTIONS = { triggerOnce: true, threshold: 0.1 };
 
 export default function Section({
     title,
+    headingLevel = 'h2',
     children,
     delay = 0,
     direction = 'up',
@@ -62,6 +64,7 @@ export default function Section({
     }, [isVisible, delay, direction, ref]);
 
     if (title) {
+        const HeadingTag = headingLevel;
         return (
             <section
                 ref={ref}
@@ -69,9 +72,9 @@ export default function Section({
                 className={`w-full max-w-360 mx-auto px-4 py-16 text-center ${className}`.trim()}
                 style={style}
             >
-                <h2 className="text-3xl md:text-4xl font-black mb-8 text-(--accent) uppercase tracking-widest drop-shadow-lg">
+                <HeadingTag className="text-3xl md:text-4xl font-black mb-8 text-(--accent) uppercase tracking-widest drop-shadow-lg">
                     {title}
-                </h2>
+                </HeadingTag>
                 <div className="relative mb-8">{children}</div>
                 {separator && <Separator />}
             </section>

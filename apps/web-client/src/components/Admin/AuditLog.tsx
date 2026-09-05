@@ -94,8 +94,9 @@ export default function AuditLog({ mockLogs, mockTotal }: AuditLogProps = {}) {
 
                 <div className="audit-log-controls">
                     <div className="audit-search-box">
-                        <Search size={18} />
-                        <input aria-label="Input field" 
+                        <Search size={18} aria-hidden="true" />
+                        <input
+                            aria-label={t('admin.audit.search_placeholder', 'Buscar por usuario o acción')}
                             type="text" 
                             placeholder={t('admin.audit.search_placeholder')} 
                             value={search}
@@ -106,10 +107,11 @@ export default function AuditLog({ mockLogs, mockTotal }: AuditLogProps = {}) {
             </div>
 
             <div className="audit-filters-bar">
-                <div className="filter-group">
-                    <Filter size={16} />
+                <div className="filter-group" role="group" aria-label={t('admin.audit.filter_by_source', 'Filtrar por origen')}>
+                    <Filter size={16} aria-hidden="true" />
                     <button 
                         type="button"
+                        aria-pressed={filterSource === 'all'}
                         className={`filter-btn ${filterSource === 'all' ? 'active' : ''}`}
                         onClick={() => { setFilterSource('all'); setPage(1); }}
                     >
@@ -117,24 +119,27 @@ export default function AuditLog({ mockLogs, mockTotal }: AuditLogProps = {}) {
                     </button>
                     <button 
                         type="button"
+                        aria-pressed={filterSource === 'web'}
                         className={`filter-btn ${filterSource === 'web' ? 'active' : ''}`}
                         onClick={() => { setFilterSource('web'); setPage(1); }}
                     >
-                        <Globe size={14} /> {t('admin.audit.source_web')}
+                        <Globe size={14} aria-hidden="true" /> {t('admin.audit.source_web')}
                     </button>
                     <button 
                         type="button"
+                        aria-pressed={filterSource === 'game'}
                         className={`filter-btn ${filterSource === 'game' ? 'active' : ''}`}
                         onClick={() => { setFilterSource('game'); setPage(1); }}
                     >
-                        <Gamepad2 size={14} /> {t('admin.audit.source_game')}
+                        <Gamepad2 size={14} aria-hidden="true" /> {t('admin.audit.source_game')}
                     </button>
                     <button 
                         type="button"
+                        aria-pressed={filterSource === 'security-auditor'}
                         className={`filter-btn ${filterSource === 'security-auditor' ? 'active' : ''}`}
                         onClick={() => { setFilterSource('security-auditor'); setPage(1); }}
                     >
-                        <Shield size={14} /> {t('admin.audit.source_security-auditor')}
+                        <Shield size={14} aria-hidden="true" /> {t('admin.audit.source_security-auditor')}
                     </button>
                 </div>
 
@@ -204,15 +209,15 @@ export default function AuditLog({ mockLogs, mockTotal }: AuditLogProps = {}) {
             )}
 
             {totalPages > 1 && (
-                <div className="audit-pagination">
-
+                <div className="audit-pagination" role="navigation" aria-label={t('common.pagination', 'Paginación de registros')}>
                     <button type="button" 
                         disabled={page === 1} 
                         onClick={() => setPage(page - 1)}
                         className="pagination-btn"
+                        aria-label={t('common.previous', 'Página anterior')}
                         title={t('common.previous')}
                     >
-                        <ChevronLeft size={18} />
+                        <ChevronLeft size={18} aria-hidden="true" />
                     </button>
                     <div className="pagination-pages">
                         {(() => {
@@ -226,10 +231,14 @@ export default function AuditLog({ mockLogs, mockTotal }: AuditLogProps = {}) {
                             }
 
                             return Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i).map(p => (
-                                <button aria-label="Action" type="button" 
+                                <button
+                                    type="button" 
                                     key={p}
+                                    aria-label={t('common.page_number', `Página ${p}`, { page: p })}
+                                    aria-current={page === p ? "page" : undefined}
                                     className={`page-num ${page === p ? 'active' : ''}`}
                                     onClick={() => setPage(p)}
+                                    style={{ fontVariantNumeric: 'tabular-nums' }}
                                 >
                                     {p}
                                 </button>
@@ -240,9 +249,10 @@ export default function AuditLog({ mockLogs, mockTotal }: AuditLogProps = {}) {
                         disabled={page === totalPages} 
                         onClick={() => setPage(page + 1)}
                         className="pagination-btn"
+                        aria-label={t('common.next', 'Página siguiente')}
                         title={t('common.next')}
                     >
-                        <ChevronRight size={18} />
+                        <ChevronRight size={18} aria-hidden="true" />
                     </button>
                 </div>
             )}

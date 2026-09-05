@@ -218,14 +218,14 @@ function MenuOverlay({ isOpen, onClose }: { isOpen: boolean, onClose: () => void
                     {/* Bottom Section */}
                     <div className="mt-auto space-y-8" ref={addToRefs}>
                         <div className="flex items-center gap-4 bg-white/5 p-2 rounded-2xl border border-white/5">
-                            <button aria-label="Action" type="button" 
+                            <button aria-label={t('common.change_language_es', 'Cambiar idioma a Español')} type="button" 
                                 onClick={() => i18n.changeLanguage('es')} 
                                 className={`flex-1 flex items-center justify-center gap-3 py-4 rounded-xl text-xs font-black tracking-widest transition-colors ${i18n.resolvedLanguage === 'es' ? 'bg-white text-black shadow-xl ring-4 ring-white/10' : 'text-gray-500 hover:text-white'}`}
                             >
                                 <img src="/images/flags/es.svg" alt="ES" className="w-5 h-auto rounded-sm" />
                                 ESPAÑOL
                             </button>
-                            <button aria-label="Action" type="button" 
+                            <button aria-label={t('common.change_language_en', 'Switch language to English')} type="button" 
                                 onClick={() => i18n.changeLanguage('en')} 
                                 className={`flex-1 flex items-center justify-center gap-3 py-4 rounded-xl text-xs font-black tracking-widest transition-colors ${i18n.resolvedLanguage === 'en' ? 'bg-white text-black shadow-xl ring-4 ring-white/10' : 'text-gray-500 hover:text-white'}`}
                             >
@@ -247,7 +247,7 @@ function MenuOverlay({ isOpen, onClose }: { isOpen: boolean, onClose: () => void
                         )}
                         
                         <div className="pt-8 text-center pb-10">
-                            <p className="text-[10px] font-black text-gray-700 uppercase tracking-[0.3em] italic">
+                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] italic">
                                 CRYSTALTIDES SMP — EXPLORE THE ABYSS
                             </p>
                         </div>

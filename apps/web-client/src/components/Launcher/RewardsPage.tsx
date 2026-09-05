@@ -444,7 +444,10 @@ export function RewardsPage() {
             </div>
           </div>
 
-          <button aria-label="Action" type="button"
+          <button
+            aria-label={streak.canClaim ? `Reclamar recompensa del día ${streak.currentStreak}` : "Recompensa de hoy ya reclamada"}
+            aria-busy={claiming}
+            type="button"
             onClick={handleClaim}
             disabled={!streak.canClaim || claiming}
             style={{
@@ -465,7 +468,7 @@ export function RewardsPage() {
               transition: "color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease",
             }}
           >
-            <Sparkles size={18} />
+            <Sparkles size={18} aria-hidden="true" />
             {claiming
               ? "Reclamando..."
               : streak.canClaim
@@ -477,6 +480,8 @@ export function RewardsPage() {
 
       {claimMsg && (
         <div
+          role="status"
+          aria-live="polite"
           style={{
             padding: "12px 18px",
             borderRadius: 12,
@@ -506,7 +511,7 @@ export function RewardsPage() {
             marginBottom: 20,
           }}
         >
-          <Trophy size={32} color="#E879F9" />
+          <Trophy size={32} color="#E879F9" aria-hidden="true" />
           <div>
             <div style={{ fontSize: 15, fontWeight: 900, color: "#E879F9" }}>
               🏆 ¡LOGRO MÁXIMO DESBLOQUEADO: Leyenda de CrystalTides!
@@ -519,11 +524,15 @@ export function RewardsPage() {
       )}
 
       {/* Selector de Semanas / Tabs */}
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
+      <div role="tablist" aria-label="Filtrar recompensas por semana" style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
         {WEEKS.map((w) => {
           const isActive = activeTab === w.id;
           return (
-            <button aria-label="Action" type="button"
+            <button
+              role="tab"
+              aria-selected={isActive}
+              aria-label={w.label}
+              type="button"
               key={w.id}
               onClick={() => setActiveTab(w.id)}
               style={{
@@ -543,7 +552,7 @@ export function RewardsPage() {
                 transition: "color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease",
               }}
             >
-              <span>{w.icon}</span>
+              <span aria-hidden="true">{w.icon}</span>
               <span>{w.label}</span>
             </button>
           );

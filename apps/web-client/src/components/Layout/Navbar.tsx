@@ -102,18 +102,20 @@ export default function Navbar() {
                     <nav className="hidden lg:flex flex-1 items-center justify-center px-2 overflow-hidden min-w-0">
                         <div className="flex items-center gap-0.5 xl:gap-1.5 overflow-hidden">
                             {[
-                                { to: "/rules", label: t('navbar.rules', 'REGLAS') },
-                                { to: "/donors", label: t('navbar.donors', 'DONADORES') },
-                                { to: "/news", label: t('navbar.news', 'NOTICIAS') },
-                                { to: "/suggestions", label: t('navbar.suggestions', 'SUGERENCIAS') },
-                                { to: "/forum", label: t('navbar.forum', 'FORO') },
-                                { to: "/wiki", label: t('navbar.wiki', 'GUÍA') },
-                                { to: "/support", label: t('navbar.support', 'SOPORTE') },
-                                { to: "/map", label: t('navbar.map', 'MAPA') }
+                                { to: "/launcher", label: t('navbar.launcher', 'LAUNCHER'), prefetch: () => import('../../pages/LauncherPage') },
+                                { to: "/rules", label: t('navbar.rules', 'REGLAS'), prefetch: () => import('../../pages/Rules') },
+                                { to: "/donors", label: t('navbar.donors', 'DONADORES'), prefetch: () => import('../../pages/Donors') },
+                                { to: "/news", label: t('navbar.news', 'NOTICIAS'), prefetch: () => import('../../pages/Blog') },
+                                { to: "/suggestions", label: t('navbar.suggestions', 'SUGERENCIAS'), prefetch: () => import('../../pages/Suggestions') },
+                                { to: "/forum", label: t('navbar.forum', 'FORO'), prefetch: () => import('../../pages/Forum') },
+                                { to: "/wiki", label: t('navbar.wiki', 'GUÍA'), prefetch: () => import('../../pages/Wiki') },
+                                { to: "/support", label: t('navbar.support', 'SOPORTE'), prefetch: () => import('../../pages/Support') },
+                                { to: "/map", label: t('navbar.map', 'MAPA'), prefetch: () => import('../../pages/Map') }
                             ].map((link) => (
                                 <Link 
                                     key={link.to} 
                                     to={link.to} 
+                                    onMouseEnter={link.prefetch}
                                     className="px-1 xl:px-2.5 py-2 text-[clamp(9px,0.55vw,11.5px)] font-black uppercase tracking-widest text-gray-400 hover:text-white transition-colors whitespace-nowrap"
                                 >
                                     {link.label}
@@ -182,7 +184,7 @@ export default function Navbar() {
                                                     initial={{ opacity: 0, scale: 0.9, y: 10 }}
                                                     animate={{ opacity: 1, scale: 1, y: 0 }}
                                                     exit={{ opacity: 0, scale: 0.9, y: 10 }}
-                                                    transition={{ type: "spring", duration: 0.5, bounce: 0.3 }}
+                                                    transition={{ type: "spring", duration: 0.3, bounce: 0 }}
                                                 >
                                                     <div className="px-4 py-4 mb-2 border-b border-white/5">
                                                         <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest leading-none mb-1">{t('navbar.logged_in_as', 'Conectado como')}</p>

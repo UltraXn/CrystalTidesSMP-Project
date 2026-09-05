@@ -140,7 +140,7 @@ export default function Footer() {
                 </div>
                 <div className="text-center">
                     <p className="text-gray-400 text-[11px] font-bold uppercase tracking-widest mb-3">&copy; {new Date().getFullYear()} CrystalTides SMP. {t('footer.rights')}</p>
-                    <p className="text-[9px] uppercase tracking-[0.2em] text-gray-700 max-w-3xl mx-auto leading-loose font-black">
+                    <p className="text-[9px] uppercase tracking-[0.2em] text-gray-400 max-w-3xl mx-auto leading-loose font-bold">
                         NOT AN OFFICIAL MINECRAFT PRODUCT. NOT APPROVED BY OR ASSOCIATED WITH MOJANG OR MICROSOFT.
                     </p>
                 </div>

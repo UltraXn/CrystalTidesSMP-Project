@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import ReactMarkdown from 'react-markdown';
 import { ShoppingBag, Coins, Store, Shield, Compass, MapPin, Maximize2, RotateCcw } from 'lucide-react';
+import { resolveAssetUrl } from '../../utils/assetUtils';
 
 export interface WikiMerchant3DCardProps {
     minimal3dOnly?: boolean;
@@ -108,7 +109,7 @@ export const WikiMerchant3DCard: React.FC<WikiMerchant3DCardProps> = ({
 
         const loader = new GLTFLoader();
         loader.load(
-            modelPath,
+            resolveAssetUrl(modelPath),
             (gltf) => {
                 modelGroup.clear();
                 const loadedModel = gltf.scene;
@@ -131,10 +132,10 @@ export const WikiMerchant3DCard: React.FC<WikiMerchant3DCardProps> = ({
                 const size = box.getSize(new THREE.Vector3());
                 const maxDim = Math.max(size.x, size.y, size.z) || 1;
 
-                loadedModel.position.sub(center);
-                const scale = 1.6 / maxDim;
-                modelGroup.scale.setScalar(scale);
-                modelGroup.add(loadedModel);
+                const targetHeight = 2.0;
+                const scale = targetHeight / maxDim;
+                loadedModel.scale.setScalar(scale);
+                loadedModel.position.set(-center.x * scale, -center.y * scale - 0.2, -center.z * scale);
 
                 if (gltf.animations && gltf.animations.length > 0) {
                     const mixer = new THREE.AnimationMixer(loadedModel);
@@ -143,10 +144,12 @@ export const WikiMerchant3DCard: React.FC<WikiMerchant3DCardProps> = ({
                     mixerRef.current = mixer;
                 }
 
+                modelGroup.add(loadedModel);
                 setIsLoading(false);
             },
             undefined,
-            () => {
+            (err) => {
+                console.warn('GLTF load failed, using procedural fallback:', err);
                 createProceduralFallback();
             }
         );
@@ -248,11 +251,11 @@ export const WikiMerchant3DCard: React.FC<WikiMerchant3DCardProps> = ({
 
                         {/* Controls */}
                         <div className="absolute top-3 right-3 z-20 flex items-center gap-1.5">
-                            <button type="button" onClick={resetView} className="p-1.5 rounded-lg bg-black/60 text-amber-400 border border-amber-500/30 hover:bg-amber-500/20 transition-all" title="Reiniciar Cámara">
-                                <RotateCcw className="w-3.5 h-3.5" />
+                            <button type="button" onClick={resetView} aria-label="Reiniciar cámara" className="p-1.5 rounded-lg bg-black/60 text-amber-400 border border-amber-500/30 hover:bg-amber-500/20 transition-all cursor-pointer" title="Reiniciar Cámara">
+                                <RotateCcw aria-hidden="true" className="w-3.5 h-3.5" />
                             </button>
-                            <button type="button" onClick={toggleFullscreen} className="p-1.5 rounded-lg bg-black/60 text-amber-400 border border-amber-500/30 hover:bg-amber-500/20 transition-all" title="Pantalla Completa">
-                                <Maximize2 className="w-3.5 h-3.5" />
+                            <button type="button" onClick={toggleFullscreen} aria-label="Pantalla completa" className="p-1.5 rounded-lg bg-black/60 text-amber-400 border border-amber-500/30 hover:bg-amber-500/20 transition-all cursor-pointer" title="Pantalla Completa">
+                                <Maximize2 aria-hidden="true" className="w-3.5 h-3.5" />
                             </button>
                         </div>
                     </div>

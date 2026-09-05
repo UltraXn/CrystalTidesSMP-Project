@@ -50,6 +50,9 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
 
       {/* Popover Menu */}
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="account-switcher-title"
         className="reveal-up"
         style={{
           position: "fixed",
@@ -70,10 +73,10 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
       >
         {/* Title */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <span style={{ fontSize: 13, fontWeight: 800, color: "#FFF", letterSpacing: "0.05em", textTransform: "uppercase" }}>
+          <span id="account-switcher-title" style={{ fontSize: 13, fontWeight: 800, color: "#FFF", letterSpacing: "0.05em", textTransform: "uppercase" }}>
             👤 Selector de Sesiones
           </span>
-          <button aria-label="Action" type="button"
+          <button aria-label="Cerrar selector de sesiones" type="button"
             onClick={onClose}
             style={{
               background: "none",
@@ -179,7 +182,7 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
           ) : (
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <span style={{ fontSize: 11.5, color: "rgba(255, 255, 255, 0.5)" }}>Sin cuenta web vinculada</span>
-              <button aria-label="Action" type="button"
+              <button aria-label="Vincular cuenta web de CrystalTides" type="button"
                 onClick={() => {
                   onClose();
                   onNavigateSettings();
@@ -277,6 +280,7 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
                       )}
                       {!isActive && (
                         <button type="button"
+                          aria-label={`Quitar cuenta de ${acc.username}`}
                           onClick={() => {
                             removeAccount(acc.id);
                           }}
@@ -307,7 +311,7 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
 
         {/* Section 3: Actions */}
         <div style={{ display: "flex", gap: 8, paddingTop: 4, borderTop: "1px solid rgba(255,255,255,0.08)" }}>
-          <button aria-label="Action" type="button"
+          <button aria-label="Cambiar perfil de Minecraft" type="button"
             onClick={() => {
               onClose();
               logout();
@@ -327,7 +331,7 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
           >
             🔄 Cambiar Perfil MC
           </button>
-          <button aria-label="Action" type="button"
+          <button aria-label="Abrir ajustes del launcher" type="button"
             onClick={() => {
               onClose();
               onNavigateSettings();

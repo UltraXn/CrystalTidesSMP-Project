@@ -141,6 +141,24 @@ export const useVerifyLinkCode = () => {
     });
 };
 
+export const useGachaBalance = (userId?: string) => {
+    return useQuery({
+        queryKey: ['gacha-balance', userId],
+        queryFn: async () => {
+            if (!userId) return 0;
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('gacha_balance')
+                .eq('id', userId)
+                .single();
+            if (error) return 0;
+            return Number(data?.gacha_balance ?? 0);
+        },
+        enabled: !!userId,
+        staleTime: 1000 * 30,
+    });
+};
+
 export const useLinkMicrosoftAccount = () => {
     const queryClient = useQueryClient();
     return useMutation({
