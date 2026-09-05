@@ -26,7 +26,24 @@ export const vote = async (req: Request, res: Response) => {
             return sendError(res, 'User ID not found in token', 'UNAUTHORIZED', 401);
         }
 
+        // Anti-Spam Device Check: Prevent multi-account voting from the same device
+        const cookieKey = `voted_poll_${pollId}`;
+        const hasVotedDevice = req.signedCookies && req.signedCookies[cookieKey];
+        if (hasVotedDevice) {
+            return sendError(res, 'Ya has emitido tu voto en esta encuesta desde este dispositivo', 'ALREADY_VOTED', 400);
+        }
+
         const result = await pollService.votePoll(pollId, optionId, userId);
+
+        // Record signed HttpOnly cookie to block device-level re-voting for 30 days
+        res.cookie(cookieKey, 'true', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 30 * 24 * 60 * 60 * 1000,
+            signed: true
+        });
+
         return sendSuccess(res, result, 'Vote recorded');
     } catch (error: unknown) {
         const message = error instanceof Error ? error.message : 'Unknown error';

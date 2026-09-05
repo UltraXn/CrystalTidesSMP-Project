@@ -1,6 +1,15 @@
 import { Request, Response } from 'express';
+import { z } from 'zod';
 import supabase from '../config/supabaseClient.js';
 import { sendSuccess, sendError } from '../utils/responseHandler.js';
+
+const RegisterUserSchema = z.object({
+    email: z.string().email('Invalid email format'),
+    password: z.string().min(6, 'Password must be at least 6 characters').max(100),
+    username: z.string().min(3, 'Username must be at least 3 characters').max(30).regex(/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers and underscores'),
+    website: z.string().optional(),
+    turnstileToken: z.string().optional()
+});
 
 /**
  * Public User Registration
@@ -8,7 +17,13 @@ import { sendSuccess, sendError } from '../utils/responseHandler.js';
  */
 export const registerUser = async (req: Request, res: Response) => {
     try {
-        const { email, password, username, website, turnstileToken } = req.body;
+        const parseResult = RegisterUserSchema.safeParse(req.body);
+        if (!parseResult.success) {
+            const firstError = parseResult.error.issues[0]?.message || 'Invalid registration data';
+            return sendError(res, firstError, 'VALIDATION_ERROR', 400, parseResult.error.issues);
+        }
+
+        const { email, password, username, website, turnstileToken } = parseResult.data;
 
         // Honeypot defense against automated bot scripts
         if (website && typeof website === 'string' && website.trim() !== '') {

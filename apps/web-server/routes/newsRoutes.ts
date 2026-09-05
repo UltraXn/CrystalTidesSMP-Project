@@ -48,6 +48,8 @@ import { validate } from '../middleware/validateResource.js';
 import { createNewsSchema, updateNewsSchema, createCommentSchema, updateCommentSchema } from '../schemas/newsSchemas.js';
 
 router.get('/', newsController.getAllNews);
+router.get('/feed', newsController.getLauncherNewsFeed);
+router.get('/launcher-feed', newsController.getLauncherNewsFeed);
 router.post('/', authenticateToken, checkRole(ADMIN_ROLES), validate(createNewsSchema), newsController.createNews);
 
 router.get('/:id', newsController.getNewsById);

@@ -1,16 +1,23 @@
-import { rateLimit } from 'express-rate-limit';
+import { rateLimit, ipKeyGenerator } from 'express-rate-limit';
+import type { Request } from 'express';
+
+const getClientKey = (req: Request): string => {
+    return req.deviceId || (req.signedCookies && req.signedCookies['device_id']) || ipKeyGenerator(req.ip || '127.0.0.1');
+};
 
 /**
- * General API Limiter - 100 requests per minute
+ * General API Limiter - 100 requests per minute per device
  */
 export const apiLimiter = rateLimit({
     windowMs: 1 * 60 * 1000, // 1 minute
     max: 100, 
+    keyGenerator: getClientKey,
+    validate: { keyGeneratorIpFallback: false },
     message: {
         success: false,
         error: {
             code: 'TOO_MANY_REQUESTS',
-            message: 'Too many requests from this IP, please try again after a minute'
+            message: 'Too many requests from this device, please try again after a minute'
         }
     },
     standardHeaders: true,
@@ -18,16 +25,18 @@ export const apiLimiter = rateLimit({
 });
 
 /**
- * Strict Auth/Sensitive Limiter - 10 requests per 10 minutes
+ * Strict Auth/Sensitive Limiter - 10 requests per 10 minutes per device
  */
 export const sensitiveActionLimiter = rateLimit({
     windowMs: 10 * 60 * 1000, // 10 minutes
     max: 10,
+    keyGenerator: getClientKey,
+    validate: { keyGeneratorIpFallback: false },
     message: {
         success: false,
         error: {
             code: 'RATE_LIMIT_EXCEEDED',
-            message: 'Too many sensitive actions. Please try again later.'
+            message: 'Too many sensitive actions from this device. Please try again later.'
         }
     },
     standardHeaders: true,
@@ -40,6 +49,8 @@ export const sensitiveActionLimiter = rateLimit({
 export const uploadLimiter = rateLimit({
     windowMs: 60 * 60 * 1000, // 1 hour
     max: 20,
+    keyGenerator: getClientKey,
+    validate: { keyGeneratorIpFallback: false },
     message: {
         success: false,
         error: {
@@ -58,6 +69,8 @@ export const uploadLimiter = rateLimit({
 export const imageUploadLimiter = rateLimit({
     windowMs: 60 * 60 * 1000, // 1 hour
     max: 30,
+    keyGenerator: getClientKey,
+    validate: { keyGeneratorIpFallback: false },
     message: {
         success: false,
         error: {
@@ -71,7 +84,7 @@ export const imageUploadLimiter = rateLimit({
 
 /**
  * Inbound Webhook Limiter - 30 requests per minute
- * Caps damage if a webhook secret leaks (spam to Discord, forged donations).
+ * Webhooks use IP because external servers (Ko-Fi / Discord) don't send client cookies.
  */
 export const webhookLimiter = rateLimit({
     windowMs: 1 * 60 * 1000, // 1 minute

@@ -20,6 +20,8 @@ export interface ModKnowledgeItem {
   entity_name: string
   metadata: Record<string, unknown>
   similarity?: number
+  score?: number
+  rerank_score?: number
 }
 
 /**
@@ -55,39 +57,153 @@ export async function generateEmbedding(text: string): Promise<number[]> {
   }
 }
 
+const cohereApiKey = process.env.COHERE_API_KEY || ''
+
 /**
- * Realiza una búsqueda híbrida (Distancia Coseno Vectorial pgvector + Fallback FTS)
+ * Re-ordena los candidatos devueltos por la Búsqueda Híbrida usando un modelo Cross-Encoder.
+ * Soporta API externa Cohere Rerank v3.5 (si COHERE_API_KEY está presente) o un Reranker
+ * Cross-Encoder léxico-semántico de ultra-baja latencia en Node.js.
+ */
+export async function rerankModKnowledge(
+  query: string,
+  candidates: ModKnowledgeItem[],
+  topN: number = 3
+): Promise<ModKnowledgeItem[]> {
+  if (!candidates || candidates.length === 0) return []
+  if (candidates.length <= topN) return candidates
+
+  // 1. Si COHERE_API_KEY está configurada, usar Cohere Rerank API v3.5
+  if (cohereApiKey) {
+    try {
+      const documents = candidates.map(c => {
+        const desc = typeof c.metadata?.description === 'string' ? c.metadata.description : ''
+        return `${c.mod_id} ${c.entity_name} (${c.entity_type}): ${desc}`
+      })
+
+      const response = await fetch('https://api.cohere.com/v2/rerank', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${cohereApiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'rerank-v3.5',
+          query,
+          documents,
+          top_n: topN
+        })
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        if (data.results && Array.isArray(data.results)) {
+          return data.results.map((r: { index: number; relevance_score: number }) => {
+            const item = candidates[r.index]
+            return { ...item, rerank_score: r.relevance_score }
+          })
+        }
+      }
+    } catch (err) {
+      console.warn('⚠️ Cohere Rerank API fallback activado:', err instanceof Error ? err.message : String(err))
+    }
+  }
+
+  // 2. Cross-Encoder Reranker Local (Token Interaction + Entity Exact Match + Metadata Field Density)
+  const normalizedQuery = query.toLowerCase().normalize('NFKD').replace(/[^\w\s]/g, '').trim()
+  const queryTokens = normalizedQuery.split(/\s+/).filter(Boolean)
+
+  const scoredCandidates = candidates.map(item => {
+    let score = item.score ?? item.similarity ?? 0.1
+
+    const entityName = item.entity_name.toLowerCase()
+    const modId = item.mod_id.toLowerCase()
+    const entityType = item.entity_type.toLowerCase()
+    const metadataStr = JSON.stringify(item.metadata || {}).toLowerCase()
+
+    // 2a. Coincidencia exacta de nombre de entidad
+    if (entityName === normalizedQuery) {
+      score += 2.5
+    } else if (entityName.includes(normalizedQuery) || normalizedQuery.includes(entityName)) {
+      score += 1.2
+    }
+
+    // 2b. Coincidencia por interacción de tokens (Cross-Encoder Field Scoring)
+    let matchedTokens = 0
+    queryTokens.forEach(token => {
+      if (entityName.includes(token)) {
+        matchedTokens += 1.5
+      } else if (modId.includes(token) || entityType.includes(token)) {
+        matchedTokens += 0.8
+      } else if (metadataStr.includes(token)) {
+        matchedTokens += 0.4
+      }
+    })
+
+    const tokenOverlap = queryTokens.length > 0 ? matchedTokens / queryTokens.length : 0
+    score += tokenOverlap * 1.8
+
+    return { item, score }
+  })
+
+  scoredCandidates.sort((a, b) => b.score - a.score)
+
+  return scoredCandidates.slice(0, topN).map(sc => ({
+    ...sc.item,
+    rerank_score: Number(sc.score.toFixed(4))
+  }))
+}
+
+/**
+ * Realiza una búsqueda híbrida simultánea RRF + Reranking Cross-Encoder
  */
 export async function searchModKnowledge(query: string, limit: number = 5): Promise<ModKnowledgeItem[]> {
   const queryEmbedding = await generateEmbedding(query)
   const isZeroVector = queryEmbedding.every(v => v === 0)
 
-  // 1. Si los embeddings vectoriales funcionan, llamar a la función RPC de pgvector
+  const fetchCandidateCount = Math.max(limit * 3, 10)
+  let rawCandidates: ModKnowledgeItem[] = []
+
+  // 1. Búsqueda Híbrida RRF (Vectorial + FTS en paralelo en PostgreSQL)
   if (!isZeroVector) {
-    const { data: vectorResults, error: vectorErr } = await supabase.rpc('match_mod_knowledge', {
+    const { data: rrfResults, error: rrfErr } = await supabase.rpc('hybrid_search_rrf', {
+      query_text: query,
       query_embedding: queryEmbedding,
-      match_threshold: 0.35,
-      match_count: limit
+      match_count: fetchCandidateCount,
+      rrf_k: 60
     })
 
-    if (!vectorErr && vectorResults && vectorResults.length > 0) {
-      return vectorResults as ModKnowledgeItem[]
+    if (!rrfErr && rrfResults && rrfResults.length > 0) {
+      rawCandidates = rrfResults as ModKnowledgeItem[]
+    } else {
+      // 2. Fallback a búsqueda por coseno pgvector si hybrid_search_rrf no devuelve datos
+      const { data: vectorResults, error: vectorErr } = await supabase.rpc('match_mod_knowledge', {
+        query_embedding: queryEmbedding,
+        match_threshold: 0.35,
+        match_count: fetchCandidateCount
+      })
+
+      if (!vectorErr && vectorResults && vectorResults.length > 0) {
+        rawCandidates = vectorResults as ModKnowledgeItem[]
+      }
     }
   }
 
-  // 2. Fallback: Full-Text Search (FTS) nativo en PostgreSQL
-  const formattedFtsQuery = query.trim().replace(/\s+/g, ' | ')
-  const { data: ftsResults, error: ftsErr } = await supabase
-    .from('mod_knowledge_base')
-    .select('id, mod_id, entity_type, entity_name, metadata')
-    .textSearch('entity_name', formattedFtsQuery, { config: 'spanish' })
-    .limit(limit)
+  // 3. Fallback final: Full-Text Search (FTS) nativo en PostgreSQL si no hay candidatos
+  if (rawCandidates.length === 0) {
+    const formattedFtsQuery = query.trim().replace(/\s+/g, ' | ')
+    const { data: ftsResults, error: ftsErr } = await supabase
+      .from('mod_knowledge_base')
+      .select('id, mod_id, entity_type, entity_name, metadata')
+      .textSearch('entity_name', formattedFtsQuery, { config: 'spanish' })
+      .limit(fetchCandidateCount)
 
-  if (!ftsErr && ftsResults) {
-    return ftsResults as ModKnowledgeItem[]
+    if (!ftsErr && ftsResults) {
+      rawCandidates = ftsResults as ModKnowledgeItem[]
+    }
   }
 
-  return []
+  // 4. Etapa de Reranking Cross-Encoder sobre los candidatos recuperados
+  return rerankModKnowledge(query, rawCandidates, limit)
 }
 
 /**

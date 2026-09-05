@@ -3,6 +3,7 @@ import { supabase } from '../services/ragService.js'
 import { generateNewspaperEdition } from '../services/newspaperService.js'
 import { generateDailyQuests } from '../services/questService.js'
 import { executeDailyAIPipeline } from '../services/aiCronService.js'
+import { generateAIBossPoll } from '../services/aiPollService.js'
 
 /**
  * GET /api/ai/newspaper/latest
@@ -156,3 +157,21 @@ export async function triggerFullPipeline(req: Request, res: Response): Promise<
     res.status(500).json({ error: err instanceof Error ? err.message : String(err) })
   }
 }
+
+/**
+ * POST /api/ai/generate-boss-poll (Admin)
+ * Genera una encuesta comunitaria semanal de Jefes Supremos con IA
+ */
+export async function triggerBossPollGeneration(req: Request, res: Response): Promise<void> {
+  try {
+    const result = await generateAIBossPoll()
+    if (!result.success) {
+      res.status(500).json({ error: 'No se pudo generar la encuesta de jefes por IA.' })
+      return
+    }
+    res.json({ message: 'Encuesta comunitaria de Jefes generada con éxito.', result })
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : String(err) })
+  }
+}
+

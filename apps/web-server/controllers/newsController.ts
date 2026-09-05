@@ -479,3 +479,103 @@ export const deleteNews = async (req: Request, res: Response) => {
         res.status(500).json({ error: message });
     }
 };
+
+/**
+ * Endpoint Headless Feed para el Launcher de CrystalTides
+ * Provee el banner destacado, lista de noticias y changelog en un solo payload optimizado
+ */
+export const getLauncherNewsFeed = async (req: Request, res: Response) => {
+    try {
+        // 1. Obtener items prioritarios de news_feed_items
+        let newsItems = (await supabase
+            .from('news_feed_items')
+            .select('id, title, slug, summary, category, tag_label, tag_color, banner_image_url, action_label, action_url, is_featured, priority, created_at')
+            .eq('is_published', true)
+            .order('priority', { ascending: false })
+            .order('created_at', { ascending: false })
+            .limit(10)).data as Record<string, unknown>[] | null;
+
+        // Fallback a tabla news estándar si news_feed_items aún no tiene registros
+        if (!newsItems || newsItems.length === 0) {
+            const fallback = await supabase
+                .from('news')
+                .select('id, title, slug, summary, content, category, image_url, created_at, is_featured')
+                .order('created_at', { ascending: false })
+                .limit(10);
+            newsItems = fallback.data as Record<string, unknown>[] | null;
+        }
+
+        // 2. Obtener la última edición del noticiero como fallback editorial si existe
+        const { data: latestNewspaper } = await supabase
+            .from('ai_newspaper_editions')
+            .select('id, issue_number, issue_date, headline, front_page_summary, created_at')
+            .order('id', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+        const items = (newsItems || []).map((n: Record<string, unknown>) => ({
+            id: String(n.id),
+            title: String(n.title || ''),
+            slug: String(n.slug || n.id),
+            category: String(n.category || 'ANNOUNCEMENT'),
+            tag: String(n.tag_label || (n.category === 'CHANGELOG' ? 'CHANGELOG' : (String(n.category) || 'NOTICIA'))),
+            tagColor: String(n.tag_color || (n.category === 'EVENT' ? '#F59E0B' : (n.category === 'CHANGELOG' ? '#10B981' : '#2DD4BF'))),
+            summary: String(n.summary || (typeof n.content === 'string' ? n.content.substring(0, 140) + '...' : '')),
+            imageUrl: n.banner_image_url ? String(n.banner_image_url) : (n.image_url ? String(n.image_url) : null),
+            actionLabel: String(n.action_label || 'LEER MÁS'),
+            actionUrl: String(n.action_url || `https://crystaltidessmp.net/news/${n.slug || n.id}`),
+            publishedAt: String(n.created_at || new Date().toISOString())
+        }));
+
+        // Buscar banner destacado (o usar el más reciente)
+        interface RawNewsItem {
+            id: string | number;
+            is_featured?: boolean;
+            [key: string]: unknown;
+        }
+
+        let featured = items.find(i => (newsItems as RawNewsItem[] || []).find(raw => String(raw.id) === i.id && raw.is_featured)) || items[0] || null;
+
+        if (!featured && latestNewspaper) {
+            featured = {
+                id: `newspaper-${latestNewspaper.id}`,
+                title: latestNewspaper.headline,
+                slug: `newspaper-${latestNewspaper.issue_number}`,
+                category: 'NOTICIERO',
+                tag: `EDICIÓN #${latestNewspaper.issue_number}`,
+                tagColor: '#2DD4BF',
+                summary: latestNewspaper.front_page_summary,
+                imageUrl: null,
+                actionLabel: 'LEER EDICIÓN',
+                actionUrl: `https://crystaltidessmp.net/newspaper/latest`,
+                publishedAt: String(latestNewspaper.created_at)
+            };
+        }
+
+        const feedPayload = {
+            featured,
+            cards: items.slice(0, 6),
+            latestChangelog: {
+                version: "0.1.0-alpha",
+                buildDate: "2026.8",
+                bullets: [
+                    "Sincronización en la nube de perfiles y shaders",
+                    "Optimización de memoria JVM y rendimiento",
+                    "Integración nativa con CrystalCore y chat relay"
+                ],
+                actionUrl: "https://crystaltidessmp.net/changelog"
+            },
+            serverStatus: {
+                online: true,
+                motd: "CrystalTides SMP • Temporada Abisal",
+                networkRegion: "US-East",
+                latencyMs: 18
+            }
+        };
+
+        res.status(200).json(feedPayload);
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        res.status(500).json({ error: message });
+    }
+};

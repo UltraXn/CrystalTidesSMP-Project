@@ -20,20 +20,22 @@ const safeSecretEqual = (provided: unknown, expected: string): boolean => {
 router.post('/kofi', webhookLimiter, handleKofiWebhook);
 router.post('/minecraft', webhookLimiter, validate(minecraftWebhookSchema), (req, res) => {
     // Basic placeholder for MC events
-    const { event, player, details, secret } = req.body;
+    const { event, player, username, details, secret } = req.body;
+    const playerName = player || username;
 
-    // Security check (Mandatory: verify secret from plugin)
+    // Security check (Mandatory: verify secret from plugin via body or header)
     const expectedSecret = process.env.MC_WEBHOOK_SECRET;
-    if (!expectedSecret || !safeSecretEqual(secret, expectedSecret)) {
+    const providedSecret = secret || (req.headers['x-mc-secret'] as string);
+    if (!expectedSecret || !safeSecretEqual(providedSecret, expectedSecret)) {
         console.warn(`[MC Webhook] Unauthorized attempt: ${req.ip}`);
         logSecurityFailure(req, 'Unauthorized: Invalid or missing secret', false).catch(err => console.error('Failed to log security event:', err));
         return sendError(res, 'Unauthorized: Invalid or missing secret', 'AUTH_ERROR', 401);
     }
 
-    console.log(`[MC Webhook] Event: ${event} | Player: ${player}`);
+    console.log(`[MC Webhook] Event: ${event} | Player: ${playerName}`);
     
     // Notify Discord (async)
-    import('../services/discordService.js').then(s => s.notifyMinecraftEvent(event, player, details));
+    import('../services/discordService.js').then(s => s.notifyMinecraftEvent(event, playerName, details));
 
     res.json({ success: true });
 });

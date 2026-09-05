@@ -29,11 +29,17 @@ import policyRoutes from './routes/policyRoutes.js';
 import profileCommentRoutes from './routes/profileCommentRoutes.js';
 import wikiRoutes from './routes/wikiRoutes.js';
 import locationRoutes from './routes/locationRoutes.js';
+import ragRoutes from './routes/ragRoutes.js';
+import aiRoutes from './routes/aiRoutes.js';
+import honeypotRoutes from './routes/honeypotRoutes.js';
+import { checkCanaryToken } from './middleware/honeypotMiddleware.js';
 import { initCleanupJob } from './services/cleanupService.js';
 
 import helmet from 'helmet';
 import { apiLimiter, sensitiveActionLimiter, uploadLimiter } from './middleware/rateLimitMiddleware.js';
 import authRoutes from './routes/authRoutes.js';
+
+import cookieParser from 'cookie-parser';
 
 const app = express();
 
@@ -77,6 +83,11 @@ app.use(cors({
     ],
     credentials: true
 }));
+const cookieSecret = process.env.COOKIE_SECRET || process.env.JWT_SECRET || 'crystaltides_cookie_signature_secret_key_2026';
+app.use(cookieParser(cookieSecret));
+import { ensureDeviceId } from './middleware/deviceIdMiddleware.js';
+app.use(ensureDeviceId);
+app.use(checkCanaryToken);
 app.use(express.json());
 
 // Iniciar Jobs
@@ -85,6 +96,7 @@ app.use(express.urlencoded({ extended: true })); // Necesario para Ko-Fi payload
 app.use(hpp()); // Protect against HTTP Parameter Pollution attacks
 
 // Routes
+app.use('/', honeypotRoutes); // Stealth honeypot & scanner decoys
 app.use('/api/system', systemRoutes);
 app.use('/api/admin', uploadLimiter, adminRoutes); // Admin Mod Uploads
 app.use('/api/webhooks', webhookRoutes);
@@ -100,11 +112,16 @@ app.use('/api/suggestions', sensitiveActionLimiter, suggestionRoutes);
 app.use('/api/polls', pollRoutes);
 app.use('/api/forum', forumRoutes);
 app.use('/api/events', eventRoutes);
+import bountyRoutes from './routes/bountyRoutes.js';
+
+app.use('/api/bounties', bountyRoutes);
 app.use('/api/rules', ruleRoutes); // Interactive Rules
 app.use('/api/policies', policyRoutes);
 app.use('/api/profiles/comments', profileCommentRoutes);
 app.use('/api/wiki', wikiRoutes);
 app.use('/api/locations', locationRoutes);
+app.use('/api/rag', sensitiveActionLimiter, ragRoutes);
+app.use('/api/ai', sensitiveActionLimiter, aiRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/player-stats', playerStatsRoutes);
 app.use('/api/server', serverRoutes);

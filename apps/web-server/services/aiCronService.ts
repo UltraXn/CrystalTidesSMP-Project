@@ -1,6 +1,7 @@
 import cron from 'node-cron'
 import { generateNewspaperEdition } from './newspaperService.js'
 import { generateDailyQuests } from './questService.js'
+import { generateAIBossPoll } from './aiPollService.js'
 
 /**
  * Ejecuta el pipeline completo de Inteligencia Artificial (Noticiero + Dungeon Master Quests)
@@ -21,13 +22,20 @@ export async function executeDailyAIPipeline(): Promise<void> {
 }
 
 /**
- * Inicia la tarea programada a las 00:00 UTC todos los días
+ * Inicia las tareas programadas de Inteligencia Artificial
  */
 export function startAICronJobs(): void {
-  // Cron Expression: 0 0 * * * (Todos los días a medianoche 00:00)
+  // Cron Diario: 0 0 * * * (Todos los días a medianoche 00:00 UTC)
   cron.schedule('0 0 * * *', () => {
     executeDailyAIPipeline().catch(console.error)
   })
 
-  console.log('📅 CronJob de Inteligencia Artificial activado (00:00 UTC diario).')
+  // Cron Semanal de Encuesta de Jefes: 0 18 * * 5 (Viernes 18:00 UTC para el fin de semana)
+  cron.schedule('0 18 * * 5', () => {
+    console.log('🗳️ [Viernes 18:00 UTC] Generando Encuesta Comunitaria Semanal de Jefes Supremos con IA...')
+    generateAIBossPoll().catch(console.error)
+  })
+
+  console.log('📅 CronJobs de Inteligencia Artificial activados (Diario 00:00 UTC + Viernes 18:00 UTC Encuesta de Jefes).')
 }
+

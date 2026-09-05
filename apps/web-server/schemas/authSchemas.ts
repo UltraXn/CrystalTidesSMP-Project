@@ -6,6 +6,7 @@ export const registerSchema = z.object({
         password: z.string().min(8, "Password must be at least 8 characters").max(100, "Password too long"),
         username: z.string().min(3, "Username must be at least 3 characters").max(30, "Username too long").regex(/^\w+$/, "Username can only contain letters, numbers and underscores"),
         website: z.string().optional(), // Honeypot field for bot detection
+        confirm_email: z.string().optional(), // Form honeypot field for bot detection
         turnstileToken: z.string().optional() // Cloudflare Turnstile token
     })
 });

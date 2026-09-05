@@ -1,0 +1,10 @@
+# .dockerignore for web-server app package
+.env
+.env.*
+.env.local
+**/.env
+**/.env.*
+node_modules
+dist
+coverage
+*.log

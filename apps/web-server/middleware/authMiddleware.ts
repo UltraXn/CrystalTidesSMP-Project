@@ -17,9 +17,9 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
     }
 
     try {
-        // Support internal bot / server API key authentication
-        const botApiKey = process.env.BOT_API_KEY || process.env.SERVER_API_KEY || 'crystaltides_bot_secret_key';
-        if (token === botApiKey) {
+        // Support internal bot / server API key authentication (requires explicit env variable)
+        const botApiKey = process.env.BOT_API_KEY || process.env.SERVER_API_KEY;
+        if (botApiKey && token === botApiKey) {
             req.user = {
                 id: 'bot_system_id',
                 email: 'bot@crystaltidessmp.net',
@@ -80,7 +80,7 @@ export const require2FA = async (req: Request, res: Response, next: NextFunction
     // 2FA Check
     const is2FAEnabled = user.app_metadata?.two_factor_enabled;
     if (is2FAEnabled) {
-        const adminToken = req.headers['x-admin-token'] as string;
+        const adminToken = (req.signedCookies && req.signedCookies['admin_2fa_token']) || (req.cookies && req.cookies['admin_2fa_token']) || (req.headers['x-admin-token'] as string);
         
         if (!adminToken) {
              logSecurityFailure(req, '2FA Verification Required', true).catch(err => console.error('Failed to log security event:', err));

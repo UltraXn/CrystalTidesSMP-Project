@@ -2,18 +2,23 @@ import { Request, Response } from 'express'
 import { supabase, generateEmbedding, reconcileOrphanMods } from '../services/ragService.js'
 import crypto from 'node:crypto'
 
-const RAG_INGEST_SECRET = process.env.RAG_INGEST_SECRET || 'CrystalRAGSecretKey2026'
-let memoryChecksumCache: string | null = null
+const RAG_INGEST_SECRET = process.env.RAG_INGEST_SECRET || (process.env.NODE_ENV === 'test' ? 'CrystalRAGSecretKey2026' : undefined);
+let memoryChecksumCache: string | null = null;
 
 /**
  * Endpoint POST /api/rag/ingest para recibir el push automático de KubeJS en formato TOON/JSON
  */
 export async function handleRagIngestPush(req: Request, res: Response): Promise<void> {
   try {
-    const authHeader = req.headers['x-rag-secret'] || req.headers['authorization']
+    if (!RAG_INGEST_SECRET) {
+      res.status(500).json({ error: 'RAG_INGEST_SECRET no está configurado en el servidor.' });
+      return;
+    }
+
+    const authHeader = req.headers['x-rag-secret'] || req.headers['authorization'];
     if (authHeader !== RAG_INGEST_SECRET && authHeader !== `Bearer ${RAG_INGEST_SECRET}`) {
-      res.status(401).json({ error: 'No autorizado. Se requiere x-rag-secret válido.' })
-      return
+      res.status(401).json({ error: 'No autorizado. Se requiere x-rag-secret válido.' });
+      return;
     }
 
     const { active_mods, entities, items, checksum } = req.body

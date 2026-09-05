@@ -16,6 +16,7 @@ declare global {
                     [key: string]: unknown;
                 };
             };
+            deviceId?: string;
         }
     }
 }

@@ -1,5 +1,12 @@
 import { Request, Response } from 'express';
+import { z } from 'zod';
 import { listEvents, createEvent } from '../services/googleCalendarService.js';
+
+const SyncCalendarTaskSchema = z.object({
+    title: z.string().min(1, 'Title is required').max(200),
+    description: z.string().max(2000).optional(),
+    date: z.string().min(1, 'Date is required')
+});
 
 export const getCalendarEvents = async (req: Request, res: Response) => {
     try {
@@ -13,11 +20,15 @@ export const getCalendarEvents = async (req: Request, res: Response) => {
 
 export const syncTaskToCalendar = async (req: Request, res: Response) => {
     try {
-        const { title, description, date } = req.body;
-        
-        if (!title || !date) {
-            return res.status(400).json({ error: 'Title and Date are required' });
+        const parseResult = SyncCalendarTaskSchema.safeParse(req.body);
+        if (!parseResult.success) {
+            return res.status(400).json({ 
+                error: 'Validation Error', 
+                details: parseResult.error.issues.map(i => ({ field: i.path.join('.'), message: i.message }))
+            });
         }
+
+        const { title, description, date } = parseResult.data;
 
         const event = await createEvent({
             summary: `[Kanban] ${title}`,
