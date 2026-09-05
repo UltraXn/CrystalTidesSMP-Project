@@ -116,6 +116,11 @@ jobs:
             REPORTERS='["html", "clear-text", "progress", "json", "dashboard"]'
           fi
 
+          CONFIG_FILE="vite.config.ts"
+          if [ -f "vitest.config.ts" ]; then
+            CONFIG_FILE="vitest.config.ts"
+          fi
+
           cat > stryker.ci.json <<EOF
           {
             "\$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
@@ -132,7 +137,7 @@ jobs:
             "cleanTempDir": "always",
             "mutate": $(echo "$MUTATE_JSON" | jq -c '.'),
             "vitest": {
-              "configFile": "vitest.config.ts"
+              "configFile": "${CONFIG_FILE}"
             },
             "htmlReporter": {
               "fileName": "reports/mutation/${{ matrix.group }}/index.html"
