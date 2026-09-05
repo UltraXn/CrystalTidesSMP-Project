@@ -72,7 +72,9 @@ export default defineConfig(async () => {
       globals: true,
       environment: "jsdom",
       setupFiles: ["./src/test/setup.ts"],
-      include: ["./src/**/*.{test,spec}.{ts,tsx}"],
+      include: process.env.VITE_TEST_INCLUDE
+        ? process.env.VITE_TEST_INCLUDE.split(",").map((p) => p.trim())
+        : ["./src/**/*.{test,spec}.{ts,tsx}"],
       root: ".",
     },
   };

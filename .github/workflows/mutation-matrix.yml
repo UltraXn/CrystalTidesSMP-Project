@@ -140,8 +140,7 @@ jobs:
             "tsconfigFile": "",
             "mutate": $(echo "$MUTATE_JSON" | jq -c '.'),
             "vitest": {
-              "configFile": "${CONFIG_FILE}",
-              "dir": "${{ matrix.dir }}"
+              "configFile": "${CONFIG_FILE}"
             },
             "htmlReporter": {
               "fileName": "reports/mutation/${{ matrix.group }}/index.html"
@@ -165,6 +164,7 @@ jobs:
         run: ../../node_modules/.bin/stryker run stryker.ci.json
         env:
           STRYKER_DASHBOARD_API_KEY: ${{ secrets.STRYKER_DASHBOARD_API_KEY }}
+          VITE_TEST_INCLUDE: ${{ matrix.tests }}
 
       - name: Upload Mutation Report
         uses: actions/upload-artifact@v4
