@@ -23,8 +23,17 @@ if [ -n "$leaked_files" ]; then
   exit 1
 fi
 
-# 3. Guard against committing huge binary blobs (> 15MB) - fast single-pass check
-large_files=$(find . -maxdepth 4 -not -path '*/.*' -not -path '*/node_modules/*' -not -path '*/target/*' -size +15M 2>/dev/null || true)
+# 3. Guard against committing huge binary blobs (> 15MB) in outgoing commits
+outgoing_files=$(git diff --name-only @{u}..HEAD 2>/dev/null || git diff --name-only origin/develop..HEAD 2>/dev/null || true)
+large_files=""
+for f in $outgoing_files; do
+  if [ -f "$f" ]; then
+    size=$(wc -c < "$f" 2>/dev/null || echo 0)
+    if [ "$size" -gt 15728640 ]; then
+      large_files="${large_files}\n${f}"
+    fi
+  fi
+done
 
 if [ -n "$large_files" ]; then
   echo "❌ [PRE-PUSH GUARD] Detected large binary file (> 15MB) in repository tree:"
