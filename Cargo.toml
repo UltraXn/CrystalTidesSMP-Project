@@ -5,4 +5,12 @@ members = [
   "apps/launcher/client/src-tauri",
   "apps/launcher/installer/src-tauri",
   "apps/launcher/uninstaller/src-tauri",
+  "apps/launcher-lite/src-tauri",
 ]
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
