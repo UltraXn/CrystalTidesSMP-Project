@@ -137,6 +137,7 @@ jobs:
             "timeoutMS": 30000,
             "timeoutFactor": 3,
             "cleanTempDir": "always",
+            "tsconfigFile": "",
             "mutate": $(echo "$MUTATE_JSON" | jq -c '.'),
             "vitest": {
               "configFile": "${CONFIG_FILE}"
@@ -184,6 +185,7 @@ jobs:
     steps:
       - name: Download all reports
         uses: actions/download-artifact@v4
+        continue-on-error: true
         with:
           pattern: mutation-report-*
           path: reports/
@@ -202,6 +204,7 @@ jobs:
           TOTAL_MUTANTS=0
 
           for dir in reports/mutation-report-*/; do
+            [ -d "$dir" ] || continue
             GROUP=$(basename "$dir" | sed 's/mutation-report-//')
             JSON_FILE=$(find "$dir" -name "mutation.json" -type f 2>/dev/null | head -1)
 
