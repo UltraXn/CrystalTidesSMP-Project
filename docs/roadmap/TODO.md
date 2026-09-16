@@ -125,6 +125,7 @@ Este documento centraliza el roadmap completo del proyecto, organizando las tare
 - [x] **Unificación de Íconos**: Reemplazar `react-icons` por `lucide-react` para reducir bundle size y tener consistencia visual. (Completado)
 - [x] **Limpieza de Animaciones**: Evaluar eliminación de `GSAP` en favor de `framer-motion` si no se usan timelines complejos. (Eliminado)
 - [x] **Soporte Nativo HTML Head**: Reemplazar `react-helmet` (si existe) por soporte nativo de React 19 (`<title>`, `<meta>`). (React 19 Nativo)
+- [x] **Adopción de Oxlint (Oxc)**: Integrar Oxlint y `eslint-plugin-oxlint` en el monorepo Turborepo y pre-commit (`lint-staged`) para reducir los tiempos de linting de segundos a milisegundos. (Implementado)
 
 ### 🧪 Futuro: Stack Tecnológico & "Wow" Features (2026)
 

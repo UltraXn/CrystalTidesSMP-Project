@@ -2,27 +2,41 @@
 
 ## Próximas Tareas (Short-term) & Roadmap de Mejoras Priorizadas
 
-### 🎯 5 Mejoras de Alto Impacto (Especificaciones en Obsidian `Management/Improvements/`)
+### 🎯 Tareas Críticas y Roadmap Priorizado
+
+- [x] **[P0 - CRÍTICA / MUY IMPORTANTE] Centralización de Esquemas Zod, Tipos & Contratos en `packages/shared`**:
+  - Unificar y eliminar la duplicación de esquemas Zod entre `apps/web-server/schemas` (25 archivos) y `apps/web-client/src/schemas` (`ticket.ts`, `user.ts`, `news.ts`, `suggestion.ts`).
+  - Exportar contratos de API tipados de extremo a extremo compartidos para `web-client`, `web-server`, `game-bridge` y `discord-bot`.
+- [ ] **[P1 - Alta] Deep Linking `crystaltides://` (1-Click Web-to-Game Launch)**:
+  - Integrar `tauri-plugin-deep-link` en el Launcher de Tauri v2 (`crystaltides://join?server=mc.crystaltidessmp.net&profile=default`).
+  - Botón "Jugar Ahora" en `web-client` que invoca el esquema URI para abrir el launcher, verificar sesión/modpack e iniciar Minecraft directo al servidor.
+- [ ] **[P1 - Alta] Crystal Crash Pipeline en Launcher & Backend**:
+  - Detección automática en Tauri Rust de códigos de salida anormales de la JVM y volcado de `.minecraft/crash-reports/*.txt`.
+  - Endpoint de ingesta sanitizada en `web-server` / webhook de alertas Discord, con UI amigable en el Launcher que explica el motivo del crash y ofrece solución automática.
 - [ ] **[P1 - Alta] Frontend WebGL Three.js, Lazy Viewports & Cache Local de Assets R2**:
   - `Lazy3DContainer` con `IntersectionObserver` para prevenir límite de contextos `CONTEXT_LOST_WEBGL`.
   - Cache local persistente (`CacheStorage` / IndexedDB) para geometrías `.geo.json` y texturas `.png` de Cloudflare R2.
-- [ ] **[P2 - Alta] Centralización de Esquemas Zod, Tipos & Contratos en `packages/shared`**:
-  - Centralizar contratos de API, schemas Zod y tipos TypeScript compartidos para `web-client`, `web-server`, `game-bridge` y `discord-bot`.
-- [ ] **[P3 - Media-Alta] Capa de Caché LRU para RAG Vectorial & Colas de Tareas Persistentes**:
-  - Caché LRU en memoria para consultas semánticas y embeddings en `ragService.ts`.
-  - Migración de crons en memoria (`setInterval`) a sistema de background jobs con PostgreSQL `SKIP LOCKED`.
-- [ ] **[P4 - Media] Buffer Offline con Reintento Exponencial & Protocolo Binario en Game Bridge**:
-  - Cola FIFO en memoria en `apps/game-bridge` para retener eventos durante reinicios de servidor de Minecraft.
-  - Serialización binaria MessagePack para telemetría de alta frecuencia (`telemetry:tps`, `boss:damage_tick`).
-- [ ] **[P5 - Media-Baja] Trazabilidad con Correlation ID (`x-request-id`) & Healthcheck Profundo**:
-  - Inyección de `x-request-id` en todas las capas y alertas de error en Discord.
-  - Endpoint `/api/system/deep-health` con verificación activa de latencia a Supabase, R2 y WebSocket.
+- [ ] **[P2 - Media-Alta] Fine-Tuning de NPCs con IA & Lore Persona (In-Game Interaction)**:
+  - Preparación de dataset JSONL estructurado con la historia, personalidad y tono de CrystalTides SMP.
+  - Integración de Citizens / Typewriter con backend de inferencia (Local Llama/Ollama o Cloudflare Workers AI) para diálogos in-character persistentes y memorias de interacción con jugadores.
+- [ ] **[P2 - Media-Alta] CrystalMap 3D (Motor Nativo WebGPU / WebGL2 a 20 TPS)**:
+  - Componente React Three Fiber híbrido WebGPU + WebGL2 para renderizado 3D en tiempo real de chunks de Minecraft en el navegador.
+  - Streaming binario por WebSockets a 20 TPS para posiciones de jugadores y mobs con skins 3D, sustituyendo la dependencia pesada de BlueMap/Dynmap.
+- [ ] **[P3 - Media] Telemetría & Observabilidad con Prometheus / OpenTelemetry + Grafana**:
+  - Exporter de métricas en Java (TPS, MSPT, chunks cargados, conteo de entidades por mundo, heap memory, player count) y métricas de latencia de `web-server`.
+  - Dashboard unificado en Grafana para diagnóstico y auditoría en vivo del servidor.
+- [ ] **[P3 - Media] Benchmark Dinámico de Inflación para Mercader (`PlaystyleRadarFinal.tsx`)**:
+  - El componente frontend ya soporta `top1MercaderScore` (con fallback de 500 = 100k KC).
+  - Tarea backend: calcular periódicamente en `web-server` el benchmark del Top 1 de KilluCoins / inflación y enviarlo en el payload de estadísticas de usuario.
+- [ ] **[P4 - Evaluación] Crystal Agent Nativo en Rust (`-javaagent` + OpenGL ImGui Overlay)**:
+  - Inyección en JVM mediante `-javaagent` para engancharse al loop de render LWJGL/OpenGL.
+  - Renderizado nativo FFI con Dear ImGui para HUDs y overlays sin impacto en el Garbage Collector de Java.
+- [ ] **[P4 - En espera] Confirmación 2FA destructiva en Consola Web**:
+  - Código TOTP o aprobación de seguridad para comandos críticos (`/stop`, `/op`, `/ban`, etc.) desde el panel web.
 
-- [x] Migración de `web-client` a **Tailwind CSS 4**.
-- [x] Creación de diagramas de arquitectura detallados para el flujo de datos Rust-Java.
+## Estado de Auditoría & Verificaciones Recientes
 
-## Deuda Técnica & Calidad
-
+- [x] **Hero Banner Carousel (`HeroBackgroundCarousel.tsx`)**: Verificado al 100%. Suite Vitest pasando (3/3 tests en verde), soporte Embla Carousel con fallback local y lazy loading de imágenes.
 - [x] **Tailwind Mismatch**: El `package.json` del cliente y raíz ya usan v4 (confirmado v4.1.18).
 - [x] **Bridge Polling**: Implementado WebSocket en `web-server` y `plugins/crystalcore` para eventos realtime.
 - [x] **Java Plugin Safety**: Solucionado el bloqueo del Main Thread en `reloadProfile` (Async wrapper).
@@ -37,19 +51,7 @@
 - [x] **Fix Consola & Headers**: CSP (Supabase WSS), Permissions-Policy (VR), GSAP Targets y Three.js Duplicates.
 - [x] **MCP Toolbox Configuration**: Fix de `tools.yaml` para soporte SQL dinámico.
 
-## Ideas & Backlog
-
-- [ ] **Sistema Automatizado de Reporte de Crashes (Crystal Crash Pipeline)**:
-  - [ ] **Launcher**: Detección automática de crasheos y envío de logs (Watchdog).
-  - [ ] **Web Server**: Endpoint para ingesta de logs y creación automática de tickets.
-  - [ ] **Analytics**: Implementación de DuckDB para análisis estadístico de fallos.
-- [ ] **Fine-Tuning de Modelos de IA (NPCs & Lore Persona)**:
-  - [ ] **Dataset JSONL**: Preparación de dataset estructurado con personalidad y tono in-character para NPCs de Minecraft (Citizens/Typewriter).
-  - [ ] **Entrenamiento (LoRA / Vertex AI)**: Evaluación de Fine-Tuning (vía Google Vertex AI o LoRA local) para comportamiento e interacción in-character sin desvíos de rol.
-- [ ] **Desarrollo del Motor de Mapa 3D Nativo (`CrystalMap 3D`)** *(Futuro Lejano)*:
-  - [ ] *Estado actual*: Operando temporalmente con **BlueMap 5.16 (3D)** en el servidor y web.
-  - [ ] *Especificación congelada*: Componente React Three Fiber con soporte híbrido WebGPU + WebGL2, streaming binario por WebSockets a 20 TPS para jugadores y mobs con skins 3D, cache local IndexedDB con Delta Sync de bloques y estética Vanilla Minecraft Fiel. (Ver ADR en Obsidian `30 - Permanent/10 - Architecture/Decisión Arquitectura - Engine 3D CrystalMap.md`).
-
 ---
+
 _Este archivo se mantiene sincronizado según la Regla 6 del proyecto._
 _Autodocumentación en Obsidian activa a través de Git hook_
