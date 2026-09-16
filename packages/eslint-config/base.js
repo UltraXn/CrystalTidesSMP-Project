@@ -1,6 +1,7 @@
 import js from '@eslint/js';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
+import oxlint from 'eslint-plugin-oxlint';
 
 /** @type {import('eslint').Linter.Config[]} */
 export default [
@@ -21,7 +22,8 @@ export default [
       'no-console': ['warn', { allow: ['log', 'error', 'warn', 'info'] }],
     },
   },
+  ...oxlint.configs['flat/recommended'],
   {
     ignores: ['dist', 'node_modules', 'coverage'],
-  }
+  },
 ];
