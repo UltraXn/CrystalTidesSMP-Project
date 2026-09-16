@@ -1,0 +1,3 @@
+[submodule "apps/launcher-lite"]
+	path = apps/launcher-lite
+	url = https://github.com/UltraXn/crystaltides-launcher-lite.git
