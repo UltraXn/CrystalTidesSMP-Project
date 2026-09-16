@@ -104,14 +104,5 @@
     "typescript": "7.0.2",
     "vite": "^6.2.0",
     "vitest": "^4.1.10"
-  },
-  "lint-staged": {
-    "*.{js,jsx,ts,tsx}": [
-      "eslint --fix",
-      "prettier --write"
-    ],
-    "*.{css,md,json}": [
-      "prettier --write"
-    ]
   }
 }
