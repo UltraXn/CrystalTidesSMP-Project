@@ -13,8 +13,3 @@ serde_json = "1.0"
 # log and simple_logger for debugging within the game process
 log = "0.4"
 simple_logger = "4.0"
-
-[profile.release]
-opt-level = 3
-lto = true
-codegen-units = 1
