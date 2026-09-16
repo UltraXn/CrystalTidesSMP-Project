@@ -3,10 +3,12 @@
   "name": "crystaltides-app",
   "version": "1.0.0",
   "type": "module",
-  "packageManager": "npm@11.6.4",
+  "packageManager": "pnpm@10.29.3",
   "private": true,
   "pnpm": {
     "onlyBuiltDependencies": [
+      "@swc/core",
+      "cypress",
       "esbuild",
       "sharp"
     ]
@@ -19,17 +21,22 @@
     "dev": "turbo run dev",
     "build": "turbo run build",
     "test": "turbo run test",
-    "lint": "turbo run lint",
+    "lint": "oxlint apps packages",
+    "lint:fast": "oxlint apps packages",
+    "lint:eslint": "turbo run lint",
+    "audit:knip": "knip",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
-    "client": "npm run dev -w @crystaltides/client",
-    "server": "npm run dev -w @crystaltides/server",
-    "dev:lite": "npm run dev -w @crystaltides/launcher-lite",
-    "install:all": "npm install",
+    "client": "pnpm --filter @crystaltides/client dev",
+    "server": "pnpm --filter @crystaltides/server dev",
+    "dev:lite": "pnpm --filter @crystaltides/launcher-lite dev",
+    "clean:rust": "cargo clean",
+    "sweep:rust": "cargo sweep -t 7",
+    "install:all": "pnpm install",
     "prepare": "husky"
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx}": [
-      "eslint --fix --no-warn-ignored",
+      "oxlint --fix",
       "prettier --write --ignore-unknown"
     ],
     "*.{json,md,yml,yaml,css}": [
@@ -98,6 +105,7 @@
     "concurrently": "^8.0.0",
     "cross-spawn": "7.0.6",
     "eslint": "^9.39.2",
+    "eslint-plugin-oxlint": "^1.40.0",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.26",
     "fast-glob": "^3.3.3",
@@ -105,9 +113,11 @@
     "globals": "^16.5.0",
     "husky": "^9.1.7",
     "jsdom": "^27.3.0",
+    "knip": "^5.45.0",
     "lint-staged": "^17.5.0",
     "micromatch": "^4.0.8",
     "opencode-plugin-llama.cpp": "^0.1.0",
+    "oxlint": "^1.40.0",
     "postcss": "8.5.10",
     "prettier": "^3.7.4",
     "prettier-plugin-tailwindcss": "^0.7.2",

@@ -1,7 +1,4 @@
-onlyBuiltDependencies:
-  - esbuild
-  - sharp
-
 packages:
-  - "apps/*"
-  - "packages/*"
+  - 'apps/*'
+  - 'apps/launcher/*'
+  - 'packages/*'
