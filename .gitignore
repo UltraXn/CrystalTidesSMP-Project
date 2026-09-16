@@ -64,6 +64,9 @@ target/
 bun.lock
 windows/
 ~/
+sweep.timestamp
+*.timestamp
+.serena/
 
 # 3D Models & Game Binaries (Served via Cloudflare R2 CDN)
 apps/web-client/public/models/**
@@ -98,6 +101,7 @@ loop*.md
 .claude/
 
 # Test/Lint/Build Artifacts
+oxlint_report.json
 test_results*.txt
 lint-output.txt
 full_lint_log.txt
@@ -190,3 +194,6 @@ $RECYCLE.BIN/
 *.p12
 
 .aider*
+
+# tgrep index
+.tgrep/
