@@ -36,7 +36,11 @@ import { checkCanaryToken } from './middleware/honeypotMiddleware.js';
 import { initCleanupJob } from './services/cleanupService.js';
 
 import helmet from 'helmet';
-import { apiLimiter, sensitiveActionLimiter, uploadLimiter } from './middleware/rateLimitMiddleware.js';
+import {
+  apiLimiter,
+  sensitiveActionLimiter,
+  uploadLimiter,
+} from './middleware/rateLimitMiddleware.js';
 import authRoutes from './routes/authRoutes.js';
 
 import cookieParser from 'cookie-parser';
@@ -50,40 +54,58 @@ app.set('trust proxy', 1);
 // Strict CSP by default: this server serves JSON, so 'unsafe-inline' is never
 // needed. The only HTML it serves is Swagger UI, which gets a scoped, relaxed
 // CSP on its own route below (see /api/docs).
-app.use(helmet({
+app.use(
+  helmet({
     contentSecurityPolicy: {
-        directives: {
-            defaultSrc: ["'self'"],
-            scriptSrc: ["'self'"],
-            connectSrc: [
-                "'self'",
-                "https://*.supabase.co",
-                "wss://*.supabase.co",
-                "wss://*.crystaltidessmp.net",
-                "https://crystaltidessmp.net",
-                "https://api.crystaltidessmp.net"
-            ],
-            frameSrc: ["'self'"],
-            imgSrc: ["'self'", "data:", "https://*.supabase.co", "https://mc-heads.net", "https://minotar.net"],
-            styleSrc: ["'self'"],
-        },
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'"],
+        connectSrc: [
+          "'self'",
+          'https://*.supabase.co',
+          'wss://*.supabase.co',
+          'wss://*.crystaltidessmp.net',
+          'https://crystaltidessmp.net',
+          'https://api.crystaltidessmp.net',
+          'wss://*.crystaltides.net',
+          'https://crystaltides.net',
+          'https://api.crystaltides.net',
+        ],
+        frameSrc: ["'self'"],
+        imgSrc: [
+          "'self'",
+          'data:',
+          'https://*.supabase.co',
+          'https://mc-heads.net',
+          'https://minotar.net',
+        ],
+        styleSrc: ["'self'"],
+      },
     },
-}));
+  }),
+);
 app.use('/api', apiLimiter); // Global limit for all API routes
 
 import hpp from 'hpp';
 
 // Middleware
-app.use(cors({
+app.use(
+  cors({
     origin: [
-        'https://crystaltidessmp.net',
-        'https://api.crystaltidessmp.net',
-        'http://localhost:3000', // Local development
-        'http://localhost:5173'  // Vite default
+      'https://crystaltides.net',
+      'https://api.crystaltides.net',
+      'https://crystaltidessmp.net',
+      'https://api.crystaltidessmp.net',
+      'http://localhost:3000', // Local development
+      'http://localhost:5173', // Vite default
     ],
-    credentials: true
-}));
-const cookieSecret = process.env.COOKIE_SECRET || process.env.JWT_SECRET || 'crystaltides_cookie_signature_secret_key_2026';
+    credentials: true,
+  }),
+);
+const cookieSecret =
+  process.env.COOKIE_SECRET ||
+  process.env.JWT_SECRET ||
+  'crystaltides_cookie_signature_secret_key_2026';
 app.use(cookieParser(cookieSecret));
 import { ensureDeviceId } from './middleware/deviceIdMiddleware.js';
 app.use(ensureDeviceId);
@@ -146,23 +168,28 @@ import { swaggerSpec } from './config/swagger.js';
 
 const docsEnabled = process.env.ENABLE_API_DOCS === 'true' || process.env.NODE_ENV !== 'production';
 if (docsEnabled) {
-    // Scoped relaxed CSP for Swagger UI only (it needs inline scripts/styles).
-    // Overrides the strict global CSP for this path exclusively.
-    app.use('/api/docs', (req: express.Request, res: express.Response, next: express.NextFunction) => {
-        res.setHeader(
-            'Content-Security-Policy',
-            "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:"
-        );
-        next();
-    }, swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+  // Scoped relaxed CSP for Swagger UI only (it needs inline scripts/styles).
+  // Overrides the strict global CSP for this path exclusively.
+  app.use(
+    '/api/docs',
+    (req: express.Request, res: express.Response, next: express.NextFunction) => {
+      res.setHeader(
+        'Content-Security-Policy',
+        "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:",
+      );
+      next();
+    },
+    swaggerUi.serve,
+    swaggerUi.setup(swaggerSpec),
+  );
 }
 
 // Base route
 app.get('/', (req, res) => {
-    res.json({
-        message: 'Welcome to CrystalTides API',
-        version: '1.0.0'
-    });
+  res.json({
+    message: 'Welcome to CrystalTides API',
+    version: '1.0.0',
+  });
 });
 
 export default app;
