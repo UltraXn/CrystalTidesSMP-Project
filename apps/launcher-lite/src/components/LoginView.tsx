@@ -1,7 +1,7 @@
-import React, { useState } from "react";
-import { X, ArrowRight, Loader2, Globe } from "lucide-react";
-import { DiscordIcon } from "./icons/DiscordIcon";
-import { launcherActions } from "../store/launcherStore";
+import React, { useState } from 'react';
+import { X, ArrowRight, Loader2, Globe } from 'lucide-react';
+import { DiscordIcon } from './icons/DiscordIcon';
+import { launcherActions } from '../store/launcherStore';
 
 const YoutubeIcon: React.FC<{ style?: React.CSSProperties }> = ({ style }) => (
   <svg style={style} viewBox="0 0 24 24" fill="currentColor">
@@ -10,8 +10,8 @@ const YoutubeIcon: React.FC<{ style?: React.CSSProperties }> = ({ style }) => (
 );
 
 export const LoginView: React.FC = () => {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [rememberAccount, setRememberAccount] = useState(true);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -24,7 +24,7 @@ export const LoginView: React.FC = () => {
 
       // Try real Microsoft OAuth authentication via Tauri backend
       try {
-        const { loginMicrosoftRedirect } = await import("../services/microsoftAuthService");
+        const { loginMicrosoftRedirect } = await import('../services/microsoftAuthService');
         const authResult = await loginMicrosoftRedirect();
         if (authResult?.username && authResult?.uuid) {
           await launcherActions.addAccount({
@@ -33,14 +33,14 @@ export const LoginView: React.FC = () => {
             uuid: authResult.uuid,
             accessToken: authResult.accessToken,
             refreshToken: authResult.refreshToken,
-            type: "microsoft",
+            type: 'microsoft',
             lastUsed: Date.now(),
           });
           return;
         }
       } catch (tauriErr: unknown) {
-        console.warn("[Login] Tauri Microsoft Auth:", tauriErr);
-        if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
+        console.warn('[Login] Tauri Microsoft Auth:', tauriErr);
+        if (typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window) {
           throw tauriErr;
         }
       }
@@ -49,13 +49,13 @@ export const LoginView: React.FC = () => {
       await new Promise((r) => setTimeout(r, 700));
       await launcherActions.addAccount({
         id: `ms_${Date.now()}`,
-        username: "UltraXn",
-        uuid: "853c80ef-3c37-49fd-aa49-938b674adae6",
-        type: "microsoft",
+        username: 'UltraXn',
+        uuid: '853c80ef-3c37-49fd-aa49-938b674adae6',
+        type: 'microsoft',
         lastUsed: Date.now(),
       });
     } catch (e) {
-      setErrorMsg(e instanceof Error ? e.message : "Error al iniciar sesión con Microsoft.");
+      setErrorMsg(e instanceof Error ? e.message : 'Error al iniciar sesión con Microsoft.');
     } finally {
       setIsLoggingIn(false);
     }
@@ -65,7 +65,7 @@ export const LoginView: React.FC = () => {
   const handleDirectLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!username.trim()) {
-      setErrorMsg("Por favor, introduce tu nombre de usuario.");
+      setErrorMsg('Por favor, introduce tu nombre de usuario.');
       return;
     }
 
@@ -76,14 +76,14 @@ export const LoginView: React.FC = () => {
       const userAccount = {
         id: `user_${Date.now()}`,
         username: username.trim(),
-        uuid: "00000000-0000-0000-0000-000000000000",
-        type: "guest" as const,
+        uuid: '00000000-0000-0000-0000-000000000000',
+        type: 'guest' as const,
         lastUsed: Date.now(),
       };
 
       await launcherActions.addAccount(userAccount);
     } catch {
-      setErrorMsg("Error al guardar la cuenta.");
+      setErrorMsg('Error al guardar la cuenta.');
     } finally {
       setIsLoggingIn(false);
     }
@@ -95,7 +95,7 @@ export const LoginView: React.FC = () => {
       <div className="login-card-container">
         {/* Close button on top-right of card */}
         <button className="login-card-close" title="Close">
-          <X style={{ width: "16px", height: "16px" }} />
+          <X style={{ width: '16px', height: '16px' }} />
         </button>
 
         {/* Card Header */}
@@ -142,16 +142,12 @@ export const LoginView: React.FC = () => {
           </label>
 
           {/* Solid Green Continue Button */}
-          <button
-            type="submit"
-            disabled={isLoggingIn}
-            className="login-continue-btn"
-          >
+          <button type="submit" disabled={isLoggingIn} className="login-continue-btn">
             {isLoggingIn ? (
               <Loader2 className="login-btn-spinner" />
             ) : (
               <>
-                Continue <ArrowRight style={{ width: "16px", height: "16px", strokeWidth: 2.5 }} />
+                Continue <ArrowRight style={{ width: '16px', height: '16px', strokeWidth: 2.5 }} />
               </>
             )}
           </button>
@@ -166,15 +162,17 @@ export const LoginView: React.FC = () => {
 
         {/* Large Microsoft Login Box */}
         <button
+          type="button"
+          aria-label="Iniciar sesión con Microsoft"
           onClick={handleMicrosoftLogin}
           disabled={isLoggingIn}
           className="login-microsoft-box"
         >
           <div className="ms-icon-grid">
-            <span style={{ backgroundColor: "#f25022" }} />
-            <span style={{ backgroundColor: "#7fba00" }} />
-            <span style={{ backgroundColor: "#00a4ef" }} />
-            <span style={{ backgroundColor: "#ffb900" }} />
+            <span style={{ backgroundColor: '#f25022' }} />
+            <span style={{ backgroundColor: '#7fba00' }} />
+            <span style={{ backgroundColor: '#00a4ef' }} />
+            <span style={{ backgroundColor: '#ffb900' }} />
           </div>
           <div className="ms-box-labels">
             <span className="ms-box-sub">Login with:</span>
@@ -185,14 +183,32 @@ export const LoginView: React.FC = () => {
 
       {/* Bottom Socials: YouTube, Discord, Web */}
       <footer className="login-bottom-socials">
-        <a href="https://youtube.com" target="_blank" rel="noreferrer" className="login-social-icon" title="YouTube">
-          <YoutubeIcon style={{ width: "18px", height: "18px" }} />
+        <a
+          href="https://youtube.com"
+          target="_blank"
+          rel="noreferrer"
+          className="login-social-icon"
+          title="YouTube"
+        >
+          <YoutubeIcon style={{ width: '18px', height: '18px' }} />
         </a>
-        <a href="https://discord.gg/crystaltides" target="_blank" rel="noreferrer" className="login-social-icon" title="Discord">
-          <DiscordIcon style={{ width: "16px", height: "16px" }} />
+        <a
+          href="https://discord.gg/crystaltides"
+          target="_blank"
+          rel="noreferrer"
+          className="login-social-icon"
+          title="Discord"
+        >
+          <DiscordIcon style={{ width: '16px', height: '16px' }} />
         </a>
-        <a href="https://crystaltidessmp.net" target="_blank" rel="noreferrer" className="login-social-icon" title="Website">
-          <Globe style={{ width: "18px", height: "18px" }} />
+        <a
+          href="https://crystaltidessmp.net"
+          target="_blank"
+          rel="noreferrer"
+          className="login-social-icon"
+          title="Website"
+        >
+          <Globe style={{ width: '18px', height: '18px' }} />
         </a>
       </footer>
     </div>

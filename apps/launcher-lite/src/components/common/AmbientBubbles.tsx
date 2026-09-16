@@ -1,5 +1,5 @@
-import React, { useMemo } from "react";
-import "./AmbientBubbles.css";
+import React, { useMemo } from 'react';
+import './AmbientBubbles.css';
 
 interface Bubble {
   id: number;
@@ -10,17 +10,22 @@ interface Bubble {
   opacity: number;
 }
 
+function pseudoRandom(seed: number): number {
+  const x = Math.sin(seed) * 10000;
+  return x - Math.floor(x);
+}
+
 export const AmbientBubbles: React.FC<{ count?: number }> = ({ count = 25 }) => {
   const bubbles = useMemo(() => {
     const list: Bubble[] = [];
     for (let i = 0; i < count; i++) {
       list.push({
         id: i,
-        size: Math.floor(Math.random() * 20) + 6,
-        left: Math.floor(Math.random() * 100),
-        duration: Math.floor(Math.random() * 8) + 6,
-        delay: Math.floor(Math.random() * 6),
-        opacity: Math.random() * 0.45 + 0.15,
+        size: Math.floor(pseudoRandom(i * 7 + 1) * 20) + 6,
+        left: Math.floor(pseudoRandom(i * 13 + 2) * 100),
+        duration: Math.floor(pseudoRandom(i * 17 + 3) * 8) + 6,
+        delay: Math.floor(pseudoRandom(i * 23 + 4) * 6),
+        opacity: pseudoRandom(i * 29 + 5) * 0.45 + 0.15,
       });
     }
     return list;

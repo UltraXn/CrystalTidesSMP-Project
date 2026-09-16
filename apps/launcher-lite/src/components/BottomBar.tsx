@@ -1,7 +1,12 @@
-import React from "react";
-import { User, Power, Globe } from "lucide-react";
-import { DiscordIcon } from "./icons/DiscordIcon";
-import { useLauncherStore, launcherActions, LauncherState, UserAccount } from "../store/launcherStore";
+import React from 'react';
+import { User, Power, Globe } from 'lucide-react';
+import { DiscordIcon } from './icons/DiscordIcon';
+import {
+  useLauncherStore,
+  launcherActions,
+  LauncherState,
+  UserAccount,
+} from '../store/launcherStore';
 
 const YoutubeIcon: React.FC<{ style?: React.CSSProperties }> = ({ style }) => (
   <svg style={style} viewBox="0 0 24 24" fill="currentColor">
@@ -9,22 +14,37 @@ const YoutubeIcon: React.FC<{ style?: React.CSSProperties }> = ({ style }) => (
   </svg>
 );
 
+const DEFAULT_FALLBACK_ACCOUNT: UserAccount = {
+  id: 'default',
+  username: 'Haume',
+  uuid: '069a79f4-44e9-4726-a5be-fca90e38aaf5',
+  type: 'guest',
+  lastUsed: 0,
+};
+
 export const BottomBar: React.FC = () => {
   const accounts = useLauncherStore((s: LauncherState) => s.accounts);
   const activeAccountId = useLauncherStore((s: LauncherState) => s.activeAccountId);
 
-  const activeAccount = accounts.find((a: UserAccount) => a.id === activeAccountId) || {
-    id: "default",
-    username: "Haume",
-    uuid: "069a79f4-44e9-4726-a5be-fca90e38aaf5",
-    type: "guest" as const,
-    lastUsed: Date.now(),
-  };
+  const activeAccount =
+    accounts.find((a: UserAccount) => a.id === activeAccountId) || DEFAULT_FALLBACK_ACCOUNT;
 
   return (
     <footer className="papyrus-home-footer">
       {/* Bottom-Left: Player Info Chip with Red Logout Button */}
-      <div className="papyrus-player-pill" onClick={() => launcherActions.openModal("accounts")}>
+      <div
+        role="button"
+        tabIndex={0}
+        aria-label="Abrir gestión de cuentas"
+        className="papyrus-player-pill"
+        onClick={() => launcherActions.openModal('accounts')}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            launcherActions.openModal('accounts');
+          }
+        }}
+      >
         <div className="player-avatar-box">
           {activeAccount.skinUrl ? (
             <img
@@ -32,17 +52,18 @@ export const BottomBar: React.FC = () => {
               alt={activeAccount.username}
               className="player-avatar-img"
             />
-          ) : activeAccount.uuid && activeAccount.uuid !== "00000000-0000-0000-0000-000000000000" ? (
+          ) : activeAccount.uuid &&
+            activeAccount.uuid !== '00000000-0000-0000-0000-000000000000' ? (
             <img
               src={`https://mc-heads.net/avatar/${activeAccount.uuid}/32`}
               alt={activeAccount.username}
               className="player-avatar-img"
               onError={(e) => {
-                (e.target as HTMLElement).style.display = "none";
+                (e.target as HTMLElement).style.display = 'none';
               }}
             />
           ) : (
-            <User style={{ width: "16px", height: "16px", color: "#94a3b8" }} />
+            <User style={{ width: '16px', height: '16px', color: '#94a3b8' }} />
           )}
         </div>
 
@@ -57,7 +78,7 @@ export const BottomBar: React.FC = () => {
           className="player-power-btn"
           title="Cerrar sesión / Ir a Login"
         >
-          <Power style={{ width: "12px", height: "12px" }} />
+          <Power style={{ width: '12px', height: '12px' }} />
         </button>
       </div>
 
@@ -70,7 +91,7 @@ export const BottomBar: React.FC = () => {
           className="papyrus-social-btn"
           title="YouTube"
         >
-          <YoutubeIcon style={{ width: "16px", height: "16px" }} />
+          <YoutubeIcon style={{ width: '16px', height: '16px' }} />
         </a>
         <a
           href="https://discord.gg/crystaltides"
@@ -79,7 +100,7 @@ export const BottomBar: React.FC = () => {
           className="papyrus-social-btn"
           title="Discord"
         >
-          <DiscordIcon style={{ width: "16px", height: "16px" }} />
+          <DiscordIcon style={{ width: '16px', height: '16px' }} />
         </a>
         <a
           href="https://crystaltidessmp.net"
@@ -88,12 +109,12 @@ export const BottomBar: React.FC = () => {
           className="papyrus-social-btn"
           title="Website"
         >
-          <Globe style={{ width: "16px", height: "16px" }} />
+          <Globe style={{ width: '16px', height: '16px' }} />
         </a>
       </div>
 
       {/* Spacer on right to balance flex layout */}
-      <div style={{ width: "160px" }} />
+      <div style={{ width: '160px' }} />
     </footer>
   );
 };
