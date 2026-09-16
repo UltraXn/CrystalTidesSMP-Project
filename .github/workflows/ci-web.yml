@@ -21,32 +21,37 @@ jobs:
       CI: true
     steps:
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
 
       - name: Setup Node.js
-        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
+        uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: npm
+          cache: pnpm
 
       - name: Install Dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Lint (Web)
-        run: npx turbo run lint --filter=@crystaltides/client --filter=@crystaltides/server
+        run: pnpm turbo run lint --filter=@crystaltides/client --filter=@crystaltides/server
 
       - name: Typecheck (Web Client)
         run: |
           cd apps/web-client
-          npx tsc --noEmit
+          pnpm tsc --noEmit
 
       - name: Unit & Component Tests (Web)
         run: |
           cd apps/web-client
-          npx vitest run --poolOptions.forks.maxForks=4
+          pnpm vitest run --poolOptions.forks.maxForks=4
 
       - name: Build (Web)
-        run: npx turbo run build --filter=@crystaltides/client --filter=@crystaltides/server
+        run: pnpm turbo run build --filter=@crystaltides/client --filter=@crystaltides/server
 
   e2e-qa:
     name: Playwright E2E Golden Paths
@@ -57,34 +62,39 @@ jobs:
       CI: true
     steps:
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
 
       - name: Setup Node.js
-        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
+        uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: npm
+          cache: pnpm
 
       - name: Install Dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Cache Playwright Browsers
         uses: actions/cache@v4
         id: playwright-cache
         with:
           path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-playwright-${{ hashFiles('**/pnpm-lock.yaml') }}
 
       - name: Install Playwright Chromium
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: |
           cd apps/web-client
-          npx playwright install --with-deps chromium
+          pnpm dlx playwright install --with-deps chromium
 
       - name: Run Playwright E2E Tests
         run: |
           cd apps/web-client
-          npx playwright test
+          pnpm playwright test
 
       - name: Upload Playwright Report on Failure
         uses: actions/upload-artifact@v4
@@ -93,4 +103,3 @@ jobs:
           name: playwright-report
           path: apps/web-client/playwright-report/
           retention-days: 7
-

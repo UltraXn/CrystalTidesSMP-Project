@@ -40,14 +40,19 @@ jobs:
         with:
           ref: ${{ env.RELEASE_TAG }}
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
       - name: Setup Node.js
-        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
+        uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
+          cache: pnpm
 
       - name: Setup Rust
-        uses: actions-rust-lang/setup-rust-toolchain@9399c7bb15dca21d154c549629122736449bd0aa # v1.11.0
+        uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           toolchain: stable
           cache: true
@@ -58,12 +63,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
 
-      - name: Install npm dependencies
-        run: npm ci
+      - name: Install pnpm dependencies
+        run: pnpm install --frozen-lockfile
 
       # ── CTLauncher (Client) ──────────────────────────────
       - name: Build & Upload — CrystalTides Launcher
-        uses: tauri-apps/tauri-action@0e5a3cbb8543e018ab19fbca54abb78a42e2b284 # v0.5.22
+        uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -85,7 +90,7 @@ jobs:
 
       # ── CTLauncher Installer ─────────────────────────────
       - name: Build & Upload — CTLauncher Installer
-        uses: tauri-apps/tauri-action@0e5a3cbb8543e018ab19fbca54abb78a42e2b284 # v0.5.22
+        uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -97,7 +102,7 @@ jobs:
 
       # ── CTLauncher Uninstaller ───────────────────────────
       - name: Build & Upload — CTLauncher Uninstaller
-        uses: tauri-apps/tauri-action@0e5a3cbb8543e018ab19fbca54abb78a42e2b284 # v0.5.22
+        uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
