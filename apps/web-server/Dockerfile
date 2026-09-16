@@ -4,21 +4,21 @@
 FROM node:24-alpine AS deps
 WORKDIR /app
 RUN apk add --no-cache libc6-compat \
-  && npm install -g npm@11.6.4
-COPY package.json package-lock.json turbo.json ./
+  && corepack enable && corepack prepare pnpm@10.29.3 --activate
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc turbo.json ./
 COPY apps/web-server/package.json ./apps/web-server/
 COPY apps/web-client/package.json ./apps/web-client/
 COPY apps/discord-bot/package.json ./apps/discord-bot/
 COPY apps/game-bridge/package.json ./apps/game-bridge/
 COPY packages/shared/package.json ./packages/shared/
 COPY packages/eslint-config/package.json ./packages/eslint-config/
-RUN npm ci
+RUN pnpm install --frozen-lockfile
 
 FROM deps AS builder
 ENV NODE_OPTIONS=--max-old-space-size=8192
 COPY . .
-RUN npx turbo run build --filter=@crystaltides/server...
-RUN npm prune --omit=dev
+RUN pnpm turbo run build --filter=@crystaltides/server...
+RUN pnpm prune --prod
 
 FROM node:24-alpine AS runner
 WORKDIR /app

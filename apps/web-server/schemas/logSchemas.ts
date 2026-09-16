@@ -1,17 +1,10 @@
-import { z } from 'zod';
-
-export const createLogSchema = z.object({
-    body: z.object({
-        source: z.enum(['web', 'game', 'security']),
-        action: z.string(),
-        details: z.string().optional(),
-        username: z.string().optional()
-    })
-});
-
-export const reportSecuritySchema = z.object({
-    body: z.object({
-        email: z.email().optional().or(z.literal('')),
-        details: z.string().min(5, "Proporcione más detalles")
-    })
-});
+/**
+ * Re-exported from @crystaltides/shared for backward compatibility.
+ * SSOT lives in packages/shared/src/schemas/log.ts.
+ */
+export {
+  createLogSchema,
+  reportSecuritySchema,
+  type CreateLogPayload,
+  type ReportSecurityPayload,
+} from '@crystaltides/shared';

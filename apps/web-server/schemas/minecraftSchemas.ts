@@ -1,14 +1,10 @@
-import { z } from 'zod';
-
-export const verifyLinkCodeSchema = z.object({
-    body: z.object({
-        code: z.string().length(6, 'Pin must be exactly 6 characters').regex(/^\d+$/, 'Pin must be numeric'),
-        userId: z.string().uuid().optional(), // We use req.user.id anyway, but for schema consistency
-    }),
-});
-
-export const getSkinSchema = z.object({
-    params: z.object({
-        username: z.string().min(3).max(16).regex(/^\w+$/, 'Invalid Minecraft username'),
-    }),
-});
+/**
+ * Re-exported from @crystaltides/shared for backward compatibility.
+ * SSOT lives in packages/shared/src/schemas/minecraft.ts.
+ */
+export {
+  verifyLinkCodeSchema,
+  getSkinSchema,
+  type VerifyLinkCodePayload,
+  type GetSkinParams,
+} from '@crystaltides/shared';

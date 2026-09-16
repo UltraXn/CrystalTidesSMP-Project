@@ -7,13 +7,15 @@ async function main() {
     .eq('is_published', true);
 
   if (error) {
-    console.error("Query error:", error);
+    console.error('Query error:', error);
     return;
   }
 
-  console.log("Success! Items in news_feed_items:", data.length);
-  data.forEach((item: any) => {
-    console.log(`- [${item.category}] ${item.title} (Featured: ${item.is_featured})`);
+  console.log('Success! Items in news_feed_items:', data.length);
+  data.forEach((item: Record<string, unknown>) => {
+    console.log(
+      `- [${String(item.category)}] ${String(item.title)} (Featured: ${Boolean(item.is_featured)})`,
+    );
   });
 }
 
