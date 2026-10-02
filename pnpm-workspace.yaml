@@ -2,3 +2,10 @@ packages:
   - 'apps/*'
   - 'apps/launcher/*'
   - 'packages/*'
+
+# Política de Seguridad en Cadena de Suministro (AGENTS.md Regla 2.1)
+# 48 horas (2880 minutos) de enfriamiento para paquetes npm recién publicados
+minimumReleaseAge: 2880
+
+# Desactivar scripts de ciclo de vida (preinstall, install, postinstall) en instalación de paquetes
+ignoreScripts: true

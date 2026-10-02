@@ -21,7 +21,7 @@ export default function WikiArticleToolbar({
         </Link>
         <ChevronRight size={12} />
         <span className="font-medium capitalize text-neutral-300">
-          {currentArticle?.category?.replace(/_/g, ' ') || 'General'}
+          {currentArticle?.category?.replaceAll('_', ' ') || 'General'}
         </span>
         <ChevronRight size={12} />
         <span className="max-w-65 truncate font-bold text-white">{currentArticle?.title}</span>

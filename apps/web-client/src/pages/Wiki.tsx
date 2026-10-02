@@ -16,7 +16,7 @@ export default function Wiki() {
 
   useSEO({
     title: slug
-      ? `Wiki - ${slug.replace(/-/g, ' ').toUpperCase()}`
+      ? `Wiki - ${slug.replaceAll('-', ' ').toUpperCase()}`
       : 'Guía de Juego, Bestiario y Comandos (Wiki)',
     description:
       'Manual completo del jugador para CrystalTides SMP 1.21+. Tutoriales, Bestiario con Tarjetas 3D Interactivas, protecciones y economía.',

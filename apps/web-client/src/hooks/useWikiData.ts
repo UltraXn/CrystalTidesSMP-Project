@@ -116,7 +116,7 @@ export function useWikiData(slug?: string) {
 
       setArticleLoading(true);
       const localMatch = FALLBACK_ARTICLES.find(
-        (a) => a.slug === slug || a.slug === slug.replace(/_/g, '-'),
+        (a) => a.slug === slug || a.slug === slug.replaceAll('_', '-'),
       );
 
       try {
@@ -148,7 +148,7 @@ export function useWikiData(slug?: string) {
     }
 
     const currentIndex = articles.findIndex(
-      (a) => a.slug === slug || a.slug === slug.replace(/_/g, '-'),
+      (a) => a.slug === slug || a.slug === slug.replaceAll('_', '-'),
     );
 
     if (currentIndex === -1) {

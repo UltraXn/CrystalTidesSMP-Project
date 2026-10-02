@@ -1,17 +1,15 @@
-@import "tailwindcss";
-@plugin "tailwindcss-animate";
-@config "../../tailwind.config.js";
-
-/* @import 'variables.css'; Moved into base.css */
-
+@import 'tailwindcss';
 @import './base/base.css';
 @import './base/themes.css';
 @import './base/animations.css';
 @import './layout/layout.css';
 @import './layout/components.css';
+
+@plugin 'tailwindcss-animate';
+@config '../../tailwind.config.js';
 /* @import './home.css'; Consolidated into layout.css/components.css */
 /* @import './sections.css'; Consolidated into components.css */
 /* @import './pages.css'; Consolidated into layout.css */
 /* @import './content.css'; Consolidated into components.css */
 /* @import './dashboard.css'; Consolidated into layout.css */
-/* Page-specific styles are dynamically imported in their respective components */
+/* Page-specific styles are dynamically imported in their respective components */

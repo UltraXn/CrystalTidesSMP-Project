@@ -143,7 +143,7 @@ export default function WikiPortalView({
                       )}
                     </div>
                     <div className="mt-0.5 flex items-center gap-2 text-xs text-neutral-500">
-                      <span className="capitalize">{art.category.replace(/_/g, ' ')}</span>
+                      <span className="capitalize">{art.category.replaceAll('_', ' ')}</span>
                       {art.boss_mod_name && <span>• {art.boss_mod_name}</span>}
                     </div>
                   </div>

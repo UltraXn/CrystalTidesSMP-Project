@@ -6,6 +6,25 @@ database:
   name: 'your_database'
   user: 'root'
   password: 'password'
+  pool:
+    pool-name: 'CrystalCore-HikariPool'
+    maximum-pool-size: 10
+    minimum-idle: 2
+    connection-timeout: 30000
+    max-lifetime: 1800000
+    keepalive-time: 60000
+    leak-detection-threshold: 60000
+  properties:
+    cachePrepStmts: true
+    prepStmtCacheSize: 250
+    prepStmtCacheSqlLimit: 2048
+    useServerPrepStmts: true
+    useLocalSessionState: true
+    rewriteBatchedStatements: true
+    cacheResultSetMetadata: true
+    cacheServerConfiguration: true
+    elideSetAutoCommits: true
+    maintainTimeStats: false
 
 redis:
   enabled: true

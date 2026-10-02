@@ -1,29 +1,31 @@
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
   esbuild: {
-    drop: (process.env.NODE_ENV === "production"
-      ? ["console", "debugger"]
-      : []) as ("console" | "debugger")[],
+    drop: (process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : []) as (
+      | 'console'
+      | 'debugger'
+    )[],
   },
   build: {
-    outDir: "dist",
+    outDir: 'dist',
     emptyOutDir: true,
     sourcemap: false,
-    target: "es2020",
+    target: 'es2020',
     cssCodeSplit: true,
     chunkSizeWarningLimit: 600,
     rollupOptions: {
       output: {
         manualChunks: {
-          "vendor-react": ["react", "react-dom"],
+          'vendor-react': ['react', 'react-dom'],
         },
       },
     },
   },
   clearScreen: false,
+  envPrefix: ['VITE_', 'TAURI_ENV_*', 'TAURI_'],
   server: {
     port: 14220,
     strictPort: true,
