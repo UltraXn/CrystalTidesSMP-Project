@@ -5,6 +5,16 @@ import { generateDailyQuests } from '../services/questService.js';
 import { executeDailyAIPipeline } from '../services/aiCronService.js';
 import { generateAIBossPoll } from '../services/aiPollService.js';
 
+const TABLE_NEWSPAPER = 'ai_newspaper_editions';
+const TABLE_DAILY_QUESTS = 'ai_daily_quests';
+
+/**
+ * Helper para estandarizar las respuestas de error
+ */
+const sendErrorResponse = (res: Response, err: unknown, status = 500): void => {
+  res.status(status).json({ error: err instanceof Error ? err.message : String(err) });
+};
+
 /**
  * GET /api/ai/newspaper/latest
  * Retorna la última edición del Periódico Amarillista
@@ -12,7 +22,7 @@ import { generateAIBossPoll } from '../services/aiPollService.js';
 export async function getLatestNewspaper(req: Request, res: Response): Promise<void> {
   try {
     const { data, error } = await supabase
-      .from('ai_newspaper_editions')
+      .from(TABLE_NEWSPAPER)
       .select('*')
       .order('issue_number', { ascending: false })
       .limit(1);
@@ -23,8 +33,8 @@ export async function getLatestNewspaper(req: Request, res: Response): Promise<v
     }
 
     res.json(data[0]);
-  } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
+  } catch (err: unknown) {
+    sendErrorResponse(res, err);
   }
 }
 
@@ -39,7 +49,7 @@ export async function getNewspaperArchive(req: Request, res: Response): Promise<
     const offset = (page - 1) * limit;
 
     const { data, error, count } = await supabase
-      .from('ai_newspaper_editions')
+      .from(TABLE_NEWSPAPER)
       .select(
         'id, issue_number, issue_date, headline, front_page_summary, likes_count, created_at',
         { count: 'exact' },
@@ -48,13 +58,13 @@ export async function getNewspaperArchive(req: Request, res: Response): Promise<
       .range(offset, offset + limit - 1);
 
     if (error) {
-      res.status(500).json({ error: error.message });
+      sendErrorResponse(res, error);
       return;
     }
 
     res.json({ editions: data || [], total: count || 0, page, limit });
-  } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
+  } catch (err: unknown) {
+    sendErrorResponse(res, err);
   }
 }
 
@@ -71,7 +81,7 @@ export async function likeNewspaperEdition(req: Request, res: Response): Promise
     }
 
     const { data: current } = await supabase
-      .from('ai_newspaper_editions')
+      .from(TABLE_NEWSPAPER)
       .select('likes_count')
       .eq('id', id)
       .single();
@@ -79,20 +89,20 @@ export async function likeNewspaperEdition(req: Request, res: Response): Promise
     const newLikes = (current?.likes_count || 0) + 1;
 
     const { data, error } = await supabase
-      .from('ai_newspaper_editions')
+      .from(TABLE_NEWSPAPER)
       .update({ likes_count: newLikes })
       .eq('id', id)
       .select('id, likes_count')
       .single();
 
     if (error) {
-      res.status(500).json({ error: error.message });
+      sendErrorResponse(res, error);
       return;
     }
 
     res.json({ success: true, likes_count: data?.likes_count || newLikes });
-  } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
+  } catch (err: unknown) {
+    sendErrorResponse(res, err);
   }
 }
 
@@ -104,8 +114,8 @@ export async function triggerNewspaperGeneration(req: Request, res: Response): P
   try {
     const edition = await generateNewspaperEdition();
     res.json({ message: 'Edición del periódico generada con éxito.', edition });
-  } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
+  } catch (err: unknown) {
+    sendErrorResponse(res, err);
   }
 }
 
@@ -116,7 +126,7 @@ export async function triggerNewspaperGeneration(req: Request, res: Response): P
 export async function getDailyQuests(req: Request, res: Response): Promise<void> {
   try {
     const { data, error } = await supabase
-      .from('ai_daily_quests')
+      .from(TABLE_DAILY_QUESTS)
       .select('*')
       .gte('expires_at', new Date().toISOString())
       .order('id', { ascending: true });
@@ -129,8 +139,8 @@ export async function getDailyQuests(req: Request, res: Response): Promise<void>
     }
 
     res.json(data);
-  } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
+  } catch (err: unknown) {
+    sendErrorResponse(res, err);
   }
 }
 
@@ -142,8 +152,8 @@ export async function triggerQuestsGeneration(req: Request, res: Response): Prom
   try {
     const quests = await generateDailyQuests();
     res.json({ message: 'Misiones diarias del Dungeon Master generadas con éxito.', quests });
-  } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
+  } catch (err: unknown) {
+    sendErrorResponse(res, err);
   }
 }
 
@@ -155,8 +165,8 @@ export async function triggerFullPipeline(req: Request, res: Response): Promise<
   try {
     await executeDailyAIPipeline();
     res.json({ message: 'Pipeline diario de IA ejecutado correctamente.' });
-  } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
+  } catch (err: unknown) {
+    sendErrorResponse(res, err);
   }
 }
 
@@ -168,11 +178,11 @@ export async function triggerBossPollGeneration(req: Request, res: Response): Pr
   try {
     const result = await generateAIBossPoll();
     if (!result.success) {
-      res.status(500).json({ error: 'No se pudo generar la encuesta de jefes por IA.' });
+      sendErrorResponse(res, new Error('No se pudo generar la encuesta de jefes por IA.'));
       return;
     }
     res.json({ message: 'Encuesta comunitaria de Jefes generada con éxito.', result });
-  } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
+  } catch (err: unknown) {
+    sendErrorResponse(res, err);
   }
 }
