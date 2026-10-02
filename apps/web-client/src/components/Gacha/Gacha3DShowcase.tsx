@@ -1,19 +1,16 @@
-import React, { useEffect, useRef } from 'react';
-import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import {
-  buildArcadeMachine,
-  disposeArcadeMachine,
-} from './buildArcadeMachine';
+import React, { useEffect, useRef } from "react";
+import * as THREE from "three";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { buildArcadeMachine, disposeArcadeMachine } from "./buildArcadeMachine";
 import {
   bindScreenReels,
   createScreenReels,
   type ScreenReelsController,
-} from './screenReels';
-import { reelsToImageStrips, type GachaSpinSync } from './gachaSpinSync';
-import type { GachaReward, MappedGachaResult } from '../../pages/Gacha/types';
-import { resolveAssetUrl } from '../../utils/assetUtils';
-import '../../styles/widgets/gacha_3d_showcase.css';
+} from "./screenReels";
+import { reelsToImageStrips, type GachaSpinSync } from "./gachaSpinSync";
+import type { GachaReward, MappedGachaResult } from "../../pages/Gacha/types";
+import { resolveAssetUrl } from "../../utils/assetUtils";
+import "../../styles/widgets/gacha_3d_showcase.css";
 
 interface Gacha3DShowcaseProps {
   tierId: string;
@@ -24,24 +21,36 @@ interface Gacha3DShowcaseProps {
   reelItemsSet?: (GachaReward | MappedGachaResult)[][];
 }
 
-type EmissiveMat = THREE.MeshStandardMaterial & { userData: { baseEmissive?: number } };
+type EmissiveMat = THREE.MeshStandardMaterial & {
+  userData: { baseEmissive?: number };
+};
 
 const gltfBufferCache = new Map<string, Promise<ArrayBuffer>>();
 
 function getGltfBuffer(tierId: string): Promise<ArrayBuffer> {
   if (!gltfBufferCache.has(tierId)) {
     const fileLoader = new THREE.FileLoader();
-    fileLoader.setResponseType('arraybuffer');
-    const promise = fileLoader.loadAsync(resolveAssetUrl(`/models/gacha/cabinet_${tierId}.glb`)) as Promise<ArrayBuffer>;
+    fileLoader.setResponseType("arraybuffer");
+    const promise = fileLoader.loadAsync(
+      resolveAssetUrl(`/models/gacha/cabinet_${tierId}.glb`),
+    ) as Promise<ArrayBuffer>;
     gltfBufferCache.set(tierId, promise);
   }
   return gltfBufferCache.get(tierId)!;
 }
 
 // Prefetch all cabinet GLB models in background so machine switches are instant
-['bronze', 'silver', 'gold', 'emerald', 'diamond', 'iridium', 'ultra'].forEach((tier) => {
-  getGltfBuffer(tier).catch(() => {});
-});
+["bronze", "silver", "gold", "emerald", "diamond", "iridium", "ultra"].forEach(
+  (tier) => {
+    getGltfBuffer(tier).catch(() => {});
+  },
+);
+
+const DEFAULT_REEL_ITEMS_SET: (GachaReward | MappedGachaResult)[][] = [
+  [],
+  [],
+  [],
+];
 
 const Gacha3DShowcase: React.FC<Gacha3DShowcaseProps> = ({
   tierId,
@@ -49,7 +58,7 @@ const Gacha3DShowcase: React.FC<Gacha3DShowcaseProps> = ({
   isOpening = false,
   isCelebrating = false,
   spinSync = null,
-  reelItemsSet = [[], [], []],
+  reelItemsSet = DEFAULT_REEL_ITEMS_SET,
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const modelRef = useRef<THREE.Group | null>(null);
@@ -76,7 +85,7 @@ const Gacha3DShowcase: React.FC<Gacha3DShowcaseProps> = ({
   useEffect(() => {
     if (!spinSync?.id) return;
     screenReelsRef.current?.playSpin(spinSync);
-  }, [spinSync?.id, spinSync]);
+  }, [spinSync]);
 
   useEffect(() => {
     if (!reelItemsSet.every((col) => col.length > 0)) return;
@@ -87,7 +96,9 @@ const Gacha3DShowcase: React.FC<Gacha3DShowcaseProps> = ({
     if (!tierChanged && stripsInitializedRef.current) return;
 
     stripsInitializedRef.current = true;
-    screenReelsRef.current?.setStrips(reelsToImageStrips(reelItemsSet), { resetPosition: true });
+    screenReelsRef.current?.setStrips(reelsToImageStrips(reelItemsSet), {
+      resetPosition: true,
+    });
   }, [tierId, reelItemsSet]);
 
   useEffect(() => {
@@ -132,7 +143,7 @@ const Gacha3DShowcase: React.FC<Gacha3DShowcaseProps> = ({
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
       alpha: true,
-      powerPreference: 'high-performance',
+      powerPreference: "high-performance",
       preserveDrawingBuffer: true,
     });
     renderer.setSize(width, height);
@@ -168,7 +179,7 @@ const Gacha3DShowcase: React.FC<Gacha3DShowcaseProps> = ({
     coinLightRef.current = coinLight;
     scene.add(coinLight);
 
-    const screenReels = createScreenReels(tierColor || '#5eead4');
+    const screenReels = createScreenReels(tierColor || "#5eead4");
     screenReelsRef.current = screenReels;
 
     let disposed = false;
@@ -183,7 +194,9 @@ const Gacha3DShowcase: React.FC<Gacha3DShowcaseProps> = ({
         child.receiveShadow = false;
         child.frustumCulled = false;
         child.visible = true;
-        const materials = Array.isArray(child.material) ? child.material : [child.material];
+        const materials = Array.isArray(child.material)
+          ? child.material
+          : [child.material];
         for (const mat of materials) {
           if (!mat) continue;
           mat.side = THREE.DoubleSide;
@@ -193,10 +206,16 @@ const Gacha3DShowcase: React.FC<Gacha3DShowcaseProps> = ({
           mat.alphaTest = 0;
           mat.depthWrite = true;
           mat.depthTest = true;
-          if ('alphaMap' in mat) mat.alphaMap = null;
-          if (mat instanceof THREE.MeshStandardMaterial || mat instanceof THREE.MeshPhysicalMaterial) {
+          if ("alphaMap" in mat) mat.alphaMap = null;
+          if (
+            mat instanceof THREE.MeshStandardMaterial ||
+            mat instanceof THREE.MeshPhysicalMaterial
+          ) {
             mat.metalness = 0;
-            mat.roughness = Math.min(Math.max(mat.roughness || 0.7, 0.42), 0.88);
+            mat.roughness = Math.min(
+              Math.max(mat.roughness || 0.7, 0.42),
+              0.88,
+            );
             mat.color.set(0xffffff);
             if (mat.map) {
               mat.map.colorSpace = THREE.SRGBColorSpace;
@@ -204,14 +223,16 @@ const Gacha3DShowcase: React.FC<Gacha3DShowcaseProps> = ({
               mat.map.flipY = false;
               mat.map.needsUpdate = true;
             }
-            if (mat.emissiveMap) mat.emissiveMap.colorSpace = THREE.SRGBColorSpace;
+            if (mat.emissiveMap)
+              mat.emissiveMap.colorSpace = THREE.SRGBColorSpace;
             if (!mat.map && mat.color.getHex() === 0) {
-              mat.color.set(tierColor || '#cd7f32');
+              mat.color.set(tierColor || "#cd7f32");
             }
 
-            const isVividPart = /marquee|mface|title|screen|led|btn|neon|fascia|accent|coin|rim|joy_t|waves/i.test(
-              child.name
-            );
+            const isVividPart =
+              /marquee|mface|title|screen|led|btn|neon|fascia|accent|coin|rim|joy_t|waves/i.test(
+                child.name,
+              );
             if (mat.map && isVividPart) {
               mat.emissiveMap = mat.map;
               mat.emissive.set(0xffffff);
@@ -243,7 +264,9 @@ const Gacha3DShowcase: React.FC<Gacha3DShowcaseProps> = ({
       const size = box.getSize(new THREE.Vector3());
       const center = box.getCenter(new THREE.Vector3());
       const dim = Math.max(size.x, size.y, size.z, 0.001);
-      model.position.sub(center);
+      model.position.x -= center.x;
+      model.position.y -= center.y;
+      model.position.z -= center.z;
       model.scale.setScalar(targetSize / dim);
       model.updateMatrixWorld(true);
 
@@ -282,10 +305,13 @@ const Gacha3DShowcase: React.FC<Gacha3DShowcaseProps> = ({
       const mats: EmissiveMat[] = [];
       root.traverse((child) => {
         if (!(child instanceof THREE.Mesh)) return;
-        const materials = Array.isArray(child.material) ? child.material : [child.material];
+        const materials = Array.isArray(child.material)
+          ? child.material
+          : [child.material];
         for (const m of materials) {
           if (!(m instanceof THREE.MeshStandardMaterial)) continue;
-          if (m.emissiveIntensity <= 0.05 && m.emissive.getHex() === 0) continue;
+          if (m.emissiveIntensity <= 0.05 && m.emissive.getHex() === 0)
+            continue;
           m.userData.baseEmissive = m.emissiveIntensity;
           mats.push(m as EmissiveMat);
         }
@@ -293,23 +319,28 @@ const Gacha3DShowcase: React.FC<Gacha3DShowcaseProps> = ({
       emissiveMatsRef.current = mats;
     };
 
-    const bindWinLights = (root: THREE.Object3D, animations: THREE.AnimationClip[]) => {
+    const bindWinLights = (
+      root: THREE.Object3D,
+      animations: THREE.AnimationClip[],
+    ) => {
       const winLights =
-        root.getObjectByName('marquee_leds') ||
-        root.getObjectByName('win_lights') ||
+        root.getObjectByName("marquee_leds") ||
+        root.getObjectByName("win_lights") ||
         null;
       winLightsRef.current = winLights;
 
       const coinBadge =
-        root.getObjectByName('coin_badge') ||
-        root.getObjectByName('badge') ||
+        root.getObjectByName("coin_badge") ||
+        root.getObjectByName("badge") ||
         null;
       coinBadgeRef.current = coinBadge;
 
       const coinMats: EmissiveMat[] = [];
       const markCoinMat = (child: THREE.Object3D) => {
         if (!(child instanceof THREE.Mesh)) return;
-        const materials = Array.isArray(child.material) ? child.material : [child.material];
+        const materials = Array.isArray(child.material)
+          ? child.material
+          : [child.material];
         for (const m of materials) {
           if (!(m instanceof THREE.MeshStandardMaterial)) continue;
           if (m.map) m.emissiveMap = m.map;
@@ -337,7 +368,7 @@ const Gacha3DShowcase: React.FC<Gacha3DShowcaseProps> = ({
 
       void screenReels.ready.then(() => {
         if (disposed) return;
-        bindScreenReels(root, screenReels, tierColor || '#5eead4');
+        bindScreenReels(root, screenReels, tierColor || "#5eead4");
       });
 
       const clip = animations.find((c) => /win_flash/i.test(c.name)) || null;
@@ -354,7 +385,11 @@ const Gacha3DShowcase: React.FC<Gacha3DShowcaseProps> = ({
       winActionRef.current = action;
     };
 
-    const mountModel = (model: THREE.Group, animations: THREE.AnimationClip[] = [], fromGltf = false) => {
+    const mountModel = (
+      model: THREE.Group,
+      animations: THREE.AnimationClip[] = [],
+      fromGltf = false,
+    ) => {
       if (disposed) {
         if (!fromGltf) disposeArcadeMachine(model);
         return;
@@ -379,7 +414,7 @@ const Gacha3DShowcase: React.FC<Gacha3DShowcaseProps> = ({
           new Promise<void>((resolve, reject) => {
             loader.parse(
               buffer,
-              '/models/gacha/',
+              "/models/gacha/",
               (gltf) => {
                 if (disposed) {
                   resolve();
@@ -392,15 +427,15 @@ const Gacha3DShowcase: React.FC<Gacha3DShowcaseProps> = ({
                   if (c instanceof THREE.Mesh) meshCount += 1;
                 });
                 if (meshCount === 0) {
-                  reject(new Error('GLTF scene has no meshes'));
+                  reject(new Error("GLTF scene has no meshes"));
                   return;
                 }
                 mountModel(root, gltf.animations || [], true);
                 resolve();
               },
-              reject
+              reject,
             );
-          })
+          }),
       )
       .catch(() => {
         if (!disposed) {
@@ -424,11 +459,18 @@ const Gacha3DShowcase: React.FC<Gacha3DShowcaseProps> = ({
         current.traverse((c) => {
           if (!(c instanceof THREE.Mesh)) return;
           meshes += 1;
-          const materials = Array.isArray(c.material) ? c.material : [c.material];
+          const materials = Array.isArray(c.material)
+            ? c.material
+            : [c.material];
           for (const m of materials) {
             if (!m) continue;
-            if ('map' in m && m.map) withMap += 1;
-            if ('color' in m && m.color && (m.color as THREE.Color).getHex?.() === 0) black += 1;
+            if ("map" in m && m.map) withMap += 1;
+            if (
+              "color" in m &&
+              m.color &&
+              (m.color as THREE.Color).getHex?.() === 0
+            )
+              black += 1;
           }
         });
 
@@ -452,59 +494,69 @@ const Gacha3DShowcase: React.FC<Gacha3DShowcaseProps> = ({
         });
         const xs = corners.map((c) => c.x);
         const ys = corners.map((c) => c.y);
-          return {
-            mounted: true,
-            fromGltf: !!current.userData.fromGltf,
-            name: current.name,
-            meshes,
-            withMap,
-            black,
-            mats: (() => {
-              const sample: Array<Record<string, unknown>> = [];
-              current.traverse((c) => {
-                if (!(c instanceof THREE.Mesh) || sample.length >= 6) return;
-                const m = Array.isArray(c.material) ? c.material[0] : c.material;
-                if (!(m instanceof THREE.MeshStandardMaterial)) return;
-                sample.push({
-                  mesh: c.name,
-                  metalness: m.metalness,
-                  roughness: m.roughness,
-                  map: !!m.map,
-                  mapW: m.map?.image?.width ?? null,
-                  mapH: m.map?.image?.height ?? null,
-                  color: `#${m.color.getHexString()}`,
-                });
+        return {
+          mounted: true,
+          fromGltf: !!current.userData.fromGltf,
+          name: current.name,
+          meshes,
+          withMap,
+          black,
+          mats: (() => {
+            const sample: Array<Record<string, unknown>> = [];
+            current.traverse((c) => {
+              if (!(c instanceof THREE.Mesh) || sample.length >= 6) return;
+              const m = Array.isArray(c.material) ? c.material[0] : c.material;
+              if (!(m instanceof THREE.MeshStandardMaterial)) return;
+              sample.push({
+                mesh: c.name,
+                metalness: m.metalness,
+                roughness: m.roughness,
+                map: !!m.map,
+                mapW: m.map?.image?.width ?? null,
+                mapH: m.map?.image?.height ?? null,
+                color: `#${m.color.getHexString()}`,
               });
-              return sample;
-            })(),
-            size: { x: +size.x.toFixed(3), y: +size.y.toFixed(3), z: +size.z.toFixed(3) },
-            pos: {
-              x: +current.position.x.toFixed(3),
-              y: +current.position.y.toFixed(3),
-              z: +current.position.z.toFixed(3),
-            },
-            scale: +current.scale.x.toFixed(3),
-            mount: {
-              w: mount.clientWidth,
-              h: mount.clientHeight,
-            },
-            cam: {
-              x: +camera.position.x.toFixed(3),
-              y: +camera.position.y.toFixed(3),
-              z: +camera.position.z.toFixed(3),
-              fov: camera.fov,
-              aspect: +camera.aspect.toFixed(3),
-            },
-            projected: {
-              minX: +Math.min(...xs).toFixed(1),
-              maxX: +Math.max(...xs).toFixed(1),
-              minY: +Math.min(...ys).toFixed(1),
-              maxY: +Math.max(...ys).toFixed(1),
-              fillW: +(((Math.max(...xs) - Math.min(...xs)) / mount.clientWidth) * 100).toFixed(1),
-              fillH: +(((Math.max(...ys) - Math.min(...ys)) / mount.clientHeight) * 100).toFixed(1),
-              corners,
-            },
-          };
+            });
+            return sample;
+          })(),
+          size: {
+            x: +size.x.toFixed(3),
+            y: +size.y.toFixed(3),
+            z: +size.z.toFixed(3),
+          },
+          pos: {
+            x: +current.position.x.toFixed(3),
+            y: +current.position.y.toFixed(3),
+            z: +current.position.z.toFixed(3),
+          },
+          scale: +current.scale.x.toFixed(3),
+          mount: {
+            w: mount.clientWidth,
+            h: mount.clientHeight,
+          },
+          cam: {
+            x: +camera.position.x.toFixed(3),
+            y: +camera.position.y.toFixed(3),
+            z: +camera.position.z.toFixed(3),
+            fov: camera.fov,
+            aspect: +camera.aspect.toFixed(3),
+          },
+          projected: {
+            minX: +Math.min(...xs).toFixed(1),
+            maxX: +Math.max(...xs).toFixed(1),
+            minY: +Math.min(...ys).toFixed(1),
+            maxY: +Math.max(...ys).toFixed(1),
+            fillW: +(
+              ((Math.max(...xs) - Math.min(...xs)) / mount.clientWidth) *
+              100
+            ).toFixed(1),
+            fillH: +(
+              ((Math.max(...ys) - Math.min(...ys)) / mount.clientHeight) *
+              100
+            ).toFixed(1),
+            corners,
+          },
+        };
       },
     };
 
@@ -520,9 +572,13 @@ const Gacha3DShowcase: React.FC<Gacha3DShowcaseProps> = ({
       const opening = isOpeningRef.current;
 
       if (current) {
-        const baseY = typeof current.userData.baseY === 'number' ? current.userData.baseY : 0;
+        const baseY =
+          typeof current.userData.baseY === "number"
+            ? current.userData.baseY
+            : 0;
         idleAngle += celebrating ? 0.05 : opening ? 0.035 : 0.008;
-        current.rotation.y = Math.sin(idleAngle) * (celebrating || opening ? 0.08 : 0.14);
+        current.rotation.y =
+          Math.sin(idleAngle) * (celebrating || opening ? 0.08 : 0.14);
 
         if (celebrating) {
           current.position.y = baseY + Math.sin(idleAngle * 3.2) * 0.05;
@@ -538,9 +594,11 @@ const Gacha3DShowcase: React.FC<Gacha3DShowcaseProps> = ({
         for (const mat of emissiveMatsRef.current) {
           const base = mat.userData.baseEmissive ?? 0.3;
           if (celebrating) {
-            mat.emissiveIntensity = base * (2.2 + Math.sin(idleAngle * 12) * 1.4);
+            mat.emissiveIntensity =
+              base * (2.2 + Math.sin(idleAngle * 12) * 1.4);
           } else if (opening) {
-            mat.emissiveIntensity = base * (1.2 + Math.sin(idleAngle * 5) * 0.45);
+            mat.emissiveIntensity =
+              base * (1.2 + Math.sin(idleAngle * 5) * 0.45);
           } else {
             mat.emissiveIntensity = base;
           }
@@ -549,30 +607,41 @@ const Gacha3DShowcase: React.FC<Gacha3DShowcaseProps> = ({
         for (const mat of coinMatsRef.current) {
           const base = mat.userData.baseEmissive ?? 0.35;
           if (celebrating) {
-            mat.emissiveIntensity = base * (3.2 + Math.sin(idleAngle * 14) * 2.2);
+            mat.emissiveIntensity =
+              base * (3.2 + Math.sin(idleAngle * 14) * 2.2);
           } else if (opening) {
-            mat.emissiveIntensity = base * (1.8 + Math.sin(idleAngle * 7) * 0.9);
+            mat.emissiveIntensity =
+              base * (1.8 + Math.sin(idleAngle * 7) * 0.9);
           } else {
-            mat.emissiveIntensity = base * (1.15 + Math.sin(idleAngle * 2.2) * 0.45);
+            mat.emissiveIntensity =
+              base * (1.15 + Math.sin(idleAngle * 2.2) * 0.45);
           }
         }
 
         if (coinLightRef.current) {
           if (celebrating) {
-            coinLightRef.current.intensity = 0.75 + Math.sin(idleAngle * 14) * 0.45;
+            coinLightRef.current.intensity =
+              0.75 + Math.sin(idleAngle * 14) * 0.45;
           } else if (opening) {
-            coinLightRef.current.intensity = 0.45 + Math.sin(idleAngle * 6) * 0.2;
+            coinLightRef.current.intensity =
+              0.45 + Math.sin(idleAngle * 6) * 0.2;
           } else {
-            coinLightRef.current.intensity = 0.28 + Math.sin(idleAngle * 2.2) * 0.1;
+            coinLightRef.current.intensity =
+              0.28 + Math.sin(idleAngle * 2.2) * 0.1;
           }
         }
 
         if (!winActionRef.current && winLightsRef.current && celebrating) {
           winLightsRef.current.children.forEach((child, i) => {
-            const pulse = 0.85 + Math.abs(Math.sin(idleAngle * 8 - i * 0.45)) * 0.7;
+            const pulse =
+              0.85 + Math.abs(Math.sin(idleAngle * 8 - i * 0.45)) * 0.7;
             child.scale.setScalar(pulse);
           });
-        } else if (!winActionRef.current && winLightsRef.current && !celebrating) {
+        } else if (
+          !winActionRef.current &&
+          winLightsRef.current &&
+          !celebrating
+        ) {
           winLightsRef.current.children.forEach((child) => {
             child.scale.setScalar(0.85);
           });
@@ -585,7 +654,7 @@ const Gacha3DShowcase: React.FC<Gacha3DShowcaseProps> = ({
           coinBadgeRef.current.scale.setScalar(pulse);
         }
 
-        const stick = current.getObjectByName('joystick-stick');
+        const stick = current.getObjectByName("joystick-stick");
         if (stick) {
           stick.rotation.z = Math.sin(idleAngle * 1.6) * 0.18;
         }
@@ -602,14 +671,14 @@ const Gacha3DShowcase: React.FC<Gacha3DShowcaseProps> = ({
       camera.updateProjectionMatrix();
       renderer.setSize(w, h);
     };
-    window.addEventListener('resize', onResize);
+    window.addEventListener("resize", onResize);
     const ro = new ResizeObserver(onResize);
     ro.observe(mount);
 
     return () => {
       disposed = true;
       cancelAnimationFrame(frameId);
-      window.removeEventListener('resize', onResize);
+      window.removeEventListener("resize", onResize);
       ro.disconnect();
       const dbg = window as unknown as { __gacha3d?: unknown };
       if (dbg.__gacha3d) delete dbg.__gacha3d;
@@ -638,8 +707,8 @@ const Gacha3DShowcase: React.FC<Gacha3DShowcaseProps> = ({
 
   return (
     <div
-      className={`gacha-3d-showcase ${isOpening ? 'is-spinning' : ''} ${isCelebrating ? 'is-celebrating' : ''}`}
-      style={{ '--tier-color': tierColor } as React.CSSProperties}
+      className={`gacha-3d-showcase ${isOpening ? "is-spinning" : ""} ${isCelebrating ? "is-celebrating" : ""}`}
+      style={{ "--tier-color": tierColor } as React.CSSProperties}
       aria-hidden="true"
     >
       <div className="showcase-pedestal">

@@ -18,10 +18,7 @@
 
     // Variables no usadas: delegar a typescript para evitar colisiones con tipos/interfaces
     "no-unused-vars": "off",
-    "typescript/no-unused-vars": [
-      "warn",
-      { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }
-    ],
+    "typescript/no-unused-vars": ["warn", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
 
     // Tipado estricto: alertar sobre 'any' para fomentar interfaces compartidas en @crystaltides/shared
     "typescript/no-explicit-any": "warn",
@@ -93,6 +90,8 @@
     "**/storybook-static/**",
     "**/src-tauri/target/**",
     "**/target/**",
+    // Caché externa de compilación Rust: junction NTFS hacia F:\caches\crystaltides\target para evitar OOM
+    "apps/launcher/target/**",
     "**/coverage/**",
     "**/.next/**",
     "**/.turbo/**",
