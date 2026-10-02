@@ -6,5 +6,13 @@
     "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true
   },
-  "include": ["vite.config.ts"]
+  "include": [
+    "vite.config.ts",
+    "vitest.shims.d.ts",
+    "playwright.config.ts",
+    "doctor.config.ts",
+    "commitlint.config.js",
+    "eslint.config.js",
+    "tailwind.config.js"
+  ]
 }

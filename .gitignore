@@ -101,6 +101,8 @@ loop*.md
 .claude/
 
 # Test/Lint/Build Artifacts
+.eslintcache
+**/.eslintcache
 oxlint_report.json
 test_results*.txt
 lint-output.txt

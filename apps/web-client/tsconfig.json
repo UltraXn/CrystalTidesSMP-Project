@@ -27,5 +27,16 @@
     "typeRoots": ["./node_modules/@types", "../../node_modules/@types"]
   },
   "include": ["src", "e2e"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "coverage",
+    "storybook-static",
+    ".stryker-tmp",
+    ".turbo",
+    "src/**/__tests__/*",
+    "src/**/*.test.*",
+    "src/**/*.spec.*"
+  ],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
