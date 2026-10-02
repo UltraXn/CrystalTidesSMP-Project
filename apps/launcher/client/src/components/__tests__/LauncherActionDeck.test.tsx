@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import '@testing-library/jest-dom/vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { LauncherActionDeck } from '../LauncherActionDeck';
-import { getProfiles, getProfile } from '../../services/profileService';
+import { getProfiles, getProfile, type Profile } from '../../services/profileService';
 
 vi.mock('../../services/profileService', () => ({
   getProfiles: vi.fn(),
@@ -14,8 +14,28 @@ describe('LauncherActionDeck', () => {
 
   beforeEach(() => {
     mockProfiles = [
-      { id: '1', name: 'Profile 1', loaderType: 'fabric', mcVersion: '1.21.1' },
-      { id: '2', name: 'Profile 2', loaderType: 'forge', mcVersion: '1.21.1' },
+      {
+        id: '1',
+        name: 'Profile 1',
+        loaderType: 'fabric',
+        loaderVersion: '0.15.11',
+        mcVersion: '1.21.1',
+        iconPath: 'box',
+        isolateSaves: false,
+        useOptimization: true,
+        created: '2026-01-01T00:00:00.000Z',
+      },
+      {
+        id: '2',
+        name: 'Profile 2',
+        loaderType: 'forge',
+        loaderVersion: '51.0.0',
+        mcVersion: '1.21.1',
+        iconPath: 'box',
+        isolateSaves: false,
+        useOptimization: true,
+        created: '2026-01-01T00:00:00.000Z',
+      },
     ];
 
     vi.mocked(getProfiles).mockReturnValue(mockProfiles);
@@ -119,12 +139,12 @@ describe('LauncherActionDeck', () => {
 
   it('renders the correct number of profiles', () => {
     render(<LauncherActionDeck onLaunch={vi.fn()} onSelectProfile={vi.fn()} />);
-    expect(screen.getAllByRole('button', { name: /profile/i }).length).toBe(2);
+    expect(screen.getAllByRole('button', { name: /profile/i })).toHaveLength(2);
   });
 
   it('renders the correct number of partner badges', () => {
     render(<LauncherActionDeck onLaunch={vi.fn()} onSelectProfile={vi.fn()} />);
-    expect(screen.getAllByRole('button', { name: /partner/i }).length).toBe(8);
+    expect(screen.getAllByRole('button', { name: /partner/i })).toHaveLength(8);
   });
 
   it('renders the component with selectedProfile', () => {

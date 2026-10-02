@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { LauncherLegalModal, LegalTabType } from "./LauncherLegalModal";
+import React, { useState, useRef, useEffect } from 'react';
+import { LauncherLegalModal, LegalTabType } from './LauncherLegalModal';
 
 interface LauncherLoginViewProps {
   onLoginMicrosoft?: () => void;
@@ -20,17 +20,25 @@ export const LauncherLoginView: React.FC<LauncherLoginViewProps> = ({
   onClose,
   onStartDrag,
 }) => {
-  const [authMode, setAuthMode] = useState<"microsoft" | "guest">("microsoft");
-  const [guestUsername, setGuestUsername] = useState<string>("");
+  const [authMode, setAuthMode] = useState<'microsoft' | 'guest'>('microsoft');
+  const [guestUsername, setGuestUsername] = useState<string>('');
   const [guestError, setGuestError] = useState<string | null>(null);
 
   const [showLegalModal, setShowLegalModal] = useState<boolean>(false);
-  const [legalTab, setLegalTab] = useState<LegalTabType>("tos");
+  const [legalTab, setLegalTab] = useState<LegalTabType>('tos');
+
+  const guestInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (authMode === 'guest') {
+      guestInputRef.current?.focus();
+    }
+  }, [authMode]);
 
   const handleStartDrag = async (e: React.MouseEvent) => {
     if (e.button === 0) {
       try {
-        const { getCurrentWindow } = await import("@tauri-apps/api/window");
+        const { getCurrentWindow } = await import('@tauri-apps/api/window');
         await getCurrentWindow().startDragging();
       } catch {
         onStartDrag?.(e);
@@ -40,7 +48,7 @@ export const LauncherLoginView: React.FC<LauncherLoginViewProps> = ({
 
   const handleMinimize = async () => {
     try {
-      const { getCurrentWindow } = await import("@tauri-apps/api/window");
+      const { getCurrentWindow } = await import('@tauri-apps/api/window');
       await getCurrentWindow().minimize();
     } catch {
       onMinimize?.();
@@ -49,7 +57,7 @@ export const LauncherLoginView: React.FC<LauncherLoginViewProps> = ({
 
   const handleMaximize = async () => {
     try {
-      const { getCurrentWindow } = await import("@tauri-apps/api/window");
+      const { getCurrentWindow } = await import('@tauri-apps/api/window');
       await getCurrentWindow().toggleMaximize();
     } catch {
       onMaximize?.();
@@ -58,22 +66,22 @@ export const LauncherLoginView: React.FC<LauncherLoginViewProps> = ({
 
   const handleClose = async () => {
     try {
-      const { getCurrentWindow } = await import("@tauri-apps/api/window");
+      const { getCurrentWindow } = await import('@tauri-apps/api/window');
       await getCurrentWindow().close();
     } catch {
       onClose?.();
     }
   };
 
-  const handleGuestSubmit = (e: React.FormEvent) => {
+  const handleGuestSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const cleanNick = guestUsername.trim() || "Invitado";
+    const cleanNick = guestUsername.trim() || 'Invitado';
     if (cleanNick.length < 3 || cleanNick.length > 16) {
-      setGuestError("El nombre debe tener entre 3 y 16 caracteres.");
+      setGuestError('El nombre debe tener entre 3 y 16 caracteres.');
       return;
     }
-    if (!/^[a-zA-Z0-9_]+$/.test(cleanNick)) {
-      setGuestError("Solo letras, números y guiones bajos (_).");
+    if (!/^\w+$/.test(cleanNick)) {
+      setGuestError('Solo letras, números y guiones bajos (_).');
       return;
     }
 
@@ -89,73 +97,102 @@ export const LauncherLoginView: React.FC<LauncherLoginViewProps> = ({
   return (
     <div
       style={{
-        width: "100%",
-        height: "100%",
-        backgroundColor: "#050307",
-        color: "#FFFFFF",
+        width: '100%',
+        height: '100%',
+        backgroundColor: '#050307',
+        color: '#FFFFFF',
         fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
-        display: "flex",
-        position: "relative",
-        overflow: "hidden",
-        userSelect: "none",
+        display: 'flex',
+        position: 'relative',
+        overflow: 'hidden',
+        userSelect: 'none',
       }}
     >
       {/* ── TOP FRAMELESS TITLEBAR (Absolute overlay across full width) ── */}
       <header
         data-tauri-drag-region
+        role="toolbar"
+        aria-label="Ventana"
         onMouseDown={handleStartDrag}
         style={{
-          position: "absolute",
+          position: 'absolute',
           top: 0,
           left: 0,
           right: 0,
           height: 44,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "0 24px",
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '0 24px',
           fontSize: 12,
-          color: "rgba(255, 255, 255, 0.45)",
+          color: 'rgba(255, 255, 255, 0.45)',
           zIndex: 50,
         }}
       >
         {/* Left Branding */}
-        <div data-tauri-drag-region style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <div data-tauri-drag-region style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <img
               src="/logo.png"
               alt="Crystal Client Mascot"
               style={{
                 width: 17,
                 height: 17,
-                objectFit: "contain",
+                objectFit: 'contain',
                 opacity: 0.75,
-                filter: "drop-shadow(0 0 6px rgba(45, 212, 191, 0.3))",
+                filter: 'drop-shadow(0 0 6px rgba(45, 212, 191, 0.3))',
               }}
             />
-            <span style={{ fontWeight: 700, color: "#FFFFFF", letterSpacing: "-0.01em", fontSize: 13 }}>
+            <span
+              style={{ fontWeight: 700, color: '#FFFFFF', letterSpacing: '-0.01em', fontSize: 13 }}
+            >
               Crystal Client
             </span>
           </div>
-          <span style={{ color: "rgba(255, 255, 255, 0.12)" }}>|</span>
-          <span style={{ fontSize: 11.5, color: "rgba(255, 255, 255, 0.45)" }}>Build 0.9.2</span>
+          <span style={{ color: 'rgba(255, 255, 255, 0.12)' }}>|</span>
+          <span style={{ fontSize: 11.5, color: 'rgba(255, 255, 255, 0.45)' }}>Build 0.9.2</span>
         </div>
 
         {/* Right Window Controls */}
         <div
           className="titlebar-no-drag"
-          onMouseDown={(e) => e.stopPropagation()}
-          style={{ display: "flex", alignItems: "center", gap: 14, color: "rgba(255, 255, 255, 0.6)" }}
+          data-tauri-drag-region="false"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 14,
+            color: 'rgba(255, 255, 255, 0.6)',
+          }}
         >
           <button
             type="button"
             onClick={handleMinimize}
             aria-label="Minimize"
-            style={{ background: "none", border: "none", color: "inherit", cursor: "pointer", padding: 4, display: "flex", transition: "color 150ms ease" }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = "#FFFFFF"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = "rgba(255, 255, 255, 0.6)"; }}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'inherit',
+              cursor: 'pointer',
+              padding: 4,
+              display: 'flex',
+              transition: 'color 150ms ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = '#FFFFFF';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = 'rgba(255, 255, 255, 0.6)';
+            }}
           >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+            >
               <line x1="4" y1="12" x2="20" y2="12" />
             </svg>
           </button>
@@ -163,11 +200,32 @@ export const LauncherLoginView: React.FC<LauncherLoginViewProps> = ({
             type="button"
             onClick={handleMaximize}
             aria-label="Maximize"
-            style={{ background: "none", border: "none", color: "inherit", cursor: "pointer", padding: 4, display: "flex", transition: "color 150ms ease" }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = "#FFFFFF"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = "rgba(255, 255, 255, 0.6)"; }}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'inherit',
+              cursor: 'pointer',
+              padding: 4,
+              display: 'flex',
+              transition: 'color 150ms ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = '#FFFFFF';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = 'rgba(255, 255, 255, 0.6)';
+            }}
           >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <rect x="3" y="3" width="18" height="18" rx="2" />
             </svg>
           </button>
@@ -175,11 +233,32 @@ export const LauncherLoginView: React.FC<LauncherLoginViewProps> = ({
             type="button"
             onClick={handleClose}
             aria-label="Close"
-            style={{ background: "none", border: "none", color: "inherit", cursor: "pointer", padding: 4, display: "flex", transition: "color 150ms ease" }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = "#EF4444"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = "rgba(255, 255, 255, 0.6)"; }}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'inherit',
+              cursor: 'pointer',
+              padding: 4,
+              display: 'flex',
+              transition: 'color 150ms ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = '#EF4444';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = 'rgba(255, 255, 255, 0.6)';
+            }}
           >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <line x1="18" y1="6" x2="6" y2="18" />
               <line x1="6" y1="6" x2="18" y2="18" />
             </svg>
@@ -188,51 +267,52 @@ export const LauncherLoginView: React.FC<LauncherLoginViewProps> = ({
       </header>
 
       {/* ── 50/50 SPLIT CONTAINER ── */}
-      <div style={{ display: "flex", width: "100%", height: "100%" }}>
+      <div style={{ display: 'flex', width: '100%', height: '100%' }}>
         {/* ── LEFT HALF: AUTH & SOCIAL COLUMN (50%) ── */}
         <div
           style={{
-            width: "50%",
-            height: "100%",
-            backgroundColor: "#050307",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            position: "relative",
-            padding: "44px 32px 32px 32px",
-            boxSizing: "border-box",
+            width: '50%',
+            height: '100%',
+            backgroundColor: '#050307',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'relative',
+            padding: '44px 32px 32px 32px',
+            boxSizing: 'border-box',
             zIndex: 10,
           }}
         >
           {/* Main Auth Card Container */}
           <div
             style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
               width: 320,
-              maxWidth: "100%",
+              maxWidth: '100%',
             }}
           >
             {/* 1. Large Mascot Logo */}
             <div
               style={{
-                position: "relative",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
+                position: 'relative',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
                 marginBottom: 10,
               }}
             >
               <div
                 style={{
-                  position: "absolute",
+                  position: 'absolute',
                   width: 80,
                   height: 80,
-                  borderRadius: "50%",
-                  background: "radial-gradient(circle, rgba(45, 212, 191, 0.25) 0%, transparent 70%)",
-                  filter: "blur(12px)",
+                  borderRadius: '50%',
+                  background:
+                    'radial-gradient(circle, rgba(45, 212, 191, 0.25) 0%, transparent 70%)',
+                  filter: 'blur(12px)',
                   zIndex: 0,
                 }}
               />
@@ -242,10 +322,10 @@ export const LauncherLoginView: React.FC<LauncherLoginViewProps> = ({
                 style={{
                   width: 72,
                   height: 72,
-                  objectFit: "contain",
-                  position: "relative",
+                  objectFit: 'contain',
+                  position: 'relative',
                   zIndex: 1,
-                  filter: "drop-shadow(0 0 18px rgba(45, 212, 191, 0.35))",
+                  filter: 'drop-shadow(0 0 18px rgba(45, 212, 191, 0.35))',
                 }}
               />
             </div>
@@ -255,9 +335,9 @@ export const LauncherLoginView: React.FC<LauncherLoginViewProps> = ({
               style={{
                 fontSize: 30,
                 fontWeight: 800,
-                color: "#FFFFFF",
-                letterSpacing: "-0.025em",
-                margin: "0 0 22px 0",
+                color: '#FFFFFF',
+                letterSpacing: '-0.025em',
+                margin: '0 0 22px 0',
                 lineHeight: 1.1,
               }}
             >
@@ -279,93 +359,117 @@ export const LauncherLoginView: React.FC<LauncherLoginViewProps> = ({
             `}</style>
 
             {/* 3. Action Area: Seamless Dynamic Switching */}
-            <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
-              {authMode === "microsoft" ? (
+            <div
+              style={{
+                width: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 10,
+                marginBottom: 20,
+              }}
+            >
+              {authMode === 'microsoft' ? (
                 <div
                   key="microsoft-view"
                   style={{
-                    width: "100%",
-                    display: "flex",
-                    flexDirection: "column",
+                    width: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
                     gap: 10,
-                    animation: "authModeGlide 220ms cubic-bezier(0.16, 1, 0.3, 1)",
+                    animation: 'authModeGlide 220ms cubic-bezier(0.16, 1, 0.3, 1)',
                   }}
                 >
                   {/* Primary Microsoft Button */}
                   <button
                     type="button"
+                    aria-label="Log in with Microsoft"
                     onClick={onLoginMicrosoft}
                     style={{
-                      width: "100%",
+                      width: '100%',
                       height: 48,
                       borderRadius: 12,
-                      backgroundColor: "#FFFFFF",
-                      border: "none",
-                      color: "#0F172A",
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
+                      backgroundColor: '#FFFFFF',
+                      border: 'none',
+                      color: '#0F172A',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
                       gap: 10,
-                      boxShadow: "0 4px 18px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.2)",
-                      transition: "all 160ms ease",
+                      boxShadow: '0 4px 18px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.2)',
+                      transition: 'all 160ms ease',
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = "translateY(-1.5px)";
-                      e.currentTarget.style.boxShadow = "0 8px 24px rgba(255, 255, 255, 0.25), 0 2px 4px rgba(0, 0, 0, 0.3)";
-                      e.currentTarget.style.backgroundColor = "#F8FAFC";
+                      e.currentTarget.style.transform = 'translateY(-1.5px)';
+                      e.currentTarget.style.boxShadow =
+                        '0 8px 24px rgba(255, 255, 255, 0.25), 0 2px 4px rgba(0, 0, 0, 0.3)';
+                      e.currentTarget.style.backgroundColor = '#F8FAFC';
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = "translateY(0)";
-                      e.currentTarget.style.boxShadow = "0 4px 18px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.2)";
-                      e.currentTarget.style.backgroundColor = "#FFFFFF";
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow =
+                        '0 4px 18px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.2)';
+                      e.currentTarget.style.backgroundColor = '#FFFFFF';
                     }}
                   >
-                    <span style={{ fontSize: 13.5, fontWeight: 600, color: "#334155" }}>Log in with</span>
+                    <span style={{ fontSize: 13.5, fontWeight: 600, color: '#334155' }}>
+                      Log in with
+                    </span>
                     <svg width="18" height="18" viewBox="0 0 21 21" fill="none">
                       <rect x="1" y="1" width="9" height="9" fill="#F25022" />
                       <rect x="11" y="1" width="9" height="9" fill="#7FBA00" />
                       <rect x="1" y="11" width="9" height="9" fill="#00A4EF" />
                       <rect x="11" y="11" width="9" height="9" fill="#FFB900" />
                     </svg>
-                    <span style={{ fontSize: 13.5, fontWeight: 800, color: "#0F172A" }}>Microsoft</span>
+                    <span style={{ fontSize: 13.5, fontWeight: 800, color: '#0F172A' }}>
+                      Microsoft
+                    </span>
                   </button>
 
                   {/* Secondary Guest Button */}
                   <button
                     type="button"
                     onClick={() => {
-                      setAuthMode("guest");
+                      setAuthMode('guest');
                       setGuestError(null);
                     }}
                     style={{
-                      width: "100%",
+                      width: '100%',
                       height: 44,
                       borderRadius: 12,
-                      backgroundColor: "rgba(255, 255, 255, 0.04)",
-                      border: "1px solid rgba(255, 255, 255, 0.08)",
-                      color: "#FFFFFF",
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
+                      backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                      border: '1px solid rgba(255, 255, 255, 0.08)',
+                      color: '#FFFFFF',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
                       gap: 8,
-                      transition: "all 160ms ease",
+                      transition: 'all 160ms ease',
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = "rgba(45, 212, 191, 0.08)";
-                      e.currentTarget.style.borderColor = "rgba(45, 212, 191, 0.3)";
-                      e.currentTarget.style.color = "#2DD4BF";
-                      e.currentTarget.style.transform = "translateY(-1px)";
+                      e.currentTarget.style.backgroundColor = 'rgba(45, 212, 191, 0.08)';
+                      e.currentTarget.style.borderColor = 'rgba(45, 212, 191, 0.3)';
+                      e.currentTarget.style.color = '#2DD4BF';
+                      e.currentTarget.style.transform = 'translateY(-1px)';
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.04)";
-                      e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.08)";
-                      e.currentTarget.style.color = "#FFFFFF";
-                      e.currentTarget.style.transform = "translateY(0)";
+                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.04)';
+                      e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                      e.currentTarget.style.color = '#FFFFFF';
+                      e.currentTarget.style.transform = 'translateY(0)';
                     }}
                   >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
                       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                       <circle cx="12" cy="7" r="4" />
                     </svg>
@@ -375,37 +479,53 @@ export const LauncherLoginView: React.FC<LauncherLoginViewProps> = ({
                   {/* Tertiary GitHub Button */}
                   <button
                     type="button"
-                    onClick={onViewGithub || (() => window.open("https://github.com/UltraXn/CrystalTidesSMP-Project", "_blank"))}
+                    onClick={
+                      onViewGithub ||
+                      (() =>
+                        window.open(
+                          'https://github.com/UltraXn/CrystalTidesSMP-Project',
+                          '_blank',
+                          'noopener,noreferrer',
+                        ))
+                    }
                     style={{
-                      width: "100%",
+                      width: '100%',
                       height: 44,
                       borderRadius: 12,
-                      backgroundColor: "rgba(255, 255, 255, 0.04)",
-                      border: "1px solid rgba(255, 255, 255, 0.08)",
-                      color: "#FFFFFF",
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
+                      backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                      border: '1px solid rgba(255, 255, 255, 0.08)',
+                      color: '#FFFFFF',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
                       gap: 10,
-                      transition: "all 160ms ease",
+                      transition: 'all 160ms ease',
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.07)";
-                      e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.18)";
-                      e.currentTarget.style.transform = "translateY(-1px)";
+                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.07)';
+                      e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.18)';
+                      e.currentTarget.style.transform = 'translateY(-1px)';
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.04)";
-                      e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.08)";
-                      e.currentTarget.style.transform = "translateY(0)";
+                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.04)';
+                      e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                      e.currentTarget.style.transform = 'translateY(0)';
                     }}
                   >
-                    <span style={{ fontSize: 13, fontWeight: 500, color: "rgba(255, 255, 255, 0.8)" }}>View code</span>
+                    <span
+                      style={{ fontSize: 13, fontWeight: 500, color: 'rgba(255, 255, 255, 0.8)' }}
+                    >
+                      View code
+                    </span>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="#FFFFFF">
-                      <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
+                      <path
+                        fillRule="evenodd"
+                        clipRule="evenodd"
+                        d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
+                      />
                     </svg>
-                    <span style={{ fontSize: 13, fontWeight: 800, color: "#FFFFFF" }}>GitHub</span>
+                    <span style={{ fontSize: 13, fontWeight: 800, color: '#FFFFFF' }}>GitHub</span>
                   </button>
                 </div>
               ) : (
@@ -413,16 +533,17 @@ export const LauncherLoginView: React.FC<LauncherLoginViewProps> = ({
                   key="guest-view"
                   onSubmit={handleGuestSubmit}
                   style={{
-                    width: "100%",
-                    display: "flex",
-                    flexDirection: "column",
+                    width: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
                     gap: 8,
-                    animation: "authModeGlide 220ms cubic-bezier(0.16, 1, 0.3, 1)",
+                    animation: 'authModeGlide 220ms cubic-bezier(0.16, 1, 0.3, 1)',
                   }}
                 >
-                  <div style={{ position: "relative", width: "100%" }}>
+                  <div style={{ position: 'relative', width: '100%' }}>
                     <input
                       type="text"
+                      aria-label="Nickname"
                       value={guestUsername}
                       onChange={(e) => {
                         setGuestUsername(e.target.value);
@@ -430,43 +551,50 @@ export const LauncherLoginView: React.FC<LauncherLoginViewProps> = ({
                       }}
                       placeholder="Nickname (ej. Player)"
                       maxLength={16}
-                      autoFocus
+                      ref={guestInputRef}
                       style={{
-                        width: "100%",
+                        width: '100%',
                         height: 46,
                         borderRadius: 12,
-                        backgroundColor: "rgba(255, 255, 255, 0.03)",
+                        backgroundColor: 'rgba(255, 255, 255, 0.03)',
                         border: guestError
-                          ? "1px solid #EF4444"
-                          : "1px solid rgba(255, 255, 255, 0.12)",
-                        color: "#FFFFFF",
-                        padding: "0 14px 0 38px",
+                          ? '1px solid #EF4444'
+                          : '1px solid rgba(255, 255, 255, 0.12)',
+                        color: '#FFFFFF',
+                        padding: '0 14px 0 38px',
                         fontSize: 13.5,
-                        outline: "none",
-                        boxSizing: "border-box",
-                        transition: "all 140ms ease",
+                        outline: 'none',
+                        boxSizing: 'border-box',
+                        transition: 'all 140ms ease',
                       }}
                       onFocus={(e) => {
-                        e.currentTarget.style.borderColor = "rgba(45, 212, 191, 0.5)";
-                        e.currentTarget.style.backgroundColor = "rgba(45, 212, 191, 0.04)";
+                        e.currentTarget.style.borderColor = 'rgba(45, 212, 191, 0.5)';
+                        e.currentTarget.style.backgroundColor = 'rgba(45, 212, 191, 0.04)';
                       }}
                       onBlur={(e) => {
-                        e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.12)";
-                        e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.03)";
+                        e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.12)';
+                        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.03)';
                       }}
                     />
                     <div
                       style={{
-                        position: "absolute",
+                        position: 'absolute',
                         left: 12,
-                        top: "50%",
-                        transform: "translateY(-50%)",
-                        color: "rgba(45, 212, 191, 0.8)",
-                        display: "flex",
-                        pointerEvents: "none",
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        color: 'rgba(45, 212, 191, 0.8)',
+                        display: 'flex',
+                        pointerEvents: 'none',
                       }}
                     >
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                      <svg
+                        width="15"
+                        height="15"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.2"
+                      >
                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                         <circle cx="12" cy="7" r="4" />
                       </svg>
@@ -474,7 +602,7 @@ export const LauncherLoginView: React.FC<LauncherLoginViewProps> = ({
                   </div>
 
                   {guestError && (
-                    <span style={{ fontSize: 11, color: "#EF4444", textAlign: "left" }}>
+                    <span style={{ fontSize: 11, color: '#EF4444', textAlign: 'left' }}>
                       {guestError}
                     </span>
                   )}
@@ -482,25 +610,26 @@ export const LauncherLoginView: React.FC<LauncherLoginViewProps> = ({
                   <button
                     type="submit"
                     style={{
-                      width: "100%",
+                      width: '100%',
                       height: 46,
                       borderRadius: 12,
-                      background: "linear-gradient(180deg, #3ec5b6 0%, #1ea596 55%, #158b7e 100%)",
-                      border: "1px solid rgba(255, 255, 255, 0.22)",
-                      color: "#FFFFFF",
+                      background: 'linear-gradient(180deg, #3ec5b6 0%, #1ea596 55%, #158b7e 100%)',
+                      border: '1px solid rgba(255, 255, 255, 0.22)',
+                      color: '#FFFFFF',
                       fontSize: 13.5,
                       fontWeight: 800,
-                      cursor: "pointer",
-                      boxShadow: "inset 0 1px 1px rgba(255, 255, 255, 0.5), 0 4px 14px rgba(0, 0, 0, 0.4), 0 2px 6px rgba(20, 184, 166, 0.25)",
-                      transition: "all 140ms ease",
+                      cursor: 'pointer',
+                      boxShadow:
+                        'inset 0 1px 1px rgba(255, 255, 255, 0.5), 0 4px 14px rgba(0, 0, 0, 0.4), 0 2px 6px rgba(20, 184, 166, 0.25)',
+                      transition: 'all 140ms ease',
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.filter = "brightness(1.06)";
-                      e.currentTarget.style.transform = "translateY(-1px)";
+                      e.currentTarget.style.filter = 'brightness(1.06)';
+                      e.currentTarget.style.transform = 'translateY(-1px)';
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.filter = "none";
-                      e.currentTarget.style.transform = "translateY(0)";
+                      e.currentTarget.style.filter = 'none';
+                      e.currentTarget.style.transform = 'translateY(0)';
                     }}
                   >
                     Entrar como Invitado
@@ -510,32 +639,39 @@ export const LauncherLoginView: React.FC<LauncherLoginViewProps> = ({
                   <button
                     type="button"
                     onClick={() => {
-                      setAuthMode("microsoft");
+                      setAuthMode('microsoft');
                       setGuestError(null);
                     }}
                     style={{
-                      width: "100%",
+                      width: '100%',
                       height: 34,
-                      background: "none",
-                      border: "none",
-                      color: "rgba(255, 255, 255, 0.45)",
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
+                      background: 'none',
+                      border: 'none',
+                      color: 'rgba(255, 255, 255, 0.45)',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
                       gap: 6,
                       fontSize: 12,
                       fontWeight: 600,
-                      transition: "color 140ms ease",
+                      transition: 'color 140ms ease',
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.color = "#FFFFFF";
+                      e.currentTarget.style.color = '#FFFFFF';
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.color = "rgba(255, 255, 255, 0.45)";
+                      e.currentTarget.style.color = 'rgba(255, 255, 255, 0.45)';
                     }}
                   >
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.2"
+                    >
                       <line x1="19" y1="12" x2="5" y2="12" />
                       <polyline points="12 19 5 12 12 5" />
                     </svg>
@@ -546,7 +682,7 @@ export const LauncherLoginView: React.FC<LauncherLoginViewProps> = ({
             </div>
 
             {/* 4. Social Icons Row (5 Squircles) */}
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 24 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24 }}>
               {/* Discord */}
               <a
                 href="https://discord.gg"
@@ -557,26 +693,26 @@ export const LauncherLoginView: React.FC<LauncherLoginViewProps> = ({
                   width: 40,
                   height: 40,
                   borderRadius: 11,
-                  backgroundColor: "rgba(255, 255, 255, 0.04)",
-                  border: "1px solid rgba(255, 255, 255, 0.08)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "rgba(255, 255, 255, 0.8)",
-                  textDecoration: "none",
-                  transition: "all 150ms ease",
+                  backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'rgba(255, 255, 255, 0.8)',
+                  textDecoration: 'none',
+                  transition: 'all 150ms ease',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "rgba(45, 212, 191, 0.12)";
-                  e.currentTarget.style.borderColor = "rgba(45, 212, 191, 0.4)";
-                  e.currentTarget.style.color = "#2DD4BF";
-                  e.currentTarget.style.transform = "translateY(-2px)";
+                  e.currentTarget.style.backgroundColor = 'rgba(45, 212, 191, 0.12)';
+                  e.currentTarget.style.borderColor = 'rgba(45, 212, 191, 0.4)';
+                  e.currentTarget.style.color = '#2DD4BF';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.04)";
-                  e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.08)";
-                  e.currentTarget.style.color = "rgba(255, 255, 255, 0.8)";
-                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.04)';
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                  e.currentTarget.style.color = 'rgba(255, 255, 255, 0.8)';
+                  e.currentTarget.style.transform = 'translateY(0)';
                 }}
               >
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor">
@@ -594,26 +730,26 @@ export const LauncherLoginView: React.FC<LauncherLoginViewProps> = ({
                   width: 40,
                   height: 40,
                   borderRadius: 11,
-                  backgroundColor: "rgba(255, 255, 255, 0.04)",
-                  border: "1px solid rgba(255, 255, 255, 0.08)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "rgba(255, 255, 255, 0.8)",
-                  textDecoration: "none",
-                  transition: "all 150ms ease",
+                  backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'rgba(255, 255, 255, 0.8)',
+                  textDecoration: 'none',
+                  transition: 'all 150ms ease',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "rgba(45, 212, 191, 0.12)";
-                  e.currentTarget.style.borderColor = "rgba(45, 212, 191, 0.4)";
-                  e.currentTarget.style.color = "#2DD4BF";
-                  e.currentTarget.style.transform = "translateY(-2px)";
+                  e.currentTarget.style.backgroundColor = 'rgba(45, 212, 191, 0.12)';
+                  e.currentTarget.style.borderColor = 'rgba(45, 212, 191, 0.4)';
+                  e.currentTarget.style.color = '#2DD4BF';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.04)";
-                  e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.08)";
-                  e.currentTarget.style.color = "rgba(255, 255, 255, 0.8)";
-                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.04)';
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                  e.currentTarget.style.color = 'rgba(255, 255, 255, 0.8)';
+                  e.currentTarget.style.transform = 'translateY(0)';
                 }}
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
@@ -631,29 +767,38 @@ export const LauncherLoginView: React.FC<LauncherLoginViewProps> = ({
                   width: 40,
                   height: 40,
                   borderRadius: 11,
-                  backgroundColor: "rgba(255, 255, 255, 0.04)",
-                  border: "1px solid rgba(255, 255, 255, 0.08)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "rgba(255, 255, 255, 0.8)",
-                  textDecoration: "none",
-                  transition: "all 150ms ease",
+                  backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'rgba(255, 255, 255, 0.8)',
+                  textDecoration: 'none',
+                  transition: 'all 150ms ease',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "rgba(45, 212, 191, 0.12)";
-                  e.currentTarget.style.borderColor = "rgba(45, 212, 191, 0.4)";
-                  e.currentTarget.style.color = "#2DD4BF";
-                  e.currentTarget.style.transform = "translateY(-2px)";
+                  e.currentTarget.style.backgroundColor = 'rgba(45, 212, 191, 0.12)';
+                  e.currentTarget.style.borderColor = 'rgba(45, 212, 191, 0.4)';
+                  e.currentTarget.style.color = '#2DD4BF';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.04)";
-                  e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.08)";
-                  e.currentTarget.style.color = "rgba(255, 255, 255, 0.8)";
-                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.04)';
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                  e.currentTarget.style.color = 'rgba(255, 255, 255, 0.8)';
+                  e.currentTarget.style.transform = 'translateY(0)';
                 }}
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
                   <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
                   <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
                   <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
@@ -670,26 +815,26 @@ export const LauncherLoginView: React.FC<LauncherLoginViewProps> = ({
                   width: 40,
                   height: 40,
                   borderRadius: 11,
-                  backgroundColor: "rgba(255, 255, 255, 0.04)",
-                  border: "1px solid rgba(255, 255, 255, 0.08)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "rgba(255, 255, 255, 0.8)",
-                  textDecoration: "none",
-                  transition: "all 150ms ease",
+                  backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'rgba(255, 255, 255, 0.8)',
+                  textDecoration: 'none',
+                  transition: 'all 150ms ease',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "rgba(45, 212, 191, 0.12)";
-                  e.currentTarget.style.borderColor = "rgba(45, 212, 191, 0.4)";
-                  e.currentTarget.style.color = "#2DD4BF";
-                  e.currentTarget.style.transform = "translateY(-2px)";
+                  e.currentTarget.style.backgroundColor = 'rgba(45, 212, 191, 0.12)';
+                  e.currentTarget.style.borderColor = 'rgba(45, 212, 191, 0.4)';
+                  e.currentTarget.style.color = '#2DD4BF';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.04)";
-                  e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.08)";
-                  e.currentTarget.style.color = "rgba(255, 255, 255, 0.8)";
-                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.04)';
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                  e.currentTarget.style.color = 'rgba(255, 255, 255, 0.8)';
+                  e.currentTarget.style.transform = 'translateY(0)';
                 }}
               >
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor">
@@ -707,26 +852,26 @@ export const LauncherLoginView: React.FC<LauncherLoginViewProps> = ({
                   width: 40,
                   height: 40,
                   borderRadius: 11,
-                  backgroundColor: "rgba(255, 255, 255, 0.04)",
-                  border: "1px solid rgba(255, 255, 255, 0.08)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "rgba(255, 255, 255, 0.8)",
-                  textDecoration: "none",
-                  transition: "all 150ms ease",
+                  backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'rgba(255, 255, 255, 0.8)',
+                  textDecoration: 'none',
+                  transition: 'all 150ms ease',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "rgba(45, 212, 191, 0.12)";
-                  e.currentTarget.style.borderColor = "rgba(45, 212, 191, 0.4)";
-                  e.currentTarget.style.color = "#2DD4BF";
-                  e.currentTarget.style.transform = "translateY(-2px)";
+                  e.currentTarget.style.backgroundColor = 'rgba(45, 212, 191, 0.12)';
+                  e.currentTarget.style.borderColor = 'rgba(45, 212, 191, 0.4)';
+                  e.currentTarget.style.color = '#2DD4BF';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.04)";
-                  e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.08)";
-                  e.currentTarget.style.color = "rgba(255, 255, 255, 0.8)";
-                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.04)';
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                  e.currentTarget.style.color = 'rgba(255, 255, 255, 0.8)';
+                  e.currentTarget.style.transform = 'translateY(0)';
                 }}
               >
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
@@ -738,39 +883,81 @@ export const LauncherLoginView: React.FC<LauncherLoginViewProps> = ({
             {/* 5. Legal & Support Footer */}
             <div
               style={{
-                display: "flex",
-                alignItems: "center",
+                display: 'flex',
+                alignItems: 'center',
                 gap: 8,
                 fontSize: 11.5,
-                color: "rgba(255, 255, 255, 0.4)",
+                color: 'rgba(255, 255, 255, 0.4)',
               }}
             >
-              <span
-                onClick={() => openLegalModal("privacy")}
-                style={{ cursor: "pointer", transition: "color 120ms ease" }}
-                onMouseEnter={(e) => { e.currentTarget.style.color = "#2DD4BF"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = "rgba(255, 255, 255, 0.4)"; }}
+              <button
+                type="button"
+                onClick={() => openLegalModal('privacy')}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  padding: 0,
+                  fontSize: 'inherit',
+                  fontFamily: 'inherit',
+                  color: 'inherit',
+                  cursor: 'pointer',
+                  transition: 'color 120ms ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = '#2DD4BF';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = 'rgba(255, 255, 255, 0.4)';
+                }}
               >
                 Privacy Policy
-              </span>
+              </button>
               <span>•</span>
-              <span
-                onClick={() => openLegalModal("tos")}
-                style={{ cursor: "pointer", transition: "color 120ms ease" }}
-                onMouseEnter={(e) => { e.currentTarget.style.color = "#2DD4BF"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = "rgba(255, 255, 255, 0.4)"; }}
+              <button
+                type="button"
+                onClick={() => openLegalModal('tos')}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  padding: 0,
+                  fontSize: 'inherit',
+                  fontFamily: 'inherit',
+                  color: 'inherit',
+                  cursor: 'pointer',
+                  transition: 'color 120ms ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = '#2DD4BF';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = 'rgba(255, 255, 255, 0.4)';
+                }}
               >
                 Terms of Service
-              </span>
+              </button>
               <span>•</span>
-              <span
-                onClick={() => openLegalModal("support")}
-                style={{ cursor: "pointer", transition: "color 120ms ease" }}
-                onMouseEnter={(e) => { e.currentTarget.style.color = "#2DD4BF"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = "rgba(255, 255, 255, 0.4)"; }}
+              <button
+                type="button"
+                onClick={() => openLegalModal('support')}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  padding: 0,
+                  fontSize: 'inherit',
+                  fontFamily: 'inherit',
+                  color: 'inherit',
+                  cursor: 'pointer',
+                  transition: 'color 120ms ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = '#2DD4BF';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = 'rgba(255, 255, 255, 0.4)';
+                }}
               >
                 Support
-              </span>
+              </button>
             </div>
           </div>
         </div>
@@ -778,58 +965,59 @@ export const LauncherLoginView: React.FC<LauncherLoginViewProps> = ({
         {/* ── RIGHT HALF: CRYSTAL TIDES WALLPAPER & AMBIENCE (50%) ── */}
         <div
           style={{
-            width: "50%",
-            height: "100%",
-            position: "relative",
+            width: '50%',
+            height: '100%',
+            position: 'relative',
             background:
               new Date().getHours() >= 6 && new Date().getHours() < 19
                 ? "url('/wallpapers/crystaltides_day.png') center/cover no-repeat"
                 : "url('/wallpapers/crystaltides_night.png') center/cover no-repeat",
-            overflow: "hidden",
-            transition: "background 400ms ease",
+            overflow: 'hidden',
+            transition: 'background 400ms ease',
           }}
         >
           {/* Subtle Left Vignette Fade from Void to Wallpaper */}
           <div
             style={{
-              position: "absolute",
+              position: 'absolute',
               top: 0,
               left: 0,
               bottom: 0,
-              width: "25%",
-              background: "linear-gradient(90deg, #050307 0%, rgba(5, 3, 7, 0) 100%)",
+              width: '25%',
+              background: 'linear-gradient(90deg, #050307 0%, rgba(5, 3, 7, 0) 100%)',
               zIndex: 2,
-              pointerEvents: "none",
+              pointerEvents: 'none',
             }}
           />
 
           {/* Top/Bottom Ambient Vignette */}
           <div
             style={{
-              position: "absolute",
+              position: 'absolute',
               top: 0,
               left: 0,
               right: 0,
               bottom: 0,
-              background: "linear-gradient(180deg, rgba(5, 3, 7, 0.4) 0%, transparent 25%, transparent 75%, rgba(5, 3, 7, 0.6) 100%)",
+              background:
+                'linear-gradient(180deg, rgba(5, 3, 7, 0.4) 0%, transparent 25%, transparent 75%, rgba(5, 3, 7, 0.6) 100%)',
               zIndex: 2,
-              pointerEvents: "none",
+              pointerEvents: 'none',
             }}
           />
 
           {/* Center 3D Monolith Altar Glow Accent */}
           <div
             style={{
-              position: "absolute",
-              bottom: "22%",
-              left: "42%",
+              position: 'absolute',
+              bottom: '22%',
+              left: '42%',
               width: 140,
               height: 140,
-              borderRadius: "50%",
-              background: "radial-gradient(circle, rgba(45, 212, 191, 0.28) 0%, transparent 70%)",
-              filter: "blur(28px)",
+              borderRadius: '50%',
+              background: 'radial-gradient(circle, rgba(45, 212, 191, 0.28) 0%, transparent 70%)',
+              filter: 'blur(28px)',
               zIndex: 1,
-              pointerEvents: "none",
+              pointerEvents: 'none',
             }}
           />
         </div>

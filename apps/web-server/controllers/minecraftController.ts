@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import * as minecraftService from '../services/minecraftService.js';
 import * as skinService from '../services/skinService.js';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
@@ -192,7 +193,7 @@ export const initWebLink = async (req: Request, res: Response) => {
         const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
         let code = '';
         for (let i = 0; i < 6; i++) {
-            code += chars.charAt(Math.floor(Math.random() * chars.length));
+            code += chars.charAt(crypto.randomInt(0, chars.length));
         }
 
         const expiresAt = Date.now() + 15 * 60 * 1000;

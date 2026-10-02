@@ -109,7 +109,7 @@ pub fn launch_minecraft_process(
         let app = app_handle.clone();
         thread::spawn(move || {
             let reader = BufReader::new(stdout);
-            for line in reader.lines().flatten() {
+            for line in reader.lines().map_while(Result::ok) {
                 let level = if line.contains("[ERROR]")
                     || line.contains(" Exception")
                     || line.contains("FATAL")
@@ -140,7 +140,7 @@ pub fn launch_minecraft_process(
         let app = app_handle.clone();
         thread::spawn(move || {
             let reader = BufReader::new(stderr);
-            for line in reader.lines().flatten() {
+            for line in reader.lines().map_while(Result::ok) {
                 let _ = app.emit(
                     "game-log",
                     GameLogPayload {

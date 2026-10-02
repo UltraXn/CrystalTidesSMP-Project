@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import '@testing-library/jest-dom/vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { LauncherActionDeck } from './LauncherActionDeck';
-import { getProfiles, getProfile } from '../services/profileService';
+import { getProfiles, getProfile, type Profile } from '../services/profileService';
 
 vi.mock('../services/profileService', () => ({
   getProfiles: vi.fn(),
@@ -10,17 +11,35 @@ vi.mock('../services/profileService', () => ({
 
 describe('LauncherActionDeck', () => {
   let mockProfiles: Profile[];
-  let mockActiveProfile: Profile;
 
   beforeEach(() => {
     mockProfiles = [
-      { id: '1', name: 'Profile 1', loaderType: 'fabric', mcVersion: '1.21.1' },
-      { id: '2', name: 'Profile 2', loaderType: 'forge', mcVersion: '1.21.1' },
+      {
+        id: '1',
+        name: 'Profile 1',
+        loaderType: 'fabric',
+        loaderVersion: '0.15.11',
+        mcVersion: '1.21.1',
+        iconPath: 'box',
+        isolateSaves: false,
+        useOptimization: true,
+        created: '2026-01-01T00:00:00.000Z',
+      },
+      {
+        id: '2',
+        name: 'Profile 2',
+        loaderType: 'forge',
+        loaderVersion: '51.0.0',
+        mcVersion: '1.21.1',
+        iconPath: 'box',
+        isolateSaves: false,
+        useOptimization: true,
+        created: '2026-01-01T00:00:00.000Z',
+      },
     ];
-    mockActiveProfile = mockProfiles[0];
 
     vi.mocked(getProfiles).mockReturnValue(mockProfiles);
-    vi.mocked(getProfile).mockImplementation((id) => mockProfiles.find(p => p.id === id));
+    vi.mocked(getProfile).mockImplementation((id) => mockProfiles.find((p) => p.id === id));
   });
 
   afterEach(() => {
@@ -35,7 +54,14 @@ describe('LauncherActionDeck', () => {
   });
 
   it('renders the component with isDownloading true', () => {
-    render(<LauncherActionDeck isDownloading={true} downloadProgress={50} onLaunch={vi.fn()} onSelectProfile={vi.fn()} />);
+    render(
+      <LauncherActionDeck
+        isDownloading={true}
+        downloadProgress={50}
+        onLaunch={vi.fn()}
+        onSelectProfile={vi.fn()}
+      />,
+    );
     expect(screen.getByText('DOWNLOADING')).toBeInTheDocument();
     expect(screen.getByText('50%')).toBeInTheDocument();
   });
@@ -54,21 +80,42 @@ describe('LauncherActionDeck', () => {
 
   it('does not call onLaunch when isDownloading is true', () => {
     const onLaunch = vi.fn();
-    render(<LauncherActionDeck isDownloading={true} downloadProgress={50} onLaunch={onLaunch} onSelectProfile={vi.fn()} />);
+    render(
+      <LauncherActionDeck
+        isDownloading={true}
+        downloadProgress={50}
+        onLaunch={onLaunch}
+        onSelectProfile={vi.fn()}
+      />,
+    );
     fireEvent.click(screen.getByText('DOWNLOADING'));
     expect(onLaunch).not.toHaveBeenCalled();
   });
 
   it('calls onPauseDownload when the pause button is clicked', () => {
     const onPauseDownload = vi.fn();
-    render(<LauncherActionDeck isDownloading={true} downloadProgress={50} onPauseDownload={onPauseDownload} onSelectProfile={vi.fn()} />);
+    render(
+      <LauncherActionDeck
+        isDownloading={true}
+        downloadProgress={50}
+        onPauseDownload={onPauseDownload}
+        onSelectProfile={vi.fn()}
+      />,
+    );
     fireEvent.click(screen.getByTitle('Pausar'));
     expect(onPauseDownload).toHaveBeenCalled();
   });
 
   it('calls onCancelDownload when the cancel button is clicked', () => {
     const onCancelDownload = vi.fn();
-    render(<LauncherActionDeck isDownloading={true} downloadProgress={50} onCancelDownload={onCancelDownload} onSelectProfile={vi.fn()} />);
+    render(
+      <LauncherActionDeck
+        isDownloading={true}
+        downloadProgress={50}
+        onCancelDownload={onCancelDownload}
+        onSelectProfile={vi.fn()}
+      />,
+    );
     fireEvent.click(screen.getByTitle('Cancelar Descarga'));
     expect(onCancelDownload).toHaveBeenCalled();
   });
@@ -92,12 +139,12 @@ describe('LauncherActionDeck', () => {
 
   it('renders the correct number of profiles', () => {
     render(<LauncherActionDeck onLaunch={vi.fn()} onSelectProfile={vi.fn()} />);
-    expect(screen.getAllByRole('button', { name: /profile/i }).length).toBe(2);
+    expect(screen.getAllByRole('button', { name: /profile/i })).toHaveLength(2);
   });
 
   it('renders the correct number of partner badges', () => {
     render(<LauncherActionDeck onLaunch={vi.fn()} onSelectProfile={vi.fn()} />);
-    expect(screen.getAllByRole('button', { name: /partner/i }).length).toBe(8);
+    expect(screen.getAllByRole('button', { name: /partner/i })).toHaveLength(8);
   });
 
   it('renders the component with selectedProfile', () => {
@@ -117,22 +164,46 @@ describe('LauncherActionDeck', () => {
   });
 
   it('renders the component with null selectedProfile', () => {
-    render(<LauncherActionDeck selectedProfile={null} onLaunch={vi.fn()} onSelectProfile={vi.fn()} />);
+    render(
+      <LauncherActionDeck selectedProfile={null} onLaunch={vi.fn()} onSelectProfile={vi.fn()} />,
+    );
     expect(screen.getByText('Profile 1')).toHaveStyle('border-color: rgba(45, 212, 191, 0.45)');
   });
 
   it('renders the component with undefined selectedProfile', () => {
-    render(<LauncherActionDeck selectedProfile={undefined} onLaunch={vi.fn()} onSelectProfile={vi.fn()} />);
+    render(
+      <LauncherActionDeck
+        selectedProfile={undefined}
+        onLaunch={vi.fn()}
+        onSelectProfile={vi.fn()}
+      />,
+    );
     expect(screen.getByText('Profile 1')).toHaveStyle('border-color: rgba(45, 212, 191, 0.45)');
   });
 
   it('renders the component with isPaused true', () => {
-    render(<LauncherActionDeck isDownloading={true} downloadProgress={50} isPaused={true} onPauseDownload={vi.fn()} onSelectProfile={vi.fn()} />);
+    render(
+      <LauncherActionDeck
+        isDownloading={true}
+        downloadProgress={50}
+        isPaused={true}
+        onPauseDownload={vi.fn()}
+        onSelectProfile={vi.fn()}
+      />,
+    );
     expect(screen.getByTitle('Reanudar')).toBeInTheDocument();
   });
 
   it('renders the component with isPaused false', () => {
-    render(<LauncherActionDeck isDownloading={true} downloadProgress={50} isPaused={false} onPauseDownload={vi.fn()} onSelectProfile={vi.fn()} />);
+    render(
+      <LauncherActionDeck
+        isDownloading={true}
+        downloadProgress={50}
+        isPaused={false}
+        onPauseDownload={vi.fn()}
+        onSelectProfile={vi.fn()}
+      />,
+    );
     expect(screen.getByTitle('Pausar')).toBeInTheDocument();
   });
 

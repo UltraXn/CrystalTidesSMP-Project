@@ -31,4 +31,8 @@ async function scanModels() {
   }
 }
 
-scanModels().catch(console.error);
+try {
+  await scanModels();
+} catch (error) {
+  console.error(error);
+}

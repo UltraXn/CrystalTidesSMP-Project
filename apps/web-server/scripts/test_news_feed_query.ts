@@ -1,5 +1,11 @@
 import supabase from '../services/supabaseService.js';
 
+interface NewsFeedItem {
+  category?: string;
+  title?: string;
+  is_featured?: boolean;
+}
+
 async function main() {
   const { data, error } = await supabase
     .from('news_feed_items')
@@ -12,11 +18,15 @@ async function main() {
   }
 
   console.log('Success! Items in news_feed_items:', data.length);
-  data.forEach((item: Record<string, unknown>) => {
+  (data as NewsFeedItem[]).forEach((item) => {
     console.log(
-      `- [${String(item.category)}] ${String(item.title)} (Featured: ${Boolean(item.is_featured)})`,
+      `- [${item.category ?? 'General'}] ${item.title ?? 'Sin título'} (Featured: ${Boolean(item.is_featured)})`,
     );
   });
 }
 
-main().catch(console.error);
+try {
+  await main();
+} catch (error) {
+  console.error(error);
+}

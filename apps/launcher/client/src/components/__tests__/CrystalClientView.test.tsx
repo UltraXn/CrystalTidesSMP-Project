@@ -30,6 +30,20 @@ vi.mock('../../services/friendsService', () => ({
   getFriendRequests: vi.fn(),
 }));
 
+const mockMinimize = vi.fn();
+const mockToggleMaximize = vi.fn();
+const mockClose = vi.fn();
+const mockStartDragging = vi.fn();
+
+vi.mock('@tauri-apps/api/window', () => ({
+  getCurrentWindow: vi.fn(() => ({
+    minimize: mockMinimize,
+    toggleMaximize: mockToggleMaximize,
+    close: mockClose,
+    startDragging: mockStartDragging,
+  })),
+}));
+
 describe('CrystalClientView', () => {
   const mockCurrentSession = {
     username: 'testUser',
@@ -89,47 +103,31 @@ describe('CrystalClientView', () => {
   });
 
   it('handles minimize window', async () => {
-    const minimize = vi.fn();
-    vi.mock('@tauri-apps/api/window', () => ({
-      getCurrentWindow: vi.fn().mockResolvedValue({ minimize }),
-    }));
     render(<CrystalClientView />);
     const minimizeButton = screen.getByRole('button', { name: /minimize/i });
     fireEvent.click(minimizeButton);
-    await waitFor(() => expect(minimize).toHaveBeenCalled());
+    await waitFor(() => expect(mockMinimize).toHaveBeenCalled());
   });
 
   it('handles maximize window', async () => {
-    const toggleMaximize = vi.fn();
-    vi.mock('@tauri-apps/api/window', () => ({
-      getCurrentWindow: vi.fn().mockResolvedValue({ toggleMaximize }),
-    }));
     render(<CrystalClientView />);
     const maximizeButton = screen.getByRole('button', { name: /maximize/i });
     fireEvent.click(maximizeButton);
-    await waitFor(() => expect(toggleMaximize).toHaveBeenCalled());
+    await waitFor(() => expect(mockToggleMaximize).toHaveBeenCalled());
   });
 
   it('handles close window', async () => {
-    const close = vi.fn();
-    vi.mock('@tauri-apps/api/window', () => ({
-      getCurrentWindow: vi.fn().mockResolvedValue({ close }),
-    }));
     render(<CrystalClientView />);
     const closeButton = screen.getByRole('button', { name: /close/i });
     fireEvent.click(closeButton);
-    await waitFor(() => expect(close).toHaveBeenCalled());
+    await waitFor(() => expect(mockClose).toHaveBeenCalled());
   });
 
   it('handles start drag', async () => {
-    const startDragging = vi.fn();
-    vi.mock('@tauri-apps/api/window', () => ({
-      getCurrentWindow: vi.fn().mockResolvedValue({ startDragging }),
-    }));
     render(<CrystalClientView />);
     const titleBar = screen.getByRole('region', { name: /title bar/i });
     fireEvent.mouseDown(titleBar);
-    await waitFor(() => expect(startDragging).toHaveBeenCalled());
+    await waitFor(() => expect(mockStartDragging).toHaveBeenCalled());
   });
 
   it('handles launch game', async () => {

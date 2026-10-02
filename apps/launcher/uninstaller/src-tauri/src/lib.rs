@@ -48,29 +48,25 @@ fn perform_uninstallation(target_dir: String, remove_user_data: Option<bool>) ->
     #[cfg(target_os = "windows")]
     {
         // 1. Clean registry key via PowerShell
-        let reg_ps = format!(
-            "$ErrorActionPreference = 'SilentlyContinue'; \
+        let reg_ps = "$ErrorActionPreference = 'SilentlyContinue'; \
              Remove-Item -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\CrystalTidesLauncher' -Recurse -Force; \
              Remove-Item -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\CrystalTidesLauncherPapyrus' -Recurse -Force; \
              Remove-Item -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\CTLauncher' -Recurse -Force; \
-             Remove-Item -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\CrystalLauncher' -Recurse -Force"
-        );
+             Remove-Item -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\CrystalLauncher' -Recurse -Force";
         let _ = Command::new("powershell")
-            .args(["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", &reg_ps])
+            .args(["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", reg_ps])
             .output();
 
         // 2. Clean shortcuts via PowerShell
-        let shortcut_ps = format!(
-            "$ErrorActionPreference = 'SilentlyContinue'; \
+        let shortcut_ps = "$ErrorActionPreference = 'SilentlyContinue'; \
              $Desktop = [Environment]::GetFolderPath('Desktop'); \
              $StartMenu = [Environment]::GetFolderPath('StartMenu'); \
              Remove-Item (Join-Path $Desktop 'CrystalTides Launcher.lnk') -Force; \
              Remove-Item (Join-Path $Desktop 'CTLauncher.lnk') -Force; \
              Remove-Item (Join-Path $Desktop 'Crystal Launcher.lnk') -Force; \
-             Remove-Item (Join-Path $StartMenu 'Programs\\CrystalTides') -Recurse -Force"
-        );
+             Remove-Item (Join-Path $StartMenu 'Programs\\CrystalTides') -Recurse -Force";
         let _ = Command::new("powershell")
-            .args(["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", &shortcut_ps])
+            .args(["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", shortcut_ps])
             .output();
     }
 

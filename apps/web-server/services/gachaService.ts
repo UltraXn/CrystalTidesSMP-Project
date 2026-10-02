@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import supabase from '../config/supabaseClient.js';
 import * as commandService from './commandService.js';
 // Triggering reload
@@ -130,7 +131,7 @@ export const rollGacha = async (
                         (r) => r.rarity === 'legendary' || r.rarity === 'epic' || r.rarity === 'mythic'
                     );
                     const pool = highRarity.length > 0 ? highRarity : tier.rewards;
-                    selectedReward = pool[Math.floor(Math.random() * pool.length)];
+                    selectedReward = pool[crypto.randomInt(0, pool.length)];
                 }
             }
 

@@ -38,7 +38,7 @@ export const createWikiArticle = async (req: Request, res: Response) => {
 export const updateWikiArticle = async (req: Request, res: Response) => {
   try {
     const id = ensureString(req.params.id);
-    const article = await wikiService.updateArticle(parseInt(id), req.body);
+    const article = await wikiService.updateArticle(Number.parseInt(id, 10), req.body);
     return sendSuccess(res, article, 'Article updated');
   } catch (error) {
     return sendError(res, error instanceof Error ? error.message : 'Error updating wiki article');
@@ -48,7 +48,7 @@ export const updateWikiArticle = async (req: Request, res: Response) => {
 export const deleteWikiArticle = async (req: Request, res: Response) => {
   try {
     const id = ensureString(req.params.id);
-    await wikiService.deleteArticle(parseInt(id));
+    await wikiService.deleteArticle(Number.parseInt(id, 10));
     return sendSuccess(res, null, 'Article deleted');
   } catch (error) {
     return sendError(res, error instanceof Error ? error.message : 'Error deleting wiki article');

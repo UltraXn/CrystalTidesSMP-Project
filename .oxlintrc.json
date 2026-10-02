@@ -1,10 +1,19 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "unicorn", "jsx-a11y"],
+  "plugins": ["react", "typescript", "unicorn", "jsx-a11y", "oxc"],
   "categories": {
-    "correctness": "warn"
+    "correctness": "warn",
+    "perf": "warn",
+    "suspicious": "warn"
   },
+  "jsPlugins": [
+    {
+      "name": "react-doctor",
+      "specifier": "oxlint-plugin-react-doctor"
+    }
+  ],
   "rules": {
+    "react/react-in-jsx-scope": "off",
     "no-unused-vars": "off",
     "typescript/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
     "typescript/no-explicit-any": "warn",
@@ -22,7 +31,12 @@
     "react/incompatible-library": "off",
     "react-hooks/set-state-in-effect": "off",
     "react-hooks/immutability": "off",
-    "react-hooks/incompatible-library": "off"
+    "react-hooks/incompatible-library": "off",
+    "react-doctor/no-fetch-in-effect": "warn",
+    "react-doctor/no-derived-state-effect": "warn",
+    "react-doctor/no-giant-component": "warn",
+    "react-doctor/no-high-complexity-react-function": "warn",
+    "react-doctor/iframe-missing-sandbox": "warn"
   },
   "ignorePatterns": [
     "**/dist/**",

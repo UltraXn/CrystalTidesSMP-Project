@@ -1,30 +1,31 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+// @vitest-environment jsdom
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
 import '@testing-library/jest-dom/vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import LauncherLoginView from '../LauncherLoginView';
+import { LauncherLoginView } from '../LauncherLoginView';
 
 vi.mock('@tauri-apps/api/window', () => ({
   getCurrentWindow: vi.fn(() => ({
-    startDragging: vi.fn(),
-    minimize: vi.fn(),
-    toggleMaximize: vi.fn(),
-    close: vi.fn(),
+    startDragging: vi.fn().mockRejectedValue(new Error('Tauri not running')),
+    minimize: vi.fn().mockRejectedValue(new Error('Tauri not running')),
+    toggleMaximize: vi.fn().mockRejectedValue(new Error('Tauri not running')),
+    close: vi.fn().mockRejectedValue(new Error('Tauri not running')),
   })),
 }));
 
 vi.mock('../LauncherLegalModal', () => ({
-  LauncherLegalModal: vi.fn(() => <div>Legal Modal</div>),
+  LauncherLegalModal: vi.fn(({ isOpen }: { isOpen: boolean }) => (isOpen ? <div>Legal Modal</div> : null)),
 }));
 
 describe('LauncherLoginView', () => {
-  let onLoginMicrosoft: jest.Mock;
-  let onViewGithub: jest.Mock;
-  let onContinueAsGuest: jest.Mock;
-  let onMinimize: jest.Mock;
-  let onMaximize: jest.Mock;
-  let onClose: jest.Mock;
-  let onStartDrag: jest.Mock;
+  let onLoginMicrosoft: Mock;
+  let onViewGithub: Mock;
+  let onContinueAsGuest: Mock;
+  let onMinimize: Mock;
+  let onMaximize: Mock;
+  let onClose: Mock;
+  let onStartDrag: Mock;
 
   beforeEach(() => {
     onLoginMicrosoft = vi.fn();
@@ -67,6 +68,7 @@ describe('LauncherLoginView', () => {
   it('should call onContinueAsGuest with valid guest username', async () => {
     const user = userEvent.setup();
     render(<LauncherLoginView onContinueAsGuest={onContinueAsGuest} />);
+    await user.click(screen.getByRole('button', { name: /iniciar como invitado/i }));
     const input = screen.getByRole('textbox', { name: /nickname/i });
     const submitButton = screen.getByRole('button', { name: /entrar como invitado/i });
 
@@ -79,6 +81,7 @@ describe('LauncherLoginView', () => {
   it('should show error for guest username with less than 3 characters', async () => {
     const user = userEvent.setup();
     render(<LauncherLoginView onContinueAsGuest={onContinueAsGuest} />);
+    await user.click(screen.getByRole('button', { name: /iniciar como invitado/i }));
     const input = screen.getByRole('textbox', { name: /nickname/i });
     const submitButton = screen.getByRole('button', { name: /entrar como invitado/i });
 
@@ -91,10 +94,11 @@ describe('LauncherLoginView', () => {
   it('should show error for guest username with more than 16 characters', async () => {
     const user = userEvent.setup();
     render(<LauncherLoginView onContinueAsGuest={onContinueAsGuest} />);
+    await user.click(screen.getByRole('button', { name: /iniciar como invitado/i }));
     const input = screen.getByRole('textbox', { name: /nickname/i });
     const submitButton = screen.getByRole('button', { name: /entrar como invitado/i });
 
-    await user.type(input, 'A'.repeat(17));
+    fireEvent.change(input, { target: { value: 'A'.repeat(17) } });
     await user.click(submitButton);
 
     expect(screen.getByText(/el nombre debe tener entre 3 y 16 caracteres/i)).toBeInTheDocument();
@@ -103,6 +107,7 @@ describe('LauncherLoginView', () => {
   it('should show error for guest username with invalid characters', async () => {
     const user = userEvent.setup();
     render(<LauncherLoginView onContinueAsGuest={onContinueAsGuest} />);
+    await user.click(screen.getByRole('button', { name: /iniciar como invitado/i }));
     const input = screen.getByRole('textbox', { name: /nickname/i });
     const submitButton = screen.getByRole('button', { name: /entrar como invitado/i });
 
@@ -137,11 +142,14 @@ describe('LauncherLoginView', () => {
   });
 
   it('should call onStartDrag when header is clicked', async () => {
-    const user = userEvent.setup();
-    render(<LauncherLoginView onStartDrag={onStartDrag} />);
-    const header = screen.getByRole('button', { name: /crystal client/i });
-    await user.pointer({ target: header, keys: '[MouseLeft]' });
-    expect(onStartDrag).toHaveBeenCalled();
+    const { container } = render(<LauncherLoginView onStartDrag={onStartDrag} />);
+    const header = container.querySelector('header');
+    expect(header).toBeInTheDocument();
+    fireEvent.mouseDown(header!, { button: 0 });
+    // handleStartDrag is async due to dynamic import
+    await vi.waitFor(() => {
+      expect(onStartDrag).toHaveBeenCalled();
+    });
   });
 
   it('should switch to guest mode and back to microsoft mode', async () => {

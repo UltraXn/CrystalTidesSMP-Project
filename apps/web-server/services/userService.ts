@@ -40,13 +40,12 @@ export const getAllUsers = async (query = ''): Promise<WebUser[]> => {
 
   let filtered = users || [];
   if (query) {
+    const q = query.toLowerCase();
     filtered = filtered.filter(
       (u) =>
-        (u.email && u.email.toLowerCase().includes(query.toLowerCase())) ||
-        (u.user_metadata?.username &&
-          u.user_metadata.username.toLowerCase().includes(query.toLowerCase())) ||
-        (u.user_metadata?.full_name &&
-          u.user_metadata.full_name.toLowerCase().includes(query.toLowerCase())),
+        Boolean(u.email?.toLowerCase().includes(q)) ||
+        Boolean(u.user_metadata?.username?.toLowerCase().includes(q)) ||
+        Boolean(u.user_metadata?.full_name?.toLowerCase().includes(q)),
     );
   }
 

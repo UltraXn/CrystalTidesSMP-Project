@@ -5,6 +5,107 @@ import { AmbientBubbles } from './components/AmbientBubbles';
 import { WindowTitleBar } from './components/WindowTitleBar';
 import './index.css';
 
+function getStepClass(stepNum: number, currentStep: number): string {
+  if (currentStep === stepNum) return 'stepper-step active';
+  if (currentStep > stepNum) return 'stepper-step completed';
+  return 'stepper-step';
+}
+
+function getStepIcon(stepNum: number, currentStep: number): string {
+  return currentStep > stepNum ? '✓' : String(stepNum);
+}
+
+interface TermsModalProps {
+  readonly modalType: 'terms' | 'privacy';
+  readonly onClose: () => void;
+}
+
+function TermsModal({ modalType, onClose }: TermsModalProps) {
+  return (
+    <dialog
+      open
+      aria-modal="true"
+      aria-label={modalType === 'terms' ? 'Términos de Servicio' : 'Política de Privacidad'}
+      style={{
+        position: 'relative',
+        zIndex: 1,
+        width: 500,
+        maxHeight: '75vh',
+        backgroundColor: 'rgba(10, 15, 26, 0.95)',
+        border: '1px solid rgba(45, 212, 191, 0.35)',
+        borderRadius: 20,
+        padding: 26,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 14,
+        boxShadow: '0 24px 60px rgba(0,0,0,0.9), 0 0 30px rgba(45,212,191,0.2)',
+        color: 'inherit',
+      }}
+    >
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h3 style={{ margin: 0, fontSize: 17, color: '#2DD4BF', fontWeight: 700 }}>
+          {modalType === 'terms' ? '📜 Términos de Servicio' : '🔒 Política de Privacidad'}
+        </h3>
+        <button
+          type="button"
+          onClick={onClose}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: 'rgba(255,255,255,0.6)',
+            fontSize: 18,
+            cursor: 'pointer',
+          }}
+        >
+          ✕
+        </button>
+      </div>
+      <div
+        style={{
+          fontSize: 12,
+          color: 'rgba(255,255,255,0.75)',
+          lineHeight: 1.6,
+          overflowY: 'auto',
+          maxHeight: '55vh',
+          paddingRight: 8,
+        }}
+      >
+        {modalType === 'terms' ? (
+          <div>
+            <p>
+              <strong>1. CLIENTE OFICIAL:</strong> CrystalTidesSMP Launcher es el software
+              cliente exclusivo para ingresar al servidor.
+            </p>
+            <p>
+              <strong>2. NO AFILIADO:</strong> Este cliente no está afiliado con Mojang AB ni
+              Microsoft.
+            </p>
+            <p>
+              <strong>3. CONVIVENCIA:</strong> Queda prohibido el uso de hacks, exploits o
+              cualquier ventaja injusta.
+            </p>
+          </div>
+        ) : (
+          <div>
+            <p>
+              <strong>PRIVACIDAD:</strong> Se resguardan únicamente credenciales de sesión y
+              parámetros locales del servidor.
+            </p>
+          </div>
+        )}
+      </div>
+      <button
+        type="button"
+        onClick={onClose}
+        className="btn-secondary"
+        style={{ alignSelf: 'flex-end', padding: '8px 20px' }}
+      >
+        Cerrar
+      </button>
+    </dialog>
+  );
+}
+
 export function App() {
   const [step, setStep] = useState<'welcome' | 'directory' | 'installing' | 'finish'>('welcome');
   const [acceptedTerms, setAcceptedTerms] = useState(false);
@@ -130,25 +231,19 @@ export function App() {
         >
           {/* Stepper Nav */}
           <div className="stepper-nav" style={{ marginBottom: 14 }}>
-            <div
-              className={`stepper-step ${currentStepNum === 1 ? 'active' : currentStepNum > 1 ? 'completed' : ''}`}
-            >
-              <span>{currentStepNum > 1 ? '✓' : '1'}</span> Inicio
+            <div className={getStepClass(1, currentStepNum)}>
+              <span>{getStepIcon(1, currentStepNum)}</span> Inicio
             </div>
             <div className="stepper-divider" />
-            <div
-              className={`stepper-step ${currentStepNum === 2 ? 'active' : currentStepNum > 2 ? 'completed' : ''}`}
-            >
-              <span>{currentStepNum > 2 ? '✓' : '2'}</span> Ruta
+            <div className={getStepClass(2, currentStepNum)}>
+              <span>{getStepIcon(2, currentStepNum)}</span> Ruta
             </div>
             <div className="stepper-divider" />
-            <div
-              className={`stepper-step ${currentStepNum === 3 ? 'active' : currentStepNum > 3 ? 'completed' : ''}`}
-            >
-              <span>{currentStepNum > 3 ? '✓' : '3'}</span> Instalación
+            <div className={getStepClass(3, currentStepNum)}>
+              <span>{getStepIcon(3, currentStepNum)}</span> Instalación
             </div>
             <div className="stepper-divider" />
-            <div className={`stepper-step ${currentStepNum === 4 ? 'active' : ''}`}>
+            <div className={getStepClass(4, currentStepNum)}>
               <span>4</span> Listo
             </div>
           </div>
@@ -363,8 +458,7 @@ export function App() {
                     }}
                   >
                     Política de Privacidad
-                  </button>
-                  .
+                  </button>.
                 </label>
               </div>
 
@@ -578,88 +672,7 @@ export function App() {
             }}
             onClick={() => setShowTermsModal(null)}
           />
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-label={
-              showTermsModal === 'terms' ? 'Términos de Servicio' : 'Política de Privacidad'
-            }
-            style={{
-              position: 'relative',
-              zIndex: 1,
-              width: 500,
-              maxHeight: '75vh',
-              backgroundColor: 'rgba(10, 15, 26, 0.95)',
-              border: '1px solid rgba(45, 212, 191, 0.35)',
-              borderRadius: 20,
-              padding: 26,
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 14,
-              boxShadow: '0 24px 60px rgba(0,0,0,0.9), 0 0 30px rgba(45,212,191,0.2)',
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ margin: 0, fontSize: 17, color: '#2DD4BF', fontWeight: 700 }}>
-                {showTermsModal === 'terms'
-                  ? '📜 Términos de Servicio'
-                  : '🔒 Política de Privacidad'}
-              </h3>
-              <button
-                onClick={() => setShowTermsModal(null)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: 'rgba(255,255,255,0.6)',
-                  fontSize: 18,
-                  cursor: 'pointer',
-                }}
-              >
-                ✕
-              </button>
-            </div>
-            <div
-              style={{
-                fontSize: 12,
-                color: 'rgba(255,255,255,0.75)',
-                lineHeight: 1.6,
-                overflowY: 'auto',
-                maxHeight: '55vh',
-                paddingRight: 8,
-              }}
-            >
-              {showTermsModal === 'terms' ? (
-                <div>
-                  <p>
-                    <strong>1. CLIENTE OFICIAL:</strong> CrystalTidesSMP Launcher es el software
-                    cliente exclusivo para ingresar al servidor.
-                  </p>
-                  <p>
-                    <strong>2. NO AFILIADO:</strong> Este cliente no está afiliado con Mojang AB ni
-                    Microsoft.
-                  </p>
-                  <p>
-                    <strong>3. CONVIVENCIA:</strong> Queda prohibido el uso de hacks, exploits o
-                    cualquier ventaja injusta.
-                  </p>
-                </div>
-              ) : (
-                <div>
-                  <p>
-                    <strong>PRIVACIDAD:</strong> Se resguardan únicamente credenciales de sesión y
-                    parámetros locales del servidor.
-                  </p>
-                </div>
-              )}
-            </div>
-            <button
-              onClick={() => setShowTermsModal(null)}
-              className="btn-secondary"
-              style={{ alignSelf: 'flex-end', padding: '8px 20px' }}
-            >
-              Cerrar
-            </button>
-          </div>
+          <TermsModal modalType={showTermsModal} onClose={() => setShowTermsModal(null)} />
         </div>
       )}
     </div>

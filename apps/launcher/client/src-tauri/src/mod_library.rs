@@ -349,11 +349,17 @@ pub fn extract_jar_metadata(jar_path: &Path) -> (Option<String>, Option<String>)
         for i in 0..archive.len() {
             if let Ok(file) = archive.by_index(i) {
                 let name = file.name().to_lowercase();
-                if name.ends_with(".png") || name.ends_with(".jpg") || name.ends_with(".jpeg") {
-                    if name == "icon.png" || name == "logo.png" || name.contains("assets/") && (name.ends_with("/icon.png") || name.ends_with("/logo.png") || name.ends_with("/icon.jpg") || name.ends_with("/pack.png")) {
-                        best_icon_index = Some(i);
-                        break;
-                    }
+                if (name.ends_with(".png") || name.ends_with(".jpg") || name.ends_with(".jpeg"))
+                    && (name == "icon.png"
+                        || name == "logo.png"
+                        || (name.contains("assets/")
+                            && (name.ends_with("/icon.png")
+                                || name.ends_with("/logo.png")
+                                || name.ends_with("/icon.jpg")
+                                || name.ends_with("/pack.png"))))
+                {
+                    best_icon_index = Some(i);
+                    break;
                 }
             }
         }

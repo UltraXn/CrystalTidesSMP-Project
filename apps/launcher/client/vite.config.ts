@@ -1,11 +1,11 @@
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
+import { defineConfig, type PluginOption } from "vite";
+import react from "@vitejs/plugin-react-swc";
 
 const host = process.env.TAURI_DEV_HOST;
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react() as unknown as PluginOption],
 
   esbuild: {
     drop: (process.env.NODE_ENV === "production"

@@ -47,7 +47,7 @@ pub fn detect_hardware_profile() -> CpuInfo {
     let mut mask: u64 = 0;
     if is_hybrid {
         // For hybrid, assign first N physical performance cores (even thread indices: 0, 2, 4, 6...)
-        let target_cores = (physical_cores / 2).max(4).min(8);
+        let target_cores = (physical_cores / 2).clamp(4, 8);
         for i in 0..target_cores {
             mask |= 1 << (i * 2);
         }

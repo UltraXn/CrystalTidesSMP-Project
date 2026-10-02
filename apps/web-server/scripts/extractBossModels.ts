@@ -12,6 +12,63 @@ interface ExtractedAsset {
   texturePath?: string;
 }
 
+function processGeoEntry(
+  geoEntry: AdmZip.IZipEntry,
+  entries: AdmZip.IZipEntry[],
+  summary: ExtractedAsset[],
+) {
+  const basename = path.basename(geoEntry.entryName);
+  const nameWithoutExt = basename.replace('.geo.json', '');
+
+  // Extraer modId desde el path 'assets/<modId>/...'
+  const parts = geoEntry.entryName.split('/');
+  const modId = parts.length > 1 && parts[0] === 'assets' ? parts[1] : 'custom';
+
+  // Crear carpeta destino por modId
+  const targetModDir = path.join(OUTPUT_DIR, modId);
+  if (!fs.existsSync(targetModDir)) {
+    fs.mkdirSync(targetModDir, { recursive: true });
+  }
+
+  // Guardar el .geo.json
+  const targetGeoFile = path.join(targetModDir, `${nameWithoutExt}.geo.json`);
+  fs.writeFileSync(targetGeoFile, geoEntry.getData());
+
+  // Buscar si existe textura asociada en assets/<modId>/textures/entity/
+  const textureEntry = entries.find(
+    (e) =>
+      e.entryName.includes('/textures/entity/') &&
+      (e.entryName.includes(nameWithoutExt) || e.entryName.endsWith(`${nameWithoutExt}.png`)),
+  );
+
+  let targetTextureFile: string | undefined;
+  if (textureEntry) {
+    const texBasename = path.basename(textureEntry.entryName);
+    targetTextureFile = path.join(targetModDir, texBasename);
+    fs.writeFileSync(targetTextureFile, textureEntry.getData());
+  }
+
+  summary.push({
+    modId,
+    name: nameWithoutExt,
+    geoPath: path.relative(OUTPUT_DIR, targetGeoFile),
+    texturePath: targetTextureFile ? path.relative(OUTPUT_DIR, targetTextureFile) : undefined,
+  });
+}
+
+function processJarFile(jarPath: string, summary: ExtractedAsset[]) {
+  try {
+    const zip = new AdmZip(jarPath);
+    const entries = zip.getEntries();
+    const geoEntries = entries.filter((e) => e.entryName.endsWith('.geo.json'));
+    for (const geoEntry of geoEntries) {
+      processGeoEntry(geoEntry, entries, summary);
+    }
+  } catch {
+    // Ignorar zips no válidos
+  }
+}
+
 async function extractBossAssets() {
   if (!fs.existsSync(OUTPUT_DIR)) {
     fs.mkdirSync(OUTPUT_DIR, { recursive: true });
@@ -23,56 +80,7 @@ async function extractBossAssets() {
   const summary: ExtractedAsset[] = [];
 
   for (const file of files) {
-    try {
-      const jarPath = path.join(MODS_DIR, file);
-      const zip = new AdmZip(jarPath);
-      const entries = zip.getEntries();
-
-      // Buscar modelos .geo.json
-      const geoEntries = entries.filter((e) => e.entryName.endsWith('.geo.json'));
-
-      for (const geoEntry of geoEntries) {
-        const basename = path.basename(geoEntry.entryName);
-        const nameWithoutExt = basename.replace('.geo.json', '');
-
-        // Extraer modId desde el path 'assets/<modId>/...'
-        const parts = geoEntry.entryName.split('/');
-        const modId = parts.length > 1 && parts[0] === 'assets' ? parts[1] : 'custom';
-
-        // Crear carpeta destino por modId
-        const targetModDir = path.join(OUTPUT_DIR, modId);
-        if (!fs.existsSync(targetModDir)) {
-          fs.mkdirSync(targetModDir, { recursive: true });
-        }
-
-        // Guardar el .geo.json
-        const targetGeoFile = path.join(targetModDir, `${nameWithoutExt}.geo.json`);
-        fs.writeFileSync(targetGeoFile, geoEntry.getData());
-
-        // Buscar si existe textura asociada en assets/<modId>/textures/entity/
-        const textureEntry = entries.find(
-          (e) =>
-            e.entryName.includes(`/textures/entity/`) &&
-            (e.entryName.includes(nameWithoutExt) || e.entryName.endsWith(`${nameWithoutExt}.png`)),
-        );
-
-        let targetTextureFile: string | undefined;
-        if (textureEntry) {
-          const texBasename = path.basename(textureEntry.entryName);
-          targetTextureFile = path.join(targetModDir, texBasename);
-          fs.writeFileSync(targetTextureFile, textureEntry.getData());
-        }
-
-        summary.push({
-          modId,
-          name: nameWithoutExt,
-          geoPath: path.relative(OUTPUT_DIR, targetGeoFile),
-          texturePath: targetTextureFile ? path.relative(OUTPUT_DIR, targetTextureFile) : undefined,
-        });
-      }
-    } catch {
-      // Ignorar zips no válidos
-    }
+    processJarFile(path.join(MODS_DIR, file), summary);
   }
 
   // Guardar catálogo manifest en public/models/manifest.json
@@ -84,4 +92,8 @@ async function extractBossAssets() {
   console.log(`📁 Catálogo generado en: ${manifestPath}`);
 }
 
-extractBossAssets().catch(console.error);
+try {
+  await extractBossAssets();
+} catch (error) {
+  console.error(error);
+}

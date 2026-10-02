@@ -14,9 +14,9 @@
  *   npx tsx scripts/stryker-orchestrator.ts --max-batches=2  # limit batches per session
  */
 
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
-import { basename, join, resolve } from "node:path";
+import { join, resolve } from "node:path";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -126,7 +126,7 @@ function findFiles(dir: string, include: RegExp, exclude?: RegExp): string[] {
     const fullPath = join(dir, entry.name);
     if (entry.isDirectory()) {
       results.push(...findFiles(fullPath, include, exclude));
-    } else if (include.test(entry.name) && (!exclude || !exclude.test(entry.name))) {
+    } else if (include.test(entry.name) && !exclude?.test(entry.name)) {
       results.push(fullPath);
     }
   }
@@ -164,6 +164,17 @@ function initState(components: ComponentEntry[], batchSize: number): PipelineSta
 
 // ─── Stryker Execution ──────────────────────────────────────────────────────
 
+function resolveStrykerBin(): string {
+  const candidates = [
+    resolve(ROOT, "node_modules/@stryker-mutator/core/bin/stryker.js"),
+    resolve(ROOT, "../../node_modules/@stryker-mutator/core/bin/stryker.js"),
+  ];
+  for (const candidate of candidates) {
+    if (existsSync(candidate)) return candidate;
+  }
+  return resolve(ROOT, "../../node_modules/@stryker-mutator/core/bin/stryker.js");
+}
+
 function runStrykerForComponent(entry: ComponentEntry): void {
   const tempConfig = join(ROOT, "stryker.batch.json");
 
@@ -192,11 +203,16 @@ function runStrykerForComponent(entry: ComponentEntry): void {
 
   writeFileSync(tempConfig, JSON.stringify(config, null, 2));
 
+  const strykerBin = resolveStrykerBin();
   try {
-    execSync("npx stryker run stryker.batch.json", {
+    execFileSync(process.execPath, [strykerBin, "run", "stryker.batch.json"], {
       cwd: ROOT,
       stdio: "inherit",
       timeout: 20 * 60 * 1000, // 20 min max per component
+      env: {
+        ...process.env,
+        PATH: process.env.PATH || process.env.Path || "",
+      },
     });
   } finally {
     // Always clean up temp config and stryker sandbox
@@ -298,6 +314,57 @@ function printDryRun(state: PipelineState, batchSize: number): void {
 
 // ─── Main ───────────────────────────────────────────────────────────────────
 
+function resolvePipelineState(opts: { resume: boolean; batchSize: number }): PipelineState {
+  if (opts.resume) {
+    const existing = loadState();
+    if (existing) {
+      console.log(
+        `♻️  Resuming pipeline from checkpoint (${existing.components.filter((c) => c.status === "completed").length}/${existing.totalComponents} done)`,
+      );
+      return existing;
+    }
+    console.log("📭 No previous state to resume. Starting fresh discovery...");
+  }
+  const components = discoverComponents();
+  return initState(components, opts.batchSize);
+}
+
+function processComponentEntry(
+  entry: ComponentEntry,
+  index: number,
+  total: number,
+  state: PipelineState,
+): void {
+  const stateEntry = state.components.find((c) => c.name === entry.name)!;
+
+  console.log(`\n${"═".repeat(60)}`);
+  console.log(`🧬 [${index + 1}/${total}] Mutating: ${entry.name}`);
+  console.log(`${"═".repeat(60)}\n`);
+
+  stateEntry.status = "in_progress";
+  saveState(state);
+
+  try {
+    runStrykerForComponent(entry);
+    const results = parseResults(entry);
+    Object.assign(stateEntry, results, {
+      status: "completed",
+      completedAt: new Date().toISOString(),
+    });
+    console.log(
+      `\n✅ ${entry.name}: Score ${stateEntry.score ?? "N/A"}% (K:${stateEntry.killed ?? 0} S:${stateEntry.survived ?? 0})`,
+    );
+  } catch (err) {
+    stateEntry.status = "failed";
+    stateEntry.error = err instanceof Error ? err.message.slice(0, 200) : String(err);
+    console.error(`\n❌ ${entry.name}: Failed — ${stateEntry.error}`);
+  }
+
+  saveState(state);
+}
+
+// ─── Main ───────────────────────────────────────────────────────────────────
+
 async function main(): Promise<void> {
   const opts = parseArgs();
 
@@ -313,22 +380,7 @@ async function main(): Promise<void> {
   }
 
   // Discover or resume
-  let state: PipelineState;
-  if (opts.resume) {
-    const existing = loadState();
-    if (!existing) {
-      console.log("📭 No previous state to resume. Starting fresh discovery...");
-      const components = discoverComponents();
-      state = initState(components, opts.batchSize);
-    } else {
-      state = existing;
-      console.log(`♻️  Resuming pipeline from checkpoint (${state.components.filter((c) => c.status === "completed").length}/${state.totalComponents} done)`);
-    }
-  } else {
-    const components = discoverComponents();
-    state = initState(components, opts.batchSize);
-  }
-
+  const state = resolvePipelineState(opts);
   saveState(state);
 
   // Dry run mode
@@ -354,31 +406,7 @@ async function main(): Promise<void> {
       break;
     }
 
-    const entry = pending[i];
-    const stateEntry = state.components.find((c) => c.name === entry.name)!;
-
-    console.log(`\n${"═".repeat(60)}`);
-    console.log(`🧬 [${i + 1}/${pending.length}] Mutating: ${entry.name}`);
-    console.log(`${"═".repeat(60)}\n`);
-
-    stateEntry.status = "in_progress";
-    saveState(state);
-
-    try {
-      runStrykerForComponent(entry);
-      const results = parseResults(entry);
-      Object.assign(stateEntry, results, {
-        status: "completed",
-        completedAt: new Date().toISOString(),
-      });
-      console.log(`\n✅ ${entry.name}: Score ${stateEntry.score ?? "N/A"}% (K:${stateEntry.killed ?? 0} S:${stateEntry.survived ?? 0})`);
-    } catch (err) {
-      stateEntry.status = "failed";
-      stateEntry.error = err instanceof Error ? err.message.slice(0, 200) : String(err);
-      console.error(`\n❌ ${entry.name}: Failed — ${stateEntry.error}`);
-    }
-
-    saveState(state);
+    processComponentEntry(pending[i], i, pending.length, state);
 
     // Count batch boundary
     if ((i + 1) % opts.batchSize === 0) {
@@ -393,7 +421,9 @@ async function main(): Promise<void> {
   printStatus(state);
 }
 
-main().catch((err) => {
+try {
+  await main();
+} catch (err) {
   console.error("💥 Pipeline crashed:", err);
   process.exit(1);
-});
+}
