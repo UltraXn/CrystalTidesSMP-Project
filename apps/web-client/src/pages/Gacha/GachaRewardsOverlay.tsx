@@ -1,177 +1,266 @@
-import React from 'react';
-import { Star, Check, Trophy, Sparkles } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
-import { GachaReward, MappedGachaResult, GachaTier } from './types';
-import { isLossReward, resolveRewardImage } from './gachaDisplayUtils';
+import React from "react";
+import { Star, Check, Trophy, Sparkles } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { GachaReward, MappedGachaResult, GachaTier } from "./types";
+import { isLossReward, resolveRewardImage } from "./gachaDisplayUtils";
 
 interface GachaRewardsOverlayProps {
-    showBulkRewards: boolean;
-    bulkRewards: (GachaReward | MappedGachaResult)[] | null;
-    selectedTier: GachaTier;
-    setShowBulkRewards: (val: boolean) => void;
+  showBulkRewards: boolean;
+  bulkRewards: (GachaReward | MappedGachaResult)[] | null;
+  selectedTier: GachaTier;
+  setShowBulkRewards: (val: boolean) => void;
 }
 
 const coinImages: Record<string, string> = {
-    bronze: '/images/killucoins/coin_cobre.webp',
-    silver: '/images/killucoins/coin_plata.webp',
-    gold: '/images/killucoins/coin_oro.webp',
-    emerald: '/images/killucoins/coin_esmeralda.webp',
-    diamond: '/images/killucoins/coin_diamante.webp',
-    iridium: '/images/killucoins/coin_iridium.webp'
+  bronze: "/images/killucoins/coin_cobre.webp",
+  silver: "/images/killucoins/coin_plata.webp",
+  gold: "/images/killucoins/coin_oro.webp",
+  emerald: "/images/killucoins/coin_esmeralda.webp",
+  diamond: "/images/killucoins/coin_diamante.webp",
+  iridium: "/images/killucoins/coin_iridium.webp",
 };
 
 export const GachaRewardsOverlay: React.FC<GachaRewardsOverlayProps> = ({
-    showBulkRewards,
-    bulkRewards,
-    selectedTier,
-    setShowBulkRewards
+  showBulkRewards,
+  bulkRewards,
+  selectedTier,
+  setShowBulkRewards,
 }) => {
-    const { t } = useTranslation();
-    if (!showBulkRewards || !bulkRewards) return null;
+  const { t } = useTranslation();
+  if (!showBulkRewards || !bulkRewards) return null;
 
-    const isSingle = bulkRewards.length === 1;
+  const isSingle = bulkRewards.length === 1;
 
-    const xpImg = '/images/items/xp_bottle.webp';
+  const xpImg = "/images/items/xp_bottle.webp";
 
-    const getFailsafeImg = (name: string) => {
-        const n = name.toLowerCase();
-        // Skip fallback for loss if we want to use the icon/image provided
-        // The component handles it based on reward.image_url or fallback icon
-        // This function now only provides images for specific non-loss items if image_url is not present
-        if (n.includes('xp')) return xpImg;
-        if (n.includes('killucoins') || n.includes(' kc')) {
-            if (n.includes('250.000')) return coinImages.diamond;
-            if (n.includes('2.500.000')) return coinImages.iridium;
-            if (n.includes('25.000')) return coinImages.emerald;
-            if (n.includes('2.500')) return coinImages.gold;
-            if (n.includes('250')) return coinImages.silver;
-            return coinImages.bronze;
-        }
-        if (n.includes('capa') || n.includes('elytra')) return '/images/items/Elytra_JE2_BE2.png';
-        if (n.includes('estrella nether')) return '/images/items/Nether_Star.gif';
-        if (n.includes('mending')) return '/images/items/enchanted_book.gif';
-        if (n.includes('silencio')) return '/images/items/Silence_Armor_Trim_Smithing_Template_JE1_BE1.png';
-        if (n.includes('heavy core')) return '/images/items/Heavy_Core_JE1_BE1.png';
-        if (n.includes('sniffer')) return '/images/items/Sniffer_Egg_(item)_JE1_BE1.png';
-        if (n.includes('pigstep')) return '/images/items/Music_Disc_Pigstep_JE1_BE1.png';
-        if (n.includes('wither')) return '/images/items/Wither_Skeleton_Skull_(S)_JE2.png';
-        if (n.includes('notch')) return '/images/items/Enchanted_Golden_Apple_JE2_BE2.gif';
-        if (n.includes('escudo')) return '/images/items/Shield_JE2_BE1.webp';
-        if (n.includes('mejora netherite')) return '/images/items/Netherite_Upgrade_Smithing_Template_JE1_BE1.png';
-        if (n.includes('zanahoria oro')) return '/images/items/Golden_Carrot_JE4_BE2.png';
-        return null;
-    };
-
-    if (isSingle) {
-        const item = bulkRewards[0];
-
-        return (
-            <div role="dialog" aria-modal="true" aria-labelledby="gacha-reward-title" aria-live="polite" className="reward-overlay">
-                <div className="reward-card">
-                    <span className={`reward-rarity rarity-${item.rarity}`}>{item.rarity.toUpperCase()}</span>
-                    <div className={`reward-icon rarity-${item.rarity}`}>
-                        {(() => {
-                            const loss = isLossReward(item);
-                            const activeImg = loss ? null : resolveRewardImage(item.name, item.image_url) || getFailsafeImg(item.name);
-                            if (activeImg) {
-                                return (
-                                    <img 
-                                        src={activeImg} 
-                                        alt={item.name} 
-                                        style={{ 
-                                            width: '120px', 
-                                            height: '120px', 
-                                            objectFit: 'contain', 
-                                            imageRendering: 'pixelated',
-                                            filter: `drop-shadow(0 0 15px ${item.color || '#fff'}80)`
-                                        }} 
-                                    />
-                                );
-                            }
-
-                            if (loss) {
-                                return <Sparkles size={100} color="#94a3b8" strokeWidth={1.25} aria-hidden="true" />;
-                            }
-
-                            return <Trophy size={100} color="#ffd700" strokeWidth={1} aria-hidden="true" />;
-                        })()}
-                    </div>
-                    <h3 id="gacha-reward-title">{item.name}</h3>
-                    <p>{isLossReward(item)
-                        ? '¡Vuelve a intentarlo en la próxima tirada!' 
-                        : '¡Has desbloqueado un nuevo objeto!'}</p>
-                    <button type="button" aria-label="Aceptar y reclamar recompensa" className="reward-close-btn accept-btn" onClick={() => setShowBulkRewards(false)}>
-                        <Check size={20} aria-hidden="true" />
-                        <span>ACEPTAR</span>
-                    </button>
-                </div>
-            </div>
-        );
+  const getFailsafeImg = (name: string) => {
+    const n = name.toLowerCase();
+    // Skip fallback for loss if we want to use the icon/image provided
+    // The component handles it based on reward.image_url or fallback icon
+    // This function now only provides images for specific non-loss items if image_url is not present
+    if (n.includes("xp")) return xpImg;
+    if (n.includes("killucoins") || n.includes(" kc")) {
+      if (n.includes("250.000")) return coinImages.diamond;
+      if (n.includes("2.500.000")) return coinImages.iridium;
+      if (n.includes("25.000")) return coinImages.emerald;
+      if (n.includes("2.500")) return coinImages.gold;
+      if (n.includes("250")) return coinImages.silver;
+      return coinImages.bronze;
     }
+    if (n.includes("capa") || n.includes("elytra"))
+      return "/images/items/Elytra_JE2_BE2.png";
+    if (n.includes("estrella nether")) return "/images/items/Nether_Star.gif";
+    if (n.includes("mending")) return "/images/items/enchanted_book.gif";
+    if (n.includes("silencio"))
+      return "/images/items/Silence_Armor_Trim_Smithing_Template_JE1_BE1.png";
+    if (n.includes("heavy core")) return "/images/items/Heavy_Core_JE1_BE1.png";
+    if (n.includes("sniffer"))
+      return "/images/items/Sniffer_Egg_(item)_JE1_BE1.png";
+    if (n.includes("pigstep"))
+      return "/images/items/Music_Disc_Pigstep_JE1_BE1.png";
+    if (n.includes("wither"))
+      return "/images/items/Wither_Skeleton_Skull_(S)_JE2.png";
+    if (n.includes("notch"))
+      return "/images/items/Enchanted_Golden_Apple_JE2_BE2.gif";
+    if (n.includes("escudo")) return "/images/items/Shield_JE2_BE1.webp";
+    if (n.includes("mejora netherite"))
+      return "/images/items/Netherite_Upgrade_Smithing_Template_JE1_BE1.png";
+    if (n.includes("zanahoria oro"))
+      return "/images/items/Golden_Carrot_JE4_BE2.png";
+    return null;
+  };
+
+  if (isSingle) {
+    const item = bulkRewards[0];
 
     return (
-        <div role="dialog" aria-modal="true" aria-labelledby="gacha-reward-title" aria-live="polite" className="reward-overlay">
-            <div className="reward-card bulk-reward-card">
-                <div className="reward-glow" style={{ background: selectedTier.color }}></div>
-                <div className="reward-header">
-                    <Star size={24} color={selectedTier.color} fill={selectedTier.color} aria-hidden="true" className="header-icon" />
-                    <h2 id="gacha-reward-title">{t('gacha.results_title')} ({bulkRewards.length})</h2>
-                </div>
-                
-                <div className="bulk-rewards-list custom-scrollbar">
-                    {bulkRewards.length === 0 ? (
-                        <p className="no-rewards">{t('gacha.no_rewards')}</p>
-                    ) : (
-                        bulkRewards.map((r, i) => (
-                            // react-doctor-disable-next-line no-array-index-as-key -- bulk results can contain duplicate rewards (reward id not unique per result); rendered-once snapshot, never reordered
-                            <div key={`item-${i}`} className={`bulk-item-row rarity-${r.rarity}`} style={{ "--delay": `${i * 0.05}s` } as React.CSSProperties}>
-                                 <div className="bulk-item-icon">
-                                    {(() => {
-                                        const loss = isLossReward(r);
-                                        const activeImg = loss ? null : resolveRewardImage(r.name, r.image_url) || getFailsafeImg(r.name);
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="gacha-reward-title"
+        aria-live="polite"
+        className="reward-overlay"
+      >
+        <div className="reward-card">
+          <span className={`reward-rarity rarity-${item.rarity}`}>
+            {item.rarity.toUpperCase()}
+          </span>
+          <div className={`reward-icon rarity-${item.rarity}`}>
+            {(() => {
+              const loss = isLossReward(item);
+              const activeImg = loss
+                ? null
+                : resolveRewardImage(item.name, item.image_url) ||
+                  getFailsafeImg(item.name);
+              if (activeImg) {
+                return (
+                  <img
+                    src={activeImg}
+                    alt={item.name}
+                    style={{
+                      width: "120px",
+                      height: "120px",
+                      objectFit: "contain",
+                      imageRendering: "pixelated",
+                      filter: `drop-shadow(0 0 15px ${item.color || "#fff"}80)`,
+                    }}
+                  />
+                );
+              }
 
-                                        if (activeImg) {
-                                            const isKillucoin = r.name.toLowerCase().includes('killucoins') || r.name.toLowerCase().includes(' kc');
-                                            return (
-                                                <img 
-                                                    src={activeImg} 
-                                                    alt={r.name} 
-                                                    className={isKillucoin ? "bulk-coin-img" : "reward-item-img-bulk"} 
-                                                    style={{ 
-                                                        width: '28px', 
-                                                        height: '28px', 
-                                                        objectFit: 'contain',
-                                                        imageRendering: 'pixelated',
-                                                        filter: isKillucoin ? `drop-shadow(0 0 10px ${r.color || '#fff'})` : `drop-shadow(0 0 8px ${r.color}80)`,
-                                                        '--item-glow': `${r.color}80`
-                                                    } as React.CSSProperties} 
-                                                />
-                                            );
-                                        }
+              if (loss) {
+                return (
+                  <Sparkles
+                    size={100}
+                    color="#94a3b8"
+                    strokeWidth={1.25}
+                    aria-hidden="true"
+                  />
+                );
+              }
 
-                                        if (loss) {
-                                            return <Sparkles size={24} color="#94a3b8" strokeWidth={1.5} aria-hidden="true" />;
-                                        }
-
-                                        return <Trophy size={24} color="#94a3b8" aria-hidden="true" />;
-                                    })()}
-                                </div>
-                                <div className="bulk-item-info">
-                                    <span className="bulk-item-name">{r.name}</span>
-                                    <span className="bulk-item-rarity">{r.rarity.toUpperCase()}</span>
-                                </div>
-                            </div>
-                        ))
-                    )}
-                </div>
-
-                <div className="reward-footer">
-                    <button type="button" aria-label="Aceptar y reclamar recompensas" className="reward-close-btn accept-btn" onClick={() => setShowBulkRewards(false)}>
-                        <Check size={20} aria-hidden="true" />
-                        <span>ACEPTAR</span>
-                    </button>
-                </div>
-            </div>
+              return (
+                <Trophy
+                  size={100}
+                  color="#ffd700"
+                  strokeWidth={1}
+                  aria-hidden="true"
+                />
+              );
+            })()}
+          </div>
+          <h3 id="gacha-reward-title">{item.name}</h3>
+          <p>
+            {isLossReward(item)
+              ? "¡Vuelve a intentarlo en la próxima tirada!"
+              : "¡Has desbloqueado un nuevo objeto!"}
+          </p>
+          <button
+            type="button"
+            aria-label="Aceptar y reclamar recompensa"
+            className="reward-close-btn accept-btn"
+            onClick={() => setShowBulkRewards(false)}
+          >
+            <Check size={20} aria-hidden="true" />
+            <span>ACEPTAR</span>
+          </button>
         </div>
+      </div>
     );
+  }
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="gacha-reward-title"
+      aria-live="polite"
+      className="reward-overlay"
+    >
+      <div className="reward-card bulk-reward-card">
+        <div
+          className="reward-glow"
+          style={{ background: selectedTier.color }}
+        ></div>
+        <div className="reward-header">
+          <Star
+            size={24}
+            color={selectedTier.color}
+            fill={selectedTier.color}
+            aria-hidden="true"
+            className="header-icon"
+          />
+          <h2 id="gacha-reward-title">
+            {t("gacha.results_title")} ({bulkRewards.length})
+          </h2>
+        </div>
+
+        <div className="bulk-rewards-list custom-scrollbar">
+          {bulkRewards.length === 0 ? (
+            <p className="no-rewards">{t("gacha.no_rewards")}</p>
+          ) : (
+            bulkRewards.map((r, index) => (
+              <div
+                key={r.id || `${r.name}-${r.rarity}-${index}`}
+                className={`bulk-item-row rarity-${r.rarity}`}
+                style={{ "--delay": `${index * 0.05}s` } as React.CSSProperties}
+              >
+                <div className="bulk-item-icon">
+                  {(() => {
+                    const loss = isLossReward(r);
+                    const activeImg = loss
+                      ? null
+                      : resolveRewardImage(r.name, r.image_url) ||
+                        getFailsafeImg(r.name);
+
+                    if (activeImg) {
+                      const isKillucoin =
+                        r.name.toLowerCase().includes("killucoins") ||
+                        r.name.toLowerCase().includes(" kc");
+                      return (
+                        <img
+                          src={activeImg}
+                          alt={r.name}
+                          className={
+                            isKillucoin
+                              ? "bulk-coin-img"
+                              : "reward-item-img-bulk"
+                          }
+                          style={
+                            {
+                              width: "28px",
+                              height: "28px",
+                              objectFit: "contain",
+                              imageRendering: "pixelated",
+                              filter: isKillucoin
+                                ? `drop-shadow(0 0 10px ${r.color || "#fff"})`
+                                : `drop-shadow(0 0 8px ${r.color}80)`,
+                              "--item-glow": `${r.color}80`,
+                            } as React.CSSProperties
+                          }
+                        />
+                      );
+                    }
+
+                    if (loss) {
+                      return (
+                        <Sparkles
+                          size={24}
+                          color="#94a3b8"
+                          strokeWidth={1.5}
+                          aria-hidden="true"
+                        />
+                      );
+                    }
+
+                    return (
+                      <Trophy size={24} color="#94a3b8" aria-hidden="true" />
+                    );
+                  })()}
+                </div>
+                <div className="bulk-item-info">
+                  <span className="bulk-item-name">{r.name}</span>
+                  <span className="bulk-item-rarity">
+                    {r.rarity.toUpperCase()}
+                  </span>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        <div className="reward-footer">
+          <button
+            type="button"
+            aria-label="Aceptar y reclamar recompensas"
+            className="reward-close-btn accept-btn"
+            onClick={() => setShowBulkRewards(false)}
+          >
+            <Check size={20} aria-hidden="true" />
+            <span>ACEPTAR</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 };
