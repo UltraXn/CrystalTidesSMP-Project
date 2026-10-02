@@ -11,48 +11,137 @@ export interface FriendItem {
 }
 
 const DEFAULT_FRIENDS: FriendItem[] = [
-  { id: "1", name: "172px", avatar: "https://mc-heads.net/avatar/172px/64", status: "in-game", activity: "CrystalTides SMP 👑", isFavorite: true },
-  { id: "2", name: "daaaavidds", avatar: "https://mc-heads.net/avatar/daaaavidds/64", status: "in-game", activity: "CrystalTides Survival", isFavorite: true },
-  { id: "3", name: "masaya46", avatar: "https://mc-heads.net/avatar/masaya46/64", status: "in-game", activity: "Dungeon Abyss" },
-  { id: "4", name: "3wafyy", avatar: "https://mc-heads.net/avatar/3wafyy/64", status: "in-launcher", activity: "En el Launcher" },
-  { id: "5", name: "cuvsa", avatar: "https://mc-heads.net/avatar/cuvsa/64", status: "in-game", activity: "CrystalTides SMP 💎" },
-  { id: "6", name: "zakhbear", avatar: "https://mc-heads.net/avatar/zakhbear/64", status: "in-menus", activity: "En Menús" },
-  { id: "7", name: "KingofHalo04", avatar: "https://mc-heads.net/avatar/KingofHalo04/64", status: "idle", activity: "Ausente" },
-  { id: "8", name: "XerxerBro", avatar: "https://mc-heads.net/avatar/XerxerBro/64", status: "offline", activity: "Desconectado hace 3d" },
+  {
+    id: "1",
+    name: "172px",
+    avatar: "https://mc-heads.net/avatar/172px/64",
+    status: "in-game",
+    activity: "CrystalTides SMP 👑",
+    isFavorite: true,
+  },
+  {
+    id: "2",
+    name: "daaaavidds",
+    avatar: "https://mc-heads.net/avatar/daaaavidds/64",
+    status: "in-game",
+    activity: "CrystalTides Survival",
+    isFavorite: true,
+  },
+  {
+    id: "3",
+    name: "masaya46",
+    avatar: "https://mc-heads.net/avatar/masaya46/64",
+    status: "in-game",
+    activity: "Dungeon Abyss",
+  },
+  {
+    id: "4",
+    name: "3wafyy",
+    avatar: "https://mc-heads.net/avatar/3wafyy/64",
+    status: "in-launcher",
+    activity: "En el Launcher",
+  },
+  {
+    id: "5",
+    name: "cuvsa",
+    avatar: "https://mc-heads.net/avatar/cuvsa/64",
+    status: "in-game",
+    activity: "CrystalTides SMP 💎",
+  },
+  {
+    id: "6",
+    name: "zakhbear",
+    avatar: "https://mc-heads.net/avatar/zakhbear/64",
+    status: "in-menus",
+    activity: "En Menús",
+  },
+  {
+    id: "7",
+    name: "KingofHalo04",
+    avatar: "https://mc-heads.net/avatar/KingofHalo04/64",
+    status: "idle",
+    activity: "Ausente",
+  },
+  {
+    id: "8",
+    name: "XerxerBro",
+    avatar: "https://mc-heads.net/avatar/XerxerBro/64",
+    status: "offline",
+    activity: "Desconectado hace 3d",
+  },
 ];
 
-export const SocialPanel: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
+export const SocialPanel: React.FC<{
+  isOpen: boolean;
+  onClose: () => void;
+}> = ({ isOpen, onClose }) => {
   const [activeTab, setActiveTab] = useState<"friends" | "requests">("friends");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFriend, setSelectedFriend] = useState<FriendItem | null>(null);
-  const [messages, setMessages] = useState<{ sender: "me" | "them"; text: string; time: string }[]>([
-    { sender: "them", text: "bro ya estás listo para raidear la dungeon en CrystalTides?", time: "18:45" },
-    { sender: "me", text: "dame 5 mins, estoy actualizando los mods en el nuevo launcher", time: "18:48" },
-    { sender: "them", text: "dale te espero en el lobby central 🚀", time: "18:49" },
+  const [messages, setMessages] = useState<
+    { id: string; sender: "me" | "them"; text: string; time: string }[]
+  >([
+    {
+      id: "msg-1",
+      sender: "them",
+      text: "bro ya estás listo para raidear la dungeon en CrystalTides?",
+      time: "18:45",
+    },
+    {
+      id: "msg-2",
+      sender: "me",
+      text: "dame 5 mins, estoy actualizando los mods en el nuevo launcher",
+      time: "18:48",
+    },
+    {
+      id: "msg-3",
+      sender: "them",
+      text: "dale te espero en el lobby central 🚀",
+      time: "18:49",
+    },
   ]);
   const [inputValue, setInputValue] = useState("");
 
   if (!isOpen) return null;
 
+  const getStatusColor = (status: FriendItem["status"]) => {
+    if (status === "in-game") return "#2dd4bf";
+    if (status === "in-launcher") return "#a855f7";
+    return "#fbbf24";
+  };
+
+  const getStatusTextColor = (status: FriendItem["status"]) => {
+    return status === "in-game" ? "#2dd4bf" : "rgba(255, 255, 255, 0.5)";
+  };
+
   const onlineFriends = DEFAULT_FRIENDS.filter((f) => f.status !== "offline");
   const offlineFriends = DEFAULT_FRIENDS.filter((f) => f.status === "offline");
 
   const filteredOnline = onlineFriends.filter((f) =>
-    f.name.toLowerCase().includes(searchQuery.toLowerCase())
+    f.name.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const handleSendMessage = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!inputValue.trim()) return;
     const now = new Date();
     const timeStr = `${now.getHours()}:${String(now.getMinutes()).padStart(2, "0")}`;
-    setMessages((prev) => [...prev, { sender: "me", text: inputValue, time: timeStr }]);
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: `msg-${Date.now()}-${prev.length}`,
+        sender: "me",
+        text: inputValue,
+        time: timeStr,
+      },
+    ]);
     setInputValue("");
 
     setTimeout(() => {
       setMessages((prev) => [
         ...prev,
         {
+          id: `msg-${Date.now()}-${prev.length}`,
           sender: "them",
           text: "¡Perfecto! Nos vemos adentro.",
           time: `${now.getHours()}:${String(now.getMinutes()).padStart(2, "0")}`,
@@ -89,7 +178,11 @@ export const SocialPanel: React.FC<{ isOpen: boolean; onClose: () => void }> = (
           borderBottom: "1px solid rgba(255, 255, 255, 0.06)",
         }}
       >
-        <div role="tablist" aria-label="Secciones del panel social" style={{ display: "flex", gap: 14, alignItems: "center" }}>
+        <div
+          role="tablist"
+          aria-label="Secciones del panel social"
+          style={{ display: "flex", gap: 14, alignItems: "center" }}
+        >
           <button
             role="tab"
             aria-selected={activeTab === "friends"}
@@ -101,7 +194,10 @@ export const SocialPanel: React.FC<{ isOpen: boolean; onClose: () => void }> = (
               border: "none",
               fontSize: 14,
               fontWeight: 800,
-              color: activeTab === "friends" ? "#FFFFFF" : "rgba(255, 255, 255, 0.4)",
+              color:
+                activeTab === "friends"
+                  ? "#FFFFFF"
+                  : "rgba(255, 255, 255, 0.4)",
               cursor: "pointer",
               padding: 0,
               display: "flex",
@@ -109,7 +205,7 @@ export const SocialPanel: React.FC<{ isOpen: boolean; onClose: () => void }> = (
               gap: 6,
             }}
           >
-            Amigos
+            <span>Amigos</span>{" "}
             <span
               style={{
                 fontSize: 10,
@@ -134,7 +230,10 @@ export const SocialPanel: React.FC<{ isOpen: boolean; onClose: () => void }> = (
               border: "none",
               fontSize: 14,
               fontWeight: 800,
-              color: activeTab === "requests" ? "#FFFFFF" : "rgba(255, 255, 255, 0.4)",
+              color:
+                activeTab === "requests"
+                  ? "#FFFFFF"
+                  : "rgba(255, 255, 255, 0.4)",
               cursor: "pointer",
               padding: 0,
             }}
@@ -209,10 +308,14 @@ export const SocialPanel: React.FC<{ isOpen: boolean; onClose: () => void }> = (
         {filteredOnline.map((friend) => {
           const isSelected = selectedFriend?.id === friend.id;
           return (
-            <div
+            <button
               key={friend.id}
+              type="button"
               onClick={() => setSelectedFriend(friend)}
               style={{
+                width: "100%",
+                textAlign: "left",
+                font: "inherit",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
@@ -241,7 +344,8 @@ export const SocialPanel: React.FC<{ isOpen: boolean; onClose: () => void }> = (
                       backgroundColor: "#1a1222",
                     }}
                     onError={(e) => {
-                      e.currentTarget.src = "https://mc-heads.net/avatar/Steve/64";
+                      e.currentTarget.src =
+                        "https://mc-heads.net/avatar/Steve/64";
                     }}
                   />
                   <div
@@ -252,12 +356,7 @@ export const SocialPanel: React.FC<{ isOpen: boolean; onClose: () => void }> = (
                       width: 8,
                       height: 8,
                       borderRadius: "50%",
-                      backgroundColor:
-                        friend.status === "in-game"
-                          ? "#2dd4bf"
-                          : friend.status === "in-launcher"
-                          ? "#a855f7"
-                          : "#fbbf24",
+                      backgroundColor: getStatusColor(friend.status),
                       boxShadow: "0 0 6px rgba(0,0,0,0.8)",
                     }}
                   />
@@ -265,16 +364,15 @@ export const SocialPanel: React.FC<{ isOpen: boolean; onClose: () => void }> = (
 
                 {/* Name & Activity */}
                 <div style={{ display: "flex", flexDirection: "column" }}>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: "#FFFFFF" }}>
+                  <span
+                    style={{ fontSize: 12, fontWeight: 700, color: "#FFFFFF" }}
+                  >
                     {friend.name}
                   </span>
                   <span
                     style={{
                       fontSize: 10,
-                      color:
-                        friend.status === "in-game"
-                          ? "#2dd4bf"
-                          : "rgba(255, 255, 255, 0.5)",
+                      color: getStatusTextColor(friend.status),
                     }}
                   >
                     {friend.activity}
@@ -282,26 +380,19 @@ export const SocialPanel: React.FC<{ isOpen: boolean; onClose: () => void }> = (
                 </div>
               </div>
 
-              {/* Chat action button */}
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSelectedFriend(friend);
-                }}
+              {/* Chat action indicator */}
+              <div
                 style={{
                   background: "rgba(255, 255, 255, 0.05)",
-                  border: "none",
                   borderRadius: 6,
                   color: "rgba(255, 255, 255, 0.6)",
                   padding: 6,
-                  cursor: "pointer",
                   display: "flex",
                 }}
               >
-                <MessageSquare size={13} />
-              </button>
-            </div>
+                <MessageSquare size={13} aria-hidden="true" />
+              </div>
+            </button>
           );
         })}
 
@@ -334,11 +425,22 @@ export const SocialPanel: React.FC<{ isOpen: boolean; onClose: () => void }> = (
                 <img
                   src={f.avatar}
                   alt={f.name}
-                  style={{ width: 28, height: 28, borderRadius: 6, filter: "grayscale(1)" }}
+                  style={{
+                    width: 28,
+                    height: 28,
+                    borderRadius: 6,
+                    filter: "grayscale(1)",
+                  }}
                 />
                 <div style={{ display: "flex", flexDirection: "column" }}>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: "#FFF" }}>{f.name}</span>
-                  <span style={{ fontSize: 9.5, color: "#888" }}>{f.activity}</span>
+                  <span
+                    style={{ fontSize: 11, fontWeight: 600, color: "#FFF" }}
+                  >
+                    {f.name}
+                  </span>
+                  <span style={{ fontSize: 9.5, color: "#888" }}>
+                    {f.activity}
+                  </span>
                 </div>
               </div>
             ))}
@@ -386,7 +488,9 @@ export const SocialPanel: React.FC<{ isOpen: boolean; onClose: () => void }> = (
                 <div style={{ fontSize: 11.5, fontWeight: 800, color: "#FFF" }}>
                   {selectedFriend.name}
                 </div>
-                <div style={{ fontSize: 9, color: "#2dd4bf" }}>{selectedFriend.activity}</div>
+                <div style={{ fontSize: 9, color: "#2dd4bf" }}>
+                  {selectedFriend.activity}
+                </div>
               </div>
             </div>
             <button
@@ -415,9 +519,9 @@ export const SocialPanel: React.FC<{ isOpen: boolean; onClose: () => void }> = (
               gap: 8,
             }}
           >
-            {messages.map((m, idx) => (
+            {messages.map((m) => (
               <div
-                key={idx}
+                key={m.id}
                 style={{
                   alignSelf: m.sender === "me" ? "flex-end" : "flex-start",
                   maxWidth: "85%",
@@ -433,7 +537,9 @@ export const SocialPanel: React.FC<{ isOpen: boolean; onClose: () => void }> = (
                   padding: "6px 10px",
                 }}
               >
-                <div style={{ fontSize: 11, color: "#FFF", lineHeight: 1.35 }}>{m.text}</div>
+                <div style={{ fontSize: 11, color: "#FFF", lineHeight: 1.35 }}>
+                  {m.text}
+                </div>
                 <div
                   style={{
                     fontSize: 8.5,
@@ -447,7 +553,9 @@ export const SocialPanel: React.FC<{ isOpen: boolean; onClose: () => void }> = (
                   }}
                 >
                   {m.time}
-                  {m.sender === "me" && <CheckCheck size={10} color="#2dd4bf" />}
+                  {m.sender === "me" && (
+                    <CheckCheck size={10} color="#2dd4bf" />
+                  )}
                 </div>
               </div>
             ))}

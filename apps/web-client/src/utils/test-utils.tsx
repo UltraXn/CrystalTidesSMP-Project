@@ -37,10 +37,15 @@ export function renderWithProviders(
   const testQueryClient = createTestQueryClient();
   const authValue: AuthContextType = {
     ...defaultMockAuth,
-    ...(options?.auth || {}),
+    ...options?.auth,
   };
 
-  const { auth: _auth, initialEntries, ...renderOptions } = options || {};
+  const initialEntries = options?.initialEntries;
+  const renderOptions = options ? { ...options } : undefined;
+  if (renderOptions) {
+    delete renderOptions.auth;
+    delete renderOptions.initialEntries;
+  }
 
   return render(
     <QueryClientProvider client={testQueryClient}>
@@ -64,7 +69,7 @@ export function renderHookWithProviders<Result, Props>(
   const testQueryClient = createTestQueryClient();
   const authValue: AuthContextType = {
     ...defaultMockAuth,
-    ...(options?.auth || {}),
+    ...options?.auth,
   };
 
   const wrapper = ({ children }: { children: ReactNode }) => (

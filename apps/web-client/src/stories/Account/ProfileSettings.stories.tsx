@@ -1,36 +1,57 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import ProfileSettings from '../../components/Account/ProfileSettings';
+import type { Meta, StoryObj } from "@storybook/react";
+import type { User } from "@supabase/supabase-js";
+import ProfileSettings from "../../components/Account/ProfileSettings";
 
-const meta: Meta<any> = {
-  title: 'Account/ProfileSettings',
+const mockUser: User = {
+  id: "usr_test_123",
+  app_metadata: {},
+  user_metadata: {
+    bio: "Explorador y constructor en CrystalTides SMP",
+    avatar_preference: "minecraft",
+    public_stats: true,
+    notify_events: true,
+    notify_mentions: true,
+    full_name: "Nero",
+  },
+  aud: "authenticated",
+  created_at: "2025-01-01T00:00:00.000Z",
+  email: "nero@crystaltides.net",
+  phone: "",
+  role: "authenticated",
+  updated_at: "2025-01-01T00:00:00.000Z",
+};
+
+const meta: Meta<typeof ProfileSettings> = {
+  title: "Account/ProfileSettings",
   component: ProfileSettings,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
 };
 
 export default meta;
-type Story = StoryObj<any>;
+type Story = StoryObj<typeof ProfileSettings>;
 
 export const DefaultSettings: Story = {
   args: {
-    "settings": {
-        "theme": "dark",
-        "language": "es",
-        "notifications": true,
-        "soundVolume": 80
-    }
-},
+    user: mockUser,
+    mcUsername: "NeroFerno",
+    showToast: (msg, type) => console.log(`[Toast ${type}]: ${msg}`),
+  },
 };
 
-export const MutedEnglishSettings: Story = {
+export const SocialAvatarSettings: Story = {
   args: {
-    "settings": {
-        "theme": "dark",
-        "language": "en",
-        "notifications": false,
-        "soundVolume": 0
-    }
-},
+    user: {
+      ...mockUser,
+      user_metadata: {
+        ...mockUser.user_metadata,
+        avatar_preference: "social",
+        picture: "https://ui-avatars.com/api/?name=Nero",
+      },
+    },
+    mcUsername: "NeroFerno",
+    showToast: (msg, type) => console.log(`[Toast ${type}]: ${msg}`),
+  },
 };

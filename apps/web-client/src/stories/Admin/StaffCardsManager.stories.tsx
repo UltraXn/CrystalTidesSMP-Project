@@ -1,30 +1,46 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import StaffCardsManager from '../../components/Admin/StaffCardsManager';
+import type { Meta, StoryObj } from "@storybook/react";
+import StaffCardsManager, {
+  StaffCardsManagerProps,
+} from "../../components/Admin/StaffCardsManager";
 
-const meta: Meta<any> = {
-  title: 'Admin/StaffCardsManager',
+const meta: Meta<StaffCardsManagerProps> = {
+  title: "Admin/StaffCardsManager",
   component: StaffCardsManager,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
 };
 
 export default meta;
-type Story = StoryObj<any>;
+type Story = StoryObj<StaffCardsManagerProps>;
 
 export const AbyssalVariant: Story = {
   args: {
-    
-    "description": "Objeto místico de CrystalTides SMP",
-    "color": "#38BDF8"
-},
+    mockCards: [
+      {
+        id: 1,
+        name: "Killu",
+        role: "Administrador",
+        image: "/images/staff/killu.webp",
+        color: "#38BDF8",
+        description: "Objeto místico de CrystalTides SMP",
+      },
+    ],
+  },
 };
 
 export const LegendaryVariant: Story = {
   args: {
-    
-    "description": "Rareza suprema",
-    "color": "#F59E0B"
-},
+    mockCards: [
+      {
+        id: 2,
+        name: "Nero",
+        role: "Fundador",
+        image: "/images/staff/nero.webp",
+        color: "#F59E0B",
+        description: "Rareza suprema",
+      },
+    ],
+  },
 };

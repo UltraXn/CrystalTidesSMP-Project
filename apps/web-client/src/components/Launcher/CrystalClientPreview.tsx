@@ -1,23 +1,23 @@
 import React, { useState } from "react";
-import { 
-  Bell, 
-  MessageSquare, 
-  Layers, 
-  Compass, 
-  Sliders, 
-  ShoppingCart, 
-  Settings, 
-  Search, 
-  UserPlus, 
-  ExternalLink, 
-  Swords, 
-  Box, 
-  X, 
-  Minimize2, 
+import {
+  Bell,
+  MessageSquare,
+  Layers,
+  Compass,
+  Sliders,
+  ShoppingCart,
+  Settings,
+  Search,
+  UserPlus,
+  ExternalLink,
+  Swords,
+  Box,
+  X,
+  Minimize2,
   Square,
   Check,
   Send,
-  CheckCheck
+  CheckCheck,
 } from "lucide-react";
 
 export interface FriendEntry {
@@ -29,33 +29,118 @@ export interface FriendEntry {
 }
 
 const SAMPLE_FRIENDS_ONLINE: FriendEntry[] = [
-  { name: "172px", avatar: "https://mc-heads.net/avatar/172px/64", status: "In-game: CrystalTides 👑", statusType: "online", activity: "CrystalTides SMP" },
-  { name: "daaaavidds", avatar: "https://mc-heads.net/avatar/daaaavidds/64", status: "In-game: Singleplayer", statusType: "online", activity: "Mundo Local" },
-  { name: "masaya46", avatar: "https://mc-heads.net/avatar/masaya46/64", status: "In-game: Private Server", statusType: "online", activity: "Servidor Privado" },
-  { name: "3wafyy", avatar: "https://mc-heads.net/avatar/3wafyy/64", status: "In Launcher", statusType: "launcher", activity: "Launcher" },
-  { name: "cuvsa", avatar: "https://mc-heads.net/avatar/cuvsa/64", status: "In-game: CrystalTides SMP 💎", statusType: "online", activity: "CrystalTides SMP" },
-  { name: "zakhbear", avatar: "https://mc-heads.net/avatar/zakhbear/64", status: "In Menus", statusType: "menu", activity: "Menús" },
-  { name: "KingofHalo04", avatar: "https://mc-heads.net/avatar/KingofHalo04/64", status: "Idle", statusType: "idle", activity: "Ausente" },
-  { name: "meegreyone", avatar: "https://mc-heads.net/avatar/meegreyone/64", status: "Idle", statusType: "idle", activity: "Ausente" },
+  {
+    name: "172px",
+    avatar: "https://mc-heads.net/avatar/172px/64",
+    status: "In-game: CrystalTides 👑",
+    statusType: "online",
+    activity: "CrystalTides SMP",
+  },
+  {
+    name: "daaaavidds",
+    avatar: "https://mc-heads.net/avatar/daaaavidds/64",
+    status: "In-game: Singleplayer",
+    statusType: "online",
+    activity: "Mundo Local",
+  },
+  {
+    name: "masaya46",
+    avatar: "https://mc-heads.net/avatar/masaya46/64",
+    status: "In-game: Private Server",
+    statusType: "online",
+    activity: "Servidor Privado",
+  },
+  {
+    name: "3wafyy",
+    avatar: "https://mc-heads.net/avatar/3wafyy/64",
+    status: "In Launcher",
+    statusType: "launcher",
+    activity: "Launcher",
+  },
+  {
+    name: "cuvsa",
+    avatar: "https://mc-heads.net/avatar/cuvsa/64",
+    status: "In-game: CrystalTides SMP 💎",
+    statusType: "online",
+    activity: "CrystalTides SMP",
+  },
+  {
+    name: "zakhbear",
+    avatar: "https://mc-heads.net/avatar/zakhbear/64",
+    status: "In Menus",
+    statusType: "menu",
+    activity: "Menús",
+  },
+  {
+    name: "KingofHalo04",
+    avatar: "https://mc-heads.net/avatar/KingofHalo04/64",
+    status: "Idle",
+    statusType: "idle",
+    activity: "Ausente",
+  },
+  {
+    name: "meegreyone",
+    avatar: "https://mc-heads.net/avatar/meegreyone/64",
+    status: "Idle",
+    statusType: "idle",
+    activity: "Ausente",
+  },
 ];
 
 const SAMPLE_FRIENDS_OFFLINE: FriendEntry[] = [
-  { name: "XerxerBro", avatar: "https://mc-heads.net/avatar/XerxerBro/64", status: "Offline for 3 days", statusType: "offline", activity: "" },
-  { name: "2fishbowl", avatar: "https://mc-heads.net/avatar/2fishbowl/64", status: "Offline for 21 hours", statusType: "offline", activity: "" },
-  { name: "wtfbroimlagging", avatar: "https://mc-heads.net/avatar/Steve/64", status: "Offline for 36 days", statusType: "offline", activity: "" },
-  { name: "Director32", avatar: "https://mc-heads.net/avatar/Alex/64", status: "Offline for 121 days", statusType: "offline", activity: "" },
+  {
+    name: "XerxerBro",
+    avatar: "https://mc-heads.net/avatar/XerxerBro/64",
+    status: "Offline for 3 days",
+    statusType: "offline",
+    activity: "",
+  },
+  {
+    name: "2fishbowl",
+    avatar: "https://mc-heads.net/avatar/2fishbowl/64",
+    status: "Offline for 21 hours",
+    statusType: "offline",
+    activity: "",
+  },
+  {
+    name: "wtfbroimlagging",
+    avatar: "https://mc-heads.net/avatar/Steve/64",
+    status: "Offline for 36 days",
+    statusType: "offline",
+    activity: "",
+  },
+  {
+    name: "Director32",
+    avatar: "https://mc-heads.net/avatar/Alex/64",
+    status: "Offline for 121 days",
+    statusType: "offline",
+    activity: "",
+  },
 ];
 
 export const CrystalClientPreview: React.FC = () => {
   const [activeNav, setActiveNav] = useState<string>("home");
-  const [selectedProfile, setSelectedProfile] = useState<string>("crystaltides");
+  const [selectedProfile, setSelectedProfile] =
+    useState<string>("crystaltides");
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [searchFriend, setSearchFriend] = useState("");
-  const [activeChatFriend, setActiveChatFriend] = useState<FriendEntry | null>(null);
-  const [chatMessages, setChatMessages] = useState<{ sender: "me" | "them"; text: string; time: string }[]>([
-    { sender: "them", text: "¿Entras al server a farmear shards?", time: "19:02" },
-    { sender: "me", text: "Sí, ya estoy abriendo el cliente con los nuevos shaders!", time: "19:04" }
+  const [activeChatFriend, setActiveChatFriend] = useState<FriendEntry | null>(
+    null,
+  );
+  const [chatMessages, setChatMessages] = useState<
+    { sender: "me" | "them"; text: string; time: string }[]
+  >([
+    {
+      sender: "them",
+      text: "¿Entras al server a farmear shards?",
+      time: "19:02",
+    },
+    {
+      sender: "me",
+      text: "Sí, ya estoy abriendo el cliente con los nuevos shaders!",
+      time: "19:04",
+    },
   ]);
   const [chatInput, setChatInput] = useState("");
 
@@ -81,77 +166,99 @@ export const CrystalClientPreview: React.FC = () => {
     if (!chatInput.trim()) return;
     const now = new Date();
     const timeStr = `${now.getHours()}:${String(now.getMinutes()).padStart(2, "0")}`;
-    setChatMessages((prev) => [...prev, { sender: "me", text: chatInput, time: timeStr }]);
+    setChatMessages((prev) => [
+      ...prev,
+      { sender: "me", text: chatInput, time: timeStr },
+    ]);
     setChatInput("");
 
     setTimeout(() => {
       setChatMessages((prev) => [
         ...prev,
-        { sender: "them", text: "¡De una! Te veo en las coordenadas del spawn 🚀", time: timeStr }
+        {
+          sender: "them",
+          text: "¡De una! Te veo en las coordenadas del spawn 🚀",
+          time: timeStr,
+        },
       ]);
     }, 1000);
   };
 
   const filteredOnline = SAMPLE_FRIENDS_ONLINE.filter((f) =>
-    f.name.toLowerCase().includes(searchFriend.toLowerCase())
+    f.name.toLowerCase().includes(searchFriend.toLowerCase()),
   );
 
   return (
-    <div className="w-full max-w-310 mx-auto rounded-2xl bg-[#07090e] border border-white/10 shadow-2xl overflow-hidden font-sans text-slate-100 flex flex-col select-none">
+    <div className="max-w-310 mx-auto flex w-full select-none flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#07090e] font-sans text-slate-100 shadow-2xl">
       {/* ── TOP TITLE BAR ── */}
-      <div className="h-10 px-4 bg-[#05060a] border-b border-white/5 flex items-center justify-between text-xs text-slate-400">
+      <div className="flex h-10 items-center justify-between border-b border-white/5 bg-[#05060a] px-4 text-xs text-slate-400">
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 font-bold text-white tracking-wide">
-            <span className="text-teal-400 text-sm">💎</span>
+          <div className="flex items-center gap-1.5 font-bold tracking-wide text-white">
+            <span className="text-sm text-teal-400">💎</span>
             <span>CrystalTides Client</span>
           </div>
           <span className="text-slate-600">|</span>
-          <span className="text-[11px] font-mono text-slate-400">Build 2.4.0</span>
+          <span className="font-mono text-[11px] text-slate-400">
+            Build 2.4.0
+          </span>
           <span className="text-slate-600">|</span>
           <div className="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-400">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
             <span>9,101 Online</span>
           </div>
         </div>
 
         {/* Window Action Buttons */}
         <div className="flex items-center gap-3 text-slate-400">
-          <button type="button" aria-label="Minimize" className="hover:text-white transition-colors cursor-pointer p-1">
-            <Minimize2 className="w-3.5 h-3.5" />
+          <button
+            type="button"
+            aria-label="Minimize"
+            className="cursor-pointer p-1 transition-colors hover:text-white"
+          >
+            <Minimize2 className="h-3.5 w-3.5" />
           </button>
-          <button type="button" aria-label="Maximize" className="hover:text-white transition-colors cursor-pointer p-1">
-            <Square className="w-3 h-3" />
+          <button
+            type="button"
+            aria-label="Maximize"
+            className="cursor-pointer p-1 transition-colors hover:text-white"
+          >
+            <Square className="h-3 w-3" />
           </button>
-          <button type="button" aria-label="Close" className="hover:text-red-400 transition-colors cursor-pointer p-1">
-            <X className="w-3.5 h-3.5" />
+          <button
+            type="button"
+            aria-label="Close"
+            className="cursor-pointer p-1 transition-colors hover:text-red-400"
+          >
+            <X className="h-3.5 w-3.5" />
           </button>
         </div>
       </div>
 
       {/* ── MAIN BODY (3-COLUMN LAYOUT) ── */}
-      <div className="flex flex-1 min-h-160 bg-[#07090f] relative overflow-hidden">
+      <div className="min-h-160 relative flex flex-1 overflow-hidden bg-[#07090f]">
         {/* 1. LEFT SIDEBAR */}
-        <nav className="w-16 bg-[#040609] border-r border-white/5 flex flex-col items-center py-4 justify-between shrink-0 z-20">
+        <nav className="z-20 flex w-16 shrink-0 flex-col items-center justify-between border-r border-white/5 bg-[#040609] py-4">
           {/* Top Logo */}
-          <div className="flex flex-col items-center gap-5 w-full">
-            <div className="w-10 h-10 rounded-xl bg-linear-to-br from-teal-500/20 via-purple-500/20 to-black border border-teal-500/30 flex items-center justify-center shadow-lg shadow-teal-500/10 cursor-pointer">
+          <div className="flex w-full flex-col items-center gap-5">
+            <div className="bg-linear-to-br flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl border border-teal-500/30 from-teal-500/20 via-purple-500/20 to-black shadow-lg shadow-teal-500/10">
               <span className="text-lg font-black text-white">💎</span>
             </div>
 
             {/* Nav Icons */}
-            <div className="flex flex-col items-center gap-3 w-full px-2">
+            <div className="flex w-full flex-col items-center gap-3 px-2">
               {/* Home */}
               <button
                 type="button"
                 onClick={() => setActiveNav("home")}
                 title="Home / Inicio"
-                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+                aria-label="Home / Inicio"
+                className={`flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl transition-all ${
                   activeNav === "home"
-                    ? "bg-teal-500/15 border border-teal-500/40 text-teal-300 shadow-md shadow-teal-500/10"
-                    : "text-slate-400 hover:text-white hover:bg-white/5"
+                    ? "border border-teal-500/40 bg-teal-500/15 text-teal-300 shadow-md shadow-teal-500/10"
+                    : "text-slate-400 hover:bg-white/5 hover:text-white"
                 }`}
               >
-                <div className="w-4 h-4 rounded-sm border-2 border-current" />
+                <div className="h-4 w-4 rounded-sm border-2 border-current" />
               </button>
 
               {/* Profiles & Skins */}
@@ -159,13 +266,14 @@ export const CrystalClientPreview: React.FC = () => {
                 type="button"
                 onClick={() => setActiveNav("profiles")}
                 title="Profiles / Perfiles"
-                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+                aria-label="Profiles / Perfiles"
+                className={`flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl transition-all ${
                   activeNav === "profiles"
-                    ? "bg-teal-500/15 border border-teal-500/40 text-teal-300 shadow-md shadow-teal-500/10"
-                    : "text-slate-400 hover:text-white hover:bg-white/5"
+                    ? "border border-teal-500/40 bg-teal-500/15 text-teal-300 shadow-md shadow-teal-500/10"
+                    : "text-slate-400 hover:bg-white/5 hover:text-white"
                 }`}
               >
-                <div className="w-3.5 h-3.5 rounded-full border-2 border-current" />
+                <div className="h-3.5 w-3.5 rounded-full border-2 border-current" />
               </button>
 
               {/* Notifications */}
@@ -173,10 +281,10 @@ export const CrystalClientPreview: React.FC = () => {
                 type="button"
                 onClick={() => setActiveNav("notifications")}
                 title="Notificaciones"
-                className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/5 transition-all cursor-pointer relative"
+                className="relative flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl text-slate-400 transition-all hover:bg-white/5 hover:text-white"
               >
-                <Bell className="w-4 h-4" />
-                <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-teal-400" />
+                <Bell className="h-4 w-4" />
+                <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-teal-400" />
               </button>
 
               {/* Chat */}
@@ -184,9 +292,9 @@ export const CrystalClientPreview: React.FC = () => {
                 type="button"
                 onClick={() => setActiveNav("chat")}
                 title="Mensajes"
-                className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/5 transition-all cursor-pointer"
+                className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl text-slate-400 transition-all hover:bg-white/5 hover:text-white"
               >
-                <MessageSquare className="w-4 h-4" />
+                <MessageSquare className="h-4 w-4" />
               </button>
 
               {/* Versions */}
@@ -194,9 +302,9 @@ export const CrystalClientPreview: React.FC = () => {
                 type="button"
                 onClick={() => setActiveNav("versions")}
                 title="Versiones"
-                className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/5 transition-all cursor-pointer"
+                className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl text-slate-400 transition-all hover:bg-white/5 hover:text-white"
               >
-                <Layers className="w-4 h-4" />
+                <Layers className="h-4 w-4" />
               </button>
 
               {/* Radar / Server Status */}
@@ -204,9 +312,9 @@ export const CrystalClientPreview: React.FC = () => {
                 type="button"
                 onClick={() => setActiveNav("radar")}
                 title="Estado del Servidor"
-                className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/5 transition-all cursor-pointer"
+                className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl text-slate-400 transition-all hover:bg-white/5 hover:text-white"
               >
-                <Compass className="w-4 h-4" />
+                <Compass className="h-4 w-4" />
               </button>
 
               {/* Mods */}
@@ -214,96 +322,114 @@ export const CrystalClientPreview: React.FC = () => {
                 type="button"
                 onClick={() => setActiveNav("mods")}
                 title="Gestor de Mods"
-                className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/5 transition-all cursor-pointer"
+                className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl text-slate-400 transition-all hover:bg-white/5 hover:text-white"
               >
-                <Sliders className="w-4 h-4" />
+                <Sliders className="h-4 w-4" />
               </button>
             </div>
           </div>
 
           {/* Bottom Icons (Store, Settings) */}
-          <div className="flex flex-col items-center gap-3 w-full px-2">
+          <div className="flex w-full flex-col items-center gap-3 px-2">
             <button
               type="button"
               title="Tienda Oficial"
-              className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/5 transition-all cursor-pointer relative"
+              className="relative flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl text-slate-400 transition-all hover:bg-white/5 hover:text-white"
             >
-              <ShoppingCart className="w-4 h-4" />
-              <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-red-500" />
+              <ShoppingCart className="h-4 w-4" />
+              <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500" />
             </button>
 
             <button
               type="button"
               title="Ajustes"
-              className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/5 transition-all cursor-pointer"
+              className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl text-slate-400 transition-all hover:bg-white/5 hover:text-white"
             >
-              <Settings className="w-4 h-4" />
+              <Settings className="h-4 w-4" />
             </button>
           </div>
         </nav>
 
         {/* 2. CENTER CONTENT AREA */}
-        <main className="flex-1 p-6 overflow-y-auto space-y-6 bg-linear-to-b from-[#090e17]/80 via-[#07090f] to-[#040508] relative">
+        <main className="bg-linear-to-b relative flex-1 space-y-6 overflow-y-auto from-[#090e17]/80 via-[#07090f] to-[#040508] p-6">
           {/* Greeting Header */}
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <span className="text-xl font-bold text-slate-100">Good to see you,</span>
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-white/5 border border-white/10 hover:border-teal-500/40 cursor-pointer transition-colors">
+                <span className="text-xl font-bold text-slate-100">
+                  Good to see you,
+                </span>
+                <div className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-2.5 py-0.5 transition-colors hover:border-teal-500/40">
                   <img
                     src="https://mc-heads.net/avatar/172px/24"
                     alt="User"
-                    className="w-4 h-4 rounded-sm"
+                    className="h-4 w-4 rounded-sm"
                   />
-                  <span className="font-bold text-sm text-white">AlexGamer99</span>
+                  <span className="text-sm font-bold text-white">
+                    AlexGamer99
+                  </span>
                   <span className="text-xs text-slate-400">⌵</span>
                 </div>
               </div>
 
               <div className="flex items-center gap-2 text-xs text-slate-400">
-                <span>Last played: <strong className="text-slate-200">CrystalTides SMP</strong> • 16 hours ago</span>
+                <span>
+                  Last played:{" "}
+                  <strong className="text-slate-200">CrystalTides SMP</strong> •
+                  16 hours ago
+                </span>
                 <span>•</span>
-                <span>Total playtime: <strong className="text-slate-200">1,364h</strong></span>
+                <span>
+                  Total playtime:{" "}
+                  <strong className="text-slate-200">1,364h</strong>
+                </span>
               </div>
             </div>
           </div>
 
           {/* 3-Widget Primary Row */}
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
             {/* Widget 1: Big Launch Card (Col 5) */}
-            <div className="md:col-span-5 rounded-2xl bg-[#07050a] border border-white/8 shadow-2xl overflow-hidden flex flex-col justify-between p-1 relative group">
+            <div className="border-white/8 group relative flex flex-col justify-between overflow-hidden rounded-2xl border bg-[#07050a] p-1 shadow-2xl md:col-span-5">
               <button
                 type="button"
                 onClick={handleLaunch}
-                className={`w-full py-4 px-5 rounded-xl flex flex-col items-center justify-center transition-all cursor-pointer relative overflow-hidden ${
+                className={`relative flex w-full cursor-pointer flex-col items-center justify-center overflow-hidden rounded-xl px-5 py-4 transition-all ${
                   isDownloading
                     ? "bg-linear-to-b from-teal-900 to-slate-950 text-teal-300"
-                    : "bg-linear-to-b from-[#3ec7b5] via-[#20a394] to-[#158b7e] text-white hover:brightness-105 shadow-md shadow-teal-500/25 inset-shadow-sm"
+                    : "bg-linear-to-b inset-shadow-sm from-[#3ec7b5] via-[#20a394] to-[#158b7e] text-white shadow-md shadow-teal-500/25 hover:brightness-105"
                 }`}
                 style={{
-                  boxShadow: "inset 0 1px 1px rgba(255, 255, 255, 0.45), 0 4px 16px rgba(20, 184, 166, 0.35)",
+                  boxShadow:
+                    "inset 0 1px 1px rgba(255, 255, 255, 0.45), 0 4px 16px rgba(20, 184, 166, 0.35)",
                 }}
               >
                 {isDownloading && (
                   <div
-                    className="absolute inset-0 bg-white/20 transition-all duration-300 pointer-events-none"
+                    className="pointer-events-none absolute inset-0 bg-white/20 transition-all duration-300"
                     style={{ width: `${downloadProgress}%` }}
                   />
                 )}
 
                 <div className="relative z-10 flex flex-col items-center">
-                  <span className="text-[26px] font-black tracking-[0.22em] uppercase leading-tight font-sans text-white drop-shadow-sm">
-                    {isDownloading ? (downloadProgress >= 100 ? "READY" : "SYNCING") : "LAUNCH"}
+                  <span className="font-sans text-[26px] font-black uppercase leading-tight tracking-[0.22em] text-white drop-shadow-sm">
+                    {isDownloading
+                      ? downloadProgress >= 100
+                        ? "READY"
+                        : "SYNCING"
+                      : "LAUNCH"}
                   </span>
-                  <span className="text-[11px] font-bold tracking-wider mt-0.5 text-white/95 flex items-center gap-1.5 drop-shadow-xs">
-                    {isDownloading ? `${downloadProgress}% • 84.2 MB / 112.5 MB` : "Fabric 🔖 1.21.3"}
+                  <span className="drop-shadow-xs mt-0.5 flex items-center gap-1.5 text-[11px] font-bold tracking-wider text-white/95">
+                    {isDownloading
+                      ? `${downloadProgress}% • 84.2 MB / 112.5 MB`
+                      : "Fabric 🔖 1.21.3"}
                   </span>
                 </div>
               </button>
 
               <button
                 type="button"
-                className="w-full py-1.5 text-center text-[9.5px] font-extrabold text-white/75 hover:text-white uppercase tracking-widest transition-colors cursor-pointer flex items-center justify-center gap-1"
+                className="flex w-full cursor-pointer items-center justify-center gap-1 py-1.5 text-center text-[9.5px] font-extrabold uppercase tracking-widest text-white/75 transition-colors hover:text-white"
               >
                 <span>CHANGE VERSION</span>
                 <span className="text-[10px]">⌵</span>
@@ -311,117 +437,134 @@ export const CrystalClientPreview: React.FC = () => {
             </div>
 
             {/* Widget 2: Latest Profiles (Col 4) */}
-            <div className="md:col-span-4 rounded-2xl bg-[#090d16] border border-white/10 p-4 space-y-2.5 flex flex-col justify-between">
-              <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 font-mono">
+            <div className="flex flex-col justify-between space-y-2.5 rounded-2xl border border-white/10 bg-[#090d16] p-4 md:col-span-4">
+              <div className="font-mono text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
                 LATEST PROFILES
               </div>
 
               <div className="space-y-2">
-                <div
+                <button
+                  type="button"
                   onClick={() => setSelectedProfile("crystaltides")}
-                  className={`p-2.5 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
+                  className={`flex w-full cursor-pointer items-center justify-between rounded-xl border p-2.5 text-left transition-all ${
                     selectedProfile === "crystaltides"
-                      ? "bg-teal-500/10 border-teal-500/40 text-white"
+                      ? "border-teal-500/40 bg-teal-500/10 text-white"
                       : "bg-white/2 border-white/5 text-slate-300 hover:bg-white/5"
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
-                    <div className="w-6 h-6 rounded-lg bg-teal-500/20 text-teal-400 flex items-center justify-center">
-                      <Swords className="w-3.5 h-3.5" />
+                    <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-teal-500/20 text-teal-400">
+                      <Swords className="h-3.5 w-3.5" />
                     </div>
                     <div>
                       <div className="text-xs font-bold">CrystalTides SMP</div>
-                      <div className="text-[10px] text-slate-400">Fabric 1.21.3</div>
+                      <div className="text-[10px] text-slate-400">
+                        Fabric 1.21.3
+                      </div>
                     </div>
                   </div>
-                  {selectedProfile === "crystaltides" && <Check className="w-3.5 h-3.5 text-teal-400" />}
-                </div>
+                  {selectedProfile === "crystaltides" && (
+                    <Check className="h-3.5 w-3.5 text-teal-400" />
+                  )}
+                </button>
 
-                <div
+                <button
+                  type="button"
                   onClick={() => setSelectedProfile("worldedit")}
-                  className={`p-2.5 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
+                  className={`flex w-full cursor-pointer items-center justify-between rounded-xl border p-2.5 text-left transition-all ${
                     selectedProfile === "worldedit"
-                      ? "bg-teal-500/10 border-teal-500/40 text-white"
+                      ? "border-teal-500/40 bg-teal-500/10 text-white"
                       : "bg-white/2 border-white/5 text-slate-300 hover:bg-white/5"
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
-                    <div className="w-6 h-6 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center">
-                      <Box className="w-3.5 h-3.5" />
+                    <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-amber-500/20 text-amber-400">
+                      <Box className="h-3.5 w-3.5" />
                     </div>
                     <div>
                       <div className="text-xs font-bold">Hypixel Bedwars</div>
-                      <div className="text-[10px] text-slate-400">Forge 1.8.9</div>
+                      <div className="text-[10px] text-slate-400">
+                        Forge 1.8.9
+                      </div>
                     </div>
                   </div>
-                  {selectedProfile === "worldedit" && <Check className="w-3.5 h-3.5 text-teal-400" />}
-                </div>
+                  {selectedProfile === "worldedit" && (
+                    <Check className="h-3.5 w-3.5 text-teal-400" />
+                  )}
+                </button>
               </div>
             </div>
 
             {/* Widget 3: Partners / Servers Grid (Col 3) */}
-            <div className="md:col-span-3 rounded-2xl bg-[#090d16] border border-white/10 p-4 space-y-3 flex flex-col justify-between">
-              <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 font-mono flex items-center justify-between">
+            <div className="flex flex-col justify-between space-y-3 rounded-2xl border border-white/10 bg-[#090d16] p-4 md:col-span-3">
+              <div className="flex items-center justify-between font-mono text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
                 <span>SERVERS & PARTNERS</span>
-                <span className="text-slate-500 text-[9px]">1/3</span>
+                <span className="text-[9px] text-slate-500">1/3</span>
               </div>
 
               <div className="grid grid-cols-4 gap-2">
-                {["💎", "🛡️", "⚔️", "🌀", "👑", "🔮", "🌋", "🎯"].map((emoji, i) => (
-                  <div
-                    key={i}
-                    className="w-8 h-8 rounded-lg bg-white/5 border border-white/5 hover:border-teal-500/40 flex items-center justify-center text-sm cursor-pointer transition-all hover:scale-105"
-                  >
-                    {emoji}
-                  </div>
-                ))}
+                {["💎", "🛡️", "⚔️", "🌀", "👑", "🔮", "🌋", "🎯"].map(
+                  (emoji, i) => (
+                    <div
+                      key={i}
+                      className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border border-white/5 bg-white/5 text-sm transition-all hover:scale-105 hover:border-teal-500/40"
+                    >
+                      {emoji}
+                    </div>
+                  ),
+                )}
               </div>
 
               <div className="flex justify-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-teal-400" />
-                <span className="w-1.5 h-1.5 rounded-full bg-slate-700" />
-                <span className="w-1.5 h-1.5 rounded-full bg-slate-700" />
+                <span className="h-1.5 w-1.5 rounded-full bg-teal-400" />
+                <span className="h-1.5 w-1.5 rounded-full bg-slate-700" />
+                <span className="h-1.5 w-1.5 rounded-full bg-slate-700" />
               </div>
             </div>
           </div>
 
           {/* News Feed Grid (2x2) */}
           <div className="space-y-3">
-            <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 font-mono">
+            <div className="font-mono text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
               NEWS FEED
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {/* Card 1: Changelog */}
-              <div className="p-4 rounded-2xl bg-[#090e18] border border-white/10 hover:border-white/20 transition-all flex items-center justify-between gap-4 group relative overflow-hidden">
-                <div className="w-24 h-24 rounded-xl bg-linear-to-br from-teal-900/40 to-slate-900 border border-white/10 flex items-center justify-center text-3xl shrink-0">
+              <div className="group relative flex items-center justify-between gap-4 overflow-hidden rounded-2xl border border-white/10 bg-[#090e18] p-4 transition-all hover:border-white/20">
+                <div className="bg-linear-to-br flex h-24 w-24 shrink-0 items-center justify-center rounded-xl border border-white/10 from-teal-900/40 to-slate-900 text-3xl">
                   💎
                 </div>
                 <div className="flex-1 space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-black text-white flex items-center gap-1.5">
+                    <span className="flex items-center gap-1.5 text-xs font-black text-white">
                       CHANGELOG
                     </span>
-                    <ExternalLink className="w-3 h-3 text-slate-500 group-hover:text-teal-400 transition-colors" />
+                    <ExternalLink className="h-3 w-3 text-slate-500 transition-colors group-hover:text-teal-400" />
                   </div>
-                  <div className="text-[11px] text-slate-400 space-y-0.5">
+                  <div className="space-y-0.5 text-[11px] text-slate-400">
                     <div>• Performance optimizations (+140% FPS)</div>
                     <div>• General bug fixes & stability</div>
                   </div>
-                  <button type="button" className="text-[10px] font-bold text-teal-400 hover:underline uppercase tracking-wider pt-1">
+                  <button
+                    type="button"
+                    className="pt-1 text-[10px] font-bold uppercase tracking-wider text-teal-400 hover:underline"
+                  >
                     READ MORE &rarr;
                   </button>
                 </div>
               </div>
 
               {/* Card 2: New Minecraft Version */}
-              <div className="p-4 rounded-2xl bg-[#090e18] border border-white/10 hover:border-white/20 transition-all flex items-center justify-between gap-4 group relative overflow-hidden">
-                <div className="w-24 h-24 rounded-xl bg-linear-to-br from-emerald-900/40 via-teal-900/30 to-black border border-emerald-500/30 flex flex-col items-center justify-center shrink-0">
-                  <span className="text-xs font-mono text-emerald-400 font-bold">MC UPDATE</span>
+              <div className="group relative flex items-center justify-between gap-4 overflow-hidden rounded-2xl border border-white/10 bg-[#090e18] p-4 transition-all hover:border-white/20">
+                <div className="bg-linear-to-br flex h-24 w-24 shrink-0 flex-col items-center justify-center rounded-xl border border-emerald-500/30 from-emerald-900/40 via-teal-900/30 to-black">
+                  <span className="font-mono text-xs font-bold text-emerald-400">
+                    MC UPDATE
+                  </span>
                   <span className="text-xl font-black text-white">1.21.3</span>
                 </div>
                 <div className="flex-1 space-y-1.5">
-                  <div className="inline-block text-[9px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 uppercase">
+                  <div className="inline-block rounded bg-emerald-500/20 px-2 py-0.5 text-[9px] font-bold uppercase text-emerald-300">
                     NUEVA VERSIÓN
                   </div>
                   <div className="text-xs font-bold text-white">
@@ -434,27 +577,36 @@ export const CrystalClientPreview: React.FC = () => {
               </div>
 
               {/* Card 3: Partner Program */}
-              <div className="p-4 rounded-2xl bg-[#090e18] border border-white/10 hover:border-white/20 transition-all flex items-center justify-between gap-4 group relative overflow-hidden">
-                <div className="w-24 h-24 rounded-xl bg-linear-to-br from-purple-900/40 to-slate-900 border border-purple-500/30 flex items-center justify-center text-3xl shrink-0">
+              <div className="group relative flex items-center justify-between gap-4 overflow-hidden rounded-2xl border border-white/10 bg-[#090e18] p-4 transition-all hover:border-white/20">
+                <div className="bg-linear-to-br flex h-24 w-24 shrink-0 items-center justify-center rounded-xl border border-purple-500/30 from-purple-900/40 to-slate-900 text-3xl">
                   👑
                 </div>
                 <div className="flex-1 space-y-1">
-                  <div className="text-[9px] font-bold text-purple-400 uppercase">PARTNER PROGRAM</div>
-                  <div className="text-xs font-bold text-white">BECOME A CREATOR</div>
+                  <div className="text-[9px] font-bold uppercase text-purple-400">
+                    PARTNER PROGRAM
+                  </div>
+                  <div className="text-xs font-bold text-white">
+                    BECOME A CREATOR
+                  </div>
                   <div className="text-[11px] text-slate-400">
-                    Únete al programa de creadores y desbloquea capas exclusivas.
+                    Únete al programa de creadores y desbloquea capas
+                    exclusivas.
                   </div>
                 </div>
               </div>
 
               {/* Card 4: New Modules */}
-              <div className="p-4 rounded-2xl bg-[#090e18] border border-white/10 hover:border-white/20 transition-all flex items-center justify-between gap-4 group relative overflow-hidden">
-                <div className="w-24 h-24 rounded-xl bg-linear-to-br from-sky-900/40 to-slate-900 border border-sky-500/30 flex items-center justify-center text-3xl shrink-0">
+              <div className="group relative flex items-center justify-between gap-4 overflow-hidden rounded-2xl border border-white/10 bg-[#090e18] p-4 transition-all hover:border-white/20">
+                <div className="bg-linear-to-br flex h-24 w-24 shrink-0 items-center justify-center rounded-xl border border-sky-500/30 from-sky-900/40 to-slate-900 text-3xl">
                   ⚡
                 </div>
                 <div className="flex-1 space-y-1">
-                  <div className="text-[9px] font-bold text-sky-400 uppercase">NEW MODS</div>
-                  <div className="text-xs font-bold text-white">COMBAT HUD & KEYSTROKES</div>
+                  <div className="text-[9px] font-bold uppercase text-sky-400">
+                    NEW MODS
+                  </div>
+                  <div className="text-xs font-bold text-white">
+                    COMBAT HUD & KEYSTROKES
+                  </div>
                   <div className="text-[11px] text-slate-400">
                     Nuevos módulos visuales de PvP activables en 1 clic.
                   </div>
@@ -465,68 +617,82 @@ export const CrystalClientPreview: React.FC = () => {
         </main>
 
         {/* 3. RIGHT SIDEBAR (FRIENDS & SOCIAL PANEL) */}
-        <aside className="w-64 bg-[#05070c] border-l border-white/5 flex flex-col p-4 space-y-4 shrink-0 z-20">
+        <aside className="z-20 flex w-64 shrink-0 flex-col space-y-4 border-l border-white/5 bg-[#05070c] p-4">
           {/* Header Tabs */}
           <div className="flex items-center justify-between border-b border-white/5 pb-2.5">
             <div className="flex items-center gap-3">
-              <button type="button" className="text-xs font-bold text-white border-b-2 border-teal-400 pb-1 cursor-pointer">
+              <button
+                type="button"
+                className="cursor-pointer border-b-2 border-teal-400 pb-1 text-xs font-bold text-white"
+              >
                 Friends
               </button>
-              <button type="button" className="text-xs font-bold text-slate-400 hover:text-white pb-1 cursor-pointer flex items-center gap-1">
+              <button
+                type="button"
+                className="flex cursor-pointer items-center gap-1 pb-1 text-xs font-bold text-slate-400 hover:text-white"
+              >
                 <span>Requests</span>
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
               </button>
             </div>
-            <button type="button" aria-label="Add friend" className="text-slate-400 hover:text-white cursor-pointer p-1">
-              <UserPlus className="w-3.5 h-3.5" />
+            <button
+              type="button"
+              aria-label="Add friend"
+              className="cursor-pointer p-1 text-slate-400 hover:text-white"
+            >
+              <UserPlus className="h-3.5 w-3.5" />
             </button>
           </div>
 
           {/* Search Input */}
           <div className="relative">
-            <Search className="w-3 h-3 text-slate-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
+            <Search className="absolute left-2.5 top-1/2 h-3 w-3 -translate-y-1/2 text-slate-500" />
             <input
               type="text"
               placeholder="Find a player..."
               value={searchFriend}
               onChange={(e) => setSearchFriend(e.target.value)}
-              className="w-full pl-7 pr-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-white placeholder-slate-500 outline-none focus:border-teal-500/40"
+              className="w-full rounded-lg border border-white/10 bg-white/5 py-1.5 pl-7 pr-3 text-xs text-white placeholder-slate-500 outline-none focus:border-teal-500/40"
             />
           </div>
 
           {/* Friends Lists */}
-          <div className="flex-1 overflow-y-auto space-y-4 pr-1">
+          <div className="flex-1 space-y-4 overflow-y-auto pr-1">
             {/* Online List */}
             <div className="space-y-1.5">
-              <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 font-mono">
+              <div className="font-mono text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
                 {filteredOnline.length} Online
               </div>
 
               {filteredOnline.map((friend) => (
                 <div
                   key={friend.name}
-                  className="p-1.5 rounded-lg hover:bg-white/5 flex items-center justify-between group transition-colors cursor-pointer"
+                  className="group flex cursor-pointer items-center justify-between rounded-lg p-1.5 transition-colors hover:bg-white/5"
                 >
-                  <div className="flex items-center gap-2 min-w-0">
+                  <div className="flex min-w-0 items-center gap-2">
                     <div className="relative shrink-0">
                       <img
                         src={friend.avatar}
                         alt={friend.name}
-                        className="w-6 h-6 rounded-md bg-slate-800"
+                        className="h-6 w-6 rounded-md bg-slate-800"
                       />
                       <span
-                        className={`absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full border border-black ${
+                        className={`absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full border border-black ${
                           friend.statusType === "online"
                             ? "bg-emerald-400"
                             : friend.statusType === "launcher"
-                            ? "bg-purple-400"
-                            : "bg-amber-400"
+                              ? "bg-purple-400"
+                              : "bg-amber-400"
                         }`}
                       />
                     </div>
                     <div className="min-w-0">
-                      <div className="text-xs font-bold text-white truncate">{friend.name}</div>
-                      <div className="text-[10px] text-slate-400 truncate">{friend.status}</div>
+                      <div className="truncate text-xs font-bold text-white">
+                        {friend.name}
+                      </div>
+                      <div className="truncate text-[10px] text-slate-400">
+                        {friend.status}
+                      </div>
                     </div>
                   </div>
 
@@ -536,34 +702,38 @@ export const CrystalClientPreview: React.FC = () => {
                       e.stopPropagation();
                       setActiveChatFriend(friend);
                     }}
-                    className="p-1 text-slate-500 hover:text-teal-400 transition-colors cursor-pointer"
+                    className="cursor-pointer p-1 text-slate-500 transition-colors hover:text-teal-400"
                   >
-                    <MessageSquare className="w-3.5 h-3.5" />
+                    <MessageSquare className="h-3.5 w-3.5" />
                   </button>
                 </div>
               ))}
             </div>
 
             {/* Offline List */}
-            <div className="space-y-1.5 pt-2 border-t border-white/5">
-              <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 font-mono">
+            <div className="space-y-1.5 border-t border-white/5 pt-2">
+              <div className="font-mono text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
                 {SAMPLE_FRIENDS_OFFLINE.length} Offline
               </div>
 
               {SAMPLE_FRIENDS_OFFLINE.map((friend) => (
                 <div
                   key={friend.name}
-                  className="p-1.5 rounded-lg hover:bg-white/5 flex items-center justify-between group transition-colors opacity-50 hover:opacity-100 cursor-pointer"
+                  className="group flex cursor-pointer items-center justify-between rounded-lg p-1.5 opacity-50 transition-colors hover:bg-white/5 hover:opacity-100"
                 >
-                  <div className="flex items-center gap-2 min-w-0">
+                  <div className="flex min-w-0 items-center gap-2">
                     <img
                       src={friend.avatar}
                       alt={friend.name}
-                      className="w-6 h-6 rounded-md bg-slate-800 grayscale"
+                      className="h-6 w-6 rounded-md bg-slate-800 grayscale"
                     />
                     <div className="min-w-0">
-                      <div className="text-xs font-bold text-white truncate">{friend.name}</div>
-                      <div className="text-[10px] text-slate-400 truncate">{friend.status}</div>
+                      <div className="truncate text-xs font-bold text-white">
+                        {friend.name}
+                      </div>
+                      <div className="truncate text-[10px] text-slate-400">
+                        {friend.status}
+                      </div>
                     </div>
                   </div>
 
@@ -573,9 +743,9 @@ export const CrystalClientPreview: React.FC = () => {
                       e.stopPropagation();
                       setActiveChatFriend(friend);
                     }}
-                    className="p-1 text-slate-500 hover:text-teal-400 transition-colors cursor-pointer"
+                    className="cursor-pointer p-1 text-slate-500 transition-colors hover:text-teal-400"
                   >
-                    <MessageSquare className="w-3.5 h-3.5" />
+                    <MessageSquare className="h-3.5 w-3.5" />
                   </button>
                 </div>
               ))}
@@ -585,59 +755,72 @@ export const CrystalClientPreview: React.FC = () => {
 
         {/* 4. ACTIVE CHAT OVERLAY MODAL */}
         {activeChatFriend && (
-          <div className="absolute bottom-4 right-68 w-72 h-80 rounded-2xl bg-[#0b0e17] border border-teal-500/40 shadow-2xl flex flex-col overflow-hidden z-30 animate-in fade-in zoom-in-95 duration-200">
+          <div className="right-68 absolute bottom-4 z-30 flex h-80 w-72 flex-col overflow-hidden rounded-2xl border border-teal-500/40 bg-[#0b0e17] shadow-2xl duration-200 animate-in fade-in zoom-in-95">
             {/* Header */}
-            <div className="p-3 bg-teal-950/40 border-b border-white/10 flex items-center justify-between">
+            <div className="flex items-center justify-between border-b border-white/10 bg-teal-950/40 p-3">
               <div className="flex items-center gap-2">
-                <img src={activeChatFriend.avatar} alt="" className="w-5 h-5 rounded" />
+                <img
+                  src={activeChatFriend.avatar}
+                  alt=""
+                  className="h-5 w-5 rounded"
+                />
                 <div>
-                  <div className="text-xs font-bold text-white">{activeChatFriend.name}</div>
-                  <div className="text-[9px] text-teal-300">{activeChatFriend.status}</div>
+                  <div className="text-xs font-bold text-white">
+                    {activeChatFriend.name}
+                  </div>
+                  <div className="text-[9px] text-teal-300">
+                    {activeChatFriend.status}
+                  </div>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setActiveChatFriend(null)}
-                className="text-slate-400 hover:text-white cursor-pointer"
+                className="cursor-pointer text-slate-400 hover:text-white"
               >
-                <X className="w-3.5 h-3.5" />
+                <X className="h-3.5 w-3.5" />
               </button>
             </div>
 
             {/* Messages */}
-            <div className="flex-1 p-3 overflow-y-auto space-y-2 text-xs">
+            <div className="flex-1 space-y-2 overflow-y-auto p-3 text-xs">
               {chatMessages.map((m, idx) => (
                 <div
                   key={idx}
-                  className={`p-2 rounded-xl max-w-[85%] text-[11px] leading-relaxed ${
+                  className={`max-w-[85%] rounded-xl p-2 text-[11px] leading-relaxed ${
                     m.sender === "me"
-                      ? "ml-auto bg-teal-500/20 border border-teal-500/40 text-teal-100"
-                      : "mr-auto bg-white/5 border border-white/10 text-slate-200"
+                      ? "ml-auto border border-teal-500/40 bg-teal-500/20 text-teal-100"
+                      : "mr-auto border border-white/10 bg-white/5 text-slate-200"
                   }`}
                 >
                   <div>{m.text}</div>
-                  <div className="text-[8px] text-slate-400 text-right mt-1 flex items-center justify-end gap-1">
+                  <div className="mt-1 flex items-center justify-end gap-1 text-right text-[8px] text-slate-400">
                     <span>{m.time}</span>
-                    {m.sender === "me" && <CheckCheck className="w-2.5 h-2.5 text-teal-400" />}
+                    {m.sender === "me" && (
+                      <CheckCheck className="h-2.5 w-2.5 text-teal-400" />
+                    )}
                   </div>
                 </div>
               ))}
             </div>
 
             {/* Input */}
-            <form onSubmit={handleSendChatMessage} className="p-2 border-t border-white/10 flex items-center gap-1.5 bg-black/40">
+            <form
+              onSubmit={handleSendChatMessage}
+              className="flex items-center gap-1.5 border-t border-white/10 bg-black/40 p-2"
+            >
               <input
                 type="text"
                 placeholder="Enviar mensaje..."
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
-                className="flex-1 bg-white/5 border border-white/10 rounded-lg px-2.5 py-1 text-xs text-white outline-none focus:border-teal-500/40"
+                className="flex-1 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-white outline-none focus:border-teal-500/40"
               />
               <button
                 type="submit"
-                className="p-1.5 rounded-lg bg-teal-500 text-slate-950 hover:bg-teal-400 font-bold cursor-pointer"
+                className="cursor-pointer rounded-lg bg-teal-500 p-1.5 font-bold text-slate-950 hover:bg-teal-400"
               >
-                <Send className="w-3 h-3" />
+                <Send className="h-3 w-3" />
               </button>
             </form>
           </div>

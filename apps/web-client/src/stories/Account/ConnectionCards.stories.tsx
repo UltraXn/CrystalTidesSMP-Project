@@ -1,31 +1,31 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import ConnectionCards from '../../components/Account/ConnectionCards';
+import type { Meta, StoryObj } from "@storybook/react";
+import ConnectionCards from "../../components/Account/ConnectionCards";
 
-const meta: Meta<any> = {
-  title: 'Account/ConnectionCards',
+const meta: Meta<typeof ConnectionCards> = {
+  title: "Account/ConnectionCards",
   component: ConnectionCards,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
 };
 
 export default meta;
-type Story = StoryObj<any>;
+type Story = StoryObj<typeof meta>;
 
 export const AllConnected: Story = {
   args: {
-    "discordConnected": true,
-    "minecraftConnected": true,
-    "discordTag": "Killu#1337",
-    "mcUsername": "KilluBysmali"
-},
+    discordConnected: true,
+    minecraftConnected: true,
+    discordTag: "Killu#1337",
+    mcUsername: "KilluBysmali",
+  },
 };
 
 export const MinecraftOnlyConnected: Story = {
   args: {
-    "discordConnected": false,
-    "minecraftConnected": true,
-    "mcUsername": "Steve"
-},
+    discordConnected: false,
+    minecraftConnected: true,
+    mcUsername: "Steve",
+  },
 };

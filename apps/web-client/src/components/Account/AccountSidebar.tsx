@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
@@ -76,6 +76,13 @@ const AccountSidebar: React.FC<AccountSidebarProps> = ({
   const [isEditingName, setIsEditingName] = useState(false);
   const [newName, setNewName] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const nameInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isEditingName) {
+      nameInputRef.current?.focus();
+    }
+  }, [isEditingName]);
 
   const isAdmin = checkAdmin(user);
   const { data: authoritativeBalance } = useGachaBalance(user?.id);
@@ -195,8 +202,8 @@ const AccountSidebar: React.FC<AccountSidebarProps> = ({
             {isEditingName ? (
               <div className="flex items-center gap-2">
                 <input
+                  ref={nameInputRef}
                   aria-label={t("account.edit_name", "Editar nombre")}
-                  autoFocus
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   className="focus:border-(--accent)/40 w-32 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-sm font-bold text-white focus:outline-none"

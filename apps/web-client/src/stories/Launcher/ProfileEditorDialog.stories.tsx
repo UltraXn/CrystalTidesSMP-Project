@@ -1,13 +1,13 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { ProfileEditorDialog } from '../../components/Launcher/ProfileEditorDialog';
+import type { Meta, StoryObj } from "@storybook/react";
+import { ProfileEditorDialog } from "../../components/Launcher/ProfileEditorDialog";
 
 const meta: Meta<typeof ProfileEditorDialog> = {
-  title: 'Launcher/ProfileEditorDialog',
+  title: "Launcher/ProfileEditorDialog",
   component: ProfileEditorDialog,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
 };
 
 export default meta;
@@ -15,13 +15,10 @@ type Story = StoryObj<typeof ProfileEditorDialog>;
 
 export const OpenModal: Story = {
   args: {
-    profile: null as any,
-  }
+    profile: null,
+  },
 };
 
 export const LoadingState: Story = {
-  args: {
-    
-    
-},
+  args: {},
 };

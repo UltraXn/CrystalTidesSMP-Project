@@ -1,40 +1,38 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import StaffActivity from '../../../components/Admin/Dashboard/StaffActivity';
+import type { Meta, StoryObj } from "@storybook/react";
+import StaffActivity from "../../../components/Admin/Dashboard/StaffActivity";
 
-const meta: Meta<any> = {
-  title: 'Admin/Dashboard/StaffActivity',
+const meta: Meta<typeof StaffActivity> = {
+  title: "Admin/Dashboard/StaffActivity",
   component: StaffActivity,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
 };
 
 export default meta;
-type Story = StoryObj<any>;
+type Story = StoryObj<typeof meta>;
 
 export const ActiveTasksBoard: Story = {
   args: {
-    
-    "tasks": [
-        {
-            "id": 1,
-            
-            "priority": "High"
-        }
-    ]
-},
+    tasks: [
+      {
+        id: 1,
+
+        priority: "High",
+      },
+    ],
+  },
 };
 
 export const CompletedTasksBoard: Story = {
   args: {
-    
-    "tasks": [
-        {
-            "id": 2,
-            
-            "priority": "Medium"
-        }
-    ]
-},
+    tasks: [
+      {
+        id: 2,
+
+        priority: "Medium",
+      },
+    ],
+  },
 };

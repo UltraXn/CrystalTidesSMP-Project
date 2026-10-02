@@ -616,9 +616,12 @@ export const WikiBoss3DCard: React.FC<WikiBoss3DCardProps> = ({
     activePhases[0];
   const activeModel =
     currentPhaseObj?.model_3d_url || modelPath || "/models/toro_wither.gltf";
-  const activeAttacksList =
-    currentPhaseObj?.attacks ||
-    getEntityDefaultAttacks(bossName, category, selectedPhase);
+  const activeAttacksList = useMemo(() => {
+    return (
+      currentPhaseObj?.attacks ||
+      getEntityDefaultAttacks(bossName, category, selectedPhase)
+    );
+  }, [currentPhaseObj, bossName, category, selectedPhase]);
 
   const [selectedAttack, setSelectedAttack] = useState<BossAttack | null>(
     activeAttacksList[0] || null,
@@ -641,7 +644,7 @@ export const WikiBoss3DCard: React.FC<WikiBoss3DCardProps> = ({
     if (activeAttacksList && activeAttacksList.length > 0) {
       setSelectedAttack(activeAttacksList[0]);
     }
-  }, [selectedPhase]);
+  }, [activeAttacksList]);
 
   const switchPhase = (phaseNum: number) => {
     setSelectedPhase(phaseNum);
@@ -900,8 +903,6 @@ export const WikiBoss3DCard: React.FC<WikiBoss3DCardProps> = ({
         <div className="grid grid-cols-1 items-stretch gap-0 lg:grid-cols-12">
           {/* 3D Interactive Viewport (Left Column) */}
           <div
-            tabIndex={0}
-            role="region"
             aria-label="Visualizador 3D interactivo"
             className={`min-h-115 relative flex h-full w-full cursor-grab items-center justify-center overflow-hidden border-b border-white/5 active:cursor-grabbing lg:col-span-5 lg:border-b-0 lg:border-r ${themeStyles.viewportBg}`}
             onMouseDown={handleMouseDown}
