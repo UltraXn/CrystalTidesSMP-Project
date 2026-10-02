@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import useEmblaCarousel from 'embla-carousel-react'
-import Autoplay from 'embla-carousel-autoplay'
-import Fade from 'embla-carousel-fade'
+import createAutoplay from 'embla-carousel-autoplay' // Embla: alias de función de fábrica en minúscula para evitar confusión con componentes React (react/capitalized-calls)
+import createFade from 'embla-carousel-fade' // Embla: alias de función de fábrica en minúscula para evitar confusión con componentes React (react/capitalized-calls)
 
 const IMAGES = [
     '/images/backgrounds/hero-bg-1.webp',
@@ -10,6 +10,8 @@ const IMAGES = [
     '/images/backgrounds/hero-bg-4.webp',
     '/images/backgrounds/hero-bg-5.webp'
 ]
+
+const DEFAULT_SLIDES: Slide[] = []; // React: array estático fuera del render para preservar igualdad referencial (react/no-object-type-as-default-prop)
 
 interface Slide {
     image: string;
@@ -23,14 +25,14 @@ interface HeroBackgroundCarouselProps {
     slides?: Slide[];
 }
 
-const HeroBackgroundCarousel = ({ slides = [] }: HeroBackgroundCarouselProps) => {
+const HeroBackgroundCarousel = ({ slides = DEFAULT_SLIDES }: HeroBackgroundCarouselProps) => { // React: uso de referencia estable por defecto
     const [loadSecondary, setLoadSecondary] = useState(false)
     const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     const plugins = useMemo(() => {
-        const list = [Fade()];
+        const list = [createFade()]; // Embla: invocación de fábrica segura
         if (!prefersReducedMotion) {
-            list.unshift(Autoplay({ delay: 6000, stopOnInteraction: false }));
+            list.unshift(createAutoplay({ delay: 6000, stopOnInteraction: false })); // Embla: invocación de fábrica segura
         }
         return list;
     }, [prefersReducedMotion]);

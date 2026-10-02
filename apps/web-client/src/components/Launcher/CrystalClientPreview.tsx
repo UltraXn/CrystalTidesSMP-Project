@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react"; // React: hooks esenciales para ciclo de vida y referencias de timers
 import {
   Bell,
   MessageSquare,
@@ -143,16 +143,28 @@ export const CrystalClientPreview: React.FC = () => {
     },
   ]);
   const [chatInput, setChatInput] = useState("");
+  const downloadTimerRef = useRef<ReturnType<typeof setInterval> | null>(null); // React Doctor: referencia para cancelar intervalo al desmontar
+  const chatTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null); // React Doctor: referencia para cancelar timeout al desmontar
+
+  useEffect(() => {
+    // React Doctor: limpiar cualquier timer activo al desmontar el componente para evitar memory leaks
+    return () => {
+      if (downloadTimerRef.current) clearInterval(downloadTimerRef.current); // React Doctor: liberar timer de descarga
+      if (chatTimerRef.current) clearTimeout(chatTimerRef.current); // React Doctor: liberar timer de respuesta chat
+    };
+  }, []);
 
   const handleLaunch = () => {
     if (isDownloading) return;
     setIsDownloading(true);
     setDownloadProgress(0);
 
-    const interval = setInterval(() => {
+    if (downloadTimerRef.current) clearInterval(downloadTimerRef.current); // React Doctor: prevenir intervalos superpuestos
+    downloadTimerRef.current = setInterval(() => {
+      // React Doctor: timer controlado con limpieza garantizada
       setDownloadProgress((prev) => {
         if (prev >= 100) {
-          clearInterval(interval);
+          if (downloadTimerRef.current) clearInterval(downloadTimerRef.current); // React Doctor: cancelar al completar descarga
           setTimeout(() => setIsDownloading(false), 2000);
           return 100;
         }
@@ -172,7 +184,9 @@ export const CrystalClientPreview: React.FC = () => {
     ]);
     setChatInput("");
 
-    setTimeout(() => {
+    if (chatTimerRef.current) clearTimeout(chatTimerRef.current); // React Doctor: cancelar timeout previo si el usuario envía mensajes seguidos
+    chatTimerRef.current = setTimeout(() => {
+      // React Doctor: timeout asignado a ref para posibilitar limpieza en unmount
       setChatMessages((prev) => [
         ...prev,
         {
@@ -649,6 +663,7 @@ export const CrystalClientPreview: React.FC = () => {
             <Search className="absolute left-2.5 top-1/2 h-3 w-3 -translate-y-1/2 text-slate-500" />
             <input
               type="text"
+              aria-label="Buscar jugador" // React Doctor / a11y: campo con etiqueta accesible para lectores de pantalla
               placeholder="Find a player..."
               value={searchFriend}
               onChange={(e) => setSearchFriend(e.target.value)}
@@ -811,6 +826,7 @@ export const CrystalClientPreview: React.FC = () => {
             >
               <input
                 type="text"
+                aria-label="Escribir mensaje de chat" // React Doctor / a11y: etiqueta descriptiva para campo de entrada en formulario
                 placeholder="Enviar mensaje..."
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}

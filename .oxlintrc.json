@@ -13,30 +13,78 @@
     }
   ],
   "rules": {
+    // React 19 & JSX moderno: React ya no necesita estar en el scope global en Vite/SWC
     "react/react-in-jsx-scope": "off",
+
+    // Variables no usadas: delegar a typescript para evitar colisiones con tipos/interfaces
     "no-unused-vars": "off",
-    "typescript/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
+    "typescript/no-unused-vars": [
+      "warn",
+      { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }
+    ],
+
+    // Tipado estricto: alertar sobre 'any' para fomentar interfaces compartidas en @crystaltides/shared
     "typescript/no-explicit-any": "warn",
+
+    // Registro de logs: permitir niveles estándar de observabilidad pero prevenir logs residuales huérfanos
     "no-console": ["warn", { "allow": ["log", "error", "warn", "info", "debug"] }],
+
+    // Integridad de Hooks: prohibir condicionales en hooks (violación crítica de ciclo de vida de React)
     "react-hooks/rules-of-hooks": "error",
     "react-hooks/exhaustive-deps": "warn",
+
+    // Accesibilidad WCAG 2.2: roles semánticos y soporte para elementos no-DOM
     "jsx-a11y/prefer-tag-over-role": "off",
     "jsx-a11y/aria-role": ["warn", { "ignoreNonDOM": true }],
     "jsx-a11y/no-static-element-interactions": [
       "warn",
       { "handlers": ["onClick", "onKeyDown", "onKeyUp", "onKeyPress"] }
     ],
+
+    // Compatibilidad React Compiler: desactivadas las reglas en conflicto con librerías de terceros (Three.js/Embla)
     "react/set-state-in-effect": "off",
     "react/immutability": "off",
     "react/incompatible-library": "off",
     "react-hooks/set-state-in-effect": "off",
     "react-hooks/immutability": "off",
     "react-hooks/incompatible-library": "off",
-    "react-doctor/no-fetch-in-effect": "warn",
-    "react-doctor/no-derived-state-effect": "warn",
+
+    // Mapeo inmutable en React: en React es idiomático hacer items.map(x => ({ ...x, nuevo: val }))
+    "oxc/no-map-spread": "off",
+
+    // --- SUITE REACT DOCTOR (Salud Arquitectónica y Detección de Fugas) ---
+    // Arquitectura limpia: alertar componentes > 300 LOC para sugerir división modular
     "react-doctor/no-giant-component": "warn",
+
+    // Rendimiento cognitivo: alertar funciones con alta complejidad ciclomática/cognitiva
     "react-doctor/no-high-complexity-react-function": "warn",
-    "react-doctor/iframe-missing-sandbox": "warn"
+
+    // Animaciones Framer Motion: AnimatePresence debe mantenerse montado para ejecutar exit animations
+    "react-doctor/motion-animate-presence-must-outlive-child": "warn",
+
+    // Prevención de memory leaks: detección de fetch directo en useEffect sin AbortController ni React Query
+    "react-doctor/no-fetch-in-effect": "warn",
+
+    // Rendimiento: evitar derivar estado mediante useEffect (antipatrón React; preferir cálculo durante el render)
+    "react-doctor/no-derived-state-effect": "warn",
+
+    // Seguridad Web: aislar iframes de contenido externo con atributos sandbox restrictivos
+    "react-doctor/iframe-missing-sandbox": "warn",
+
+    // Accesibilidad a11y: prevenir inputs que solo dependen de placeholder sin label para lectores de pantalla
+    "react-doctor/no-placeholder-only-field": "warn",
+
+    // Seguridad XSS: auditar puntos de inyección HTML sin sanitizar
+    "react-doctor/dangerous-html-sink": "warn",
+
+    // Ciclo de vida y memory leaks: verificar que timers, listeners o suscripciones tengan return de limpieza
+    "react-doctor/effect-needs-cleanup": "warn",
+
+    // Estándar HTML5: exigir atributo type explícito en botones ('button' o 'submit') para evitar submit accidental
+    "react-doctor/button-has-type": "warn",
+
+    // Preparación React Router v8: auditar imports para facilitar la migración futura
+    "react-doctor/react-router-v8-no-react-router-dom-import": "warn"
   },
   "ignorePatterns": [
     "**/dist/**",
