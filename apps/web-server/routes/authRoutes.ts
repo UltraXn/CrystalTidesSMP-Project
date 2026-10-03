@@ -1,4 +1,4 @@
-import express from 'express';
+import { Router } from 'express';
 import * as twoFactorController from '../controllers/twoFactorController.js';
 import * as authController from '../controllers/authController.js';
 import { authenticateToken } from '../middleware/authMiddleware.js';
@@ -7,20 +7,46 @@ import { validate } from '../middleware/validateResource.js';
 import { checkFormHoneypot } from '../middleware/honeypotMiddleware.js';
 import { verify2FASchema, enable2FASchema, registerSchema } from '../schemas/authSchemas.js';
 
-const router = express.Router();
+const AUTH_ROUTES = {
+  REGISTER: '/register',
+  TWO_FACTOR_STATUS: '/2fa/status',
+  TWO_FACTOR_SETUP: '/2fa/setup',
+  TWO_FACTOR_ENABLE: '/2fa/enable',
+  TWO_FACTOR_DISABLE: '/2fa/disable',
+  TWO_FACTOR_VERIFY: '/2fa/verify',
+  TWO_FACTOR_LOGOUT: '/2fa/logout',
+} as const;
+
+const HONEYPOT_FIELD = 'confirm_email';
+
+const router = Router();
 
 // Public registration route (Rate limited by sensitiveActionLimiter on /api/auth in app.ts)
-router.post('/register', checkFormHoneypot('confirm_email'), validate(registerSchema), authController.registerUser);
+router.post(
+  AUTH_ROUTES.REGISTER,
+  checkFormHoneypot(HONEYPOT_FIELD),
+  validate(registerSchema),
+  authController.registerUser
+);
 
 // Protected 2FA routes (require valid Supabase session token)
 router.use(authenticateToken);
 
-router.get('/2fa/status', twoFactorController.get2FAStatus);
-router.post('/2fa/setup', sensitiveActionLimiter, twoFactorController.setup2FA);
-router.post('/2fa/enable', sensitiveActionLimiter, validate(enable2FASchema), twoFactorController.enable2FA);
-router.post('/2fa/disable', sensitiveActionLimiter, twoFactorController.disable2FA);
-router.post('/2fa/verify', sensitiveActionLimiter, validate(verify2FASchema), twoFactorController.verify2FA);
-router.post('/2fa/logout', twoFactorController.clear2FA);
+router.get(AUTH_ROUTES.TWO_FACTOR_STATUS, twoFactorController.get2FAStatus);
+router.post(AUTH_ROUTES.TWO_FACTOR_SETUP, sensitiveActionLimiter, twoFactorController.setup2FA);
+router.post(
+  AUTH_ROUTES.TWO_FACTOR_ENABLE,
+  sensitiveActionLimiter,
+  validate(enable2FASchema),
+  twoFactorController.enable2FA
+);
+router.post(AUTH_ROUTES.TWO_FACTOR_DISABLE, sensitiveActionLimiter, twoFactorController.disable2FA);
+router.post(
+  AUTH_ROUTES.TWO_FACTOR_VERIFY,
+  sensitiveActionLimiter,
+  validate(verify2FASchema),
+  twoFactorController.verify2FA
+);
+router.post(AUTH_ROUTES.TWO_FACTOR_LOGOUT, twoFactorController.clear2FA);
 
 export default router;
-

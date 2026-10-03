@@ -1,9 +1,33 @@
 import express from 'express';
 import * as userController from '../controllers/userController.js';
 import { authenticateToken, optionalAuthenticateToken, require2FA } from '../middleware/authMiddleware.js';
+import { validate } from '../middleware/validateResource.js';
+import { 
+    updateUserMetadataSchema, 
+    updateUserRoleSchema,
+    voteKarmaSchema,
+    profileSchema
+} from '../schemas/userSchemas.js';
 import { checkRole, ADMIN_ROLES, STAFF_ROLES } from '../utils/roleUtils.js';
 
+const ROUTES = {
+    ROOT: '/',
+    STAFF: '/staff',
+    PROFILE: '/profile/:username',
+    PROFILE_FULL: '/profile/:username/full',
+    ROLE: '/:id/role',
+    METADATA: '/:id/metadata',
+    KARMA: '/:id/karma',
+} as const;
+
 const router = express.Router();
+
+const validateProfile = validate(profileSchema);
+const requireAdminWith2FA = [
+    authenticateToken, 
+    checkRole(ADMIN_ROLES), 
+    require2FA
+] as const;
 
 /**
  * @swagger
@@ -28,8 +52,9 @@ const router = express.Router();
  *       200:
  *         description: Lista de usuarios
  */
-router.get('/', authenticateToken, checkRole(ADMIN_ROLES), userController.getAllUsers);
-router.get('/staff', authenticateToken, checkRole(STAFF_ROLES), userController.getStaffUsers);
+router.get(ROUTES.ROOT, authenticateToken, checkRole(ADMIN_ROLES), userController.getAllUsers);
+
+router.get(ROUTES.STAFF, authenticateToken, checkRole(STAFF_ROLES), userController.getStaffUsers);
 
 /**
  * @swagger
@@ -49,6 +74,7 @@ router.get('/staff', authenticateToken, checkRole(STAFF_ROLES), userController.g
  *       404:
  *         description: Usuario no encontrado
  */
+router.get(ROUTES.PROFILE, validateProfile, userController.getPublicProfile);
 
 /**
  * @swagger
@@ -68,6 +94,8 @@ router.get('/staff', authenticateToken, checkRole(STAFF_ROLES), userController.g
  *       404:
  *         description: Usuario no encontrado
  */
+// optionalAuthenticateToken: wallet data is only exposed to the owner or staff
+router.get(ROUTES.PROFILE_FULL, optionalAuthenticateToken, validateProfile, userController.getFullProfile);
 
 /**
  * @swagger
@@ -95,20 +123,10 @@ router.get('/staff', authenticateToken, checkRole(STAFF_ROLES), userController.g
  *       200:
  *         description: Rol actualizado
  */
-import { validate } from '../middleware/validateResource.js';
-import { 
-    updateUserMetadataSchema, 
-    updateUserRoleSchema,
-    voteKarmaSchema,
-    profileSchema
-} from '../schemas/userSchemas.js';
+router.patch(ROUTES.ROLE, ...requireAdminWith2FA, validate(updateUserRoleSchema), userController.updateUserRole);
 
-router.get('/profile/:username', validate(profileSchema), userController.getPublicProfile);
-// optionalAuthenticateToken: wallet data is only exposed to the owner or staff
-router.get('/profile/:username/full', optionalAuthenticateToken, validate(profileSchema), userController.getFullProfile);
+router.patch(ROUTES.METADATA, ...requireAdminWith2FA, validate(updateUserMetadataSchema), userController.updateUserMetadata);
 
-router.patch('/:id/role', authenticateToken, checkRole(ADMIN_ROLES), require2FA, validate(updateUserRoleSchema), userController.updateUserRole);
-router.patch('/:id/metadata', authenticateToken, checkRole(ADMIN_ROLES), require2FA, validate(updateUserMetadataSchema), userController.updateUserMetadata);
-router.post('/:id/karma', authenticateToken, validate(voteKarmaSchema), userController.giveKarma);
+router.post(ROUTES.KARMA, authenticateToken, validate(voteKarmaSchema), userController.giveKarma);
 
 export default router;

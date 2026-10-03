@@ -1,12 +1,36 @@
-import express from 'express';
+import { Router } from 'express';
 import * as ticketController from '../controllers/ticketController.js';
 import { authenticateToken, require2FA } from '../middleware/authMiddleware.js';
 import { checkRole, ADMIN_ROLES, STAFF_ROLES } from '../utils/roleUtils.js';
 import { validate } from '../middleware/validateResource.js';
-import { createTicketSchema, addTicketMessageSchema, updateTicketStatusSchema, banUserSchema } from '../schemas/ticketSchemas.js';
+import {
+  createTicketSchema,
+  addTicketMessageSchema,
+  updateTicketStatusSchema,
+  banUserSchema,
+} from '../schemas/ticketSchemas.js';
 import { sensitiveActionLimiter } from '../middleware/rateLimitMiddleware.js';
 
-const router = express.Router();
+const TICKET_ROUTES = {
+  ROOT: '/',
+  STATS: '/stats',
+  BY_ID: '/:id',
+  STATUS: '/:id/status',
+  MESSAGES: '/:id/messages',
+  BAN: '/ban',
+} as const;
+
+// Deduplicated Role Middlewares
+const requireStaff = checkRole(STAFF_ROLES);
+const requireAdmin = checkRole(ADMIN_ROLES);
+
+// Deduplicated Validation Middlewares
+const validateCreateTicket = validate(createTicketSchema);
+const validateUpdateStatus = validate(updateTicketStatusSchema);
+const validateAddMessage = validate(addTicketMessageSchema);
+const validateBanUser = validate(banUserSchema);
+
+const router = Router();
 
 // All ticket routes require authentication
 router.use(authenticateToken);
@@ -50,7 +74,7 @@ router.use(authenticateToken);
  *     security:
  *       - bearerAuth: []
  */
-router.get('/', checkRole(STAFF_ROLES), ticketController.getAllTickets);
+router.get(TICKET_ROUTES.ROOT, requireStaff, ticketController.getAllTickets);
 
 /**
  * @swagger
@@ -61,7 +85,12 @@ router.get('/', checkRole(STAFF_ROLES), ticketController.getAllTickets);
  *     security:
  *       - bearerAuth: []
  */
-router.post('/', sensitiveActionLimiter, validate(createTicketSchema), ticketController.createTicket);
+router.post(
+  TICKET_ROUTES.ROOT,
+  sensitiveActionLimiter,
+  validateCreateTicket,
+  ticketController.createTicket
+);
 
 /**
  * @swagger
@@ -72,7 +101,7 @@ router.post('/', sensitiveActionLimiter, validate(createTicketSchema), ticketCon
  *     security:
  *       - bearerAuth: []
  */
-router.get('/stats', checkRole(STAFF_ROLES), ticketController.getStats);
+router.get(TICKET_ROUTES.STATS, requireStaff, ticketController.getStats);
 
 /**
  * @swagger
@@ -83,7 +112,7 @@ router.get('/stats', checkRole(STAFF_ROLES), ticketController.getStats);
  *     security:
  *       - bearerAuth: []
  */
-router.patch('/:id/status', validate(updateTicketStatusSchema), ticketController.updateStatus);
+router.patch(TICKET_ROUTES.STATUS, validateUpdateStatus, ticketController.updateStatus);
 
 /**
  * @swagger
@@ -94,7 +123,7 @@ router.patch('/:id/status', validate(updateTicketStatusSchema), ticketController
  *     security:
  *       - bearerAuth: []
  */
-router.delete('/:id', checkRole(ADMIN_ROLES), ticketController.deleteTicket);
+router.delete(TICKET_ROUTES.BY_ID, requireAdmin, ticketController.deleteTicket);
 
 /**
  * @swagger
@@ -105,7 +134,7 @@ router.delete('/:id', checkRole(ADMIN_ROLES), ticketController.deleteTicket);
  *     security:
  *       - bearerAuth: []
  */
-router.get('/:id/messages', ticketController.getMessages);
+router.get(TICKET_ROUTES.MESSAGES, ticketController.getMessages);
 
 /**
  * @swagger
@@ -116,7 +145,12 @@ router.get('/:id/messages', ticketController.getMessages);
  *     security:
  *       - bearerAuth: []
  */
-router.post('/:id/messages', sensitiveActionLimiter, validate(addTicketMessageSchema), ticketController.addMessage);
+router.post(
+  TICKET_ROUTES.MESSAGES,
+  sensitiveActionLimiter,
+  validateAddMessage,
+  ticketController.addMessage
+);
 
 /**
  * @swagger
@@ -127,6 +161,12 @@ router.post('/:id/messages', sensitiveActionLimiter, validate(addTicketMessageSc
  *     security:
  *       - bearerAuth: []
  */
-router.post('/ban', checkRole(ADMIN_ROLES), require2FA, validate(banUserSchema), ticketController.banUser);
+router.post(
+  TICKET_ROUTES.BAN,
+  requireAdmin,
+  require2FA,
+  validateBanUser,
+  ticketController.banUser
+);
 
 export default router;

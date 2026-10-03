@@ -1,44 +1,62 @@
-import express from 'express';
+import express, { type Router } from 'express';
 import multer from 'multer';
 import * as adminController from '../controllers/adminController.js';
 import { authenticateToken } from '../middleware/authMiddleware.js';
 import { checkRole, ADMIN_ROLES } from '../utils/roleUtils.js';
 
-const router = express.Router();
+const ADMIN_ROUTES = {
+  UPLOAD_MOD: '/upload-mod',
+} as const;
 
-// Safe maximum size for Minecraft mod JAR files (50 MB)
-const MAX_MOD_FILE_SIZE = 50 * 1024 * 1024;
+const UPLOAD_CONFIG = {
+  FIELD_NAME: 'file',
+  MAX_FILE_SIZE: 50 * 1024 * 1024, // NOSONAR: 50MB required for larger Minecraft server mod jars
+  MAX_FILES: 1,
+  JAR_EXTENSION: '.jar',
+} as const;
 
-// Configure Multer for Memory Storage (Buffer)
+const ALLOWED_JAR_MIME_TYPES = new Set<string>([
+  'application/java-archive',
+  'application/x-java-archive',
+  'application/octet-stream',
+]);
+
+const ERROR_MESSAGES = {
+  INVALID_FILE_TYPE: 'Invalid file type. Only .jar files are allowed.',
+} as const;
+
+const requireAdminAuth = [authenticateToken, checkRole(ADMIN_ROLES)] as const;
+
+function isJarFile(file: Express.Multer.File): boolean {
+  const hasJarExtension = file.originalname.toLowerCase().endsWith(UPLOAD_CONFIG.JAR_EXTENSION);
+  const hasAllowedMimeType = ALLOWED_JAR_MIME_TYPES.has(file.mimetype);
+  return hasJarExtension && hasAllowedMimeType;
+}
+
+const jarFileFilter: multer.Options['fileFilter'] = (_req, file, cb) => {
+  if (isJarFile(file)) {
+    cb(null, true);
+    return;
+  }
+  cb(new Error(ERROR_MESSAGES.INVALID_FILE_TYPE));
+};
+
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: MAX_MOD_FILE_SIZE, // NOSONAR: 50MB required for larger Minecraft server mod jars
-    files: 1,
+    fileSize: UPLOAD_CONFIG.MAX_FILE_SIZE,
+    files: UPLOAD_CONFIG.MAX_FILES,
   },
-  fileFilter: (req, file, cb) => {
-    // Only allow .jar files for mods (MIME type + extension check)
-    const allowedMimeTypes = [
-      'application/java-archive',
-      'application/x-java-archive',
-      'application/octet-stream',
-    ];
-    const isJar = file.originalname.toLowerCase().endsWith('.jar');
-
-    if (allowedMimeTypes.includes(file.mimetype) && isJar) {
-      cb(null, true);
-    } else {
-      cb(new Error('Invalid file type. Only .jar files are allowed.'));
-    }
-  },
+  fileFilter: jarFileFilter,
 });
+
+const router: Router = express.Router();
 
 // POST /api/admin/upload-mod
 router.post(
-  '/upload-mod',
-  authenticateToken,
-  checkRole(ADMIN_ROLES),
-  upload.single('file'),
+  ADMIN_ROUTES.UPLOAD_MOD,
+  ...requireAdminAuth,
+  upload.single(UPLOAD_CONFIG.FIELD_NAME),
   adminController.uploadMod,
 );
 
