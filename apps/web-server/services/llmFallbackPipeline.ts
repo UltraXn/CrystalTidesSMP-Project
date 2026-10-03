@@ -1,95 +1,167 @@
-import dotenv from 'dotenv'
+import dotenv from 'dotenv';
 
-const initialNodeEnv = process.env.NODE_ENV
-dotenv.config({ override: true })
+const initialNodeEnv = process.env.NODE_ENV;
+dotenv.config({ override: true });
 if (initialNodeEnv === 'test') {
-  process.env.NODE_ENV = 'test'
+  process.env.NODE_ENV = 'test';
 }
 
 export interface LLMOptions {
-  systemPrompt: string
-  userPrompt: string
-  temperature?: number
+  systemPrompt: string;
+  userPrompt: string;
+  temperature?: number;
 }
 
+export type LLMProvider = 'gemini' | 'groq' | 'openrouter' | 'local_template';
+
 export interface LLMResult {
-  text: string
-  provider: 'gemini' | 'groq' | 'openrouter' | 'local_template'
-  model: string
+  text: string;
+  provider: LLMProvider;
+  model: string;
+}
+
+interface GeminiCandidate {
+  content?: {
+    parts?: Array<{ text?: string }>;
+  };
+}
+
+interface GeminiApiResponse {
+  candidates?: GeminiCandidate[];
+}
+
+interface ChatCompletionChoice {
+  message?: {
+    content?: string;
+  };
+}
+
+interface ChatCompletionApiResponse {
+  choices?: ChatCompletionChoice[];
+}
+
+const CONSTANTS = {
+  DEFAULT_TEMPERATURE: 0.7,
+  HEADER_CONTENT_TYPE: 'Content-Type',
+  CONTENT_TYPE_JSON: 'application/json',
+  PROVIDER_LOCAL: 'local_template' as const,
+  GEMINI_BASE_URL: 'https://generativelanguage.googleapis.com/v1beta/models',
+  GROQ_URL: 'https://api.groq.com/openai/v1/chat/completions',
+  OPENROUTER_URL: 'https://openrouter.ai/api/v1/chat/completions',
+  GROQ_MODEL: 'llama-3.1-8b-instant',
+  OPENROUTER_MODEL: 'meta-llama/llama-3.1-8b-instruct:free',
+} as const;
+
+const GEMINI_MODELS = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-flash-8b'] as const;
+
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  return String(error);
+}
+
+function getJsonHeaders(extraHeaders?: Record<string, string>): Record<string, string> {
+  return {
+    [CONSTANTS.HEADER_CONTENT_TYPE]: CONSTANTS.CONTENT_TYPE_JSON,
+    ...extraHeaders,
+  };
+}
+
+async function requestGeminiModel(
+  model: string,
+  apiKey: string,
+  options: LLMOptions,
+): Promise<string | null> {
+  const url = `${CONSTANTS.GEMINI_BASE_URL}/${model}:generateContent?key=${apiKey}`;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: getJsonHeaders(),
+    body: JSON.stringify({
+      contents: [
+        { role: 'user', parts: [{ text: `${options.systemPrompt}\n\n${options.userPrompt}` }] },
+      ],
+      generationConfig: { temperature: options.temperature ?? CONSTANTS.DEFAULT_TEMPERATURE },
+    }),
+  });
+
+  if (!response.ok) {
+    const errBody = await response.text();
+    console.warn(`⚠️ Gemini API (${model}) status ${response.status}:`, errBody.substring(0, 120));
+    return null;
+  }
+
+  const data = (await response.json()) as GeminiApiResponse;
+  return data.candidates?.[0]?.content?.parts?.[0]?.text ?? null;
 }
 
 /**
  * Nivel 1: Google Gemini API (gemini-2.0-flash con fallback a gemini-1.5-flash)
  */
 async function callGemini(options: LLMOptions): Promise<LLMResult | null> {
-  const apiKey = process.env.GEMINI_API_KEY || ''
-  if (!apiKey) return null
+  const apiKey = process.env.GEMINI_API_KEY || '';
+  if (!apiKey) return null;
 
-  const models = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-flash-8b']
-  for (const model of models) {
+  for (const model of GEMINI_MODELS) {
     try {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [
-            { role: 'user', parts: [{ text: `${options.systemPrompt}\n\n${options.userPrompt}` }] }
-          ],
-          generationConfig: { temperature: options.temperature ?? 0.7 }
-        })
-      })
-
-      if (!response.ok) {
-        const errBody = await response.text()
-        console.warn(`⚠️ Gemini API (${model}) status ${response.status}:`, errBody.substring(0, 120))
-        continue // Intentar con el siguiente modelo de Gemini
-      }
-
-      const data = await response.json()
-      const text = data.candidates?.[0]?.content?.parts?.[0]?.text
+      const text = await requestGeminiModel(model, apiKey, options);
       if (text) {
-        return { text, provider: 'gemini', model }
+        return { text, provider: 'gemini', model };
       }
     } catch (err) {
-      console.warn(`⚠️ Gemini Fallback (${model}):`, err instanceof Error ? err.message : String(err))
+      console.warn(`⚠️ Gemini Fallback (${model}):`, getErrorMessage(err));
     }
   }
-  return null
+
+  return null;
+}
+
+async function postChatCompletion(
+  url: string,
+  apiKey: string,
+  model: string,
+  options: LLMOptions,
+  customHeaders?: Record<string, string>,
+): Promise<string | null> {
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: getJsonHeaders({
+      Authorization: `Bearer ${apiKey}`,
+      ...customHeaders,
+    }),
+    body: JSON.stringify({
+      model,
+      messages: [
+        { role: 'system', content: options.systemPrompt },
+        { role: 'user', content: options.userPrompt },
+      ],
+      temperature: options.temperature ?? CONSTANTS.DEFAULT_TEMPERATURE,
+    }),
+  });
+
+  if (!response.ok) return null;
+  const data = (await response.json()) as ChatCompletionApiResponse;
+  return data.choices?.[0]?.message?.content ?? null;
 }
 
 /**
  * Nivel 2: Groq API (llama-3.1-8b-instant)
  */
 async function callGroq(options: LLMOptions): Promise<LLMResult | null> {
-  const apiKey = process.env.GROQ_API_KEY || ''
-  if (!apiKey) return null
+  const apiKey = process.env.GROQ_API_KEY || '';
+  if (!apiKey) return null;
+
   try {
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: 'llama-3.1-8b-instant',
-        messages: [
-          { role: 'system', content: options.systemPrompt },
-          { role: 'user', content: options.userPrompt }
-        ],
-        temperature: options.temperature ?? 0.7
-      })
-    })
+    const text = await postChatCompletion(
+      CONSTANTS.GROQ_URL,
+      apiKey,
+      CONSTANTS.GROQ_MODEL,
+      options,
+    );
+    if (!text) return null;
 
-    if (!response.ok) return null
-    const data = await response.json()
-    const text = data.choices?.[0]?.message?.content
-    if (!text) return null
-
-    return { text, provider: 'groq', model: 'llama-3.1-8b-instant' }
+    return { text, provider: 'groq', model: CONSTANTS.GROQ_MODEL };
   } catch (err) {
-    console.warn('⚠️ Groq Fallback:', err instanceof Error ? err.message : String(err))
-    return null
+    console.warn('⚠️ Groq Fallback:', getErrorMessage(err));
+    return null;
   }
 }
 
@@ -97,50 +169,36 @@ async function callGroq(options: LLMOptions): Promise<LLMResult | null> {
  * Nivel 3: OpenRouter API (Free models)
  */
 async function callOpenRouter(options: LLMOptions): Promise<LLMResult | null> {
-  const apiKey = process.env.OPENROUTER_API_KEY || ''
-  if (!apiKey) return null
+  const apiKey = process.env.OPENROUTER_API_KEY || '';
+  if (!apiKey) return null;
+
   try {
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
+    const text = await postChatCompletion(
+      CONSTANTS.OPENROUTER_URL,
+      apiKey,
+      CONSTANTS.OPENROUTER_MODEL,
+      options,
+      {
         'HTTP-Referer': 'https://crystaltidessmp.net',
-        'X-Title': 'CrystalTides SMP AI'
+        'X-Title': 'CrystalTides SMP AI',
       },
-      body: JSON.stringify({
-        model: 'meta-llama/llama-3.1-8b-instruct:free',
-        messages: [
-          { role: 'system', content: options.systemPrompt },
-          { role: 'user', content: options.userPrompt }
-        ],
-        temperature: options.temperature ?? 0.7
-      })
-    })
+    );
+    if (!text) return null;
 
-    if (!response.ok) return null
-    const data = await response.json()
-    const text = data.choices?.[0]?.message?.content
-    if (!text) return null
-
-    return { text, provider: 'openrouter', model: 'meta-llama/llama-3.1-8b-instruct:free' }
+    return { text, provider: 'openrouter', model: CONSTANTS.OPENROUTER_MODEL };
   } catch (err) {
-    console.warn('⚠️ OpenRouter Fallback:', err instanceof Error ? err.message : String(err))
-    return null
+    console.warn('⚠️ OpenRouter Fallback:', getErrorMessage(err));
+    return null;
   }
 }
 
-/**
- * Nivel 4: Template Local Fallback (Garantiza respuesta determinista en offline/red caída)
- */
-function callLocalTemplateFallback(options: LLMOptions): LLMResult {
-  const isQuest = options.systemPrompt.includes('Dungeon Master')
-  if (isQuest) {
-    const defaultQuestJson = JSON.stringify({
+function getQuestFallbackJson(): string {
+  return JSON.stringify(
+    {
       pacing_applied: 'BALANCED',
       world_modifier_recommendation: {
         name: 'Tranquilidad del Reino',
-        effect: 'Doble experiencia al pescar y recolectar alimentos.'
+        effect: 'Doble experiencia al pescar y recolectar alimentos.',
       },
       quests: [
         {
@@ -148,15 +206,17 @@ function callLocalTemplateFallback(options: LLMOptions): LLMResult {
           title: 'Exploración de la Frontera',
           description: 'Recorre 1000 bloques hacia el norte del mundo principal.',
           objectives: [{ target: 'distance_travelled', amount: 1000 }],
-          reward_kc: 100
-        }
-      ]
-    }, null, 2)
+          reward_kc: 100,
+        },
+      ],
+    },
+    null,
+    2,
+  );
+}
 
-    return { text: defaultQuestJson, provider: 'local_template', model: 'deterministic_quest_template' }
-  }
-
-  const defaultNewspaperMarkdown = `## 🚨 1. TITULAR SENSACIONALISTA
+function getNewspaperFallbackMarkdown(): string {
+  return `## 🚨 1. TITULAR SENSACIONALISTA
 # ¡JORNADA TRANQUILA EN CRYSTALTIDES SMP!
 
 ## ⚔️ 2. CRÓNICA DE SANGRE Y BOSSES
@@ -169,28 +229,42 @@ El chat de Discord se mantiene apacible mientras se preparan los próximos torne
 *This is fine 🔥☕* — Todo bajo control en la comunidad.
 
 ## 👑 5. FARÁNDULA Y JUGADOR MVP
-Reconocimiento especial a todos los constructores y mineros activos de la jornada.`
+Reconocimiento especial a todos los constructores y mineros activos de la jornada.`;
+}
 
-  return { text: defaultNewspaperMarkdown, provider: 'local_template', model: 'deterministic_newspaper_template' }
+/**
+ * Nivel 4: Template Local Fallback (Garantiza respuesta determinista en offline/red caída)
+ */
+function callLocalTemplateFallback(options: LLMOptions): LLMResult {
+  const isQuest = options.systemPrompt.includes('Dungeon Master');
+  if (isQuest) {
+    return {
+      text: getQuestFallbackJson(),
+      provider: CONSTANTS.PROVIDER_LOCAL,
+      model: 'deterministic_quest_template',
+    };
+  }
+
+  return {
+    text: getNewspaperFallbackMarkdown(),
+    provider: CONSTANTS.PROVIDER_LOCAL,
+    model: 'deterministic_newspaper_template',
+  };
 }
 
 /**
  * Ejecuta la cadena de resiliencia Multi-LLM de 4 niveles
  */
 export async function generateResilientLLMResponse(options: LLMOptions): Promise<LLMResult> {
-  // Nivel 1: Gemini
-  const geminiRes = await callGemini(options)
-  if (geminiRes) return geminiRes
+  const geminiRes = await callGemini(options);
+  if (geminiRes) return geminiRes;
 
-  // Nivel 2: Groq
-  const groqRes = await callGroq(options)
-  if (groqRes) return groqRes
+  const groqRes = await callGroq(options);
+  if (groqRes) return groqRes;
 
-  // Nivel 3: OpenRouter
-  const openRouterRes = await callOpenRouter(options)
-  if (openRouterRes) return openRouterRes
+  const openRouterRes = await callOpenRouter(options);
+  if (openRouterRes) return openRouterRes;
 
-  // Nivel 4: Fallback local determinista
-  console.warn('⚠️ Todos los proveedores LLM fallaron. Activando motor de plantilla local.')
-  return callLocalTemplateFallback(options)
+  console.warn('⚠️ Todos los proveedores LLM fallaron. Activando motor de plantilla local.');
+  return callLocalTemplateFallback(options);
 }
