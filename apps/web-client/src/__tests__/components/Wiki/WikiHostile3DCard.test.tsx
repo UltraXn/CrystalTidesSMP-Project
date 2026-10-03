@@ -172,5 +172,6 @@ describe("WikiHostile3DCard Component", () => {
     fireEvent.mouseDown(viewport, { clientX: 100, clientY: 100 });
     fireEvent.mouseMove(viewport, { clientX: 180, clientY: 140 });
     fireEvent.mouseUp(viewport);
+    expect(viewport).toBeInTheDocument();
   });
 });

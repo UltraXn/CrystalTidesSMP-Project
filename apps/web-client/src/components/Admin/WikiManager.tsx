@@ -46,7 +46,7 @@ export default function WikiManager({ mockArticles }: WikiManagerProps = {}) {
                 .filter((mod): mod is string => Boolean(mod?.trim())),
             ...savedCustomMods
         ])
-    ).sort((a, b) => a.localeCompare(b));
+    ).toSorted((a, b) => a.localeCompare(b));
 
     const handleSave = async (formData: Partial<WikiArticle>) => {
         if (!formData.title || !formData.slug || !formData.content) return
@@ -154,6 +154,7 @@ export default function WikiManager({ mockArticles }: WikiManagerProps = {}) {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                         <Layers size={13} style={{ color: '#aaa' }} />
                         <select
+                            aria-label="Filtrar por Mod"
                             value={selectedMod}
                             onChange={(e) => setSelectedMod(e.target.value)}
                             style={{

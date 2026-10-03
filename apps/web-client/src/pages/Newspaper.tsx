@@ -59,8 +59,13 @@ export interface DailyQuest {
 }
 
 const isSafeImageUrl = (url: string): boolean => {
-  // eslint-disable-next-line no-control-regex -- Intentionally stripping control characters to prevent URL obfuscation
-  const cleaned = url.replace(/[\u0000-\u0020\u007F]+/g, '');
+  let cleaned = '';
+  for (let i = 0; i < url.length; i += 1) {
+    const code = url.charCodeAt(i);
+    if (code > 32 && code !== 127) {
+      cleaned += url[i];
+    }
+  }
   return cleaned.startsWith('/') || /^https?:\/\//i.test(cleaned);
 };
 
@@ -81,7 +86,7 @@ function cleanTitle(rawHeadline: string | undefined | null): string {
   if (!rawHeadline) return UI_STRINGS.DEFAULT_HEADLINE;
   return rawHeadline
     .replace(/^#+\s*/, '')
-    .replace(/^(?:[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|\s|\d|\.)*/u, '')
+    .replace(/^[\s\d.\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}]*/u, '')
     .trim();
 }
 
@@ -205,7 +210,7 @@ function renderParagraph(trimmed: string, key: string): ReactNode {
   const content = parts.length > 0 ? parts : trimmed;
 
   return (
-    <p key={key} className="text-base font-normal leading-relaxed text-gray-300 sm:text-lg">
+    <p key={key} className="text-base/relaxed font-normal text-gray-300 sm:text-lg">
       {content}
     </p>
   );
@@ -239,7 +244,7 @@ export function RichBlogMarkdownRenderer({ markdown }: { readonly markdown: stri
   const paragraphs = markdown.split('\n\n').filter(Boolean);
 
   return (
-    <div className="space-y-6 text-base leading-relaxed text-gray-200 sm:text-lg">
+    <div className="space-y-6 text-base/relaxed text-gray-200 sm:text-lg">
       {paragraphs.map(renderMarkdownBlock)}
     </div>
   );
@@ -261,7 +266,7 @@ function DailyQuestCard({ quest }: { readonly quest: DailyQuest }) {
 
       <div>
         <h3 className="mb-1 text-lg font-bold text-white">{quest.title}</h3>
-        <p className="text-xs leading-relaxed text-gray-300">{quest.description}</p>
+        <p className="text-xs/relaxed text-gray-300">{quest.description}</p>
       </div>
 
       <div className="flex items-center justify-between border-t border-white/10 pt-3 font-mono text-[10px] text-gray-400">
@@ -284,7 +289,7 @@ function DailyQuestsBoard({
   if (isLoading) {
     return (
       <div className="py-16 text-center text-sm text-gray-400">
-        <RefreshCw className={`h-8 w-8 ${STYLES.TEXT_ACCENT} mx-auto mb-4 animate-spin`} />
+        <RefreshCw className={`size-8 ${STYLES.TEXT_ACCENT} mx-auto mb-4 animate-spin`} />
         Cargando misiones del día...
       </div>
     );
@@ -336,18 +341,18 @@ function ArticleReaderHeader({
           {edition.issue_number}
         </span>
         <span className="flex items-center gap-1 text-xs text-gray-400">
-          <Clock className={`h-3.5 w-3.5 ${STYLES.TEXT_ACCENT}`} /> {edition.issue_date}
+          <Clock className={`size-3.5 ${STYLES.TEXT_ACCENT}`} /> {edition.issue_date}
         </span>
       </div>
 
-      <h1 className="text-3xl font-black leading-tight tracking-tight text-white sm:text-5xl">
+      <h1 className="text-3xl/tight font-black tracking-tight text-white sm:text-5xl">
         {cleanTitle(edition.headline)}
       </h1>
 
-      <div className="flex items-center justify-between border-b border-t border-white/10 pb-4 pt-4">
+      <div className="flex items-center justify-between border-y border-white/10 py-4">
         <div className="flex items-center gap-3">
-          <div className="bg-(--accent)/20 border-(--accent)/40 flex h-10 w-10 items-center justify-center rounded-full border font-bold text-white">
-            <User className={`h-5 w-5 ${STYLES.TEXT_ACCENT}`} />
+          <div className="bg-(--accent)/20 border-(--accent)/40 flex size-10 items-center justify-center rounded-full border font-bold text-white">
+            <User className={`size-5 ${STYLES.TEXT_ACCENT}`} />
           </div>
           <div>
             <p className="text-xs font-bold uppercase tracking-wider text-white">Prensa Oficial</p>
@@ -358,9 +363,9 @@ function ArticleReaderHeader({
         <button
           type="button"
           onClick={() => onLike(edition.id)}
-          className={`flex items-center gap-2 rounded-full px-5 py-2 text-xs font-bold transition-all ${likeBtnClass}`}
+          className={`flex items-center gap-2 rounded-full px-5 py-2 text-xs font-bold transition-colors ${likeBtnClass}`}
         >
-          <Flame className="h-4 w-4" />
+          <Flame className="size-4" />
           {edition.likes_count + extraLikes} Likes
         </button>
       </div>
@@ -385,7 +390,7 @@ function ArticleReader({
         <img
           src={getCoverImage(edition)}
           alt={edition.headline}
-          className="h-full w-full object-cover"
+          className="size-full object-cover"
         />
         <div className="bg-linear-to-t absolute inset-0 from-black/80 via-transparent to-transparent" />
       </div>
@@ -414,32 +419,32 @@ function HeroArticleCard({
         <img
           src={getCoverImage(hero, 0)}
           alt={headline}
-          className="group-hover:scale-103 h-full w-full object-cover transition-transform duration-1000"
+          className="group-hover:scale-103 size-full object-cover transition-transform duration-1000"
         />
         <div className="bg-linear-to-t absolute inset-0 from-black via-black/30 to-transparent" />
         <span
           className={`absolute left-6 top-6 rounded-full border border-white/10 bg-black/80 px-4 py-1.5 text-xs font-black backdrop-blur-md ${STYLES.TEXT_ACCENT} flex items-center gap-1.5 uppercase tracking-widest`}
         >
-          <NewspaperIcon className="h-3.5 w-3.5" /> EDICIÓN DESTACADA #{hero.issue_number}
+          <NewspaperIcon className="size-3.5" /> EDICIÓN DESTACADA #{hero.issue_number}
         </span>
       </div>
 
       <div className="space-y-3">
         <div className="flex items-center gap-4 font-mono text-xs text-gray-400">
           <span className="flex items-center gap-1">
-            <Calendar className={`h-3.5 w-3.5 ${STYLES.TEXT_ACCENT}`} /> {hero.issue_date}
+            <Calendar className={`size-3.5 ${STYLES.TEXT_ACCENT}`} /> {hero.issue_date}
           </span>
           <span>•</span>
           <span className="flex items-center gap-1">
-            <User className={`h-3.5 w-3.5 ${STYLES.TEXT_ACCENT}`} /> Staff
+            <User className={`size-3.5 ${STYLES.TEXT_ACCENT}`} /> Staff
           </span>
         </div>
 
-        <h1 className="group-hover:text-(--accent) text-3xl font-black leading-tight tracking-tight text-white transition-colors sm:text-5xl">
+        <h1 className="group-hover:text-(--accent) text-3xl/tight font-black tracking-tight text-white transition-colors sm:text-5xl">
           {headline}
         </h1>
 
-        <p className="text-base font-normal leading-relaxed text-gray-300 sm:text-lg">
+        <p className="text-base/relaxed font-normal text-gray-300 sm:text-lg">
           {hero.front_page_summary}
         </p>
 
@@ -447,9 +452,9 @@ function HeroArticleCard({
           <button
             type="button"
             onClick={() => onRead(hero)}
-            className={`inline-flex items-center gap-2 rounded-2xl px-6 py-3.5 ${STYLES.BG_ACCENT} shadow-(--accent)/20 cursor-pointer text-xs font-black uppercase tracking-widest text-black shadow-lg transition-all hover:scale-105`}
+            className={`inline-flex items-center gap-2 rounded-2xl px-6 py-3.5 ${STYLES.BG_ACCENT} shadow-(--accent)/20 cursor-pointer text-xs font-black uppercase tracking-widest text-black shadow-lg transition-transform hover:scale-105`}
           >
-            Leer Artículo Completo <ArrowRight className="h-4 w-4" />
+            Leer Artículo Completo <ArrowRight className="size-4" />
           </button>
 
           <button
@@ -457,7 +462,7 @@ function HeroArticleCard({
             onClick={() => onLike(hero.id)}
             className="flex cursor-pointer items-center gap-2 rounded-2xl bg-white/10 px-5 py-3.5 text-xs font-bold text-gray-300 transition-colors hover:bg-white/20"
           >
-            <Flame className="h-4 w-4 text-amber-500" />
+            <Flame className="size-4 text-amber-500" />
             {likes} Likes
           </button>
         </div>
@@ -479,13 +484,13 @@ function CatalogCard({
     <button
       type="button"
       onClick={() => onSelect(art)}
-      className="hover:border-(--accent)/40 group flex cursor-pointer flex-col justify-between overflow-hidden rounded-3xl border border-white/10 bg-black/40 text-left shadow-xl backdrop-blur-xl transition-all duration-300 hover:-translate-y-1"
+      className="hover:border-(--accent)/40 group flex cursor-pointer flex-col justify-between overflow-hidden rounded-3xl border border-white/10 bg-black/40 text-left shadow-xl backdrop-blur-xl transition-[border-color,transform] duration-300 hover:-translate-y-1"
     >
       <div className="relative aspect-video overflow-hidden bg-black/50">
         <img
           src={getCoverImage(art, idx + 1)}
           alt={art.headline}
-          className="group-hover:scale-108 h-full w-full object-cover transition-transform duration-700"
+          className="group-hover:scale-108 size-full object-cover transition-transform duration-700"
         />
         <div
           className={`absolute left-4 top-4 rounded-full border border-white/10 bg-black/80 px-3 py-1 text-[10px] font-black backdrop-blur-md ${STYLES.TEXT_ACCENT} uppercase tracking-widest`}
@@ -498,10 +503,10 @@ function CatalogCard({
       <div className="flex grow flex-col justify-between space-y-3 p-6">
         <div className="space-y-2">
           <span className="font-mono text-[10px] text-gray-400">{art.issue_date}</span>
-          <h4 className="group-hover:text-(--accent) line-clamp-2 text-base font-bold leading-snug text-white transition-colors">
+          <h4 className="group-hover:text-(--accent) line-clamp-2 text-base/snug font-bold text-white transition-colors">
             {cleanTitle(art.headline)}
           </h4>
-          <p className="line-clamp-3 text-xs leading-relaxed text-gray-400">
+          <p className="line-clamp-3 text-xs/relaxed text-gray-400">
             {art.front_page_summary}
           </p>
         </div>
@@ -510,7 +515,7 @@ function CatalogCard({
           className={`flex items-center justify-between border-t border-white/10 pt-3 text-xs font-bold ${STYLES.TEXT_ACCENT}`}
         >
           <span>Leer Noticia</span>
-          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+          <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
         </div>
       </div>
     </button>
@@ -547,7 +552,7 @@ function SidebarQuestsList({
   if (isLoading) {
     return (
       <div className="p-6 text-center text-xs text-gray-400">
-        <RefreshCw className={`h-5 w-5 ${STYLES.TEXT_ACCENT} mx-auto mb-2 animate-spin`} />
+        <RefreshCw className={`size-5 ${STYLES.TEXT_ACCENT} mx-auto mb-2 animate-spin`} />
         Cargando misiones...
       </div>
     );
@@ -567,7 +572,7 @@ function SidebarQuestsList({
               +{quest.reward_kc} KC
             </span>
           </div>
-          <p className="line-clamp-2 text-xs leading-relaxed text-gray-400">{quest.description}</p>
+          <p className="line-clamp-2 text-xs/relaxed text-gray-400">{quest.description}</p>
         </div>
       ))}
     </div>
@@ -586,7 +591,7 @@ function RecentEditionsList({
   return (
     <div className={`rounded-3xl p-6 ${STYLES.GLASS_PANEL} space-y-4`}>
       <h4 className="flex items-center gap-2 border-b border-white/10 pb-3 text-base font-black uppercase tracking-wider text-white">
-        <BookOpen className={`h-4 w-4 ${STYLES.TEXT_ACCENT}`} /> Ediciones Recientes
+        <BookOpen className={`size-4 ${STYLES.TEXT_ACCENT}`} /> Ediciones Recientes
       </h4>
 
       <div className="space-y-3">
@@ -600,7 +605,7 @@ function RecentEditionsList({
             <img
               src={getCoverImage(art, idx + 1)}
               alt={art.headline}
-              className="h-14 w-14 shrink-0 rounded-xl border border-white/10 object-cover"
+              className="size-14 shrink-0 rounded-xl border border-white/10 object-cover"
             />
             <div className="min-w-0 grow">
               <span className={`font-mono text-[10px] ${STYLES.TEXT_ACCENT}`}>
@@ -635,7 +640,7 @@ function SidebarWidgets({
       <div className={`rounded-3xl p-6 ${STYLES.GLASS_PANEL} space-y-4`}>
         <div className="flex items-center justify-between border-b border-white/10 pb-3">
           <h4 className="flex items-center gap-2 text-base font-black uppercase tracking-wider text-white">
-            <Swords className={`h-4 w-4 ${STYLES.TEXT_ACCENT}`} /> Misiones Diarias
+            <Swords className={`size-4 ${STYLES.TEXT_ACCENT}`} /> Misiones Diarias
           </h4>
           <span
             className={`font-mono text-[10px] ${STYLES.TEXT_ACCENT} bg-(--accent)/10 border-(--accent)/30 rounded-full border px-2 py-0.5`}
@@ -679,7 +684,7 @@ function MainArticlesFeed({
     <div className="space-y-12">
       {loadingLatest && (
         <div className={`rounded-3xl p-16 text-center ${STYLES.GLASS_PANEL}`}>
-          <RefreshCw className={`h-8 w-8 ${STYLES.TEXT_ACCENT} mx-auto mb-4 animate-spin`} />
+          <RefreshCw className={`size-8 ${STYLES.TEXT_ACCENT} mx-auto mb-4 animate-spin`} />
           <p className="text-sm text-gray-400">Cargando artículo principal...</p>
         </div>
       )}
@@ -690,7 +695,7 @@ function MainArticlesFeed({
 
       <div className="space-y-6 border-t border-white/10 pt-6">
         <h3 className="flex items-center gap-2 text-2xl font-black uppercase tracking-tight text-white">
-          <BookOpen className={`h-6 w-6 ${STYLES.TEXT_ACCENT}`} /> Catálogo de Noticias
+          <BookOpen className={`size-6 ${STYLES.TEXT_ACCENT}`} /> Catálogo de Noticias
         </h3>
 
         <ArticlesCatalog articles={allArticles} onSelect={onSelectEdition} />
@@ -728,16 +733,16 @@ function TabNavigation({
         <button
           type="button"
           onClick={() => onTabChange(TABS.BLOG)}
-          className={`flex items-center gap-2 rounded-full px-6 py-3 text-xs font-black uppercase tracking-widest transition-all ${blogTabStyle}`}
+          className={`flex items-center gap-2 rounded-full px-6 py-3 text-xs font-black uppercase tracking-widest transition-colors ${blogTabStyle}`}
         >
-          <NewspaperIcon className="h-4 w-4" /> Noticias & Artículos
+          <NewspaperIcon className="size-4" /> Noticias & Artículos
         </button>
         <button
           type="button"
           onClick={() => onTabChange(TABS.QUESTS)}
-          className={`flex items-center gap-2 rounded-full px-6 py-3 text-xs font-black uppercase tracking-widest transition-all ${questsTabStyle}`}
+          className={`flex items-center gap-2 rounded-full px-6 py-3 text-xs font-black uppercase tracking-widest transition-colors ${questsTabStyle}`}
         >
-          <Swords className="h-4 w-4" /> Misiones del Gremio ({questCount})
+          <Swords className="size-4" /> Misiones del Gremio ({questCount})
         </button>
       </div>
 

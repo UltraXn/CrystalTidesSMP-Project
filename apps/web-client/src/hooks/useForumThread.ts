@@ -5,12 +5,12 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../services/supabaseClient';
 import { uploadImage } from '../services/uploadService';
+import { parseThreadDetail } from '@crystaltides/shared';
 import {
   type Thread,
   type Comment,
   type ForumAuthorData,
   type PendingImageRepl,
-  categoryNames,
   checkIsAdmin,
   compressImage,
 } from '../types/forum';
@@ -26,33 +26,7 @@ export async function fetchThreadDetail(type: string, id: string | undefined, ap
   if (!threadRes.ok) throw new Error('Not Found');
   const threadData = await threadRes.json();
 
-  const parsedThread: Thread = {
-    id: threadData.id,
-    title: threadData.title,
-    content: threadData.content,
-    title_en: threadData.title_en,
-    content_en: threadData.content_en,
-    author: isTopic ? threadData.author_name || 'Anónimo' : 'CrystalTidesSMP',
-    author_id: isTopic ? threadData.user_id : threadData.author_id,
-    author_avatar: isTopic ? threadData.author_avatar : '/images/ui/logo.webp',
-    author_role: isTopic ? threadData.author_role : 'staff',
-    date: new Date(threadData.created_at).toLocaleDateString(),
-    longDate:
-      new Date(threadData.created_at).toLocaleDateString() +
-      ' ' +
-      new Date(threadData.created_at).toLocaleTimeString([], {
-        hour: '2-digit',
-        minute: '2-digit',
-      }),
-    image: isTopic ? null : threadData.image,
-    tag: isTopic ? categoryNames[threadData.category_id] || 'General' : threadData.category,
-    category_id: threadData.category_id,
-    views: threadData.views || 0,
-    poll: threadData.poll || null,
-    pinned: threadData.pinned || false,
-    locked: threadData.locked || false,
-    author_data_fresh: threadData.author_data_fresh,
-  };
+  const parsedThread = parseThreadDetail(threadData, isTopic ? 'topic' : 'news') as Thread;
 
   const commentsPromise = isTopic
     ? fetch(`${apiUrl}/forum/thread/${id}/posts`)

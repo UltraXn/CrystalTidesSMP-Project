@@ -97,6 +97,47 @@ export const isLossReward = (item: {
   );
 };
 
+const FAILSAFE_PATTERNS: ReadonlyArray<readonly [string, string]> = [
+  ["xp", "/images/items/xp_bottle.webp"],
+  ["capa", "/images/items/Elytra_JE2_BE2.png"],
+  ["elytra", "/images/items/Elytra_JE2_BE2.png"],
+  ["estrella nether", "/images/items/Nether_Star.gif"],
+  ["mending", "/images/items/enchanted_book.gif"],
+  ["silencio", "/images/items/Silence_Armor_Trim_Smithing_Template_JE1_BE1.png"],
+  ["heavy core", "/images/items/Heavy_Core_JE1_BE1.png"],
+  ["sniffer", "/images/items/Sniffer_Egg_(item)_JE1_BE1.png"],
+  ["pigstep", "/images/items/Music_Disc_Pigstep_JE1_BE1.png"],
+  ["wither", "/images/items/Wither_Skeleton_Skull_(S)_JE2.png"],
+  ["notch", "/images/items/Enchanted_Golden_Apple_JE2_BE2.gif"],
+  ["escudo", "/images/items/Shield_JE2_BE1.webp"],
+  ["mejora netherite", "/images/items/Netherite_Upgrade_Smithing_Template_JE1_BE1.png"],
+  ["zanahoria oro", "/images/items/Golden_Carrot_JE4_BE2.png"],
+  ["carbón", "/images/items/Coal_JE4_BE3.png"],
+  ["cobre", "/images/items/Raw_Copper_JE3_BE2.png"],
+];
+
+const KILLUCOIN_TIERS: ReadonlyArray<readonly [string, string]> = [
+  ["2.500.000", COIN_IMAGES.iridium],
+  ["250.000", COIN_IMAGES.diamond],
+  ["25.000", COIN_IMAGES.emerald],
+  ["2.500", COIN_IMAGES.gold],
+  ["250", COIN_IMAGES.silver],
+];
+
+export function getGachaFailsafeImage(name: string): string | null {
+  const n = name.toLowerCase();
+  if (n.includes("killucoins") || n.includes(" kc")) {
+    for (const [amt, coin] of KILLUCOIN_TIERS) {
+      if (n.includes(amt)) return coin;
+    }
+    return COIN_IMAGES.bronze;
+  }
+  for (const [key, path] of FAILSAFE_PATTERNS) {
+    if (n.includes(key)) return path;
+  }
+  return null;
+}
+
 /** Prefer explicit image_url, otherwise map by reward name. */
 export const resolveRewardImage = (
   name: string,

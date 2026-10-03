@@ -91,7 +91,7 @@ const pool: mysql.Pool =
     ? createMockPool()
     : mysql.createPool({
         host: process.env.MC_DB_HOST,
-        port: parseInt(process.env.MC_DB_PORT || '3306'),
+        port: Number.parseInt(process.env.MC_DB_PORT || '3306', 10),
         user: process.env.MC_DB_USER,
         password: process.env.MC_DB_PASSWORD,
         database: process.env.MC_DB_NAME,

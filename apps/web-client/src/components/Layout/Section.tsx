@@ -23,6 +23,7 @@ const Separator = () => (
 );
 
 const OBSERVER_OPTIONS = { triggerOnce: true, threshold: 0.1 };
+const DEFAULT_STYLE: React.CSSProperties = {};
 
 export default function Section({
     title,
@@ -32,7 +33,7 @@ export default function Section({
     direction = 'up',
     className = '',
     id,
-    style = {},
+    style = DEFAULT_STYLE,
     separator = false
 }: SectionProps) {
     const [ref, isVisible] = useIntersectionObserver<HTMLElement>(OBSERVER_OPTIONS);

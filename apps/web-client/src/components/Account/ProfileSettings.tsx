@@ -32,6 +32,21 @@ interface ProfileSettingsProps {
   showToast: (message: string, type: "success" | "error" | "info") => void;
 }
 
+function resolveDiscordName(identity?: UserIdentity): string | undefined {
+  if (!identity?.identity_data) return undefined;
+  return (
+    identity.identity_data.full_name ||
+    identity.identity_data.name ||
+    identity.identity_data.user_name
+  );
+}
+
+function resolveTwitchUrl(identity?: UserIdentity): string | undefined {
+  if (!identity?.identity_data) return undefined;
+  const name = identity.identity_data.name || identity.identity_data.login;
+  return name ? `https://twitch.tv/${name}` : undefined;
+}
+
 const ProfileSettings: React.FC<ProfileSettingsProps> = ({
   user,
   mcUsername,
@@ -80,23 +95,14 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({
   useEffect(() => {
     if (!user) return;
 
-    if (discordIdentity) {
-      const name =
-        discordIdentity.identity_data?.full_name ||
-        discordIdentity.identity_data?.name ||
-        discordIdentity.identity_data?.user_name;
-      if (name && !user.user_metadata?.social_discord) {
-        setValue("social_discord", name);
-      }
+    const discordName = resolveDiscordName(discordIdentity);
+    if (discordName && !user.user_metadata?.social_discord) {
+      setValue("social_discord", discordName);
     }
 
-    if (twitchIdentity) {
-      const name =
-        twitchIdentity.identity_data?.name ||
-        twitchIdentity.identity_data?.login;
-      if (name && !user.user_metadata?.social_twitch) {
-        setValue("social_twitch", `https://twitch.tv/${name}`);
-      }
+    const twitchUrl = resolveTwitchUrl(twitchIdentity);
+    if (twitchUrl && !user.user_metadata?.social_twitch) {
+      setValue("social_twitch", twitchUrl);
     }
   }, [discordIdentity, twitchIdentity, user, setValue]);
 

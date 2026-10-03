@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState, useMemo } from "react";
-import * as THREE from "three";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import React, { useEffect, useRef, useState, useMemo } from 'react';
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import {
   Flame,
   Zap,
@@ -15,9 +15,9 @@ import {
   Coins,
   Award,
   Play,
-} from "lucide-react";
-import ReactMarkdown from "react-markdown";
-import { resolveAssetUrl } from "../../utils/assetUtils";
+} from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import { resolveAssetUrl } from '../../utils/assetUtils';
 
 export interface BossAttack {
   name: string;
@@ -61,7 +61,7 @@ export interface WikiBoss3DCardProps {
   phases?: BossPhaseData[];
   phase1Attacks?: BossAttack[];
   phase2Attacks?: BossAttack[];
-  cardTheme?: "red" | "emerald" | "amber" | "purple" | "cyan" | "slate";
+  cardTheme?: 'red' | 'emerald' | 'amber' | 'purple' | 'cyan' | 'slate';
   threatLabel?: string;
   hpLabel?: string;
   damageLabel?: string;
@@ -73,87 +73,84 @@ export interface WikiBoss3DCardProps {
 
 const PHASE_1_ATTACKS: BossAttack[] = [
   {
-    name: "Zarpaso fatal",
-    type: "MELEE",
-    damage: "20 HP (Empuje + Combo)",
+    name: 'Zarpaso fatal',
+    type: 'MELEE',
+    damage: '20 HP (Empuje + Combo)',
     description:
-      "The Forgotten Terror arremete velozmente en el aire ejecutando una estocada frontal con sus garras de basalto y concreto.",
-    animation_clip: "claw2",
+      'The Forgotten Terror arremete velozmente en el aire ejecutando una estocada frontal con sus garras de basalto y concreto.',
+    animation_clip: 'claw2',
   },
   {
-    name: "Zarpaso doble",
-    type: "MELEE",
-    damage: "35 HP Crítico",
-    description:
-      "Golpe cruzado con ambas garras que inflige daño masivo y desgarra armaduras.",
-    animation_clip: "claw1",
+    name: 'Zarpaso doble',
+    type: 'MELEE',
+    damage: '35 HP Crítico',
+    description: 'Golpe cruzado con ambas garras que inflige daño masivo y desgarra armaduras.',
+    animation_clip: 'claw1',
   },
   {
-    name: "Casteo Wither",
-    type: "PROYECTIL",
-    damage: "25 HP + Wither II",
+    name: 'Casteo Wither',
+    type: 'PROYECTIL',
+    damage: '25 HP + Wither II',
     description:
-      "Dispara una ráfaga de proyectiles de calaveras guiadas que persiguen a los jugadores cercanos.",
-    animation_clip: "shoot",
+      'Dispara una ráfaga de proyectiles de calaveras guiadas que persiguen a los jugadores cercanos.',
+    animation_clip: 'shoot',
   },
   {
-    name: "Ciclón Wither",
-    type: "AOE",
-    damage: "30 HP (Radio 14 Bloques)",
+    name: 'Ciclón Wither',
+    type: 'AOE',
+    damage: '30 HP (Radio 14 Bloques)',
     description:
-      "Giro ciclónico a gran velocidad que barre la arena y repele con fuerza gravitacional.",
-    animation_clip: "roundhouse",
+      'Giro ciclónico a gran velocidad que barre la arena y repele con fuerza gravitacional.',
+    animation_clip: 'roundhouse',
   },
   {
-    name: "Quebranta armaduras",
-    type: "DEBUFF",
-    damage: "Ruptura de Escudos",
+    name: 'Quebranta armaduras',
+    type: 'DEBUFF',
+    damage: 'Ruptura de Escudos',
     description:
-      "Ataque descendente contundente que desactiva los escudos y reduce la protección física.",
-    animation_clip: "overhead_swipe",
+      'Ataque descendente contundente que desactiva los escudos y reduce la protección física.',
+    animation_clip: 'overhead_swipe',
   },
   {
-    name: "Pozos Wither",
-    type: "INVOCACIÓN",
-    damage: "15 HP/seg Ácido",
-    description:
-      "Genera charcos de podredumbre oscura en el suelo que dañan de forma continua.",
-    animation_clip: "wither_pool",
+    name: 'Pozos Wither',
+    type: 'INVOCACIÓN',
+    damage: '15 HP/seg Ácido',
+    description: 'Genera charcos de podredumbre oscura en el suelo que dañan de forma continua.',
+    animation_clip: 'wither_pool',
   },
 ];
 
 const PHASE_2_ATTACKS: BossAttack[] = [
   {
-    name: "Impacto Aplastante de Terror",
-    type: "MELEE PESADO",
-    damage: "45 HP Físico",
-    description:
-      "Salto colosal con aplastamiento masivo en área con sus garras terrestres.",
-    animation_clip: "left_smash2",
+    name: 'Impacto Aplastante de Terror',
+    type: 'MELEE PESADO',
+    damage: '45 HP Físico',
+    description: 'Salto colosal con aplastamiento masivo en área con sus garras terrestres.',
+    animation_clip: 'left_smash2',
   },
   {
-    name: "Barrido de Garras & Coletazo",
-    type: "AOE MELEE",
-    damage: "35 HP Físico",
+    name: 'Barrido de Garras & Coletazo',
+    type: 'AOE MELEE',
+    damage: '35 HP Físico',
     description:
-      "Giro circular rasante a nivel del suelo que barre a múltiples jugadores a la vez.",
-    animation_clip: "right_smash2",
+      'Giro circular rasante a nivel del suelo que barre a múltiples jugadores a la vez.',
+    animation_clip: 'right_smash2',
   },
   {
-    name: "Erupción Declamatoria (Decapitación <300 HP)",
-    type: "DECAPITACIÓN",
-    damage: "99% Resistencia Divina",
+    name: 'Erupción Declamatoria (Decapitación <300 HP)',
+    type: 'DECAPITACIÓN',
+    damage: '99% Resistencia Divina',
     description:
-      "Se decapita a sí mismo arrancándose el cráneo para obtener invulnerabilidad y velocidad extrema.",
-    animation_clip: "head_off",
+      'Se decapita a sí mismo arrancándose el cráneo para obtener invulnerabilidad y velocidad extrema.',
+    animation_clip: 'head_off',
   },
   {
-    name: "Frenesí de Sombras (Cráneo en Mano)",
-    type: "PROYECTIL",
-    damage: "50 HP Explosivo",
+    name: 'Frenesí de Sombras (Cráneo en Mano)',
+    type: 'PROYECTIL',
+    damage: '50 HP Explosivo',
     description:
-      "Blandiendo su propio cráneo arrancado, lanza proyectiles explosivos a quemarropa.",
-    animation_clip: "head_off_swing_shoot",
+      'Blandiendo su propio cráneo arrancado, lanza proyectiles explosivos a quemarropa.',
+    animation_clip: 'head_off_swing_shoot',
   },
 ];
 
@@ -162,255 +159,232 @@ function getEntityDefaultAttacks(
   category: string,
   selectedPhase: number,
 ): BossAttack[] {
-  const nameLower = (bossName || "").toLowerCase();
-  const catLower = (category || "").toLowerCase();
+  const nameLower = (bossName || '').toLowerCase();
+  const catLower = (category || '').toLowerCase();
 
-  if (nameLower.includes("wither") || nameLower.includes("terror")) {
+  if (nameLower.includes('wither') || nameLower.includes('terror')) {
     return selectedPhase === 2 ? PHASE_2_ATTACKS : PHASE_1_ATTACKS;
   }
 
-  if (
-    nameLower.includes("drake") ||
-    nameLower.includes("dragón") ||
-    nameLower.includes("dragon")
-  ) {
+  if (nameLower.includes('drake') || nameLower.includes('dragón') || nameLower.includes('dragon')) {
     return [
       {
-        name: "Mordisco Desgarrador",
-        type: "MELEE",
-        damage: "25 HP Físico",
-        description:
-          "Potente mordedura con fauces blindadas que causa sangrado severo.",
-        animation_clip: "bite",
+        name: 'Mordisco Desgarrador',
+        type: 'MELEE',
+        damage: '25 HP Físico',
+        description: 'Potente mordedura con fauces blindadas que causa sangrado severo.',
+        animation_clip: 'bite',
       },
       {
-        name: "Aliento de Fuego Dracónico",
-        type: "AOE FUEGO",
-        damage: "40 HP Ígneo",
+        name: 'Aliento de Fuego Dracónico',
+        type: 'AOE FUEGO',
+        damage: '40 HP Ígneo',
         description:
-          "Exhala una llamarada continua que calcina a todos los jugadores en un cono de 8 bloques.",
-        animation_clip: "breath",
+          'Exhala una llamarada continua que calcina a todos los jugadores en un cono de 8 bloques.',
+        animation_clip: 'breath',
       },
       {
-        name: "Coletazo de Torbellino",
-        type: "AOE EMPUJE",
-        damage: "20 HP Físico",
-        description:
-          "Giro violento con la cola que repele a los atacantes por la espalda.",
-        animation_clip: "tail",
+        name: 'Coletazo de Torbellino',
+        type: 'AOE EMPUJE',
+        damage: '20 HP Físico',
+        description: 'Giro violento con la cola que repele a los atacantes por la espalda.',
+        animation_clip: 'tail',
       },
       {
-        name: "Rugido Primordial",
-        type: "DEBUFF",
-        damage: "Efecto Debilidad II",
-        description:
-          "Grito intimidante que paraliza temporalmente a las víctimas cercanas.",
-        animation_clip: "roar",
+        name: 'Rugido Primordial',
+        type: 'DEBUFF',
+        damage: 'Efecto Debilidad II',
+        description: 'Grito intimidante que paraliza temporalmente a las víctimas cercanas.',
+        animation_clip: 'roar',
       },
     ];
   }
 
   if (
-    nameLower.includes("automaton") ||
-    nameLower.includes("gólem") ||
-    nameLower.includes("golem")
+    nameLower.includes('automaton') ||
+    nameLower.includes('gólem') ||
+    nameLower.includes('golem')
   ) {
     return [
       {
-        name: "Puño de Engranaje Pesado",
-        type: "MELEE",
-        damage: "30 HP Físico",
-        description:
-          "Golpe demoledor propulsado por vapor que abolla armaduras de diamante.",
-        animation_clip: "punch",
+        name: 'Puño de Engranaje Pesado',
+        type: 'MELEE',
+        damage: '30 HP Físico',
+        description: 'Golpe demoledor propulsado por vapor que abolla armaduras de diamante.',
+        animation_clip: 'punch',
       },
       {
-        name: "Sobrecarga de Vapor Cinético",
-        type: "AOE",
-        damage: "25 HP Térmico",
-        description:
-          "Libera vapor a presión extrema que repele y ciega a los enemigos en área.",
-        animation_clip: "smash",
+        name: 'Sobrecarga de Vapor Cinético',
+        type: 'AOE',
+        damage: '25 HP Térmico',
+        description: 'Libera vapor a presión extrema que repele y ciega a los enemigos en área.',
+        animation_clip: 'smash',
       },
       {
-        name: "Descarga Eléctrica de Núcleo",
-        type: "PROYECTIL",
-        damage: "35 HP Rayo",
-        description:
-          "Dispara un haz energético concentrado desde su pecho mecánico.",
-        animation_clip: "laser",
+        name: 'Descarga Eléctrica de Núcleo',
+        type: 'PROYECTIL',
+        damage: '35 HP Rayo',
+        description: 'Dispara un haz energético concentrado desde su pecho mecánico.',
+        animation_clip: 'laser',
       },
       {
-        name: "Baluarte Fortificado",
-        type: "DEFENSA",
-        damage: "80% Resistencia",
-        description:
-          "Adopta una postura defensiva que reduce enormemente todo daño recibido.",
-        animation_clip: "guard",
+        name: 'Baluarte Fortificado',
+        type: 'DEFENSA',
+        damage: '80% Resistencia',
+        description: 'Adopta una postura defensiva que reduce enormemente todo daño recibido.',
+        animation_clip: 'guard',
       },
     ];
   }
 
-  if (nameLower.includes("wendigo")) {
+  if (nameLower.includes('wendigo')) {
     return [
       {
-        name: "Desgarro de Furia Glacial",
-        type: "MELEE",
-        damage: "35 HP Cortante",
-        description:
-          "Zarpazos frenéticos capaces de penetrar escudos y causar congelación.",
-        animation_clip: "slash",
+        name: 'Desgarro de Furia Glacial',
+        type: 'MELEE',
+        damage: '35 HP Cortante',
+        description: 'Zarpazos frenéticos capaces de penetrar escudos y causar congelación.',
+        animation_clip: 'slash',
       },
       {
-        name: "Chillido de Hambruna",
-        type: "AOE MÁGICO",
-        damage: "Ceguera & Lentitud",
-        description:
-          "Aullido aterrador que desorienta y frena a los cazadores en el bosque.",
-        animation_clip: "scream",
+        name: 'Chillido de Hambruna',
+        type: 'AOE MÁGICO',
+        damage: 'Ceguera & Lentitud',
+        description: 'Aullido aterrador que desorienta y frena a los cazadores en el bosque.',
+        animation_clip: 'scream',
       },
       {
-        name: "Salto de Emboscada Nocturna",
-        type: "EMBESTIDA",
-        damage: "30 HP Impacto",
-        description:
-          "Salto acrobático desde las sombras para derribar a su presa.",
-        animation_clip: "leap",
+        name: 'Salto de Emboscada Nocturna',
+        type: 'EMBESTIDA',
+        damage: '30 HP Impacto',
+        description: 'Salto acrobático desde las sombras para derribar a su presa.',
+        animation_clip: 'leap',
       },
     ];
   }
 
-  if (nameLower.includes("chupacabra")) {
+  if (nameLower.includes('chupacabra')) {
     return [
       {
-        name: "Drenaje Vampírico",
-        type: "MELEE",
-        damage: "20 HP (Roba Vida)",
-        description:
-          "Muerde a la víctima drenando su vitalidad para curarse a sí mismo.",
-        animation_clip: "bite",
+        name: 'Drenaje Vampírico',
+        type: 'MELEE',
+        damage: '20 HP (Roba Vida)',
+        description: 'Muerde a la víctima drenando su vitalidad para curarse a sí mismo.',
+        animation_clip: 'bite',
       },
       {
-        name: "Abalanzada Sombría",
-        type: "EMBESTIDA",
-        damage: "18 HP Veloz",
-        description: "Acometida a gran velocidad esquivando ataques frontales.",
-        animation_clip: "jump",
+        name: 'Abalanzada Sombría',
+        type: 'EMBESTIDA',
+        damage: '18 HP Veloz',
+        description: 'Acometida a gran velocidad esquivando ataques frontales.',
+        animation_clip: 'jump',
       },
       {
-        name: "Mirada Intimidante",
-        type: "DEBUFF",
-        damage: "Náusea I",
-        description:
-          "Fija sus ojos brillantes causando desorientación instantánea.",
-        animation_clip: "idle",
+        name: 'Mirada Intimidante',
+        type: 'DEBUFF',
+        damage: 'Náusea I',
+        description: 'Fija sus ojos brillantes causando desorientación instantánea.',
+        animation_clip: 'idle',
       },
     ];
   }
 
-  if (nameLower.includes("chesed")) {
+  if (nameLower.includes('chesed')) {
     return [
       {
-        name: "Falla Espacio-Temporal",
-        type: "AOE",
-        damage: "45 HP Cinético",
-        description:
-          "Distorsiona la gravedad atrayendo y aplastando a todos los objetivos.",
-        animation_clip: "slam",
+        name: 'Falla Espacio-Temporal',
+        type: 'AOE',
+        damage: '45 HP Cinético',
+        description: 'Distorsiona la gravedad atrayendo y aplastando a todos los objetivos.',
+        animation_clip: 'slam',
       },
       {
-        name: "Descarga Cinética Radial",
-        type: "PROYECTIL",
-        damage: "30 HP Eléctrico",
-        description: "Proyecta ondas de energía cinética de largo alcance.",
-        animation_clip: "shoot",
+        name: 'Descarga Cinética Radial',
+        type: 'PROYECTIL',
+        damage: '30 HP Eléctrico',
+        description: 'Proyecta ondas de energía cinética de largo alcance.',
+        animation_clip: 'shoot',
       },
     ];
   }
 
-  if (nameLower.includes("geburah")) {
+  if (nameLower.includes('geburah')) {
     return [
       {
-        name: "Tajo del Juicio Carmesí",
-        type: "MELEE",
-        damage: "60 HP Sangrado",
-        description:
-          "Corte demoledor de gran espada que ignora la protección de armadura.",
-        animation_clip: "slash",
+        name: 'Tajo del Juicio Carmesí',
+        type: 'MELEE',
+        damage: '60 HP Sangrado',
+        description: 'Corte demoledor de gran espada que ignora la protección de armadura.',
+        animation_clip: 'slash',
       },
       {
-        name: "Lanza del Castigo Divino",
-        type: "PENETRACIÓN",
-        damage: "50 HP Perforante",
-        description:
-          "Estocada lineal hiper-sónica que atraviesa múltiples objetivos.",
-        animation_clip: "thrust",
+        name: 'Lanza del Castigo Divino',
+        type: 'PENETRACIÓN',
+        damage: '50 HP Perforante',
+        description: 'Estocada lineal hiper-sónica que atraviesa múltiples objetivos.',
+        animation_clip: 'thrust',
       },
     ];
   }
 
-  if (nameLower.includes("malkuth")) {
+  if (nameLower.includes('malkuth')) {
     return [
       {
-        name: "Erupción Elemental Ígnea",
-        type: "AOE",
-        damage: "40 HP Fuego",
-        description:
-          "Golpea el suelo desatando pilares de magma y fuego primordial.",
-        animation_clip: "erupt",
+        name: 'Erupción Elemental Ígnea',
+        type: 'AOE',
+        damage: '40 HP Fuego',
+        description: 'Golpea el suelo desatando pilares de magma y fuego primordial.',
+        animation_clip: 'erupt',
       },
       {
-        name: "Vórtice de Escarcha Abisal",
-        type: "AOE FRÍO",
-        damage: "25 HP + Congelación",
-        description: "Onda expansiva congelante que inmoviliza a los enemigos.",
-        animation_clip: "freeze",
+        name: 'Vórtice de Escarcha Abisal',
+        type: 'AOE FRÍO',
+        damage: '25 HP + Congelación',
+        description: 'Onda expansiva congelante que inmoviliza a los enemigos.',
+        animation_clip: 'freeze',
       },
     ];
   }
 
   if (
-    catLower.includes("critters") ||
-    catLower.includes("pacifico") ||
-    catLower.includes("pacífico") ||
-    catLower.includes("mascota") ||
-    catLower.includes("fauna")
+    catLower.includes('critters') ||
+    catLower.includes('pacifico') ||
+    catLower.includes('pacífico') ||
+    catLower.includes('mascota') ||
+    catLower.includes('fauna')
   ) {
     return [
       {
-        name: "Acariciar & Jugar",
-        type: "INTERACCIÓN",
-        damage: "Amistad +10",
-        description:
-          "Interactúa con la criatura para aumentar su lealtad y felicidad.",
-        animation_clip: "interact",
+        name: 'Acariciar & Jugar',
+        type: 'INTERACCIÓN',
+        damage: 'Amistad +10',
+        description: 'Interactúa con la criatura para aumentar su lealtad y felicidad.',
+        animation_clip: 'interact',
       },
       {
-        name: "Truco / Mimetismo",
-        type: "HABILIDAD",
-        damage: "Evasión 100%",
-        description:
-          "Realiza su pose característica y se camufla con el entorno.",
-        animation_clip: "roll",
+        name: 'Truco / Mimetismo',
+        type: 'HABILIDAD',
+        damage: 'Evasión 100%',
+        description: 'Realiza su pose característica y se camufla con el entorno.',
+        animation_clip: 'roll',
       },
       {
-        name: "Comer Golosina",
-        type: "DOMESTICACIÓN",
-        damage: "Regeneración",
-        description:
-          "Se alimenta de bayas o vegetación para restaurar su vitalidad.",
-        animation_clip: "eat",
+        name: 'Comer Golosina',
+        type: 'DOMESTICACIÓN',
+        damage: 'Regeneración',
+        description: 'Se alimenta de bayas o vegetación para restaurar su vitalidad.',
+        animation_clip: 'eat',
       },
     ];
   }
 
   return [
     {
-      name: "Ataque de Combate",
-      type: "MELEE",
-      damage: "Ataque Físico",
-      description: "Ataque estándar de la criatura contra aventureros.",
-      animation_clip: "attack",
+      name: 'Ataque de Combate',
+      type: 'MELEE',
+      damage: 'Ataque Físico',
+      description: 'Ataque estándar de la criatura contra aventureros.',
+      animation_clip: 'attack',
     },
   ];
 }
@@ -419,29 +393,25 @@ const EMPTY_DROPS: string[] = [];
 const EMPTY_PHASES: BossPhaseData[] = [];
 
 export const WikiBoss3DCard: React.FC<WikiBoss3DCardProps> = ({
-  _minimal3dOnly: minimal3dOnly = false,
-  _activeClipOverride: activeClipOverride,
-  modelPath = "/models/toro_wither.gltf",
-  _textureUrl: textureUrl,
+  modelPath = '/models/toro_wither.gltf',
   modelPathPhase2,
-  bossName = "Entidad",
-  category = "",
-  subtitle = "Bestiario • Entidad Modificada",
-  hp = "100 HP",
+  bossName = 'Entidad',
+  category = '',
+  subtitle = 'Bestiario • Entidad Modificada',
+  hp = '100 HP',
   hpPhase2,
-  damage = "Ataque Estándar",
+  damage = 'Ataque Estándar',
   damagePhase2,
-  armor = "Sin Armadura",
-  speed = "Velocidad Normal",
-  location = "Overworld / Estructura",
-  spawnMethod = "Generación Natural",
-  description = "",
+  armor = 'Sin Armadura',
+  speed = 'Velocidad Normal',
+  location = 'Overworld / Estructura',
+  spawnMethod = 'Generación Natural',
+  description = '',
   drops = EMPTY_DROPS,
   kcReward = 0,
   phases = EMPTY_PHASES,
   phase1Attacks,
   phase2Attacks,
-  _cardTheme: cardTheme,
   threatLabel,
   hpLabel,
   damageLabel,
@@ -449,52 +419,39 @@ export const WikiBoss3DCard: React.FC<WikiBoss3DCardProps> = ({
   locationLabel,
   dropsLabel,
   bountyLabel,
-}: WikiBoss3DCardProps & {
-  _minimal3dOnly?: boolean;
-  _activeClipOverride?: string | null;
-  _textureUrl?: string;
-  _cardTheme?: string;
 }) => {
-  void minimal3dOnly;
-  void activeClipOverride;
-  void textureUrl;
-  void cardTheme;
-
   const containerRef = useRef<HTMLDivElement>(null);
   const cardWrapperRef = useRef<HTMLDivElement>(null);
 
   const [selectedPhase, setSelectedPhase] = useState<number>(1);
 
   const isBoss =
-    category === "bosses" ||
-    category.includes("boss") ||
-    bossName.toLowerCase().includes("terror") ||
-    bossName.toLowerCase().includes("chesed") ||
-    bossName.toLowerCase().includes("geburah") ||
-    bossName.toLowerCase().includes("malkuth");
+    category === 'bosses' ||
+    category.includes('boss') ||
+    bossName.toLowerCase().includes('terror') ||
+    bossName.toLowerCase().includes('chesed') ||
+    bossName.toLowerCase().includes('geburah') ||
+    bossName.toLowerCase().includes('malkuth');
   const isHostile =
     !isBoss &&
-    (category === "mobs_hostiles" ||
-      category.includes("hostil") ||
-      category.includes("mythology"));
+    (category === 'mobs_hostiles' || category.includes('hostil') || category.includes('mythology'));
   const isCompanion =
     !isBoss &&
     !isHostile &&
-    (category === "mobs_pacificos" ||
-      category.includes("pacifico") ||
-      category.includes("critters"));
+    (category === 'mobs_pacificos' ||
+      category.includes('pacifico') ||
+      category.includes('critters'));
 
   const themeStyles = useMemo(() => {
     if (isBoss) {
       return {
         cardBg:
-          "border-rose-900/40 bg-gradient-to-br from-rose-950/20 via-neutral-900/95 to-neutral-950",
-        viewportBg:
-          "bg-gradient-to-b from-rose-950/25 via-neutral-950 to-neutral-950",
-        badgeBg: "bg-rose-950/60 border-rose-800/60 text-rose-300",
-        activeBtn: "bg-rose-950/80 text-rose-100 border-rose-700/70",
-        activePhaseBtn: "bg-rose-900/40 border-rose-600/70 text-rose-200",
-        accentText: "text-rose-400",
+          'border-rose-900/40 bg-gradient-to-br from-rose-950/20 via-neutral-900/95 to-neutral-950',
+        viewportBg: 'bg-gradient-to-b from-rose-950/25 via-neutral-950 to-neutral-950',
+        badgeBg: 'bg-rose-950/60 border-rose-800/60 text-rose-300',
+        activeBtn: 'bg-rose-950/80 text-rose-100 border-rose-700/70',
+        activePhaseBtn: 'bg-rose-900/40 border-rose-600/70 text-rose-200',
+        accentText: 'text-rose-400',
         grid1: 0x881337,
         grid2: 0x4c0519,
       };
@@ -502,13 +459,12 @@ export const WikiBoss3DCard: React.FC<WikiBoss3DCardProps> = ({
     if (isHostile) {
       return {
         cardBg:
-          "border-purple-900/30 bg-gradient-to-br from-purple-950/15 via-neutral-900/95 to-neutral-950",
-        viewportBg:
-          "bg-gradient-to-b from-purple-950/20 via-neutral-950 to-neutral-950",
-        badgeBg: "bg-purple-950/50 border-purple-800/50 text-purple-300",
-        activeBtn: "bg-purple-950/80 text-purple-100 border-purple-700/70",
-        activePhaseBtn: "bg-purple-900/40 border-purple-600/70 text-purple-200",
-        accentText: "text-purple-400",
+          'border-purple-900/30 bg-gradient-to-br from-purple-950/15 via-neutral-900/95 to-neutral-950',
+        viewportBg: 'bg-gradient-to-b from-purple-950/20 via-neutral-950 to-neutral-950',
+        badgeBg: 'bg-purple-950/50 border-purple-800/50 text-purple-300',
+        activeBtn: 'bg-purple-950/80 text-purple-100 border-purple-700/70',
+        activePhaseBtn: 'bg-purple-900/40 border-purple-600/70 text-purple-200',
+        accentText: 'text-purple-400',
         grid1: 0x581c87,
         grid2: 0x2e1065,
       };
@@ -516,27 +472,24 @@ export const WikiBoss3DCard: React.FC<WikiBoss3DCardProps> = ({
     if (isCompanion) {
       return {
         cardBg:
-          "border-emerald-900/30 bg-gradient-to-br from-emerald-950/15 via-neutral-900/95 to-neutral-950",
-        viewportBg:
-          "bg-gradient-to-b from-emerald-950/20 via-neutral-950 to-neutral-950",
-        badgeBg: "bg-emerald-950/50 border-emerald-800/50 text-emerald-300",
-        activeBtn: "bg-emerald-950/80 text-emerald-100 border-emerald-700/70",
-        activePhaseBtn:
-          "bg-emerald-900/40 border-emerald-600/70 text-emerald-200",
-        accentText: "text-emerald-400",
+          'border-emerald-900/30 bg-gradient-to-br from-emerald-950/15 via-neutral-900/95 to-neutral-950',
+        viewportBg: 'bg-gradient-to-b from-emerald-950/20 via-neutral-950 to-neutral-950',
+        badgeBg: 'bg-emerald-950/50 border-emerald-800/50 text-emerald-300',
+        activeBtn: 'bg-emerald-950/80 text-emerald-100 border-emerald-700/70',
+        activePhaseBtn: 'bg-emerald-900/40 border-emerald-600/70 text-emerald-200',
+        accentText: 'text-emerald-400',
         grid1: 0x064e3b,
         grid2: 0x022c22,
       };
     }
     return {
       cardBg:
-        "border-blue-900/30 bg-gradient-to-br from-blue-950/15 via-neutral-900/95 to-neutral-950",
-      viewportBg:
-        "bg-gradient-to-b from-blue-950/20 via-neutral-950 to-neutral-950",
-      badgeBg: "bg-blue-950/50 border-blue-800/50 text-blue-300",
-      activeBtn: "bg-blue-950/80 text-blue-100 border-blue-700/70",
-      activePhaseBtn: "bg-blue-900/40 border-blue-600/70 text-blue-200",
-      accentText: "text-blue-400",
+        'border-blue-900/30 bg-gradient-to-br from-blue-950/15 via-neutral-900/95 to-neutral-950',
+      viewportBg: 'bg-gradient-to-b from-blue-950/20 via-neutral-950 to-neutral-950',
+      badgeBg: 'bg-blue-950/50 border-blue-800/50 text-blue-300',
+      activeBtn: 'bg-blue-950/80 text-blue-100 border-blue-700/70',
+      activePhaseBtn: 'bg-blue-900/40 border-blue-600/70 text-blue-200',
+      accentText: 'text-blue-400',
       grid1: 0x1e3a8a,
       grid2: 0x0f172a,
     };
@@ -554,47 +507,38 @@ export const WikiBoss3DCard: React.FC<WikiBoss3DCardProps> = ({
         model_3d_url:
           p.model_3d_url ||
           (idx === 0
-            ? modelPath || "/models/toro_wither.gltf"
-            : modelPathPhase2 ||
-              modelPath ||
-              "/models/toro_wither_terror.gltf"),
+            ? modelPath || '/models/toro_wither.gltf'
+            : modelPathPhase2 || modelPath || '/models/toro_wither_terror.gltf'),
       }));
     }
-    if (
-      hpPhase2 ||
-      modelPathPhase2 ||
-      (phase2Attacks && phase2Attacks.length > 0)
-    ) {
+    if (hpPhase2 || modelPathPhase2 || (phase2Attacks && phase2Attacks.length > 0)) {
       return [
         {
           phase_number: 1,
-          phase_name: "Fase I: Combate",
-          model_3d_url: modelPath || "/models/toro_wither.gltf",
+          phase_name: 'Fase I: Combate',
+          model_3d_url: modelPath || '/models/toro_wither.gltf',
           hp,
           damage,
-          attacks:
-            phase1Attacks || getEntityDefaultAttacks(bossName, category, 1),
+          attacks: phase1Attacks || getEntityDefaultAttacks(bossName, category, 1),
         },
         {
           phase_number: 2,
-          phase_name: "Fase II: Despertar",
-          model_3d_url: modelPathPhase2 || "/models/toro_wither_terror.gltf",
+          phase_name: 'Fase II: Despertar',
+          model_3d_url: modelPathPhase2 || '/models/toro_wither_terror.gltf',
           hp: hpPhase2,
           damage: damagePhase2,
-          attacks:
-            phase2Attacks || getEntityDefaultAttacks(bossName, category, 2),
+          attacks: phase2Attacks || getEntityDefaultAttacks(bossName, category, 2),
         },
       ];
     }
     return [
       {
         phase_number: 1,
-        phase_name: "Estadísticas & Combate",
-        model_3d_url: modelPath || "/models/toro_wither.gltf",
+        phase_name: 'Estadísticas & Combate',
+        model_3d_url: modelPath || '/models/toro_wither.gltf',
         hp,
         damage,
-        attacks:
-          phase1Attacks || getEntityDefaultAttacks(bossName, category, 1),
+        attacks: phase1Attacks || getEntityDefaultAttacks(bossName, category, 1),
       },
     ];
   }, [
@@ -612,15 +556,10 @@ export const WikiBoss3DCard: React.FC<WikiBoss3DCardProps> = ({
   ]);
 
   const currentPhaseObj =
-    activePhases.find((p) => p.phase_number === selectedPhase) ||
-    activePhases[0];
-  const activeModel =
-    currentPhaseObj?.model_3d_url || modelPath || "/models/toro_wither.gltf";
+    activePhases.find((p) => p.phase_number === selectedPhase) || activePhases[0];
+  const activeModel = currentPhaseObj?.model_3d_url || modelPath || '/models/toro_wither.gltf';
   const activeAttacksList = useMemo(() => {
-    return (
-      currentPhaseObj?.attacks ||
-      getEntityDefaultAttacks(bossName, category, selectedPhase)
-    );
+    return currentPhaseObj?.attacks || getEntityDefaultAttacks(bossName, category, selectedPhase);
   }, [currentPhaseObj, bossName, category, selectedPhase]);
 
   const [selectedAttack, setSelectedAttack] = useState<BossAttack | null>(
@@ -648,8 +587,7 @@ export const WikiBoss3DCard: React.FC<WikiBoss3DCardProps> = ({
 
   const switchPhase = (phaseNum: number) => {
     setSelectedPhase(phaseNum);
-    const targetPhase =
-      activePhases.find((p) => p.phase_number === phaseNum) || activePhases[0];
+    const targetPhase = activePhases.find((p) => p.phase_number === phaseNum) || activePhases[0];
     if (targetPhase?.attacks && targetPhase.attacks.length > 0) {
       setSelectedAttack(targetPhase.attacks[0]);
     }
@@ -672,20 +610,20 @@ export const WikiBoss3DCard: React.FC<WikiBoss3DCardProps> = ({
 
     if (!targetClip) {
       const searchTerms = [
-        "attack",
-        "bite",
-        "claw",
-        "shoot",
-        "smash",
-        "slam",
-        "slash",
-        "roar",
-        "punch",
-        "strike",
-        "jump",
-        "roll",
-        "eat",
-        "idle",
+        'attack',
+        'bite',
+        'claw',
+        'shoot',
+        'smash',
+        'slam',
+        'slash',
+        'roar',
+        'punch',
+        'strike',
+        'jump',
+        'roll',
+        'eat',
+        'idle',
       ];
       for (const term of searchTerms) {
         targetClip = clips.find((c) => c.name.toLowerCase().includes(term));
@@ -704,7 +642,7 @@ export const WikiBoss3DCard: React.FC<WikiBoss3DCardProps> = ({
         action.play();
         currentActionRef.current = action;
       } catch (err) {
-        console.warn("Failed to play attack clip:", err);
+        console.warn('Failed to play attack clip:', err);
       }
     }
   };
@@ -723,7 +661,7 @@ export const WikiBoss3DCard: React.FC<WikiBoss3DCardProps> = ({
     const renderer = new THREE.WebGLRenderer({
       alpha: true,
       antialias: true,
-      powerPreference: "high-performance",
+      powerPreference: 'high-performance',
     });
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -749,12 +687,7 @@ export const WikiBoss3DCard: React.FC<WikiBoss3DCardProps> = ({
     scene.add(backLight);
 
     // Soft Thematic Floor Grid
-    const gridHelper = new THREE.GridHelper(
-      3.5,
-      10,
-      themeStyles.grid1,
-      themeStyles.grid2,
-    );
+    const gridHelper = new THREE.GridHelper(3.5, 10, themeStyles.grid1, themeStyles.grid2);
     gridHelper.position.y = -0.02;
     scene.add(gridHelper);
 
@@ -802,9 +735,7 @@ export const WikiBoss3DCard: React.FC<WikiBoss3DCardProps> = ({
 
         model.traverse((child) => {
           if (child instanceof THREE.Mesh) {
-            const mats = Array.isArray(child.material)
-              ? child.material
-              : [child.material];
+            const mats = Array.isArray(child.material) ? child.material : [child.material];
             mats.forEach((mat) => {
               if (mat.map) {
                 mat.map.magFilter = THREE.NearestFilter;
@@ -833,7 +764,7 @@ export const WikiBoss3DCard: React.FC<WikiBoss3DCardProps> = ({
       },
       undefined,
       (error) => {
-        console.warn("Failed to load GLTF in WikiBoss3DCard:", error);
+        console.warn('Failed to load GLTF in WikiBoss3DCard:', error);
         setIsLoading(false);
       },
     );
@@ -846,11 +777,11 @@ export const WikiBoss3DCard: React.FC<WikiBoss3DCardProps> = ({
       camera.updateProjectionMatrix();
       renderer.setSize(w, h);
     };
-    window.addEventListener("resize", handleResize);
+    window.addEventListener('resize', handleResize);
 
     return () => {
       cancelAnimationFrame(animationFrameId);
-      window.removeEventListener("resize", handleResize);
+      window.removeEventListener('resize', handleResize);
       renderer.dispose();
     };
   }, [activeModel, themeStyles]);
@@ -868,10 +799,7 @@ export const WikiBoss3DCard: React.FC<WikiBoss3DCardProps> = ({
 
     modelRef.current.rotation.y += deltaX * 0.01;
     modelRef.current.rotation.x += deltaY * 0.01;
-    modelRef.current.rotation.x = Math.max(
-      -0.5,
-      Math.min(0.5, modelRef.current.rotation.x),
-    );
+    modelRef.current.rotation.x = Math.max(-0.5, Math.min(0.5, modelRef.current.rotation.x));
 
     previousMousePositionRef.current = { x: e.clientX, y: e.clientY };
   };
@@ -903,8 +831,10 @@ export const WikiBoss3DCard: React.FC<WikiBoss3DCardProps> = ({
         <div className="grid grid-cols-1 items-stretch gap-0 lg:grid-cols-12">
           {/* 3D Interactive Viewport (Left Column) */}
           <div
+            role="region"
             aria-label="Visualizador 3D interactivo"
-            className={`min-h-115 relative flex h-full w-full cursor-grab items-center justify-center overflow-hidden border-b border-white/5 active:cursor-grabbing lg:col-span-5 lg:border-b-0 lg:border-r ${themeStyles.viewportBg}`}
+            tabIndex={0}
+            className={`min-h-115 relative flex h-full w-full cursor-grab items-center justify-center overflow-hidden border-b border-white/5 focus:outline-none active:cursor-grabbing lg:col-span-5 lg:border-b-0 lg:border-r ${themeStyles.viewportBg}`}
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
@@ -919,10 +849,7 @@ export const WikiBoss3DCard: React.FC<WikiBoss3DCardProps> = ({
               </div>
             )}
 
-            <div
-              ref={containerRef}
-              className="absolute inset-0 z-10 h-full w-full"
-            />
+            <div ref={containerRef} className="absolute inset-0 z-10 h-full w-full" />
 
             {/* Phase Switcher Tabs on 3D viewport */}
             {activePhases.length > 1 && (
@@ -939,16 +866,11 @@ export const WikiBoss3DCard: React.FC<WikiBoss3DCardProps> = ({
                     className={`flex cursor-pointer items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-colors ${
                       selectedPhase === phase.phase_number
                         ? themeStyles.activePhaseBtn
-                        : "border-neutral-800 bg-neutral-950/80 text-neutral-400 hover:bg-neutral-800 hover:text-white"
+                        : 'border-neutral-800 bg-neutral-950/80 text-neutral-400 hover:bg-neutral-800 hover:text-white'
                     }`}
                   >
-                    <Flame
-                      aria-hidden="true"
-                      className="h-3.5 w-3.5 text-neutral-400"
-                    />
-                    <span>
-                      {phase.phase_name || `Fase ${phase.phase_number}`}
-                    </span>
+                    <Flame aria-hidden="true" className="h-3.5 w-3.5 text-neutral-400" />
+                    <span>{phase.phase_name || `Fase ${phase.phase_number}`}</span>
                     {phase.hp && (
                       <span className="font-mono text-[9px] tabular-nums text-neutral-500">
                         ({phase.hp})
@@ -1004,25 +926,17 @@ export const WikiBoss3DCard: React.FC<WikiBoss3DCardProps> = ({
                 >
                   <Sparkles size={11} className={themeStyles.accentText} />
                   <span>
-                    {threatLabel ||
-                      subtitle ||
-                      category.toUpperCase() ||
-                      "ENTIDAD OFICIAL"}
+                    {threatLabel || subtitle || category.toUpperCase() || 'ENTIDAD OFICIAL'}
                   </span>
                 </div>
 
                 <h2 className="text-2xl font-black uppercase tracking-tight text-white sm:text-3xl">
-                  {bossName}{" "}
-                  {currentPhaseObj.phase_name
-                    ? `• ${currentPhaseObj.phase_name}`
-                    : ""}
+                  {bossName} {currentPhaseObj.phase_name ? `• ${currentPhaseObj.phase_name}` : ''}
                 </h2>
 
                 {description && (
                   <div className="mt-2 space-y-1 text-xs font-normal leading-relaxed text-neutral-400 [&_strong]:text-white">
-                    <ReactMarkdown>
-                      {description.replace(/\\n/g, "\n")}
-                    </ReactMarkdown>
+                    <ReactMarkdown>{description.replaceAll('\\n', '\n')}</ReactMarkdown>
                   </div>
                 )}
               </div>
@@ -1031,8 +945,7 @@ export const WikiBoss3DCard: React.FC<WikiBoss3DCardProps> = ({
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 <div className="space-y-0.5 rounded-xl border border-white/5 bg-neutral-950/70 p-2.5">
                   <div className="flex items-center gap-1 font-mono text-[9px] uppercase tracking-wider text-neutral-500">
-                    <Heart size={11} className={themeStyles.accentText} />{" "}
-                    {hpLabel || "Salud"}
+                    <Heart size={11} className={themeStyles.accentText} /> {hpLabel || 'Salud'}
                   </div>
                   <div className="font-mono text-xs font-bold text-white">
                     {currentPhaseObj.hp || hp}
@@ -1041,8 +954,7 @@ export const WikiBoss3DCard: React.FC<WikiBoss3DCardProps> = ({
 
                 <div className="space-y-0.5 rounded-xl border border-white/5 bg-neutral-950/70 p-2.5">
                   <div className="flex items-center gap-1 font-mono text-[9px] uppercase tracking-wider text-neutral-500">
-                    <Zap size={11} className={themeStyles.accentText} />{" "}
-                    {damageLabel || "Ataque"}
+                    <Zap size={11} className={themeStyles.accentText} /> {damageLabel || 'Ataque'}
                   </div>
                   <div className="truncate text-xs font-bold text-white">
                     {currentPhaseObj.damage || damage}
@@ -1053,19 +965,14 @@ export const WikiBoss3DCard: React.FC<WikiBoss3DCardProps> = ({
                   <div className="flex items-center gap-1 font-mono text-[9px] uppercase tracking-wider text-neutral-500">
                     <Shield size={11} className="text-neutral-400" /> Armadura
                   </div>
-                  <div className="truncate text-xs font-bold text-white">
-                    {armor}
-                  </div>
+                  <div className="truncate text-xs font-bold text-white">{armor}</div>
                 </div>
 
                 <div className="space-y-0.5 rounded-xl border border-white/5 bg-neutral-950/70 p-2.5">
                   <div className="flex items-center gap-1 font-mono text-[9px] uppercase tracking-wider text-neutral-500">
-                    <Compass size={11} className="text-neutral-400" />{" "}
-                    {speedLabel || "Velocidad"}
+                    <Compass size={11} className="text-neutral-400" /> {speedLabel || 'Velocidad'}
                   </div>
-                  <div className="font-mono text-xs font-bold text-white">
-                    {speed}
-                  </div>
+                  <div className="font-mono text-xs font-bold text-white">{speed}</div>
                 </div>
               </div>
 
@@ -1095,7 +1002,7 @@ export const WikiBoss3DCard: React.FC<WikiBoss3DCardProps> = ({
                           className={`flex cursor-pointer items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors ${
                             isSelected
                               ? themeStyles.activeBtn
-                              : "border-white/5 bg-neutral-900/60 text-neutral-400 hover:bg-neutral-800/80 hover:text-white"
+                              : 'border-white/5 bg-neutral-900/60 text-neutral-400 hover:bg-neutral-800/80 hover:text-white'
                           }`}
                         >
                           <span className="text-xs" aria-hidden="true">
@@ -1104,7 +1011,7 @@ export const WikiBoss3DCard: React.FC<WikiBoss3DCardProps> = ({
                           <span>{attack.name}</span>
                           {attack.damage && (
                             <span className="py-0.2 rounded border border-white/5 bg-neutral-950 px-1 font-mono text-[9px] text-neutral-400">
-                              {attack.type || "ATK"}
+                              {attack.type || 'ATK'}
                             </span>
                           )}
                         </button>
@@ -1117,8 +1024,7 @@ export const WikiBoss3DCard: React.FC<WikiBoss3DCardProps> = ({
                     <div className="space-y-1 rounded-lg border border-white/5 bg-neutral-900 p-3">
                       <div className="flex items-center justify-between">
                         <span className="flex items-center gap-1 text-xs font-bold text-white">
-                          <Zap size={12} className={themeStyles.accentText} />{" "}
-                          {selectedAttack.name}
+                          <Zap size={12} className={themeStyles.accentText} /> {selectedAttack.name}
                         </span>
                         <div className="flex gap-1.5">
                           <span className="py-0.2 rounded border border-neutral-700 bg-neutral-800 px-1.5 font-mono text-[9px] font-bold uppercase text-neutral-300">
@@ -1140,17 +1046,15 @@ export const WikiBoss3DCard: React.FC<WikiBoss3DCardProps> = ({
               {/* Location & Spawn Info */}
               <div className="space-y-1 rounded-xl border border-white/5 bg-neutral-950/70 p-3 text-xs">
                 <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-neutral-300">
-                  <MapPin size={12} className={themeStyles.accentText} />{" "}
-                  {locationLabel || "Ubicación & Método de Aparición"}
+                  <MapPin size={12} className={themeStyles.accentText} />{' '}
+                  {locationLabel || 'Ubicación & Método de Aparición'}
                 </div>
                 <p className="text-[11px] leading-normal text-neutral-400">
-                  <strong className="text-neutral-200">Hábitat:</strong>{" "}
-                  {location}
+                  <strong className="text-neutral-200">Hábitat:</strong> {location}
                 </p>
                 {spawnMethod && (
                   <p className="text-[11px] leading-normal text-neutral-400">
-                    <strong className="text-neutral-200">Aparición:</strong>{" "}
-                    {spawnMethod}
+                    <strong className="text-neutral-200">Aparición:</strong> {spawnMethod}
                   </p>
                 )}
               </div>
@@ -1159,8 +1063,8 @@ export const WikiBoss3DCard: React.FC<WikiBoss3DCardProps> = ({
               {drops && drops.length > 0 && (
                 <div>
                   <h4 className="mb-1 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                    <Award className="h-3.5 w-3.5 text-neutral-400" />{" "}
-                    {dropsLabel || "Botín & Drops"}
+                    <Award className="h-3.5 w-3.5 text-neutral-400" />{' '}
+                    {dropsLabel || 'Botín & Drops'}
                   </h4>
                   <div className="flex flex-wrap gap-1.5">
                     {drops.map((drop) => (
@@ -1182,7 +1086,7 @@ export const WikiBoss3DCard: React.FC<WikiBoss3DCardProps> = ({
               <div className="flex items-center justify-between border-t border-white/5 pt-2.5">
                 <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-neutral-400">
                   <Coins size={14} className="text-amber-400" />
-                  <span>{bountyLabel || "Recompensa de Caza"}</span>
+                  <span>{bountyLabel || 'Recompensa de Caza'}</span>
                 </div>
                 <span className="font-mono text-base font-bold text-amber-300">
                   +{kcReward.toLocaleString()} KC

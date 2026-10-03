@@ -98,7 +98,7 @@ Responde ESTRICTAMENTE en formato JSON plano sin bloques markdown:
             if (res.ok) {
                 const data = await res.json();
                 const text = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
-                const cleanJson = text.replace(/```json/g, '').replace(/```/g, '').trim();
+                const cleanJson = text.replaceAll('```json', '').replaceAll('```', '').trim();
                 const parsed = JSON.parse(cleanJson);
 
                 if (typeof parsed.isValid === 'boolean') {

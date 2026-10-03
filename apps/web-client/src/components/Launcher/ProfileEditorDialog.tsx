@@ -412,8 +412,8 @@ export const ProfileEditorDialog: React.FC<ProfileEditorDialogProps> = ({
                     value={minRam}
                     onChange={(e) => {
                       const raw = e.target.value;
-                      const val = raw ? parseInt(raw, 10) : 0;
-                      setMinRam(isNaN(val) ? 0 : Math.max(0, val));
+                      const val = raw ? Number.parseInt(raw, 10) : 0;
+                      setMinRam(Number.isNaN(val) ? 0 : Math.max(0, val));
                     }}
                   />
                 </div>
@@ -424,8 +424,8 @@ export const ProfileEditorDialog: React.FC<ProfileEditorDialogProps> = ({
                     value={maxRam}
                     onChange={(e) => {
                       const raw = e.target.value;
-                      const val = raw ? parseInt(raw, 10) : 0;
-                      setMaxRam(isNaN(val) ? 0 : Math.max(0, val));
+                      const val = raw ? Number.parseInt(raw, 10) : 0;
+                      setMaxRam(Number.isNaN(val) ? 0 : Math.max(0, val));
                     }}
       
                   />

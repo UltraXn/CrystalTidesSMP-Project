@@ -74,7 +74,7 @@ export default function WikiTreeSidebar({ articles, onSelectArticle }: WikiTreeS
             if (catKey !== 'bosses' && catKey !== 'mobs_hostiles' && catKey !== 'mobs_pacificos' && catKey !== 'guias_generales' && catKey !== 'comandos' && catKey !== 'guias_items') {
                 result.push({
                     id: catKey,
-                    title: catKey.replace(/_/g, ' ').toUpperCase(),
+                    title: catKey.replaceAll('_', ' ').toUpperCase(),
                     icon: Layers,
                     iconColor: 'text-neutral-400',
                     articles: groups[catKey]

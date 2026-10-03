@@ -74,7 +74,7 @@ export const WindowTitleBar: React.FC = () => {
       </div>
 
       {/* Control Buttons */}
-      <div className="titlebar-no-drag" style={{ display: "flex", gap: 4 }} onMouseDown={(e) => e.stopPropagation()}>
+      <div role="toolbar" aria-label="Controles de ventana" tabIndex={-1} className="titlebar-no-drag" style={{ display: "flex", gap: 4 }} onMouseDown={(e) => e.stopPropagation()}>
         <button type="button"
           onClick={handleMinimize}
           aria-label="Minimizar ventana"

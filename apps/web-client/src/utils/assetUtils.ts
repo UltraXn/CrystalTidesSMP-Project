@@ -18,7 +18,7 @@ const MODEL_ALIASES: Record<string, string> = {
  */
 export function resolveAssetUrl(rawPath?: string | null): string {
     if (!rawPath) return '';
-    let normalized = rawPath.replace(/\\/g, '/').trim();
+    let normalized = rawPath.replaceAll('\\', '/').trim();
     if (MODEL_ALIASES[normalized]) {
         normalized = MODEL_ALIASES[normalized];
     }

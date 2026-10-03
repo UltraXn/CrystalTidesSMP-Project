@@ -8,14 +8,16 @@ export const getLogs = async (req: Request, res: Response) => {
         const limit = ensureString(req.query.limit, '50');
         const source = ensureString(req.query.source, 'web');
         const search = ensureString(req.query.search, '');
-        const offset = (parseInt(page) - 1) * parseInt(limit);
+        const parsedPage = Number.parseInt(page, 10) || 1;
+        const parsedLimit = Number.parseInt(limit, 10) || 50;
+        const offset = (parsedPage - 1) * parsedLimit;
 
         if (source === 'game') {
-            const data = await logService.getGameLogs({ limit: parseInt(limit), offset, search });
+            const data = await logService.getGameLogs({ limit: parsedLimit, offset, search });
             return res.json(data);
         }
     
-        const data = await logService.getLogs({ limit: parseInt(limit), offset, source, search });
+        const data = await logService.getLogs({ limit: parsedLimit, offset, source, search });
         res.json(data);
     } catch (error) {
         const message = error instanceof Error ? error.message : 'Unknown error';

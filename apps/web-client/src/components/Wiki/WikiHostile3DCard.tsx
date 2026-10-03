@@ -31,6 +31,8 @@ export interface WikiHostile3DCardProps {
   kcReward?: number;
 }
 
+const DEFAULT_DROPS = ["Piel Mítica", "Diente Infectado"];
+
 export const WikiHostile3DCard: React.FC<WikiHostile3DCardProps> = ({
   minimal3dOnly = false,
   modelPath = "/models/mythology/chupacabra.gltf",
@@ -42,7 +44,7 @@ export const WikiHostile3DCard: React.FC<WikiHostile3DCardProps> = ({
   location = "Bosques Nocturnos & Cavernas",
   spawnMethod = "Generación Natural Nocturna",
   description = "Depredador nocturno sediento de sangre con mandíbulas retráctiles que acecha en la oscuridad.",
-  drops = ["Piel Mítica", "Diente Infectado"],
+  drops = DEFAULT_DROPS,
   kcReward = 150,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -265,8 +267,10 @@ export const WikiHostile3DCard: React.FC<WikiHostile3DCardProps> = ({
         <div className="grid grid-cols-1 items-stretch gap-0 lg:grid-cols-12">
           {/* 3D Viewport Column */}
           <div
+            role="region"
             aria-label="Visualizador 3D Hostil"
-            className="min-h-95 bg-radial relative flex h-full w-full cursor-grab items-center justify-center overflow-hidden border-b border-red-500/20 from-red-950/40 via-black to-black outline-none active:cursor-grabbing lg:col-span-5 lg:border-b-0 lg:border-r"
+            tabIndex={0}
+            className="min-h-95 bg-radial relative flex h-full w-full cursor-grab items-center justify-center overflow-hidden border-b border-red-500/20 from-red-950/40 via-black to-black outline-none active:cursor-grabbing focus:outline-none lg:col-span-5 lg:border-b-0 lg:border-r"
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
@@ -323,7 +327,7 @@ export const WikiHostile3DCard: React.FC<WikiHostile3DCardProps> = ({
               {description && (
                 <div className="mb-3 space-y-1.5 text-[11px] font-medium leading-relaxed text-gray-300 [&_p]:mb-1">
                   <ReactMarkdown>
-                    {description.replace(/\\n/g, "\n")}
+                    {description.replaceAll('\\n', '\n')}
                   </ReactMarkdown>
                 </div>
               )}

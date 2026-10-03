@@ -1,6 +1,6 @@
 import React, { useCallback, Suspense, lazy, useState, useRef } from 'react'
 import useEmblaCarousel from 'embla-carousel-react'
-import Autoplay from 'embla-carousel-autoplay'
+import createAutoplay from 'embla-carousel-autoplay'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 const SkinViewer = lazy(() => import('../Widgets/SkinViewer'))
@@ -65,7 +65,7 @@ const TiltCard = ({ children, className }: { children: React.ReactNode, classNam
 
 const EmblaCarousel = (props: EmblaCarouselProps) => {
     const { slides, options } = props
-    const [emblaRef, emblaApi] = useEmblaCarousel({ align: 'start', loop: true, ...options }, [Autoplay({ delay: 6000 })])
+    const [emblaRef, emblaApi] = useEmblaCarousel({ align: 'start', loop: true, ...options }, [createAutoplay({ delay: 6000 })])
 
     const scrollPrev = useCallback(() => {
         if (emblaApi) emblaApi.scrollPrev()

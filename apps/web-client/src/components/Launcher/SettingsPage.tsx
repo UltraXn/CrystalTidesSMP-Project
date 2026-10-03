@@ -121,7 +121,7 @@ export const SettingsPage: React.FC = () => {
           <div style={sectionStyle}>
             <h4 style={{ margin: 0, fontSize: 15, fontWeight: "bold", color: "#FFFFFF", display: "flex", alignItems: "center", gap: 8 }}>
               <img src="/logo.png" style={{ width: 18, height: 18, objectFit: "contain", imageRendering: "pixelated" }} alt="Logo" />
-              Cuenta de CrystalTides
+              <span>Cuenta de CrystalTides</span>
             </h4>
             
             {crystalSession ? (

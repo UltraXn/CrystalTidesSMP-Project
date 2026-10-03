@@ -1,4 +1,4 @@
-
+import type { User } from "@supabase/supabase-js"
 import NotificationCenter from "../../components/UI/NotificationCenter"
 import { Link, useNavigate, useLocation } from "react-router-dom"
 import { useAuth } from "../../context/AuthContext"
@@ -152,83 +152,15 @@ export default function Navbar() {
                             {user ? (
                                 <div className="flex items-center gap-4">
                                     <NotificationCenter />
-                                    <div className="relative" ref={dropdownRef}>
-                                        <button type="button"
-                                            aria-label="Menú de perfil de usuario"
-                                            className="flex items-center gap-3 bg-(--accent) px-4 py-2 rounded-xl cursor-pointer hover:brightness-110 active:scale-95 transition-colors shadow-lg shadow-(--accent)/20 group"
-                                            onClick={() => setDropdownOpen(!dropdownOpen)}
-                                        >
-                                            <div className="w-6 h-6 rounded-lg overflow-hidden border border-black/10">
-                                                <img 
-                                                    src={(() => {
-                                                        const meta = user.user_metadata || {};
-                                                        const mcNick = meta.minecraft_nick || meta.username || 'steve';
-                                                        return meta.avatar_preference === 'social' && meta.avatar_url 
-                                                            ? meta.avatar_url 
-                                                            : `https://mc-heads.net/avatar/${mcNick}/64`;
-                                                    })()}
-                                                    alt="Avatar" 
-                                                    className="w-full h-full object-cover" 
-                                                />
-                                            </div>
-                                            <span className="text-[11px] font-black text-black uppercase tracking-widest truncate max-w-30">
-                                                {user.user_metadata?.minecraft_nick || user.user_metadata?.username || 'User'}
-                                            </span>
-                                        </button>
-
-                                        <AnimatePresence>
-                                            {dropdownOpen && (
-                                                <motion.div
-                                                    key="user-dropdown-menu"
-                                                    className="absolute top-full right-0 mt-4 min-w-65 bg-[#0a0a0a] border border-white/10 rounded-4xl p-3 shadow-2xl backdrop-blur-2xl z-100 origin-top-right overflow-hidden shadow-black/80"
-                                                    initial={{ opacity: 0, scale: 0.9, y: 10 }}
-                                                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                                                    exit={{ opacity: 0, scale: 0.9, y: 10 }}
-                                                    transition={{ type: "spring", duration: 0.3, bounce: 0 }}
-                                                >
-                                                    <div className="px-4 py-4 mb-2 border-b border-white/5">
-                                                        <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest leading-none mb-1">{t('navbar.logged_in_as', 'Conectado como')}</p>
-                                                        <p className="text-sm font-black text-white truncate">{user.email}</p>
-                                                    </div>
-
-                                                    <div className="space-y-1">
-                                                        {[
-                                                            { to: `/u/${user.user_metadata?.minecraft_nick || user.user_metadata?.username}`, icon: <UserIcon size={18} />, label: t('account.nav.profile', 'Ver Perfil') },
-                                                            { to: "/account?tab=overview", icon: <Server size={18} />, label: t('account.nav.overview', 'Resumen de Cuenta') },
-                                                            { to: "/account?tab=posts", icon: <Edit size={18} />, label: t('account.nav.posts', 'Mis Publicaciones') },
-                                                            { to: "/account?tab=achievements", icon: <Trophy size={18} />, label: t('account.nav.achievements', 'Logros') },
-                                                            { to: "/account?tab=connections", icon: <LinkIcon size={18} />, label: t('account.nav.connections', 'Cuentas Vinculadas') },
-                                                            { to: "/account?tab=settings", icon: <Settings size={18} />, label: t('account.settings.title', 'Configuración') }
-                                                        ].map((item) => (
-                                                            <Link 
-                                                                key={item.to}
-                                                                to={item.to} 
-                                                                className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-400 rounded-[1.25rem] hover:bg-white/5 hover:text-white group/item transition-colors" 
-                                                                onClick={closeUserDropdown} 
-                                                            >
-                                                                <span className="text-gray-600 group-hover/item:text-(--accent) transition-colors">{item.icon}</span>
-                                                                {item.label}
-                                                            </Link>
-                                                        ))}
-
-                                                        {isAdmin && (
-                                                            <>
-                                                                <div className="h-px bg-white/5 my-2 mx-4"></div>
-                                                                <Link to="/admin" className="flex items-center gap-3 px-4 py-3 text-sm font-black text-(--accent) rounded-[1.25rem] hover:bg-(--accent)/10 transition-colors" onClick={closeUserDropdown}>
-                                                                    <Shield size={18} /> {t('account.admin_panel', 'Panel de Admin')}
-                                                                </Link>
-                                                            </>
-                                                        )}
-
-                                                        <div className="h-px bg-white/5 my-2 mx-4"></div>
-                                                        <button type="button" className="w-full flex items-center gap-3 px-4 py-3 text-sm font-black text-red-500 rounded-[1.25rem] hover:bg-red-500/10 transition-colors text-left" onClick={handleLogout}>
-                                                            <LogOut size={18} /> {t('account.nav.logout', 'Cerrar Sesión')}
-                                                        </button>
-                                                    </div>
-                                                </motion.div>
-                                            )}
-                                        </AnimatePresence>
-                                    </div>
+                                    <UserDropdownMenu 
+                                        user={user}
+                                        isAdmin={isAdmin}
+                                        dropdownOpen={dropdownOpen}
+                                        setDropdownOpen={setDropdownOpen}
+                                        dropdownRef={dropdownRef}
+                                        closeUserDropdown={closeUserDropdown}
+                                        handleLogout={handleLogout}
+                                    />
                                 </div>
                             ) : (
                                 <div className="flex items-center gap-2">
@@ -241,5 +173,107 @@ export default function Navbar() {
                 </div>
             </div>
         </header>
+    )
+}
+
+interface UserDropdownMenuProps {
+    user: User
+    isAdmin: boolean
+    dropdownOpen: boolean
+    setDropdownOpen: React.Dispatch<React.SetStateAction<boolean>>
+    dropdownRef: React.RefObject<HTMLDivElement | null>
+    closeUserDropdown: () => void
+    handleLogout: () => Promise<void>
+}
+
+function UserDropdownMenu({
+    user,
+    isAdmin,
+    dropdownOpen,
+    setDropdownOpen,
+    dropdownRef,
+    closeUserDropdown,
+    handleLogout
+}: UserDropdownMenuProps) {
+    const { t } = useTranslation()
+    const meta = user.user_metadata || {}
+    const mcNick = meta.minecraft_nick || meta.username || 'steve'
+    const avatarUrl = meta.avatar_preference === 'social' && meta.avatar_url 
+        ? meta.avatar_url 
+        : `https://mc-heads.net/avatar/${mcNick}/64`
+
+    return (
+        <div className="relative" ref={dropdownRef}>
+            <button 
+                type="button"
+                aria-label="Menú de perfil de usuario"
+                className="flex items-center gap-3 bg-(--accent) px-4 py-2 rounded-xl cursor-pointer hover:brightness-110 active:scale-95 transition-colors shadow-lg shadow-(--accent)/20 group"
+                onClick={() => setDropdownOpen((prev) => !prev)}
+            >
+                <div className="w-6 h-6 rounded-lg overflow-hidden border border-black/10">
+                    <img 
+                        src={avatarUrl}
+                        alt="Avatar" 
+                        className="w-full h-full object-cover" 
+                    />
+                </div>
+                <span className="text-[11px] font-black text-black uppercase tracking-widest truncate max-w-30">
+                    {user.user_metadata?.minecraft_nick || user.user_metadata?.username || 'User'}
+                </span>
+            </button>
+
+            <AnimatePresence>
+                {dropdownOpen && (
+                    <motion.div
+                        key="user-dropdown-menu"
+                        className="absolute top-full right-0 mt-4 min-w-65 bg-[#0a0a0a] border border-white/10 rounded-4xl p-3 shadow-2xl backdrop-blur-2xl z-100 origin-top-right overflow-hidden shadow-black/80"
+                        initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.9, y: 10 }}
+                        transition={{ type: "spring", duration: 0.3, bounce: 0 }}
+                    >
+                        <div className="px-4 py-4 mb-2 border-b border-white/5">
+                            <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest leading-none mb-1">{t('navbar.logged_in_as', 'Conectado como')}</p>
+                            <p className="text-sm font-black text-white truncate">{user.email}</p>
+                        </div>
+
+                        <div className="space-y-1">
+                            {[
+                                { to: `/u/${user.user_metadata?.minecraft_nick || user.user_metadata?.username}`, icon: <UserIcon size={18} />, label: t('account.nav.profile', 'Ver Perfil') },
+                                { to: "/account?tab=overview", icon: <Server size={18} />, label: t('account.nav.overview', 'Resumen de Cuenta') },
+                                { to: "/account?tab=posts", icon: <Edit size={18} />, label: t('account.nav.posts', 'Mis Publicaciones') },
+                                { to: "/account?tab=achievements", icon: <Trophy size={18} />, label: t('account.nav.achievements', 'Logros') },
+                                { to: "/account?tab=connections", icon: <LinkIcon size={18} />, label: t('account.nav.connections', 'Cuentas Vinculadas') },
+                                { to: "/account?tab=settings", icon: <Settings size={18} />, label: t('account.settings.title', 'Configuración') }
+                            ].map((item) => (
+                                <Link 
+                                    key={item.to} 
+                                    to={item.to} 
+                                    className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-400 rounded-[1.25rem] hover:bg-white/5 hover:text-white group/item transition-colors" 
+                                    onClick={closeUserDropdown} 
+                                >
+                                    <span className="text-gray-600 group-hover/item:text-(--accent) transition-colors">{item.icon}</span>
+                                    {item.label}
+                                </Link>
+                            ))}
+
+                            {isAdmin && (
+                                <>
+                                    <div className="h-px bg-white/5 my-2 mx-4"></div>
+                                    <Link to="/admin" className="flex items-center gap-3 px-4 py-3 text-sm font-black text-(--accent) rounded-[1.25rem] hover:bg-(--accent)/10 transition-colors" onClick={closeUserDropdown}>
+                                        <Shield size={18} /> {t('account.admin_panel', 'Panel de Admin')}
+                                    </Link>
+                                </>
+                            )}
+
+                            <div className="h-px bg-white/5 my-2 mx-4"></div>
+                            <button type="button" className="w-full flex items-center gap-3 px-4 py-3 text-sm font-black text-red-500 rounded-[1.25rem] hover:bg-red-500/10 transition-colors text-left" onClick={handleLogout}>
+                                <LogOut size={18} /> {t('account.nav.logout', 'Cerrar Sesión')}
+                            </button>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
     )
 }

@@ -13,7 +13,7 @@ export class SSRFSecurityError extends Error {
  */
 function isPrivateIPv4(ip: string): boolean {
   const parts = ip.split('.').map(Number);
-  if (parts.length !== 4 || parts.some((p) => isNaN(p) || p < 0 || p > 255)) {
+  if (parts.length !== 4 || parts.some((p) => Number.isNaN(p) || p < 0 || p > 255)) {
     return true; // Malformed IPv4 is treated as unsafe
   }
 
@@ -64,27 +64,7 @@ function isPrivateIPv6(ip: string): boolean {
   return false;
 }
 
-/**
- * Validates a target URL against SSRF attacks (specifically guarding GCP metadata and private networks).
- */
-export async function validateSafeUrl(urlStr: string): Promise<URL> {
-  let parsed: URL;
-  try {
-    parsed = new URL(urlStr);
-  } catch {
-    throw new SSRFSecurityError(`Invalid URL format: ${urlStr}`);
-  }
-
-  // Only allow HTTP and HTTPS protocols
-  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-    throw new SSRFSecurityError(
-      `Unsupported protocol: ${parsed.protocol}. Only http: and https: are allowed.`,
-    );
-  }
-
-  const hostname = parsed.hostname.toLowerCase();
-
-  // Reject local and cloud-internal hostnames immediately
+function assertPublicHostname(hostname: string): void {
   if (
     hostname === 'localhost' ||
     hostname.endsWith('.localhost') ||
@@ -94,25 +74,27 @@ export async function validateSafeUrl(urlStr: string): Promise<URL> {
   ) {
     throw new SSRFSecurityError(`Access to internal hostname ${hostname} is strictly blocked.`);
   }
+}
 
-  // If hostname is directly an IP literal
+function checkIpLiteral(hostname: string): boolean {
   if (net.isIPv4(hostname)) {
     if (isPrivateIPv4(hostname)) {
-      throw new SSRFSecurityError(
-        `Direct access to private/link-local IPv4 ${hostname} is blocked.`,
-      );
+      throw new SSRFSecurityError(`Direct access to private/link-local IPv4 ${hostname} is blocked.`);
     }
-    return parsed;
+    return true;
   }
 
   if (net.isIPv6(hostname)) {
     if (isPrivateIPv6(hostname)) {
       throw new SSRFSecurityError(`Direct access to private/loopback IPv6 ${hostname} is blocked.`);
     }
-    return parsed;
+    return true;
   }
 
-  // Resolve DNS to verify all destination IP addresses
+  return false;
+}
+
+async function verifyDnsRecords(hostname: string): Promise<void> {
   try {
     const records = await dns.lookup(hostname, { all: true });
     for (const record of records) {
@@ -132,7 +114,33 @@ export async function validateSafeUrl(urlStr: string): Promise<URL> {
     const message = err instanceof Error ? err.message : String(err);
     throw new SSRFSecurityError(`Failed to resolve DNS for ${hostname}: ${message}`);
   }
+}
 
+/**
+ * Validates a target URL against SSRF attacks (specifically guarding GCP metadata and private networks).
+ */
+export async function validateSafeUrl(urlStr: string): Promise<URL> {
+  let parsed: URL;
+  try {
+    parsed = new URL(urlStr);
+  } catch {
+    throw new SSRFSecurityError(`Invalid URL format: ${urlStr}`);
+  }
+
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+    throw new SSRFSecurityError(
+      `Unsupported protocol: ${parsed.protocol}. Only http: and https: are allowed.`,
+    );
+  }
+
+  const hostname = parsed.hostname.toLowerCase();
+  assertPublicHostname(hostname);
+
+  if (checkIpLiteral(hostname)) {
+    return parsed;
+  }
+
+  await verifyDnsRecords(hostname);
   return parsed;
 }
 

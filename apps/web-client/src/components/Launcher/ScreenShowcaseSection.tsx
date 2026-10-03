@@ -206,9 +206,9 @@ export const ScreenShowcaseSection: React.FC = () => {
 
           {/* Features Checkpoints */}
           <div className="space-y-2.5 border-t border-white/5 pt-2">
-            {current.features.map((feat, i) => (
+            {current.features.map((feat) => (
               <div
-                key={i}
+                key={`feature-${feat}`}
                 className="flex items-start gap-2.5 text-xs text-slate-200"
               >
                 <div className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-teal-500/20 text-teal-400">
@@ -267,7 +267,7 @@ export const ScreenShowcaseSection: React.FC = () => {
                     </div>
                     <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-400">
                       <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
-                      142 Jugadores en línea
+                      <span>142 Jugadores en línea</span>
                     </div>
                   </div>
                 </div>

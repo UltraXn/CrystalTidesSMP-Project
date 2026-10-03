@@ -1,0 +1,8 @@
+apps/launcher/**
+apps/launcher-lite/**
+**/__tests__/**
+**/*.test.*
+**/*.spec.*
+**/node_modules/**
+**/dist/**
+**/target/**

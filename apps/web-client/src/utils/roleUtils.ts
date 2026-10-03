@@ -1,8 +1,8 @@
 import { User } from '@supabase/supabase-js';
 
 // Centralized role definitions based on project requirements
-const ADMIN_ROLES = ['admin', 'neroferno', 'killu', 'developer', 'staff'];
-const STAFF_ROLES = [...ADMIN_ROLES, 'moderator', 'mod', 'helper'];
+const ADMIN_ROLES = new Set(['admin', 'neroferno', 'killu', 'developer', 'staff']);
+const STAFF_ROLES = new Set([...ADMIN_ROLES, 'moderator', 'mod', 'helper']);
 
 /**
  * Extracts a role from a Supabase user object from multiple possible locations.
@@ -21,7 +21,7 @@ export const getUserRole = (user: User | null): string | null => {
     // to prevent client-side privilege escalation via supabase.auth.updateUser({ data: { role: 'admin' } }).
     if (user.user_metadata?.role && typeof user.user_metadata.role === 'string') {
         const userMetaRole = user.user_metadata.role.toLowerCase();
-        if (!STAFF_ROLES.includes(userMetaRole)) {
+        if (!STAFF_ROLES.has(userMetaRole)) {
             return user.user_metadata.role;
         }
     }
@@ -50,7 +50,7 @@ export const isAdmin = (user: User | null): boolean => {
     const appRole = user?.app_metadata?.role;
     const topRole = (user as { role?: string })?.role;
     const isAuthoritative = (appRole && appRole === role) || (topRole && topRole === role);
-    return !!(isAuthoritative && ADMIN_ROLES.includes(role.toLowerCase()));
+    return !!(isAuthoritative && ADMIN_ROLES.has(role.toLowerCase()));
 };
 
 /**
@@ -65,5 +65,5 @@ export const isStaff = (user: User | null): boolean => {
     const appRole = user?.app_metadata?.role;
     const topRole = (user as { role?: string })?.role;
     const isAuthoritative = (appRole && appRole === role) || (topRole && topRole === role);
-    return !!(isAuthoritative && STAFF_ROLES.includes(role.toLowerCase()));
+    return !!(isAuthoritative && STAFF_ROLES.has(role.toLowerCase()));
 };

@@ -6,8 +6,18 @@ import { Request, Response } from 'express';
 import { WebhookClient, EmbedBuilder } from 'discord.js';
 import { ensureString } from '../utils/typeUtils.js';
 
-// Canal de anuncios de Discord
 const NEWS_WEBHOOK_URL = process.env.DISCORD_NEWS_WEBHOOK_URL || process.env.DISCORD_WEBHOOK_URL;
+
+const ERRORS = {
+    UNAUTH: "Usuario no autenticado",
+    NEWS_NOT_FOUND: "Noticia no encontrada",
+    COMMENT_NOT_FOUND: "Comentario no encontrado"
+} as const;
+
+const CONSTANTS = {
+    ADMIN: 'Admin',
+    WEB: 'web'
+} as const;
 
 interface NewsWebhookProps {
     title: string;
@@ -16,6 +26,80 @@ interface NewsWebhookProps {
     image?: string;
     slug: string;
 }
+
+// Helper: Handle errors uniformly
+const handleControllerError = (res: Response, error: unknown) => {
+    const message = error instanceof Error ? error.message : String(error);
+    res.status(500).json({ error: message });
+};
+
+// Helper: Resolve ID or Slug to news ID
+const resolveNewsId = async (idOrSlug: string): Promise<string | null> => {
+    if (/^\d+$/.test(idOrSlug)) return idOrSlug;
+    const { data, error } = await supabase.from('news').select('id').eq('slug', idOrSlug).single();
+    if (error || !data) return null;
+    return String(data.id);
+};
+
+const TAG_COLORS: Record<string, string> = {
+    EVENT: '#F59E0B',
+    CHANGELOG: '#10B981',
+};
+const DEFAULT_TAG_COLOR = '#2DD4BF';
+
+const resolveTag = (tagLabel: unknown, category: string): string => {
+    if (tagLabel) return String(tagLabel);
+    if (category === 'CHANGELOG') return 'CHANGELOG';
+    return category || 'NOTICIA';
+};
+
+const resolveTagColor = (tagColor: unknown, category: string): string => {
+    if (tagColor) return String(tagColor);
+    return TAG_COLORS[category] || DEFAULT_TAG_COLOR;
+};
+
+const resolveSummary = (summary: unknown, content: unknown): string => {
+    if (summary) return String(summary);
+    if (typeof content === 'string') return content.substring(0, 140) + '...';
+    return '';
+};
+
+const resolveImageUrl = (bannerUrl: unknown, imageUrl: unknown): string | null => {
+    if (bannerUrl) return String(bannerUrl);
+    if (imageUrl) return String(imageUrl);
+    return null;
+};
+
+// Helper: Format News Feed Item
+const formatNewsFeedItem = (n: Record<string, unknown>) => {
+    const category = String(n.category || 'ANNOUNCEMENT');
+
+    return {
+        id: String(n.id),
+        title: String(n.title || ''),
+        slug: String(n.slug || n.id),
+        category,
+        tag: resolveTag(n.tag_label, category),
+        tagColor: resolveTagColor(n.tag_color, category),
+        summary: resolveSummary(n.summary, n.content),
+        imageUrl: resolveImageUrl(n.banner_image_url, n.image_url),
+        actionLabel: String(n.action_label || 'LEER MÁS'),
+        actionUrl: String(n.action_url || `https://crystaltidessmp.net/news/${n.slug || n.id}`),
+        publishedAt: String(n.created_at || new Date().toISOString())
+    };
+};
+
+const slugify = (text: string) => {
+    return text
+        .toString()
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9\s-]/g, '')
+        .trim()
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-');
+};
 
 const sendNewsWebhook = async (news: NewsWebhookProps) => {
     if (!NEWS_WEBHOOK_URL) {
@@ -26,64 +110,37 @@ const sendNewsWebhook = async (news: NewsWebhookProps) => {
     try {
         const webhookClient = new WebhookClient({ url: NEWS_WEBHOOK_URL });
         
-        // Truncate content for description if too long
-        // Max description length is 4096, but we keep it shorter for readability
         let description = news.content.length > 200 
             ? news.content.substring(0, 197) + '...' 
             : news.content;
 
-        // Add Role Tag inside the embed as requested
-        const roleToTag = '1272263167090626712'; // Role requested by user
+        const roleToTag = '1272263167090626712';
         description += `\n\n<@&${roleToTag}>`;
 
         const embed = new EmbedBuilder()
             .setTitle(`📢 ${news.title}`)
             .setURL(`https://crystaltidessmp.net/news/${news.slug}`) 
-            .setColor(0x00aabb) // Aqua/Cyan color for CrystalTides
+            .setColor(0x00aabb)
             .setDescription(description)
             .addFields({ name: 'Categoría', value: news.category, inline: true })
             .setTimestamp()
             .setFooter({ text: 'CrystalTides News' });
 
-        // Ensure image URL is absolute
         if (news.image) {
             let imageUrl = news.image;
             if (!imageUrl.startsWith('http')) {
-                // Assuming images are hosted on the main domain
                 imageUrl = `https://crystaltidessmp.net${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
             }
             embed.setImage(imageUrl);
         }
 
         await webhookClient.send({
-            // Content left empty or with a non-ping text if they strictly want it inside embed. 
-            // However, usually users want the ping. Mentions in embeds DO NOT ping.
-            // But the user asked "por favor dentro del embed". 
-            // To ensure functionality (ping) + request (inside embed), we often do both or just content.
-            // Given the strict phrasing "dentro del embed", I will put it there. 
-            // Any "content" ping is removed to follow the "visual" instruction, 
-            // BUT this means it won't trigger a push notification for the role.
-            // I'll add a subtle ping in content just in case, but rely on the embed for the "tag".
-            // actually, let's keep the content clean if requested "inside".
             content: `Nuevo anuncio publicado!`, 
             embeds: [embed],
         });
     } catch (error) {
         console.error('Error sending news webhook:', error);
     }
-};
-
-// Helper function for slug generation
-const slugify = (text: string) => {
-    return text
-        .toString()
-        .toLowerCase()
-        .normalize('NFD') // Normalize special chars (e.g. á -> a)
-        .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
-        .replace(/[^a-z0-9\s-]/g, '') // Remove invalid chars
-        .trim()
-        .replace(/\s+/g, '-') // Replace spaces with -
-        .replace(/-+/g, '-'); // Replace multiple - with single -
 };
 
 export const getAllNews = async (req: Request, res: Response) => {
@@ -95,7 +152,6 @@ export const getAllNews = async (req: Request, res: Response) => {
 
         if (error) throw error;
 
-        // Type the mapped item explicitly to avoid 'any'
         interface NewsItem {
             comments?: { count: number }[];
             [key: string]: unknown;
@@ -109,8 +165,7 @@ export const getAllNews = async (req: Request, res: Response) => {
 
         res.status(200).json(newsWithCounts);
     } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        res.status(500).json({ error: message });
+        handleControllerError(res, error);
     }
 };
 
@@ -120,59 +175,38 @@ export const getNewsById = async (req: Request, res: Response) => {
         const isNumeric = /^\d+$/.test(id);
 
         let query = supabase.from('news').select('*');
-        
-        if (isNumeric) {
-            query = query.eq('id', id);
-        } else {
-            query = query.eq('slug', id);
-        }
+        if (isNumeric) query = query.eq('id', id);
+        else query = query.eq('slug', id);
 
         const { data: newsItem, error: fetchError } = await query.single();
 
         if (fetchError) throw fetchError;
-        if (!newsItem) return res.status(404).json({ error: "Noticia no encontrada" });
+        if (!newsItem) return res.status(404).json({ error: ERRORS.NEWS_NOT_FOUND });
 
-        // 2. Incrementar visitas (si existe la columna views)
         const newViews = (newsItem.views || 0) + 1;
 
         await supabase
             .from('news')
             .update({ views: newViews })
-            .eq('id', newsItem.id); // Always update by ID once found
+            .eq('id', newsItem.id);
 
-        // Fetch Author Fresh Data (Sync with Forum logic)
         const { data: profile } = await supabase
             .from('profiles')
             .select('username, full_name, avatar_url, role, status_message, avatar_preference, community_pref, minecraft_uuid, minecraft_nick, social_discord, social_avatar_url')
             .eq('id', newsItem.author_id)
             .maybeSingle();
 
-        // Retornamos el item con las vistas actualizadas (optimista)
         res.status(200).json({ ...newsItem, views: newViews, author_data_fresh: profile });
     } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        res.status(500).json({ error: message });
+        handleControllerError(res, error);
     }
 };
 
 export const getCommentsByNewsId = async (req: Request, res: Response) => {
     try {
         const id = ensureString(req.params.id);
-        let newsId = id;
-
-        // Si el ID no es numérico, asumimos que es un slug y buscamos el ID real
-        if (!/^\d+$/.test(id)) {
-            const { data: news, error: newsError } = await supabase
-                .from('news')
-                .select('id')
-                .eq('slug', id)
-                .single();
-            
-            if (newsError || !news) {
-                return res.status(404).json({ error: "Noticia no encontrada" });
-            }
-            newsId = news.id;
-        }
+        const newsId = await resolveNewsId(id);
+        if (!newsId) return res.status(404).json({ error: ERRORS.NEWS_NOT_FOUND });
 
         const { data, error } = await supabase
             .from('comments')
@@ -182,7 +216,6 @@ export const getCommentsByNewsId = async (req: Request, res: Response) => {
 
         if (error) throw error;
 
-        // Map join result to match forum structure
         interface JoinedComment {
             profiles?: unknown;
             [key: string]: unknown;
@@ -196,58 +229,31 @@ export const getCommentsByNewsId = async (req: Request, res: Response) => {
 
         res.status(200).json(mappedComments);
     } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        res.status(500).json({ error: message });
+        handleControllerError(res, error);
     }
 };
 
 export const createComment = async (req: Request, res: Response) => {
     try {
-        const id = ensureString(req.params.id); // news_id o slug
-        // Don't trust body for user info
+        const id = ensureString(req.params.id);
         const { content } = req.body;
         const user = req.user;
 
-        if (!user) {
-            return res.status(401).json({ error: "Usuario no autenticado" });
-        }
+        if (!user) return res.status(401).json({ error: ERRORS.UNAUTH });
 
-        let newsId = id;
+        const newsId = await resolveNewsId(id);
+        if (!newsId) return res.status(404).json({ error: ERRORS.NEWS_NOT_FOUND });
 
-        // Resolver slug a ID si es necesario
-        if (!/^\d+$/.test(id)) {
-            const { data: news, error: newsError } = await supabase
-                .from('news')
-                .select('id')
-                .eq('slug', id)
-                .single();
-            
-            if (newsError || !news) {
-                console.error(`Error resolving slug '${id}' to ID:`, newsError);
-                return res.status(404).json({ error: "Noticia no encontrada" });
-            }
-            newsId = news.id;
-        }
-
-        // Fetch latest user metadata to get correct avatar and role
-        // Ideally this should come from a 'profiles' table join, but for now we query auth/profiles
         const { data: profile } = await supabase
             .from('profiles')
             .select('username, role, avatar_url')
             .eq('id', user.id)
             .single();
 
-        // Fallback to auth metadata if profile fails or is incomplete
         const { data: { user: authUser } } = await supabase.auth.admin.getUserById(user.id);
         
-        // Hybrid Priority Resolution based on User Feedback
-        // 1. Username: Profile (UltraXn) > Metadata (Discord Name)
         const finalUsername = profile?.username || authUser?.user_metadata?.username || user.username;
-        
-        // 2. Role: Metadata (Source of Truth for Permissions) > Profile
         const finalRole = authUser?.user_metadata?.role || profile?.role || 'user';
-        
-        // 3. Avatar: Metadata (Social PFP) > Profile (Minecraft Skin)
         const finalAvatar = authUser?.user_metadata?.avatar_url || profile?.avatar_url || null;
 
         const { data, error } = await supabase
@@ -265,33 +271,27 @@ export const createComment = async (req: Request, res: Response) => {
         if (error) throw error;
         res.status(201).json(data[0]);
     } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        res.status(500).json({ error: message });
+        handleControllerError(res, error);
     }
 };
 
 export const updateComment = async (req: Request, res: Response) => {
     try {
-        const id = ensureString(req.params.id); // comment id
+        const id = ensureString(req.params.id);
         const { content } = req.body;
         const user = req.user;
 
-        if (!user) return res.status(401).json({ error: "Usuario no autenticado" });
+        if (!user) return res.status(401).json({ error: ERRORS.UNAUTH });
 
-        // 1. Verify existence and ownership
         const { data: comment, error: fetchError } = await supabase
             .from('comments')
             .select('user_id')
             .eq('id', id)
             .single();
 
-        if (fetchError || !comment) return res.status(404).json({ error: "Comentario no encontrado" });
+        if (fetchError || !comment) return res.status(404).json({ error: ERRORS.COMMENT_NOT_FOUND });
+        if (comment.user_id !== user.id) return res.status(403).json({ error: "No tienes permiso para editar este comentario" });
 
-        if (comment.user_id !== user.id) {
-             return res.status(403).json({ error: "No tienes permiso para editar este comentario" });
-        }
-
-        // 2. Update
         const { error } = await supabase
             .from('comments')
             .update({ content })
@@ -300,39 +300,31 @@ export const updateComment = async (req: Request, res: Response) => {
         if (error) throw error;
         res.status(200).json({ message: "Comentario actualizado" });
     } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        res.status(500).json({ error: message });
+        handleControllerError(res, error);
     }
 };
 
 export const deleteComment = async (req: Request, res: Response) => {
     try {
-        const id = ensureString(req.params.id); // comment id
+        const id = ensureString(req.params.id);
         const user = req.user;
-        console.log(`[deleteComment] Attempting to delete comment ID: ${id} by User: ${user?.username} (${user?.id})`);
 
-        if (!user) return res.status(401).json({ error: "Usuario no autenticado" });
+        if (!user) return res.status(401).json({ error: ERRORS.UNAUTH });
 
-        // 1. Verify existence
         const { data: comment, error: fetchError } = await supabase
             .from('comments')
             .select('user_id')
             .eq('id', id)
             .single();
 
-        if (fetchError) console.error(`[deleteComment] DB Error fetching comment:`, fetchError);
-        if (!comment) console.error(`[deleteComment] Comment not found in DB`);
+        if (fetchError || !comment) return res.status(404).json({ error: ERRORS.COMMENT_NOT_FOUND });
 
-        if (fetchError || !comment) return res.status(404).json({ error: "Comentario no encontrado" });
-
-        // 2. Check Permissions (Owner OR Admin)
         const isStaff = ['admin', 'neroferno', 'killu', 'killuwu', 'developer', 'moderator', 'mod', 'helper'].includes(user.role.toLowerCase());
         
         if (comment.user_id !== user.id && !isStaff) {
             return res.status(403).json({ error: "No tienes permiso para eliminar este comentario" });
         }
 
-        // 3. Delete
         const { error } = await supabase
             .from('comments')
             .delete()
@@ -341,8 +333,7 @@ export const deleteComment = async (req: Request, res: Response) => {
         if (error) throw error;
         res.status(200).json({ message: "Comentario eliminado" });
     } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        res.status(500).json({ error: message });
+        handleControllerError(res, error);
     }
 };
 
@@ -350,11 +341,8 @@ export const createNews = async (req: Request, res: Response) => {
     try {
         const { title, category, content, image, status, author_id, username, title_en, content_en } = req.body;
 
-        // Auto Translation if not provided
         const finalTitleEn = title_en || await translateText(title, 'en');
         const finalContentEn = content_en || await translateText(content, 'en');
-        
-        // Generate Slug
         const slug = slugify(title);
 
         const { data, error } = await supabase
@@ -368,36 +356,27 @@ export const createNews = async (req: Request, res: Response) => {
                 author_id,
                 title_en: finalTitleEn, 
                 content_en: finalContentEn,
-                slug: slug
+                slug
             }])
             .select();
 
         if (error) throw error;
 
-        // Log action
         logService.createLog({
             user_id: author_id,
-            username: username || 'Admin', 
+            username: username || CONSTANTS.ADMIN, 
             action: 'CREATE_NEWS',
             details: `Created news: ${title}`,
-            source: 'web'
+            source: CONSTANTS.WEB
         }).catch(console.error);
 
-        // Notify Discord
         if (status === 'Published') {
-            sendNewsWebhook({
-                title,
-                category,
-                content, // Pass content for description
-                image,
-                slug // Pass slug for URL
-            }).catch(console.error);
+            sendNewsWebhook({ title, category, content, image, slug }).catch(console.error);
         }
 
         res.status(201).json(data[0]);
     } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        res.status(500).json({ error: message });
+        handleControllerError(res, error);
     }
 };
 
@@ -405,12 +384,6 @@ export const updateNews = async (req: Request, res: Response) => {
     try {
         const id = ensureString(req.params.id);
         const { title, category, content, image, status, username, user_id, title_en, content_en } = req.body;
-
-        // If title changed, update slug
-        let slug = undefined;
-        if (title) {
-            slug = slugify(title);
-        }
 
         interface NewsUpdates {
             title?: string;
@@ -424,7 +397,7 @@ export const updateNews = async (req: Request, res: Response) => {
         }
 
         const updates: NewsUpdates = { title, category, content, image, status, title_en, content_en };
-        if (slug) updates.slug = slug;
+        if (title) updates.slug = slugify(title);
 
         const { data, error } = await supabase
             .from('news')
@@ -434,19 +407,17 @@ export const updateNews = async (req: Request, res: Response) => {
 
         if (error) throw error;
 
-        // Log action
         logService.createLog({
             user_id: user_id || null,
-            username: username || 'Admin',
+            username: username || CONSTANTS.ADMIN,
             action: 'UPDATE_NEWS',
             details: `Updated news #${id}: ${title} (${status})`,
-            source: 'web'
+            source: CONSTANTS.WEB
         }).catch(console.error);
 
         res.status(200).json(data[0]);
     } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        res.status(500).json({ error: message });
+        handleControllerError(res, error);
     }
 };
 
@@ -455,7 +426,7 @@ export const deleteNews = async (req: Request, res: Response) => {
         const id = ensureString(req.params.id);
         const user = req.user;
 
-        if (!user) return res.status(401).json({ error: "Usuario no autenticado" });
+        if (!user) return res.status(401).json({ error: ERRORS.UNAUTH });
 
         const { error } = await supabase
             .from('news')
@@ -464,29 +435,22 @@ export const deleteNews = async (req: Request, res: Response) => {
 
         if (error) throw error;
 
-        // Log action
         logService.createLog({
             user_id: user.id,
-            username: user.username || 'Admin',
+            username: user.username || CONSTANTS.ADMIN,
             action: 'DELETE_NEWS',
             details: `Deleted news #${id}`,
-            source: 'web'
+            source: CONSTANTS.WEB
         }).catch(console.error);
 
         res.status(200).json({ message: 'Noticia eliminada correctamente' });
     } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        res.status(500).json({ error: message });
+        handleControllerError(res, error);
     }
 };
 
-/**
- * Endpoint Headless Feed para el Launcher de CrystalTides
- * Provee el banner destacado, lista de noticias y changelog en un solo payload optimizado
- */
 export const getLauncherNewsFeed = async (req: Request, res: Response) => {
     try {
-        // 1. Obtener items prioritarios de news_feed_items
         let newsItems = (await supabase
             .from('news_feed_items')
             .select('id, title, slug, summary, category, tag_label, tag_color, banner_image_url, action_label, action_url, is_featured, priority, created_at')
@@ -495,7 +459,6 @@ export const getLauncherNewsFeed = async (req: Request, res: Response) => {
             .order('created_at', { ascending: false })
             .limit(10)).data as Record<string, unknown>[] | null;
 
-        // Fallback a tabla news estándar si news_feed_items aún no tiene registros
         if (!newsItems || newsItems.length === 0) {
             const fallback = await supabase
                 .from('news')
@@ -505,7 +468,6 @@ export const getLauncherNewsFeed = async (req: Request, res: Response) => {
             newsItems = fallback.data as Record<string, unknown>[] | null;
         }
 
-        // 2. Obtener la última edición del noticiero como fallback editorial si existe
         const { data: latestNewspaper } = await supabase
             .from('ai_newspaper_editions')
             .select('id, issue_number, issue_date, headline, front_page_summary, created_at')
@@ -513,21 +475,8 @@ export const getLauncherNewsFeed = async (req: Request, res: Response) => {
             .limit(1)
             .maybeSingle();
 
-        const items = (newsItems || []).map((n: Record<string, unknown>) => ({
-            id: String(n.id),
-            title: String(n.title || ''),
-            slug: String(n.slug || n.id),
-            category: String(n.category || 'ANNOUNCEMENT'),
-            tag: String(n.tag_label || (n.category === 'CHANGELOG' ? 'CHANGELOG' : (String(n.category) || 'NOTICIA'))),
-            tagColor: String(n.tag_color || (n.category === 'EVENT' ? '#F59E0B' : (n.category === 'CHANGELOG' ? '#10B981' : '#2DD4BF'))),
-            summary: String(n.summary || (typeof n.content === 'string' ? n.content.substring(0, 140) + '...' : '')),
-            imageUrl: n.banner_image_url ? String(n.banner_image_url) : (n.image_url ? String(n.image_url) : null),
-            actionLabel: String(n.action_label || 'LEER MÁS'),
-            actionUrl: String(n.action_url || `https://crystaltidessmp.net/news/${n.slug || n.id}`),
-            publishedAt: String(n.created_at || new Date().toISOString())
-        }));
+        const items = (newsItems || []).map(formatNewsFeedItem);
 
-        // Buscar banner destacado (o usar el más reciente)
         interface RawNewsItem {
             id: string | number;
             is_featured?: boolean;
@@ -575,7 +524,6 @@ export const getLauncherNewsFeed = async (req: Request, res: Response) => {
 
         res.status(200).json(feedPayload);
     } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        res.status(500).json({ error: message });
+        handleControllerError(res, error);
     }
 };

@@ -44,6 +44,6 @@ export const uploadFile = async (file: Express.Multer.File): Promise<string> => 
         return `${cleanBaseUrl}/${key}`;
     } catch (error) {
         console.error("R2 Upload Error:", error);
-        throw new Error("Failed to upload file to R2.");
+        throw new Error("Failed to upload file to R2.", { cause: error });
     }
 };

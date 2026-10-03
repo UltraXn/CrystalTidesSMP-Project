@@ -359,7 +359,7 @@ export const ModManagerPage: React.FC = () => {
     try {
       const dir = await resolveGameDir();
       if (!dir) throw new Error("No se pudo resolver el directorio de juego.");
-      const modsPath = `${dir.replace(/\\/g, "/")}/mods`;
+      const modsPath = `${dir.replaceAll('\\', "/")}/mods`;
       try {
         await openPath(modsPath);
       } catch {
@@ -1545,7 +1545,7 @@ export const ModManagerPage: React.FC = () => {
               <span style={{ display: "block", color: "var(--accent)", fontWeight: "bold", fontSize: 11, textTransform: "uppercase", letterSpacing: 0.5 }}>
                 ⚙️ Destino de Instalación
               </span>
-              Los mods descargados se guardarán en la carpeta de juego de tu perfil actual:
+              <span>Los mods descargados se guardarán en la carpeta de juego de tu perfil actual:</span>
               <strong style={{ display: "block", color: "#FFFFFF", marginTop: 4 }}>
                 "{activeProfile.name}" ({activeProfile.mcVersion})
               </strong>

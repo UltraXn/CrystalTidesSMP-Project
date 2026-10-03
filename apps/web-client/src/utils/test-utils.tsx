@@ -1,7 +1,7 @@
 import React, { ReactNode } from "react";
 import { render, renderHook, RenderOptions } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { MemoryRouter, MemoryRouterProps } from "react-router-dom";
+import { MemoryRouter, type MemoryRouterProps } from "react-router-dom";
 import { vi } from "vitest";
 import { AuthContext, AuthContextType } from "../context/AuthContext";
 import { SidebarProvider } from "../context/SidebarContext";
@@ -30,16 +30,22 @@ interface ExtendedRenderOptions extends Omit<RenderOptions, "queries"> {
   initialEntries?: MemoryRouterProps["initialEntries"];
 }
 
+function MockAuthProvider({ auth, children }: { auth?: Partial<AuthContextType>; children: ReactNode }) {
+  const authValue = React.useMemo<AuthContextType>(
+    () => ({
+      ...defaultMockAuth,
+      ...auth,
+    }),
+    [auth],
+  );
+  return <AuthContext.Provider value={authValue}>{children}</AuthContext.Provider>;
+}
+
 export function renderWithProviders(
   ui: React.ReactElement,
   options?: ExtendedRenderOptions,
 ) {
   const testQueryClient = createTestQueryClient();
-  const authValue: AuthContextType = {
-    ...defaultMockAuth,
-    ...options?.auth,
-  };
-
   const initialEntries = options?.initialEntries;
   const renderOptions = options ? { ...options } : undefined;
   if (renderOptions) {
@@ -49,11 +55,11 @@ export function renderWithProviders(
 
   return render(
     <QueryClientProvider client={testQueryClient}>
-      <AuthContext.Provider value={authValue}>
+      <MockAuthProvider auth={options?.auth}>
         <SidebarProvider>
           <MemoryRouter initialEntries={initialEntries}>{ui}</MemoryRouter>
         </SidebarProvider>
-      </AuthContext.Provider>
+      </MockAuthProvider>
     </QueryClientProvider>,
     renderOptions,
   );
@@ -67,20 +73,16 @@ export function renderHookWithProviders<Result, Props>(
   },
 ) {
   const testQueryClient = createTestQueryClient();
-  const authValue: AuthContextType = {
-    ...defaultMockAuth,
-    ...options?.auth,
-  };
 
   const wrapper = ({ children }: { children: ReactNode }) => (
     <QueryClientProvider client={testQueryClient}>
-      <AuthContext.Provider value={authValue}>
+      <MockAuthProvider auth={options?.auth}>
         <SidebarProvider>
           <MemoryRouter initialEntries={options?.initialEntries}>
             {children}
           </MemoryRouter>
         </SidebarProvider>
-      </AuthContext.Provider>
+      </MockAuthProvider>
     </QueryClientProvider>
   );
   return renderHook(renderCallback, { wrapper });

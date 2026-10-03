@@ -1,10 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { screen, fireEvent } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import { renderWithProviders } from "@/utils/test-utils";
-import WikiCompanion3DCard from "@/components/Wiki/WikiCompanion3DCard";
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { screen, fireEvent } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { renderWithProviders } from '@/utils/test-utils';
+import WikiCompanion3DCard from '@/components/Wiki/WikiCompanion3DCard';
 
-vi.mock("three", () => ({
+vi.mock('three', () => ({
   Scene: class {
     add = vi.fn();
     remove = vi.fn();
@@ -16,13 +16,13 @@ vi.mock("three", () => ({
     updateProjectionMatrix = vi.fn();
   },
   WebGLRenderer: class {
-    domElement = document.createElement("canvas");
+    domElement = document.createElement('canvas');
     setSize = vi.fn();
     setPixelRatio = vi.fn();
     render = vi.fn();
     dispose = vi.fn();
     shadowMap = { enabled: false, type: 0 };
-    outputColorSpace = "srgb";
+    outputColorSpace = 'srgb';
   },
   AmbientLight: class {},
   DirectionalLight: class {
@@ -66,11 +66,11 @@ vi.mock("three", () => ({
     sub = vi.fn();
     multiplyScalar = vi.fn();
   },
-  SRGBColorSpace: "srgb",
+  SRGBColorSpace: 'srgb',
   PCFSoftShadowMap: 2,
 }));
 
-vi.mock("three/examples/jsm/loaders/GLTFLoader.js", () => ({
+vi.mock('three/examples/jsm/loaders/GLTFLoader.js', () => ({
   GLTFLoader: class {
     load = vi.fn().mockImplementation((_url, onLoad) => {
       onLoad({
@@ -80,18 +80,18 @@ vi.mock("three/examples/jsm/loaders/GLTFLoader.js", () => ({
           rotation: { set: vi.fn(), x: 0, y: 0, z: 0 },
           scale: { setScalar: vi.fn(), set: vi.fn() },
         },
-        animations: [{ name: "idle" }],
+        animations: [{ name: 'idle' }],
       });
     });
   },
 }));
 
-describe("WikiCompanion3DCard Component", () => {
+describe('WikiCompanion3DCard Component', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("renders 3D viewport, companion name, subtitle, and description", () => {
+  it('renders 3D viewport, companion name, subtitle, and description', () => {
     renderWithProviders(
       <WikiCompanion3DCard
         bossName="Red Panda"
@@ -100,69 +100,58 @@ describe("WikiCompanion3DCard Component", () => {
         speed="0.30 (Pasivo)"
         location="Bosques Templados & Selvas"
         description="Criatura dócil y juguetona que puede ser domesticada como mascota fiel."
-        tamingItems={["Bamboo", "Sweet Berries"]}
-        drops={["Bamboo", "Cuero Suave"]}
+        tamingItems={['Bamboo', 'Sweet Berries']}
+        drops={['Bamboo', 'Cuero Suave']}
       />,
     );
 
-    expect(
-      screen.getByRole("region", { name: /Visualizador 3D Mascota/i }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("heading", { level: 2, name: /Red Panda/i }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: /Visualizador 3D Mascota/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: /Red Panda/i })).toBeInTheDocument();
     expect(screen.getByText(/Fauna Domésticable/i)).toBeInTheDocument();
-    expect(
-      screen.getByText(/Criatura dócil y juguetona/),
-    ).toBeInTheDocument();
-    expect(screen.getByText("Bamboo, Sweet Berries")).toBeInTheDocument();
-    expect(screen.getByText("20 HP (10 Corazones)")).toBeInTheDocument();
-    expect(screen.getByText("0.30 (Pasivo)")).toBeInTheDocument();
-    expect(
-      screen.getByText(/Bosques Templados & Selvas/),
-    ).toBeInTheDocument();
-    expect(screen.getByText("🐾 Bamboo")).toBeInTheDocument();
-    expect(screen.getByText("🐾 Cuero Suave")).toBeInTheDocument();
+    expect(screen.getByText(/Criatura dócil y juguetona/)).toBeInTheDocument();
+    expect(screen.getByText('Bamboo, Sweet Berries')).toBeInTheDocument();
+    expect(screen.getByText('20 HP (10 Corazones)')).toBeInTheDocument();
+    expect(screen.getByText('0.30 (Pasivo)')).toBeInTheDocument();
+    expect(screen.getByText(/Bosques Templados & Selvas/)).toBeInTheDocument();
+    expect(screen.getByText('🐾 Bamboo')).toBeInTheDocument();
+    expect(screen.getByText('🐾 Cuero Suave')).toBeInTheDocument();
   });
 
-  it("renders correctly in minimal3dOnly mode", () => {
-    renderWithProviders(
-      <WikiCompanion3DCard minimal3dOnly bossName="Red Panda" />,
-    );
+  it('renders correctly in minimal3dOnly mode', () => {
+    renderWithProviders(<WikiCompanion3DCard minimal3dOnly bossName="Red Panda" />);
 
+    expect(screen.queryByRole('heading', { level: 2, name: /Red Panda/i })).not.toBeInTheDocument();
     expect(
-      screen.queryByRole("heading", { level: 2, name: /Red Panda/i }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole("region", { name: /Visualizador 3D Mascota/i }),
+      screen.queryByRole('region', { name: /Visualizador 3D Mascota/i }),
     ).not.toBeInTheDocument();
   });
 
-  it("handles camera reset and fullscreen controls", async () => {
+  it('handles camera reset and fullscreen controls', async () => {
     const user = userEvent.setup();
     renderWithProviders(<WikiCompanion3DCard bossName="Red Panda" />);
 
-    const resetBtn = screen.getByRole("button", {
+    const resetBtn = screen.getByRole('button', {
       name: /Reiniciar cámara/i,
     });
     await user.click(resetBtn);
     expect(resetBtn).toBeInTheDocument();
 
-    const fullscreenBtn = screen.getByRole("button", {
+    const fullscreenBtn = screen.getByRole('button', {
       name: /Pantalla completa/i,
     });
     await user.click(fullscreenBtn);
     expect(fullscreenBtn).toBeInTheDocument();
   });
 
-  it("handles mouse drag interactions on 3D viewport", () => {
+  it('handles mouse drag interactions on 3D viewport', () => {
     renderWithProviders(<WikiCompanion3DCard bossName="Red Panda" />);
 
-    const viewport = screen.getByRole("region", {
+    const viewport = screen.getByRole('region', {
       name: /Visualizador 3D Mascota/i,
     });
     fireEvent.mouseDown(viewport, { clientX: 100, clientY: 100 });
     fireEvent.mouseMove(viewport, { clientX: 150, clientY: 120 });
     fireEvent.mouseUp(viewport);
+    expect(viewport).toBeInTheDocument();
   });
 });

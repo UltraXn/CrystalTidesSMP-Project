@@ -223,14 +223,14 @@ function MenuOverlay({ isOpen, onClose }: { isOpen: boolean, onClose: () => void
                                 className={`flex-1 flex items-center justify-center gap-3 py-4 rounded-xl text-xs font-black tracking-widest transition-colors ${i18n.resolvedLanguage === 'es' ? 'bg-white text-black shadow-xl ring-4 ring-white/10' : 'text-gray-500 hover:text-white'}`}
                             >
                                 <img src="/images/flags/es.svg" alt="ES" className="w-5 h-auto rounded-sm" />
-                                ESPAÑOL
+                                <span>ESPAÑOL</span>
                             </button>
                             <button aria-label={t('common.change_language_en', 'Switch language to English')} type="button" 
                                 onClick={() => i18n.changeLanguage('en')} 
                                 className={`flex-1 flex items-center justify-center gap-3 py-4 rounded-xl text-xs font-black tracking-widest transition-colors ${i18n.resolvedLanguage === 'en' ? 'bg-white text-black shadow-xl ring-4 ring-white/10' : 'text-gray-500 hover:text-white'}`}
                             >
                                 <img src="/images/flags/us.svg" alt="EN" className="w-5 h-auto rounded-sm" />
-                                ENGLISH
+                                <span>ENGLISH</span>
                             </button>
                         </div>
                          

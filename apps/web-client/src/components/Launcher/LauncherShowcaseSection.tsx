@@ -134,7 +134,7 @@ export const LauncherShowcaseSection: React.FC = () => {
             <div className="flex items-center gap-2">
               <span className="flex items-center gap-1.5 border border-slate-700 bg-slate-800 px-2 py-0.5 font-mono text-[11px] font-medium text-teal-300">
                 <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-teal-400" />
-                SIMULADOR EN VIVO
+                <span>SIMULADOR EN VIVO</span>
               </span>
               <span className="hidden sm:inline">Navega por Mods, Perfiles, Ajustes y Logs.</span>
             </div>
@@ -440,9 +440,9 @@ export const LauncherShowcaseSection: React.FC = () => {
           <AnimatePresence>
             {showChecksum && (
               <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
                 className="mx-auto max-w-xl space-y-1.5 overflow-hidden border border-slate-800 bg-slate-950 p-3 text-left font-mono text-[11px] text-slate-300"
               >
                 <div className="flex items-center justify-between">

@@ -19,16 +19,22 @@ export const FlashBountyBanner: React.FC = () => {
   const [timeLeft, setTimeLeft] = useState<number>(0);
 
   useEffect(() => {
+    const controller = new AbortController();
+
     // Fetch active Flash Bounty from Backend API
-    fetch('/api/bounties/active')
-      .then((res) => res.json())
+    fetch('/api/bounties/active', { signal: controller.signal })
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
+        return res.json();
+      })
       .then((data) => {
         if (data.success && data.bounty && !data.bounty.isExpired) {
           setBounty(data.bounty);
           setTimeLeft(data.bounty.remainingSeconds);
         }
       })
-      .catch(() => {
+      .catch((err) => {
+        if (err?.name === 'AbortError') return;
         // Fallback demo bounty if API unreachable
         setBounty({
           id: 'bounty-ignis-001',
@@ -38,10 +44,12 @@ export const FlashBountyBanner: React.FC = () => {
           multiplier: '2.5x KC',
           rewardKc: 5000,
           remainingSeconds: 2700,
-          isExpired: false
+          isExpired: false,
         });
         setTimeLeft(2700);
       });
+
+    return () => controller.abort();
   }, []);
 
   useEffect(() => {
@@ -62,61 +70,63 @@ export const FlashBountyBanner: React.FC = () => {
     <motion.div
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="relative overflow-hidden rounded-2xl bg-linear-to-r from-red-950/80 via-amber-950/70 to-slate-950/90 border border-amber-500/40 p-4 shadow-[0_0_30px_rgba(245,158,11,0.25)] backdrop-blur-md my-6"
+      className="bg-linear-to-r relative my-6 overflow-hidden rounded-2xl border border-amber-500/40 from-red-950/80 via-amber-950/70 to-slate-950/90 p-4 shadow-[0_0_30px_rgba(245,158,11,0.25)] backdrop-blur-md"
     >
       {/* Background Animated Pulse Glow */}
-      <div className="absolute -left-10 -top-10 w-40 h-40 bg-amber-500/20 rounded-full blur-3xl animate-pulse pointer-events-none" />
+      <div className="pointer-events-none absolute -left-10 -top-10 h-40 w-40 animate-pulse rounded-full bg-amber-500/20 blur-3xl" />
 
-      <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="relative z-10 flex flex-col items-center justify-between gap-4 md:flex-row">
         {/* Left Side: Title & Info */}
         <div className="flex items-center gap-3">
-          <div className="p-3 bg-amber-500/20 rounded-xl border border-amber-500/50 text-amber-400 animate-bounce">
-            <Flame className="w-6 h-6" />
+          <div className="animate-bounce rounded-xl border border-amber-500/50 bg-amber-500/20 p-3 text-amber-400">
+            <Flame className="h-6 w-6" />
           </div>
 
           <div>
             <div className="flex items-center gap-2">
-              <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-500 text-slate-950 uppercase tracking-wide flex items-center gap-1">
-                <Sparkles className="w-3 h-3" /> Flash Bounty Activa
+              <span className="flex items-center gap-1 rounded-full bg-amber-500 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-slate-950">
+                <Sparkles className="h-3 w-3" /> Flash Bounty Activa
               </span>
-              <span className="text-xs text-amber-300/80 font-mono flex items-center gap-1">
-                <ShieldAlert className="w-3.5 h-3.5" /> {bounty.location}
+              <span className="flex items-center gap-1 font-mono text-xs text-amber-300/80">
+                <ShieldAlert className="h-3.5 w-3.5" /> {bounty.location}
               </span>
             </div>
 
-            <h3 className="text-lg md:text-xl font-bold text-white mt-1">
-              {bounty.bossName}
-            </h3>
+            <h3 className="mt-1 text-lg font-bold text-white md:text-xl">{bounty.bossName}</h3>
           </div>
         </div>
 
         {/* Center: Multiplier & KC Reward */}
-        <div className="flex items-center gap-4 bg-slate-900/80 px-4 py-2 rounded-xl border border-white/10">
+        <div className="flex items-center gap-4 rounded-xl border border-white/10 bg-slate-900/80 px-4 py-2">
           <div className="text-center">
-            <span className="block text-[10px] text-slate-400 uppercase tracking-widest font-bold">Multiplicador</span>
+            <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">
+              Multiplicador
+            </span>
             <span className="text-xl font-black text-amber-400">{bounty.multiplier}</span>
           </div>
 
           <div className="h-8 w-px bg-white/10" />
 
           <div className="text-center">
-            <span className="block text-[10px] text-slate-400 uppercase tracking-widest font-bold">Recompensa Base</span>
+            <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">
+              Recompensa Base
+            </span>
             <span className="text-xl font-black text-emerald-400">+{bounty.rewardKc} KC</span>
           </div>
         </div>
 
         {/* Right Side: Countdown Timer & CTA */}
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 px-3 py-2 bg-slate-950/80 rounded-xl border border-amber-500/30 text-amber-400 font-mono font-bold text-lg">
-            <Timer className="w-5 h-5 text-amber-400 animate-spin-slow" />
+          <div className="flex items-center gap-1.5 rounded-xl border border-amber-500/30 bg-slate-950/80 px-3 py-2 font-mono text-lg font-bold text-amber-400">
+            <Timer className="animate-spin-slow h-5 w-5 text-amber-400" />
             <span>{formattedTime}</span>
           </div>
 
           <Link
             to="/wiki/ignis"
-            className="flex items-center gap-1 px-4 py-2.5 rounded-xl bg-linear-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold transition-all shadow-lg hover:shadow-amber-500/30 text-sm"
+            className="bg-linear-to-r flex items-center gap-1 rounded-xl from-amber-500 to-amber-600 px-4 py-2.5 text-sm font-bold text-slate-950 shadow-lg transition-all hover:from-amber-400 hover:to-amber-500 hover:shadow-amber-500/30"
           >
-            Ir a Cazar <ChevronRight className="w-4 h-4" />
+            Ir a Cazar <ChevronRight className="h-4 w-4" />
           </Link>
         </div>
       </div>

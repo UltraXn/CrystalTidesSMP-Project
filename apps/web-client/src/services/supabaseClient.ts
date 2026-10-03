@@ -14,6 +14,12 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://gyoqnqvqhuxlcb
 const supabaseKey = getAnonKey();
 
 export const supabase = createClient(supabaseUrl, supabaseKey, {
+    auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+        storageKey: 'crystaltides-auth-token',
+    },
     realtime: {
         params: {
             eventsPerSecond: 10,

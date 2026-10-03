@@ -1,0 +1,28 @@
+{
+  "$schema": "https://raw.githubusercontent.com/jamiemason/syncpack/main/packages/syncpack/src/schema.json",
+  "indent": "  ",
+  "sortPackages": true,
+  "sortFirst": [
+    "name",
+    "version",
+    "private",
+    "type",
+    "packageManager",
+    "main",
+    "types",
+    "exports",
+    "scripts",
+    "dependencies",
+    "devDependencies",
+    "peerDependencies",
+    "pnpm",
+    "engines"
+  ],
+  "versionGroups": [
+    {
+      "label": "Ignorar dependencias opcionales de arquitectura específica",
+      "dependencies": ["@napi-rs/*"],
+      "isIgnored": true
+    }
+  ]
+}

@@ -6,10 +6,108 @@ import ServerStatusCard, { ServerStatusData } from "../components/Server/ServerS
 import StatusSkeleton from "../components/Home/skeletons/StatusSkeleton"
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+const SERVER_IP = "mc.crystaltidessmp.net"; // Display IP
+
+function getLatencyColor(latency?: number | null): string {
+    if (latency == null) return 'text-gray-400';
+    if (latency <= 100) return 'text-green-400';
+    if (latency < 200) return 'text-yellow-400';
+    return 'text-red-400';
+}
+
+interface StatusPlayersProps {
+    players?: {
+        online: number;
+        sample?: Array<{ id: string; name: string }>;
+    };
+    t: (key: string) => string;
+}
+
+function StatusPlayers({ players, t }: Readonly<StatusPlayersProps>) {
+    const playerCount = players?.online ?? 0;
+    const sample = players?.sample;
+
+    return (
+        <div style={{
+            background: 'rgba(20, 20, 25, 0.4)',
+            border: '1px solid rgba(255,255,255,0.05)',
+            borderRadius: '16px',
+            padding: '1.5rem',
+        }}>
+            <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                <Users className="text-accent" /> {t('status.online_players')}
+            </h3>
+            
+            {sample && sample.length > 0 ? (
+                <div className="flex flex-wrap gap-3">
+                    {sample.map((p) => (
+                        <div key={p.name} className="flex items-center gap-2 bg-black/20 px-3 py-2 rounded-lg border border-white/5">
+                            <img 
+                                src={`https://minotar.net/helm/${p.name}/24.png`} 
+                                alt={p.name}
+                                className="rounded-sm"
+                            />
+                            <span className="font-medium text-sm">{p.name}</span>
+                        </div>
+                    ))}
+                    {sample.length < playerCount && (
+                        <div className="px-3 py-2 text-gray-500 text-sm italic">
+                            + {playerCount - sample.length} {t('status.more')}...
+                        </div>
+                    )}
+                </div>
+            ) : (
+                <p className="text-gray-500 italic">
+                    {playerCount === 0 ? t('status.no_players') : t('status.list_unavailable')}
+                </p>
+            )}
+        </div>
+    );
+}
+
+interface StatusTechInfoProps {
+    latency?: number | null;
+    t: (key: string) => string;
+}
+
+function StatusTechInfo({ latency, t }: Readonly<StatusTechInfoProps>) {
+    const latencyColor = getLatencyColor(latency);
+
+    return (
+        <div style={{
+            background: 'rgba(20, 20, 25, 0.4)',
+            border: '1px solid rgba(255,255,255,0.05)',
+            borderRadius: '16px',
+            padding: '1.5rem',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1rem'
+        }}>
+            <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                <Cpu className="text-blue-400" /> {t('status.tech_info')}
+            </h3>
+            <div className="space-y-3">
+                <div className="flex justify-between p-3 rounded-lg bg-black/20">
+                    <span className="text-gray-400">{t('status.latency')}</span>
+                    <span className={`font-mono ${latencyColor}`}>
+                        {latency != null ? `${Math.round(latency)}ms` : '--'}
+                    </span>
+                </div>
+                <div className="flex justify-between items-center p-3 rounded-lg bg-black/20 w-full">
+                    <span className="text-gray-400">{t('status.mode')}</span>
+                    <span className="font-medium text-white">{t('status.mode_val')}</span>
+                </div>
+                <div className="flex justify-between items-center p-3 rounded-lg bg-black/20 w-full">
+                    <span className="text-gray-400">{t('status.platform')}</span>
+                    <span className="font-medium text-white">{t('status.platform_val')}</span>
+                </div>
+            </div>
+        </div>
+    );
+}
 
 export default function Status() {
     const { t } = useTranslation()
-    const SERVER_IP = "mc.crystaltidessmp.net" // Display IP
 
     const { data: status = null, isLoading: loading } = useQuery<ServerStatusData | null>({
         queryKey: ['serverStatusLive'],
@@ -30,18 +128,6 @@ export default function Status() {
     }
 
     const isOnline = status?.online ?? false
-    const playerCount = status?.players?.online || 0
-
-    let latencyColor = 'text-gray-400';
-    if (status?.latency != null) {
-        if (status.latency <= 100) {
-            latencyColor = 'text-green-400';
-        } else if (status.latency < 200) {
-            latencyColor = 'text-yellow-400';
-        } else {
-            latencyColor = 'text-red-400';
-        }
-    }
 
     return (
         <div className="page-container" style={{ maxWidth: '1000px', margin: '0 auto', padding: '8rem 1rem 2rem' }}>
@@ -52,7 +138,6 @@ export default function Status() {
                 animate={{ opacity: 1, y: 0 }}
                 className="text-center mb-12"
             >
-
                 <h1 className="text-4xl md:text-5xl font-bold mb-4 gradient-text">{t('status.title')}</h1>
                 <p className="text-gray-400">{t('status.subtitle')}</p>
             </motion.div>
@@ -68,73 +153,13 @@ export default function Status() {
                         animate={{ opacity: 1, y: 0 }}
                         className="grid grid-cols-1 md:grid-cols-2 gap-6"
                     >
-                         <div style={{
-                            background: 'rgba(20, 20, 25, 0.4)',
-                            border: '1px solid rgba(255,255,255,0.05)',
-                            borderRadius: '16px',
-                            padding: '1.5rem',
-                         }}>
-                            <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                                <Users className="text-accent" /> {t('status.online_players')}
-                            </h3>
-                            
-                            {status?.players.sample && status.players.sample.length > 0 ? (
-                                <div className="flex flex-wrap gap-3">
-                                    {status.players.sample.map((p) => (
-                                        <div key={p.name} className="flex items-center gap-2 bg-black/20 px-3 py-2 rounded-lg border border-white/5">
-                                            <img 
-                                                src={`https://minotar.net/helm/${p.name}/24.png`} 
-                                                alt={p.name}
-                                                className="rounded-sm"
-                                            />
-                                            <span className="font-medium text-sm">{p.name}</span>
-                                        </div>
-                                    ))}
-                                    {status.players.sample.length < playerCount && (
-                                        <div className="px-3 py-2 text-gray-500 text-sm italic">
-                                            + {playerCount - status.players.sample.length} {t('status.more')}...
-                                        </div>
-                                    )}
-                                </div>
-                            ) : (
-                                <p className="text-gray-500 italic">
-                                    {playerCount === 0 ? t('status.no_players') : t('status.list_unavailable')}
-                                </p>
-                            )}
-                         </div>
-
-                         <div style={{
-                            background: 'rgba(20, 20, 25, 0.4)',
-                            border: '1px solid rgba(255,255,255,0.05)',
-                            borderRadius: '16px',
-                            padding: '1.5rem',
-                             display: 'flex', flexDirection: 'column', gap: '1rem'
-                         }}>
-                            <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                                <Cpu className="text-blue-400" /> {t('status.tech_info')}
-                            </h3>
-                            <div className="space-y-3">
-                                <div className="flex justify-between p-3 rounded-lg bg-black/20">
-                                    <span className="text-gray-400">{t('status.latency')}</span>
-                                     <span className={`font-mono ${latencyColor}`}>
-                                         {status?.latency != null ? `${Math.round(status.latency)}ms` : '--'}
-                                     </span>
-                                </div>
-                                <div className="flex justify-between items-center p-3 rounded-lg bg-black/20 w-full">
-                                    <span className="text-gray-400">{t('status.mode')}</span>
-                                    <span className="font-medium text-white">{t('status.mode_val')}</span>
-                                </div>
-                                <div className="flex justify-between items-center p-3 rounded-lg bg-black/20 w-full">
-                                    <span className="text-gray-400">{t('status.platform')}</span>
-                                    <span className="font-medium text-white">{t('status.platform_val')}</span>
-                                </div>
-                            </div>
-                         </div>
+                        <StatusPlayers players={status?.players} t={t} />
+                        <StatusTechInfo latency={status?.latency} t={t} />
                     </motion.div>
                 )}
             </AnimatePresence>
             
-            {!isOnline && !loading && (
+            {!isOnline && (
                  <motion.div 
                     initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                     className="text-center p-8 bg-red-500/10 border border-red-500/20 rounded-xl mt-4"

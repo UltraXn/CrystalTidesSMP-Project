@@ -1,88 +1,105 @@
-import { Suspense, lazy } from "react"
-import { Trophy } from "lucide-react"
-import Loader from "../UI/Loader"
-import { useTranslation } from "react-i18next"
+import { Suspense, lazy } from 'react';
+import { Trophy } from 'lucide-react';
+import Loader from '../UI/Loader';
+import { useTranslation } from 'react-i18next';
 
-const PlaystyleRadar = lazy(() => import("../Account/PlaystyleRadarFinal"))
+const PlaystyleRadar = lazy(() => import('../Account/PlaystyleRadarFinal'));
 
 interface PlayerStats {
-    playtime: string;
-    kills: number;
-    mob_kills: number;
-    deaths: number;
-    money: string;
-    blocks_mined: string;
-    blocks_placed: string;
-    rank?: string;
+  playtime: string;
+  kills: number;
+  mob_kills: number;
+  deaths: number;
+  money: string;
+  blocks_mined: string;
+  blocks_placed: string;
+  rank?: string;
 }
 
 interface PlayerStatsGridProps {
-    stats: PlayerStats | null;
-    loading: boolean;
-    isPublic: boolean;
-    isAdmin: boolean;
+  stats: PlayerStats | null;
+  loading: boolean;
+  isPublic: boolean;
+  isAdmin: boolean;
 }
 
 // Helper to parse playtime "12h 30m"
 const parsePlaytime = (ptStr: string): number => {
-    if (!ptStr) return 0;
-    const h = parseInt(ptStr.match(/(\d+)h/)?.[1] || "0");
-    const m = parseInt(ptStr.match(/(\d+)m/)?.[1] || "0");
-    return h + m / 60;
-}
+  if (!ptStr) return 0;
+  let hours = 0;
+  for (const part of ptStr.trim().split(/\s+/)) {
+    if (part.endsWith('h')) {
+      hours += Number.parseFloat(part.slice(0, -1)) || 0;
+    } else if (part.endsWith('m')) {
+      hours += (Number.parseFloat(part.slice(0, -1)) || 0) / 60;
+    }
+  }
+  return hours;
+};
 
 const parseMoney = (moneyStr: string): number => {
-    if (!moneyStr) return 0;
-    return parseFloat(moneyStr.replace(/[^0-9.-]+/g, ""));
-}
+  if (!moneyStr) return 0;
+  return Number.parseFloat(moneyStr.replace(/[^0-9.-]+/g, '')) || 0;
+};
 
-export default function PlayerStatsGrid({ stats, loading, isPublic, isAdmin }: PlayerStatsGridProps) {
-    const { t } = useTranslation()
+export default function PlayerStatsGrid({
+  stats,
+  loading,
+  isPublic,
+  isAdmin,
+}: PlayerStatsGridProps) {
+  const { t } = useTranslation();
 
-    return (
-        <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-8 shadow-xl transition-colors hover:border-white/20 hover:shadow-2xl">
-            <h3 className="flex items-center gap-3 text-sm font-black uppercase tracking-widest text-white/40 mb-6">
-                <Trophy size={16} /> {t('profile.playstyle_title', 'Gráfico de Estilo')}
-            </h3>
-            
-            {(isPublic || isAdmin) ? (
-                <div className="flex flex-col items-center">
-                    {loading ? (
-                        <div className="py-12"><Loader text={t('profile.loading_stats')} /></div>
-                    ) : stats ? (
-                        <>
-                            <div className="w-full h-[220px]">
-                                <Suspense fallback={<div className="flex items-center justify-center h-full"><Loader /></div>}>
-                                    <PlaystyleRadar 
-                                        stats={{
-                                            blocksPlaced: Number(stats.blocks_placed || 0),
-                                            blocksMined: Number(stats.blocks_mined || 0),
-                                            kills: Number(stats.kills || 0),
-                                            mobKills: Number(stats.mob_kills || 0),
-                                            playtimeHours: parsePlaytime(stats.playtime),
-                                            money: parseMoney(stats.money),
-                                            rank: stats.rank || "default"
-                                        }}
-                                    />
-                                </Suspense>
-                            </div>
-                            
+  return (
+    <div className="rounded-3xl border border-white/10 bg-white/5 p-8 shadow-xl backdrop-blur-md transition-colors hover:border-white/20 hover:shadow-2xl">
+      <h3 className="mb-6 flex items-center gap-3 text-sm font-black uppercase tracking-widest text-white/40">
+        <Trophy size={16} /> {t('profile.playstyle_title', 'Gráfico de Estilo')}
+      </h3>
 
-                        </>
-                    ) : (
-                        <div className="text-center py-8 text-gray-500 font-bold text-xs italic">
-                            {t('profile.error_stats', 'No se pudieron cargar los datos de estilo.')}
-                        </div>
-                    )}
-                </div>
-            ) : (
-                 <div className="text-center py-12 px-6 bg-black/20 rounded-2xl border border-dashed border-white/5">
-                    <div className="text-2xl mb-2 opacity-30">🔒</div>
-                    <p className="text-gray-500 font-bold text-xs">
-                        {t('profile.private_stats', 'Este usuario mantiene su estilo de juego en privado.')}
-                    </p>
-                </div>
-            )}
+      {isPublic || isAdmin ? (
+        <div className="flex flex-col items-center">
+          {loading ? (
+            <div className="py-12">
+              <Loader text={t('profile.loading_stats')} />
+            </div>
+          ) : stats ? (
+            <>
+              <div className="h-[220px] w-full">
+                <Suspense
+                  fallback={
+                    <div className="flex h-full items-center justify-center">
+                      <Loader />
+                    </div>
+                  }
+                >
+                  <PlaystyleRadar
+                    stats={{
+                      blocksPlaced: Number(stats.blocks_placed || 0),
+                      blocksMined: Number(stats.blocks_mined || 0),
+                      kills: Number(stats.kills || 0),
+                      mobKills: Number(stats.mob_kills || 0),
+                      playtimeHours: parsePlaytime(stats.playtime),
+                      money: parseMoney(stats.money),
+                      rank: stats.rank || 'default',
+                    }}
+                  />
+                </Suspense>
+              </div>
+            </>
+          ) : (
+            <div className="py-8 text-center text-xs font-bold italic text-gray-500">
+              {t('profile.error_stats', 'No se pudieron cargar los datos de estilo.')}
+            </div>
+          )}
         </div>
-    )
+      ) : (
+        <div className="rounded-2xl border border-dashed border-white/5 bg-black/20 px-6 py-12 text-center">
+          <div className="mb-2 text-2xl opacity-30">🔒</div>
+          <p className="text-xs font-bold text-gray-500">
+            {t('profile.private_stats', 'Este usuario mantiene su estilo de juego en privado.')}
+          </p>
+        </div>
+      )}
+    </div>
+  );
 }

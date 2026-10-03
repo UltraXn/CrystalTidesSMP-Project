@@ -196,7 +196,7 @@ export const MainLayout: React.FC = () => {
   const [showCrashModal, setShowCrashModal] = useState(false);
 
   const [avatarPref, setAvatarPref] = useState<"web" | "minecraft">(
-    getSettings().avatarPreference || "web",
+    () => getSettings().avatarPreference || "web",
   );
 
   useEffect(() => {

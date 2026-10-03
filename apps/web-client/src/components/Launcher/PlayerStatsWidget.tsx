@@ -55,14 +55,20 @@ const getMcItemUrl = (filename: string) => `https://minecraft.wiki/w/Special:Red
 
 const parsePlaytimeHours = (ptStr: string): number => {
   if (!ptStr) return 0;
-  const h = parseInt(ptStr.match(/(\d+)h/)?.[1] || "0");
-  const m = parseInt(ptStr.match(/(\d+)m/)?.[1] || "0");
-  return h + m / 60;
+  let hours = 0;
+  for (const part of ptStr.trim().split(/\s+/)) {
+    if (part.endsWith("h")) {
+      hours += Number.parseFloat(part.slice(0, -1)) || 0;
+    } else if (part.endsWith("m")) {
+      hours += (Number.parseFloat(part.slice(0, -1)) || 0) / 60;
+    }
+  }
+  return hours;
 };
 
 const parseMoneyNum = (moneyStr: string): number => {
   if (!moneyStr) return 0;
-  return parseFloat(moneyStr.replace(/[^0-9.-]+/g, "")) || 0;
+  return Number.parseFloat(moneyStr.replace(/[^0-9.-]+/g, "")) || 0;
 };
 
 const getTopRelativeScore = (val: number, top1Val?: number, isTop1?: boolean) => {

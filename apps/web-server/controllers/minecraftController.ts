@@ -106,6 +106,61 @@ async function syncSupabaseMetadata(
   }
 }
 
+async function syncDatabaseLink(
+  source: string,
+  sourceId: string,
+  playerName: string,
+  targetUserId: string,
+) {
+  if (source === 'minecraft') {
+    // First, remove ANY link currently tied to this Minecraft UUID
+    await pool.execute('DELETE FROM linked_accounts WHERE minecraft_uuid = ?', [sourceId]);
+
+    // Second, check existing data for the WEB user to preserve gacha/discord
+    const [existing] = await pool.execute<RowDataPacket[]>(
+      'SELECT * FROM linked_accounts WHERE web_user_id = ?',
+      [targetUserId],
+    );
+
+    if (existing.length > 0) {
+      const oldRow = existing[0];
+      // Delete old row because PK (minecraft_uuid) is changing
+      await pool.execute('DELETE FROM linked_accounts WHERE web_user_id = ?', [targetUserId]);
+
+      // Re-insert with new Minecraft data + preserved stats
+      await pool.execute(
+        `INSERT INTO linked_accounts 
+                  (minecraft_uuid, minecraft_name, web_user_id, discord_id, discord_tag, gacha_balance, unlocked_tiers) 
+                  VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [
+          sourceId,
+          playerName,
+          targetUserId,
+          oldRow.discord_id,
+          oldRow.discord_tag,
+          oldRow.gacha_balance,
+          oldRow.unlocked_tiers,
+        ],
+      );
+    } else {
+      await pool.execute(
+        'INSERT INTO linked_accounts (minecraft_uuid, minecraft_name, web_user_id) VALUES (?, ?, ?)',
+        [sourceId, playerName, targetUserId],
+      );
+    }
+  } else if (source === 'discord') {
+    // Discord logic: much simpler as discord_id is just UNIQUE, not PK
+    await pool.execute(
+      'UPDATE linked_accounts SET discord_id = NULL, discord_tag = NULL WHERE discord_id = ?',
+      [sourceId],
+    );
+    await pool.execute(
+      'UPDATE linked_accounts SET discord_id = ?, discord_tag = ? WHERE web_user_id = ?',
+      [sourceId, playerName, targetUserId],
+    );
+  }
+}
+
 export const verifyLinkCode = async (req: Request, res: Response) => {
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -146,53 +201,7 @@ export const verifyLinkCode = async (req: Request, res: Response) => {
     } = verification;
 
     // 2. Link Account (Unified Logic)
-    if (source === 'minecraft') {
-      // First, remove ANY link currently tied to this Minecraft UUID
-      await pool.execute('DELETE FROM linked_accounts WHERE minecraft_uuid = ?', [sourceId]);
-
-      // Second, check existing data for the WEB user to preserve gacha/discord
-      const [existing] = await pool.execute<RowDataPacket[]>(
-        'SELECT * FROM linked_accounts WHERE web_user_id = ?',
-        [targetUserId],
-      );
-
-      if (existing.length > 0) {
-        const oldRow = existing[0];
-        // Delete old row because PK (minecraft_uuid) is changing
-        await pool.execute('DELETE FROM linked_accounts WHERE web_user_id = ?', [targetUserId]);
-
-        // Re-insert with new Minecraft data + preserved stats
-        await pool.execute(
-          `INSERT INTO linked_accounts 
-                    (minecraft_uuid, minecraft_name, web_user_id, discord_id, discord_tag, gacha_balance, unlocked_tiers) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?)`,
-          [
-            sourceId,
-            playerName,
-            targetUserId,
-            oldRow.discord_id,
-            oldRow.discord_tag,
-            oldRow.gacha_balance,
-            oldRow.unlocked_tiers,
-          ],
-        );
-      } else {
-        await pool.execute(
-          'INSERT INTO linked_accounts (minecraft_uuid, minecraft_name, web_user_id) VALUES (?, ?, ?)',
-          [sourceId, playerName, targetUserId],
-        );
-      }
-    } else if (source === 'discord') {
-      // Discord logic: much simpler as discord_id is just UNIQUE, not PK
-      await pool.execute(
-        'UPDATE linked_accounts SET discord_id = NULL, discord_tag = NULL WHERE discord_id = ?',
-        [sourceId],
-      );
-      await pool.execute(
-        'UPDATE linked_accounts SET discord_id = ?, discord_tag = ? WHERE web_user_id = ?',
-        [sourceId, playerName, targetUserId],
-      );
-    }
+    await syncDatabaseLink(source, sourceId, playerName, targetUserId);
 
     await pool.execute('DELETE FROM universal_links WHERE code = ?', [code.toUpperCase()]);
 
@@ -573,6 +582,92 @@ export const requestMsDeviceCode = async (_req: Request, res: Response) => {
   }
 };
 
+async function authenticateMinecraftWithToken(accessToken: string) {
+  // 1. Xbox Live
+  const r1 = await fetch('https://user.auth.xboxlive.com/user/authenticate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify({
+      Properties: {
+        AuthMethod: 'RPS',
+        SiteName: 'user.auth.xboxlive.com',
+        RpsTicket:
+          accessToken.startsWith('Ew') || accessToken.startsWith('d=')
+            ? accessToken
+            : `d=${accessToken}`,
+      },
+      RelyingParty: XBOX_AUTH_RELYING_PARTY,
+      TokenType: 'JWT',
+    }),
+  });
+  let xblData = await r1.json();
+  if (!r1.ok) {
+    const r1Retry = await fetch('https://user.auth.xboxlive.com/user/authenticate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({
+        Properties: {
+          AuthMethod: 'RPS',
+          SiteName: 'user.auth.xboxlive.com',
+          RpsTicket: `t=${accessToken}`,
+        },
+        RelyingParty: XBOX_AUTH_RELYING_PARTY,
+        TokenType: 'JWT',
+      }),
+    });
+    if (r1Retry.ok) xblData = await r1Retry.json();
+    else return { error: 'Fallo la autenticación con Xbox Live' };
+  }
+
+  const xblToken = xblData.Token;
+  const userHash = xblData.DisplayClaims?.xui?.[0]?.uhs;
+
+  // 2. XSTS
+  const r2 = await fetch('https://xsts.auth.xboxlive.com/xsts/authorize', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify({
+      Properties: {
+        SandboxId: 'RETAIL',
+        UserTokens: [xblToken],
+      },
+      RelyingParty: 'rp://api.minecraftservices.com/',
+      TokenType: 'JWT',
+    }),
+  });
+  const xstsData = await r2.json();
+  if (!r2.ok) {
+    if (xstsData.XErr === 2148916028) {
+      return { error: 'Esta cuenta de Microsoft no posee un perfil de Minecraft comprado.' };
+    }
+    return { error: `Error XSTS (${xstsData.XErr || 'desconocido'})` };
+  }
+
+  const xstsToken = xstsData.Token;
+
+  // 3. Minecraft Login
+  const r3 = await fetch('https://api.minecraftservices.com/authentication/login_with_xbox', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      identityToken: `XBL3.0 x=${userHash};${xstsToken}`,
+    }),
+  });
+  const mcAuthData = await r3.json();
+  if (!r3.ok) return { error: 'Fallo el inicio de sesión en los servicios de Minecraft' };
+
+  // 4. Fetch Profile
+  const r4 = await fetch('https://api.minecraftservices.com/minecraft/profile', {
+    headers: { Authorization: `Bearer ${mcAuthData.access_token}` },
+  });
+  const profile = await r4.json();
+  if (!r4.ok || profile.error) {
+    return { error: profile.errorMessage || 'No se pudo obtener el perfil de Minecraft' };
+  }
+
+  return { profile };
+}
+
 export const pollMsDeviceToken = async (req: Request, res: Response) => {
   try {
     const { deviceCode, isLive } = req.body;
@@ -622,96 +717,11 @@ export const pollMsDeviceToken = async (req: Request, res: Response) => {
     }
 
     if (accessToken) {
-      // 1. Xbox Live
-      const r1 = await fetch('https://user.auth.xboxlive.com/user/authenticate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({
-          Properties: {
-            AuthMethod: 'RPS',
-            SiteName: 'user.auth.xboxlive.com',
-            RpsTicket:
-              accessToken.startsWith('Ew') || accessToken.startsWith('d=')
-                ? accessToken
-                : `d=${accessToken}`,
-          },
-          RelyingParty: XBOX_AUTH_RELYING_PARTY,
-          TokenType: 'JWT',
-        }),
-      });
-      let xblData = await r1.json();
-      if (!r1.ok) {
-        const r1Retry = await fetch('https://user.auth.xboxlive.com/user/authenticate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-          body: JSON.stringify({
-            Properties: {
-              AuthMethod: 'RPS',
-              SiteName: 'user.auth.xboxlive.com',
-              RpsTicket: `t=${accessToken}`,
-            },
-            RelyingParty: XBOX_AUTH_RELYING_PARTY,
-            TokenType: 'JWT',
-          }),
-        });
-        if (r1Retry.ok) xblData = await r1Retry.json();
-        else return res.status(400).json({ error: 'Fallo la autenticación con Xbox Live' });
+      const authResult = await authenticateMinecraftWithToken(accessToken);
+      if (authResult.error) {
+        return res.status(400).json({ error: authResult.error });
       }
-
-      const xblToken = xblData.Token;
-      const userHash = xblData.DisplayClaims?.xui?.[0]?.uhs;
-
-      // 2. XSTS
-      const r2 = await fetch('https://xsts.auth.xboxlive.com/xsts/authorize', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({
-          Properties: {
-            SandboxId: 'RETAIL',
-            UserTokens: [xblToken],
-          },
-          RelyingParty: 'rp://api.minecraftservices.com/',
-          TokenType: 'JWT',
-        }),
-      });
-      const xstsData = await r2.json();
-      if (!r2.ok) {
-        if (xstsData.XErr === 2148916028) {
-          return res
-            .status(400)
-            .json({ error: 'Esta cuenta de Microsoft no posee un perfil de Minecraft comprado.' });
-        }
-        return res.status(400).json({ error: `Error XSTS (${xstsData.XErr || 'desconocido'})` });
-      }
-
-      const xstsToken = xstsData.Token;
-
-      // 3. Minecraft Login
-      const r3 = await fetch('https://api.minecraftservices.com/authentication/login_with_xbox', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          identityToken: `XBL3.0 x=${userHash};${xstsToken}`,
-        }),
-      });
-      const mcAuthData = await r3.json();
-      if (!r3.ok)
-        return res
-          .status(400)
-          .json({ error: 'Fallo el inicio de sesión en los servicios de Minecraft' });
-
-      // 4. Fetch Profile
-      const r4 = await fetch('https://api.minecraftservices.com/minecraft/profile', {
-        headers: { Authorization: `Bearer ${mcAuthData.access_token}` },
-      });
-      const profile = await r4.json();
-      if (!r4.ok || profile.error) {
-        return res
-          .status(400)
-          .json({ error: profile.errorMessage || 'No se pudo obtener el perfil de Minecraft' });
-      }
-
-      return res.json({ success: true, profile });
+      return res.json({ success: true, profile: authResult.profile });
     }
 
     return res.json(authError || { error: 'authorization_pending' });
@@ -759,77 +769,11 @@ export const exchangeMsAuthCode = async (req: Request, res: Response) => {
     }
 
     const accessToken = msData.access_token;
-
-    const r1 = await fetch('https://user.auth.xboxlive.com/user/authenticate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify({
-        Properties: {
-          AuthMethod: 'RPS',
-          SiteName: 'user.auth.xboxlive.com',
-          RpsTicket: `d=${accessToken}`,
-        },
-        RelyingParty: XBOX_AUTH_RELYING_PARTY,
-        TokenType: 'JWT',
-      }),
-    });
-
-    const xblData = await r1.json();
-    if (!r1.ok) {
-      return res.status(400).json({ error: 'Fallo la autenticación con Xbox Live' });
+    const authResult = await authenticateMinecraftWithToken(accessToken);
+    if (authResult.error) {
+      return res.status(400).json({ error: authResult.error });
     }
-
-    const xblToken = xblData.Token;
-    const userHash = xblData.DisplayClaims?.xui?.[0]?.uhs;
-
-    const r2 = await fetch('https://xsts.auth.xboxlive.com/xsts/authorize', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify({
-        Properties: {
-          SandboxId: 'RETAIL',
-          UserTokens: [xblToken],
-        },
-        RelyingParty: 'rp://api.minecraftservices.com/',
-        TokenType: 'JWT',
-      }),
-    });
-    const xstsData = await r2.json();
-    if (!r2.ok) {
-      if (xstsData.XErr === 2148916028) {
-        return res
-          .status(400)
-          .json({ error: 'Esta cuenta de Microsoft no posee un perfil de Minecraft comprado.' });
-      }
-      return res.status(400).json({ error: `Error XSTS (${xstsData.XErr || 'desconocido'})` });
-    }
-
-    const xstsToken = xstsData.Token;
-
-    const r3 = await fetch('https://api.minecraftservices.com/authentication/login_with_xbox', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        identityToken: `XBL3.0 x=${userHash};${xstsToken}`,
-      }),
-    });
-    const mcAuthData = await r3.json();
-    if (!r3.ok)
-      return res
-        .status(400)
-        .json({ error: 'Fallo el inicio de sesión en los servicios de Minecraft' });
-
-    const r4 = await fetch('https://api.minecraftservices.com/minecraft/profile', {
-      headers: { Authorization: `Bearer ${mcAuthData.access_token}` },
-    });
-    const profile = await r4.json();
-    if (!r4.ok || profile.error) {
-      return res
-        .status(400)
-        .json({ error: profile.errorMessage || 'No se pudo obtener el perfil de Minecraft' });
-    }
-
-    return res.json({ success: true, profile });
+    return res.json({ success: true, profile: authResult.profile });
   } catch (err: unknown) {
     console.error('exchangeMsAuthCode error:', err);
     res.status(500).json({ error: 'Error al autenticar con Microsoft.' });

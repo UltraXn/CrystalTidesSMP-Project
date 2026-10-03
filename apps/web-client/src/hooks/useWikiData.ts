@@ -129,9 +129,7 @@ export function useWikiData(slug?: string) {
           setCurrentArticle(localMatch || null);
         }
       } finally {
-        if (!ignore) {
-          setArticleLoading(false);
-        }
+        setArticleLoading(false);
       }
     };
 

@@ -74,9 +74,10 @@ export async function generateAIBossPoll(): Promise<{
 
     let pollData: BossPollOutput
     try {
-      const jsonMatch = llmResult.text.match(/\{[\s\S]*\}/)
-      if (jsonMatch) {
-        pollData = JSON.parse(jsonMatch[0])
+      const firstOpen = llmResult.text.indexOf('{')
+      const lastClose = llmResult.text.lastIndexOf('}')
+      if (firstOpen !== -1 && lastClose > firstOpen) {
+        pollData = JSON.parse(llmResult.text.slice(firstOpen, lastClose + 1))
       } else {
         throw new Error('No valid JSON structure found in LLM output')
       }

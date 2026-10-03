@@ -58,9 +58,11 @@ describe("Launcher/CrystalClientPreview Component", () => {
 
     const hypixelProfile = screen.getByText("Hypixel Bedwars");
     fireEvent.click(hypixelProfile);
+    expect(hypixelProfile).toBeInTheDocument();
 
     const smpProfiles = screen.getAllByText("CrystalTides SMP");
     fireEvent.click(smpProfiles[smpProfiles.length - 1]);
+    expect(smpProfiles[smpProfiles.length - 1]).toBeInTheDocument();
   });
 
   it("filters friends list by search query", () => {
@@ -81,8 +83,10 @@ describe("Launcher/CrystalClientPreview Component", () => {
 
     const profilesNav = screen.getByTitle("Profiles / Perfiles");
     fireEvent.click(profilesNav);
+    expect(profilesNav).toBeInTheDocument();
 
     const modsNav = screen.getByTitle("Gestor de Mods");
     fireEvent.click(modsNav);
+    expect(modsNav).toBeInTheDocument();
   });
 });

@@ -26,6 +26,8 @@ export interface WikiMerchant3DCardProps {
   trades?: string[];
 }
 
+const DEFAULT_TRADES = ["Semillas Raras", "Señuelos Míticos", "Ingredientes de Alquimia"];
+
 export const WikiMerchant3DCard: React.FC<WikiMerchant3DCardProps> = ({
   minimal3dOnly = false,
   modelPath = "/models/ribbits/ribbit_merchant.gltf",
@@ -35,7 +37,7 @@ export const WikiMerchant3DCard: React.FC<WikiMerchant3DCardProps> = ({
   currency = "KilluCoins (KC) / Esmeraldas",
   location = "Pantanos, Ríos y Aldeas",
   description = "Comerciante itinerante de la raza Ribbit que ofrece semillas exóticas y artefactos de pesca.",
-  trades = ["Semillas Raras", "Señuelos Míticos", "Ingredientes de Alquimia"],
+  trades = DEFAULT_TRADES,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -261,8 +263,10 @@ export const WikiMerchant3DCard: React.FC<WikiMerchant3DCardProps> = ({
         <div className="grid grid-cols-1 items-stretch gap-0 lg:grid-cols-12">
           {/* 3D Viewport Column */}
           <div
+            role="region"
             aria-label="Visualizador 3D Mercader"
-            className="min-h-95 bg-radial relative flex h-full w-full cursor-grab items-center justify-center overflow-hidden border-b border-amber-500/20 from-amber-950/30 via-black to-black outline-none active:cursor-grabbing lg:col-span-5 lg:border-b-0 lg:border-r"
+            tabIndex={0}
+            className="min-h-95 bg-radial relative flex h-full w-full cursor-grab items-center justify-center overflow-hidden border-b border-amber-500/20 from-amber-950/30 via-black to-black outline-none active:cursor-grabbing focus:outline-none lg:col-span-5 lg:border-b-0 lg:border-r"
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
@@ -320,7 +324,7 @@ export const WikiMerchant3DCard: React.FC<WikiMerchant3DCardProps> = ({
               {description && (
                 <div className="mb-3 space-y-1.5 text-[11px] font-medium leading-relaxed text-gray-300 [&_p]:mb-1">
                   <ReactMarkdown>
-                    {description.replace(/\\n/g, "\n")}
+                    {description.replaceAll('\\n', '\n')}
                   </ReactMarkdown>
                 </div>
               )}

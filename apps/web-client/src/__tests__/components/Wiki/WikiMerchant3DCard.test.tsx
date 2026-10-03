@@ -167,5 +167,6 @@ describe("WikiMerchant3DCard Component", () => {
     fireEvent.mouseDown(viewport, { clientX: 100, clientY: 100 });
     fireEvent.mouseMove(viewport, { clientX: 160, clientY: 130 });
     fireEvent.mouseUp(viewport);
+    expect(viewport).toBeInTheDocument();
   });
 });

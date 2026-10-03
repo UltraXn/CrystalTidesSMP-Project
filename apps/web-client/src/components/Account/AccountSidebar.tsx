@@ -253,7 +253,7 @@ const AccountSidebar: React.FC<AccountSidebarProps> = ({
                     (e.target as HTMLImageElement).style.display = "none";
                   }}
                 />
-                KilluCoins
+                <span>KilluCoins</span>
               </span>
               <span className="font-mono text-xs font-black text-amber-300">
                 {(

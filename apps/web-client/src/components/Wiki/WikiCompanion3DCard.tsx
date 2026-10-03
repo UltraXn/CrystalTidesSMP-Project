@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import * as THREE from "three";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import ReactMarkdown from "react-markdown";
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import ReactMarkdown from 'react-markdown';
 import {
   Heart,
   Smile,
@@ -12,8 +12,8 @@ import {
   Gift,
   Maximize2,
   RotateCcw,
-} from "lucide-react";
-import { resolveAssetUrl } from "../../utils/assetUtils";
+} from 'lucide-react';
+import { resolveAssetUrl } from '../../utils/assetUtils';
 
 export interface WikiCompanion3DCardProps {
   minimal3dOnly?: boolean;
@@ -28,17 +28,20 @@ export interface WikiCompanion3DCardProps {
   drops?: string[];
 }
 
+const DEFAULT_TAMING_ITEMS = ['Bamboo', 'Sweet Berries'];
+const DEFAULT_DROPS = ['Bamboo', 'Cuero Suave'];
+
 export const WikiCompanion3DCard: React.FC<WikiCompanion3DCardProps> = ({
   minimal3dOnly = false,
-  modelPath = "/models/critters/red_panda.gltf",
-  bossName = "Red Panda",
-  subtitle = "Fauna Domésticable",
-  hp = "20 HP (10 Corazones)",
-  speed = "0.30 (Pasivo)",
-  location = "Bosques Templados & Selvas",
-  description = "Criatura dócil y juguetona que puede ser domesticada como mascota fiel.",
-  tamingItems = ["Bamboo", "Sweet Berries"],
-  drops = ["Bamboo", "Cuero Suave"],
+  modelPath = '/models/critters/red_panda.gltf',
+  bossName = 'Red Panda',
+  subtitle = 'Fauna Domésticable',
+  hp = '20 HP (10 Corazones)',
+  speed = '0.30 (Pasivo)',
+  location = 'Bosques Templados & Selvas',
+  description = 'Criatura dócil y juguetona que puede ser domesticada como mascota fiel.',
+  tamingItems = DEFAULT_TAMING_ITEMS,
+  drops = DEFAULT_DROPS,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -83,7 +86,7 @@ export const WikiCompanion3DCard: React.FC<WikiCompanion3DCardProps> = ({
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
       alpha: true,
-      powerPreference: "high-performance",
+      powerPreference: 'high-performance',
     });
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -92,7 +95,7 @@ export const WikiCompanion3DCard: React.FC<WikiCompanion3DCardProps> = ({
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     rendererRef.current = renderer;
 
-    containerRef.current.innerHTML = "";
+    containerRef.current.innerHTML = '';
     containerRef.current.appendChild(renderer.domElement);
 
     const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
@@ -179,11 +182,9 @@ export const WikiCompanion3DCard: React.FC<WikiCompanion3DCardProps> = ({
 
       if (modelGroupRef.current) {
         modelGroupRef.current.rotation.x +=
-          (targetRotationRef.current.x - modelGroupRef.current.rotation.x) *
-          0.08;
+          (targetRotationRef.current.x - modelGroupRef.current.rotation.x) * 0.08;
         modelGroupRef.current.rotation.y +=
-          (targetRotationRef.current.y - modelGroupRef.current.rotation.y) *
-          0.08;
+          (targetRotationRef.current.y - modelGroupRef.current.rotation.y) * 0.08;
       }
 
       renderer.render(scene, camera);
@@ -192,8 +193,7 @@ export const WikiCompanion3DCard: React.FC<WikiCompanion3DCardProps> = ({
     animate();
 
     const handleResize = () => {
-      if (!containerRef.current || !rendererRef.current || !cameraRef.current)
-        return;
+      if (!containerRef.current || !rendererRef.current || !cameraRef.current) return;
       const w = containerRef.current.clientWidth;
       const h = containerRef.current.clientHeight;
       cameraRef.current.aspect = w / h;
@@ -201,11 +201,11 @@ export const WikiCompanion3DCard: React.FC<WikiCompanion3DCardProps> = ({
       rendererRef.current.setSize(w, h);
     };
 
-    window.addEventListener("resize", handleResize);
+    window.addEventListener('resize', handleResize);
 
     return () => {
       cancelAnimationFrame(animationFrameId);
-      window.removeEventListener("resize", handleResize);
+      window.removeEventListener('resize', handleResize);
       renderer.dispose();
     };
   }, [modelPath]);
@@ -244,10 +244,7 @@ export const WikiCompanion3DCard: React.FC<WikiCompanion3DCardProps> = ({
             </span>
           </div>
         )}
-        <div
-          ref={containerRef}
-          className="absolute inset-0 z-10 h-full w-full"
-        />
+        <div ref={containerRef} className="absolute inset-0 z-10 h-full w-full" />
       </div>
     );
   }
@@ -258,8 +255,10 @@ export const WikiCompanion3DCard: React.FC<WikiCompanion3DCardProps> = ({
         <div className="grid grid-cols-1 items-stretch gap-0 lg:grid-cols-12">
           {/* 3D Viewport Column */}
           <div
+            role="region"
             aria-label="Visualizador 3D Mascota"
-            className="min-h-95 bg-radial relative flex h-full w-full cursor-grab items-center justify-center overflow-hidden border-b border-emerald-500/20 from-emerald-950/30 via-black to-black outline-none active:cursor-grabbing lg:col-span-5 lg:border-b-0 lg:border-r"
+            tabIndex={0}
+            className="min-h-95 bg-radial relative flex h-full w-full cursor-grab items-center justify-center overflow-hidden border-b border-emerald-500/20 from-emerald-950/30 via-black to-black outline-none focus:outline-none active:cursor-grabbing lg:col-span-5 lg:border-b-0 lg:border-r"
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
@@ -274,10 +273,7 @@ export const WikiCompanion3DCard: React.FC<WikiCompanion3DCardProps> = ({
               </div>
             )}
 
-            <div
-              ref={containerRef}
-              className="absolute inset-0 z-10 h-full w-full"
-            />
+            <div ref={containerRef} className="absolute inset-0 z-10 h-full w-full" />
 
             {/* Controls */}
             <div className="absolute right-3 top-3 z-20 flex items-center gap-1.5">
@@ -315,9 +311,7 @@ export const WikiCompanion3DCard: React.FC<WikiCompanion3DCardProps> = ({
 
               {description && (
                 <div className="mb-3 space-y-1.5 text-[11px] font-medium leading-relaxed text-gray-300 [&_p]:mb-1">
-                  <ReactMarkdown>
-                    {description.replace(/\\n/g, "\n")}
-                  </ReactMarkdown>
+                  <ReactMarkdown>{description.replaceAll('\\n', '\n')}</ReactMarkdown>
                 </div>
               )}
 
@@ -332,7 +326,7 @@ export const WikiCompanion3DCard: React.FC<WikiCompanion3DCardProps> = ({
                       Domesticación
                     </div>
                     <div className="text-[11px] font-bold text-emerald-300">
-                      {tamingItems.join(", ")}
+                      {tamingItems.join(', ')}
                     </div>
                   </div>
                 </div>
@@ -345,9 +339,7 @@ export const WikiCompanion3DCard: React.FC<WikiCompanion3DCardProps> = ({
                     <div className="font-mono text-[8px] uppercase tracking-wider text-gray-400">
                       Temperamento
                     </div>
-                    <div className="text-[11px] font-bold text-white">
-                      Pasivo & Dócil (Mascota)
-                    </div>
+                    <div className="text-[11px] font-bold text-white">Pasivo & Dócil (Mascota)</div>
                   </div>
                 </div>
 
@@ -371,9 +363,7 @@ export const WikiCompanion3DCard: React.FC<WikiCompanion3DCardProps> = ({
                     <div className="font-mono text-[8px] uppercase tracking-wider text-gray-400">
                       Marcha & Agilidad
                     </div>
-                    <div className="text-[11px] font-bold text-white">
-                      {speed}
-                    </div>
+                    <div className="text-[11px] font-bold text-white">{speed}</div>
                   </div>
                 </div>
               </div>
@@ -384,9 +374,8 @@ export const WikiCompanion3DCard: React.FC<WikiCompanion3DCardProps> = ({
                   <Sparkles size={12} /> Beneficio de Mascota
                 </div>
                 <p className="text-[10px] font-medium leading-tight text-gray-300">
-                  <strong className="text-white">Domesticable:</strong> Al
-                  alimentarlo con su comida favorita, este compañero te seguirá
-                  fielmente por CrystalTides.
+                  <strong className="text-white">Domesticable:</strong> Al alimentarlo con su comida
+                  favorita, este compañero te seguirá fielmente por CrystalTides.
                 </p>
               </div>
 
@@ -403,8 +392,7 @@ export const WikiCompanion3DCard: React.FC<WikiCompanion3DCardProps> = ({
               {/* Drops */}
               <div>
                 <h4 className="mb-1 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-white">
-                  <Gift className="h-3.5 w-3.5 text-emerald-400" /> Drops &
-                  Recompensas
+                  <Gift className="h-3.5 w-3.5 text-emerald-400" /> Drops & Recompensas
                 </h4>
                 <div className="flex flex-wrap gap-1.5">
                   {drops.map((drop) => (

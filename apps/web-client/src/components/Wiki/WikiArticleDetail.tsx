@@ -37,7 +37,7 @@ export default function WikiArticleDetail({ article, isMobArticle }: WikiArticle
           cardTheme={article.card_theme}
           threatLabel={article.threat_label}
           hpLabel={article.hp_label}
-          damageLabel={article.damageLabel}
+          damageLabel={article.damage_label}
           speedLabel={article.speed_label}
           locationLabel={article.location_label}
           dropsLabel={article.drops_label}

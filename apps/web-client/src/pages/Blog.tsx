@@ -87,7 +87,7 @@ function getArticleThreadUrl(article: Article): string {
 }
 
 function formatArticleDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString();
+  return new Date(dateString).toLocaleDateString('es-ES', { timeZone: 'UTC' });
 }
 
 function generateLikeParticles(): Particle[] {
@@ -219,7 +219,7 @@ const FeaturedNewsCard = ({ article }: { article: Article }) => {
           <img
             src={article.image}
             alt={title}
-            className="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-105"
+            className="size-full object-cover transition-transform duration-1000 group-hover:scale-105"
           />
         ) : (
           <div className="text-9xl opacity-10 transition-opacity group-hover:opacity-20">
@@ -236,11 +236,11 @@ const FeaturedNewsCard = ({ article }: { article: Article }) => {
           <Calendar size={12} /> {formatArticleDate(article.created_at)}
         </div>
 
-        <h3 className="group-hover:text-(--accent) text-3xl font-black leading-tight tracking-tighter text-white transition-colors md:text-4xl">
+        <h3 className="group-hover:text-(--accent) text-3xl/tight font-black tracking-tighter text-white transition-colors md:text-4xl">
           {title}
         </h3>
 
-        <p className="line-clamp-3 grow text-base font-medium leading-relaxed text-gray-400">
+        <p className="line-clamp-3 grow text-base/relaxed font-medium text-gray-400">
           {content}
         </p>
 
@@ -274,7 +274,7 @@ const CompactNewsCard = ({ article }: { article: Article }) => {
           <img
             src={article.image}
             alt={title}
-            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+            className="size-full object-cover transition-transform duration-700 group-hover:scale-110"
           />
         ) : (
           <div className="text-4xl opacity-20 transition-opacity group-hover:opacity-40">
@@ -294,7 +294,7 @@ const CompactNewsCard = ({ article }: { article: Article }) => {
             </span>
           </div>
 
-          <h4 className="group-hover:text-(--accent) text-lg font-black leading-snug text-white transition-colors">
+          <h4 className="group-hover:text-(--accent) text-lg/snug font-black text-white transition-colors">
             {title}
           </h4>
         </div>
@@ -364,7 +364,7 @@ const BlogSkeletonFallback = () => (
     <div className="h-95 flex animate-pulse flex-col justify-between rounded-3xl border border-white/10 bg-white/5 p-8 lg:col-span-2">
       <div className="flex items-center gap-3">
         <div className="h-6 w-20 rounded-full bg-white/10" />
-        <div className="h-4 w-28 rounded bg-white/5" />
+        <div className="h-4 w-28 rounded-sm bg-white/5" />
       </div>
       <div className="flex flex-col gap-3">
         <div className="h-8 w-3/4 rounded-lg bg-white/10" />
@@ -379,8 +379,8 @@ const BlogSkeletonFallback = () => (
           className="h-43.75 flex animate-pulse flex-col justify-between rounded-2xl border border-white/10 bg-white/5 p-5"
         >
           <div className="h-5 w-16 rounded-full bg-white/10" />
-          <div className="h-6 w-4/5 rounded bg-white/10" />
-          <div className="h-4 w-24 rounded bg-white/5" />
+          <div className="h-6 w-4/5 rounded-sm bg-white/10" />
+          <div className="h-4 w-24 rounded-sm bg-white/5" />
         </div>
       ))}
     </div>

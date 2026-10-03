@@ -38,7 +38,7 @@ export default function WikiInfobox3D({ article }: WikiInfobox3DProps) {
   const currentModelRef = useRef<THREE.Object3D | null>(null);
   const mixerRef = useRef<THREE.AnimationMixer | null>(null);
   const reqIdRef = useRef<number>(0);
-  const clockRef = useRef<THREE.Clock>(new THREE.Clock());
+  const clockRef = useRef<THREE.Clock | null>(null);
   const isDraggingRef = useRef(false);
   const previousMousePositionRef = useRef({ x: 0, y: 0 });
 
@@ -50,6 +50,7 @@ export default function WikiInfobox3D({ article }: WikiInfobox3DProps) {
   // Initialize Three.js Scene
   useEffect(() => {
     if (!canvasRef.current || !containerRef.current) return;
+    clockRef.current = new THREE.Clock();
 
     const container = containerRef.current;
     const width = container.clientWidth || 320;
@@ -111,7 +112,7 @@ export default function WikiInfobox3D({ article }: WikiInfobox3DProps) {
     // Animation Loop
     const animate = () => {
       reqIdRef.current = requestAnimationFrame(animate);
-      const delta = clockRef.current.getDelta();
+      const delta = clockRef.current ? clockRef.current.getDelta() : 0;
 
       if (mixerRef.current) {
         mixerRef.current.update(delta);
@@ -140,7 +141,9 @@ export default function WikiInfobox3D({ article }: WikiInfobox3DProps) {
     return () => {
       cancelAnimationFrame(reqIdRef.current);
       window.removeEventListener("resize", handleResize);
-      renderer.dispose();
+      ringGeo.dispose?.();
+      ringMat.dispose?.();
+      renderer.dispose?.();
     };
   }, []);
 
@@ -276,7 +279,10 @@ export default function WikiInfobox3D({ article }: WikiInfobox3DProps) {
         <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-black/60 shadow-inner">
           <div
             ref={containerRef}
-            className="h-65 relative flex w-full cursor-grab items-center justify-center active:cursor-grabbing"
+            role="region"
+            aria-label="Contenedor interactivo del modelo 3D"
+            tabIndex={0}
+            className="h-65 relative flex w-full cursor-grab items-center justify-center active:cursor-grabbing focus:outline-none"
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
@@ -370,7 +376,7 @@ export default function WikiInfobox3D({ article }: WikiInfobox3DProps) {
           <div className="flex items-center justify-between pt-1.5">
             <span className="font-medium text-white/50">Categoría</span>
             <span className="font-bold capitalize text-white">
-              {article.category?.replace(/_/g, " ") || "General"}
+              {article.category?.replaceAll("_", " ") || "General"}
             </span>
           </div>
 
@@ -488,9 +494,9 @@ export default function WikiInfobox3D({ article }: WikiInfobox3DProps) {
             Tabla de Botín / Drops
           </div>
           <div className="space-y-1">
-            {article.boss_drops.map((drop, idx) => (
+            {article.boss_drops.map((drop) => (
               <div
-                key={idx}
+                key={`drop-${drop}`}
                 className="flex items-center justify-between rounded-lg border border-white/5 bg-black/40 p-2 text-xs"
               >
                 <span className="font-medium text-white/80">

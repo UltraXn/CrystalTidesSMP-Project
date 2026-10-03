@@ -35,7 +35,7 @@ export const removeComment = async (req: Request, res: Response) => {
         const user = req.user;
         if (!user) return sendError(res, 'Unauthorized', 'UNAUTHORIZED', 401);
         
-        await commentService.deleteComment(parseInt(id), { id: user.id, role: user.role });
+        await commentService.deleteComment(Number.parseInt(id, 10), { id: user.id, role: user.role });
         return sendSuccess(res, null, 'Comment deleted');
     } catch (error) {
         return sendError(res, error instanceof Error ? error.message : 'Error deleting comment');

@@ -207,8 +207,8 @@ export default function PollFormModal({ onClose, onSubmit, poll, creating, butto
                                 <input id="poll-duration" className="admin-input-premium" type="number" min="1" max="30" value={daysDuration} onChange={e => {
                                     const raw = e.target.value;
                                     if (!raw) { setDaysDuration(1); return; }
-                                    const val = parseInt(raw, 10);
-                                    setDaysDuration(isNaN(val) ? 1 : Math.max(1, Math.min(30, val)));
+                                    const val = Number.parseInt(raw, 10);
+                                    setDaysDuration(Number.isNaN(val) ? 1 : Math.max(1, Math.min(30, val)));
                                 }} />
                             </div>
                             <div style={{ display: 'flex', alignItems: 'flex-end' }}>

@@ -396,7 +396,7 @@ export default function RulesEditor() {
                                 {category}
                             </h4>
                             <div style={{ display: 'grid', gap: '1rem' }}>
-                                {categoryRules.sort((a: Rule, b: Rule) => (a.sort_order || 0) - (b.sort_order || 0)).map((rule: Rule) => (
+                                {categoryRules.toSorted((a: Rule, b: Rule) => (a.sort_order || 0) - (b.sort_order || 0)).map((rule: Rule) => (
                                     <div key={rule.id} className="admin-card" style={{ background: 'rgba(15, 15, 20, 0.4)', border: '1px solid rgba(255, 255, 255, 0.05)', borderRadius: '16px', padding: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
                                         <div style={{ flex: 1 }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>

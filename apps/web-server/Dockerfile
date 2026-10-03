@@ -1,22 +1,29 @@
 # syntax=docker/dockerfile:1.7
 # Multi-stage: build inside the image, ship a slim alpine runtime.
 
-FROM node:24-alpine AS deps
+# Stage 1: Pruner - Generate minimal workspace slice for @crystaltides/server
+FROM node:24-alpine AS pruner
+WORKDIR /app
+RUN apk add --no-cache libc6-compat
+COPY . .
+RUN npx turbo prune --scope=@crystaltides/server --docker
+
+# Stage 2: Dependencies and Build
+FROM node:24-alpine AS builder
 WORKDIR /app
 RUN apk add --no-cache libc6-compat \
   && corepack enable && corepack prepare pnpm@10.29.3 --activate
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc turbo.json ./
-COPY apps/web-server/package.json ./apps/web-server/
-COPY apps/web-client/package.json ./apps/web-client/
-COPY apps/discord-bot/package.json ./apps/discord-bot/
-COPY apps/game-bridge/package.json ./apps/game-bridge/
-COPY packages/shared/package.json ./packages/shared/
-COPY packages/eslint-config/package.json ./packages/eslint-config/
+
+# First install only dependencies needed for this scope (layer cached)
+COPY --from=pruner /app/out/json/ .
+COPY --from=pruner /app/out/pnpm-lock.yaml ./pnpm-lock.yaml
+COPY --from=pruner /app/out/pnpm-workspace.yaml ./pnpm-workspace.yaml
+COPY --from=pruner /app/.npmrc ./.npmrc
 RUN pnpm install --frozen-lockfile
 
-FROM deps AS builder
+# Copy full pruned source and build
+COPY --from=pruner /app/out/full/ .
 ENV NODE_OPTIONS=--max-old-space-size=8192
-COPY . .
 RUN pnpm turbo run build --filter=@crystaltides/server...
 RUN pnpm prune --prod
 

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m as motion, AnimatePresence } from 'framer-motion';
 import { Briefcase, Users, CheckCircle2, MessageSquare, Sparkles, Hash, ExternalLink } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import Section from '../Layout/Section';

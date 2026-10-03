@@ -424,12 +424,12 @@ function getFeatureBadgeIcon(f: FeatureItem, brandColor: string) {
 function StageFeatures({ features }: Readonly<{ features: FeatureItem[] }>) {
   return (
     <div className="relative z-10 flex flex-wrap justify-center gap-5 border-t border-white/10 pt-4">
-      {features.map((f, fIdx) => {
+      {features.map((f) => {
         const brandColor = f.brandColor || "#00e5ff";
 
         return (
           <div
-            key={`feature-${f.title}-${fIdx}`}
+            key={`feature-${f.title}`}
             className="max-w-85 group relative flex min-w-60 flex-1 flex-col justify-between gap-4 overflow-hidden rounded-2xl border border-white/10 bg-[#0d0f14] p-5 shadow-xl transition-colors duration-300 hover:scale-[1.02]"
             style={
               {
@@ -1084,7 +1084,7 @@ function Stage2Card({
       {stage.members && (
         <div className="relative z-10">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {stage.members.map((m, mIdx) => {
+            {stage.members.map((m) => {
               const isHovered =
                 hoveredMember === m.name || dragActiveMember === m.name;
               const isLinked = linkedMembers.has(m.name);
@@ -1103,7 +1103,7 @@ function Stage2Card({
 
               return (
                 <motion.div
-                  key={`staff-${m.name}-${mIdx}`}
+                  key={`staff-${m.name}`}
                   onHoverStart={() => setHoveredMember(m.name)}
                   onHoverEnd={() => setHoveredMember(null)}
                   className={`group relative flex flex-col justify-between gap-3 rounded-2xl border p-4 pt-6 shadow-2xl backdrop-blur-md transition-colors duration-300 ${cardStateClass}`}

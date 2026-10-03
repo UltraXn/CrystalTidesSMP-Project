@@ -203,6 +203,7 @@ Responde ÚNICAMENTE con el objeto JSON válido sin texto markdown adicional alr
 
                 <textarea
                     rows={12}
+                    aria-label="Entrada JSON generada por IA para el Boss"
                     value={aiJsonInput}
                     onChange={e => setAiJsonInput(e.target.value)}
                     placeholder='{\n  "title": "Sculk Leviathan",\n  "boss_subtitle": "Terror de las Profundidades",\n  "model_3d_url": "/models/sculk_dragon.gltf",\n  "boss_hp": "1500 HP",\n  "boss_phases": [...]\n}'

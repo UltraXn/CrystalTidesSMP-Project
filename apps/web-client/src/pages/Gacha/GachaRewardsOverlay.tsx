@@ -2,7 +2,7 @@ import React from "react";
 import { Star, Check, Trophy, Sparkles } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { GachaReward, MappedGachaResult, GachaTier } from "./types";
-import { isLossReward, resolveRewardImage } from "./gachaDisplayUtils";
+import { isLossReward, resolveRewardImage, getGachaFailsafeImage } from "./gachaDisplayUtils";
 
 interface GachaRewardsOverlayProps {
   showBulkRewards: boolean;
@@ -10,15 +10,6 @@ interface GachaRewardsOverlayProps {
   selectedTier: GachaTier;
   setShowBulkRewards: (val: boolean) => void;
 }
-
-const coinImages: Record<string, string> = {
-  bronze: "/images/killucoins/coin_cobre.webp",
-  silver: "/images/killucoins/coin_plata.webp",
-  gold: "/images/killucoins/coin_oro.webp",
-  emerald: "/images/killucoins/coin_esmeralda.webp",
-  diamond: "/images/killucoins/coin_diamante.webp",
-  iridium: "/images/killucoins/coin_iridium.webp",
-};
 
 export const GachaRewardsOverlay: React.FC<GachaRewardsOverlayProps> = ({
   showBulkRewards,
@@ -31,44 +22,7 @@ export const GachaRewardsOverlay: React.FC<GachaRewardsOverlayProps> = ({
 
   const isSingle = bulkRewards.length === 1;
 
-  const xpImg = "/images/items/xp_bottle.webp";
-
-  const getFailsafeImg = (name: string) => {
-    const n = name.toLowerCase();
-    // Skip fallback for loss if we want to use the icon/image provided
-    // The component handles it based on reward.image_url or fallback icon
-    // This function now only provides images for specific non-loss items if image_url is not present
-    if (n.includes("xp")) return xpImg;
-    if (n.includes("killucoins") || n.includes(" kc")) {
-      if (n.includes("250.000")) return coinImages.diamond;
-      if (n.includes("2.500.000")) return coinImages.iridium;
-      if (n.includes("25.000")) return coinImages.emerald;
-      if (n.includes("2.500")) return coinImages.gold;
-      if (n.includes("250")) return coinImages.silver;
-      return coinImages.bronze;
-    }
-    if (n.includes("capa") || n.includes("elytra"))
-      return "/images/items/Elytra_JE2_BE2.png";
-    if (n.includes("estrella nether")) return "/images/items/Nether_Star.gif";
-    if (n.includes("mending")) return "/images/items/enchanted_book.gif";
-    if (n.includes("silencio"))
-      return "/images/items/Silence_Armor_Trim_Smithing_Template_JE1_BE1.png";
-    if (n.includes("heavy core")) return "/images/items/Heavy_Core_JE1_BE1.png";
-    if (n.includes("sniffer"))
-      return "/images/items/Sniffer_Egg_(item)_JE1_BE1.png";
-    if (n.includes("pigstep"))
-      return "/images/items/Music_Disc_Pigstep_JE1_BE1.png";
-    if (n.includes("wither"))
-      return "/images/items/Wither_Skeleton_Skull_(S)_JE2.png";
-    if (n.includes("notch"))
-      return "/images/items/Enchanted_Golden_Apple_JE2_BE2.gif";
-    if (n.includes("escudo")) return "/images/items/Shield_JE2_BE1.webp";
-    if (n.includes("mejora netherite"))
-      return "/images/items/Netherite_Upgrade_Smithing_Template_JE1_BE1.png";
-    if (n.includes("zanahoria oro"))
-      return "/images/items/Golden_Carrot_JE4_BE2.png";
-    return null;
-  };
+  const getFailsafeImg = (name: string) => getGachaFailsafeImage(name);
 
   if (isSingle) {
     const item = bulkRewards[0];
@@ -181,7 +135,7 @@ export const GachaRewardsOverlay: React.FC<GachaRewardsOverlayProps> = ({
           ) : (
             bulkRewards.map((r, index) => (
               <div
-                key={r.id || `${r.name}-${r.rarity}-${index}`}
+                key={r.id || `reward-${r.name}-${r.rarity}-${'amount' in r && r.amount ? r.amount : ''}`}
                 className={`bulk-item-row rarity-${r.rarity}`}
                 style={{ "--delay": `${index * 0.05}s` } as React.CSSProperties}
               >

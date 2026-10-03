@@ -154,22 +154,27 @@ export const CrystalClientPreview: React.FC = () => {
     };
   }, []);
 
+  useEffect(() => {
+    if (isDownloading && downloadProgress >= 100) {
+      if (downloadTimerRef.current) {
+        clearInterval(downloadTimerRef.current);
+        downloadTimerRef.current = null;
+      }
+      const finishTimer = setTimeout(() => {
+        setIsDownloading(false);
+      }, 2000);
+      return () => clearTimeout(finishTimer);
+    }
+  }, [isDownloading, downloadProgress]);
+
   const handleLaunch = () => {
     if (isDownloading) return;
     setIsDownloading(true);
     setDownloadProgress(0);
 
-    if (downloadTimerRef.current) clearInterval(downloadTimerRef.current); // React Doctor: prevenir intervalos superpuestos
+    if (downloadTimerRef.current) clearInterval(downloadTimerRef.current);
     downloadTimerRef.current = setInterval(() => {
-      // React Doctor: timer controlado con limpieza garantizada
-      setDownloadProgress((prev) => {
-        if (prev >= 100) {
-          if (downloadTimerRef.current) clearInterval(downloadTimerRef.current); // React Doctor: cancelar al completar descarga
-          setTimeout(() => setIsDownloading(false), 2000);
-          return 100;
-        }
-        return prev + 10;
-      });
+      setDownloadProgress((prev) => (prev >= 100 ? 100 : prev + 10));
     }, 250);
   };
 
@@ -518,9 +523,9 @@ export const CrystalClientPreview: React.FC = () => {
 
               <div className="grid grid-cols-4 gap-2">
                 {["💎", "🛡️", "⚔️", "🌀", "👑", "🔮", "🌋", "🎯"].map(
-                  (emoji, i) => (
+                  (emoji) => (
                     <div
-                      key={i}
+                      key={`server-partner-${emoji}`}
                       className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border border-white/5 bg-white/5 text-sm transition-all hover:scale-105 hover:border-teal-500/40"
                     >
                       {emoji}
@@ -799,9 +804,9 @@ export const CrystalClientPreview: React.FC = () => {
 
             {/* Messages */}
             <div className="flex-1 space-y-2 overflow-y-auto p-3 text-xs">
-              {chatMessages.map((m, idx) => (
+              {chatMessages.map((m) => (
                 <div
-                  key={idx}
+                  key={`chat-msg-${m.time}-${m.text}`}
                   className={`max-w-[85%] rounded-xl p-2 text-[11px] leading-relaxed ${
                     m.sender === "me"
                       ? "ml-auto border border-teal-500/40 bg-teal-500/20 text-teal-100"

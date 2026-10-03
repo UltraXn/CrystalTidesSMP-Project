@@ -26,7 +26,7 @@ export const GachaUnauthorized: React.FC<GachaUnauthorizedProps> = ({ userRole, 
                 <div className="security-tag">
                     <span className="scan-line"></span>
                     <span className="status-label">{t('gacha.unauthorized.status')}</span>
-                    SYSTEM CLEARANCE REQUIRED
+                    <span>SYSTEM CLEARANCE REQUIRED</span>
                 </div>
                 
                 <div className="lock-section-premium">

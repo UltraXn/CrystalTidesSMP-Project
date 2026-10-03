@@ -46,26 +46,47 @@ export default function Wiki() {
 
       {/* 2. Main Wiki Content Area (Full Width Space) */}
       <div className="w-full min-w-0 flex-1 space-y-6">
-        {loading ? (
-          <div className="flex items-center justify-center rounded-3xl border border-neutral-800 bg-neutral-900/80 py-32 shadow-xl">
-            <Loader text={t('wiki.loading_catalog', 'Abriendo los tomos de la Wiki...')} />
-          </div>
-        ) : !slug ? (
-          <WikiPortalView
-            portalArticles={portalArticles}
-            portalSearch={portalSearch}
-            onSearchChange={setPortalSearch}
-            categoryCounts={categoryCounts}
-          />
-        ) : (
-          <div className="space-y-6">
-            <WikiArticleToolbar
-              currentArticle={currentArticle}
-              prevArticle={prevArticle}
-              nextArticle={nextArticle}
-            />
+        <AnimatePresence mode="wait">
+          {loading ? (
+            <motion.div
+              key="wiki-loading"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex items-center justify-center rounded-3xl border border-neutral-800 bg-neutral-900/80 py-32 shadow-xl"
+            >
+              <Loader text={t('wiki.loading_catalog', 'Abriendo los tomos de la Wiki...')} />
+            </motion.div>
+          ) : !slug ? (
+            <motion.div
+              key="wiki-portal"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+            >
+              <WikiPortalView
+                portalArticles={portalArticles}
+                portalSearch={portalSearch}
+                onSearchChange={setPortalSearch}
+                categoryCounts={categoryCounts}
+              />
+            </motion.div>
+          ) : (
+            <motion.div
+              key={currentArticle?.slug ?? 'wiki-article'}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-6"
+            >
+              <WikiArticleToolbar
+                currentArticle={currentArticle}
+                prevArticle={prevArticle}
+                nextArticle={nextArticle}
+              />
 
-            <AnimatePresence mode="wait">
               {articleLoading ? (
                 <div className="flex items-center justify-center rounded-3xl border border-neutral-800 bg-neutral-900/80 py-32 shadow-xl">
                   <Loader
@@ -73,20 +94,13 @@ export default function Wiki() {
                   />
                 </div>
               ) : currentArticle ? (
-                <motion.div
-                  key={currentArticle.slug}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.2 }}
-                  className="space-y-6"
-                >
+                <div className="space-y-6">
                   <WikiArticleDetail article={currentArticle} isMobArticle={isMobArticle} />
-                </motion.div>
+                </div>
               ) : null}
-            </AnimatePresence>
-          </div>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

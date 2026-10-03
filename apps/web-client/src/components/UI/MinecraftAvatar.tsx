@@ -15,12 +15,14 @@ interface MinecraftAvatarProps {
  * 2. Un avatar normal (mc-heads) si es un Nickname.
  * 3. Una imagen normal si es cualquier otra URL.
  */
+const DEFAULT_STYLE: React.CSSProperties = {};
+
 const MinecraftAvatar: React.FC<MinecraftAvatarProps> = ({ 
     src, 
     alt = "Avatar", 
     size = 120, 
     className = "", 
-    style = {},
+    style = DEFAULT_STYLE,
     fallback = "https://mc-heads.net/avatar/MHF_Steve"
 }) => {
     

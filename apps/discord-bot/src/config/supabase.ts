@@ -14,7 +14,12 @@ export const supabase: SupabaseClient = new Proxy({} as SupabaseClient, {
       if (!url || !key) {
         throw new Error('Faltan variables de entorno SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY');
       }
-      _supabase = createClient(url, key);
+      _supabase = createClient(url, key, {
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false,
+        },
+      });
     }
     return Reflect.get(_supabase, prop);
   },

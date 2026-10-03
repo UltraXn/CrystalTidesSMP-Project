@@ -103,6 +103,7 @@ export default function WikiPortalView({
             />
             <input
               type="text"
+              aria-label="Buscar artículos o guías por título o mod"
               placeholder="Buscar por título o mod..."
               value={portalSearch}
               onChange={(e) => onSearchChange(e.target.value)}

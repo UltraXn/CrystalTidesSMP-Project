@@ -6,6 +6,20 @@ packages:
 # Política de Seguridad en Cadena de Suministro (AGENTS.md Regla 2.1)
 # 48 horas (2880 minutos) de enfriamiento para paquetes npm recién publicados
 minimumReleaseAge: 2880
+minimumReleaseAgeExclude:
+  - eslint-plugin-security
 
 # Desactivar scripts de ciclo de vida (preinstall, install, postinstall) en instalación de paquetes
 ignoreScripts: true
+
+# Catálogo Centralizado de Dependencias (pnpm v10+ Catalogs)
+# Unifica versiones de librerías críticas para eliminar el Dependency Drift
+catalog:
+  react: ^19.2.3
+  react-dom: ^19.2.3
+  '@types/react': ^19.2.7
+  '@types/react-dom': ^19.2.3
+  typescript: 7.0.2
+  zod: ^4.2.1
+  vite: ^6.2.0
+

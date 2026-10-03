@@ -11,6 +11,11 @@ if (!supabaseUrl || !supabaseKey) {
     throw new Error('Supabase URL or Key missing in environment variables');
 }
 
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = createClient(supabaseUrl, supabaseKey, {
+    auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+    },
+});
 
 export default supabase;
