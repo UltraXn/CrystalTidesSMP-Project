@@ -10,6 +10,8 @@ export const ROLES = {
     DONOR: 'donor',
 } as const;
 
+export type Role = (typeof ROLES)[keyof typeof ROLES];
+
 export const STAFF_ROLES: readonly string[] = [
     ROLES.HELPER,
     ROLES.MODERATOR,
@@ -20,7 +22,11 @@ export const STAFF_ROLES: readonly string[] = [
     ROLES.FOUNDER,
 ];
 
-const ROLE_LEVELS: Record<string, number> = {
+const STAFF_ROLE_SET = new Set<string>(STAFF_ROLES);
+
+const DEFAULT_ROLE_LEVEL = -1;
+
+const ROLE_LEVELS: Readonly<Record<string, number>> = {
     [ROLES.USER]: 0,
     [ROLES.HELPER]: 1,
     [ROLES.MODERATOR]: 2,
@@ -32,13 +38,15 @@ const ROLE_LEVELS: Record<string, number> = {
 };
 
 export const getRoleLevel = (role: string): number => {
-    if (!role) return -1;
-    const normalized = role.toLowerCase();
-    return ROLE_LEVELS[normalized] !== undefined ? ROLE_LEVELS[normalized] : -1;
+    if (!role) {
+        return DEFAULT_ROLE_LEVEL;
+    }
+    return ROLE_LEVELS[role.toLowerCase()] ?? DEFAULT_ROLE_LEVEL;
 };
 
 export const isStaffRole = (role: string): boolean => {
-    if (!role) return false;
-    const normalized = role.toLowerCase();
-    return STAFF_ROLES.includes(normalized);
+    if (!role) {
+        return false;
+    }
+    return STAFF_ROLE_SET.has(role.toLowerCase());
 };
