@@ -39,6 +39,17 @@ import {
   type GachaStatusResponse,
 } from './gachaDisplayUtils';
 
+const CONSTANTS = {
+  TIER_ULTRA: 'ultra',
+  MOCK_PREFIX: 'mock-',
+  CONTENT_TYPE_JSON: 'application/json',
+  API_GACHA_URL: `${import.meta.env.VITE_API_URL || 'http://localhost:3001/api'}/gacha`,
+  POWER_4_IN_OUT: 'power4.inOut',
+  POWER_2_IN_OUT: 'power2.inOut',
+  DEFAULT_COLOR: '#fff',
+  UNKNOWN_REWARD: 'Unknown Reward',
+} as const;
+
 const RARITY_COLORS: Record<string, string> = {
   common: '#b0c3d9',
   rare: '#0070dd',
@@ -55,12 +66,11 @@ const RARITY_ICONS: Record<string, React.ElementType> = {
   mythic: Crown,
 };
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
-const EVENT_ONLY_TIERS = new Set(['ultra']);
+const EVENT_ONLY_TIERS = new Set<string>([CONSTANTS.TIER_ULTRA]);
 
-const formatCost = (num: number) => {
-  if (num >= 1000000000) return (num / 1000000000).toFixed(0) + 'B';
-  if (num >= 1000000) return (num / 1000000).toFixed(0) + 'M';
+const formatCost = (num: number): string => {
+  if (num >= 1_000_000_000) return (num / 1_000_000_000).toFixed(0) + 'B';
+  if (num >= 1_000_000) return (num / 1_000_000).toFixed(0) + 'M';
   if (num >= 1000) return (num / 1000).toFixed(0) + 'k';
   return num.toString();
 };
@@ -70,6 +80,177 @@ function getSecureRandomInt(max: number): number {
   const array = new Uint32Array(1);
   window.crypto.getRandomValues(array);
   return array[0] % max;
+}
+
+function findMatchingReward(result: RawGachaResult, rewards: GachaReward[]): GachaReward | undefined {
+  return rewards.find(
+    (r) =>
+      (result.reward_id && r.id === result.reward_id) ||
+      (result.id && r.id === result.id) ||
+      (result.name && r.name === result.name) ||
+      (result.name && r.name.includes(result.name)),
+  );
+}
+
+function mapRawGachaResults(
+  results: RawGachaResult[],
+  tierRewards: GachaReward[],
+): MappedGachaResult[] {
+  return results.map((result) => {
+    const found = findMatchingReward(result, tierRewards);
+    if (found) {
+      return {
+        ...result,
+        ...found,
+        name: result.reward_name || result.name || found.name,
+        image_url: found.image_url || result.image_url || '',
+        color: found.color || result.color || CONSTANTS.DEFAULT_COLOR,
+      } as MappedGachaResult;
+    }
+
+    return {
+      ...result,
+      name: result.reward_name || result.name || CONSTANTS.UNKNOWN_REWARD,
+      image_url: result.image_url || '',
+      color: result.color || CONSTANTS.DEFAULT_COLOR,
+    } as MappedGachaResult;
+  });
+}
+
+function generateMockRollResults(tier: GachaTier, qty: number): MappedGachaResult[] {
+  const results: MappedGachaResult[] = [];
+  const rewardsLen = tier.rewards.length;
+  for (let q = 0; q < qty; q++) {
+    const reward = tier.rewards[getSecureRandomInt(rewardsLen)];
+    results.push({
+      ...reward,
+      reward_id: reward.id,
+      reward_name: reward.name,
+      image_url: reward.image_url || '',
+      created_at: new Date().toISOString(),
+    } as unknown as MappedGachaResult);
+  }
+  return results;
+}
+
+function createMockHistorySeed(rewards: GachaReward[]): GachaHistoryEntry[] {
+  if (!rewards.length) return [];
+  return Array.from({ length: 5 }, (_, i) => {
+    const randomReward = rewards[getSecureRandomInt(rewards.length)];
+    return {
+      id: `mock-history-seed-${i}`,
+      reward_id: randomReward.id,
+      reward_name: randomReward.name,
+      rarity: randomReward.rarity,
+      created_at: new Date(Date.now() - i * 3_600_000).toISOString(),
+      image_url: randomReward.image_url || undefined,
+    };
+  });
+}
+
+function generateReelsForTier(tier: GachaTier): (GachaReward | MappedGachaResult)[][] {
+  if (!tier?.rewards || tier.rewards.length === 0) return [[], [], []];
+  return [0, 1, 2].map((colIdx) => {
+    const items: (GachaReward | MappedGachaResult)[] = [];
+    for (let i = 0; i < 60; i++) {
+      const baseReward = tier.rewards[getSecureRandomInt(tier.rewards.length)];
+      items.push({
+        ...baseReward,
+        id: `${baseReward.id || baseReward.name}-slot-${colIdx}-${i}`,
+      });
+    }
+    return items;
+  });
+}
+
+function calculateRollCost(cost: number, qty: number, hasFreeRoll: boolean): number {
+  return hasFreeRoll ? cost * Math.max(0, qty - 1) : cost * qty;
+}
+
+interface RollValidationParams {
+  activeUser: User | null;
+  isOpening: boolean;
+  isLinked: boolean;
+  selectedTier: GachaTier;
+  userIsAdmin: boolean;
+  unlockedTiers: string[];
+  hasFreeRoll: boolean;
+  killuBalance: number;
+  qty: number;
+}
+
+function canPerformRoll({
+  activeUser,
+  isOpening,
+  isLinked,
+  selectedTier,
+  userIsAdmin,
+  unlockedTiers,
+  hasFreeRoll,
+  killuBalance,
+  qty,
+}: RollValidationParams): boolean {
+  if (!activeUser || isOpening || !isLinked) return false;
+
+  const isTierLocked =
+    EVENT_ONLY_TIERS.has(selectedTier.id) &&
+    !userIsAdmin &&
+    !unlockedTiers.includes(selectedTier.id);
+
+  if (isTierLocked) return false;
+
+  const totalCost = calculateRollCost(selectedTier.cost, qty, hasFreeRoll);
+  return !(killuBalance < totalCost && selectedTier.id !== CONSTANTS.TIER_ULTRA);
+}
+
+async function playSpinSequence(
+  results: MappedGachaResult[],
+  runSingleSpin: (item: MappedGachaResult, isBulk: boolean) => Promise<void>,
+): Promise<void> {
+  const isBulk = results.length > 1;
+  for (let i = 0; i < results.length; i++) {
+    await runSingleSpin(results[i], isBulk);
+    if (i < results.length - 1) {
+      await new Promise((r) => setTimeout(r, 100));
+    }
+  }
+}
+
+async function postRollRequest(
+  userId: string,
+  tierId: string,
+  qty: number,
+  devOptions: { testForceResult: 'random' | 'win' | 'loss'; forceDeduction: boolean },
+  isAdminUser: boolean,
+  token?: string,
+): Promise<RollResponse> {
+  const body = {
+    userId,
+    tierId,
+    quantity: qty,
+    ...(import.meta.env.DEV && isAdminUser
+      ? {
+          testResult: devOptions.testForceResult,
+          forceDeduction: devOptions.forceDeduction,
+        }
+      : {}),
+  };
+
+  const headers: Record<string, string> = {
+    'Content-Type': CONSTANTS.CONTENT_TYPE_JSON,
+  };
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  const res = await fetch(`${CONSTANTS.API_GACHA_URL}/roll`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
+  return res.json();
 }
 
 export const Gacha = () => {
@@ -97,6 +278,7 @@ export const Gacha = () => {
     forceDeduction: false,
   });
   const { isDevMode, testForceResult, forceDeduction } = devOptions;
+
   const setIsDevMode = (val: boolean | ((prev: boolean) => boolean)) =>
     setDevOptions((prev) => ({
       ...prev,
@@ -109,6 +291,7 @@ export const Gacha = () => {
       ...prev,
       forceDeduction: typeof val === 'function' ? val(prev.forceDeduction) : val,
     }));
+
   const [showBulkRewards, setShowBulkRewards] = useState(false);
   const [bulkRewards, setBulkRewards] = useState<MappedGachaResult[] | null>(null);
   const [history, setHistory] = useState<GachaHistoryEntry[]>([]);
@@ -125,7 +308,7 @@ export const Gacha = () => {
   const fetchGachaStatus = useCallback(async () => {
     if (!activeUser) return;
 
-    if (activeUser.id.startsWith('mock-')) {
+    if (activeUser.id.startsWith(CONSTANTS.MOCK_PREFIX)) {
       setIsLinked(true);
       setKilluBalance((prev) => (prev === 0 ? 50000 : prev));
       setTierStatus({
@@ -134,7 +317,7 @@ export const Gacha = () => {
         epic: { hasFreeRoll: false, cooldownHours: 0 },
         ultra: { hasFreeRoll: false, cooldownHours: 0 },
       });
-      setUnlockedTiers(['ultra']);
+      setUnlockedTiers([CONSTANTS.TIER_ULTRA]);
       return;
     }
 
@@ -150,7 +333,7 @@ export const Gacha = () => {
       const {
         data: { session },
       } = await supabase.auth.getSession();
-      const res = await fetch(`${API_URL}/gacha/status/${activeUser.id}`, {
+      const res = await fetch(`${CONSTANTS.API_GACHA_URL}/status/${activeUser.id}`, {
         headers: { Authorization: `Bearer ${session?.access_token}` },
       });
       if (!res.ok) return;
@@ -171,7 +354,7 @@ export const Gacha = () => {
     async (amount: number) => {
       if (!activeUser) return;
 
-      if (activeUser.id.startsWith('mock-')) {
+      if (activeUser.id.startsWith(CONSTANTS.MOCK_PREFIX)) {
         setKilluBalance((prev) => prev + amount);
         return;
       }
@@ -180,10 +363,10 @@ export const Gacha = () => {
         const {
           data: { session },
         } = await supabase.auth.getSession();
-        const res = await fetch(`${API_URL}/gacha/add-funds`, {
+        const res = await fetch(`${CONSTANTS.API_GACHA_URL}/add-funds`, {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
+            'Content-Type': CONSTANTS.CONTENT_TYPE_JSON,
             Authorization: `Bearer ${session?.access_token}`,
           },
           body: JSON.stringify({ amount }),
@@ -207,21 +390,6 @@ export const Gacha = () => {
   useEffect(() => {
     fetchGachaStatus();
   }, [fetchGachaStatus]);
-
-  const generateReelsForTier = useCallback((tier: GachaTier) => {
-    if (!tier || !tier.rewards || tier.rewards.length === 0) return [[], [], []];
-    return [0, 1, 2].map((colIdx) => {
-      const items = [];
-      for (let i = 0; i < 60; i++) {
-        const baseReward = tier.rewards[getSecureRandomInt(tier.rewards.length)];
-        items.push({
-          ...baseReward,
-          id: `${baseReward.id || baseReward.name}-slot-${colIdx}-${i}`,
-        });
-      }
-      return items;
-    });
-  }, []);
 
   const [reelItemsSet, setReelItemsSet] = useState<(GachaReward | MappedGachaResult)[][]>(() =>
     generateReelsForTier(selectedTier || DISPLAY_GACHA_TIERS[0]),
@@ -251,21 +419,10 @@ export const Gacha = () => {
   const fetchHistory = useCallback(async () => {
     if (!activeUser) return;
 
-    if (activeUser.id.startsWith('mock-')) {
+    if (activeUser.id.startsWith(CONSTANTS.MOCK_PREFIX)) {
       setHistory((currentHistory) => {
         if (currentHistory.length > 0) return currentHistory;
-        return Array.from({ length: 5 }, (_, i) => {
-          const randomReward =
-            selectedTier.rewards[getSecureRandomInt(selectedTier.rewards.length)];
-          return {
-            id: `mock-history-seed-${i}`,
-            reward_id: randomReward.id,
-            reward_name: randomReward.name,
-            rarity: randomReward.rarity,
-            created_at: new Date(Date.now() - i * 3600000).toISOString(),
-            image_url: randomReward.image_url || undefined,
-          };
-        });
+        return createMockHistorySeed(selectedTier.rewards);
       });
       return;
     }
@@ -275,7 +432,7 @@ export const Gacha = () => {
       const {
         data: { session },
       } = await supabase.auth.getSession();
-      const res = await fetch(`${API_URL}/gacha/history/${activeUser.id}`, {
+      const res = await fetch(`${CONSTANTS.API_GACHA_URL}/history/${activeUser.id}`, {
         headers: { Authorization: `Bearer ${session?.access_token}` },
       });
       if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
@@ -288,7 +445,7 @@ export const Gacha = () => {
     } finally {
       setHistoryLoading(false);
     }
-  }, [activeUser, selectedTier]);
+  }, [activeUser, selectedTier.rewards]);
 
   useEffect(() => {
     if (activeUser) fetchHistory();
@@ -296,155 +453,106 @@ export const Gacha = () => {
 
   const hasFreeRollForTier = tierStatus[selectedTier.id]?.hasFreeRoll ?? false;
 
-  const handleOpen = useCallback(
-    async (qty: number) => {
-      if (!activeUser || isOpening || !isLinked) return;
+  const animateSpin = useCallback(
+    (item: GachaReward | MappedGachaResult, isBulk: boolean): Promise<void> => {
+      return new Promise<void>((resolve) => {
+        const durations = isBulk ? GACHA_SPIN_DURATIONS.bulk : GACHA_SPIN_DURATIONS.single;
+        const ease = isBulk ? CONSTANTS.POWER_2_IN_OUT : CONSTANTS.POWER_4_IN_OUT;
 
-      const isTierLocked =
-        EVENT_ONLY_TIERS.has(selectedTier.id) &&
-        !userIsAdmin &&
-        !unlockedTiers.includes(selectedTier.id);
-
-      if (isTierLocked) return;
-
-      const totalCost = hasFreeRollForTier
-        ? selectedTier.cost * (qty - 1)
-        : selectedTier.cost * qty;
-
-      if (killuBalance < totalCost && selectedTier.id !== 'ultra') return;
-
-      setIsOpening(true);
-
-      const animateSpin = (item: GachaReward | MappedGachaResult, isBulk: boolean) => {
-        return new Promise<void>((resolve) => {
-          const runAnimation = async () => {
-            const durations = isBulk ? GACHA_SPIN_DURATIONS.bulk : GACHA_SPIN_DURATIONS.single;
-            const ease = isBulk ? 'power2.inOut' : 'power4.inOut';
-
-            const nextReels = reelItemsSet.map((reel) => {
-              const newReel = [...reel];
-              newReel[46] = item;
-              return newReel;
-            });
-            setReelItemsSet(nextReels);
-
-            await new Promise((r) => setTimeout(r, 50));
-
-            setSpinSync({
-              id: ++spinIdRef.current,
-              durations: [...durations],
-              strips: reelsToImageStrips(nextReels),
-              ease,
-            });
-
-            const targetIdx = GACHA_SPIN_TARGET_INDEX;
-            const reelH = targetIdx * 160;
-            const tl = gsap.timeline({
-              onComplete: () => {
-                setIsCelebrating(true);
-                window.setTimeout(() => setIsCelebrating(false), 2200);
-                resolve();
-              },
-            });
-
-            const baseDuration = durations[0];
-            const stagger = isBulk ? 0.2 : 1;
-
-            reelRefs.forEach((ref, i) => {
-              const currentReel = ref.current;
-              if (!currentReel) return;
-              gsap.set(currentReel, { y: 0 });
-              tl.to(
-                currentReel,
-                {
-                  y: -reelH,
-                  duration: baseDuration + i * stagger,
-                  ease,
-                },
-                0,
-              );
-            });
-          };
-          runAnimation();
+        const nextReels = reelItemsSet.map((reel) => {
+          const newReel = [...reel];
+          newReel[46] = item;
+          return newReel;
         });
-      };
+        setReelItemsSet(nextReels);
 
-      // Mock bypass
-      if (activeUser.id.startsWith('mock-')) {
-        try {
-          // Simulate delay
-          await new Promise((r) => setTimeout(r, 800));
+        window.setTimeout(() => {
+          spinIdRef.current += 1;
+          setSpinSync({
+            id: spinIdRef.current,
+            durations: [...durations],
+            strips: reelsToImageStrips(nextReels),
+            ease,
+          });
 
-          // Deduct balance
-          setKilluBalance((prev) => prev - totalCost);
+          const reelH = GACHA_SPIN_TARGET_INDEX * 160;
+          const tl = gsap.timeline({
+            onComplete: () => {
+              setIsCelebrating(true);
+              window.setTimeout(() => setIsCelebrating(false), 2200);
+              resolve();
+            },
+          });
 
-          // Generate mock rewards based on active tier's rewards list
-          const results: MappedGachaResult[] = [];
-          for (let q = 0; q < qty; q++) {
-            const reward = selectedTier.rewards[getSecureRandomInt(selectedTier.rewards.length)];
-            results.push({
-              ...reward,
-              reward_id: reward.id,
-              reward_name: reward.name,
-              image_url: reward.image_url || '',
-              created_at: new Date().toISOString(),
-            } as unknown as MappedGachaResult);
-          }
+          const baseDuration = durations[0];
+          const stagger = isBulk ? 0.2 : 1;
 
-          for (let i = 0; i < results.length; i++) {
-            const currentItem = results[i];
-            await animateSpin(currentItem, results.length > 1);
+          reelRefs.forEach((ref, i) => {
+            const currentReel = ref.current;
+            if (!currentReel) return;
+            gsap.set(currentReel, { y: 0 });
+            tl.to(
+              currentReel,
+              {
+                y: -reelH,
+                duration: baseDuration + i * stagger,
+                ease,
+              },
+              0,
+            );
+          });
+        }, 50);
+      });
+    },
+    [reelItemsSet, reelRefs],
+  );
 
-            if (i < results.length - 1) {
-              await new Promise((r) => setTimeout(r, 100));
-            }
-          }
+  const handleMockRoll = useCallback(
+    async (qty: number, totalCost: number) => {
+      try {
+        await new Promise((r) => setTimeout(r, 800));
+        setKilluBalance((prev) => prev - totalCost);
 
-          setBulkRewards(results);
-          setShowBulkRewards(true);
-          setIsOpening(false);
-          setHistory((prev) => [
-            ...results.map((r, idx) => ({
-              id: `mock-history-${Date.now()}-${idx}`,
-              reward_id: r.id,
-              reward_name: r.name,
-              rarity: r.rarity,
-              created_at: r.created_at,
-              image_url: r.image_url || undefined,
-            })),
-            ...prev,
-          ]);
-        } catch (err) {
-          console.error(err);
-          setIsOpening(false);
-        }
-        return;
+        const results = generateMockRollResults(selectedTier, qty);
+        await playSpinSequence(results, animateSpin);
+
+        setBulkRewards(results);
+        setShowBulkRewards(true);
+        setIsOpening(false);
+        setHistory((prev) => [
+          ...results.map((r, idx) => ({
+            id: `mock-history-${Date.now()}-${idx}`,
+            reward_id: r.id,
+            reward_name: r.name,
+            rarity: r.rarity,
+            created_at: r.created_at,
+            image_url: r.image_url || undefined,
+          })),
+          ...prev,
+        ]);
+      } catch (err) {
+        console.error(err);
+        setIsOpening(false);
       }
+    },
+    [selectedTier, animateSpin],
+  );
 
+  const handleServerRoll = useCallback(
+    async (qty: number) => {
       try {
         const {
           data: { session },
         } = await supabase.auth.getSession();
-        const res = await fetch(`${API_URL}/gacha/roll`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${session?.access_token}`,
-          },
-          body: JSON.stringify({
-            userId: activeUser.id,
-            tierId: selectedTier.id,
-            quantity: qty,
-            ...(import.meta.env.DEV && userIsAdmin
-              ? {
-                  testResult: testForceResult,
-                  forceDeduction: forceDeduction,
-                }
-              : {}),
-          }),
-        });
-        if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
-        const rollRes: RollResponse = await res.json();
+        const rollRes = await postRollRequest(
+          activeUser!.id,
+          selectedTier.id,
+          qty,
+          { testForceResult, forceDeduction },
+          userIsAdmin,
+          session?.access_token,
+        );
+
         if (!rollRes.success) throw new Error(rollRes.code);
 
         const apiData = rollRes.data;
@@ -455,41 +563,8 @@ export const Gacha = () => {
               ? [apiData as RawGachaResult]
               : [];
 
-        const mappedResults: MappedGachaResult[] = results.map((result) => {
-          const found = selectedTier.rewards.find(
-            (r) =>
-              (result.reward_id && r.id === result.reward_id) ||
-              (result.id && r.id === result.id) ||
-              (result.name && r.name === result.name) ||
-              (result.name && r.name.includes(result.name)),
-          );
-
-          if (found) {
-            return {
-              ...result,
-              ...found,
-              name: result.reward_name || result.name || found.name,
-              image_url: found.image_url || result.image_url || '',
-              color: found.color || result.color || '#fff',
-            } as MappedGachaResult;
-          }
-
-          return {
-            ...result,
-            name: result.reward_name || result.name || 'Unknown Reward',
-            image_url: result.image_url || '',
-            color: result.color || '#fff',
-          } as MappedGachaResult;
-        });
-
-        for (let i = 0; i < mappedResults.length; i++) {
-          const currentItem = mappedResults[i];
-          await animateSpin(currentItem, mappedResults.length > 1);
-
-          if (i < mappedResults.length - 1) {
-            await new Promise((r) => setTimeout(r, 100));
-          }
-        }
+        const mappedResults = mapRawGachaResults(results, selectedTier.rewards);
+        await playSpinSequence(mappedResults, animateSpin);
 
         setBulkRewards(mappedResults);
         setShowBulkRewards(true);
@@ -503,40 +578,86 @@ export const Gacha = () => {
     },
     [
       activeUser,
-      isOpening,
-      isLinked,
-      hasFreeRollForTier,
       selectedTier,
-      killuBalance,
-      userIsAdmin,
       testForceResult,
       forceDeduction,
-      unlockedTiers,
-      reelRefs,
-      reelItemsSet,
+      userIsAdmin,
+      animateSpin,
       fetchGachaStatus,
       fetchHistory,
     ],
   );
 
-  if (authLoading)
+  const handleOpen = useCallback(
+    async (qty: number) => {
+      const isEligible = canPerformRoll({
+        activeUser,
+        isOpening,
+        isLinked,
+        selectedTier,
+        userIsAdmin,
+        unlockedTiers,
+        hasFreeRoll: hasFreeRollForTier,
+        killuBalance,
+        qty,
+      });
+
+      if (!isEligible || !activeUser) return;
+
+      setIsOpening(true);
+      const totalCost = calculateRollCost(selectedTier.cost, qty, hasFreeRollForTier);
+
+      if (activeUser.id.startsWith(CONSTANTS.MOCK_PREFIX)) {
+        await handleMockRoll(qty, totalCost);
+        return;
+      }
+
+      await handleServerRoll(qty);
+    },
+    [
+      activeUser,
+      isOpening,
+      isLinked,
+      selectedTier,
+      userIsAdmin,
+      unlockedTiers,
+      hasFreeRollForTier,
+      killuBalance,
+      handleMockRoll,
+      handleServerRoll,
+    ],
+  );
+
+  const renderTierCost = (tier: GachaTier, hasFreeRoll: boolean) => {
+    if (hasFreeRoll) {
+      return <span className="free-roll-badge">{t('gacha.free_roll')}</span>;
+    }
+    if (tier.id === CONSTANTS.TIER_ULTRA) {
+      return <span className="event-only-badge">{t('gacha.event_only')}</span>;
+    }
+    return <>{formatCost(tier.cost)}</>;
+  };
+
+  if (authLoading) {
     return (
       <div className="gacha-page">
         <Loader />
       </div>
     );
+  }
+
   if (!activeUser) {
     return (
       <GachaUnauthorized
         userRole="Guest"
         onMockLogin={(role) => {
-          const app_metadata = { role };
-          const user_metadata = { role };
+          const appMetadata = { role };
+          const userMetadata = { role };
           setMockUser({
             id: `mock-${role}-${Date.now()}`,
             email: `mock-${role}@crystaltides.local`,
-            app_metadata,
-            user_metadata,
+            app_metadata: appMetadata,
+            user_metadata: userMetadata,
           } as unknown as User);
         }}
       />
@@ -551,8 +672,8 @@ export const Gacha = () => {
       style={{ '--tier-color': selectedTier.color } as React.CSSProperties}
     >
       <div className="gacha-background">
-        <div className="gradient-sphere sphere-1"></div>
-        <div className="gradient-sphere sphere-2"></div>
+        <div className="gradient-sphere sphere-1" />
+        <div className="gradient-sphere sphere-2" />
       </div>
 
       <div className="gacha-container">
@@ -589,13 +710,7 @@ export const Gacha = () => {
                 <div className="tier-info">
                   <span className="tier-name">{tier.name}</span>
                   <div className="tier-value">
-                    {hasFreeRoll ? (
-                      <span className="free-roll-badge">{t('gacha.free_roll')}</span>
-                    ) : tier.id === 'ultra' ? (
-                      <span className="event-only-badge">{t('gacha.event_only')}</span>
-                    ) : (
-                      <>{formatCost(tier.cost)}</>
-                    )}
+                    {renderTierCost(tier, hasFreeRoll)}
                   </div>
                 </div>
                 {isLocked && <Lock className="lock-icon" size={14} />}
@@ -630,7 +745,7 @@ export const Gacha = () => {
                 type="button"
                 className="gacha-balance-chip clickable"
                 id="gacha_nav_currency"
-                onClick={() => handleAddFunds(5000000)}
+                onClick={() => handleAddFunds(5_000_000)}
                 title="Click para añadir +5,000,000 KC (Modo Prueba)"
               >
                 <img

@@ -25,6 +25,21 @@ type EmissiveMat = THREE.MeshStandardMaterial & {
   userData: { baseEmissive?: number };
 };
 
+interface ShowcaseLights {
+  accentLight: THREE.PointLight;
+  coinLight: THREE.PointLight;
+}
+
+const CONSTANTS = {
+  DEFAULT_COLOR: "#5eead4",
+  FALLBACK_COLOR: "#cd7f32",
+  RESIZE_EVENT: "resize",
+  MODELS_PATH: "/models/gacha/",
+} as const;
+
+const VIVID_PART_REGEX =
+  /marquee|mface|title|screen|led|btn|neon|fascia|accent|coin|rim|joy_t|waves/i;
+
 const gltfBufferCache = new Map<string, Promise<ArrayBuffer>>();
 
 function getGltfBuffer(tierId: string): Promise<ArrayBuffer> {
@@ -32,7 +47,7 @@ function getGltfBuffer(tierId: string): Promise<ArrayBuffer> {
     const fileLoader = new THREE.FileLoader();
     fileLoader.setResponseType("arraybuffer");
     const promise = fileLoader.loadAsync(
-      resolveAssetUrl(`/models/gacha/cabinet_${tierId}.glb`),
+      resolveAssetUrl(`${CONSTANTS.MODELS_PATH}cabinet_${tierId}.glb`),
     ) as Promise<ArrayBuffer>;
     gltfBufferCache.set(tierId, promise);
   }
@@ -51,6 +66,539 @@ const DEFAULT_REEL_ITEMS_SET: (GachaReward | MappedGachaResult)[][] = [
   [],
   [],
 ];
+
+function applyStandardMaterialProps(
+  mat: THREE.MeshStandardMaterial | THREE.MeshPhysicalMaterial,
+  meshName: string,
+  tierColor: string,
+): void {
+  mat.metalness = 0;
+  mat.roughness = Math.min(Math.max(mat.roughness || 0.7, 0.42), 0.88);
+  mat.color.set(0xffffff);
+
+  if (mat.map) {
+    mat.map.colorSpace = THREE.SRGBColorSpace;
+    mat.map.premultiplyAlpha = false;
+    mat.map.flipY = false;
+    mat.map.needsUpdate = true;
+  }
+  if (mat.emissiveMap) {
+    mat.emissiveMap.colorSpace = THREE.SRGBColorSpace;
+  }
+  if (!mat.map && mat.color.getHex() === 0) {
+    mat.color.set(tierColor || CONSTANTS.FALLBACK_COLOR);
+  }
+
+  const isVivid = VIVID_PART_REGEX.test(meshName);
+  if (mat.map && isVivid) {
+    mat.emissiveMap = mat.map;
+    mat.emissive.set(0xffffff);
+    mat.emissiveIntensity = 0.24;
+  } else if (mat.map) {
+    mat.emissive.setHex(0x101820);
+    mat.emissiveIntensity = 0.11;
+  } else {
+    mat.emissive.setHex(0x000000);
+    mat.emissiveIntensity = 0;
+  }
+  mat.envMapIntensity = 0;
+  mat.needsUpdate = true;
+}
+
+function configureMeshMaterial(
+  mat: THREE.Material,
+  meshName: string,
+  tierColor: string,
+): void {
+  mat.side = THREE.DoubleSide;
+  mat.visible = true;
+  mat.transparent = false;
+  mat.opacity = 1;
+  mat.alphaTest = 0;
+  mat.depthWrite = true;
+  mat.depthTest = true;
+  if ("alphaMap" in mat) {
+    (mat as { alphaMap: unknown }).alphaMap = null;
+  }
+
+  if (
+    mat instanceof THREE.MeshStandardMaterial ||
+    mat instanceof THREE.MeshPhysicalMaterial
+  ) {
+    applyStandardMaterialProps(mat, meshName, tierColor);
+  } else if (mat instanceof THREE.MeshBasicMaterial) {
+    if (mat.map) mat.map.colorSpace = THREE.SRGBColorSpace;
+    mat.needsUpdate = true;
+  }
+}
+
+function prepareGltfMaterials(root: THREE.Object3D, tierColor: string): void {
+  root.traverse((child) => {
+    if (!(child instanceof THREE.Mesh)) return;
+    child.castShadow = false;
+    child.receiveShadow = false;
+    child.frustumCulled = false;
+    child.visible = true;
+    const materials = Array.isArray(child.material)
+      ? child.material
+      : [child.material];
+    for (const mat of materials) {
+      if (mat) configureMeshMaterial(mat, child.name, tierColor);
+    }
+  });
+}
+
+function fitAndFrame(
+  model: THREE.Object3D,
+  camera: THREE.PerspectiveCamera,
+  targetSize = 3.35,
+): void {
+  model.scale.setScalar(1);
+  model.position.set(0, 0, 0);
+  model.rotation.set(0, 0, 0);
+  model.updateMatrixWorld(true);
+
+  const box = new THREE.Box3().setFromObject(model);
+  const size = box.getSize(new THREE.Vector3());
+  const center = box.getCenter(new THREE.Vector3());
+  const dim = Math.max(size.x, size.y, size.z, 0.001);
+  model.position.x -= center.x;
+  model.position.y -= center.y;
+  model.position.z -= center.z;
+  model.scale.setScalar(targetSize / dim);
+  model.updateMatrixWorld(true);
+
+  const box2 = new THREE.Box3().setFromObject(model);
+  const size2 = box2.getSize(new THREE.Vector3());
+  const center2 = box2.getCenter(new THREE.Vector3());
+  model.position.x -= center2.x;
+  model.position.y -= center2.y;
+  model.position.z -= center2.z;
+  model.userData.baseY = model.position.y;
+
+  const fitH = Math.max(size2.y, 0.001);
+  const fitW = Math.max(size2.x, 0.001);
+  const fov = camera.fov * (Math.PI / 180);
+  const distForH = fitH / (2 * Math.tan(fov / 2));
+  const distForW = fitW / (2 * Math.tan(fov / 2) * camera.aspect);
+  const dist = Math.max(distForH, distForW) * 1.22;
+
+  camera.near = 0.05;
+  camera.far = Math.max(100, dist * 4);
+  camera.position.set(dist * 0.28, fitH * 0.06, dist);
+  camera.lookAt(0, fitH * 0.02, 0);
+  camera.updateProjectionMatrix();
+}
+
+function releaseModel(scene: THREE.Scene, model: THREE.Group | null): void {
+  if (!model) return;
+  scene.remove(model);
+  if (!model.userData.fromGltf) {
+    disposeArcadeMachine(model);
+  }
+}
+
+function cacheEmissive(root: THREE.Object3D): EmissiveMat[] {
+  const mats: EmissiveMat[] = [];
+  root.traverse((child) => {
+    if (!(child instanceof THREE.Mesh)) return;
+    const materials = Array.isArray(child.material)
+      ? child.material
+      : [child.material];
+    for (const m of materials) {
+      if (!(m instanceof THREE.MeshStandardMaterial)) continue;
+      if (m.emissiveIntensity <= 0.05 && m.emissive.getHex() === 0) continue;
+      m.userData.baseEmissive = m.emissiveIntensity;
+      mats.push(m as EmissiveMat);
+    }
+  });
+  return mats;
+}
+
+function setupCoinBadgeMaterials(
+  root: THREE.Object3D,
+  tierColor: string,
+): { coinBadge: THREE.Object3D | null; coinMats: EmissiveMat[] } {
+  const coinBadge =
+    root.getObjectByName("coin_badge") ||
+    root.getObjectByName("badge") ||
+    null;
+  const coinMats: EmissiveMat[] = [];
+
+  const markCoinMat = (child: THREE.Object3D) => {
+    if (!(child instanceof THREE.Mesh)) return;
+    const materials = Array.isArray(child.material)
+      ? child.material
+      : [child.material];
+    for (const m of materials) {
+      if (!(m instanceof THREE.MeshStandardMaterial)) continue;
+      if (m.map) m.emissiveMap = m.map;
+      m.emissive = new THREE.Color(tierColor);
+      m.userData.baseEmissive = 0.4;
+      m.emissiveIntensity = 0.4;
+      coinMats.push(m as EmissiveMat);
+    }
+  };
+
+  if (coinBadge) {
+    coinBadge.traverse(markCoinMat);
+  } else {
+    root.traverse((child) => {
+      if (/badge|coin/i.test(child.name)) markCoinMat(child);
+    });
+  }
+
+  return { coinBadge, coinMats };
+}
+
+function setupWinAnimation(
+  root: THREE.Object3D,
+  animations: THREE.AnimationClip[],
+): { mixer: THREE.AnimationMixer | null; action: THREE.AnimationAction | null } {
+  const clip = animations.find((c) => /win_flash/i.test(c.name)) || null;
+  if (!clip) {
+    return { mixer: null, action: null };
+  }
+  const mixer = new THREE.AnimationMixer(root);
+  const action = mixer.clipAction(clip);
+  action.setLoop(THREE.LoopOnce, 1);
+  action.clampWhenFinished = true;
+  return { mixer, action };
+}
+
+function setupShowcaseLights(
+  scene: THREE.Scene,
+  tierColor: string,
+): ShowcaseLights {
+  scene.add(new THREE.AmbientLight(0xffffff, 0.88));
+  scene.add(new THREE.HemisphereLight(0xd8e8ff, 0x2a2420, 0.52));
+
+  const keyLight = new THREE.DirectionalLight(0xfff8f0, 1.55);
+  keyLight.position.set(3, 5, 4);
+  scene.add(keyLight);
+
+  const fillLight = new THREE.DirectionalLight(0xb8c8e8, 0.62);
+  fillLight.position.set(-3, 2, 2);
+  scene.add(fillLight);
+
+  const rimLight = new THREE.DirectionalLight(0xffd8b0, 0.38);
+  rimLight.position.set(-1.5, 1.2, -3);
+  scene.add(rimLight);
+
+  const accentLight = new THREE.PointLight(tierColor, 1.25, 14);
+  accentLight.position.set(1.5, 2.5, 3.5);
+  scene.add(accentLight);
+
+  const coinLight = new THREE.PointLight(tierColor, 0.32, 4.5);
+  coinLight.position.set(0, 1.6, 1.4);
+  scene.add(coinLight);
+
+  return { accentLight, coinLight };
+}
+
+function createShowcaseRenderer(
+  width: number,
+  height: number,
+): THREE.WebGLRenderer {
+  const renderer = new THREE.WebGLRenderer({
+    antialias: true,
+    alpha: true,
+    powerPreference: "high-performance",
+    preserveDrawingBuffer: true,
+  });
+  renderer.setSize(width, height);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setClearColor(0x000000, 0);
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.28;
+  return renderer;
+}
+
+function computeNextIdleAngle(
+  currentAngle: number,
+  celebrating: boolean,
+  opening: boolean,
+): number {
+  if (celebrating) return currentAngle + 0.05;
+  if (opening) return currentAngle + 0.035;
+  return currentAngle + 0.008;
+}
+
+function animateMachineTransform(
+  model: THREE.Group,
+  idleAngle: number,
+  celebrating: boolean,
+  opening: boolean,
+): void {
+  const baseY =
+    typeof model.userData.baseY === "number" ? model.userData.baseY : 0;
+  model.rotation.y =
+    Math.sin(idleAngle) * (celebrating || opening ? 0.08 : 0.14);
+
+  if (celebrating) {
+    model.position.y = baseY + Math.sin(idleAngle * 3.2) * 0.05;
+  } else if (opening) {
+    model.position.y = baseY + Math.sin(idleAngle * 2.4) * 0.04;
+  } else {
+    model.position.y = baseY;
+  }
+
+  const stick = model.getObjectByName("joystick-stick");
+  if (stick) {
+    stick.rotation.z = Math.sin(idleAngle * 1.6) * 0.18;
+  }
+}
+
+function animateLights(
+  accentLight: THREE.PointLight,
+  coinLight: THREE.PointLight | null,
+  idleAngle: number,
+  celebrating: boolean,
+  opening: boolean,
+): void {
+  if (celebrating) {
+    accentLight.intensity = 1.35 + Math.sin(idleAngle * 10) * 0.55;
+    if (coinLight) {
+      coinLight.intensity = 0.75 + Math.sin(idleAngle * 14) * 0.45;
+    }
+  } else if (opening) {
+    accentLight.intensity = 0.85 + Math.sin(idleAngle * 4) * 0.3;
+    if (coinLight) {
+      coinLight.intensity = 0.45 + Math.sin(idleAngle * 6) * 0.2;
+    }
+  } else {
+    accentLight.intensity = 1.05;
+    if (coinLight) {
+      coinLight.intensity = 0.28 + Math.sin(idleAngle * 2.2) * 0.1;
+    }
+  }
+}
+
+function animateEmissiveMaterials(
+  materials: EmissiveMat[],
+  idleAngle: number,
+  celebrating: boolean,
+  opening: boolean,
+): void {
+  for (const mat of materials) {
+    const base = mat.userData.baseEmissive ?? 0.3;
+    if (celebrating) {
+      mat.emissiveIntensity = base * (2.2 + Math.sin(idleAngle * 12) * 1.4);
+    } else if (opening) {
+      mat.emissiveIntensity = base * (1.2 + Math.sin(idleAngle * 5) * 0.45);
+    } else {
+      mat.emissiveIntensity = base;
+    }
+  }
+}
+
+function animateCoinMaterials(
+  materials: EmissiveMat[],
+  idleAngle: number,
+  celebrating: boolean,
+  opening: boolean,
+): void {
+  for (const mat of materials) {
+    const base = mat.userData.baseEmissive ?? 0.35;
+    if (celebrating) {
+      mat.emissiveIntensity = base * (3.2 + Math.sin(idleAngle * 14) * 2.2);
+    } else if (opening) {
+      mat.emissiveIntensity = base * (1.8 + Math.sin(idleAngle * 7) * 0.9);
+    } else {
+      mat.emissiveIntensity = base * (1.15 + Math.sin(idleAngle * 2.2) * 0.45);
+    }
+  }
+}
+
+function animateWinVisuals(
+  winLights: THREE.Object3D | null,
+  coinBadge: THREE.Object3D | null,
+  idleAngle: number,
+  celebrating: boolean,
+  hasWinAction: boolean,
+): void {
+  if (hasWinAction) return;
+
+  if (winLights) {
+    winLights.children.forEach((child, i) => {
+      const pulse = celebrating
+        ? 0.85 + Math.abs(Math.sin(idleAngle * 8 - i * 0.45)) * 0.7
+        : 0.85;
+      child.scale.setScalar(pulse);
+    });
+  }
+
+  if (coinBadge) {
+    const pulse = celebrating
+      ? 1 + Math.abs(Math.sin(idleAngle * 10)) * 0.22
+      : 1 + Math.sin(idleAngle * 2.4) * 0.04;
+    coinBadge.scale.setScalar(pulse);
+  }
+}
+
+function extractSampleMaterials(
+  current: THREE.Group,
+): Array<Record<string, unknown>> {
+  const sample: Array<Record<string, unknown>> = [];
+  current.traverse((c) => {
+    if (!(c instanceof THREE.Mesh) || sample.length >= 6) return;
+    const m = Array.isArray(c.material) ? c.material[0] : c.material;
+    if (!(m instanceof THREE.MeshStandardMaterial)) return;
+    sample.push({
+      mesh: c.name,
+      metalness: m.metalness,
+      roughness: m.roughness,
+      map: Boolean(m.map),
+      mapW: m.map?.image?.width ?? null,
+      mapH: m.map?.image?.height ?? null,
+      color: `#${m.color.getHexString()}`,
+    });
+  });
+  return sample;
+}
+
+function projectBoxCorners(
+  box: THREE.Box3,
+  camera: THREE.Camera,
+  mountWidth: number,
+  mountHeight: number,
+) {
+  const corners = [
+    new THREE.Vector3(box.min.x, box.min.y, box.min.z),
+    new THREE.Vector3(box.min.x, box.min.y, box.max.z),
+    new THREE.Vector3(box.min.x, box.max.y, box.min.z),
+    new THREE.Vector3(box.min.x, box.max.y, box.max.z),
+    new THREE.Vector3(box.max.x, box.min.y, box.min.z),
+    new THREE.Vector3(box.max.x, box.min.y, box.max.z),
+    new THREE.Vector3(box.max.x, box.max.y, box.min.z),
+    new THREE.Vector3(box.max.x, box.max.y, box.max.z),
+  ].map((v) => {
+    const n = v.clone().project(camera);
+    return {
+      x: +((n.x * 0.5 + 0.5) * mountWidth).toFixed(1),
+      y: +((-n.y * 0.5 + 0.5) * mountHeight).toFixed(1),
+      z: +n.z.toFixed(3),
+      clip: Math.abs(n.x) > 1 || Math.abs(n.y) > 1 || n.z > 1 || n.z < -1,
+    };
+  });
+  const xs = corners.map((c) => c.x);
+  const ys = corners.map((c) => c.y);
+  return { corners, xs, ys };
+}
+
+function inspectMeshStatistics(current: THREE.Group) {
+  let meshes = 0;
+  let withMap = 0;
+  let black = 0;
+  current.traverse((c) => {
+    if (!(c instanceof THREE.Mesh)) return;
+    meshes += 1;
+    const materials = Array.isArray(c.material) ? c.material : [c.material];
+    for (const m of materials) {
+      if (!m) continue;
+      if ("map" in m && m.map) withMap += 1;
+      if (
+        "color" in m &&
+        m.color &&
+        (m.color as THREE.Color).getHex?.() === 0
+      ) {
+        black += 1;
+      }
+    }
+  });
+  return { meshes, withMap, black };
+}
+
+function buildGachaDebugInfo(
+  current: THREE.Group | null,
+  camera: THREE.PerspectiveCamera,
+  mount: HTMLDivElement,
+) {
+  if (!current) return { mounted: false };
+  const box = new THREE.Box3().setFromObject(current);
+  const size = box.getSize(new THREE.Vector3());
+  const { meshes, withMap, black } = inspectMeshStatistics(current);
+  const { corners, xs, ys } = projectBoxCorners(
+    box,
+    camera,
+    mount.clientWidth,
+    mount.clientHeight,
+  );
+
+  const minX = Math.min(...xs);
+  const maxX = Math.max(...xs);
+  const minY = Math.min(...ys);
+  const maxY = Math.max(...ys);
+
+  return {
+    mounted: true,
+    fromGltf: Boolean(current.userData.fromGltf),
+    name: current.name,
+    meshes,
+    withMap,
+    black,
+    mats: extractSampleMaterials(current),
+    size: {
+      x: +size.x.toFixed(3),
+      y: +size.y.toFixed(3),
+      z: +size.z.toFixed(3),
+    },
+    pos: {
+      x: +current.position.x.toFixed(3),
+      y: +current.position.y.toFixed(3),
+      z: +current.position.z.toFixed(3),
+    },
+    scale: +current.scale.x.toFixed(3),
+    mount: {
+      w: mount.clientWidth,
+      h: mount.clientHeight,
+    },
+    cam: {
+      x: +camera.position.x.toFixed(3),
+      y: +camera.position.y.toFixed(3),
+      z: +camera.position.z.toFixed(3),
+      fov: camera.fov,
+      aspect: +camera.aspect.toFixed(3),
+    },
+    projected: {
+      minX: +minX.toFixed(1),
+      maxX: +maxX.toFixed(1),
+      minY: +minY.toFixed(1),
+      maxY: +maxY.toFixed(1),
+      fillW: +(((maxX - minX) / mount.clientWidth) * 100).toFixed(1),
+      fillH: +(((maxY - minY) / mount.clientHeight) * 100).toFixed(1),
+      corners,
+    },
+  };
+}
+
+async function loadGltfModel(
+  tierId: string,
+  loader: GLTFLoader,
+): Promise<{ root: THREE.Group; animations: THREE.AnimationClip[] }> {
+  const buffer = await getGltfBuffer(tierId);
+  return new Promise((resolve, reject) => {
+    loader.parse(
+      buffer,
+      CONSTANTS.MODELS_PATH,
+      (gltf) => {
+        const root = gltf.scene;
+        root.name = `arcade-gltf-${tierId}`;
+        let meshCount = 0;
+        root.traverse((c) => {
+          if (c instanceof THREE.Mesh) meshCount += 1;
+        });
+        if (meshCount === 0) {
+          reject(new Error("GLTF scene has no meshes"));
+          return;
+        }
+        resolve({ root, animations: gltf.animations || [] });
+      },
+      reject,
+    );
+  });
+}
 
 const Gacha3DShowcase: React.FC<Gacha3DShowcaseProps> = ({
   tierId,
@@ -140,46 +688,14 @@ const Gacha3DShowcase: React.FC<Gacha3DShowcaseProps> = ({
     camera.position.set(2.4, 0.55, 5.6);
     camera.lookAt(0, 0.15, 0);
 
-    const renderer = new THREE.WebGLRenderer({
-      antialias: true,
-      alpha: true,
-      powerPreference: "high-performance",
-      preserveDrawingBuffer: true,
-    });
-    renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setClearColor(0x000000, 0);
-    renderer.outputColorSpace = THREE.SRGBColorSpace;
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.28;
+    const renderer = createShowcaseRenderer(width, height);
     mount.appendChild(renderer.domElement);
 
-    scene.add(new THREE.AmbientLight(0xffffff, 0.88));
-    scene.add(new THREE.HemisphereLight(0xd8e8ff, 0x2a2420, 0.52));
-
-    const keyLight = new THREE.DirectionalLight(0xfff8f0, 1.55);
-    keyLight.position.set(3, 5, 4);
-    scene.add(keyLight);
-
-    const fillLight = new THREE.DirectionalLight(0xb8c8e8, 0.62);
-    fillLight.position.set(-3, 2, 2);
-    scene.add(fillLight);
-
-    const rimLight = new THREE.DirectionalLight(0xffd8b0, 0.38);
-    rimLight.position.set(-1.5, 1.2, -3);
-    scene.add(rimLight);
-
-    const accentLight = new THREE.PointLight(tierColor, 1.25, 14);
-    accentLight.position.set(1.5, 2.5, 3.5);
+    const { accentLight, coinLight } = setupShowcaseLights(scene, tierColor);
     accentLightRef.current = accentLight;
-    scene.add(accentLight);
-
-    const coinLight = new THREE.PointLight(tierColor, 0.32, 4.5);
-    coinLight.position.set(0, 1.6, 1.4);
     coinLightRef.current = coinLight;
-    scene.add(coinLight);
 
-    const screenReels = createScreenReels(tierColor || "#5eead4");
+    const screenReels = createScreenReels(tierColor || CONSTANTS.DEFAULT_COLOR);
     screenReelsRef.current = screenReels;
 
     let disposed = false;
@@ -187,176 +703,28 @@ const Gacha3DShowcase: React.FC<Gacha3DShowcaseProps> = ({
     let idleAngle = 0;
     clockRef.current = new THREE.Clock();
 
-    const prepareGltfMaterials = (root: THREE.Object3D) => {
-      root.traverse((child) => {
-        if (!(child instanceof THREE.Mesh)) return;
-        child.castShadow = false;
-        child.receiveShadow = false;
-        child.frustumCulled = false;
-        child.visible = true;
-        const materials = Array.isArray(child.material)
-          ? child.material
-          : [child.material];
-        for (const mat of materials) {
-          if (!mat) continue;
-          mat.side = THREE.DoubleSide;
-          mat.visible = true;
-          mat.transparent = false;
-          mat.opacity = 1;
-          mat.alphaTest = 0;
-          mat.depthWrite = true;
-          mat.depthTest = true;
-          if ("alphaMap" in mat) mat.alphaMap = null;
-          if (
-            mat instanceof THREE.MeshStandardMaterial ||
-            mat instanceof THREE.MeshPhysicalMaterial
-          ) {
-            mat.metalness = 0;
-            mat.roughness = Math.min(
-              Math.max(mat.roughness || 0.7, 0.42),
-              0.88,
-            );
-            mat.color.set(0xffffff);
-            if (mat.map) {
-              mat.map.colorSpace = THREE.SRGBColorSpace;
-              mat.map.premultiplyAlpha = false;
-              mat.map.flipY = false;
-              mat.map.needsUpdate = true;
-            }
-            if (mat.emissiveMap)
-              mat.emissiveMap.colorSpace = THREE.SRGBColorSpace;
-            if (!mat.map && mat.color.getHex() === 0) {
-              mat.color.set(tierColor || "#cd7f32");
-            }
-
-            const isVividPart =
-              /marquee|mface|title|screen|led|btn|neon|fascia|accent|coin|rim|joy_t|waves/i.test(
-                child.name,
-              );
-            if (mat.map && isVividPart) {
-              mat.emissiveMap = mat.map;
-              mat.emissive.set(0xffffff);
-              mat.emissiveIntensity = 0.24;
-            } else if (mat.map) {
-              mat.emissive.setHex(0x101820);
-              mat.emissiveIntensity = 0.11;
-            } else {
-              mat.emissive.setHex(0x000000);
-              mat.emissiveIntensity = 0;
-            }
-            mat.envMapIntensity = 0;
-            mat.needsUpdate = true;
-          } else if (mat instanceof THREE.MeshBasicMaterial) {
-            if (mat.map) mat.map.colorSpace = THREE.SRGBColorSpace;
-            mat.needsUpdate = true;
-          }
-        }
-      });
-    };
-
-    const fitAndFrame = (model: THREE.Object3D, targetSize = 3.35) => {
-      model.scale.setScalar(1);
-      model.position.set(0, 0, 0);
-      model.rotation.set(0, 0, 0);
-      model.updateMatrixWorld(true);
-
-      const box = new THREE.Box3().setFromObject(model);
-      const size = box.getSize(new THREE.Vector3());
-      const center = box.getCenter(new THREE.Vector3());
-      const dim = Math.max(size.x, size.y, size.z, 0.001);
-      model.position.x -= center.x;
-      model.position.y -= center.y;
-      model.position.z -= center.z;
-      model.scale.setScalar(targetSize / dim);
-      model.updateMatrixWorld(true);
-
-      const box2 = new THREE.Box3().setFromObject(model);
-      const size2 = box2.getSize(new THREE.Vector3());
-      const center2 = box2.getCenter(new THREE.Vector3());
-      model.position.x -= center2.x;
-      model.position.y -= center2.y;
-      model.position.z -= center2.z;
-      model.userData.baseY = model.position.y;
-
-      const fitH = Math.max(size2.y, 0.001);
-      const fitW = Math.max(size2.x, 0.001);
-      const fov = camera.fov * (Math.PI / 180);
-      const distForH = fitH / (2 * Math.tan(fov / 2));
-      const distForW = fitW / (2 * Math.tan(fov / 2) * camera.aspect);
-      const dist = Math.max(distForH, distForW) * 1.22;
-
-      camera.near = 0.05;
-      camera.far = Math.max(100, dist * 4);
-      camera.position.set(dist * 0.28, fitH * 0.06, dist);
-      camera.lookAt(0, fitH * 0.02, 0);
-      camera.updateProjectionMatrix();
-    };
-
-    const releaseModel = (model: THREE.Group | null) => {
-      if (!model) return;
-      scene.remove(model);
-      // GLTF resources may be loader-cached — disposing them blanks remounts (React Strict Mode).
-      if (!model.userData.fromGltf) {
-        disposeArcadeMachine(model);
-      }
-    };
-
-    const cacheEmissive = (root: THREE.Object3D) => {
-      const mats: EmissiveMat[] = [];
-      root.traverse((child) => {
-        if (!(child instanceof THREE.Mesh)) return;
-        const materials = Array.isArray(child.material)
-          ? child.material
-          : [child.material];
-        for (const m of materials) {
-          if (!(m instanceof THREE.MeshStandardMaterial)) continue;
-          if (m.emissiveIntensity <= 0.05 && m.emissive.getHex() === 0)
-            continue;
-          m.userData.baseEmissive = m.emissiveIntensity;
-          mats.push(m as EmissiveMat);
-        }
-      });
-      emissiveMatsRef.current = mats;
-    };
-
-    const bindWinLights = (
-      root: THREE.Object3D,
-      animations: THREE.AnimationClip[],
+    const mountModel = (
+      model: THREE.Group,
+      animations: THREE.AnimationClip[] = [],
+      fromGltf = false,
     ) => {
-      const winLights =
-        root.getObjectByName("marquee_leds") ||
-        root.getObjectByName("win_lights") ||
-        null;
-      winLightsRef.current = winLights;
-
-      const coinBadge =
-        root.getObjectByName("coin_badge") ||
-        root.getObjectByName("badge") ||
-        null;
-      coinBadgeRef.current = coinBadge;
-
-      const coinMats: EmissiveMat[] = [];
-      const markCoinMat = (child: THREE.Object3D) => {
-        if (!(child instanceof THREE.Mesh)) return;
-        const materials = Array.isArray(child.material)
-          ? child.material
-          : [child.material];
-        for (const m of materials) {
-          if (!(m instanceof THREE.MeshStandardMaterial)) continue;
-          if (m.map) m.emissiveMap = m.map;
-          m.emissive = new THREE.Color(tierColor);
-          m.userData.baseEmissive = 0.4;
-          m.emissiveIntensity = 0.4;
-          coinMats.push(m as EmissiveMat);
-        }
-      };
-      if (coinBadge) {
-        coinBadge.traverse(markCoinMat);
-      } else {
-        root.traverse((child) => {
-          if (/badge|coin/i.test(child.name)) markCoinMat(child);
-        });
+      if (disposed) {
+        if (!fromGltf) disposeArcadeMachine(model);
+        return;
       }
+      releaseModel(scene, modelRef.current);
+      model.userData.fromGltf = fromGltf;
+      if (fromGltf) prepareGltfMaterials(model, tierColor);
+      fitAndFrame(model, camera);
+      emissiveMatsRef.current = cacheEmissive(model);
+
+      winLightsRef.current =
+        model.getObjectByName("marquee_leds") ||
+        model.getObjectByName("win_lights") ||
+        null;
+
+      const { coinBadge, coinMats } = setupCoinBadgeMaterials(model, tierColor);
+      coinBadgeRef.current = coinBadge;
       coinMatsRef.current = coinMats;
 
       if (coinBadge && coinLightRef.current) {
@@ -368,38 +736,17 @@ const Gacha3DShowcase: React.FC<Gacha3DShowcaseProps> = ({
 
       void screenReels.ready.then(() => {
         if (disposed) return;
-        bindScreenReels(root, screenReels, tierColor || "#5eead4");
+        bindScreenReels(
+          model,
+          screenReels,
+          tierColor || CONSTANTS.DEFAULT_COLOR,
+        );
       });
 
-      const clip = animations.find((c) => /win_flash/i.test(c.name)) || null;
-      if (!clip) {
-        mixerRef.current = null;
-        winActionRef.current = null;
-        return;
-      }
-      const mixer = new THREE.AnimationMixer(root);
+      const { mixer, action } = setupWinAnimation(model, animations);
       mixerRef.current = mixer;
-      const action = mixer.clipAction(clip);
-      action.setLoop(THREE.LoopOnce, 1);
-      action.clampWhenFinished = true;
       winActionRef.current = action;
-    };
 
-    const mountModel = (
-      model: THREE.Group,
-      animations: THREE.AnimationClip[] = [],
-      fromGltf = false,
-    ) => {
-      if (disposed) {
-        if (!fromGltf) disposeArcadeMachine(model);
-        return;
-      }
-      releaseModel(modelRef.current);
-      model.userData.fromGltf = fromGltf;
-      if (fromGltf) prepareGltfMaterials(model);
-      fitAndFrame(model);
-      cacheEmissive(model);
-      bindWinLights(model, animations);
       modelRef.current = model;
       fromGltfRef.current = fromGltf;
       scene.add(model);
@@ -407,36 +754,11 @@ const Gacha3DShowcase: React.FC<Gacha3DShowcaseProps> = ({
 
     const loader = new GLTFLoader();
 
-    // Fetch and parse GLTF directly from module cache.
-    getGltfBuffer(tierId)
-      .then(
-        (buffer) =>
-          new Promise<void>((resolve, reject) => {
-            loader.parse(
-              buffer,
-              "/models/gacha/",
-              (gltf) => {
-                if (disposed) {
-                  resolve();
-                  return;
-                }
-                const root = gltf.scene;
-                root.name = `arcade-gltf-${tierId}`;
-                let meshCount = 0;
-                root.traverse((c) => {
-                  if (c instanceof THREE.Mesh) meshCount += 1;
-                });
-                if (meshCount === 0) {
-                  reject(new Error("GLTF scene has no meshes"));
-                  return;
-                }
-                mountModel(root, gltf.animations || [], true);
-                resolve();
-              },
-              reject,
-            );
-          }),
-      )
+    loadGltfModel(tierId, loader)
+      .then(({ root, animations }) => {
+        if (disposed) return;
+        mountModel(root, animations, true);
+      })
       .catch(() => {
         if (!disposed) {
           const procedural = buildArcadeMachine(tierId);
@@ -448,116 +770,7 @@ const Gacha3DShowcase: React.FC<Gacha3DShowcaseProps> = ({
       scene,
       camera,
       renderer,
-      getInfo: () => {
-        const current = modelRef.current;
-        if (!current) return { mounted: false };
-        const box = new THREE.Box3().setFromObject(current);
-        const size = box.getSize(new THREE.Vector3());
-        let meshes = 0;
-        let withMap = 0;
-        let black = 0;
-        current.traverse((c) => {
-          if (!(c instanceof THREE.Mesh)) return;
-          meshes += 1;
-          const materials = Array.isArray(c.material)
-            ? c.material
-            : [c.material];
-          for (const m of materials) {
-            if (!m) continue;
-            if ("map" in m && m.map) withMap += 1;
-            if (
-              "color" in m &&
-              m.color &&
-              (m.color as THREE.Color).getHex?.() === 0
-            )
-              black += 1;
-          }
-        });
-
-        const corners = [
-          new THREE.Vector3(box.min.x, box.min.y, box.min.z),
-          new THREE.Vector3(box.min.x, box.min.y, box.max.z),
-          new THREE.Vector3(box.min.x, box.max.y, box.min.z),
-          new THREE.Vector3(box.min.x, box.max.y, box.max.z),
-          new THREE.Vector3(box.max.x, box.min.y, box.min.z),
-          new THREE.Vector3(box.max.x, box.min.y, box.max.z),
-          new THREE.Vector3(box.max.x, box.max.y, box.min.z),
-          new THREE.Vector3(box.max.x, box.max.y, box.max.z),
-        ].map((v) => {
-          const n = v.clone().project(camera);
-          return {
-            x: +((n.x * 0.5 + 0.5) * mount.clientWidth).toFixed(1),
-            y: +((-n.y * 0.5 + 0.5) * mount.clientHeight).toFixed(1),
-            z: +n.z.toFixed(3),
-            clip: Math.abs(n.x) > 1 || Math.abs(n.y) > 1 || n.z > 1 || n.z < -1,
-          };
-        });
-        const xs = corners.map((c) => c.x);
-        const ys = corners.map((c) => c.y);
-        return {
-          mounted: true,
-          fromGltf: !!current.userData.fromGltf,
-          name: current.name,
-          meshes,
-          withMap,
-          black,
-          mats: (() => {
-            const sample: Array<Record<string, unknown>> = [];
-            current.traverse((c) => {
-              if (!(c instanceof THREE.Mesh) || sample.length >= 6) return;
-              const m = Array.isArray(c.material) ? c.material[0] : c.material;
-              if (!(m instanceof THREE.MeshStandardMaterial)) return;
-              sample.push({
-                mesh: c.name,
-                metalness: m.metalness,
-                roughness: m.roughness,
-                map: !!m.map,
-                mapW: m.map?.image?.width ?? null,
-                mapH: m.map?.image?.height ?? null,
-                color: `#${m.color.getHexString()}`,
-              });
-            });
-            return sample;
-          })(),
-          size: {
-            x: +size.x.toFixed(3),
-            y: +size.y.toFixed(3),
-            z: +size.z.toFixed(3),
-          },
-          pos: {
-            x: +current.position.x.toFixed(3),
-            y: +current.position.y.toFixed(3),
-            z: +current.position.z.toFixed(3),
-          },
-          scale: +current.scale.x.toFixed(3),
-          mount: {
-            w: mount.clientWidth,
-            h: mount.clientHeight,
-          },
-          cam: {
-            x: +camera.position.x.toFixed(3),
-            y: +camera.position.y.toFixed(3),
-            z: +camera.position.z.toFixed(3),
-            fov: camera.fov,
-            aspect: +camera.aspect.toFixed(3),
-          },
-          projected: {
-            minX: +Math.min(...xs).toFixed(1),
-            maxX: +Math.max(...xs).toFixed(1),
-            minY: +Math.min(...ys).toFixed(1),
-            maxY: +Math.max(...ys).toFixed(1),
-            fillW: +(
-              ((Math.max(...xs) - Math.min(...xs)) / mount.clientWidth) *
-              100
-            ).toFixed(1),
-            fillH: +(
-              ((Math.max(...ys) - Math.min(...ys)) / mount.clientHeight) *
-              100
-            ).toFixed(1),
-            corners,
-          },
-        };
-      },
+      getInfo: () => buildGachaDebugInfo(modelRef.current, camera, mount),
     };
 
     const animate = () => {
@@ -572,92 +785,34 @@ const Gacha3DShowcase: React.FC<Gacha3DShowcaseProps> = ({
       const opening = isOpeningRef.current;
 
       if (current) {
-        const baseY =
-          typeof current.userData.baseY === "number"
-            ? current.userData.baseY
-            : 0;
-        idleAngle += celebrating ? 0.05 : opening ? 0.035 : 0.008;
-        current.rotation.y =
-          Math.sin(idleAngle) * (celebrating || opening ? 0.08 : 0.14);
-
-        if (celebrating) {
-          current.position.y = baseY + Math.sin(idleAngle * 3.2) * 0.05;
-          accentLight.intensity = 1.35 + Math.sin(idleAngle * 10) * 0.55;
-        } else if (opening) {
-          current.position.y = baseY + Math.sin(idleAngle * 2.4) * 0.04;
-          accentLight.intensity = 0.85 + Math.sin(idleAngle * 4) * 0.3;
-        } else {
-          current.position.y = baseY;
-          accentLight.intensity = 1.05;
-        }
-
-        for (const mat of emissiveMatsRef.current) {
-          const base = mat.userData.baseEmissive ?? 0.3;
-          if (celebrating) {
-            mat.emissiveIntensity =
-              base * (2.2 + Math.sin(idleAngle * 12) * 1.4);
-          } else if (opening) {
-            mat.emissiveIntensity =
-              base * (1.2 + Math.sin(idleAngle * 5) * 0.45);
-          } else {
-            mat.emissiveIntensity = base;
-          }
-        }
-
-        for (const mat of coinMatsRef.current) {
-          const base = mat.userData.baseEmissive ?? 0.35;
-          if (celebrating) {
-            mat.emissiveIntensity =
-              base * (3.2 + Math.sin(idleAngle * 14) * 2.2);
-          } else if (opening) {
-            mat.emissiveIntensity =
-              base * (1.8 + Math.sin(idleAngle * 7) * 0.9);
-          } else {
-            mat.emissiveIntensity =
-              base * (1.15 + Math.sin(idleAngle * 2.2) * 0.45);
-          }
-        }
-
-        if (coinLightRef.current) {
-          if (celebrating) {
-            coinLightRef.current.intensity =
-              0.75 + Math.sin(idleAngle * 14) * 0.45;
-          } else if (opening) {
-            coinLightRef.current.intensity =
-              0.45 + Math.sin(idleAngle * 6) * 0.2;
-          } else {
-            coinLightRef.current.intensity =
-              0.28 + Math.sin(idleAngle * 2.2) * 0.1;
-          }
-        }
-
-        if (!winActionRef.current && winLightsRef.current && celebrating) {
-          winLightsRef.current.children.forEach((child, i) => {
-            const pulse =
-              0.85 + Math.abs(Math.sin(idleAngle * 8 - i * 0.45)) * 0.7;
-            child.scale.setScalar(pulse);
-          });
-        } else if (
-          !winActionRef.current &&
-          winLightsRef.current &&
-          !celebrating
-        ) {
-          winLightsRef.current.children.forEach((child) => {
-            child.scale.setScalar(0.85);
-          });
-        }
-
-        if (!winActionRef.current && coinBadgeRef.current) {
-          const pulse = celebrating
-            ? 1 + Math.abs(Math.sin(idleAngle * 10)) * 0.22
-            : 1 + Math.sin(idleAngle * 2.4) * 0.04;
-          coinBadgeRef.current.scale.setScalar(pulse);
-        }
-
-        const stick = current.getObjectByName("joystick-stick");
-        if (stick) {
-          stick.rotation.z = Math.sin(idleAngle * 1.6) * 0.18;
-        }
+        idleAngle = computeNextIdleAngle(idleAngle, celebrating, opening);
+        animateMachineTransform(current, idleAngle, celebrating, opening);
+        animateLights(
+          accentLight,
+          coinLightRef.current,
+          idleAngle,
+          celebrating,
+          opening,
+        );
+        animateEmissiveMaterials(
+          emissiveMatsRef.current,
+          idleAngle,
+          celebrating,
+          opening,
+        );
+        animateCoinMaterials(
+          coinMatsRef.current,
+          idleAngle,
+          celebrating,
+          opening,
+        );
+        animateWinVisuals(
+          winLightsRef.current,
+          coinBadgeRef.current,
+          idleAngle,
+          celebrating,
+          Boolean(winActionRef.current),
+        );
       }
       renderer.render(scene, camera);
     };
@@ -671,14 +826,14 @@ const Gacha3DShowcase: React.FC<Gacha3DShowcaseProps> = ({
       camera.updateProjectionMatrix();
       renderer.setSize(w, h);
     };
-    window.addEventListener("resize", onResize);
+    window.addEventListener(CONSTANTS.RESIZE_EVENT, onResize);
     const ro = new ResizeObserver(onResize);
     ro.observe(mount);
 
     return () => {
       disposed = true;
       cancelAnimationFrame(frameId);
-      window.removeEventListener("resize", onResize);
+      window.removeEventListener(CONSTANTS.RESIZE_EVENT, onResize);
       ro.disconnect();
       const dbg = window as unknown as { __gacha3d?: unknown };
       if (dbg.__gacha3d) delete dbg.__gacha3d;
@@ -695,7 +850,7 @@ const Gacha3DShowcase: React.FC<Gacha3DShowcaseProps> = ({
         scene.remove(coinLightRef.current);
         coinLightRef.current = null;
       }
-      releaseModel(modelRef.current);
+      releaseModel(scene, modelRef.current);
       modelRef.current = null;
       accentLightRef.current = null;
       renderer.dispose();
