@@ -1,505 +1,465 @@
 /* --- Gamification Manager Styles --- */
 
 .gamification-container {
-    display: flex;
-    flex-direction: column;
-    gap: 2.5rem;
-    padding: 1.5rem;
-    width: 100%;
-    max-width: 1400px;
-    margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1rem;
+  gap: 1.5rem;
 }
 
 /* --- Header Section --- */
 .gamification-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: rgba(15, 15, 20, 0.4);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    padding: 1.25rem 2rem;
-    border-radius: 24px;
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-    flex-wrap: wrap;
-    gap: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(15, 15, 20, 0.4);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  padding: 1.25rem 2rem;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 1.25rem;
+  gap: 1.25rem;
 }
 
 .gamification-tabs {
-    display: flex;
-    gap: 0.5rem;
-    background: rgba(0, 0, 0, 0.3);
-    padding: 0.4rem;
-    border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  gap: 0.5rem;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 0.4rem;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  width: 100%;
+  overflow-x: auto;
+  padding-bottom: 0.2rem;
+  justify-content: flex-start;
 }
 
 .tab-btn {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    padding: 0.7rem 1.4rem;
-    border: none;
-    background: transparent;
-    color: rgba(255, 255, 255, 0.5);
-    font-weight: 600;
-    cursor: pointer;
-    border-radius: 12px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    font-size: 0.9rem;
-    letter-spacing: 0.3px;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.7rem 1.4rem;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 0.9rem;
+  letter-spacing: 0.3px;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .tab-btn:hover {
-    color: #fff;
-    background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .tab-btn.active {
-    background: rgba(255, 255, 255, 0.12);
-    color: #fff;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 /* --- Add Button Fix --- */
 .gamification-header .btn-primary {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.8rem 1.6rem;
-    background: var(--accent); /* Assuming variable exists, fallback to #22c55e */
-    color: #000;
-    border: none;
-    border-radius: 14px;
-    font-weight: 700;
-    font-size: 0.95rem;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 15px rgba(var(--accent-rgb), 0.2);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.8rem 1.6rem;
+  background: var(--accent); /* Assuming variable exists, fallback to #22c55e */
+  color: #000;
+  border: none;
+  border-radius: 14px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 15px rgba(var(--accent-rgb), 0.2);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  justify-content: center;
+  width: 100%;
 }
 
 .gamification-header .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(var(--accent-rgb), 0.4);
-    filter: brightness(1.1);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(var(--accent-rgb), 0.4);
+  filter: brightness(1.1);
 }
 
 /* --- Medals Grid --- */
 .medals-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); /* Slightly wider for the layout */
-    gap: 2rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); /* Slightly wider for the layout */
+  gap: 2rem;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
 }
 
 .medal-editor-card {
-    background: #09090b; /* Very dark background from screenshot */
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 24px;
-    padding: 1.5rem;
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    position: relative;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  background: #09090b; /* Very dark background from screenshot */
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  position: relative;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 .medal-editor-card:hover {
-    border-color: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.15);
 }
 
 /* Card Header Layout - Grid for alignment */
 .medal-editor-card .card-header {
-    display: grid;
-    grid-template-columns: auto 1fr auto; /* Image | Controls | Delete */
-    gap: 1.5rem;
-    align-items: flex-start;
+  display: grid;
+  grid-template-columns: auto 1fr auto; /* Image | Controls | Delete */
+  gap: 1.5rem;
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
 }
 
 /* Column 1: Image Uploader Wrapper overrides */
 .medal-editor-card .image-uploader {
-    /* Ensure the uploader fits well */
-    width: fit-content;
+  /* Ensure the uploader fits well */
+  width: fit-content;
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
 
 /* Column 2: Controls (Icon Selector + Color Picker) */
 .icon-selector-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.8rem;
-    align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  align-items: flex-start;
+  width: 100%;
+  align-items: center;
+  flex-direction: row;
+  justify-content: space-between;
+  flex-wrap: wrap;
 }
 
 /* Icon Selector Pill */
 .icon-selector {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    background: #111;
-    padding: 0.5rem 1rem;
-    border-radius: 9999px; /* Pill shape */
-    border: 1px solid rgba(255,255,255,0.1);
-    min-width: 140px;
-    transition: border-color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: #111;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px; /* Pill shape */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  min-width: 140px;
+  transition: border-color 0.2s;
+  flex: 1;
+  min-width: 120px;
 }
 
 .icon-selector:hover {
-    border-color: rgba(255,255,255,0.25);
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
 .icon-selector select {
-    background: transparent;
-    border: none;
-    color: #fff;
-    font-size: 0.9rem;
-    font-weight: 600;
-    cursor: pointer;
-    outline: none;
-    width: 100%;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  width: 100%;
 }
 
 /* Dropdown Menu Options Styling */
 .icon-selector select option {
-    background-color: #1a1a1a;
-    color: #fff;
-    padding: 10px;
+  background-color: #1a1a1a;
+  color: #fff;
+  padding: 10px;
 }
 
 /* Color Picker Square */
 .color-picker {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    border: 1px solid rgba(255,255,255,0.1);
-    background: #111;
-    padding: 0;
-    cursor: pointer;
-    overflow: hidden;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #111;
+  padding: 0;
+  cursor: pointer;
+  overflow: hidden;
 }
 
 .color-picker::-webkit-color-swatch-wrapper {
-    padding: 0; 
+  padding: 0;
 }
 
 .color-picker::-webkit-color-swatch {
-    border: none;
-    border-radius: 10px;
+  border: none;
+  border-radius: 10px;
 }
 
 /* Column 3: Action Buttons (Edit + Delete) */
 .action-buttons {
-    display: flex;
-    gap: 0.5rem;
+  display: flex;
+  gap: 0.5rem;
+  width: 100%;
+  justify-content: center;
+  margin-top: 0.5rem;
 }
 
 .edit-btn {
-    width: 40px;
-    height: 40px;
-    border-radius: 12px;
-    background: rgba(255, 255, 255, 0.05);
-    color: #fff;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
 .edit-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
-    border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 .save-btn {
-    width: 40px;
-    height: 40px;
-    border-radius: 12px;
-    background: rgba(34, 197, 94, 0.2); /* Green tint */
-    color: #4ade80;
-    border: 1px solid rgba(34, 197, 94, 0.3);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(34, 197, 94, 0.2); /* Green tint */
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
 .save-btn:hover {
-    background: rgba(34, 197, 94, 1);
-    color: #000;
+  background: rgba(34, 197, 94, 1);
+  color: #000;
 }
 
 .cancel-btn {
-    width: 40px;
-    height: 40px;
-    border-radius: 12px;
-    background: rgba(255, 255, 255, 0.05);
-    color: #ccc;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #ccc;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
 .cancel-btn:hover {
-    background: rgba(255, 255, 255, 0.15);
-    color: #fff;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
 }
 
 .delete-btn {
-    width: 40px;
-    height: 40px;
-    border-radius: 12px;
-    background: rgba(40, 20, 20, 0.5); /* Darker red bg */
-    color: #ef4444;
-    border: 1px solid rgba(239, 68, 68, 0.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(40, 20, 20, 0.5); /* Darker red bg */
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
 .delete-btn:hover {
-    background: #ef4444;
-    color: #fff;
+  background: #ef4444;
+  color: #fff;
 }
 
 /* Card Body Inputs */
 .medal-editor-card .card-body {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .input-premium {
-    width: 100%;
-    background: #111;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #fff;
-    padding: 1rem 1.25rem;
-    border-radius: 16px; /* Matched radius from image */
-    font-size: 1rem;
-    font-weight: 500;
-    outline: none;
-    transition: border-color 0.2s;
+  width: 100%;
+  background: #111;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  padding: 1rem 1.25rem;
+  border-radius: 16px; /* Matched radius from image */
+  font-size: 1rem;
+  font-weight: 500;
+  outline: none;
+  transition: border-color 0.2s;
 }
 
 .input-premium:focus {
-    border-color: rgba(255,255,255,0.3);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 .textarea-premium {
-    width: 100%;
-    background: #111;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.8);
-    padding: 1rem 1.25rem;
-    border-radius: 16px;
-    font-size: 0.95rem;
-    outline: none;
-    min-height: 100px;
-    resize: vertical;
-    line-height: 1.6;
+  width: 100%;
+  background: #111;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.8);
+  padding: 1rem 1.25rem;
+  border-radius: 16px;
+  font-size: 0.95rem;
+  outline: none;
+  min-height: 100px;
+  resize: vertical;
+  line-height: 1.6;
 }
 
 .textarea-premium:focus {
-    border-color: rgba(255,255,255,0.3);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 /* Small URL Input at the bottom */
 .medal-editor-card .input-premium.url-input-small {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.05);
-    border-radius: 10px;
-    color: #666;
-    padding: 0.6rem 1rem;
-    font-size: 0.8rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  color: #666;
+  padding: 0.6rem 1rem;
+  font-size: 0.8rem;
+  margin-top: 0.5rem;
 }
 
 .medal-editor-card .input-premium.url-input-small:focus {
-    color: #aaa;
-    border-color: rgba(255,255,255,0.1);
+  color: #aaa;
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 /* --- Achievements List (Rows) --- */
 .achievements-list {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .achievement-editor-row {
-    display: flex;
-    align-items: flex-start;
-    gap: 1.5rem;
-    background: rgba(20, 20, 25, 0.4);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 20px;
-    padding: 1.5rem;
-    transition: all 0.2s;
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+  background: rgba(20, 20, 25, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  padding: 1.5rem;
+  transition: all 0.2s;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 1.25rem;
 }
 
 .achievement-editor-row:hover {
-    background: rgba(25, 25, 30, 0.7);
-    border-color: rgba(255, 255, 255, 0.1);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  background: rgba(25, 25, 30, 0.7);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 }
 
 .achievement-icon-wrapper {
-    flex-shrink: 0;
+  flex-shrink: 0;
+  align-self: center;
+  margin-bottom: 1rem;
 }
 
 .icon-emoji-input {
-    width: 56px;
-    height: 56px;
-    border-radius: 16px;
-    background: rgba(0,0,0,0.3);
-    border: 1px solid rgba(255,255,255,0.1);
-    color: #fff;
-    font-size: 1.75rem;
-    text-align: center;
-    outline: none;
-    transition: all 0.2s;
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 1.75rem;
+  text-align: center;
+  outline: none;
+  transition: all 0.2s;
 }
 
 .icon-emoji-input:focus {
-    border-color: var(--accent);
-    background: rgba(0,0,0,0.5);
+  border-color: var(--accent);
+  background: rgba(0, 0, 0, 0.5);
 }
 
 .achievement-details {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
 .achievement-details .row {
-    display: flex;
-    gap: 1rem;
+  display: flex;
+  gap: 1rem;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
 .achievement-details .row input {
-    flex: 1;
-    padding: 0.8rem 1rem;
-    font-size: 0.95rem;
+  flex: 1;
+  padding: 0.8rem 1rem;
+  font-size: 0.95rem;
+  width: 100%;
 }
 
 .achievement-details .row input.criteria {
-    flex: 0.5;
-    font-family: 'JetBrains Mono', monospace;
-    color: #d8b4fe;
-    background: rgba(147, 51, 234, 0.1);
-    border-color: rgba(147, 51, 234, 0.2);
+  flex: 0.5;
+  font-family: 'JetBrains Mono', monospace;
+  color: #d8b4fe;
+  background: rgba(147, 51, 234, 0.1);
+  border-color: rgba(147, 51, 234, 0.2);
 }
 
 /* --- Responsive --- */
 /* --- Responsive --- */
 @media (max-width: 768px) {
-    .gamification-container {
-        padding: 1rem;
-        gap: 1.5rem;
-    }
+  /* Header Stack */
 
-    /* Header Stack */
-    .gamification-header {
-        flex-direction: column;
-        align-items: stretch;
-        padding: 1.25rem;
-        gap: 1.25rem;
-    }
-    
-    .gamification-tabs {
-        width: 100%;
-        overflow-x: auto;
-        padding-bottom: 0.2rem;
-        justify-content: flex-start; /* Allow scroll */
-    }
+  /* Medals Grid */
 
-    .tab-btn {
-        flex-shrink: 0;
-        white-space: nowrap;
-    }
+  /* Medal Card Header */
 
-    .gamification-header .btn-primary {
-        justify-content: center;
-        width: 100%;
-    }
+  /* Controls (Icon + Color) */
 
-    /* Medals Grid */
-    .medals-grid {
-        grid-template-columns: 1fr; /* Single column on mobile */
-        gap: 1.5rem;
-    }
+  /* Action Buttons */
 
-    /* Medal Card Header */
-    .medal-editor-card .card-header {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 1.5rem;
-    }
+  .action-buttons button {
+    flex: 1; /* Bigger touch targets */
+  }
 
-    .medal-editor-card .image-uploader {
-        width: 100%;
-        display: flex;
-        justify-content: center;
-    }
-
-    /* Controls (Icon + Color) */
-    .icon-selector-group {
-        width: 100%;
-        align-items: center;
-        flex-direction: row;
-        justify-content: space-between;
-        flex-wrap: wrap;
-    }
-
-    .icon-selector {
-        flex: 1;
-        min-width: 120px;
-    }
-
-    /* Action Buttons */
-    .action-buttons {
-        width: 100%;
-        justify-content: center;
-        margin-top: 0.5rem;
-    }
-
-    .action-buttons button {
-        flex: 1; /* Bigger touch targets */
-    }
-
-    .medal-editor-card .input-premium.url-input-small {
-        margin-top: 0.5rem;
-    }
-
-    /* Achievements List */
-    .achievement-editor-row {
-        flex-direction: column;
-        align-items: stretch;
-        padding: 1.25rem;
-    }
-
-    .achievement-icon-wrapper {
-        align-self: center;
-        margin-bottom: 1rem;
-    }
-    
-    .achievement-details .row {
-        flex-direction: column;
-        gap: 0.75rem;
-    }
-
-    .achievement-details .row input {
-        width: 100%;
-    }
+  /* Achievements List */
 }

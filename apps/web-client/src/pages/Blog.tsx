@@ -1,3 +1,4 @@
+import { secureRandom } from '../utils/random';
 import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Calendar, ArrowRight, Tag } from 'lucide-react';
@@ -93,20 +94,20 @@ function formatArticleDate(dateString: string): string {
 function generateLikeParticles(): Particle[] {
   const timestamp = Date.now();
   return Array.from({ length: 6 }, (_, index) => {
-    const randomEmojiIndex = Math.floor(Math.random() * PARTICLE_EMOJIS.length);
+    const randomEmojiIndex = Math.floor(secureRandom() * PARTICLE_EMOJIS.length);
     return {
       id: timestamp + index,
-      x: (Math.random() - 0.5) * 80,
-      y: -(Math.random() * 60 + 30),
+      x: (secureRandom() - 0.5) * 80,
+      y: -(secureRandom() * 60 + 30),
       emoji: PARTICLE_EMOJIS[randomEmojiIndex] ?? '💎',
-      rotate: (Math.random() - 0.5) * 90,
+      rotate: (secureRandom() - 0.5) * 90,
     };
   });
 }
 
 function getInitialLikeCount(articleId: string | number): number {
   const saved = localStorage.getItem(`${STORAGE_KEYS.LIKE_PREFIX}${articleId}`);
-  return saved ? Number.parseInt(saved, 10) : Math.floor(Math.random() * 40) + 15;
+  return saved ? Number.parseInt(saved, 10) : Math.floor(secureRandom() * 40) + 15;
 }
 
 function getInitialIsLiked(articleId: string | number): boolean {
@@ -240,9 +241,7 @@ const FeaturedNewsCard = ({ article }: { article: Article }) => {
           {title}
         </h3>
 
-        <p className="line-clamp-3 grow text-base/relaxed font-medium text-gray-400">
-          {content}
-        </p>
+        <p className="line-clamp-3 grow text-base/relaxed font-medium text-gray-400">{content}</p>
 
         <div className="mt-4 flex items-center justify-between">
           <Link
@@ -326,7 +325,7 @@ const CategoryFilterBar = ({
   categories,
   selectedCategory,
   onSelectCategory,
-}: CategoryFilterBarProps) => {
+}: Readonly<CategoryFilterBarProps>) => {
   return (
     <div className="mb-12 flex flex-wrap justify-center gap-3">
       {categories.map((category) => {

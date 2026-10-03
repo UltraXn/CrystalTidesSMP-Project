@@ -79,7 +79,7 @@ interface ArticleRowProps {
   readonly article: WikiArticle;
 }
 
-function ArticleRow({ article }: ArticleRowProps) {
+function ArticleRow({ article }: Readonly<ArticleRowProps>) {
   const is3D = Boolean(article.model_3d_url);
   const formattedCategory = article.category.replaceAll('_', ' ');
 
@@ -111,9 +111,7 @@ function ArticleRow({ article }: ArticleRowProps) {
       <div className="flex shrink-0 items-center gap-4 text-xs font-semibold text-neutral-400">
         {article.boss_hp && <span className="font-mono text-neutral-300">{article.boss_hp}</span>}
         {article.boss_kc_reward ? (
-          <span className="font-mono font-bold text-amber-400">
-            +{article.boss_kc_reward} KC
-          </span>
+          <span className="font-mono font-bold text-amber-400">+{article.boss_kc_reward} KC</span>
         ) : null}
         <ArrowRight
           size={14}

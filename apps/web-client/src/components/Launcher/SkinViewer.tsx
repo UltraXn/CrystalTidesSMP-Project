@@ -1,6 +1,8 @@
-import React, { useEffect, useRef } from "react";
-import * as skinview3d from "skinview3d";
-const invoke = async <T,>(_cmd: string, _args?: Record<string, unknown>): Promise<T | null> => { return null; };
+import React, { useEffect, useRef } from 'react';
+import * as skinview3d from 'skinview3d';
+const invoke = async <T,>(_cmd: string, _args?: Record<string, unknown>): Promise<T | null> => {
+  return null;
+};
 
 interface SkinViewerProps {
   username: string;
@@ -9,7 +11,12 @@ interface SkinViewerProps {
   style?: React.CSSProperties;
 }
 
-export const SkinViewer: React.FC<SkinViewerProps> = ({ username, uuid, capeUrl, style }) => {
+export const SkinViewer: React.FC<Readonly<SkinViewerProps>> = ({
+  username,
+  uuid,
+  capeUrl,
+  style,
+}) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const viewerRef = useRef<skinview3d.SkinViewer | null>(null);
 
@@ -23,12 +30,12 @@ export const SkinViewer: React.FC<SkinViewerProps> = ({ username, uuid, capeUrl,
     const initViewer = async () => {
       // Resolve skin URL from mc-heads using uuid or username
       // Offline UUID or generic guest accounts don't have valid online skins, fallback to Steve/Alex by mc-heads
-      const identifier = uuid && uuid !== "00000000-0000-0000-0000-000000000000" ? uuid : username;
+      const identifier = uuid && uuid !== '00000000-0000-0000-0000-000000000000' ? uuid : username;
       const skinUrl = `https://mc-heads.net/skin/${identifier}`;
 
       if (!isSubscribed) return;
 
-      console.log("Initializing SkinViewer for identifier:", identifier, "url:", skinUrl);
+      console.log('Initializing SkinViewer for identifier:', identifier, 'url:', skinUrl);
 
       try {
         skinViewer = new skinview3d.SkinViewer({
@@ -61,23 +68,23 @@ export const SkinViewer: React.FC<SkinViewerProps> = ({ username, uuid, capeUrl,
         }
 
         viewerRef.current = skinViewer;
-        
+
         // Initial cape load if present
         if (capeUrl) {
           updateCape(skinViewer, capeUrl);
         }
       } catch (err) {
-        console.error("Failed to initialize skinview3d:", err);
+        console.error('Failed to initialize skinview3d:', err);
       }
     };
 
     const updateCape = async (viewer: skinview3d.SkinViewer, url: string) => {
       let resolved: string | null = url;
-      if (url && url.startsWith("http")) {
+      if (url && url.startsWith('http')) {
         try {
-          resolved = await invoke<string>("fetch_image_base64", { url });
+          resolved = await invoke<string>('fetch_image_base64', { url });
         } catch (err) {
-          console.error("Failed to proxy initial cape:", err);
+          console.error('Failed to proxy initial cape:', err);
           return;
         }
       }
@@ -95,13 +102,13 @@ export const SkinViewer: React.FC<SkinViewerProps> = ({ username, uuid, capeUrl,
         skinViewer.height = canvasRef.current.clientHeight;
       }
     };
-    window.addEventListener("resize", handleResize);
+    window.addEventListener('resize', handleResize);
 
     return () => {
       isSubscribed = false;
-      window.removeEventListener("resize", handleResize);
+      window.removeEventListener('resize', handleResize);
       const sv = skinViewer as unknown as { dispose?: () => void } | null;
-      if (sv && typeof sv.dispose === "function") {
+      if (sv && typeof sv.dispose === 'function') {
         try {
           sv.dispose();
         } catch {
@@ -122,11 +129,12 @@ export const SkinViewer: React.FC<SkinViewerProps> = ({ username, uuid, capeUrl,
       if (!viewer) return;
 
       let resolvedCapeUrl: string | null | undefined = capeUrl;
-      if (capeUrl && capeUrl.startsWith("http")) {
+      if (capeUrl && capeUrl.startsWith('http')) {
         try {
-          resolvedCapeUrl = (await invoke<string>("fetch_image_base64", { url: capeUrl })) ?? undefined;
+          resolvedCapeUrl =
+            (await invoke<string>('fetch_image_base64', { url: capeUrl })) ?? undefined;
         } catch (err) {
-          console.error("Failed to proxy cape image through backend:", err);
+          console.error('Failed to proxy cape image through backend:', err);
           resolvedCapeUrl = undefined;
         }
       }
@@ -134,14 +142,14 @@ export const SkinViewer: React.FC<SkinViewerProps> = ({ username, uuid, capeUrl,
       if (!isSubscribed) return;
 
       try {
-        console.log("Loading cape dynamically, length:", resolvedCapeUrl?.length || 0);
+        console.log('Loading cape dynamically, length:', resolvedCapeUrl?.length || 0);
         if (resolvedCapeUrl) {
           viewer.loadCape(resolvedCapeUrl);
         } else {
           viewer.loadCape(null);
         }
       } catch (err) {
-        console.error("Failed to load cape in viewer:", err);
+        console.error('Failed to load cape in viewer:', err);
       }
     };
 
@@ -153,15 +161,15 @@ export const SkinViewer: React.FC<SkinViewerProps> = ({ username, uuid, capeUrl,
   }, [capeUrl]);
 
   return (
-    <div style={{ width: "100%", height: "100%", position: "relative", ...style }}>
+    <div style={{ width: '100%', height: '100%', position: 'relative', ...style }}>
       <canvas
         ref={canvasRef}
         style={{
-          width: "100%",
-          height: "100%",
-          display: "block",
-          outline: "none",
-          cursor: "grab",
+          width: '100%',
+          height: '100%',
+          display: 'block',
+          outline: 'none',
+          cursor: 'grab',
         }}
       />
     </div>

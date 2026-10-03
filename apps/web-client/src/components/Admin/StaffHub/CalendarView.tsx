@@ -14,21 +14,47 @@ import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-reac
 
 const DEFAULT_ICON_STYLE: React.CSSProperties = {};
 
-const GoogleIcon = ({ size = 16, style = DEFAULT_ICON_STYLE }: { size?: number, style?: React.CSSProperties }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} fill="currentColor" viewBox="0 0 16 16" style={style}>
-        <path d="M15.545 6.558a9.42 9.42 0 0 1 .139 1.626c0 2.434-.87 4.492-2.384 5.885h.002C11.978 15.292 10.158 16 8 16A8 8 0 1 1 8 0a7.689 7.689 0 0 1 5.352 2.082l-2.284 2.284A4.347 4.347 0 0 0 8 3.166c-2.087 0-3.86 1.408-4.492 3.304a4.792 4.792 0 0 0 0 3.063h.003c.635 1.893 2.405 3.301 4.492 3.301 1.078 0 2.004-.276 2.722-.764h-.003a3.702 3.702 0 0 0 1.599-2.431H8v-3.08h7.545z"/>
-    </svg>
+const GoogleIcon = ({
+  size = 16,
+  style = DEFAULT_ICON_STYLE,
+}: {
+  size?: number;
+  style?: React.CSSProperties;
+}) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    fill="currentColor"
+    viewBox="0 0 16 16"
+    style={style}
+  >
+    <path d="M15.545 6.558a9.42 9.42 0 0 1 .139 1.626c0 2.434-.87 4.492-2.384 5.885h.002C11.978 15.292 10.158 16 8 16A8 8 0 1 1 8 0a7.689 7.689 0 0 1 5.352 2.082l-2.284 2.284A4.347 4.347 0 0 0 8 3.166c-2.087 0-3.86 1.408-4.492 3.304a4.792 4.792 0 0 0 0 3.063h.003c.635 1.893 2.405 3.301 4.492 3.301 1.078 0 2.004-.276 2.722-.764h-.003a3.702 3.702 0 0 0 1.599-2.431H8v-3.08h7.545z" />
+  </svg>
 );
 
-const NotionIcon = ({ size = 16, style = DEFAULT_ICON_STYLE }: { size?: number, style?: React.CSSProperties }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} fill="currentColor" viewBox="0 0 24 24" style={style}>
-        <path d="M4.05 12.855l.855.285c.12.045.225-.015.225-.135V4.65c0-.135-.105-.24-.225-.285l-.855-.285a.21.21 0 0 1-.15-.21V3.45a.21.21 0 0 1 .21-.21h3a.24.24 0 0 1 .21.105l4.38 7.425V4.65c0-.135-.105-.24-.225-.285l-.855-.285a.21.21 0 0 1-.15-.21V3.45a.21.21 0 0 1 .21-.21h2.55a.21.21 0 0 1 .21.21v.42a.21.21 0 0 1-.15.21l-.855.285c-.12.045-.225.15-.225.285v8.355c0 .135.105.24.225.285l.855.285a.21.21 0 0 1 .15.21v.42a.21.21 0 0 1-.21.21h-3a.24.24 0 0 1-.21-.105l-4.38-7.425v6.075c0 .135.105.24.225.285l.855.285a.21.21 0 0 1 .15.21v.42a.21.21 0 0 1-.21.21H4.05a.21.21 0 0 1-.21-.21v-.42a.21.21 0 0 1 .15-.21z"/>
-    </svg>
+const NotionIcon = ({
+  size = 16,
+  style = DEFAULT_ICON_STYLE,
+}: {
+  size?: number;
+  style?: React.CSSProperties;
+}) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    fill="currentColor"
+    viewBox="0 0 24 24"
+    style={style}
+  >
+    <path d="M4.05 12.855l.855.285c.12.045.225-.015.225-.135V4.65c0-.135-.105-.24-.225-.285l-.855-.285a.21.21 0 0 1-.15-.21V3.45a.21.21 0 0 1 .21-.21h3a.24.24 0 0 1 .21.105l4.38 7.425V4.65c0-.135-.105-.24-.225-.285l-.855-.285a.21.21 0 0 1-.15-.21V3.45a.21.21 0 0 1 .21-.21h2.55a.21.21 0 0 1 .21.21v.42a.21.21 0 0 1-.15.21l-.855.285c-.12.045-.225.15-.225.285v8.355c0 .135.105.24.225.285l.855.285a.21.21 0 0 1 .15.21v.42a.21.21 0 0 1-.21.21h-3a.24.24 0 0 1-.21-.105l-4.38-7.425v6.075c0 .135.105.24.225.285l.855.285a.21.21 0 0 1 .15.21v.42a.21.21 0 0 1-.21.21H4.05a.21.21 0 0 1-.21-.21v-.42a.21.21 0 0 1 .15-.21z" />
+  </svg>
 );
 
 const locales = {
   'en-US': enUS,
-  'es': es,
+  es: es,
 };
 
 const localizer = dateFnsLocalizer({
@@ -71,10 +97,10 @@ interface CalendarEvent {
 }
 
 const PRIORITY_COLORS: Record<string, string> = {
-  low: '#1e40af',      // Deep Blue
-  medium: '#92400e',   // Deep Amber/Brown
-  high: '#9f1239',     // Deep Rose/Crimson
-  critical: '#4c0519'  // Very Dark Red
+  low: '#1e40af', // Deep Blue
+  medium: '#92400e', // Deep Amber/Brown
+  high: '#9f1239', // Deep Rose/Crimson
+  critical: '#4c0519', // Very Dark Red
 };
 
 // --- Custom Components for "Premium" Feel ---
@@ -86,39 +112,52 @@ const CustomToolbar = (props: ToolbarProps<CalendarEvent, object>) => {
   return (
     <div className="calendar-toolbar-custom">
       <div className="toolbar-left">
-        <button 
-          aria-label={t('admin.staff_hub.calendar.prev', 'Periodo anterior')} 
-          type="button" 
-          className="nav-btn-round" 
+        <button
+          aria-label={t('admin.staff_hub.calendar.prev', 'Periodo anterior')}
+          type="button"
+          className="nav-btn-round"
           onClick={() => onNavigate('PREV')}
         >
           <ChevronLeft aria-hidden="true" />
         </button>
-        <button type="button" className="today-btn-premium" onClick={() => onNavigate('TODAY')}>{t('status.today', 'Hoy')}</button>
-        <button 
-          aria-label={t('admin.staff_hub.calendar.next', 'Periodo siguiente')} 
-          type="button" 
-          className="nav-btn-round" 
+        <button type="button" className="today-btn-premium" onClick={() => onNavigate('TODAY')}>
+          {t('status.today', 'Hoy')}
+        </button>
+        <button
+          aria-label={t('admin.staff_hub.calendar.next', 'Periodo siguiente')}
+          type="button"
+          className="nav-btn-round"
           onClick={() => onNavigate('NEXT')}
         >
           <ChevronRight aria-hidden="true" />
         </button>
       </div>
-      
+
       <div className="toolbar-center">
         <h2>{label}</h2>
       </div>
 
       <div className="toolbar-right">
-        <div className="view-switcher-pill" role="group" aria-label={t('admin.staff_hub.calendar.view_selector', 'Seleccionar vista del calendario')}>
+        <div
+          className="view-switcher-pill"
+          role="group"
+          aria-label={t(
+            'admin.staff_hub.calendar.view_selector',
+            'Seleccionar vista del calendario',
+          )}
+        >
           {['month', 'week', 'day', 'agenda'].map((v) => (
-            <button type="button" 
+            <button
+              type="button"
               key={v}
               aria-pressed={view === v}
               className={`switcher-btn ${view === v ? 'active' : ''}`}
               onClick={() => onView(v as View)}
             >
-              {t(`admin.staff_hub.kanban.calendar_views.${v}`, v.charAt(0).toUpperCase() + v.slice(1))}
+              {t(
+                `admin.staff_hub.kanban.calendar_views.${v}`,
+                v.charAt(0).toUpperCase() + v.slice(1),
+              )}
             </button>
           ))}
         </div>
@@ -127,13 +166,11 @@ const CustomToolbar = (props: ToolbarProps<CalendarEvent, object>) => {
   );
 };
 
-
-
 const CustomEvent = ({ event }: { event: CalendarEvent }) => {
   const isTask = event.type === 'task';
   const isGoogle = event.type === 'google';
   const isNotion = event.type === 'notion';
-  
+
   return (
     <div className="custom-calendar-event" title={event.title}>
       <div className="event-inner" style={{ borderLeftColor: event.hexColor }}>
@@ -154,85 +191,118 @@ const eventStyleGetter = (event: CalendarEvent) => {
       backgroundColor: 'transparent',
       border: 'none',
       padding: '0',
-      zIndex: 10
-    }
+      zIndex: 10,
+    },
   };
 };
 
-export default function CalendarView({ tasks, googleEvents, notionTasks, onUpdateEventDate, onUpdateEventDuration }: CalendarViewProps) {
+export default function CalendarView({
+  tasks,
+  googleEvents,
+  notionTasks,
+  onUpdateEventDate,
+  onUpdateEventDuration,
+}: Readonly<CalendarViewProps>) {
   const { t, i18n } = useTranslation();
   const [view, setView] = useState<View>('month');
   const [date, setDate] = useState(new Date());
 
   // Map KanbanTasks
-  const taskEvents: CalendarEvent[] = useMemo(() => tasks.reduce<CalendarEvent[]>((acc, task) => {
-    if (task.columnId === 'idea') return acc; // Exclude Backlog tasks from calendar
+  const taskEvents: CalendarEvent[] = useMemo(
+    () =>
+      tasks.reduce<CalendarEvent[]>((acc, task) => {
+        if (task.columnId === 'idea') return acc; // Exclude Backlog tasks from calendar
 
-    const startDate = new Date(task.due_date || task.created_at);
-    let endDate;
-    if (task.end_date) {
-      endDate = new Date(task.end_date);
-    } else {
-      const hasTime = task.due_date?.includes('T');
-      endDate = new Date(startDate.getTime() + (hasTime ? 60 * 60 * 1000 : 0));
-    }
-    
-    acc.push({
-      id: task.id,
-      title: task.title,
-      start: startDate,
-      end: endDate,
-      resource: task,
-      hexColor: task.priority ? (PRIORITY_COLORS[task.priority.toLowerCase()] || '#4338ca') : '#4338ca',
-      isDraggable: true,
-      type: 'task'
-    });
-    return acc;
-  }, []), [tasks]);
+        const startDate = new Date(task.due_date || task.created_at);
+        let endDate;
+        if (task.end_date) {
+          endDate = new Date(task.end_date);
+        } else {
+          const hasTime = task.due_date?.includes('T');
+          endDate = new Date(startDate.getTime() + (hasTime ? 60 * 60 * 1000 : 0));
+        }
+
+        acc.push({
+          id: task.id,
+          title: task.title,
+          start: startDate,
+          end: endDate,
+          resource: task,
+          hexColor: task.priority
+            ? PRIORITY_COLORS[task.priority.toLowerCase()] || '#4338ca'
+            : '#4338ca',
+          isDraggable: true,
+          type: 'task',
+        });
+        return acc;
+      }, []),
+    [tasks],
+  );
 
   // Map GoogleEvents
-  const googleCalendarEvents: CalendarEvent[] = useMemo(() => (googleEvents || []).map(event => ({
-    id: event.id,
-    title: event.summary,
-    start: new Date(event.start.dateTime || event.start.date || ''),
-    end: new Date(event.end.dateTime || event.end.date || ''),
-    resource: { id: -1, title: event.summary, columnId: 'google', url: event.htmlLink },
-    hexColor: '#1e3a8a', // Deeper Google Blue
-    isDraggable: false,
-    type: 'google'
-  })), [googleEvents]);
+  const googleCalendarEvents: CalendarEvent[] = useMemo(
+    () =>
+      (googleEvents || []).map((event) => ({
+        id: event.id,
+        title: event.summary,
+        start: new Date(event.start.dateTime || event.start.date || ''),
+        end: new Date(event.end.dateTime || event.end.date || ''),
+        resource: { id: -1, title: event.summary, columnId: 'google', url: event.htmlLink },
+        hexColor: '#1e3a8a', // Deeper Google Blue
+        isDraggable: false,
+        type: 'google',
+      })),
+    [googleEvents],
+  );
 
   // Map NotionTasks
-  const notionCalendarEvents: CalendarEvent[] = useMemo(() => (notionTasks || []).map(task => ({
-    id: (task.id as string | number) || 'unknown-id',
-    title: (task.title as string) || 'Untitled Notion Task',
-    start: new Date((task.created_at as string) || new Date()),
-    end: new Date((task.created_at as string) || new Date()),
-    resource: { id: -2, ...task, columnId: 'notion' },
-    hexColor: '#111827', // Deep Notion Black
-    isDraggable: false,
-    type: 'notion'
-  })), [notionTasks]);
+  const notionCalendarEvents: CalendarEvent[] = useMemo(
+    () =>
+      (notionTasks || []).map((task) => ({
+        id: (task.id as string | number) || 'unknown-id',
+        title: (task.title as string) || 'Untitled Notion Task',
+        start: new Date((task.created_at as string) || new Date()),
+        end: new Date((task.created_at as string) || new Date()),
+        resource: { id: -2, ...task, columnId: 'notion' },
+        hexColor: '#111827', // Deep Notion Black
+        isDraggable: false,
+        type: 'notion',
+      })),
+    [notionTasks],
+  );
 
-  const events = useMemo(() => [...taskEvents, ...googleCalendarEvents, ...notionCalendarEvents], 
-    [taskEvents, googleCalendarEvents, notionCalendarEvents]);
+  const events = useMemo(
+    () => [...taskEvents, ...googleCalendarEvents, ...notionCalendarEvents],
+    [taskEvents, googleCalendarEvents, notionCalendarEvents],
+  );
 
-  const onEventDrop = ({ event, start }: { event: CalendarEvent, start: string | Date }) => {
-     if (event.resource && typeof event.id === 'number' && event.id > 0 && onUpdateEventDate) {
-        onUpdateEventDate(event.id, new Date(start));
-     }
-  };
-
-  const onEventResize = ({ event, start, end }: { event: CalendarEvent, start: string | Date, end: string | Date }) => {
-    if (event.resource && typeof event.id === 'number' && event.id > 0 && onUpdateEventDuration) {
-       onUpdateEventDuration(event.id, new Date(start), new Date(end));
+  const onEventDrop = ({ event, start }: { event: CalendarEvent; start: string | Date }) => {
+    if (event.resource && typeof event.id === 'number' && event.id > 0 && onUpdateEventDate) {
+      onUpdateEventDate(event.id, new Date(start));
     }
   };
 
-  const components = useMemo(() => ({
-    toolbar: CustomToolbar,
-    event: CustomEvent
-  }), []);
+  const onEventResize = ({
+    event,
+    start,
+    end,
+  }: {
+    event: CalendarEvent;
+    start: string | Date;
+    end: string | Date;
+  }) => {
+    if (event.resource && typeof event.id === 'number' && event.id > 0 && onUpdateEventDuration) {
+      onUpdateEventDuration(event.id, new Date(start), new Date(end));
+    }
+  };
+
+  const components = useMemo(
+    () => ({
+      toolbar: CustomToolbar,
+      event: CustomEvent,
+    }),
+    [],
+  );
 
   return (
     <div className="premium-calendar-container">
@@ -246,7 +316,7 @@ export default function CalendarView({ tasks, googleEvents, notionTasks, onUpdat
         onEventDrop={onEventDrop}
         onEventResize={onEventResize}
         draggableAccessor={(event: CalendarEvent) => !!event.isDraggable}
-        resizable={true} 
+        resizable={true}
         views={['month', 'week', 'day', 'agenda']}
         view={view}
         onView={setView}
@@ -255,18 +325,21 @@ export default function CalendarView({ tasks, googleEvents, notionTasks, onUpdat
         components={components}
         culture={i18n.language === 'es' ? 'es' : 'en-US'}
         messages={{
-          next: t('admin.staff_hub.kanban.calendar_views.next', "Siguiente"),
-          previous: t('admin.staff_hub.kanban.calendar_views.prev', "Anterior"),
-          today: t('admin.staff_hub.kanban.calendar_views.today', "Hoy"),
-          month: t('admin.staff_hub.kanban.calendar_views.month', "Mes"),
-          week: t('admin.staff_hub.kanban.calendar_views.week', "Semana"),
-          day: t('admin.staff_hub.kanban.calendar_views.day', "Día"),
-          agenda: t('admin.staff_hub.kanban.calendar_views.agenda', "Agenda"),
-          date: t('admin.staff_hub.kanban.calendar_views.date', "Fecha"),
-          time: t('admin.staff_hub.kanban.calendar_views.time', "Hora"),
-          event: t('admin.staff_hub.kanban.calendar_views.event', "Evento"),
-          allDay: t('admin.staff_hub.kanban.calendar_views.all_day', "Todo el día"),
-          noEventsInRange: t('admin.staff_hub.kanban.calendar_views.no_events', "No hay tareas en este rango")
+          next: t('admin.staff_hub.kanban.calendar_views.next', 'Siguiente'),
+          previous: t('admin.staff_hub.kanban.calendar_views.prev', 'Anterior'),
+          today: t('admin.staff_hub.kanban.calendar_views.today', 'Hoy'),
+          month: t('admin.staff_hub.kanban.calendar_views.month', 'Mes'),
+          week: t('admin.staff_hub.kanban.calendar_views.week', 'Semana'),
+          day: t('admin.staff_hub.kanban.calendar_views.day', 'Día'),
+          agenda: t('admin.staff_hub.kanban.calendar_views.agenda', 'Agenda'),
+          date: t('admin.staff_hub.kanban.calendar_views.date', 'Fecha'),
+          time: t('admin.staff_hub.kanban.calendar_views.time', 'Hora'),
+          event: t('admin.staff_hub.kanban.calendar_views.event', 'Evento'),
+          allDay: t('admin.staff_hub.kanban.calendar_views.all_day', 'Todo el día'),
+          noEventsInRange: t(
+            'admin.staff_hub.kanban.calendar_views.no_events',
+            'No hay tareas en este rango',
+          ),
         }}
       />
     </div>

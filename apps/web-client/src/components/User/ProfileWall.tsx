@@ -1,18 +1,18 @@
-import { useState, useEffect } from "react";
-import { useTranslation } from "react-i18next";
-import { m as motion, AnimatePresence } from "framer-motion";
-import { Trash2, Send, MessageCircle } from "lucide-react";
-import { useAuth } from "../../context/AuthContext";
-import { getUserRole } from "../../utils/roleUtils";
+import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { m as motion, AnimatePresence } from 'framer-motion';
+import { Trash2, Send, MessageCircle } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import { getUserRole } from '../../utils/roleUtils';
 import {
   getProfileComments,
   postProfileComment,
   deleteProfileComment,
   ProfileComment,
-} from "../../services/profileCommentService";
-import Loader from "../UI/Loader";
+} from '../../services/profileCommentService';
+import Loader from '../UI/Loader';
 
-import ConfirmationModal from "../UI/ConfirmationModal";
+import ConfirmationModal from '../UI/ConfirmationModal';
 
 interface ProfileWallProps {
   profileId: string; // The UUID of the profile owner
@@ -21,27 +21,27 @@ interface ProfileWallProps {
 }
 
 const RANK_IMAGES: Record<string, string> = {
-  admin: "/ranks/admin.png",
-  developer: "/ranks/developer.png",
-  moderator: "/ranks/moderator.png",
-  helper: "/ranks/helper.png",
-  staff: "/ranks/staff.png",
-  donador: "/ranks/rank-donador.png",
-  fundador: "/ranks/rank-fundador.png",
-  killu: "/ranks/rank-killu.png",
-  neroferno: "/ranks/rank-neroferno.png",
-  user: "/ranks/user.png",
+  admin: '/ranks/admin.png',
+  developer: '/ranks/developer.png',
+  moderator: '/ranks/moderator.png',
+  helper: '/ranks/helper.png',
+  staff: '/ranks/staff.png',
+  donador: '/ranks/rank-donador.png',
+  fundador: '/ranks/rank-fundador.png',
+  killu: '/ranks/rank-killu.png',
+  neroferno: '/ranks/rank-neroferno.png',
+  user: '/ranks/user.png',
 };
 
 export default function ProfileWall({
   profileId,
   isAdmin,
   mockComments,
-}: ProfileWallProps) {
+}: Readonly<ProfileWallProps>) {
   const { t } = useTranslation();
   const { user } = useAuth();
   const [comments, setComments] = useState<ProfileComment[]>([]);
-  const [newComment, setNewComment] = useState("");
+  const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
 
@@ -62,7 +62,7 @@ export default function ProfileWall({
         const data = await getProfileComments(profileId);
         if (!ignore) setComments(data);
       } catch (error) {
-        console.error("Error loading wall comments:", error);
+        console.error('Error loading wall comments:', error);
       } finally {
         if (!ignore) setLoading(false);
       }
@@ -81,9 +81,9 @@ export default function ProfileWall({
     try {
       const comment = await postProfileComment(profileId, newComment);
       setComments((prev) => [comment, ...prev]);
-      setNewComment("");
+      setNewComment('');
     } catch (error) {
-      console.error("Error posting comment:", error);
+      console.error('Error posting comment:', error);
     } finally {
       setSending(false);
     }
@@ -101,7 +101,7 @@ export default function ProfileWall({
       setComments((prev) => prev.filter((c) => c.id !== deleteCommentId));
       setDeleteCommentId(null);
     } catch (error) {
-      console.error("Error deleting comment:", error);
+      console.error('Error deleting comment:', error);
     } finally {
       setIsDeleting(false);
     }
@@ -110,8 +110,8 @@ export default function ProfileWall({
   return (
     <div className="rounded-3xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-xl">
       <h3 className="mb-6 flex items-center gap-3 border-b border-white/5 pb-4 text-xl font-black uppercase tracking-widest text-white">
-        <MessageCircle className="text-(--accent)" />{" "}
-        {t("profile.wall.title", "Muro de Comentarios")}
+        <MessageCircle className="text-(--accent)" />{' '}
+        {t('profile.wall.title', 'Muro de Comentarios')}
       </h3>
 
       {/* Input Form */}
@@ -122,10 +122,7 @@ export default function ProfileWall({
               aria-label="Text input"
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
-              placeholder={t(
-                "profile.wall.placeholder",
-                "Escribe algo en este muro...",
-              )}
+              placeholder={t('profile.wall.placeholder', 'Escribe algo en este muro...')}
               maxLength={500}
               className="focus:border-(--accent)/30 min-h-30 scrollbar-thin scrollbar-thumb-white/10 w-full resize-none rounded-2xl border border-white/5 bg-black/20 p-4 text-sm font-medium text-white transition-colors placeholder:text-gray-600 focus:outline-none"
             />
@@ -144,7 +141,7 @@ export default function ProfileWall({
                 <Loader minimal />
               ) : (
                 <>
-                  <Send size={16} /> {t("profile.wall.post", "Publicar")}
+                  <Send size={16} /> {t('profile.wall.post', 'Publicar')}
                 </>
               )}
             </button>
@@ -153,10 +150,7 @@ export default function ProfileWall({
       ) : (
         <div className="mb-8 rounded-2xl border border-dashed border-white/5 bg-black/20 p-8 text-center">
           <p className="text-sm font-bold text-gray-500">
-            {t(
-              "profile.wall.login_required",
-              "Inicia sesión para dejar un comentario.",
-            )}
+            {t('profile.wall.login_required', 'Inicia sesión para dejar un comentario.')}
           </p>
         </div>
       )}
@@ -172,7 +166,7 @@ export default function ProfileWall({
               exit={{ opacity: 0 }}
               className="flex flex-col items-center justify-center py-12"
             >
-              <Loader text={t("common.loading")} />
+              <Loader text={t('common.loading')} />
             </motion.div>
           ) : comments.length === 0 ? (
             <motion.div
@@ -184,10 +178,7 @@ export default function ProfileWall({
             >
               <div className="mb-4 text-4xl opacity-20">💬</div>
               <p className="font-bold italic text-gray-500">
-                {t(
-                  "profile.wall.empty",
-                  "Aún no hay mensajes. ¡Sé el primero!",
-                )}
+                {t('profile.wall.empty', 'Aún no hay mensajes. ¡Sé el primero!')}
               </p>
             </motion.div>
           ) : (
@@ -213,21 +204,16 @@ export default function ProfileWall({
                       discord_tag?: string;
                     }
 
-                    const authorMetadata = (
-                      isMe ? user?.user_metadata : comment.author
-                    ) as AuthorMetadata | undefined;
+                    const authorMetadata = (isMe ? user?.user_metadata : comment.author) as
+                      | AuthorMetadata
+                      | undefined;
 
-                    const pref =
-                      (authorMetadata?.avatar_preference as string) ||
-                      "minecraft";
-                    const mcNick =
-                      (authorMetadata?.minecraft_nick as string) || "";
-                    const statusMessage =
-                      (authorMetadata?.status_message as string) || "";
-                    const discordTag =
-                      (authorMetadata?.discord_tag as string) || "";
+                    const pref = (authorMetadata?.avatar_preference as string) || 'minecraft';
+                    const mcNick = (authorMetadata?.minecraft_nick as string) || '';
+                    const statusMessage = (authorMetadata?.status_message as string) || '';
+                    const discordTag = (authorMetadata?.discord_tag as string) || '';
 
-                    const useMinecraft = pref === "minecraft" && mcNick;
+                    const useMinecraft = pref === 'minecraft' && mcNick;
 
                     const displayAvatar = useMinecraft
                       ? `https://mc-heads.net/avatar/${mcNick}/128`
@@ -244,20 +230,14 @@ export default function ProfileWall({
                         : authorMetadata?.full_name ||
                             authorMetadata?.username ||
                             comment.author?.username ||
-                            t("common.anonymous", "Anónimo"),
+                            t('common.anonymous', 'Anónimo'),
                     );
 
-                    const roleRaw = isMe
-                      ? user
-                        ? getUserRole(user)
-                        : null
-                      : comment.author?.role;
-                    const role = String(roleRaw || "user").toLowerCase();
+                    const roleRaw = isMe ? (user ? getUserRole(user) : null) : comment.author?.role;
+                    const role = String(roleRaw || 'user').toLowerCase();
                     const roleImage =
                       RANK_IMAGES[role] ||
-                      (role.includes("donador")
-                        ? RANK_IMAGES["donador"]
-                        : RANK_IMAGES["user"]);
+                      (role.includes('donador') ? RANK_IMAGES['donador'] : RANK_IMAGES['user']);
 
                     return (
                       <div className="flex gap-4">
@@ -283,8 +263,7 @@ export default function ProfileWall({
                             <div className="mb-3 flex items-center gap-3 border-b border-white/5 pb-3">
                               <img
                                 src={
-                                  displayAvatar ||
-                                  `https://ui-avatars.com/api/?name=${displayName}`
+                                  displayAvatar || `https://ui-avatars.com/api/?name=${displayName}`
                                 }
                                 className="h-10 w-10 rounded-lg shadow-inner"
                                 alt="Avatar"
@@ -302,7 +281,7 @@ export default function ProfileWall({
                                   src={roleImage}
                                   alt={role}
                                   className="mt-1 object-contain object-left"
-                                  style={{ maxHeight: "24px" }}
+                                  style={{ maxHeight: '24px' }}
                                 />
                               </div>
                             </div>
@@ -313,9 +292,7 @@ export default function ProfileWall({
                                   <span className="text-[10px] font-bold uppercase tracking-wider opacity-70">
                                     Minecraft
                                   </span>
-                                  <span className="font-mono text-white">
-                                    {mcNick}
-                                  </span>
+                                  <span className="font-mono text-white">{mcNick}</span>
                                 </div>
                               )}
                               {discordTag && (
@@ -323,18 +300,14 @@ export default function ProfileWall({
                                   <span className="text-[10px] font-bold uppercase tracking-wider opacity-70">
                                     Discord
                                   </span>
-                                  <span className="text-indigo-300">
-                                    {discordTag}
-                                  </span>
+                                  <span className="text-indigo-300">{discordTag}</span>
                                 </div>
                               )}
                               <div className="flex items-center justify-between">
                                 <span className="text-[10px] font-bold uppercase tracking-wider opacity-70">
                                   Rol
                                 </span>
-                                <span className="capitalize text-white">
-                                  {role}
-                                </span>
+                                <span className="capitalize text-white">{role}</span>
                               </div>
                             </div>
                           </div>
@@ -351,16 +324,14 @@ export default function ProfileWall({
                                 src={roleImage}
                                 alt={role}
                                 className="select-none object-contain"
-                                style={{ maxHeight: "28px" }}
+                                style={{ maxHeight: '28px' }}
                                 onError={(e) => {
-                                  e.currentTarget.style.display = "none";
+                                  e.currentTarget.style.display = 'none';
                                 }}
                               />
                             </div>
                             <span className="rounded-lg bg-black/20 px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-gray-600">
-                              {new Date(
-                                comment.created_at,
-                              ).toLocaleDateString()}
+                              {new Date(comment.created_at).toLocaleDateString()}
                             </span>
                           </div>
                           <div className="wrap-break-word whitespace-pre-wrap text-sm font-medium leading-relaxed text-gray-300">
@@ -372,14 +343,12 @@ export default function ProfileWall({
                   })()}
 
                   {/* Actions */}
-                  {(isAdmin ||
-                    user?.id === comment.author_id ||
-                    user?.id === profileId) && (
+                  {(isAdmin || user?.id === comment.author_id || user?.id === profileId) && (
                     <button
                       type="button"
                       onClick={() => handleDeleteClick(comment.id)}
                       className="absolute right-4 top-4 rounded-lg p-2 text-gray-600 opacity-0 transition-colors hover:bg-red-500/10 hover:text-red-400 group-hover:opacity-100"
-                      title={t("common.delete", "Eliminar")}
+                      title={t('common.delete', 'Eliminar')}
                     >
                       <Trash2 size={12} />
                     </button>
@@ -396,13 +365,13 @@ export default function ProfileWall({
         onClose={() => !isDeleting && setDeleteCommentId(null)}
         onConfirm={confirmDelete}
         isLoading={isDeleting}
-        title={t("common.confirm_delete_title", "Confirmar eliminación")}
+        title={t('common.confirm_delete_title', 'Confirmar eliminación')}
         message={t(
-          "common.confirm_delete_msg",
-          "¿Estás seguro de que deseas eliminar este comentario? Esta acción no se puede deshacer.",
+          'common.confirm_delete_msg',
+          '¿Estás seguro de que deseas eliminar este comentario? Esta acción no se puede deshacer.',
         )}
-        confirmText={t("common.delete", "Eliminar")}
-        cancelText={t("common.cancel", "Cancelar")}
+        confirmText={t('common.delete', 'Eliminar')}
+        cancelText={t('common.cancel', 'Cancelar')}
       />
     </div>
   );

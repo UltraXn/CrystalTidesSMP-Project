@@ -1,16 +1,12 @@
-import React, { useEffect, useRef } from "react";
-import * as THREE from "three";
-import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-import { buildArcadeMachine, disposeArcadeMachine } from "./buildArcadeMachine";
-import {
-  bindScreenReels,
-  createScreenReels,
-  type ScreenReelsController,
-} from "./screenReels";
-import { reelsToImageStrips, type GachaSpinSync } from "./gachaSpinSync";
-import type { GachaReward, MappedGachaResult } from "../../pages/Gacha/types";
-import { resolveAssetUrl } from "../../utils/assetUtils";
-import "../../styles/widgets/gacha_3d_showcase.css";
+import React, { useEffect, useRef } from 'react';
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { buildArcadeMachine, disposeArcadeMachine } from './buildArcadeMachine';
+import { bindScreenReels, createScreenReels, type ScreenReelsController } from './screenReels';
+import { reelsToImageStrips, type GachaSpinSync } from './gachaSpinSync';
+import type { GachaReward, MappedGachaResult } from '../../pages/Gacha/types';
+import { resolveAssetUrl } from '../../utils/assetUtils';
+import '../../styles/widgets/gacha_3d_showcase.css';
 
 interface Gacha3DShowcaseProps {
   tierId: string;
@@ -31,10 +27,10 @@ interface ShowcaseLights {
 }
 
 const CONSTANTS = {
-  DEFAULT_COLOR: "#5eead4",
-  FALLBACK_COLOR: "#cd7f32",
-  RESIZE_EVENT: "resize",
-  MODELS_PATH: "/models/gacha/",
+  DEFAULT_COLOR: '#5eead4',
+  FALLBACK_COLOR: '#cd7f32',
+  RESIZE_EVENT: 'resize',
+  MODELS_PATH: '/models/gacha/',
 } as const;
 
 const VIVID_PART_REGEX =
@@ -45,7 +41,7 @@ const gltfBufferCache = new Map<string, Promise<ArrayBuffer>>();
 function getGltfBuffer(tierId: string): Promise<ArrayBuffer> {
   if (!gltfBufferCache.has(tierId)) {
     const fileLoader = new THREE.FileLoader();
-    fileLoader.setResponseType("arraybuffer");
+    fileLoader.setResponseType('arraybuffer');
     const promise = fileLoader.loadAsync(
       resolveAssetUrl(`${CONSTANTS.MODELS_PATH}cabinet_${tierId}.glb`),
     ) as Promise<ArrayBuffer>;
@@ -55,17 +51,11 @@ function getGltfBuffer(tierId: string): Promise<ArrayBuffer> {
 }
 
 // Prefetch all cabinet GLB models in background so machine switches are instant
-["bronze", "silver", "gold", "emerald", "diamond", "iridium", "ultra"].forEach(
-  (tier) => {
-    getGltfBuffer(tier).catch(() => {});
-  },
-);
+['bronze', 'silver', 'gold', 'emerald', 'diamond', 'iridium', 'ultra'].forEach((tier) => {
+  getGltfBuffer(tier).catch(() => {});
+});
 
-const DEFAULT_REEL_ITEMS_SET: (GachaReward | MappedGachaResult)[][] = [
-  [],
-  [],
-  [],
-];
+const DEFAULT_REEL_ITEMS_SET: (GachaReward | MappedGachaResult)[][] = [[], [], []];
 
 function applyStandardMaterialProps(
   mat: THREE.MeshStandardMaterial | THREE.MeshPhysicalMaterial,
@@ -105,11 +95,7 @@ function applyStandardMaterialProps(
   mat.needsUpdate = true;
 }
 
-function configureMeshMaterial(
-  mat: THREE.Material,
-  meshName: string,
-  tierColor: string,
-): void {
+function configureMeshMaterial(mat: THREE.Material, meshName: string, tierColor: string): void {
   mat.side = THREE.DoubleSide;
   mat.visible = true;
   mat.transparent = false;
@@ -117,14 +103,11 @@ function configureMeshMaterial(
   mat.alphaTest = 0;
   mat.depthWrite = true;
   mat.depthTest = true;
-  if ("alphaMap" in mat) {
+  if ('alphaMap' in mat) {
     (mat as { alphaMap: unknown }).alphaMap = null;
   }
 
-  if (
-    mat instanceof THREE.MeshStandardMaterial ||
-    mat instanceof THREE.MeshPhysicalMaterial
-  ) {
+  if (mat instanceof THREE.MeshStandardMaterial || mat instanceof THREE.MeshPhysicalMaterial) {
     applyStandardMaterialProps(mat, meshName, tierColor);
   } else if (mat instanceof THREE.MeshBasicMaterial) {
     if (mat.map) mat.map.colorSpace = THREE.SRGBColorSpace;
@@ -139,9 +122,7 @@ function prepareGltfMaterials(root: THREE.Object3D, tierColor: string): void {
     child.receiveShadow = false;
     child.frustumCulled = false;
     child.visible = true;
-    const materials = Array.isArray(child.material)
-      ? child.material
-      : [child.material];
+    const materials = Array.isArray(child.material) ? child.material : [child.material];
     for (const mat of materials) {
       if (mat) configureMeshMaterial(mat, child.name, tierColor);
     }
@@ -202,9 +183,7 @@ function cacheEmissive(root: THREE.Object3D): EmissiveMat[] {
   const mats: EmissiveMat[] = [];
   root.traverse((child) => {
     if (!(child instanceof THREE.Mesh)) return;
-    const materials = Array.isArray(child.material)
-      ? child.material
-      : [child.material];
+    const materials = Array.isArray(child.material) ? child.material : [child.material];
     for (const m of materials) {
       if (!(m instanceof THREE.MeshStandardMaterial)) continue;
       if (m.emissiveIntensity <= 0.05 && m.emissive.getHex() === 0) continue;
@@ -219,17 +198,12 @@ function setupCoinBadgeMaterials(
   root: THREE.Object3D,
   tierColor: string,
 ): { coinBadge: THREE.Object3D | null; coinMats: EmissiveMat[] } {
-  const coinBadge =
-    root.getObjectByName("coin_badge") ||
-    root.getObjectByName("badge") ||
-    null;
+  const coinBadge = root.getObjectByName('coin_badge') || root.getObjectByName('badge') || null;
   const coinMats: EmissiveMat[] = [];
 
   const markCoinMat = (child: THREE.Object3D) => {
     if (!(child instanceof THREE.Mesh)) return;
-    const materials = Array.isArray(child.material)
-      ? child.material
-      : [child.material];
+    const materials = Array.isArray(child.material) ? child.material : [child.material];
     for (const m of materials) {
       if (!(m instanceof THREE.MeshStandardMaterial)) continue;
       if (m.map) m.emissiveMap = m.map;
@@ -266,10 +240,7 @@ function setupWinAnimation(
   return { mixer, action };
 }
 
-function setupShowcaseLights(
-  scene: THREE.Scene,
-  tierColor: string,
-): ShowcaseLights {
+function setupShowcaseLights(scene: THREE.Scene, tierColor: string): ShowcaseLights {
   scene.add(new THREE.AmbientLight(0xffffff, 0.88));
   scene.add(new THREE.HemisphereLight(0xd8e8ff, 0x2a2420, 0.52));
 
@@ -296,14 +267,11 @@ function setupShowcaseLights(
   return { accentLight, coinLight };
 }
 
-function createShowcaseRenderer(
-  width: number,
-  height: number,
-): THREE.WebGLRenderer {
+function createShowcaseRenderer(width: number, height: number): THREE.WebGLRenderer {
   const renderer = new THREE.WebGLRenderer({
     antialias: true,
     alpha: true,
-    powerPreference: "high-performance",
+    powerPreference: 'high-performance',
     preserveDrawingBuffer: true,
   });
   renderer.setSize(width, height);
@@ -331,10 +299,8 @@ function animateMachineTransform(
   celebrating: boolean,
   opening: boolean,
 ): void {
-  const baseY =
-    typeof model.userData.baseY === "number" ? model.userData.baseY : 0;
-  model.rotation.y =
-    Math.sin(idleAngle) * (celebrating || opening ? 0.08 : 0.14);
+  const baseY = typeof model.userData.baseY === 'number' ? model.userData.baseY : 0;
+  model.rotation.y = Math.sin(idleAngle) * (celebrating || opening ? 0.08 : 0.14);
 
   if (celebrating) {
     model.position.y = baseY + Math.sin(idleAngle * 3.2) * 0.05;
@@ -344,7 +310,7 @@ function animateMachineTransform(
     model.position.y = baseY;
   }
 
-  const stick = model.getObjectByName("joystick-stick");
+  const stick = model.getObjectByName('joystick-stick');
   if (stick) {
     stick.rotation.z = Math.sin(idleAngle * 1.6) * 0.18;
   }
@@ -422,9 +388,7 @@ function animateWinVisuals(
 
   if (winLights) {
     winLights.children.forEach((child, i) => {
-      const pulse = celebrating
-        ? 0.85 + Math.abs(Math.sin(idleAngle * 8 - i * 0.45)) * 0.7
-        : 0.85;
+      const pulse = celebrating ? 0.85 + Math.abs(Math.sin(idleAngle * 8 - i * 0.45)) * 0.7 : 0.85;
       child.scale.setScalar(pulse);
     });
   }
@@ -437,9 +401,7 @@ function animateWinVisuals(
   }
 }
 
-function extractSampleMaterials(
-  current: THREE.Group,
-): Array<Record<string, unknown>> {
+function extractSampleMaterials(current: THREE.Group): Array<Record<string, unknown>> {
   const sample: Array<Record<string, unknown>> = [];
   current.traverse((c) => {
     if (!(c instanceof THREE.Mesh) || sample.length >= 6) return;
@@ -497,12 +459,8 @@ function inspectMeshStatistics(current: THREE.Group) {
     const materials = Array.isArray(c.material) ? c.material : [c.material];
     for (const m of materials) {
       if (!m) continue;
-      if ("map" in m && m.map) withMap += 1;
-      if (
-        "color" in m &&
-        m.color &&
-        (m.color as THREE.Color).getHex?.() === 0
-      ) {
+      if ('map' in m && m.map) withMap += 1;
+      if ('color' in m && m.color && (m.color as THREE.Color).getHex?.() === 0) {
         black += 1;
       }
     }
@@ -519,12 +477,7 @@ function buildGachaDebugInfo(
   const box = new THREE.Box3().setFromObject(current);
   const size = box.getSize(new THREE.Vector3());
   const { meshes, withMap, black } = inspectMeshStatistics(current);
-  const { corners, xs, ys } = projectBoxCorners(
-    box,
-    camera,
-    mount.clientWidth,
-    mount.clientHeight,
-  );
+  const { corners, xs, ys } = projectBoxCorners(box, camera, mount.clientWidth, mount.clientHeight);
 
   const minX = Math.min(...xs);
   const maxX = Math.max(...xs);
@@ -590,7 +543,7 @@ async function loadGltfModel(
           if (c instanceof THREE.Mesh) meshCount += 1;
         });
         if (meshCount === 0) {
-          reject(new Error("GLTF scene has no meshes"));
+          reject(new Error('GLTF scene has no meshes'));
           return;
         }
         resolve({ root, animations: gltf.animations || [] });
@@ -600,7 +553,7 @@ async function loadGltfModel(
   });
 }
 
-const Gacha3DShowcase: React.FC<Gacha3DShowcaseProps> = ({
+const Gacha3DShowcase: React.FC<Readonly<Gacha3DShowcaseProps>> = ({
   tierId,
   tierColor,
   isOpening = false,
@@ -719,9 +672,7 @@ const Gacha3DShowcase: React.FC<Gacha3DShowcaseProps> = ({
       emissiveMatsRef.current = cacheEmissive(model);
 
       winLightsRef.current =
-        model.getObjectByName("marquee_leds") ||
-        model.getObjectByName("win_lights") ||
-        null;
+        model.getObjectByName('marquee_leds') || model.getObjectByName('win_lights') || null;
 
       const { coinBadge, coinMats } = setupCoinBadgeMaterials(model, tierColor);
       coinBadgeRef.current = coinBadge;
@@ -736,11 +687,7 @@ const Gacha3DShowcase: React.FC<Gacha3DShowcaseProps> = ({
 
       void screenReels.ready.then(() => {
         if (disposed) return;
-        bindScreenReels(
-          model,
-          screenReels,
-          tierColor || CONSTANTS.DEFAULT_COLOR,
-        );
+        bindScreenReels(model, screenReels, tierColor || CONSTANTS.DEFAULT_COLOR);
       });
 
       const { mixer, action } = setupWinAnimation(model, animations);
@@ -787,25 +734,9 @@ const Gacha3DShowcase: React.FC<Gacha3DShowcaseProps> = ({
       if (current) {
         idleAngle = computeNextIdleAngle(idleAngle, celebrating, opening);
         animateMachineTransform(current, idleAngle, celebrating, opening);
-        animateLights(
-          accentLight,
-          coinLightRef.current,
-          idleAngle,
-          celebrating,
-          opening,
-        );
-        animateEmissiveMaterials(
-          emissiveMatsRef.current,
-          idleAngle,
-          celebrating,
-          opening,
-        );
-        animateCoinMaterials(
-          coinMatsRef.current,
-          idleAngle,
-          celebrating,
-          opening,
-        );
+        animateLights(accentLight, coinLightRef.current, idleAngle, celebrating, opening);
+        animateEmissiveMaterials(emissiveMatsRef.current, idleAngle, celebrating, opening);
+        animateCoinMaterials(coinMatsRef.current, idleAngle, celebrating, opening);
         animateWinVisuals(
           winLightsRef.current,
           coinBadgeRef.current,
@@ -862,8 +793,8 @@ const Gacha3DShowcase: React.FC<Gacha3DShowcaseProps> = ({
 
   return (
     <div
-      className={`gacha-3d-showcase ${isOpening ? "is-spinning" : ""} ${isCelebrating ? "is-celebrating" : ""}`}
-      style={{ "--tier-color": tierColor } as React.CSSProperties}
+      className={`gacha-3d-showcase ${isOpening ? 'is-spinning' : ''} ${isCelebrating ? 'is-celebrating' : ''}`}
+      style={{ '--tier-color': tierColor } as React.CSSProperties}
       aria-hidden="true"
     >
       <div className="showcase-pedestal">

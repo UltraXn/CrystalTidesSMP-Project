@@ -1,7 +1,7 @@
-import React from "react";
-import { Star } from "lucide-react";
-import { GachaReward, MappedGachaResult, GachaTier } from "./types";
-import { isLossReward, resolveRewardImage } from "./gachaDisplayUtils";
+import React from 'react';
+import { Star } from 'lucide-react';
+import { GachaReward, MappedGachaResult, GachaTier } from './types';
+import { isLossReward, resolveRewardImage } from './gachaDisplayUtils';
 
 interface GachaMachineProps {
   reelItemsSet: (GachaReward | MappedGachaResult)[][];
@@ -11,19 +11,10 @@ interface GachaMachineProps {
   selectedTier: GachaTier;
 }
 
-const LED_KEYS = [
-  "led-0",
-  "led-1",
-  "led-2",
-  "led-3",
-  "led-4",
-  "led-5",
-  "led-6",
-  "led-7",
-] as const;
-const REEL_COLUMN_KEYS = ["reel-left", "reel-mid", "reel-right"] as const;
+const LED_KEYS = ['led-0', 'led-1', 'led-2', 'led-3', 'led-4', 'led-5', 'led-6', 'led-7'] as const;
+const REEL_COLUMN_KEYS = ['reel-left', 'reel-mid', 'reel-right'] as const;
 
-export const GachaMachine: React.FC<GachaMachineProps> = ({
+export const GachaMachine: React.FC<Readonly<GachaMachineProps>> = ({
   reelItemsSet,
   reelRefs,
   isOpening,
@@ -35,16 +26,13 @@ export const GachaMachine: React.FC<GachaMachineProps> = ({
       id="gacha_machine_card"
       role="region"
       aria-label={`Máquina tragamonedas ${selectedTier.name}`}
-      className={`slot-machine-wrapper ${isOpening ? "is-opening" : ""} tier-${selectedTier.id}`}
-      style={{ "--tier-color": selectedTier.color } as React.CSSProperties}
+      className={`slot-machine-wrapper ${isOpening ? 'is-opening' : ''} tier-${selectedTier.id}`}
+      style={{ '--tier-color': selectedTier.color } as React.CSSProperties}
     >
       <div className="slot-machine-frame">
         <div className="slot-machine-lights left" aria-hidden="true">
           {LED_KEYS.map((k) => (
-            <div
-              key={`led-left-${k}`}
-              className={`led ${isOpening ? "animating" : ""}`}
-            />
+            <div key={`led-left-${k}`} className={`led ${isOpening ? 'animating' : ''}`} />
           ))}
         </div>
 
@@ -58,8 +46,7 @@ export const GachaMachine: React.FC<GachaMachineProps> = ({
 
             <div className="slot-reels-container">
               {reelItemsSet.map((items, reelIdx) => {
-                const reelKey =
-                  REEL_COLUMN_KEYS[reelIdx] || `reel-col-${reelIdx}`;
+                const reelKey = REEL_COLUMN_KEYS[reelIdx] || `reel-col-${reelIdx}`;
                 return (
                   <React.Fragment key={reelKey}>
                     <div className="slot-reel" ref={reelRefs[reelIdx]}>
@@ -67,30 +54,24 @@ export const GachaMachine: React.FC<GachaMachineProps> = ({
                         const loss = isLossReward(item);
                         const activeImg =
                           resolveRewardImage(item.name, item.image_url) ||
-                          (loss
-                            ? "/images/items/Barrier_(held)_JE2_BE2.png"
-                            : null);
+                          (loss ? '/images/items/Barrier_(held)_JE2_BE2.png' : null);
                         const Icon = RARITY_ICONS[item.rarity] || Star;
                         return (
                           <div
                             key={item.id}
-                            className={`slot-item rarity-${item.rarity}${loss ? "is-loss" : ""}`}
+                            className={`slot-item rarity-${item.rarity}${loss ? 'is-loss' : ''}`}
                           >
                             <div
                               className="item-icon-wrapper"
                               style={
                                 {
                                   color: item.color,
-                                  "--item-glow": `${item.color}80`,
+                                  '--item-glow': `${item.color}80`,
                                 } as React.CSSProperties
                               }
                             >
                               {activeImg ? (
-                                <img
-                                  src={activeImg}
-                                  alt={item.name}
-                                  className="slot-item-sprite"
-                                />
+                                <img src={activeImg} alt={item.name} className="slot-item-sprite" />
                               ) : (
                                 <Icon size={32} />
                               )}
@@ -110,10 +91,7 @@ export const GachaMachine: React.FC<GachaMachineProps> = ({
 
         <div className="slot-machine-lights right">
           {LED_KEYS.map((k) => (
-            <div
-              key={`led-right-${k}`}
-              className={`led ${isOpening ? "animating" : ""}`}
-            />
+            <div key={`led-right-${k}`} className={`led ${isOpening ? 'animating' : ''}`} />
           ))}
         </div>
       </div>

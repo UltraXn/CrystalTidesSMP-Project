@@ -1,13 +1,19 @@
-import supabase from '../config/supabaseClient.js';
-import { Request, Response } from 'express';
 import crypto from 'crypto';
+import { Request, Response } from 'express';
+import supabase from '../config/supabaseClient.js';
 import { kofiWebhookSchema, type KofiWebhookPayload } from '../schemas/donationSchemas.js';
 
 // --- Constants & Configuration ---
 
 const DEFAULT_DONOR_NAME = 'Anónimo';
 const DONATIONS_TABLE = 'donations';
-const DEFAULT_EVENT_TYPE = 'Donation';
+
+export const EVENT_TYPES = {
+  DONATION: 'Donation',
+  SUBSCRIPTION: 'Subscription',
+  COMMISSION: 'Commission',
+  SHOP_ORDER: 'Shop Order',
+} as const;
 
 const ERROR_MESSAGES = {
   INVALID_JSON: 'Invalid JSON format',
@@ -104,7 +110,7 @@ export const buildDonationRecord = (payload: KofiWebhookPayload): DonationDbReco
  */
 export const persistDonation = async (payload: KofiWebhookPayload) => {
   const record = buildDonationRecord(payload);
-  return await supabase.from(DONATIONS_TABLE).upsert(record, { onConflict: 'message_id' }).select();
+  return supabase.from(DONATIONS_TABLE).upsert(record, { onConflict: 'message_id' }).select();
 };
 
 /**
@@ -124,34 +130,66 @@ export const dispatchDiscordAlert = async (payload: KofiWebhookPayload): Promise
   }
 };
 
+const createLoggingHandler =
+  (eventType: string): WebhookEventHandler =>
+  async (payload: KofiWebhookPayload): Promise<void> => {
+    console.log(`[Webhook] ${eventType} event received: message_id=${payload.message_id}`);
+    await dispatchDiscordAlert(payload);
+  };
+
 // --- Event Routing Dictionary ---
 
 export const EVENT_ROUTING_DICTIONARY: Record<string, WebhookEventHandler> = {
-  Donation: async (payload: KofiWebhookPayload) => {
+  [EVENT_TYPES.DONATION]: async (payload: KofiWebhookPayload) => {
     await dispatchDiscordAlert(payload);
   },
-  Subscription: async (payload: KofiWebhookPayload) => {
-    console.log(`[Webhook] Subscription event received: message_id=${payload.message_id}`);
-    await dispatchDiscordAlert(payload);
-  },
-  Commission: async (payload: KofiWebhookPayload) => {
-    console.log(`[Webhook] Commission event received: message_id=${payload.message_id}`);
-    await dispatchDiscordAlert(payload);
-  },
-  'Shop Order': async (payload: KofiWebhookPayload) => {
-    console.log(`[Webhook] Shop Order event received: message_id=${payload.message_id}`);
-    await dispatchDiscordAlert(payload);
-  },
+  [EVENT_TYPES.SUBSCRIPTION]: createLoggingHandler(EVENT_TYPES.SUBSCRIPTION),
+  [EVENT_TYPES.COMMISSION]: createLoggingHandler(EVENT_TYPES.COMMISSION),
+  [EVENT_TYPES.SHOP_ORDER]: createLoggingHandler(EVENT_TYPES.SHOP_ORDER),
 };
 
 /**
  * Routes payment webhook payload through the event routing dictionary.
  */
 export const routeWebhookEvent = async (payload: KofiWebhookPayload): Promise<void> => {
-  const eventType = payload.type || DEFAULT_EVENT_TYPE;
+  const eventType = payload.type || EVENT_TYPES.DONATION;
   const handler =
-    EVENT_ROUTING_DICTIONARY[eventType] ?? EVENT_ROUTING_DICTIONARY[DEFAULT_EVENT_TYPE];
+    EVENT_ROUTING_DICTIONARY[eventType] ?? EVENT_ROUTING_DICTIONARY[EVENT_TYPES.DONATION];
   await handler(payload);
+};
+
+// --- Validation Sub-routine ---
+
+interface TokenVerificationResult {
+  isValid: boolean;
+  statusCode?: number;
+  errorMessage?: string;
+}
+
+const validateWebhookSecurity = (
+  rawPayload: Record<string, unknown> | null | undefined,
+): TokenVerificationResult => {
+  const verificationToken = process.env.KOFI_VERIFICATION_TOKEN;
+  if (!verificationToken) {
+    console.error('CRITICAL: KOFI_VERIFICATION_TOKEN is not set!');
+    return {
+      isValid: false,
+      statusCode: 500,
+      errorMessage: ERROR_MESSAGES.SERVER_CONFIG,
+    };
+  }
+
+  const isTokenValid = verifyKofiToken(rawPayload?.verification_token, verificationToken);
+  if (!isTokenValid) {
+    console.warn('Invalid Ko-Fi verification token attempt');
+    return {
+      isValid: false,
+      statusCode: 403,
+      errorMessage: ERROR_MESSAGES.INVALID_TOKEN,
+    };
+  }
+
+  return { isValid: true };
 };
 
 // --- Main Route Controller ---
@@ -164,18 +202,12 @@ export const handleKofiWebhook = async (req: Request, res: Response): Promise<Re
       return res.status(400).send(parsedBody.error);
     }
 
-    // 2. Mandatory verification checks
-    const verificationToken = process.env.KOFI_VERIFICATION_TOKEN;
-    if (!verificationToken) {
-      console.error('CRITICAL: KOFI_VERIFICATION_TOKEN is not set!');
-      return res.status(500).send(ERROR_MESSAGES.SERVER_CONFIG);
-    }
-
     const rawPayload = parsedBody.data as Record<string, unknown> | null | undefined;
-    const isTokenValid = verifyKofiToken(rawPayload?.verification_token, verificationToken);
-    if (!isTokenValid) {
-      console.warn('Invalid Ko-Fi verification token attempt');
-      return res.status(403).send(ERROR_MESSAGES.INVALID_TOKEN);
+
+    // 2. Mandatory verification checks
+    const securityCheck = validateWebhookSecurity(rawPayload);
+    if (!securityCheck.isValid) {
+      return res.status(securityCheck.statusCode ?? 500).send(securityCheck.errorMessage);
     }
 
     // 3. Validate payload schema before processing

@@ -165,66 +165,106 @@ const getRuleSeverity = (category: string, title: string, t: TranslateFn): RuleS
   };
 };
 
+const RULE_EXAMPLES_DICT: Record<string, { es: RuleExamplesData; en: RuleExamplesData }> = {
+  chat: {
+    en: {
+      allowed: 'Greeting, respectful debate, trading via global chat, and wholesome jokes.',
+      forbidden:
+        'Spam, insults, toxicity, sharing unauthorized links, discrimination, or excessive caps.',
+    },
+    es: {
+      allowed:
+        'Saludar, debatir con respeto, comerciar por el chat global y compartir chistes sanos.',
+      forbidden:
+        'Spam, insultos, toxicidad, compartir enlaces no autorizados, discriminación o mayúsculas excesivas.',
+    },
+  },
+  pvp: {
+    en: {
+      allowed: 'Fighting in designated zones, declaring formal clan wars.',
+      forbidden: 'Spawnkilling, combat logging, or lava trapping.',
+    },
+    es: {
+      allowed: 'Pelear en zonas habilitadas, declarar guerras formales bajo el sistema de clanes.',
+      forbidden:
+        'Matar reiteradamente en puntos de aparición (spawnkill), usar desconexión en combate o trampas de lava.',
+    },
+  },
+  construcción: {
+    en: {
+      allowed:
+        'Creating claims, building towns with friends, decorating public pathways aesthetically.',
+      forbidden:
+        'Griefing, constructing ugly floating structures, blocking access for other players.',
+    },
+    es: {
+      allowed:
+        'Crear reclamos (claims), edificar ciudades con amigos, decorar caminos públicos de forma estética.',
+      forbidden:
+        'Griefing (destrucción), construir estructuras flotantes sin estética, tapar accesos de otros jugadores.',
+    },
+  },
+  building: {
+    en: {
+      allowed:
+        'Creating claims, building towns with friends, decorating public pathways aesthetically.',
+      forbidden:
+        'Griefing, constructing ugly floating structures, blocking access for other players.',
+    },
+    es: {
+      allowed:
+        'Crear reclamos (claims), edificar ciudades con amigos, decorar caminos públicos de forma estética.',
+      forbidden:
+        'Griefing (destrucción), construir estructuras flotantes sin estética, tapar accesos de otros jugadores.',
+    },
+  },
+  seguridad: {
+    en: {
+      allowed: 'Reporting bugs and exploits in Discord private support channel.',
+      forbidden:
+        'Using hacks, dupes, exploiting bugs, sharing accounts, or stealing unprotected chests.',
+    },
+    es: {
+      allowed: 'Reportar fallos y exploits en el canal de soporte privado de Discord.',
+      forbidden:
+        'Uso de hacks, dupes, aprovechamiento de bugs, compartir cuentas personales o robo de cofres desprotegidos.',
+    },
+  },
+  security: {
+    en: {
+      allowed: 'Reporting bugs and exploits in Discord private support channel.',
+      forbidden:
+        'Using hacks, dupes, exploiting bugs, sharing accounts, or stealing unprotected chests.',
+    },
+    es: {
+      allowed: 'Reportar fallos y exploits en el canal de soporte privado de Discord.',
+      forbidden:
+        'Uso de hacks, dupes, aprovechamiento de bugs, compartir cuentas personales o robo de cofres desprotegidos.',
+    },
+  },
+};
+
+const DEFAULT_RULE_EXAMPLES: { es: RuleExamplesData; en: RuleExamplesData } = {
+  en: {
+    allowed: 'Play fairly, respect staff instructions, and enjoy the CrystalTides experience.',
+    forbidden: 'Evading punishments using alt accounts, abusing game mechanics to harass others.',
+  },
+  es: {
+    allowed:
+      'Jugar justamente, respetar las indicaciones del staff y disfrutar de la experiencia CrystalTides.',
+    forbidden:
+      'Intentar evadir sanciones mediante multicuentas, abusar de mecánicas del juego para molestar a otros.',
+  },
+};
+
 const getRuleExamples = (
   category: string,
   _title: string,
   lang: string = LANG_ES,
 ): RuleExamplesData => {
   const cat = (category || '').toLowerCase();
-  const isEn = lang === LANG_EN;
-
-  if (cat === 'chat') {
-    return {
-      allowed: isEn
-        ? 'Greeting, respectful debate, trading via global chat, and wholesome jokes.'
-        : 'Saludar, debatir con respeto, comerciar por el chat global y compartir chistes sanos.',
-      forbidden: isEn
-        ? 'Spam, insults, toxicity, sharing unauthorized links, discrimination, or excessive caps.'
-        : 'Spam, insultos, toxicidad, compartir enlaces no autorizados, discriminación o mayúsculas excesivas.',
-    };
-  }
-
-  if (cat === 'pvp') {
-    return {
-      allowed: isEn
-        ? 'Fighting in designated zones, declaring formal clan wars.'
-        : 'Pelear en zonas habilitadas, declarar guerras formales bajo el sistema de clanes.',
-      forbidden: isEn
-        ? 'Spawnkilling, combat logging, or lava trapping.'
-        : 'Matar reiteradamente en puntos de aparición (spawnkill), usar desconexión en combate o trampas de lava.',
-    };
-  }
-
-  if (cat === 'construcción' || cat === 'building') {
-    return {
-      allowed: isEn
-        ? 'Creating claims, building towns with friends, decorating public pathways aesthetically.'
-        : 'Crear reclamos (claims), edificar ciudades con amigos, decorar caminos públicos de forma estética.',
-      forbidden: isEn
-        ? 'Griefing, constructing ugly floating structures, blocking access for other players.'
-        : 'Griefing (destrucción), construir estructuras flotantes sin estética, tapar accesos de otros jugadores.',
-    };
-  }
-
-  if (cat === 'seguridad' || cat === 'security') {
-    return {
-      allowed: isEn
-        ? 'Reporting bugs and exploits in Discord private support channel.'
-        : 'Reportar fallos y exploits en el canal de soporte privado de Discord.',
-      forbidden: isEn
-        ? 'Using hacks, dupes, exploiting bugs, sharing accounts, or stealing unprotected chests.'
-        : 'Uso de hacks, dupes, aprovechamiento de bugs, compartir cuentas personales o robo de cofres desprotegidos.',
-    };
-  }
-
-  return {
-    allowed: isEn
-      ? 'Play fairly, respect staff instructions, and enjoy the CrystalTides experience.'
-      : 'Jugar justamente, respetar las indicaciones del staff y disfrutar de la experiencia CrystalTides.',
-    forbidden: isEn
-      ? 'Evading punishments using alt accounts, abusing game mechanics to harass others.'
-      : 'Intentar evadir sanciones mediante multicuentas, abusar de mecánicas del juego para molestar a otros.',
-  };
+  const entry = RULE_EXAMPLES_DICT[cat] || DEFAULT_RULE_EXAMPLES;
+  return lang === LANG_EN ? entry.en : entry.es;
 };
 
 const getRuleCommands = (category: string): string[] => {
@@ -260,7 +300,7 @@ function RulesSearchBar({
   onSearchChange,
   onClear,
   placeholderText,
-}: RulesSearchBarProps) {
+}: Readonly<RulesSearchBarProps>) {
   return (
     <div className="group relative mx-auto w-full max-w-2xl">
       <Search
@@ -304,7 +344,7 @@ function RulesFilterBar({
   onSelectCategory,
   allLabel,
   t,
-}: RulesFilterBarProps) {
+}: Readonly<RulesFilterBarProps>) {
   return (
     <div className="relative mx-auto flex max-w-4xl flex-wrap items-center justify-center gap-2 rounded-2xl border border-white/10 bg-black/50 p-2 shadow-2xl backdrop-blur-2xl">
       <button
@@ -359,7 +399,12 @@ interface RuleExpandedContentProps {
   onCopyCommand: (cmd: string) => void;
 }
 
-function RuleExpandedContent({ examples, commands, t, onCopyCommand }: RuleExpandedContentProps) {
+function RuleExpandedContent({
+  examples,
+  commands,
+  t,
+  onCopyCommand,
+}: Readonly<RuleExpandedContentProps>) {
   return (
     <motion.div
       initial={{ opacity: 0, y: -10 }}
@@ -437,7 +482,7 @@ function RuleCard({
   onDelete,
   onCopyCommand,
   t,
-}: RuleCardProps) {
+}: Readonly<RuleCardProps>) {
   const categoryName = rule.category || DEFAULT_CATEGORY;
   const config = CATEGORY_CONFIG[categoryName] || DEFAULT_ICON_CONFIG;
   const accent = rule.color || config.color;
@@ -576,7 +621,7 @@ function RuleEditorForm({
   onSave,
   onTranslate,
   t,
-}: RuleEditorFormProps) {
+}: Readonly<RuleEditorFormProps>) {
   const isUpdating = Boolean(editRuleId);
 
   return (
@@ -798,7 +843,7 @@ function RulesList({
   onDelete,
   onCopyCommand,
   t,
-}: RulesListProps) {
+}: Readonly<RulesListProps>) {
   if (loading) {
     return (
       <div className="py-20">

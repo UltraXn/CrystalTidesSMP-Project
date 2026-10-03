@@ -392,7 +392,7 @@ function getEntityDefaultAttacks(
 const EMPTY_DROPS: string[] = [];
 const EMPTY_PHASES: BossPhaseData[] = [];
 
-export const WikiBoss3DCard: React.FC<WikiBoss3DCardProps> = ({
+export const WikiBoss3DCard: React.FC<Readonly<WikiBoss3DCardProps>> = ({
   modelPath = '/models/toro_wither.gltf',
   modelPathPhase2,
   bossName = 'Entidad',

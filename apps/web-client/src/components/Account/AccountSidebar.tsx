@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { useTranslation } from "react-i18next";
+import React, { useEffect, useRef, useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Medal,
   X,
@@ -13,14 +13,14 @@ import {
   Shield,
   Link as LinkIcon,
   Settings,
-} from "lucide-react";
-import { useAuth } from "../../context/AuthContext";
-import { uploadImage } from "../../services/uploadService";
-import { compressImage } from "../../utils/imageOptimizer";
-import Loader from "../UI/Loader";
-import { User } from "@supabase/supabase-js";
-import { isAdmin as checkAdmin } from "../../utils/roleUtils";
-import { useGachaBalance } from "../../hooks/useAccountData";
+} from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import { uploadImage } from '../../services/uploadService';
+import { compressImage } from '../../utils/imageOptimizer';
+import Loader from '../UI/Loader';
+import { User } from '@supabase/supabase-js';
+import { isAdmin as checkAdmin } from '../../utils/roleUtils';
+import { useGachaBalance } from '../../hooks/useAccountData';
 
 interface NavButtonProps {
   active: boolean;
@@ -29,21 +29,19 @@ interface NavButtonProps {
   label: string;
 }
 
-const NavButton = ({ active, onClick, icon, label }: NavButtonProps) => (
+const NavButton = ({ active, onClick, icon, label }: Readonly<NavButtonProps>) => (
   <button
     type="button"
     onClick={onClick}
-    className={`group flex w-full items-center gap-4 rounded-2xl px-6 py-4 transition-colors ${active ? "bg-(--accent)/10 text-(--accent) shadow-(--accent)/5 shadow-lg" : "text-gray-400 hover:bg-white/5 hover:text-white"}`}
+    className={`group flex w-full items-center gap-4 rounded-2xl px-6 py-4 transition-colors ${active ? 'bg-(--accent)/10 text-(--accent) shadow-(--accent)/5 shadow-lg' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
   >
     <span
-      className={`text-lg transition-transform group-hover:scale-110 ${active ? "text-(--accent)" : "text-gray-500"}`}
+      className={`text-lg transition-transform group-hover:scale-110 ${active ? 'text-(--accent)' : 'text-gray-500'}`}
       aria-hidden="true"
     >
       {icon}
     </span>
-    <span className="text-xs font-black uppercase tracking-widest">
-      {label}
-    </span>
+    <span className="text-xs font-black uppercase tracking-widest">{label}</span>
   </button>
 );
 
@@ -58,7 +56,7 @@ interface AccountSidebarProps {
   onClose?: () => void;
 }
 
-const AccountSidebar: React.FC<AccountSidebarProps> = ({
+const AccountSidebar: React.FC<Readonly<AccountSidebarProps>> = ({
   activeTab,
   setActiveTab,
   user,
@@ -74,7 +72,7 @@ const AccountSidebar: React.FC<AccountSidebarProps> = ({
 
   const [uploading, setUploading] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
-  const [newName, setNewName] = useState("");
+  const [newName, setNewName] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
 
@@ -89,16 +87,14 @@ const AccountSidebar: React.FC<AccountSidebarProps> = ({
 
   const handleLogout = async () => {
     await logout();
-    navigate("/");
+    navigate('/');
   };
 
   const handleAvatarClick = () => {
     if (fileInputRef.current) fileInputRef.current.click();
   };
 
-  const handleAvatarUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     try {
       setUploading(true);
       if (!event.target.files || event.target.files.length === 0) return;
@@ -107,10 +103,10 @@ const AccountSidebar: React.FC<AccountSidebarProps> = ({
       const compressedBlob = await compressImage(file);
 
       // Server-validated upload (backend namespaces the file under user.id)
-      const publicUrl = await uploadImage(compressedBlob, "avatars");
+      const publicUrl = await uploadImage(compressedBlob, 'avatars');
       await updateUser({ avatar_url: publicUrl });
     } catch (error) {
-      console.error("Avatar upload error:", error);
+      console.error('Avatar upload error:', error);
     } finally {
       setUploading(false);
     }
@@ -125,7 +121,7 @@ const AccountSidebar: React.FC<AccountSidebarProps> = ({
       });
       setIsEditingName(false);
     } catch {
-      alert(t("account.name.error_update"));
+      alert(t('account.name.error_update'));
     }
   };
 
@@ -136,10 +132,10 @@ const AccountSidebar: React.FC<AccountSidebarProps> = ({
 
   return (
     <aside
-      className={`w-75 z-200 lg:rounded-4xl fixed inset-y-0 left-0 border border-white/10 bg-[#0a0a0a]/90 backdrop-blur-2xl transition-transform duration-500 lg:sticky lg:top-24 lg:z-50 lg:h-[calc(100vh-120px)] lg:translate-x-0 ${isOpen ? "translate-x-0 shadow-2xl shadow-black" : "-translate-x-full"}`}
+      className={`w-75 z-200 lg:rounded-4xl fixed inset-y-0 left-0 border border-white/10 bg-[#0a0a0a]/90 backdrop-blur-2xl transition-transform duration-500 lg:sticky lg:top-24 lg:z-50 lg:h-[calc(100vh-120px)] lg:translate-x-0 ${isOpen ? 'translate-x-0 shadow-2xl shadow-black' : '-translate-x-full'}`}
     >
       <button
-        aria-label={t("common.close", "Cerrar menú")}
+        aria-label={t('common.close', 'Cerrar menú')}
         type="button"
         className="absolute right-6 top-6 flex h-10 w-10 items-center justify-center rounded-xl bg-white/5 text-gray-400 transition-colors hover:bg-white/10 lg:hidden"
         onClick={onClose}
@@ -156,7 +152,7 @@ const AccountSidebar: React.FC<AccountSidebarProps> = ({
             role="button"
             tabIndex={0}
             onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
+              if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
                 handleAvatarClick();
               }
@@ -170,13 +166,13 @@ const AccountSidebar: React.FC<AccountSidebarProps> = ({
               ) : (
                 <img
                   src={
-                    user?.user_metadata?.avatar_preference === "social" &&
+                    user?.user_metadata?.avatar_preference === 'social' &&
                     user?.user_metadata?.avatar_url
                       ? user.user_metadata.avatar_url
                       : isLinked
                         ? `https://mc-heads.net/avatar/${statsData?.username || mcUsername}/128`
-                        : "https://ui-avatars.com/api/?name=" +
-                          (user?.user_metadata?.full_name || "User")
+                        : 'https://ui-avatars.com/api/?name=' +
+                          (user?.user_metadata?.full_name || 'User')
                   }
                   alt="Avatar"
                   className="h-full w-full rounded-full object-cover transition-transform duration-500 group-hover/avatar:scale-105"
@@ -190,7 +186,7 @@ const AccountSidebar: React.FC<AccountSidebarProps> = ({
           </div>
 
           <input
-            aria-label={t("account.upload_avatar", "Subir avatar")}
+            aria-label={t('account.upload_avatar', 'Subir avatar')}
             type="file"
             ref={fileInputRef}
             onChange={handleAvatarUpload}
@@ -203,18 +199,18 @@ const AccountSidebar: React.FC<AccountSidebarProps> = ({
               <div className="flex items-center gap-2">
                 <input
                   ref={nameInputRef}
-                  aria-label={t("account.edit_name", "Editar nombre")}
+                  aria-label={t('account.edit_name', 'Editar nombre')}
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   className="focus:border-(--accent)/40 w-32 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-sm font-bold text-white focus:outline-none"
                 />
                 <button
-                  aria-label={t("common.save", "Guardar")}
+                  aria-label={t('common.save', 'Guardar')}
                   type="button"
                   onClick={handleNameUpdate}
                   className="bg-(--accent) shadow-(--accent)/20 rounded-lg p-2 text-[10px] font-black uppercase text-black shadow-lg"
                 >
-                  {t("common.save", "Guardar")}
+                  {t('common.save', 'Guardar')}
                 </button>
               </div>
             ) : (
@@ -223,7 +219,7 @@ const AccountSidebar: React.FC<AccountSidebarProps> = ({
                 <PenTool
                   className="cursor-pointer text-[10px] text-gray-600 transition-colors group-hover/name:text-white"
                   onClick={() => {
-                    setNewName(user?.user_metadata?.full_name || "");
+                    setNewName(user?.user_metadata?.full_name || '');
                     setIsEditingName(true);
                   }}
                 />
@@ -250,18 +246,17 @@ const AccountSidebar: React.FC<AccountSidebarProps> = ({
                   alt="KC"
                   className="h-4 w-4 object-contain [image-rendering:pixelated]"
                   onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = "none";
+                    (e.target as HTMLImageElement).style.display = 'none';
                   }}
                 />
                 <span>KilluCoins</span>
               </span>
               <span className="font-mono text-xs font-black text-amber-300">
                 {(
-                  (authoritativeBalance !== undefined &&
-                  authoritativeBalance !== null
+                  (authoritativeBalance !== undefined && authoritativeBalance !== null
                     ? authoritativeBalance
                     : user?.user_metadata?.gacha_balance) ?? 0
-                ).toLocaleString()}{" "}
+                ).toLocaleString()}{' '}
                 KC
               </span>
             </div>
@@ -272,7 +267,7 @@ const AccountSidebar: React.FC<AccountSidebarProps> = ({
               to="/admin"
               className="mt-5 flex items-center gap-2 rounded-xl border border-red-500/20 bg-red-500/10 px-5 py-2 text-[10px] font-black uppercase tracking-widest text-red-400 shadow-lg shadow-red-500/5 transition-colors hover:bg-red-500/20 active:scale-95"
             >
-              <Shield size={14} /> {t("account.admin_panel")}
+              <Shield size={14} /> {t('account.admin_panel')}
             </Link>
           )}
         </div>
@@ -280,40 +275,40 @@ const AccountSidebar: React.FC<AccountSidebarProps> = ({
         {/* Nav Links */}
         <nav className="flex-1 space-y-1.5 overflow-y-auto pb-24 pr-1 [-ms-overflow-style:none] [scrollbar-width:none] lg:pb-0 [&::-webkit-scrollbar]:hidden">
           <NavButton
-            active={activeTab === "overview"}
-            onClick={() => handleNav("overview")}
+            active={activeTab === 'overview'}
+            onClick={() => handleNav('overview')}
             icon={<LayoutDashboard size={18} />}
-            label={t("account.nav.overview")}
+            label={t('account.nav.overview')}
           />
           <NavButton
-            active={activeTab === "posts"}
-            onClick={() => handleNav("posts")}
+            active={activeTab === 'posts'}
+            onClick={() => handleNav('posts')}
             icon={<MessageSquare size={18} />}
-            label={t("account.nav.posts")}
+            label={t('account.nav.posts')}
           />
           <NavButton
-            active={activeTab === "medals"}
-            onClick={() => handleNav("medals")}
+            active={activeTab === 'medals'}
+            onClick={() => handleNav('medals')}
             icon={<Medal size={18} />}
-            label={t("account.nav.medals", "Medallas")}
+            label={t('account.nav.medals', 'Medallas')}
           />
           <NavButton
-            active={activeTab === "achievements"}
-            onClick={() => handleNav("achievements")}
+            active={activeTab === 'achievements'}
+            onClick={() => handleNav('achievements')}
             icon={<Trophy size={18} />}
-            label={t("account.nav.achievements")}
+            label={t('account.nav.achievements')}
           />
           <NavButton
-            active={activeTab === "connections"}
-            onClick={() => handleNav("connections")}
+            active={activeTab === 'connections'}
+            onClick={() => handleNav('connections')}
             icon={<LinkIcon size={18} />}
-            label={t("account.nav.connections")}
+            label={t('account.nav.connections')}
           />
           <NavButton
-            active={activeTab === "settings"}
-            onClick={() => handleNav("settings")}
+            active={activeTab === 'settings'}
+            onClick={() => handleNav('settings')}
             icon={<Settings size={18} />}
-            label={t("account.nav.settings", "Configuración")}
+            label={t('account.nav.settings', 'Configuración')}
           />
         </nav>
 
@@ -323,7 +318,7 @@ const AccountSidebar: React.FC<AccountSidebarProps> = ({
             onClick={handleLogout}
             className="flex w-full items-center gap-4 rounded-2xl px-6 py-3.5 text-[10px] font-black uppercase tracking-widest text-red-400/70 transition-colors hover:bg-red-500/10 hover:text-red-400 active:scale-95"
           >
-            <LogOut size={16} /> {t("account.nav.logout")}
+            <LogOut size={16} /> {t('account.nav.logout')}
           </button>
         </div>
       </div>

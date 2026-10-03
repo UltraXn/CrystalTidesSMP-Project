@@ -1,15 +1,16 @@
-import React, { useState } from "react";
-import "./AmbientBubbles.css";
+import { secureRandom } from '../../utils/random';
+import React, { useState } from 'react';
+import './AmbientBubbles.css';
 
 export const AmbientBubbles: React.FC = () => {
   const [bubbles] = useState(() => {
     const bubbleCount = 22;
     return Array.from({ length: bubbleCount }).map((_, i) => ({
       id: i,
-      size: Math.random() * 24 + 14, // 14px - 38px
-      left: Math.random() * 100, // 0% - 100%
-      animationDuration: Math.random() * 14 + 9, // 9s - 23s
-      animationDelay: Math.random() * 18, // 0s - 18s
+      size: secureRandom() * 24 + 14, // 14px - 38px
+      left: secureRandom() * 100, // 0% - 100%
+      animationDuration: secureRandom() * 14 + 9, // 9s - 23s
+      animationDelay: secureRandom() * 18, // 0s - 18s
     }));
   });
 

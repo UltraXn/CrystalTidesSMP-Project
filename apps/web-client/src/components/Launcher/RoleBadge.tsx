@@ -1,9 +1,9 @@
-import React from "react";
-import { getRankBadgePath, getRankDisplayName } from "../../utils/rankUtils";
+import React from 'react';
+import { getRankBadgePath, getRankDisplayName } from '../../utils/rankUtils';
 
 interface RoleBadgeProps {
   role?: string;
-  size?: "sm" | "md" | "lg";
+  size?: 'sm' | 'md' | 'lg';
   style?: React.CSSProperties;
 }
 
@@ -13,11 +13,7 @@ const heightMap = {
   lg: 22,
 };
 
-export const RoleBadge: React.FC<RoleBadgeProps> = ({
-  role,
-  size = "md",
-  style,
-}) => {
+export const RoleBadge: React.FC<Readonly<RoleBadgeProps>> = ({ role, size = 'md', style }) => {
   const badgePath = getRankBadgePath(role);
   const displayName = getRankDisplayName(role);
 
@@ -30,16 +26,16 @@ export const RoleBadge: React.FC<RoleBadgeProps> = ({
       title={`Rango: ${displayName}`}
       style={{
         height: imgHeight,
-        width: "auto",
-        objectFit: "contain",
-        imageRendering: "pixelated",
-        display: "inline-block",
-        verticalAlign: "middle",
-        maxHeight: "100%",
+        width: 'auto',
+        objectFit: 'contain',
+        imageRendering: 'pixelated',
+        display: 'inline-block',
+        verticalAlign: 'middle',
+        maxHeight: '100%',
         ...style,
       }}
       onError={(e) => {
-        e.currentTarget.src = "/ranks/user.png";
+        e.currentTarget.src = '/ranks/user.png';
       }}
     />
   );

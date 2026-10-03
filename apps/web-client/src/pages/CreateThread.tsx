@@ -176,7 +176,7 @@ const createThreadPayload = (
   const username = user?.user_metadata?.username ?? user?.email?.split('@')[0] ?? 'Usuario';
 
   return {
-    category_id: parseInt(categoryId, 10),
+    category_id: Number.parseInt(categoryId, 10),
     title,
     content,
     user_data: {
@@ -202,7 +202,7 @@ interface CategoryPickerProps {
   onChange: (val: string) => void;
 }
 
-function CategoryPicker({ value, onChange }: CategoryPickerProps) {
+function CategoryPicker({ value, onChange }: Readonly<CategoryPickerProps>) {
   const { t } = useTranslation();
 
   return (
@@ -247,7 +247,7 @@ interface ImagePreviewProps {
   onRemove: () => void;
 }
 
-function ImagePreview({ pendingImage, onRemove }: ImagePreviewProps) {
+function ImagePreview({ pendingImage, onRemove }: Readonly<ImagePreviewProps>) {
   const { t } = useTranslation();
 
   return (
@@ -318,7 +318,7 @@ function MarkdownContentEditor({
   pendingImage,
   onSelectImage,
   onRemoveImage,
-}: MarkdownContentEditorProps) {
+}: Readonly<MarkdownContentEditorProps>) {
   const { t } = useTranslation();
 
   return (
@@ -384,7 +384,7 @@ interface DiscordPollInputProps {
   onChangeDiscordLink: (val: string) => void;
 }
 
-function DiscordPollInput({ discordLink, onChangeDiscordLink }: DiscordPollInputProps) {
+function DiscordPollInput({ discordLink, onChangeDiscordLink }: Readonly<DiscordPollInputProps>) {
   const { t } = useTranslation();
 
   return (
@@ -437,7 +437,7 @@ function StandardPollInput({
   onUpdateOption,
   onAddOption,
   onRemoveOption,
-}: StandardPollInputProps) {
+}: Readonly<StandardPollInputProps>) {
   const { t } = useTranslation();
 
   return (
@@ -556,7 +556,7 @@ function PollManager({
   onUpdateOption,
   onAddOption,
   onRemoveOption,
-}: PollManagerProps) {
+}: Readonly<PollManagerProps>) {
   const { t } = useTranslation();
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {

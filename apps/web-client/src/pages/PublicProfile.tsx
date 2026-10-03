@@ -276,7 +276,13 @@ interface SocialLinksProps {
   onCopyDiscord: (tag: string) => void;
 }
 
-function SocialLinks({ discord, twitter, twitch, youtube, onCopyDiscord }: SocialLinksProps) {
+function SocialLinks({
+  discord,
+  twitter,
+  twitch,
+  youtube,
+  onCopyDiscord,
+}: Readonly<SocialLinksProps>) {
   const { t } = useTranslation();
 
   return (

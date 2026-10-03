@@ -40,7 +40,7 @@ interface StoryDropcapTextProps {
   readonly text: string;
 }
 
-function StoryDropcapText({ text }: StoryDropcapTextProps) {
+function StoryDropcapText({ text }: Readonly<StoryDropcapTextProps>) {
   const { first, rest } = splitStoryText(text);
   return (
     <p className="whitespace-pre-line text-justify font-serif text-lg italic leading-relaxed text-amber-100/70">
@@ -69,7 +69,7 @@ interface StoryAuthorsListProps {
   readonly authors?: WorldLocation['authors'];
 }
 
-function StoryAuthorsList({ authors }: StoryAuthorsListProps) {
+function StoryAuthorsList({ authors }: Readonly<StoryAuthorsListProps>) {
   const { t } = useTranslation();
   if (!authors || authors.length === 0) return null;
 
@@ -105,7 +105,7 @@ interface StoryCardProps {
   readonly onCopyCoords: (coords: string) => void;
 }
 
-function StoryCard({ place, onSelect, onCopyCoords }: StoryCardProps) {
+function StoryCard({ place, onSelect, onCopyCoords }: Readonly<StoryCardProps>) {
   const handleCoordsClick = (e: MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
     onCopyCoords(place.coords || '');
@@ -172,7 +172,7 @@ interface StoryModalProps {
   readonly onCopyCoords: (coords: string) => void;
 }
 
-function StoryModal({ place, onClose, onCopyCoords }: StoryModalProps) {
+function StoryModal({ place, onClose, onCopyCoords }: Readonly<StoryModalProps>) {
   const { t } = useTranslation();
 
   return (
@@ -262,7 +262,7 @@ interface ToastNotificationProps {
   readonly message: string | null;
 }
 
-function ToastNotification({ message }: ToastNotificationProps) {
+function ToastNotification({ message }: Readonly<ToastNotificationProps>) {
   return (
     <AnimatePresence>
       {message && (

@@ -334,15 +334,13 @@ function assembleToonEntityLine(item: ModKnowledgeItem): string {
  * Sanitiza y verifica consultas adversarias o preguntas trampa (Anti-Hallucination Guardrail)
  */
 export function verifyAndSanitizeKnowledgeQuery(
-  query: string,
+  _query: string,
   contextResults: ModKnowledgeItem[],
 ): {
   isSupported: boolean;
   formattedContext: string;
   warningNote?: string;
 } {
-  void query;
-
   if (contextResults.length === 0) {
     return {
       isSupported: false,

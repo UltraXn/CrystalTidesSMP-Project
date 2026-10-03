@@ -43,6 +43,9 @@
   right: -5%;
   background: radial-gradient(circle, #3b82f6 0%, transparent 70%);
   animation: float-slow 20s infinite alternate;
+  top: -150px;
+  right: -150px;
+  background: #8b5cf6;
 }
 
 .sphere-2 {
@@ -52,6 +55,9 @@
   left: -5%;
   background: radial-gradient(circle, #ef4444 0%, transparent 70%);
   animation: float-slow 25s infinite alternate-reverse;
+  bottom: -150px;
+  left: -150px;
+  background: #0ea5e9;
 }
 
 .sphere-tertiary {
@@ -341,6 +347,13 @@
   border-radius: 50%;
   filter: blur(80px);
   opacity: 0.2;
+  position: absolute;
+  width: 150px;
+  height: 250px;
+  filter: blur(80px);
+  opacity: 0.5;
+  z-index: -1;
+  border-radius: 50%;
 }
 
 @keyframes float-spin-large {
@@ -359,6 +372,7 @@
   position: absolute;
   top: -3rem;
   right: 0;
+  display: none;
 }
 
 .history-btn {
@@ -405,16 +419,6 @@
   filter: blur(130px);
   opacity: 0.18;
   animation: sphere-drift 20s infinite alternate ease-in-out;
-}
-.sphere-1 {
-  top: -150px;
-  right: -150px;
-  background: #8b5cf6;
-}
-.sphere-2 {
-  bottom: -150px;
-  left: -150px;
-  background: #0ea5e9;
 }
 
 @keyframes sphere-drift {
@@ -487,49 +491,32 @@
   position: relative;
   width: 100%;
   padding: 0;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
+  grid-template-columns: 1fr;
 }
 
 @media (max-width: 1200px) {
-  .gacha-main {
-    grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
-  }
   .gacha-decoration-left-placeholder {
     display: none;
+    flex-shrink: 0;
+    width: 100%;
+    min-height: 540px;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
+    align-self: start;
+    overflow: visible;
+    display: none;
+    width: 100%;
+    min-height: 540px;
   }
 }
 
 @media (max-width: 900px) {
-  .gacha-main {
-    grid-template-columns: 1fr;
-  }
-}
-
-.gacha-decoration-left-placeholder {
-  flex-shrink: 0;
-  width: 100%;
-  min-height: 540px;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  justify-content: center;
-  align-self: start;
-  overflow: visible;
 }
 
 @media (max-width: 1200px) {
-  .gacha-decoration-left-placeholder {
-    display: none;
-  }
-}
-
-.crystal-glow {
-  position: absolute;
-  width: 150px;
-  height: 250px;
-  filter: blur(80px);
-  opacity: 0.5;
-  z-index: -1;
-  border-radius: 50%;
 }
 
 @keyframes crystal-float {
@@ -549,6 +536,14 @@
   gap: 2rem;
   flex: 1;
   max-width: 800px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 1rem;
+  width: 100%;
+  margin: 0;
+  flex-wrap: nowrap;
 }
 
 .gacha-header {
@@ -664,19 +659,16 @@
   width: 100%;
   padding: 0 1rem;
   box-sizing: border-box;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
 }
 
 @media (max-width: 1200px) {
-  .tier-selector {
-    grid-template-columns: repeat(3, 1fr);
-  }
 }
 
 @media (max-width: 768px) {
-  .tier-selector {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.75rem;
-  }
 }
 
 .tier-btn {
@@ -874,16 +866,6 @@
 }
 
 /* Machine Layout — keep column stack (machine + controls) */
-.gacha-game-layout {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  justify-content: flex-start;
-  gap: 1rem;
-  width: 100%;
-  margin: 0;
-  flex-wrap: nowrap;
-}
 
 .slot-machine-wrapper {
   display: flex;
@@ -942,6 +924,16 @@
   box-shadow:
     0 25px 65px rgba(0, 0, 0, 0.8),
     0 0 45px rgba(139, 92, 246, 0.3);
+  border: 4px solid transparent;
+  background:
+    linear-gradient(#111, #111) padding-box,
+    linear-gradient(45deg, #6366f1, #a855f7, #ec4899, #6366f1) border-box;
+  background-size: 200% 200%;
+  animation: chromatic-border 4s linear infinite;
+  box-shadow:
+    0 0 50px rgba(168, 85, 247, 0.4),
+    inset 0 0 20px rgba(168, 85, 247, 0.2);
+  border-radius: 20px;
 }
 
 .slot-machine-case {
@@ -955,6 +947,14 @@
   box-shadow:
     0 20px 50px rgba(0, 0, 0, 0.5),
     inset 0 0 20px rgba(139, 92, 246, 0.2);
+  position: relative;
+  background: #040406;
+  border-radius: 28px;
+  padding: 12px;
+  box-shadow:
+    inset 0 0 40px rgba(0, 0, 0, 0.9),
+    0 8px 20px rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.02);
   position: relative;
 }
 
@@ -1019,17 +1019,6 @@
   height: 1px;
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
   pointer-events: none;
-}
-
-.slot-machine-case {
-  background: #040406;
-  border-radius: 28px;
-  padding: 12px;
-  box-shadow:
-    inset 0 0 40px rgba(0, 0, 0, 0.9),
-    0 8px 20px rgba(0, 0, 0, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.02);
-  position: relative;
 }
 
 .slot-machine-container {
@@ -1887,10 +1876,6 @@
   font-weight: 900;
 }
 
-.gacha-history-side {
-  display: none;
-}
-
 .history-handle-btn {
   pointer-events: auto; /* Enable clicks even when parent is none */
   position: absolute;
@@ -2122,6 +2107,9 @@
   letter-spacing: -0.2px;
   display: block;
   margin-bottom: 2px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
 }
 
 .card-info {
@@ -2129,12 +2117,6 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-}
-
-.reward-name {
-  font-size: 1rem;
-  font-weight: 700;
-  color: #fff;
 }
 
 .reward-meta {
@@ -2193,18 +2175,6 @@
   margin: 0;
 }
 /* Tier Specific: ULTRA (Event Only) */
-.slot-machine-wrapper.tier-ultra .slot-machine-frame {
-  border: 4px solid transparent;
-  background:
-    linear-gradient(#111, #111) padding-box,
-    linear-gradient(45deg, #6366f1, #a855f7, #ec4899, #6366f1) border-box;
-  background-size: 200% 200%;
-  animation: chromatic-border 4s linear infinite;
-  box-shadow:
-    0 0 50px rgba(168, 85, 247, 0.4),
-    inset 0 0 20px rgba(168, 85, 247, 0.2);
-  border-radius: 20px;
-}
 
 .slot-machine-wrapper.tier-ultra .slot-machine-lights .led {
   background: #ec4899;
@@ -2670,6 +2640,12 @@
   flex-direction: column;
   gap: 16px;
   flex: unset;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 #gacha_machine_card {
@@ -2737,6 +2713,7 @@
   position: relative;
   box-shadow: inset 0 0 100px rgba(0, 0, 0, 1);
   border: 1px solid rgba(255, 255, 255, 0.03);
+  background: radial-gradient(ellipse at center, rgba(30, 28, 40, 0.55) 0%, #050508 70%), #010102;
 }
 
 #gacha_machine_card .slot-reels-container {
@@ -2746,15 +2723,6 @@
 #gacha_machine_card .slot-item {
   height: 160px;
   flex-shrink: 0;
-}
-
-#gacha_side {
-  width: 100%;
-  height: auto;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
 }
 
 #gacha_rates_card {
@@ -2807,6 +2775,8 @@
     border-color 0.5s ease,
     background-color 0.5s ease,
     box-shadow 0.5s ease !important;
+  background: linear-gradient(180deg, rgba(22, 20, 28, 0.98), rgba(12, 12, 18, 0.98)) !important;
+  gap: 1.25rem !important;
 }
 
 #gacha_rates_card h3 {
@@ -2837,6 +2807,10 @@
   border: 1px solid rgba(255, 255, 255, 0.03);
   border-radius: 12px;
   transition: all 0.3s ease;
+  gap: 12px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 #gacha_rates_card .rate-item:hover {
@@ -2926,6 +2900,8 @@
   border: 1px solid rgba(255, 255, 255, 0.07) !important;
   border-radius: 10px !important;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  background: rgba(255, 255, 255, 0.035) !important;
+  border-color: rgba(255, 255, 255, 0.07) !important;
 }
 
 .history-preview-item:hover {
@@ -3010,15 +2986,6 @@
   height: 64px;
 }
 
-#gacha_machine_card .slot-machine-container {
-  background: radial-gradient(ellipse at center, rgba(30, 28, 40, 0.55) 0%, #050508 70%), #010102;
-}
-
-#gacha_controls {
-  background: linear-gradient(180deg, rgba(22, 20, 28, 0.98), rgba(12, 12, 18, 0.98)) !important;
-  gap: 1.25rem !important;
-}
-
 #gacha_controls .spin-btn {
   flex: 1;
   justify-content: center;
@@ -3031,13 +2998,6 @@
 #gacha_rates_card,
 #gacha_history_card {
   background: linear-gradient(165deg, rgba(22, 20, 28, 0.98), rgba(12, 12, 18, 0.98)) !important;
-}
-
-#gacha_rates_card .rate-item {
-  gap: 12px;
-  padding: 12px 14px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 #gacha_rates_card .rarity-name {
@@ -3133,20 +3093,6 @@
 .no-history-preview small {
   font-size: 0.78rem;
   color: rgba(148, 163, 184, 0.55);
-}
-
-.history-preview-item {
-  background: rgba(255, 255, 255, 0.035) !important;
-  border-color: rgba(255, 255, 255, 0.07) !important;
-}
-
-.gacha-decoration-left-placeholder {
-  width: 100%;
-  min-height: 540px;
-}
-
-.tier-selector {
-  margin-bottom: 1.5rem;
 }
 
 .gacha-balance-area {

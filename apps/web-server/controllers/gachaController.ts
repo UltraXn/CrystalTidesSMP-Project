@@ -22,6 +22,20 @@ export const MSG_FUNDS_ADDED = 'Funds added successfully';
 
 export const DEFAULT_PITY_THRESHOLD = 80;
 
+const HTTP_STATUS_BAD_REQUEST = 400;
+const HTTP_STATUS_UNAUTHORIZED = 401;
+const HTTP_STATUS_FORBIDDEN = 403;
+const HTTP_STATUS_INTERNAL_ERROR = 500;
+
+const LOG_GACHA_ROLL_ERROR = 'Gacha Roll Error:';
+const LOG_ADD_FUNDS_ERROR = 'Add Funds Error:';
+
+const VALID_TEST_RESULT_MODES: ReadonlySet<string> = new Set<TestResultMode>([
+  'win',
+  'loss',
+  'random',
+]);
+
 // ============================================================================
 // Types & Interfaces
 // ============================================================================
@@ -53,22 +67,22 @@ interface GachaErrorDefinition {
 // ============================================================================
 const GACHA_ERROR_MAP: Readonly<Record<string, GachaErrorDefinition>> = {
   ACCOUNT_NOT_LINKED: {
-    statusCode: 400,
+    statusCode: HTTP_STATUS_BAD_REQUEST,
     code: 'NOT_LINKED',
     message: 'Debes vincular tu cuenta de Minecraft primero para recibir premios.',
   },
   INSUFFICIENT_BALANCE: {
-    statusCode: 400,
+    statusCode: HTTP_STATUS_BAD_REQUEST,
     code: 'INSUFFICIENT_BALANCE',
     message: 'Saldo insuficiente de KilluCoins.',
   },
   TIER_LOCKED: {
-    statusCode: 403,
+    statusCode: HTTP_STATUS_FORBIDDEN,
     code: 'TIER_LOCKED',
     message: 'Este tier de gacha no está desbloqueado.',
   },
   INVALID_TIER: {
-    statusCode: 400,
+    statusCode: HTTP_STATUS_BAD_REQUEST,
     code: 'INVALID_TIER',
     message: 'Tier de gacha inválido.',
   },
@@ -77,6 +91,25 @@ const GACHA_ERROR_MAP: Readonly<Record<string, GachaErrorDefinition>> = {
 // ============================================================================
 // Pure Helpers
 // ============================================================================
+
+/**
+ * Normalizes roll count and pity threshold to safe positive integers.
+ */
+export const normalizePityInputs = (
+  rollCount: number,
+  pityThreshold: number,
+): { rolls: number; threshold: number } => ({
+  rolls: Math.max(0, Math.floor(rollCount)),
+  threshold: Math.max(1, Math.floor(pityThreshold)),
+});
+
+/**
+ * Calculates remaining rolls before a guaranteed high-rarity reward.
+ */
+export const computeRemainingUntilGuaranteed = (currentPity: number, threshold: number): number => {
+  const isGuaranteed = currentPity >= threshold - 1;
+  return isGuaranteed ? 0 : threshold - currentPity;
+};
 
 /**
  * Calculates current pity progression and guarantee status.
@@ -88,11 +121,10 @@ export const calculatePity = (
   rollCount: number,
   pityThreshold: number = DEFAULT_PITY_THRESHOLD,
 ): PityCalculation => {
-  const threshold = Math.max(1, Math.floor(pityThreshold));
-  const rolls = Math.max(0, Math.floor(rollCount));
+  const { rolls, threshold } = normalizePityInputs(rollCount, pityThreshold);
   const currentPity = rolls % threshold;
   const isGuaranteed = currentPity >= threshold - 1;
-  const remainingUntilGuaranteed = isGuaranteed ? 0 : threshold - currentPity;
+  const remainingUntilGuaranteed = computeRemainingUntilGuaranteed(currentPity, threshold);
 
   return {
     currentPity,
@@ -117,8 +149,8 @@ export const canAccessUserData = (user: Express.Request['user'], targetUserId: s
 };
 
 export const parseTestResult = (value: unknown): TestResultMode | undefined => {
-  if (value === 'win' || value === 'loss' || value === 'random') {
-    return value;
+  if (typeof value === 'string' && VALID_TEST_RESULT_MODES.has(value)) {
+    return value as TestResultMode;
   }
   return undefined;
 };
@@ -138,37 +170,47 @@ export const getErrorMessage = (error: unknown): string => {
   return String(error);
 };
 
+const resolveRollQuantity = (rawQuantity: unknown): number => {
+  const quantity = Number(rawQuantity);
+  return Number.isInteger(quantity) && quantity > 0 ? quantity : 1;
+};
+
+const resolveAdminOverrides = (
+  isAdmin: boolean,
+  body: Partial<RollGachaPayload>,
+): {
+  readonly overrideUserId?: string;
+  readonly testResult?: TestResultMode;
+  readonly forceDeduction?: boolean;
+} => {
+  if (!isAdmin) {
+    return {};
+  }
+  return {
+    overrideUserId: body.userId,
+    testResult: parseTestResult(body.testResult),
+    forceDeduction: body.forceDeduction,
+  };
+};
+
 export const resolveRollParams = (
   user: NonNullable<Express.Request['user']>,
   isAdmin: boolean,
   body: Partial<RollGachaPayload>,
 ): ResolvedRollParams => {
-  let targetUserId = user.id;
-  let testResult: TestResultMode | undefined;
-  let forceDeduction: boolean | undefined;
-
-  if (isAdmin) {
-    if (body.userId) {
-      targetUserId = body.userId;
-    }
-    testResult = parseTestResult(body.testResult);
-    forceDeduction = body.forceDeduction;
-  }
-
-  const rawQuantity = Number(body.quantity);
-  const quantity = Number.isInteger(rawQuantity) && rawQuantity > 0 ? rawQuantity : 1;
+  const adminOverrides = resolveAdminOverrides(isAdmin, body);
 
   return {
-    targetUserId,
+    targetUserId: adminOverrides.overrideUserId ?? user.id,
     tierId: body.tierId,
-    quantity,
-    testResult,
-    forceDeduction,
+    quantity: resolveRollQuantity(body.quantity),
+    testResult: adminOverrides.testResult,
+    forceDeduction: adminOverrides.forceDeduction,
   };
 };
 
 const handleRollError = (res: Response, error: unknown): Response => {
-  console.error('Gacha Roll Error:', error);
+  console.error(LOG_GACHA_ROLL_ERROR, error);
   const message = getErrorMessage(error);
   const mapped = GACHA_ERROR_MAP[message];
 
@@ -176,7 +218,12 @@ const handleRollError = (res: Response, error: unknown): Response => {
     return sendError(res, mapped.message, mapped.code, mapped.statusCode);
   }
 
-  return sendError(res, message || MSG_GACHA_FAILED, ERROR_CODE_INTERNAL, 500);
+  return sendError(
+    res,
+    message || MSG_GACHA_FAILED,
+    ERROR_CODE_INTERNAL,
+    HTTP_STATUS_INTERNAL_ERROR,
+  );
 };
 
 // ============================================================================
@@ -187,7 +234,7 @@ export const roll = async (req: Request, res: Response): Promise<Response> => {
   try {
     const user = req.user;
     if (!user) {
-      return sendError(res, MSG_UNAUTHORIZED, ERROR_CODE_UNAUTHORIZED, 401);
+      return sendError(res, MSG_UNAUTHORIZED, ERROR_CODE_UNAUTHORIZED, HTTP_STATUS_UNAUTHORIZED);
     }
 
     const isAdmin = isUserAdmin(user.role);
@@ -213,7 +260,12 @@ export const getHistory = async (req: Request, res: Response): Promise<Response>
     const userId = ensureString(req.params.userId);
 
     if (!canAccessUserData(req.user, userId)) {
-      return sendError(res, MSG_HISTORY_UNAUTHORIZED, ERROR_CODE_UNAUTHORIZED, 403);
+      return sendError(
+        res,
+        MSG_HISTORY_UNAUTHORIZED,
+        ERROR_CODE_UNAUTHORIZED,
+        HTTP_STATUS_FORBIDDEN,
+      );
     }
 
     const history = await gachaService.getHistory(userId);
@@ -228,7 +280,7 @@ export const getStatus = async (req: Request, res: Response): Promise<Response> 
     const userId = ensureString(req.params.userId);
 
     if (!canAccessUserData(req.user, userId)) {
-      return sendError(res, MSG_UNAUTHORIZED, ERROR_CODE_UNAUTHORIZED, 403);
+      return sendError(res, MSG_UNAUTHORIZED, ERROR_CODE_UNAUTHORIZED, HTTP_STATUS_FORBIDDEN);
     }
 
     const status = await gachaService.getGachaStatus(userId);
@@ -246,13 +298,13 @@ export const addFunds = async (req: Request, res: Response): Promise<Response> =
   try {
     const user = req.user;
     if (!user) {
-      return sendError(res, MSG_UNAUTHORIZED, ERROR_CODE_UNAUTHORIZED, 401);
+      return sendError(res, MSG_UNAUTHORIZED, ERROR_CODE_UNAUTHORIZED, HTTP_STATUS_UNAUTHORIZED);
     }
 
     const payload = req.body as Partial<AddFundsPayload> | undefined;
     const addAmount = parsePositiveAmount(payload?.amount);
     if (addAmount === null) {
-      return sendError(res, MSG_INVALID_AMOUNT, ERROR_CODE_INVALID_AMOUNT, 400);
+      return sendError(res, MSG_INVALID_AMOUNT, ERROR_CODE_INVALID_AMOUNT, HTTP_STATUS_BAD_REQUEST);
     }
 
     const targetUserId = user.id;
@@ -261,7 +313,7 @@ export const addFunds = async (req: Request, res: Response): Promise<Response> =
     const status = await gachaService.getGachaStatus(targetUserId);
     return sendSuccess(res, status, MSG_FUNDS_ADDED);
   } catch (error: unknown) {
-    console.error('Add Funds Error:', error);
+    console.error(LOG_ADD_FUNDS_ERROR, error);
     return sendError(res, getErrorMessage(error));
   }
 };

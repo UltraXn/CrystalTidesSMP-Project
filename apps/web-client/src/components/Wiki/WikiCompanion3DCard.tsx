@@ -31,7 +31,7 @@ export interface WikiCompanion3DCardProps {
 const DEFAULT_TAMING_ITEMS = ['Bamboo', 'Sweet Berries'];
 const DEFAULT_DROPS = ['Bamboo', 'Cuero Suave'];
 
-export const WikiCompanion3DCard: React.FC<WikiCompanion3DCardProps> = ({
+export const WikiCompanion3DCard: React.FC<Readonly<WikiCompanion3DCardProps>> = ({
   minimal3dOnly = false,
   modelPath = '/models/critters/red_panda.gltf',
   bossName = 'Red Panda',

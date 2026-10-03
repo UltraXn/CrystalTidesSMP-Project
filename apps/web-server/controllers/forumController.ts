@@ -29,7 +29,7 @@ const handleActionError = (res: Response, error: unknown) => {
 export const getThreads = async (req: Request, res: Response) => {
   try {
     const categoryId = ensureString(req.params.categoryId);
-    const data = await forumService.getThreads(parseInt(categoryId, 10));
+    const data = await forumService.getThreads(Number.parseInt(categoryId, 10));
     res.json(data);
   } catch (error) {
     const message = getErrorMessage(error);

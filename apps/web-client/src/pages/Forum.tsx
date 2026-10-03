@@ -168,7 +168,7 @@ interface PollCardProps {
   poll: Poll | null;
 }
 
-function PollCard({ poll }: PollCardProps) {
+function PollCard({ poll }: Readonly<PollCardProps>) {
   const { t, i18n } = useTranslation();
 
   if (!poll) {
@@ -237,7 +237,7 @@ interface NewsCardProps {
   news: NewsItem | null;
 }
 
-function NewsCard({ news }: NewsCardProps) {
+function NewsCard({ news }: Readonly<NewsCardProps>) {
   const { t, i18n } = useTranslation();
 
   if (!news) {
@@ -297,7 +297,7 @@ interface CategoryCardProps {
   category: Category;
 }
 
-function CategoryCard({ category }: CategoryCardProps) {
+function CategoryCard({ category }: Readonly<CategoryCardProps>) {
   const { t } = useTranslation();
 
   return (

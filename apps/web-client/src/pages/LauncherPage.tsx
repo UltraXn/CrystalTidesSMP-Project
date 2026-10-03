@@ -294,7 +294,7 @@ interface PlatformCardProps {
   onCopyHash: (hash: string) => void;
 }
 
-function PlatformCard({ platform, isCopied, onCopyHash }: PlatformCardProps) {
+function PlatformCard({ platform, isCopied, onCopyHash }: Readonly<PlatformCardProps>) {
   return (
     <div
       className={`flex flex-col justify-between space-y-4 rounded-2xl border border-white/10 bg-[#0c0714] p-6 shadow-xl transition-all ${platform.borderHoverClass}`}
@@ -337,7 +337,7 @@ interface DownloadSectionProps {
   onCopyHash: (hash: string) => void;
 }
 
-function DownloadSection({ copiedHash, onCopyHash }: DownloadSectionProps) {
+function DownloadSection({ copiedHash, onCopyHash }: Readonly<DownloadSectionProps>) {
   return (
     <section
       id="downloads"
@@ -373,7 +373,7 @@ interface FaqAccordionItemProps {
   onToggle: () => void;
 }
 
-function FaqAccordionItem({ faq, isOpen, onToggle }: FaqAccordionItemProps) {
+function FaqAccordionItem({ faq, isOpen, onToggle }: Readonly<FaqAccordionItemProps>) {
   return (
     <div className="overflow-hidden rounded-xl border border-white/10 bg-[#0a0610]/80 transition-colors">
       <button

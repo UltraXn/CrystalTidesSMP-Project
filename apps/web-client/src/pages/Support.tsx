@@ -110,7 +110,7 @@ interface SupportHeroProps {
   onOpenCreateModal: () => void;
 }
 
-function SupportHero({ onOpenCreateModal }: SupportHeroProps) {
+function SupportHero({ onOpenCreateModal }: Readonly<SupportHeroProps>) {
   const { t } = useTranslation();
 
   return (
@@ -276,7 +276,7 @@ interface EmptyTicketsStateProps {
   onCreateTicket: () => void;
 }
 
-function EmptyTicketsState({ onCreateTicket }: EmptyTicketsStateProps) {
+function EmptyTicketsState({ onCreateTicket }: Readonly<EmptyTicketsStateProps>) {
   const { t } = useTranslation();
 
   return (
@@ -338,7 +338,7 @@ interface TicketCardProps {
   onClick: () => void;
 }
 
-function TicketCard({ ticket, index, onClick }: TicketCardProps) {
+function TicketCard({ ticket, index, onClick }: Readonly<TicketCardProps>) {
   const { t } = useTranslation();
   const statusColor = getStatusColor(ticket.status);
   const statusLabel = t(`admin.tickets.status.${ticket.status}`, ticket.status.toUpperCase());
@@ -474,7 +474,11 @@ interface TicketsSectionProps {
   onSelectTicket: (ticketId: string) => void;
 }
 
-function TicketsSection({ tickets, onCreateTicket, onSelectTicket }: TicketsSectionProps) {
+function TicketsSection({
+  tickets,
+  onCreateTicket,
+  onSelectTicket,
+}: Readonly<TicketsSectionProps>) {
   const { t } = useTranslation();
 
   return (
@@ -555,7 +559,7 @@ interface CreateTicketModalProps {
   onSubmit: (data: CreateTicketFormValues) => Promise<void>;
 }
 
-function CreateTicketModal({ isOpen, onClose, onSubmit }: CreateTicketModalProps) {
+function CreateTicketModal({ isOpen, onClose, onSubmit }: Readonly<CreateTicketModalProps>) {
   return (
     <AnimatePresence>
       {isOpen && (

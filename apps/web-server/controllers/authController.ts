@@ -3,6 +3,9 @@ import { z } from 'zod';
 import supabase from '../config/supabaseClient.js';
 import { sendSuccess, sendError } from '../utils/responseHandler.js';
 
+const EMPTY_STRING = '';
+const CONTENT_TYPE_FORM_URLENCODED = 'application/x-www-form-urlencoded';
+
 export const AUTH_PASSWORD_RULES = {
   MIN_LENGTH: 6,
   MAX_LENGTH: 100,
@@ -34,14 +37,24 @@ export const TURNSTILE_VERIFY_ENDPOINT =
   'https://challenges.cloudflare.com/turnstile/v0/siteverify';
 
 /**
+ * Validates if the password meets the minimum length constraint.
+ */
+const isPasswordBelowMinLength = (password: unknown): boolean => {
+  return typeof password !== 'string' || password.length < AUTH_PASSWORD_RULES.MIN_LENGTH;
+};
+
+/**
+ * Validates if the password exceeds the maximum allowed length.
+ */
+const isPasswordAboveMaxLength = (password: string): boolean => {
+  return password.length > AUTH_PASSWORD_RULES.MAX_LENGTH;
+};
+
+/**
  * Checks if a string satisfies password length constraints.
  */
 export const isPasswordLengthValid = (password: string): boolean => {
-  return (
-    typeof password === 'string' &&
-    password.length >= AUTH_PASSWORD_RULES.MIN_LENGTH &&
-    password.length <= AUTH_PASSWORD_RULES.MAX_LENGTH
-  );
+  return !isPasswordBelowMinLength(password) && !isPasswordAboveMaxLength(password);
 };
 
 export interface PasswordValidationResult {
@@ -53,10 +66,10 @@ export interface PasswordValidationResult {
  * Validates password rules and returns a structured validation result.
  */
 export const validatePassword = (password: string): PasswordValidationResult => {
-  if (typeof password !== 'string' || password.length < AUTH_PASSWORD_RULES.MIN_LENGTH) {
+  if (isPasswordBelowMinLength(password)) {
     return { isValid: false, error: AUTH_MESSAGES.PASSWORD_MIN_LENGTH };
   }
-  if (password.length > AUTH_PASSWORD_RULES.MAX_LENGTH) {
+  if (isPasswordAboveMaxLength(password)) {
     return { isValid: false, error: AUTH_MESSAGES.PASSWORD_TOO_LONG };
   }
   return { isValid: true };
@@ -83,11 +96,13 @@ export const RegisterUserSchema = z.object({
   turnstileToken: z.string().optional(),
 });
 
+type RegisterUserInput = z.infer<typeof RegisterUserSchema>;
+
 /**
  * Detects automated bot submissions via honeypot field inspection.
  */
 export const isHoneypotTriggered = (website?: string | null): boolean => {
-  return typeof website === 'string' && website.trim() !== '';
+  return typeof website === 'string' && website.trim() !== EMPTY_STRING;
 };
 
 export interface TurnstileVerificationResult {
@@ -95,6 +110,28 @@ export interface TurnstileVerificationResult {
   error?: string;
   errorCode?: (typeof AUTH_ERROR_CODES)[keyof typeof AUTH_ERROR_CODES];
 }
+
+interface TurnstileSiteVerifyResponse {
+  success: boolean;
+}
+
+const performTurnstileRequest = async (
+  secretKey: string,
+  token: string,
+  remoteIp?: string,
+): Promise<TurnstileSiteVerifyResponse> => {
+  const verifyRes = await fetch(TURNSTILE_VERIFY_ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type': CONTENT_TYPE_FORM_URLENCODED },
+    body: new URLSearchParams({
+      secret: secretKey,
+      response: token,
+      remoteip: remoteIp ?? EMPTY_STRING,
+    }),
+  });
+
+  return (await verifyRes.json()) as TurnstileSiteVerifyResponse;
+};
 
 /**
  * Verifies Cloudflare Turnstile token against Cloudflare siteverify endpoint.
@@ -118,17 +155,12 @@ export const verifyTurnstileToken = async (
     };
   }
 
-  const verifyRes = await fetch(TURNSTILE_VERIFY_ENDPOINT, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      secret: process.env.TURNSTILE_SECRET_KEY ?? '',
-      response: turnstileToken,
-      remoteip: remoteIp || '',
-    }),
-  });
+  const outcome = await performTurnstileRequest(
+    process.env.TURNSTILE_SECRET_KEY ?? EMPTY_STRING,
+    turnstileToken,
+    remoteIp,
+  );
 
-  const outcome = (await verifyRes.json()) as { success: boolean };
   if (!outcome.success) {
     return {
       success: false,
@@ -147,6 +179,18 @@ const extractErrorMessage = (error: unknown, fallback: string): string => {
   return fallback;
 };
 
+const createSupabaseAuthUser = async (
+  registrationData: Pick<RegisterUserInput, 'email' | 'password' | 'username'>,
+) => {
+  const { email, password, username } = registrationData;
+  return supabase.auth.admin.createUser({
+    email,
+    password,
+    user_metadata: { username },
+    email_confirm: true,
+  });
+};
+
 /**
  * Public User Registration
  * Protected by sensitiveActionLimiter in app.ts and Honeypot field verification.
@@ -156,7 +200,7 @@ export const registerUser = async (req: Request, res: Response) => {
     const parseResult = RegisterUserSchema.safeParse(req.body);
     if (!parseResult.success) {
       const firstError =
-        parseResult.error.issues[0]?.message || AUTH_MESSAGES.INVALID_REGISTRATION_DATA;
+        parseResult.error.issues[0]?.message ?? AUTH_MESSAGES.INVALID_REGISTRATION_DATA;
       return sendError(
         res,
         firstError,
@@ -189,13 +233,7 @@ export const registerUser = async (req: Request, res: Response) => {
     }
 
     // Create user via Supabase Admin API
-    const { data, error } = await supabase.auth.admin.createUser({
-      email,
-      password,
-      user_metadata: { username },
-      email_confirm: true,
-    });
-
+    const { data, error } = await createSupabaseAuthUser({ email, password, username });
     if (error) {
       return sendError(res, error.message, AUTH_ERROR_CODES.REGISTRATION_FAILED, 400);
     }

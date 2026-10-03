@@ -1,36 +1,39 @@
-import React, { useState, useEffect } from "react";
-import "../../styles/launcher.css";
-import { CrystalCard } from "./CrystalCard";
-import { useAuth } from "./mockLauncherState";
-import { RoleBadge } from "./RoleBadge";
-import { fetchServerStatus, type ServerStatus } from "./mockLauncherState";
-import { syncOfficialMods } from "./mockLauncherState";
-import { launchGame } from "./mockLauncherState";
-import { getSettings } from "./mockLauncherState";
-import { fetchNews, type NewsPost } from "./mockLauncherState";
+import React, { useState, useEffect } from 'react';
+import '../../styles/launcher.css';
+import { CrystalCard } from './CrystalCard';
+import { useAuth } from './mockLauncherState';
+import { RoleBadge } from './RoleBadge';
+import { fetchServerStatus, type ServerStatus } from './mockLauncherState';
+import { syncOfficialMods } from './mockLauncherState';
+import { launchGame } from './mockLauncherState';
+import { getSettings } from './mockLauncherState';
+import { fetchNews, type NewsPost } from './mockLauncherState';
+import { Profile, getActiveProfile, resolveProfileGameDir } from './mockLauncherState';
+import { ProfileSelector } from './ProfileSelector';
+import { ProfileEditorDialog } from './ProfileEditorDialog';
+import { SkinViewer } from './SkinViewer';
+const invoke = async (_cmd: string, _args?: unknown) => {
+  return null;
+};
 import {
-  Profile,
-  getActiveProfile,
-  resolveProfileGameDir,
-} from "./mockLauncherState";
-import { ProfileSelector } from "./ProfileSelector";
-import { ProfileEditorDialog } from "./ProfileEditorDialog";
-import { SkinViewer } from "./SkinViewer";
-const invoke = async (_cmd: string, _args?: unknown) => { return null; };
-import { fetchMinecraftProfile, setActiveCape, hideCape, type MinecraftCape } from "./mockLauncherState";
+  fetchMinecraftProfile,
+  setActiveCape,
+  hideCape,
+  type MinecraftCape,
+} from './mockLauncherState';
 
 const CONSTANTS = {
-  SERVER_IP: "mc.crystaltidesSMP.net",
-  ACCENT_COLOR: "var(--accent)",
-  BORDER_LOW: "var(--border-low)",
-  ACTIVE_STATE: "ACTIVE",
-  INACTIVE_STATE: "INACTIVE",
-  SESSION_MICROSOFT: "microsoft",
-  SESSION_GUEST: "guest",
-  BG_WHITE_05: "rgba(255, 255, 255, 0.05)",
-  TEXT_MUTED_55: "rgba(255, 255, 255, 0.55)",
-  ACCENT_TINT_12: "rgba(45, 212, 191, 0.12)",
-  ACCENT_BORDER_30: "rgba(45, 212, 191, 0.3)",
+  SERVER_IP: 'mc.crystaltidesSMP.net',
+  ACCENT_COLOR: 'var(--accent)',
+  BORDER_LOW: 'var(--border-low)',
+  ACTIVE_STATE: 'ACTIVE',
+  INACTIVE_STATE: 'INACTIVE',
+  SESSION_MICROSOFT: 'microsoft',
+  SESSION_GUEST: 'guest',
+  BG_WHITE_05: 'rgba(255, 255, 255, 0.05)',
+  TEXT_MUTED_55: 'rgba(255, 255, 255, 0.55)',
+  ACCENT_TINT_12: 'rgba(45, 212, 191, 0.12)',
+  ACCENT_BORDER_30: 'rgba(45, 212, 191, 0.3)',
 } as const;
 
 interface HomePageProps {
@@ -41,20 +44,20 @@ interface HomePageProps {
 
 const getDayPart = (): string => {
   const h = new Date().getHours();
-  if (h < 7) return "Buenas noches";
-  if (h < 13) return "Buenos días";
-  if (h < 21) return "Buenas tardes";
-  return "Buenas noches";
+  if (h < 7) return 'Buenas noches';
+  if (h < 13) return 'Buenos días';
+  if (h < 21) return 'Buenas tardes';
+  return 'Buenas noches';
 };
 
 const timeAgo = (iso: string): string => {
   const diff = Date.now() - new Date(iso).getTime();
   const days = Math.floor(diff / 86400000);
-  if (days <= 0) return "Hoy";
-  if (days === 1) return "Ayer";
+  if (days <= 0) return 'Hoy';
+  if (days === 1) return 'Ayer';
   if (days < 7) return `Hace ${days} días`;
   const weeks = Math.floor(days / 7);
-  return weeks === 1 ? "Hace 1 semana" : `Hace ${weeks} semanas`;
+  return weeks === 1 ? 'Hace 1 semana' : `Hace ${weeks} semanas`;
 };
 
 interface ChipStyle {
@@ -66,82 +69,85 @@ interface ChipStyle {
 
 const categoryStyle = (category: string): ChipStyle => {
   const c = category.toLowerCase();
-  if (c.includes("evento")) {
+  if (c.includes('evento')) {
     return {
-      color: "#C4B5FD",
-      background: "rgba(139, 92, 246, 0.12)",
-      border: "rgba(139, 92, 246, 0.35)",
-      thumb: "linear-gradient(135deg, #7C3AED 0%, #4C1D95 55%, #1E1038 100%)",
+      color: '#C4B5FD',
+      background: 'rgba(139, 92, 246, 0.12)',
+      border: 'rgba(139, 92, 246, 0.35)',
+      thumb: 'linear-gradient(135deg, #7C3AED 0%, #4C1D95 55%, #1E1038 100%)',
     };
   }
-  if (c.includes("mantenimiento")) {
+  if (c.includes('mantenimiento')) {
     return {
-      color: "#FCD34D",
-      background: "rgba(245, 158, 11, 0.12)",
-      border: "rgba(245, 158, 11, 0.35)",
-      thumb: "linear-gradient(135deg, #D97706 0%, #92400E 55%, #2A1503 100%)",
+      color: '#FCD34D',
+      background: 'rgba(245, 158, 11, 0.12)',
+      border: 'rgba(245, 158, 11, 0.35)',
+      thumb: 'linear-gradient(135deg, #D97706 0%, #92400E 55%, #2A1503 100%)',
     };
   }
-  if (c.includes("anuncio") || c.includes("comunidad")) {
+  if (c.includes('anuncio') || c.includes('comunidad')) {
     return {
-      color: "#7DD3FC",
-      background: "rgba(14, 165, 233, 0.12)",
-      border: "rgba(14, 165, 233, 0.35)",
-      thumb: "linear-gradient(135deg, #0EA5E9 0%, #155E75 55%, #062530 100%)",
+      color: '#7DD3FC',
+      background: 'rgba(14, 165, 233, 0.12)',
+      border: 'rgba(14, 165, 233, 0.35)',
+      thumb: 'linear-gradient(135deg, #0EA5E9 0%, #155E75 55%, #062530 100%)',
     };
   }
   return {
     color: CONSTANTS.ACCENT_COLOR,
     background: CONSTANTS.ACCENT_TINT_12,
     border: CONSTANTS.ACCENT_BORDER_30,
-    thumb: "linear-gradient(135deg, #0F766E 0%, #134E4A 55%, #04211E 100%)",
+    thumb: 'linear-gradient(135deg, #0F766E 0%, #134E4A 55%, #04211E 100%)',
   };
 };
 
 const getStatusDotColor = (isLoading: boolean, serverStatus: ServerStatus | null): string => {
-  if (isLoading) return "#FFA726";
-  if (!serverStatus) return "rgba(255, 255, 255, 0.3)";
-  return serverStatus.online ? "#10B981" : "#EF4444";
+  if (isLoading) return '#FFA726';
+  if (!serverStatus) return 'rgba(255, 255, 255, 0.3)';
+  return serverStatus.online ? '#10B981' : '#EF4444';
 };
 
-const renderStatusMeta = (isLoading: boolean, serverStatus: ServerStatus | null): React.ReactNode => {
+const renderStatusMeta = (
+  isLoading: boolean,
+  serverStatus: ServerStatus | null,
+): React.ReactNode => {
   if (isLoading) {
-    return <span style={{ color: "rgba(255,255,255,0.5)" }}>Consultando estado...</span>;
+    return <span style={{ color: 'rgba(255,255,255,0.5)' }}>Consultando estado...</span>;
   }
   if (!serverStatus) {
-    return <span style={{ color: "rgba(255,255,255,0.5)" }}>No disponible</span>;
+    return <span style={{ color: 'rgba(255,255,255,0.5)' }}>No disponible</span>;
   }
   if (!serverStatus.online) {
-    return <span style={{ color: "#FCA5A5" }}>Desconectado</span>;
+    return <span style={{ color: '#FCA5A5' }}>Desconectado</span>;
   }
   const hasPlayerCount = serverStatus.playersOnline !== null && serverStatus.playersMax !== null;
   const players = hasPlayerCount
     ? ` · ${serverStatus.playersOnline}/${serverStatus.playersMax} jugadores`
-    : "";
+    : '';
   return (
     <>
-      <span style={{ color: "#34D399", fontWeight: 600 }}>En línea</span>
+      <span style={{ color: '#34D399', fontWeight: 600 }}>En línea</span>
       <span style={{ color: CONSTANTS.TEXT_MUTED_55 }}>{players}</span>
     </>
   );
 };
 
 const getAccountBadgeLabel = (sessionType?: string): string => {
-  if (sessionType === CONSTANTS.SESSION_GUEST) return "Invitado";
-  if (sessionType === CONSTANTS.SESSION_MICROSOFT) return "Premium";
-  return "Sin sesión";
+  if (sessionType === CONSTANTS.SESSION_GUEST) return 'Invitado';
+  if (sessionType === CONSTANTS.SESSION_MICROSOFT) return 'Premium';
+  return 'Sin sesión';
 };
 
 const getPlayButtonText = (isLaunching: boolean, isInGame: boolean): string => {
-  if (isInGame) return "En juego";
-  if (isLaunching) return "Iniciando";
-  return "Jugar";
+  if (isInGame) return 'En juego';
+  if (isLaunching) return 'Iniciando';
+  return 'Jugar';
 };
 
 const getPlayButtonAriaLabel = (isLaunching: boolean, isInGame: boolean): string => {
-  if (isLaunching) return "Iniciando Minecraft...";
-  if (isInGame) return "En partida de Minecraft";
-  return "Iniciar juego";
+  if (isLaunching) return 'Iniciando Minecraft...';
+  if (isInGame) return 'En partida de Minecraft';
+  return 'Iniciar juego';
 };
 
 /* ── Componente: Server Status Pill ── */
@@ -153,7 +159,7 @@ interface ServerStatusPillProps {
   onCopyIp: () => void;
 }
 
-const ServerStatusPill: React.FC<ServerStatusPillProps> = ({
+const ServerStatusPill: React.FC<Readonly<ServerStatusPillProps>> = ({
   status,
   isLoading,
   ipCopied,
@@ -164,13 +170,13 @@ const ServerStatusPill: React.FC<ServerStatusPillProps> = ({
   return (
     <div
       style={{
-        display: "flex",
-        alignItems: "center",
+        display: 'flex',
+        alignItems: 'center',
         gap: 14,
-        background: "rgba(255, 255, 255, 0.03)",
+        background: 'rgba(255, 255, 255, 0.03)',
         border: `1px solid ${CONSTANTS.BORDER_LOW}`,
         borderRadius: 14,
-        padding: "10px 12px 10px 16px",
+        padding: '10px 12px 10px 16px',
       }}
     >
       <div
@@ -178,11 +184,11 @@ const ServerStatusPill: React.FC<ServerStatusPillProps> = ({
         style={{ backgroundColor: dotColor, boxShadow: `0 0 8px ${dotColor}` }}
       />
       <div>
-        <div style={{ fontSize: 13, fontWeight: 600, color: "#FFF" }}>{CONSTANTS.SERVER_IP}</div>
+        <div style={{ fontSize: 13, fontWeight: 600, color: '#FFF' }}>{CONSTANTS.SERVER_IP}</div>
         <div style={{ fontSize: 11, marginTop: 1 }}>{renderStatusMeta(isLoading, status)}</div>
       </div>
       <button
-        aria-label={ipCopied ? "IP copiada al portapapeles" : "Copiar IP del servidor"}
+        aria-label={ipCopied ? 'IP copiada al portapapeles' : 'Copiar IP del servidor'}
         type="button"
         onClick={onCopyIp}
         title="Copiar IP"
@@ -193,12 +199,13 @@ const ServerStatusPill: React.FC<ServerStatusPillProps> = ({
           background: CONSTANTS.BG_WHITE_05,
           border: `1px solid ${CONSTANTS.BORDER_LOW}`,
           color: CONSTANTS.TEXT_MUTED_55,
-          cursor: "pointer",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          position: "relative",
-          transition: "color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease",
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          position: 'relative',
+          transition:
+            'color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease',
           padding: 0,
         }}
         onMouseEnter={(e) => {
@@ -212,24 +219,33 @@ const ServerStatusPill: React.FC<ServerStatusPillProps> = ({
           e.currentTarget.style.background = CONSTANTS.BG_WHITE_05;
         }}
       >
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg
+          width="15"
+          height="15"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
           <rect x="9" y="9" width="13" height="13" rx="2" />
           <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
         </svg>
         <span
-          className={`copied-tip ${ipCopied ? "visible" : ""}`}
+          className={`copied-tip ${ipCopied ? 'visible' : ''}`}
           style={{
-            position: "absolute",
-            bottom: "calc(100% + 8px)",
+            position: 'absolute',
+            bottom: 'calc(100% + 8px)',
             right: 0,
-            background: "#0E1118",
+            background: '#0E1118',
             border: `1px solid ${CONSTANTS.ACCENT_BORDER_30}`,
             color: CONSTANTS.ACCENT_COLOR,
             fontSize: 10.5,
             fontWeight: 600,
-            padding: "4px 10px",
+            padding: '4px 10px',
             borderRadius: 8,
-            whiteSpace: "nowrap",
+            whiteSpace: 'nowrap',
           }}
         >
           ¡IP copiada!
@@ -249,7 +265,7 @@ interface QuickPlayButtonProps {
   onPlay: () => void;
 }
 
-const QuickPlayButton: React.FC<QuickPlayButtonProps> = ({
+const QuickPlayButton: React.FC<Readonly<QuickPlayButtonProps>> = ({
   isLaunching,
   isInGame,
   launchProgress,
@@ -259,8 +275,8 @@ const QuickPlayButton: React.FC<QuickPlayButtonProps> = ({
   const buttonLabel = getPlayButtonText(isLaunching, isInGame);
   const buttonAria = getPlayButtonAriaLabel(isLaunching, isInGame);
   const background = isInGame
-    ? "linear-gradient(135deg, #059669 0%, #047857 100%)"
-    : "linear-gradient(135deg, #0d9488 0%, #0f766e 100%)";
+    ? 'linear-gradient(135deg, #059669 0%, #047857 100%)'
+    : 'linear-gradient(135deg, #0d9488 0%, #0f766e 100%)';
   const progressPercent = isLaunching ? launchProgress * 100 : 0;
   const showProgressBorder = isLaunching && launchProgress < 1;
 
@@ -273,54 +289,54 @@ const QuickPlayButton: React.FC<QuickPlayButtonProps> = ({
       disabled={isLaunching}
       style={{
         flex: 1,
-        position: "relative",
-        overflow: "hidden",
-        border: "1px solid rgba(255, 255, 255, 0.15)",
+        position: 'relative',
+        overflow: 'hidden',
+        border: '1px solid rgba(255, 255, 255, 0.15)',
         borderRadius: 12,
         background,
-        color: "#FFFFFF",
-        cursor: isLaunching ? "wait" : "pointer",
-        fontFamily: "var(--font-family)",
+        color: '#FFFFFF',
+        cursor: isLaunching ? 'wait' : 'pointer',
+        fontFamily: 'var(--font-family)',
         fontSize: 16,
         fontWeight: 800,
-        letterSpacing: "0.08em",
-        textTransform: "uppercase",
-        boxShadow: "0 2px 10px rgba(0, 0, 0, 0.3)",
+        letterSpacing: '0.08em',
+        textTransform: 'uppercase',
+        boxShadow: '0 2px 10px rgba(0, 0, 0, 0.3)',
         height: 56,
-        transition: "all 0.18s cubic-bezier(0.4, 0, 0.2, 1)",
+        transition: 'all 0.18s cubic-bezier(0.4, 0, 0.2, 1)',
         padding: 0,
       }}
       onMouseEnter={(e) => {
         if (!isLaunching) {
-          e.currentTarget.style.transform = "translateY(-2px)";
-          e.currentTarget.style.filter = "brightness(1.06)";
+          e.currentTarget.style.transform = 'translateY(-2px)';
+          e.currentTarget.style.filter = 'brightness(1.06)';
         }
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.transform = "translateY(0)";
-        e.currentTarget.style.filter = "none";
+        e.currentTarget.style.transform = 'translateY(0)';
+        e.currentTarget.style.filter = 'none';
       }}
     >
       <div
         style={{
-          position: "absolute",
+          position: 'absolute',
           inset: 0,
           width: `${progressPercent}%`,
-          background: "linear-gradient(90deg, rgba(6, 40, 36, 0.35), rgba(6, 40, 36, 0.55))",
-          borderRight: showProgressBorder ? "2px solid rgba(255, 255, 255, 0.65)" : "none",
-          transition: "width 0.35s ease",
-          pointerEvents: "none",
+          background: 'linear-gradient(90deg, rgba(6, 40, 36, 0.35), rgba(6, 40, 36, 0.55))',
+          borderRight: showProgressBorder ? '2px solid rgba(255, 255, 255, 0.65)' : 'none',
+          transition: 'width 0.35s ease',
+          pointerEvents: 'none',
         }}
       />
       <div
         style={{
-          position: "relative",
+          position: 'relative',
           zIndex: 1,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
           gap: 12,
-          height: "100%",
+          height: '100%',
         }}
       >
         {!isLaunching && (
@@ -330,21 +346,23 @@ const QuickPlayButton: React.FC<QuickPlayButtonProps> = ({
         )}
         <span>{buttonLabel}</span>
         {isLaunching && !isInGame && (
-          <span style={{ fontSize: 13, letterSpacing: "0.05em" }}>{Math.round(launchProgress * 100)}%</span>
+          <span style={{ fontSize: 13, letterSpacing: '0.05em' }}>
+            {Math.round(launchProgress * 100)}%
+          </span>
         )}
       </div>
       {isLaunching && launchStatus && (
         <div
           style={{
-            position: "absolute",
+            position: 'absolute',
             left: 20,
             bottom: 7,
             zIndex: 1,
             fontSize: 9.5,
             fontWeight: 600,
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-            color: "rgba(5, 42, 38, 0.75)",
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            color: 'rgba(5, 42, 38, 0.75)',
           }}
         >
           {launchStatus}
@@ -366,7 +384,7 @@ interface NewsBannerProps {
   onHoverChange: (hover: boolean) => void;
 }
 
-const NewsBanner: React.FC<NewsBannerProps> = ({
+const NewsBanner: React.FC<Readonly<NewsBannerProps>> = ({
   news,
   activeIndex,
   onSelectIndex,
@@ -376,37 +394,71 @@ const NewsBanner: React.FC<NewsBannerProps> = ({
   onHoverChange,
 }) => {
   const currentPost = news[activeIndex] || news[0];
-  const currentStyle = currentPost ? categoryStyle(currentPost.category) : categoryStyle("");
+  const currentStyle = currentPost ? categoryStyle(currentPost.category) : categoryStyle('');
 
   return (
-    <div className="reveal-up" style={{ flex: 2.15, display: "flex", flexDirection: "column", minHeight: 0, animationDelay: "0.06s" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 12 }}>
-        <h2 style={{ margin: 0, fontSize: 13, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--text-muted)" }}>
+    <div
+      className="reveal-up"
+      style={{
+        flex: 2.15,
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: 0,
+        animationDelay: '0.06s',
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'baseline',
+          marginBottom: 12,
+        }}
+      >
+        <h2
+          style={{
+            margin: 0,
+            fontSize: 13,
+            fontWeight: 700,
+            letterSpacing: '0.1em',
+            textTransform: 'uppercase',
+            color: 'var(--text-muted)',
+          }}
+        >
           Novedades
         </h2>
         <button
           type="button"
           onClick={() => onNavigateNews?.()}
           style={{
-            background: "none",
-            border: "none",
+            background: 'none',
+            border: 'none',
             padding: 0,
             fontSize: 11.5,
             fontWeight: 600,
             color: CONSTANTS.ACCENT_COLOR,
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
             gap: 4,
             opacity: 0.85,
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
-          onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.85")}
-          onFocus={(e) => (e.currentTarget.style.opacity = "1")}
-          onBlur={(e) => (e.currentTarget.style.opacity = "0.85")}
+          onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
+          onMouseLeave={(e) => (e.currentTarget.style.opacity = '0.85')}
+          onFocus={(e) => (e.currentTarget.style.opacity = '1')}
+          onBlur={(e) => (e.currentTarget.style.opacity = '0.85')}
         >
           Ver todo
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            width="11"
+            height="11"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <line x1="5" y1="12" x2="19" y2="12" />
             <polyline points="12 5 19 12 12 19" />
           </svg>
@@ -421,42 +473,50 @@ const NewsBanner: React.FC<NewsBannerProps> = ({
         onBlur={() => onHoverChange(false)}
         style={{
           flex: 1,
-          position: "relative",
+          position: 'relative',
           borderRadius: 20,
-          overflow: "hidden",
-          border: "1px solid rgba(255, 255, 255, 0.12)",
-          background: "rgba(10, 15, 26, 0.6)",
-          display: "flex",
-          flexDirection: "column",
-          boxShadow: "0 12px 32px rgba(0, 0, 0, 0.4)",
+          overflow: 'hidden',
+          border: '1px solid rgba(255, 255, 255, 0.12)',
+          background: 'rgba(10, 15, 26, 0.6)',
+          display: 'flex',
+          flexDirection: 'column',
+          boxShadow: '0 12px 32px rgba(0, 0, 0, 0.4)',
           minHeight: 0,
         }}
       >
         {!currentPost ? (
-          <div style={{ padding: 20, color: "rgba(255,255,255,0.5)", textAlign: "center", margin: "auto" }}>
+          <div
+            style={{
+              padding: 20,
+              color: 'rgba(255,255,255,0.5)',
+              textAlign: 'center',
+              margin: 'auto',
+            }}
+          >
             No hay novedades disponibles por ahora.
           </div>
         ) : (
           <>
-            <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
+            <div style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
               {currentPost.imageUrl ? (
                 <img
                   src={currentPost.imageUrl}
                   alt=""
                   style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                    filter: "brightness(0.65)",
-                    transition: "color 0.5s ease, background-color 0.5s ease, border-color 0.5s ease, opacity 0.5s ease",
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    filter: 'brightness(0.65)',
+                    transition:
+                      'color 0.5s ease, background-color 0.5s ease, border-color 0.5s ease, opacity 0.5s ease',
                   }}
-                  onError={(e) => (e.currentTarget.style.display = "none")}
+                  onError={(e) => (e.currentTarget.style.display = 'none')}
                 />
               ) : (
                 <div
                   style={{
-                    width: "100%",
-                    height: "100%",
+                    width: '100%',
+                    height: '100%',
                     background: currentStyle.thumb,
                     opacity: 0.85,
                   }}
@@ -464,58 +524,58 @@ const NewsBanner: React.FC<NewsBannerProps> = ({
               )}
               <div
                 style={{
-                  position: "absolute",
+                  position: 'absolute',
                   inset: 0,
                   background:
-                    "linear-gradient(180deg, rgba(10, 15, 26, 0.15) 0%, rgba(10, 15, 26, 0.7) 55%, rgba(10, 15, 26, 0.95) 100%)",
+                    'linear-gradient(180deg, rgba(10, 15, 26, 0.15) 0%, rgba(10, 15, 26, 0.7) 55%, rgba(10, 15, 26, 0.95) 100%)',
                 }}
               />
             </div>
 
             <div
               style={{
-                position: "relative",
+                position: 'relative',
                 zIndex: 2,
-                padding: "20px 24px 18px",
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "flex-end",
-                height: "100%",
-                boxSizing: "border-box",
+                padding: '20px 24px 18px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'flex-end',
+                height: '100%',
+                boxSizing: 'border-box',
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
                 <span
                   style={{
                     fontSize: 10,
                     fontWeight: 800,
-                    letterSpacing: "0.08em",
-                    textTransform: "uppercase",
-                    padding: "4px 12px",
+                    letterSpacing: '0.08em',
+                    textTransform: 'uppercase',
+                    padding: '4px 12px',
                     borderRadius: 999,
                     color: currentStyle.color,
                     background: currentStyle.background,
                     border: `1px solid ${currentStyle.border}`,
-                    backdropFilter: "blur(8px)",
+                    backdropFilter: 'blur(8px)',
                     boxShadow: `0 0 12px ${currentStyle.border}`,
                   }}
                 >
                   {currentPost.category}
                 </span>
-                <span style={{ fontSize: 11, color: "rgba(255, 255, 255, 0.6)", fontWeight: 500 }}>
+                <span style={{ fontSize: 11, color: 'rgba(255, 255, 255, 0.6)', fontWeight: 500 }}>
                   {timeAgo(currentPost.createdAt)}
                 </span>
               </div>
 
               <h3
                 style={{
-                  margin: "0 0 6px 0",
+                  margin: '0 0 6px 0',
                   fontSize: 20,
                   fontWeight: 800,
                   lineHeight: 1.25,
-                  color: "#FFFFFF",
-                  letterSpacing: "-0.01em",
-                  textShadow: "0 2px 10px rgba(0,0,0,0.5)",
+                  color: '#FFFFFF',
+                  letterSpacing: '-0.01em',
+                  textShadow: '0 2px 10px rgba(0,0,0,0.5)',
                 }}
               >
                 {currentPost.title}
@@ -523,60 +583,70 @@ const NewsBanner: React.FC<NewsBannerProps> = ({
 
               <p
                 style={{
-                  margin: "0 0 14px 0",
+                  margin: '0 0 14px 0',
                   fontSize: 12.5,
-                  color: "rgba(255, 255, 255, 0.78)",
+                  color: 'rgba(255, 255, 255, 0.78)',
                   lineHeight: 1.45,
-                  display: "-webkit-box",
+                  display: '-webkit-box',
                   WebkitLineClamp: 2,
-                  WebkitBoxOrient: "vertical",
-                  overflow: "hidden",
-                  maxWidth: "92%",
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden',
+                  maxWidth: '92%',
                 }}
               >
                 {currentPost.content}
               </p>
 
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+              >
                 <button
                   type="button"
                   onClick={() => onNavigateNews?.()}
                   style={{
-                    background: "rgba(255, 255, 255, 0.12)",
-                    border: "1px solid rgba(255, 255, 255, 0.25)",
-                    color: "#FFFFFF",
+                    background: 'rgba(255, 255, 255, 0.12)',
+                    border: '1px solid rgba(255, 255, 255, 0.25)',
+                    color: '#FFFFFF',
                     fontSize: 11.5,
                     fontWeight: 700,
-                    padding: "7px 16px",
+                    padding: '7px 16px',
                     borderRadius: 10,
-                    cursor: "pointer",
-                    display: "inline-flex",
-                    alignItems: "center",
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
                     gap: 6,
-                    backdropFilter: "blur(8px)",
-                    transition: "color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease",
+                    backdropFilter: 'blur(8px)',
+                    transition:
+                      'color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease',
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.background = CONSTANTS.ACCENT_COLOR;
-                    e.currentTarget.style.color = "#052A26";
+                    e.currentTarget.style.color = '#052A26';
                     e.currentTarget.style.borderColor = CONSTANTS.ACCENT_COLOR;
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "rgba(255, 255, 255, 0.12)";
-                    e.currentTarget.style.color = "#FFFFFF";
-                    e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.25)";
+                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.12)';
+                    e.currentTarget.style.color = '#FFFFFF';
+                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.25)';
                   }}
                 >
                   <span>Leer noticia completa</span>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                  >
                     <line x1="5" y1="12" x2="19" y2="12" />
                     <polyline points="12 5 19 12 12 19" />
                   </svg>
                 </button>
 
                 {news.length > 1 && (
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <div style={{ display: "flex", gap: 6 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ display: 'flex', gap: 6 }}>
                       <button
                         aria-label="Noticia anterior"
                         type="button"
@@ -585,16 +655,17 @@ const NewsBanner: React.FC<NewsBannerProps> = ({
                           width: 30,
                           height: 30,
                           borderRadius: 8,
-                          background: "rgba(0, 0, 0, 0.4)",
-                          border: "1px solid rgba(255, 255, 255, 0.15)",
-                          color: "#FFF",
+                          background: 'rgba(0, 0, 0, 0.4)',
+                          border: '1px solid rgba(255, 255, 255, 0.15)',
+                          color: '#FFF',
                           fontSize: 10,
-                          cursor: "pointer",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          backdropFilter: "blur(6px)",
-                          transition: "color 0.2s, background-color 0.2s, border-color 0.2s, opacity 0.2s",
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          backdropFilter: 'blur(6px)',
+                          transition:
+                            'color 0.2s, background-color 0.2s, border-color 0.2s, opacity 0.2s',
                         }}
                       >
                         <span aria-hidden="true">◀</span>
@@ -607,23 +678,24 @@ const NewsBanner: React.FC<NewsBannerProps> = ({
                           width: 30,
                           height: 30,
                           borderRadius: 8,
-                          background: "rgba(0, 0, 0, 0.4)",
-                          border: "1px solid rgba(255, 255, 255, 0.15)",
-                          color: "#FFF",
+                          background: 'rgba(0, 0, 0, 0.4)',
+                          border: '1px solid rgba(255, 255, 255, 0.15)',
+                          color: '#FFF',
                           fontSize: 10,
-                          cursor: "pointer",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          backdropFilter: "blur(6px)",
-                          transition: "color 0.2s, background-color 0.2s, border-color 0.2s, opacity 0.2s",
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          backdropFilter: 'blur(6px)',
+                          transition:
+                            'color 0.2s, background-color 0.2s, border-color 0.2s, opacity 0.2s',
                         }}
                       >
                         <span aria-hidden="true">▶</span>
                       </button>
                     </div>
 
-                    <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                       {news.map((post, idx) => (
                         <button
                           aria-label={`Ir a noticia ${idx + 1}: ${post.title}`}
@@ -635,11 +707,15 @@ const NewsBanner: React.FC<NewsBannerProps> = ({
                             width: activeIndex === idx ? 18 : 7,
                             height: 7,
                             borderRadius: 999,
-                            background: activeIndex === idx ? CONSTANTS.ACCENT_COLOR : "rgba(255, 255, 255, 0.3)",
-                            border: "none",
-                            cursor: "pointer",
+                            background:
+                              activeIndex === idx
+                                ? CONSTANTS.ACCENT_COLOR
+                                : 'rgba(255, 255, 255, 0.3)',
+                            border: 'none',
+                            cursor: 'pointer',
                             padding: 0,
-                            transition: "color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease, opacity 0.3s ease",
+                            transition:
+                              'color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease, opacity 0.3s ease',
                           }}
                         />
                       ))}
@@ -666,38 +742,46 @@ interface CapeManagerProps {
   onToggleCape: () => void;
 }
 
-const getCapeButtonStyles = (isEquipping: boolean, isNoCape: boolean, isCurrentlyActive: boolean) => {
-  let background = "linear-gradient(135deg, #2DD4BF 0%, #0D9488 100%)";
-  let border = "none";
-  let boxShadow = "0 4px 12px rgba(45, 212, 191, 0.25)";
+const getCapeButtonStyles = (
+  isEquipping: boolean,
+  isNoCape: boolean,
+  isCurrentlyActive: boolean,
+) => {
+  let background = 'linear-gradient(135deg, #2DD4BF 0%, #0D9488 100%)';
+  let border = 'none';
+  let boxShadow = '0 4px 12px rgba(45, 212, 191, 0.25)';
 
   if (isNoCape) {
-    background = "rgba(239, 68, 68, 0.15)";
-    border = "1px solid rgba(239, 68, 68, 0.3)";
-    boxShadow = "none";
+    background = 'rgba(239, 68, 68, 0.15)';
+    border = '1px solid rgba(239, 68, 68, 0.3)';
+    boxShadow = 'none';
   } else if (isCurrentlyActive) {
-    background = "rgba(255, 255, 255, 0.1)";
-    border = "1px solid rgba(255, 255, 255, 0.2)";
-    boxShadow = "none";
+    background = 'rgba(255, 255, 255, 0.1)';
+    border = '1px solid rgba(255, 255, 255, 0.2)';
+    boxShadow = 'none';
   }
 
   return {
     background,
     border,
     boxShadow,
-    color: isEquipping ? "rgba(255,255,255,0.4)" : "#FFF",
-    cursor: isEquipping ? "not-allowed" : "pointer",
+    color: isEquipping ? 'rgba(255,255,255,0.4)' : '#FFF',
+    cursor: isEquipping ? 'not-allowed' : 'pointer',
   };
 };
 
-const getCapeButtonLabel = (isEquipping: boolean, isNoCape: boolean, isCurrentlyActive: boolean): string => {
-  if (isEquipping) return "Procesando...";
-  if (isNoCape) return "Quitar Capa";
-  if (isCurrentlyActive) return "Equipada";
-  return "Equipar Capa";
+const getCapeButtonLabel = (
+  isEquipping: boolean,
+  isNoCape: boolean,
+  isCurrentlyActive: boolean,
+): string => {
+  if (isEquipping) return 'Procesando...';
+  if (isNoCape) return 'Quitar Capa';
+  if (isCurrentlyActive) return 'Equipada';
+  return 'Equipar Capa';
 };
 
-const CapeManager: React.FC<CapeManagerProps> = ({
+const CapeManager: React.FC<Readonly<CapeManagerProps>> = ({
   userCapes,
   selectedIndex,
   isEquipping,
@@ -707,7 +791,7 @@ const CapeManager: React.FC<CapeManagerProps> = ({
 }) => {
   const isNoCape = selectedIndex === -1;
   const isCurrentlyActive = !isNoCape && userCapes[selectedIndex]?.state === CONSTANTS.ACTIVE_STATE;
-  const capeDisplayName = isNoCape ? "Sin Capa" : userCapes[selectedIndex]?.alias || "Capa Oficial";
+  const capeDisplayName = isNoCape ? 'Sin Capa' : userCapes[selectedIndex]?.alias || 'Capa Oficial';
   const buttonStyle = getCapeButtonStyles(isEquipping, isNoCape, isCurrentlyActive);
   const buttonLabel = getCapeButtonLabel(isEquipping, isNoCape, isCurrentlyActive);
 
@@ -715,24 +799,24 @@ const CapeManager: React.FC<CapeManagerProps> = ({
     <div
       style={{
         marginTop: 12,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
         gap: 8,
-        width: "100%",
+        width: '100%',
         zIndex: 1,
       }}
     >
       <div
         style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          width: "90%",
-          background: "rgba(0, 0, 0, 0.2)",
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          width: '90%',
+          background: 'rgba(0, 0, 0, 0.2)',
           borderRadius: 20,
-          padding: "4px 12px",
-          border: "1px solid rgba(255, 255, 255, 0.05)",
+          padding: '4px 12px',
+          border: '1px solid rgba(255, 255, 255, 0.05)',
         }}
       >
         <button
@@ -740,16 +824,20 @@ const CapeManager: React.FC<CapeManagerProps> = ({
           type="button"
           onClick={onPrevCape}
           style={{
-            background: "none",
-            border: "none",
-            color: "rgba(255, 255, 255, 0.6)",
+            background: 'none',
+            border: 'none',
+            color: 'rgba(255, 255, 255, 0.6)',
             fontSize: 14,
-            cursor: "pointer",
-            padding: "2px 6px",
-            transition: "color 0.2s",
+            cursor: 'pointer',
+            padding: '2px 6px',
+            transition: 'color 0.2s',
           }}
-          onMouseEnter={(e) => { e.currentTarget.style.color = "#2DD4BF"; }}
-          onMouseLeave={(e) => { e.currentTarget.style.color = "rgba(255, 255, 255, 0.6)"; }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = '#2DD4BF';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = 'rgba(255, 255, 255, 0.6)';
+          }}
         >
           <span aria-hidden="true">◀</span>
         </button>
@@ -758,11 +846,11 @@ const CapeManager: React.FC<CapeManagerProps> = ({
           style={{
             fontSize: 11,
             fontWeight: 600,
-            color: "#FFF",
-            letterSpacing: "0.02em",
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
+            color: '#FFF',
+            letterSpacing: '0.02em',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
             maxWidth: 120,
           }}
         >
@@ -774,23 +862,31 @@ const CapeManager: React.FC<CapeManagerProps> = ({
           type="button"
           onClick={onNextCape}
           style={{
-            background: "none",
-            border: "none",
-            color: "rgba(255, 255, 255, 0.6)",
+            background: 'none',
+            border: 'none',
+            color: 'rgba(255, 255, 255, 0.6)',
             fontSize: 14,
-            cursor: "pointer",
-            padding: "2px 6px",
-            transition: "color 0.2s",
+            cursor: 'pointer',
+            padding: '2px 6px',
+            transition: 'color 0.2s',
           }}
-          onMouseEnter={(e) => { e.currentTarget.style.color = "#2DD4BF"; }}
-          onMouseLeave={(e) => { e.currentTarget.style.color = "rgba(255, 255, 255, 0.6)"; }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = '#2DD4BF';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = 'rgba(255, 255, 255, 0.6)';
+          }}
         >
           <span aria-hidden="true">▶</span>
         </button>
       </div>
 
       <button
-        aria-label={isNoCape ? "Ocultar capa equipada" : `Equipar capa ${userCapes[selectedIndex]?.alias || "Oficial"}`}
+        aria-label={
+          isNoCape
+            ? 'Ocultar capa equipada'
+            : `Equipar capa ${userCapes[selectedIndex]?.alias || 'Oficial'}`
+        }
         aria-busy={isEquipping}
         type="button"
         disabled={isEquipping}
@@ -798,33 +894,33 @@ const CapeManager: React.FC<CapeManagerProps> = ({
         style={{
           fontSize: 10,
           fontWeight: 700,
-          letterSpacing: "0.04em",
-          textTransform: "uppercase",
+          letterSpacing: '0.04em',
+          textTransform: 'uppercase',
           borderRadius: 8,
-          padding: "6px 16px",
-          transition: "color 0.2s, background-color 0.2s, border-color 0.2s, opacity 0.2s",
-          width: "90%",
+          padding: '6px 16px',
+          transition: 'color 0.2s, background-color 0.2s, border-color 0.2s, opacity 0.2s',
+          width: '90%',
           ...buttonStyle,
         }}
         onMouseEnter={(e) => {
           if (isEquipping) return;
           if (isNoCape) {
-            e.currentTarget.style.background = "rgba(239, 68, 68, 0.25)";
+            e.currentTarget.style.background = 'rgba(239, 68, 68, 0.25)';
           } else if (isCurrentlyActive) {
-            e.currentTarget.style.background = "rgba(255, 255, 255, 0.15)";
+            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
           } else {
-            e.currentTarget.style.transform = "translateY(-1px)";
-            e.currentTarget.style.boxShadow = "0 6px 16px rgba(45, 212, 191, 0.35)";
+            e.currentTarget.style.transform = 'translateY(-1px)';
+            e.currentTarget.style.boxShadow = '0 6px 16px rgba(45, 212, 191, 0.35)';
           }
         }}
         onMouseLeave={(e) => {
           if (isNoCape) {
-            e.currentTarget.style.background = "rgba(239, 68, 68, 0.15)";
+            e.currentTarget.style.background = 'rgba(239, 68, 68, 0.15)';
           } else if (isCurrentlyActive) {
-            e.currentTarget.style.background = "rgba(255, 255, 255, 0.1)";
+            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
           } else {
-            e.currentTarget.style.transform = "none";
-            e.currentTarget.style.boxShadow = "0 4px 12px rgba(45, 212, 191, 0.25)";
+            e.currentTarget.style.transform = 'none';
+            e.currentTarget.style.boxShadow = '0 4px 12px rgba(45, 212, 191, 0.25)';
           }
         }}
       >
@@ -842,11 +938,11 @@ const buildGameLaunchOptions = (
   accessToken: string | undefined,
   profile: Profile,
   resolvedGameDir: string,
-  settings: ReturnType<typeof getSettings>
+  settings: ReturnType<typeof getSettings>,
 ) => ({
   username,
-  uuid: uuid || "00000000-0000-0000-0000-000000000000",
-  accessToken: accessToken || "placeholder_token",
+  uuid: uuid || '00000000-0000-0000-0000-000000000000',
+  accessToken: accessToken || 'placeholder_token',
   mcVersion: profile.mcVersion,
   loaderType: profile.loaderType,
   loaderVersion: profile.loaderVersion,
@@ -860,7 +956,7 @@ const buildGameLaunchOptions = (
 
 /* ── Componente Principal: HomePage ── */
 
-export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
+export const HomePage: React.FC<Readonly<HomePageProps>> = ({ onNavigate }) => {
   const { currentSession, crystalSession } = useAuth();
   const [serverStatus, setServerStatus] = useState<ServerStatus | null>(null);
   const [isLoadingStatus, setIsLoadingStatus] = useState(true);
@@ -933,7 +1029,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
             }
           }
         } catch (err) {
-          console.error("Error loading profile capes:", err);
+          console.error('Error loading profile capes:', err);
         }
       } else if (!ignore) {
         setUserCapes([]);
@@ -966,14 +1062,14 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
     if (userCapes.length === 0) return;
     const nextIndex = selectedCapeIndex - 1 < -1 ? userCapes.length - 1 : selectedCapeIndex - 1;
     setSelectedCapeIndex(nextIndex);
-    setActiveCapeUrl(nextIndex === -1 ? undefined : (userCapes[nextIndex]?.url || undefined));
+    setActiveCapeUrl(nextIndex === -1 ? undefined : userCapes[nextIndex]?.url || undefined);
   };
 
   const handleNextCape = () => {
     if (userCapes.length === 0) return;
     const nextIndex = selectedCapeIndex + 1 >= userCapes.length ? -1 : selectedCapeIndex + 1;
     setSelectedCapeIndex(nextIndex);
-    setActiveCapeUrl(nextIndex === -1 ? undefined : (userCapes[nextIndex]?.url || undefined));
+    setActiveCapeUrl(nextIndex === -1 ? undefined : userCapes[nextIndex]?.url || undefined);
   };
 
   const handleToggleCape = async () => {
@@ -992,11 +1088,11 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
           prev.map((c, idx) => ({
             ...c,
             state: idx === selectedCapeIndex ? CONSTANTS.ACTIVE_STATE : CONSTANTS.INACTIVE_STATE,
-          }))
+          })),
         );
       }
     } catch (err) {
-      console.error("Failed to change cape state:", err);
+      console.error('Failed to change cape state:', err);
     } finally {
       setIsEquippingCape(false);
     }
@@ -1006,19 +1102,19 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
     if (!currentSession || isLaunching) return;
     setIsLaunching(true);
     setLaunchError(null);
-    setLaunchStatus("Resolviendo directorios...");
+    setLaunchStatus('Resolviendo directorios...');
     setLaunchProgress(0.02);
 
     try {
-      const homeDir: string | null = await invoke("get_home_dir");
-      if (!homeDir) throw new Error("No se pudo obtener el directorio personal.");
+      const homeDir: string | null = await invoke('get_home_dir');
+      if (!homeDir) throw new Error('No se pudo obtener el directorio personal.');
 
       const profile = getActiveProfile();
       const resolvedGameDir = resolveProfileGameDir(profile, homeDir);
       const settings = getSettings();
 
-      if (profile.loaderType !== "vanilla" && profile.loaderType !== "") {
-        setLaunchStatus("Sincronizando mods...");
+      if (profile.loaderType !== 'vanilla' && profile.loaderType !== '') {
+        setLaunchStatus('Sincronizando mods...');
         setLaunchProgress(0.05);
         await syncOfficialMods(resolvedGameDir, (status, progress) => {
           setLaunchStatus(status);
@@ -1026,7 +1122,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
         });
       }
 
-      setLaunchStatus("Iniciando Minecraft...");
+      setLaunchStatus('Iniciando Minecraft...');
       setLaunchProgress(0.5);
 
       const launchOpts = buildGameLaunchOptions(
@@ -1035,7 +1131,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
         currentSession.accessToken,
         profile,
         resolvedGameDir,
-        settings
+        settings,
       );
 
       await launchGame(launchOpts, (status, progress) => {
@@ -1043,7 +1139,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
         setLaunchProgress(0.5 + progress * 0.5);
       });
 
-      setLaunchStatus("¡En juego!");
+      setLaunchStatus('¡En juego!');
       setLaunchProgress(1);
 
       setTimeout(() => {
@@ -1062,53 +1158,67 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
   return (
     <div
       style={{
-        padding: "26px 28px 22px",
-        display: "flex",
-        flexDirection: "column",
+        padding: '26px 28px 22px',
+        display: 'flex',
+        flexDirection: 'column',
         gap: 18,
-        height: "100%",
-        boxSizing: "border-box",
-        overflow: "hidden",
+        height: '100%',
+        boxSizing: 'border-box',
+        overflow: 'hidden',
       }}
     >
       {/* ── Hero: saludo + módulo de servidor consolidado ── */}
-      <section className="reveal-up" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 20 }}>
+      <section
+        className="reveal-up"
+        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 20 }}
+      >
         <div>
           <div
             style={{
               fontSize: 11,
               fontWeight: 700,
-              letterSpacing: "0.14em",
-              textTransform: "uppercase",
+              letterSpacing: '0.14em',
+              textTransform: 'uppercase',
               color: CONSTANTS.ACCENT_COLOR,
               marginBottom: 4,
             }}
           >
             {getDayPart()}
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <h1 style={{ margin: 0, fontSize: 27, fontWeight: 700, letterSpacing: "-0.02em", lineHeight: 1.1, color: "#FFF" }}>
-              {crystalSession?.username || currentSession?.username || "Invitado"}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <h1
+              style={{
+                margin: 0,
+                fontSize: 27,
+                fontWeight: 700,
+                letterSpacing: '-0.02em',
+                lineHeight: 1.1,
+                color: '#FFF',
+              }}
+            >
+              {crystalSession?.username || currentSession?.username || 'Invitado'}
             </h1>
             {crystalSession?.role && <RoleBadge role={crystalSession.role} size="md" />}
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 6 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
             <span
               style={{
                 fontSize: 10,
                 fontWeight: 700,
-                letterSpacing: "0.05em",
-                textTransform: "uppercase",
+                letterSpacing: '0.05em',
+                textTransform: 'uppercase',
                 color: CONSTANTS.ACCENT_COLOR,
                 background: CONSTANTS.ACCENT_TINT_12,
-                border: "1px solid rgba(45, 212, 191, 0.25)",
-                padding: "2px 8px",
+                border: '1px solid rgba(45, 212, 191, 0.25)',
+                padding: '2px 8px',
                 borderRadius: 999,
               }}
             >
               {getAccountBadgeLabel(currentSession?.type)}
             </span>
-            <span style={{ fontSize: 12.5, color: "var(--text-muted)" }}>Todo listo para sumergirte</span>
+            <span style={{ fontSize: 12.5, color: 'var(--text-muted)' }}>
+              Todo listo para sumergirte
+            </span>
           </div>
         </div>
 
@@ -1121,75 +1231,111 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
       </section>
 
       {/* ── Contenido: novedades + jugador ── */}
-      <section style={{ flex: 1, display: "flex", gap: 18, minHeight: 0 }}>
+      <section style={{ flex: 1, display: 'flex', gap: 18, minHeight: 0 }}>
         <NewsBanner
           news={news}
           activeIndex={activeNewsIndex}
           onSelectIndex={setActiveNewsIndex}
           onPrev={() => setActiveNewsIndex((prev) => (prev - 1 + news.length) % news.length)}
           onNext={() => setActiveNewsIndex((prev) => (prev + 1) % news.length)}
-          onNavigateNews={() => onNavigate?.("news")}
+          onNavigateNews={() => onNavigate?.('news')}
           onHoverChange={setIsHoveringCarousel}
         />
 
         {/* Tarjeta del jugador */}
-        <div className="reveal-up custom-scrollbar" style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 12, height: "100%", overflowY: "auto", animationDelay: "0.12s" }}>
+        <div
+          className="reveal-up custom-scrollbar"
+          style={{
+            flex: 1,
+            minWidth: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 12,
+            height: '100%',
+            overflowY: 'auto',
+            animationDelay: '0.12s',
+          }}
+        >
           <CrystalCard
             enableHoverEffect={false}
             style={{
-              height: "100%",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              padding: "18px 16px 15px",
-              position: "relative",
-              overflow: "hidden",
-              boxSizing: "border-box",
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              padding: '18px 16px 15px',
+              position: 'relative',
+              overflow: 'hidden',
+              boxSizing: 'border-box',
             }}
           >
             <div
               style={{
-                position: "absolute",
+                position: 'absolute',
                 top: -70,
-                left: "50%",
-                transform: "translateX(-50%)",
+                left: '50%',
+                transform: 'translateX(-50%)',
                 width: 260,
                 height: 260,
-                borderRadius: "50%",
-                background: "radial-gradient(circle, rgba(45, 212, 191, 0.14) 0%, transparent 65%)",
-                pointerEvents: "none",
+                borderRadius: '50%',
+                background: 'radial-gradient(circle, rgba(45, 212, 191, 0.14) 0%, transparent 65%)',
+                pointerEvents: 'none',
               }}
             />
-            <div style={{ fontSize: 16, fontWeight: 700, letterSpacing: "-0.01em", zIndex: 1, color: "#FFF" }}>
-              {currentSession?.username || "Invitado"}
+            <div
+              style={{
+                fontSize: 16,
+                fontWeight: 700,
+                letterSpacing: '-0.01em',
+                zIndex: 1,
+                color: '#FFF',
+              }}
+            >
+              {currentSession?.username || 'Invitado'}
             </div>
             {crystalSession?.role && (
               <RoleBadge role={crystalSession.role} size="md" style={{ marginTop: 6, zIndex: 1 }} />
             )}
-            <div style={{ flex: 1, width: "100%", position: "relative", display: "flex", alignItems: "flex-end", justifyContent: "center", zIndex: 1, minHeight: 0 }}>
+            <div
+              style={{
+                flex: 1,
+                width: '100%',
+                position: 'relative',
+                display: 'flex',
+                alignItems: 'flex-end',
+                justifyContent: 'center',
+                zIndex: 1,
+                minHeight: 0,
+              }}
+            >
               <div
                 style={{
-                  position: "absolute",
+                  position: 'absolute',
                   bottom: 4,
-                  left: "50%",
-                  transform: "translateX(-50%)",
+                  left: '50%',
+                  transform: 'translateX(-50%)',
                   width: 130,
                   height: 26,
-                  borderRadius: "50%",
-                  background: "radial-gradient(ellipse, rgba(45, 212, 191, 0.3) 0%, transparent 70%)",
-                  filter: "blur(6px)",
+                  borderRadius: '50%',
+                  background:
+                    'radial-gradient(ellipse, rgba(45, 212, 191, 0.3) 0%, transparent 70%)',
+                  filter: 'blur(6px)',
                 }}
               />
-              <div className="float-anim" style={{ width: "100%", height: "100%", zIndex: 1 }}>
-                <SkinViewer username={currentSession?.username || "Steve"} uuid={currentSession?.uuid} capeUrl={activeCapeUrl} />
+              <div className="float-anim" style={{ width: '100%', height: '100%', zIndex: 1 }}>
+                <SkinViewer
+                  username={currentSession?.username || 'Steve'}
+                  uuid={currentSession?.uuid}
+                  capeUrl={activeCapeUrl}
+                />
               </div>
             </div>
             <div
               style={{
                 fontSize: 10,
-                color: "rgba(255,255,255,0.35)",
-                letterSpacing: "0.06em",
-                textTransform: "uppercase",
+                color: 'rgba(255,255,255,0.35)',
+                letterSpacing: '0.06em',
+                textTransform: 'uppercase',
                 zIndex: 1,
                 marginBottom: currentSession?.type === CONSTANTS.SESSION_MICROSOFT ? 2 : 0,
               }}
@@ -1215,13 +1361,13 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
       {launchError && (
         <div
           style={{
-            backgroundColor: "rgba(239, 68, 68, 0.1)",
-            border: "1px solid var(--danger)",
+            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            border: '1px solid var(--danger)',
             borderRadius: 10,
-            padding: "10px 14px",
-            color: "#FFBABA",
+            padding: '10px 14px',
+            color: '#FFBABA',
             fontSize: 13,
-            textAlign: "left",
+            textAlign: 'left',
           }}
         >
           ⚠️ {launchError}
@@ -1232,18 +1378,18 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
       <section
         className="reveal-up"
         style={{
-          display: "flex",
-          alignItems: "stretch",
+          display: 'flex',
+          alignItems: 'stretch',
           gap: 12,
-          animationDelay: "0.18s",
-          position: "relative",
+          animationDelay: '0.18s',
+          position: 'relative',
           zIndex: 10,
-          backgroundColor: "rgba(11, 14, 21, 0.95)",
-          backdropFilter: "blur(16px)",
-          padding: "10px 12px",
+          backgroundColor: 'rgba(11, 14, 21, 0.95)',
+          backdropFilter: 'blur(16px)',
+          padding: '10px 12px',
           borderRadius: 14,
-          border: "1px solid rgba(255, 255, 255, 0.08)",
-          boxShadow: "0 4px 24px rgba(0, 0, 0, 0.4)",
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+          boxShadow: '0 4px 24px rgba(0, 0, 0, 0.4)',
         }}
       >
         <ProfileSelector

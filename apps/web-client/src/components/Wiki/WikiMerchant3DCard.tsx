@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import * as THREE from "three";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import ReactMarkdown from "react-markdown";
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import ReactMarkdown from 'react-markdown';
 import {
   ShoppingBag,
   Coins,
@@ -11,8 +11,8 @@ import {
   MapPin,
   Maximize2,
   RotateCcw,
-} from "lucide-react";
-import { resolveAssetUrl } from "../../utils/assetUtils";
+} from 'lucide-react';
+import { resolveAssetUrl } from '../../utils/assetUtils';
 
 export interface WikiMerchant3DCardProps {
   minimal3dOnly?: boolean;
@@ -26,17 +26,17 @@ export interface WikiMerchant3DCardProps {
   trades?: string[];
 }
 
-const DEFAULT_TRADES = ["Semillas Raras", "Señuelos Míticos", "Ingredientes de Alquimia"];
+const DEFAULT_TRADES = ['Semillas Raras', 'Señuelos Míticos', 'Ingredientes de Alquimia'];
 
-export const WikiMerchant3DCard: React.FC<WikiMerchant3DCardProps> = ({
+export const WikiMerchant3DCard: React.FC<Readonly<WikiMerchant3DCardProps>> = ({
   minimal3dOnly = false,
-  modelPath = "/models/ribbits/ribbit_merchant.gltf",
-  bossName = "Merchant Ribbit",
-  subtitle = "Mercader Ambulante",
-  hp = "30 HP (Protegido)",
-  currency = "KilluCoins (KC) / Esmeraldas",
-  location = "Pantanos, Ríos y Aldeas",
-  description = "Comerciante itinerante de la raza Ribbit que ofrece semillas exóticas y artefactos de pesca.",
+  modelPath = '/models/ribbits/ribbit_merchant.gltf',
+  bossName = 'Merchant Ribbit',
+  subtitle = 'Mercader Ambulante',
+  hp = '30 HP (Protegido)',
+  currency = 'KilluCoins (KC) / Esmeraldas',
+  location = 'Pantanos, Ríos y Aldeas',
+  description = 'Comerciante itinerante de la raza Ribbit que ofrece semillas exóticas y artefactos de pesca.',
   trades = DEFAULT_TRADES,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -82,7 +82,7 @@ export const WikiMerchant3DCard: React.FC<WikiMerchant3DCardProps> = ({
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
       alpha: true,
-      powerPreference: "high-performance",
+      powerPreference: 'high-performance',
     });
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -91,7 +91,7 @@ export const WikiMerchant3DCard: React.FC<WikiMerchant3DCardProps> = ({
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     rendererRef.current = renderer;
 
-    containerRef.current.innerHTML = "";
+    containerRef.current.innerHTML = '';
     containerRef.current.appendChild(renderer.domElement);
 
     const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
@@ -150,11 +150,7 @@ export const WikiMerchant3DCard: React.FC<WikiMerchant3DCardProps> = ({
         const targetHeight = 2.0;
         const scale = targetHeight / maxDim;
         loadedModel.scale.setScalar(scale);
-        loadedModel.position.set(
-          -center.x * scale,
-          -center.y * scale - 0.2,
-          -center.z * scale,
-        );
+        loadedModel.position.set(-center.x * scale, -center.y * scale - 0.2, -center.z * scale);
 
         if (gltf.animations && gltf.animations.length > 0) {
           const mixer = new THREE.AnimationMixer(loadedModel);
@@ -168,7 +164,7 @@ export const WikiMerchant3DCard: React.FC<WikiMerchant3DCardProps> = ({
       },
       undefined,
       (err) => {
-        console.warn("GLTF load failed, using procedural fallback:", err);
+        console.warn('GLTF load failed, using procedural fallback:', err);
         createProceduralFallback();
       },
     );
@@ -184,11 +180,9 @@ export const WikiMerchant3DCard: React.FC<WikiMerchant3DCardProps> = ({
 
       if (modelGroupRef.current) {
         modelGroupRef.current.rotation.x +=
-          (targetRotationRef.current.x - modelGroupRef.current.rotation.x) *
-          0.08;
+          (targetRotationRef.current.x - modelGroupRef.current.rotation.x) * 0.08;
         modelGroupRef.current.rotation.y +=
-          (targetRotationRef.current.y - modelGroupRef.current.rotation.y) *
-          0.08;
+          (targetRotationRef.current.y - modelGroupRef.current.rotation.y) * 0.08;
       }
 
       renderer.render(scene, camera);
@@ -197,8 +191,7 @@ export const WikiMerchant3DCard: React.FC<WikiMerchant3DCardProps> = ({
     animate();
 
     const handleResize = () => {
-      if (!containerRef.current || !rendererRef.current || !cameraRef.current)
-        return;
+      if (!containerRef.current || !rendererRef.current || !cameraRef.current) return;
       const w = containerRef.current.clientWidth;
       const h = containerRef.current.clientHeight;
       cameraRef.current.aspect = w / h;
@@ -206,11 +199,11 @@ export const WikiMerchant3DCard: React.FC<WikiMerchant3DCardProps> = ({
       rendererRef.current.setSize(w, h);
     };
 
-    window.addEventListener("resize", handleResize);
+    window.addEventListener('resize', handleResize);
 
     return () => {
       cancelAnimationFrame(animationFrameId);
-      window.removeEventListener("resize", handleResize);
+      window.removeEventListener('resize', handleResize);
       renderer.dispose();
     };
   }, [modelPath]);
@@ -249,10 +242,7 @@ export const WikiMerchant3DCard: React.FC<WikiMerchant3DCardProps> = ({
             </span>
           </div>
         )}
-        <div
-          ref={containerRef}
-          className="absolute inset-0 z-10 h-full w-full"
-        />
+        <div ref={containerRef} className="absolute inset-0 z-10 h-full w-full" />
       </div>
     );
   }
@@ -266,7 +256,7 @@ export const WikiMerchant3DCard: React.FC<WikiMerchant3DCardProps> = ({
             role="region"
             aria-label="Visualizador 3D Mercader"
             tabIndex={0}
-            className="min-h-95 bg-radial relative flex h-full w-full cursor-grab items-center justify-center overflow-hidden border-b border-amber-500/20 from-amber-950/30 via-black to-black outline-none active:cursor-grabbing focus:outline-none lg:col-span-5 lg:border-b-0 lg:border-r"
+            className="min-h-95 bg-radial relative flex h-full w-full cursor-grab items-center justify-center overflow-hidden border-b border-amber-500/20 from-amber-950/30 via-black to-black outline-none focus:outline-none active:cursor-grabbing lg:col-span-5 lg:border-b-0 lg:border-r"
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
@@ -281,10 +271,7 @@ export const WikiMerchant3DCard: React.FC<WikiMerchant3DCardProps> = ({
               </div>
             )}
 
-            <div
-              ref={containerRef}
-              className="absolute inset-0 z-10 h-full w-full"
-            />
+            <div ref={containerRef} className="absolute inset-0 z-10 h-full w-full" />
 
             {/* Controls */}
             <div className="absolute right-3 top-3 z-20 flex items-center gap-1.5">
@@ -313,8 +300,7 @@ export const WikiMerchant3DCard: React.FC<WikiMerchant3DCardProps> = ({
           <div className="flex flex-col justify-between space-y-3 p-5 lg:col-span-7">
             <div>
               <div className="mb-1.5 inline-flex items-center gap-1.5 rounded-lg border border-amber-500/20 bg-amber-500/10 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-amber-400">
-                <ShoppingBag className="h-3 w-3" /> Ribbits & Traders •{" "}
-                {subtitle}
+                <ShoppingBag className="h-3 w-3" /> Ribbits & Traders • {subtitle}
               </div>
 
               <h2 className="mb-1 text-xl font-black uppercase tracking-tight text-white">
@@ -323,9 +309,7 @@ export const WikiMerchant3DCard: React.FC<WikiMerchant3DCardProps> = ({
 
               {description && (
                 <div className="mb-3 space-y-1.5 text-[11px] font-medium leading-relaxed text-gray-300 [&_p]:mb-1">
-                  <ReactMarkdown>
-                    {description.replaceAll('\\n', '\n')}
-                  </ReactMarkdown>
+                  <ReactMarkdown>{description.replaceAll('\\n', '\n')}</ReactMarkdown>
                 </div>
               )}
 
@@ -339,9 +323,7 @@ export const WikiMerchant3DCard: React.FC<WikiMerchant3DCardProps> = ({
                     <div className="font-mono text-[8px] uppercase tracking-wider text-gray-400">
                       Moneda de Cambio
                     </div>
-                    <div className="text-[11px] font-bold text-amber-300">
-                      {currency}
-                    </div>
+                    <div className="text-[11px] font-bold text-amber-300">{currency}</div>
                   </div>
                 </div>
 
@@ -379,9 +361,7 @@ export const WikiMerchant3DCard: React.FC<WikiMerchant3DCardProps> = ({
                     <div className="font-mono text-[8px] uppercase tracking-wider text-gray-400">
                       Disponibilidad
                     </div>
-                    <div className="text-[11px] font-bold text-white">
-                      Encuentro Frecuente
-                    </div>
+                    <div className="text-[11px] font-bold text-white">Encuentro Frecuente</div>
                   </div>
                 </div>
               </div>
@@ -392,9 +372,7 @@ export const WikiMerchant3DCard: React.FC<WikiMerchant3DCardProps> = ({
                   <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-amber-400">
                     <ShoppingBag size={13} /> Catálogo de Intercambio Offered
                   </div>
-                  <span className="font-mono text-[9px] text-gray-400">
-                    Tienda de Aldea
-                  </span>
+                  <span className="font-mono text-[9px] text-gray-400">Tienda de Aldea</span>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {trades.map((item) => (

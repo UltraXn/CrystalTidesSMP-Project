@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 
 interface SkeletonLoaderProps {
   width?: string | number;
@@ -7,11 +7,11 @@ interface SkeletonLoaderProps {
   className?: string;
 }
 
-export const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({
-  width = "100%",
-  height = "1rem",
+export const SkeletonLoader: React.FC<Readonly<SkeletonLoaderProps>> = ({
+  width = '100%',
+  height = '1rem',
   borderRadius,
-  className = "",
+  className = '',
 }) => {
   return (
     <div

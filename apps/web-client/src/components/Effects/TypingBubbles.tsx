@@ -1,3 +1,4 @@
+import { secureRandom } from '../../utils/random';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import './TypingBubbles.css';
@@ -31,9 +32,9 @@ function BubbleItem({ bubble, onExpire }: { bubble: Bubble; onExpire: (id: numbe
 
 function createRandomBubble(): Bubble {
   return {
-    id: Date.now() + Math.random(),
-    left: Math.random() * 100,
-    size: Math.random() * 20 + 10,
+    id: Date.now() + secureRandom(),
+    left: secureRandom() * 100,
+    size: secureRandom() * 20 + 10,
   };
 }
 

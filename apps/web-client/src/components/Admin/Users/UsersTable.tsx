@@ -1,8 +1,8 @@
-import { Search, Medal, Trophy } from "lucide-react";
-import { useTranslation } from "react-i18next";
-import { UserDefinition } from "./types";
-import { UserRoleBadge } from "./UserRoleBadge";
-import Loader from "../../UI/Loader";
+import { Search, Medal, Trophy } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { UserDefinition } from './types';
+import { UserRoleBadge } from './UserRoleBadge';
+import Loader from '../../UI/Loader';
 
 interface UsersTableProps {
   users: UserDefinition[];
@@ -22,68 +22,68 @@ export default function UsersTable({
   onEditMedals,
   onEditAchievements,
   onRoleChange,
-}: UsersTableProps) {
+}: Readonly<UsersTableProps>) {
   const { t } = useTranslation();
 
   return (
     <div
       className="admin-table-container"
-      style={{ overflow: "visible", background: "transparent", border: "none" }}
+      style={{ overflow: 'visible', background: 'transparent', border: 'none' }}
     >
       <table
         className="admin-table users-table-responsive"
-        style={{ borderCollapse: "separate", borderSpacing: "0 0.5rem" }}
+        style={{ borderCollapse: 'separate', borderSpacing: '0 0.5rem' }}
       >
         <thead>
           <tr>
             <th
               style={{
-                background: "transparent",
-                border: "none",
-                paddingLeft: "1.5rem",
-                color: "#666",
+                background: 'transparent',
+                border: 'none',
+                paddingLeft: '1.5rem',
+                color: '#666',
               }}
             >
-              {t("admin.users.table.user")}
+              {t('admin.users.table.user')}
             </th>
             <th
               className="th-mobile-hide"
               style={{
-                background: "transparent",
-                border: "none",
-                color: "#666",
+                background: 'transparent',
+                border: 'none',
+                color: '#666',
               }}
             >
-              {t("admin.users.table.id")}
+              {t('admin.users.table.id')}
             </th>
             <th
               style={{
-                background: "transparent",
-                border: "none",
-                color: "#666",
+                background: 'transparent',
+                border: 'none',
+                color: '#666',
               }}
             >
-              {t("admin.users.table.role")}
+              {t('admin.users.table.role')}
             </th>
             <th
               className="th-mobile-hide"
               style={{
-                background: "transparent",
-                border: "none",
-                color: "#666",
+                background: 'transparent',
+                border: 'none',
+                color: '#666',
               }}
             >
-              {t("admin.users.gamification")}
+              {t('admin.users.gamification')}
             </th>
             {canManageRoles && (
               <th
                 style={{
-                  background: "transparent",
-                  border: "none",
-                  color: "#666",
+                  background: 'transparent',
+                  border: 'none',
+                  color: '#666',
                 }}
               >
-                {t("admin.users.table.change_role")}
+                {t('admin.users.table.change_role')}
               </th>
             )}
           </tr>
@@ -94,44 +94,44 @@ export default function UsersTable({
               key={u.id}
               className="user-table-row"
               style={{
-                background: "rgba(255, 255, 255, 0.02)",
-                transition: "transform 0.2s",
-                cursor: "default",
+                background: 'rgba(255, 255, 255, 0.02)',
+                transition: 'transform 0.2s',
+                cursor: 'default',
               }}
             >
               <td
                 className="user-cell-main"
                 aria-label={u.username || u.email}
                 style={{
-                  border: "1px solid rgba(255,255,255,0.05)",
-                  borderRight: "none",
-                  borderRadius: "16px 0 0 16px",
-                  padding: "1.25rem",
+                  border: '1px solid rgba(255,255,255,0.05)',
+                  borderRight: 'none',
+                  borderRadius: '16px 0 0 16px',
+                  padding: '1.25rem',
                 }}
               >
                 <div
                   style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "1rem",
-                    flexWrap: "wrap",
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '1rem',
+                    flexWrap: 'wrap',
                   }}
                 >
                   <div
                     style={{
-                      width: "42px",
-                      height: "42px",
-                      minWidth: "42px",
-                      borderRadius: "12px",
+                      width: '42px',
+                      height: '42px',
+                      minWidth: '42px',
+                      borderRadius: '12px',
                       background:
-                        "linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05))",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: "1.2rem",
-                      fontWeight: "bold",
-                      color: "var(--accent)",
-                      overflow: "hidden",
+                        'linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05))',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '1.2rem',
+                      fontWeight: 'bold',
+                      color: 'var(--accent)',
+                      overflow: 'hidden',
                     }}
                   >
                     {u.avatar_url ? (
@@ -139,15 +139,13 @@ export default function UsersTable({
                         src={u.avatar_url}
                         alt={u.username}
                         style={{
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "cover",
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
                         }}
                         onError={(e) => {
-                          (e.target as HTMLImageElement).style.display = "none";
-                          (
-                            e.target as HTMLImageElement
-                          ).parentElement!.innerText = u.username
+                          (e.target as HTMLImageElement).style.display = 'none';
+                          (e.target as HTMLImageElement).parentElement!.innerText = u.username
                             ? u.username[0].toUpperCase()
                             : u.email[0].toUpperCase();
                         }}
@@ -158,27 +156,27 @@ export default function UsersTable({
                       u.email[0].toUpperCase()
                     )}
                   </div>
-                  <div style={{ flex: "1", minWidth: "0" }}>
+                  <div style={{ flex: '1', minWidth: '0' }}>
                     <div
                       style={{
-                        fontWeight: "800",
-                        color: "#fff",
-                        fontSize: "1rem",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
+                        fontWeight: '800',
+                        color: '#fff',
+                        fontSize: '1rem',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
                       }}
                     >
-                      {u.username || u.email.split("@")[0]}
+                      {u.username || u.email.split('@')[0]}
                     </div>
                     <div
                       style={{
-                        fontSize: "0.75rem",
-                        color: "rgba(255,255,255,0.4)",
-                        marginTop: "2px",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
+                        fontSize: '0.75rem',
+                        color: 'rgba(255,255,255,0.4)',
+                        marginTop: '2px',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
                       }}
                     >
                       {u.email}
@@ -189,20 +187,20 @@ export default function UsersTable({
               <td
                 className="th-mobile-hide"
                 style={{
-                  border: "1px solid rgba(255,255,255,0.05)",
-                  borderLeft: "none",
-                  borderRight: "none",
-                  position: "relative",
+                  border: '1px solid rgba(255,255,255,0.05)',
+                  borderLeft: 'none',
+                  borderRight: 'none',
+                  position: 'relative',
                 }}
               >
                 <span
                   style={{
-                    fontFamily: "monospace",
-                    fontSize: "0.75rem",
-                    color: "rgba(255,255,255,0.3)",
-                    background: "rgba(0,0,0,0.3)",
-                    padding: "4px 8px",
-                    borderRadius: "6px",
+                    fontFamily: 'monospace',
+                    fontSize: '0.75rem',
+                    color: 'rgba(255,255,255,0.3)',
+                    background: 'rgba(0,0,0,0.3)',
+                    padding: '4px 8px',
+                    borderRadius: '6px',
                   }}
                 >
                   {u.id.substring(0, 8)}...
@@ -211,31 +209,28 @@ export default function UsersTable({
               <td
                 className="user-cell-role"
                 style={{
-                  border: "1px solid rgba(255,255,255,0.05)",
-                  borderLeft: "none",
-                  borderRight: "none",
-                  minWidth: "120px",
+                  border: '1px solid rgba(255,255,255,0.05)',
+                  borderLeft: 'none',
+                  borderRight: 'none',
+                  minWidth: '120px',
                 }}
               >
-                <UserRoleBadge role={u.role || "user"} />
+                <UserRoleBadge role={u.role || 'user'} />
               </td>
               <td
                 className="th-mobile-hide"
-                aria-label={t(
-                  "admin.users.medals_achievements",
-                  "Medallas y Logros",
-                )}
+                aria-label={t('admin.users.medals_achievements', 'Medallas y Logros')}
                 style={{
-                  border: "1px solid rgba(255,255,255,0.05)",
-                  borderLeft: "none",
-                  borderRight: "none",
+                  border: '1px solid rgba(255,255,255,0.05)',
+                  borderLeft: 'none',
+                  borderRight: 'none',
                 }}
               >
                 <div
                   style={{
-                    display: "flex",
-                    gap: "0.5rem",
-                    flexDirection: "column",
+                    display: 'flex',
+                    gap: '0.5rem',
+                    flexDirection: 'column',
                   }}
                 >
                   <button
@@ -244,34 +239,32 @@ export default function UsersTable({
                     style={{
                       background:
                         u.medals && u.medals.length > 0
-                          ? "rgba(251, 191, 36, 0.1)"
-                          : "rgba(255, 255, 255, 0.05)",
+                          ? 'rgba(251, 191, 36, 0.1)'
+                          : 'rgba(255, 255, 255, 0.05)',
                       border:
                         u.medals && u.medals.length > 0
-                          ? "1px solid rgba(251, 191, 36, 0.3)"
-                          : "1px solid rgba(255, 255, 255, 0.1)",
+                          ? '1px solid rgba(251, 191, 36, 0.3)'
+                          : '1px solid rgba(255, 255, 255, 0.1)',
                       color:
-                        u.medals && u.medals.length > 0
-                          ? "#fbbf24"
-                          : "rgba(255, 255, 255, 0.4)",
-                      borderRadius: "10px",
-                      padding: "0.4rem 0.8rem",
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: "0.5rem",
-                      fontSize: "0.8rem",
-                      fontWeight: "600",
+                        u.medals && u.medals.length > 0 ? '#fbbf24' : 'rgba(255, 255, 255, 0.4)',
+                      borderRadius: '10px',
+                      padding: '0.4rem 0.8rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.5rem',
+                      fontSize: '0.8rem',
+                      fontWeight: '600',
                       transition:
-                        "color 0.2s, background-color 0.2s, border-color 0.2s, opacity 0.2s",
-                      whiteSpace: "nowrap",
-                      width: "100%",
+                        'color 0.2s, background-color 0.2s, border-color 0.2s, opacity 0.2s',
+                      whiteSpace: 'nowrap',
+                      width: '100%',
                     }}
                     className="hover-lift"
                   >
-                    <Medal size={14} /> {u.medals?.length || 0}{" "}
-                    {t("admin.users.medals", "Medallas")}
+                    <Medal size={14} /> {u.medals?.length || 0}{' '}
+                    {t('admin.users.medals', 'Medallas')}
                   </button>
                   <button
                     type="button"
@@ -279,34 +272,34 @@ export default function UsersTable({
                     style={{
                       background:
                         u.achievements && u.achievements.length > 0
-                          ? "rgba(16, 185, 129, 0.1)"
-                          : "rgba(255, 255, 255, 0.05)",
+                          ? 'rgba(16, 185, 129, 0.1)'
+                          : 'rgba(255, 255, 255, 0.05)',
                       border:
                         u.achievements && u.achievements.length > 0
-                          ? "1px solid rgba(16, 185, 129, 0.3)"
-                          : "1px solid rgba(255, 255, 255, 0.1)",
+                          ? '1px solid rgba(16, 185, 129, 0.3)'
+                          : '1px solid rgba(255, 255, 255, 0.1)',
                       color:
                         u.achievements && u.achievements.length > 0
-                          ? "#10b981"
-                          : "rgba(255, 255, 255, 0.4)",
-                      borderRadius: "10px",
-                      padding: "0.4rem 0.8rem",
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: "0.5rem",
-                      fontSize: "0.8rem",
-                      fontWeight: "600",
+                          ? '#10b981'
+                          : 'rgba(255, 255, 255, 0.4)',
+                      borderRadius: '10px',
+                      padding: '0.4rem 0.8rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.5rem',
+                      fontSize: '0.8rem',
+                      fontWeight: '600',
                       transition:
-                        "color 0.2s, background-color 0.2s, border-color 0.2s, opacity 0.2s",
-                      whiteSpace: "nowrap",
-                      width: "100%",
+                        'color 0.2s, background-color 0.2s, border-color 0.2s, opacity 0.2s',
+                      whiteSpace: 'nowrap',
+                      width: '100%',
                     }}
                     className="hover-lift"
                   >
-                    <Trophy size={14} /> {u.achievements?.length || 0}{" "}
-                    {t("admin.users.achievements", "Logros")}
+                    <Trophy size={14} /> {u.achievements?.length || 0}{' '}
+                    {t('admin.users.achievements', 'Logros')}
                   </button>
                 </div>
               </td>
@@ -314,51 +307,39 @@ export default function UsersTable({
                 <td
                   className="user-cell-actions"
                   style={{
-                    border: "1px solid rgba(255,255,255,0.05)",
-                    borderLeft: "none",
-                    borderRadius: "0 16px 16px 0",
-                    paddingRight: "1.25rem",
+                    border: '1px solid rgba(255,255,255,0.05)',
+                    borderLeft: 'none',
+                    borderRadius: '0 16px 16px 0',
+                    paddingRight: '1.25rem',
                   }}
                 >
-                  <div style={{ position: "relative" }}>
+                  <div style={{ position: 'relative' }}>
                     <select
                       aria-label={t(
-                        "admin.users.select_role",
-                        `Rol para ${u.username || "usuario"}`,
+                        'admin.users.select_role',
+                        `Rol para ${u.username || 'usuario'}`,
                       )}
                       className="admin-select-premium"
                       style={{
-                        padding: "0.6rem 2.5rem 0.6rem 1rem",
-                        fontSize: "0.85rem",
-                        minWidth: "140px",
-                        width: "100%",
-                        backgroundPosition: "right 0.8rem center",
+                        padding: '0.6rem 2.5rem 0.6rem 1rem',
+                        fontSize: '0.85rem',
+                        minWidth: '140px',
+                        width: '100%',
+                        backgroundPosition: 'right 0.8rem center',
                       }}
-                      value={u.role || "user"}
+                      value={u.role || 'user'}
                       onChange={(e) => onRoleChange(u.id, e.target.value)}
                     >
-                      <option value="neroferno">
-                        {t("account.roles.neroferno")}
-                      </option>
-                      <option value="killu">{t("account.roles.killu")}</option>
-                      <option value="developer">
-                        {t("account.roles.developer")}
-                      </option>
-                      <option value="admin">{t("account.roles.admin")}</option>
-                      <option value="moderator">
-                        {t("account.roles.moderator", "Moderator")}
-                      </option>
-                      <option value="helper">
-                        {t("account.roles.helper")}
-                      </option>
-                      <option value="staff">
-                        {t("account.roles.staff", "Staff")}
-                      </option>
-                      <option value="founder">
-                        {t("account.roles.founder")}
-                      </option>
-                      <option value="donor">{t("account.roles.donor")}</option>
-                      <option value="user">{t("account.roles.user")}</option>
+                      <option value="neroferno">{t('account.roles.neroferno')}</option>
+                      <option value="killu">{t('account.roles.killu')}</option>
+                      <option value="developer">{t('account.roles.developer')}</option>
+                      <option value="admin">{t('account.roles.admin')}</option>
+                      <option value="moderator">{t('account.roles.moderator', 'Moderator')}</option>
+                      <option value="helper">{t('account.roles.helper')}</option>
+                      <option value="staff">{t('account.roles.staff', 'Staff')}</option>
+                      <option value="founder">{t('account.roles.founder')}</option>
+                      <option value="donor">{t('account.roles.donor')}</option>
+                      <option value="user">{t('account.roles.user')}</option>
                     </select>
                   </div>
                 </td>
@@ -371,52 +352,50 @@ export default function UsersTable({
       {users.length === 0 && hasSearched && !loading && (
         <div
           style={{
-            padding: "4rem",
-            textAlign: "center",
-            color: "rgba(255,255,255,0.4)",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: "1rem",
+            padding: '4rem',
+            textAlign: 'center',
+            color: 'rgba(255,255,255,0.4)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '1rem',
           }}
         >
           <Search size={48} opacity={0.2} />
-          <div>{t("admin.users.no_results")}</div>
+          <div>{t('admin.users.no_results')}</div>
         </div>
       )}
       {users.length === 0 && !hasSearched && (
         <div
           style={{
-            padding: "4rem",
-            textAlign: "center",
-            color: "rgba(255,255,255,0.4)",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: "1rem",
+            padding: '4rem',
+            textAlign: 'center',
+            color: 'rgba(255,255,255,0.4)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '1rem',
           }}
         >
           <div
             style={{
-              width: "64px",
-              height: "64px",
-              borderRadius: "50%",
-              background: "rgba(255,255,255,0.03)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
+              width: '64px',
+              height: '64px',
+              borderRadius: '50%',
+              background: 'rgba(255,255,255,0.03)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
           >
             <Search size={24} opacity={0.5} />
           </div>
-          <div>{t("admin.users.initial_msg")}</div>
+          <div>{t('admin.users.initial_msg')}</div>
         </div>
       )}
       {loading && (
-        <div
-          style={{ padding: "4rem", display: "flex", justifyContent: "center" }}
-        >
-          <Loader style={{ height: "auto", minHeight: "100px" }} />
+        <div style={{ padding: '4rem', display: 'flex', justifyContent: 'center' }}>
+          <Loader style={{ height: 'auto', minHeight: '100px' }} />
         </div>
       )}
     </div>

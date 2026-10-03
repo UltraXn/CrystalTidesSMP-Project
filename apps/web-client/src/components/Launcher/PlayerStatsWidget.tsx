@@ -1,6 +1,6 @@
-import { useState, type ReactNode } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Shield, Award, HelpCircle, Lock, CheckCircle, Sparkles } from "lucide-react";
+import { useState, type ReactNode } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { Shield, Award, HelpCircle, Lock, CheckCircle, Sparkles } from 'lucide-react';
 
 interface PlayerStatsData {
   username: string;
@@ -41,7 +41,7 @@ export interface PlayerStatsWidgetProps {
   username?: string | null;
 }
 
-type ArchetypeKey = "constructor" | "luchador" | "mercader" | "constancia" | "explorador";
+type ArchetypeKey = 'constructor' | 'luchador' | 'mercader' | 'constancia' | 'explorador';
 
 interface PentagonAxis {
   key: ArchetypeKey;
@@ -85,23 +85,23 @@ interface PrestigeMockup {
 }
 
 const UI_COLORS = {
-  CARD_BG: "rgba(15, 23, 42, 0.75)",
-  CARD_BORDER: "1px solid rgba(255,255,255,0.08)",
-  TEAL_ACCENT: "#2DD4BF",
-  PURPLE_PRIMARY: "#9333EA",
-  PURPLE_LIGHT: "#C084FC",
-  PURPLE_BORDER_FADED: "1px solid rgba(168,85,247,0.2)",
-  BORDER_SUBTLE: "1px solid rgba(255,255,255,0.1)",
-  TEXT_MUTED: "rgba(255,255,255,0.5)",
-  TEXT_FAINT: "rgba(255,255,255,0.4)",
+  CARD_BG: 'rgba(15, 23, 42, 0.75)',
+  CARD_BORDER: '1px solid rgba(255,255,255,0.08)',
+  TEAL_ACCENT: '#2DD4BF',
+  PURPLE_PRIMARY: '#9333EA',
+  PURPLE_LIGHT: '#C084FC',
+  PURPLE_BORDER_FADED: '1px solid rgba(168,85,247,0.2)',
+  BORDER_SUBTLE: '1px solid rgba(255,255,255,0.1)',
+  TEXT_MUTED: 'rgba(255,255,255,0.5)',
+  TEXT_FAINT: 'rgba(255,255,255,0.4)',
 } as const;
 
 const ARCHETYPE_ICONS = {
-  CONSTRUCTOR: "https://minecraft.wiki/w/Special:Redirect/file/Crafting_Table.png",
-  LUCHADOR: "https://minecraft.wiki/w/Special:Redirect/file/Diamond_Sword.png",
-  MERCADER: "/images/killucoins/coin_oro.webp",
-  CONSTANCIA: "https://minecraft.wiki/w/Special:Redirect/file/Totem_of_Undying.png",
-  EXPLORADOR: "https://minecraft.wiki/w/Special:Redirect/file/Compass.png",
+  CONSTRUCTOR: 'https://minecraft.wiki/w/Special:Redirect/file/Crafting_Table.png',
+  LUCHADOR: 'https://minecraft.wiki/w/Special:Redirect/file/Diamond_Sword.png',
+  MERCADER: '/images/killucoins/coin_oro.webp',
+  CONSTANCIA: 'https://minecraft.wiki/w/Special:Redirect/file/Totem_of_Undying.png',
+  EXPLORADOR: 'https://minecraft.wiki/w/Special:Redirect/file/Compass.png',
 } as const;
 
 const getMcItemUrl = (filename: string): string =>
@@ -111,9 +111,9 @@ const parsePlaytimeHours = (ptStr: string): number => {
   if (!ptStr) return 0;
   let hours = 0;
   for (const part of ptStr.trim().split(/\s+/)) {
-    if (part.endsWith("h")) {
+    if (part.endsWith('h')) {
       hours += Number.parseFloat(part.slice(0, -1)) || 0;
-    } else if (part.endsWith("m")) {
+    } else if (part.endsWith('m')) {
       hours += (Number.parseFloat(part.slice(0, -1)) || 0) / 60;
     }
   }
@@ -122,7 +122,7 @@ const parsePlaytimeHours = (ptStr: string): number => {
 
 const parseMoneyNum = (moneyStr: string): number => {
   if (!moneyStr) return 0;
-  return Number.parseFloat(moneyStr.replace(/[^0-9.-]+/g, "")) || 0;
+  return Number.parseFloat(moneyStr.replace(/[^0-9.-]+/g, '')) || 0;
 };
 
 const getTopRelativeScore = (val: number, top1Val?: number, isTop1?: boolean): number => {
@@ -144,98 +144,438 @@ const getRadarCoordinates = (index: number, scorePercent: number) => {
   };
 };
 
-const DEFAULT_FALLBACK_STATS: Omit<PlayerStatsData, "username"> = {
-  rank: "Aventurero",
-  rank_image: "user.png",
-  playtime: "142h 30m",
-  weekly_playtime: "8h 45m",
+const DEFAULT_FALLBACK_STATS: Omit<PlayerStatsData, 'username'> = {
+  rank: 'Aventurero',
+  rank_image: 'user.png',
+  playtime: '142h 30m',
+  weekly_playtime: '8h 45m',
   kills: 154,
   weekly_kills: 18,
   mob_kills: 1420,
   deaths: 23,
   weekly_deaths: 3,
-  money: "1,250 KC",
-  weekly_kc_earned: "+350 KC",
+  money: '1,250 KC',
+  weekly_kc_earned: '+350 KC',
   gacha_spins_weekly: 4,
   blocks_mined: 38900,
   blocks_placed: 45210,
-  member_since: "14 de Febrero, 2026",
+  member_since: '14 de Febrero, 2026',
 };
 
 const ARCHETYPE_MOCKUPS: Record<ArchetypeKey, PrestigeMockup[]> = {
   constructor: [
-    { levelNum: 1, level: "⭐ Prestigio I", rankName: "Iniciado de Piedra", bonus: "+5% KC Diarios", tag: "[P1]", color: "#F59E0B", border: "rgba(245,158,11,0.3)", bg: "rgba(245,158,11,0.1)", item: getMcItemUrl("Cobblestone.png") },
-    { levelNum: 2, level: "⭐⭐ Prestigio II", rankName: "Constructor Consagrado", bonus: "+10% KC Diarios", tag: "[P2]", color: "#CBD5E1", border: "rgba(203,213,225,0.3)", bg: "rgba(203,213,225,0.1)", item: getMcItemUrl("Iron_Pickaxe.png") },
-    { levelNum: 3, level: "⭐⭐⭐ Prestigio III", rankName: "Gran Arquitecto", bonus: "+15% KC", tag: "[P3]", color: "#FACC15", border: "rgba(250,204,21,0.3)", bg: "rgba(250,204,21,0.1)", item: getMcItemUrl("Golden_Pickaxe.png") },
-    { levelNum: 4, level: "⭐⭐⭐⭐ Prestigio IV", rankName: "Maestro Constructor", bonus: "+20% KC", tag: "[P4]", color: "#22D3EE", border: "rgba(34,211,238,0.3)", bg: "rgba(34,211,238,0.1)", item: getMcItemUrl("Diamond_Pickaxe.png") },
-    { levelNum: 5, level: "💎 Prestigio V", rankName: "Arquitecto Mítico", bonus: "+25% KC + Title", tag: "[P5]", color: "#E879F9", border: "rgba(232,121,249,0.4)", bg: "rgba(232,121,249,0.15)", item: getMcItemUrl("Beacon.png") },
+    {
+      levelNum: 1,
+      level: '⭐ Prestigio I',
+      rankName: 'Iniciado de Piedra',
+      bonus: '+5% KC Diarios',
+      tag: '[P1]',
+      color: '#F59E0B',
+      border: 'rgba(245,158,11,0.3)',
+      bg: 'rgba(245,158,11,0.1)',
+      item: getMcItemUrl('Cobblestone.png'),
+    },
+    {
+      levelNum: 2,
+      level: '⭐⭐ Prestigio II',
+      rankName: 'Constructor Consagrado',
+      bonus: '+10% KC Diarios',
+      tag: '[P2]',
+      color: '#CBD5E1',
+      border: 'rgba(203,213,225,0.3)',
+      bg: 'rgba(203,213,225,0.1)',
+      item: getMcItemUrl('Iron_Pickaxe.png'),
+    },
+    {
+      levelNum: 3,
+      level: '⭐⭐⭐ Prestigio III',
+      rankName: 'Gran Arquitecto',
+      bonus: '+15% KC',
+      tag: '[P3]',
+      color: '#FACC15',
+      border: 'rgba(250,204,21,0.3)',
+      bg: 'rgba(250,204,21,0.1)',
+      item: getMcItemUrl('Golden_Pickaxe.png'),
+    },
+    {
+      levelNum: 4,
+      level: '⭐⭐⭐⭐ Prestigio IV',
+      rankName: 'Maestro Constructor',
+      bonus: '+20% KC',
+      tag: '[P4]',
+      color: '#22D3EE',
+      border: 'rgba(34,211,238,0.3)',
+      bg: 'rgba(34,211,238,0.1)',
+      item: getMcItemUrl('Diamond_Pickaxe.png'),
+    },
+    {
+      levelNum: 5,
+      level: '💎 Prestigio V',
+      rankName: 'Arquitecto Mítico',
+      bonus: '+25% KC + Title',
+      tag: '[P5]',
+      color: '#E879F9',
+      border: 'rgba(232,121,249,0.4)',
+      bg: 'rgba(232,121,249,0.15)',
+      item: getMcItemUrl('Beacon.png'),
+    },
   ],
   luchador: [
-    { levelNum: 1, level: "⭐ Prestigio I", rankName: "Guerrero de Bronce", bonus: "+5% KC Diarios", tag: "[P1]", color: "#F59E0B", border: "rgba(245,158,11,0.3)", bg: "rgba(245,158,11,0.1)", item: getMcItemUrl("Wooden_Sword.png") },
-    { levelNum: 2, level: "⭐⭐ Prestigio II", rankName: "Campeón de Batalla", bonus: "+10% KC Diarios", tag: "[P2]", color: "#CBD5E1", border: "rgba(203,213,225,0.3)", bg: "rgba(203,213,225,0.1)", item: getMcItemUrl("Iron_Sword.png") },
-    { levelNum: 3, level: "⭐⭐⭐ Prestigio III", rankName: "Señor de Guerra", bonus: "+15% KC", tag: "[P3]", color: "#FACC15", border: "rgba(250,204,21,0.3)", bg: "rgba(250,204,21,0.1)", item: getMcItemUrl("Golden_Sword.png") },
-    { levelNum: 4, level: "⭐⭐⭐⭐ Prestigio IV", rankName: "Maestro de Armas", bonus: "+20% KC", tag: "[P4]", color: "#22D3EE", border: "rgba(34,211,238,0.3)", bg: "rgba(34,211,238,0.1)", item: getMcItemUrl("Diamond_Sword.png") },
-    { levelNum: 5, level: "💎 Prestigio V", rankName: "Gladiador Supremo", bonus: "+25% KC + Espadas", tag: "[P5]", color: "#E879F9", border: "rgba(232,121,249,0.4)", bg: "rgba(232,121,249,0.15)", item: getMcItemUrl("Mace.png") },
+    {
+      levelNum: 1,
+      level: '⭐ Prestigio I',
+      rankName: 'Guerrero de Bronce',
+      bonus: '+5% KC Diarios',
+      tag: '[P1]',
+      color: '#F59E0B',
+      border: 'rgba(245,158,11,0.3)',
+      bg: 'rgba(245,158,11,0.1)',
+      item: getMcItemUrl('Wooden_Sword.png'),
+    },
+    {
+      levelNum: 2,
+      level: '⭐⭐ Prestigio II',
+      rankName: 'Campeón de Batalla',
+      bonus: '+10% KC Diarios',
+      tag: '[P2]',
+      color: '#CBD5E1',
+      border: 'rgba(203,213,225,0.3)',
+      bg: 'rgba(203,213,225,0.1)',
+      item: getMcItemUrl('Iron_Sword.png'),
+    },
+    {
+      levelNum: 3,
+      level: '⭐⭐⭐ Prestigio III',
+      rankName: 'Señor de Guerra',
+      bonus: '+15% KC',
+      tag: '[P3]',
+      color: '#FACC15',
+      border: 'rgba(250,204,21,0.3)',
+      bg: 'rgba(250,204,21,0.1)',
+      item: getMcItemUrl('Golden_Sword.png'),
+    },
+    {
+      levelNum: 4,
+      level: '⭐⭐⭐⭐ Prestigio IV',
+      rankName: 'Maestro de Armas',
+      bonus: '+20% KC',
+      tag: '[P4]',
+      color: '#22D3EE',
+      border: 'rgba(34,211,238,0.3)',
+      bg: 'rgba(34,211,238,0.1)',
+      item: getMcItemUrl('Diamond_Sword.png'),
+    },
+    {
+      levelNum: 5,
+      level: '💎 Prestigio V',
+      rankName: 'Gladiador Supremo',
+      bonus: '+25% KC + Espadas',
+      tag: '[P5]',
+      color: '#E879F9',
+      border: 'rgba(232,121,249,0.4)',
+      bg: 'rgba(232,121,249,0.15)',
+      item: getMcItemUrl('Mace.png'),
+    },
   ],
   mercader: [
-    { levelNum: 1, level: "⭐ Prestigio I", rankName: "Mercader Próspero", bonus: "+5% KC Diarios", tag: "[P1]", color: "#F59E0B", border: "rgba(245,158,11,0.3)", bg: "rgba(245,158,11,0.1)", item: "/images/killucoins/coin_cobre.webp" },
-    { levelNum: 2, level: "⭐⭐ Prestigio II", rankName: "Comerciante de Élite", bonus: "+10% KC Diarios", tag: "[P2]", color: "#CBD5E1", border: "rgba(203,213,225,0.3)", bg: "rgba(203,213,225,0.1)", item: "/images/killucoins/coin_plata.webp" },
-    { levelNum: 3, level: "⭐⭐⭐ Prestigio III", rankName: "Barón Financiero", bonus: "+15% KC", tag: "[P3]", color: "#FACC15", border: "rgba(250,204,21,0.3)", bg: "rgba(250,204,21,0.1)", item: "/images/killucoins/coin_oro.webp" },
-    { levelNum: 4, level: "⭐⭐⭐⭐ Prestigio IV", rankName: "Gran Maestro Gremial", bonus: "+20% KC", tag: "[P4]", color: "#22D3EE", border: "rgba(34,211,238,0.3)", bg: "rgba(34,211,238,0.1)", item: "/images/killucoins/coin_diamante.webp" },
-    { levelNum: 5, level: "💎 Prestigio V", rankName: "Magnate Legendario", bonus: "+25% KC + Rain", tag: "[P5]", color: "#E879F9", border: "rgba(232,121,249,0.4)", bg: "rgba(232,121,249,0.15)", item: "/images/killucoins/coin_iridium.webp" },
+    {
+      levelNum: 1,
+      level: '⭐ Prestigio I',
+      rankName: 'Mercader Próspero',
+      bonus: '+5% KC Diarios',
+      tag: '[P1]',
+      color: '#F59E0B',
+      border: 'rgba(245,158,11,0.3)',
+      bg: 'rgba(245,158,11,0.1)',
+      item: '/images/killucoins/coin_cobre.webp',
+    },
+    {
+      levelNum: 2,
+      level: '⭐⭐ Prestigio II',
+      rankName: 'Comerciante de Élite',
+      bonus: '+10% KC Diarios',
+      tag: '[P2]',
+      color: '#CBD5E1',
+      border: 'rgba(203,213,225,0.3)',
+      bg: 'rgba(203,213,225,0.1)',
+      item: '/images/killucoins/coin_plata.webp',
+    },
+    {
+      levelNum: 3,
+      level: '⭐⭐⭐ Prestigio III',
+      rankName: 'Barón Financiero',
+      bonus: '+15% KC',
+      tag: '[P3]',
+      color: '#FACC15',
+      border: 'rgba(250,204,21,0.3)',
+      bg: 'rgba(250,204,21,0.1)',
+      item: '/images/killucoins/coin_oro.webp',
+    },
+    {
+      levelNum: 4,
+      level: '⭐⭐⭐⭐ Prestigio IV',
+      rankName: 'Gran Maestro Gremial',
+      bonus: '+20% KC',
+      tag: '[P4]',
+      color: '#22D3EE',
+      border: 'rgba(34,211,238,0.3)',
+      bg: 'rgba(34,211,238,0.1)',
+      item: '/images/killucoins/coin_diamante.webp',
+    },
+    {
+      levelNum: 5,
+      level: '💎 Prestigio V',
+      rankName: 'Magnate Legendario',
+      bonus: '+25% KC + Rain',
+      tag: '[P5]',
+      color: '#E879F9',
+      border: 'rgba(232,121,249,0.4)',
+      bg: 'rgba(232,121,249,0.15)',
+      item: '/images/killucoins/coin_iridium.webp',
+    },
   ],
   constancia: [
-    { levelNum: 1, level: "⭐ Prestigio I", rankName: "Devoto del Servidor", bonus: "+5% KC Diarios", tag: "[P1]", color: "#F59E0B", border: "rgba(245,158,11,0.3)", bg: "rgba(245,158,11,0.1)", item: getMcItemUrl("Clock.png") },
-    { levelNum: 2, level: "⭐⭐ Prestigio II", rankName: "Pilar Inquebrantable", bonus: "+10% KC Diarios", tag: "[P2]", color: "#CBD5E1", border: "rgba(203,213,225,0.3)", bg: "rgba(203,213,225,0.1)", item: getMcItemUrl("Compass.png") },
-    { levelNum: 3, level: "⭐⭐⭐ Prestigio III", rankName: "Guardián de Racha", bonus: "+15% KC", tag: "[P3]", color: "#FACC15", border: "rgba(250,204,21,0.3)", bg: "rgba(250,204,21,0.1)", item: getMcItemUrl("Bottle_o%27_Enchanting.png") },
-    { levelNum: 4, level: "⭐⭐⭐⭐ Prestigio IV", rankName: "Leyenda Inquebrantable", bonus: "+20% KC", tag: "[P4]", color: "#22D3EE", border: "rgba(34,211,238,0.3)", bg: "rgba(34,211,238,0.1)", item: getMcItemUrl("Totem_of_Undying.png") },
-    { levelNum: 5, level: "💎 Prestigio V", rankName: "Titán Eterno", bonus: "+25% KC + Totem", tag: "[P5]", color: "#E879F9", border: "rgba(232,121,249,0.4)", bg: "rgba(232,121,249,0.15)", item: getMcItemUrl("Nether_Star.png") },
+    {
+      levelNum: 1,
+      level: '⭐ Prestigio I',
+      rankName: 'Devoto del Servidor',
+      bonus: '+5% KC Diarios',
+      tag: '[P1]',
+      color: '#F59E0B',
+      border: 'rgba(245,158,11,0.3)',
+      bg: 'rgba(245,158,11,0.1)',
+      item: getMcItemUrl('Clock.png'),
+    },
+    {
+      levelNum: 2,
+      level: '⭐⭐ Prestigio II',
+      rankName: 'Pilar Inquebrantable',
+      bonus: '+10% KC Diarios',
+      tag: '[P2]',
+      color: '#CBD5E1',
+      border: 'rgba(203,213,225,0.3)',
+      bg: 'rgba(203,213,225,0.1)',
+      item: getMcItemUrl('Compass.png'),
+    },
+    {
+      levelNum: 3,
+      level: '⭐⭐⭐ Prestigio III',
+      rankName: 'Guardián de Racha',
+      bonus: '+15% KC',
+      tag: '[P3]',
+      color: '#FACC15',
+      border: 'rgba(250,204,21,0.3)',
+      bg: 'rgba(250,204,21,0.1)',
+      item: getMcItemUrl('Bottle_o%27_Enchanting.png'),
+    },
+    {
+      levelNum: 4,
+      level: '⭐⭐⭐⭐ Prestigio IV',
+      rankName: 'Leyenda Inquebrantable',
+      bonus: '+20% KC',
+      tag: '[P4]',
+      color: '#22D3EE',
+      border: 'rgba(34,211,238,0.3)',
+      bg: 'rgba(34,211,238,0.1)',
+      item: getMcItemUrl('Totem_of_Undying.png'),
+    },
+    {
+      levelNum: 5,
+      level: '💎 Prestigio V',
+      rankName: 'Titán Eterno',
+      bonus: '+25% KC + Totem',
+      tag: '[P5]',
+      color: '#E879F9',
+      border: 'rgba(232,121,249,0.4)',
+      bg: 'rgba(232,121,249,0.15)',
+      item: getMcItemUrl('Nether_Star.png'),
+    },
   ],
   explorador: [
-    { levelNum: 1, level: "⭐ Prestigio I", rankName: "Navegante de Reinos", bonus: "+5% KC Diarios", tag: "[P1]", color: "#F59E0B", border: "rgba(245,158,11,0.3)", bg: "rgba(245,158,11,0.1)", item: getMcItemUrl("Leather_Boots_(item)_JE2.png") },
-    { levelNum: 2, level: "⭐⭐ Prestigio II", rankName: "Mapeador Ancestral", bonus: "+10% KC Diarios", tag: "[P2]", color: "#CBD5E1", border: "rgba(203,213,225,0.3)", bg: "rgba(203,213,225,0.1)", item: getMcItemUrl("Spyglass.png") },
-    { levelNum: 3, level: "⭐⭐⭐ Prestigio III", rankName: "Pionero del Horizonte", bonus: "+15% KC", tag: "[P3]", color: "#FACC15", border: "rgba(250,204,21,0.3)", bg: "rgba(250,204,21,0.1)", item: getMcItemUrl("Empty_Map.png") },
-    { levelNum: 4, level: "⭐⭐⭐⭐ Prestigio IV", rankName: "Explorador Experto", bonus: "+20% KC", tag: "[P4]", color: "#22D3EE", border: "rgba(34,211,238,0.3)", bg: "rgba(34,211,238,0.1)", item: getMcItemUrl("Elytra.png") },
-    { levelNum: 5, level: "💎 Prestigio V", rankName: "Conquistador de Mundos", bonus: "+25% KC + Trail", tag: "[P5]", color: "#E879F9", border: "rgba(232,121,249,0.4)", bg: "rgba(232,121,249,0.15)", item: getMcItemUrl("Recovery_Compass.png") },
+    {
+      levelNum: 1,
+      level: '⭐ Prestigio I',
+      rankName: 'Navegante de Reinos',
+      bonus: '+5% KC Diarios',
+      tag: '[P1]',
+      color: '#F59E0B',
+      border: 'rgba(245,158,11,0.3)',
+      bg: 'rgba(245,158,11,0.1)',
+      item: getMcItemUrl('Leather_Boots_(item)_JE2.png'),
+    },
+    {
+      levelNum: 2,
+      level: '⭐⭐ Prestigio II',
+      rankName: 'Mapeador Ancestral',
+      bonus: '+10% KC Diarios',
+      tag: '[P2]',
+      color: '#CBD5E1',
+      border: 'rgba(203,213,225,0.3)',
+      bg: 'rgba(203,213,225,0.1)',
+      item: getMcItemUrl('Spyglass.png'),
+    },
+    {
+      levelNum: 3,
+      level: '⭐⭐⭐ Prestigio III',
+      rankName: 'Pionero del Horizonte',
+      bonus: '+15% KC',
+      tag: '[P3]',
+      color: '#FACC15',
+      border: 'rgba(250,204,21,0.3)',
+      bg: 'rgba(250,204,21,0.1)',
+      item: getMcItemUrl('Empty_Map.png'),
+    },
+    {
+      levelNum: 4,
+      level: '⭐⭐⭐⭐ Prestigio IV',
+      rankName: 'Explorador Experto',
+      bonus: '+20% KC',
+      tag: '[P4]',
+      color: '#22D3EE',
+      border: 'rgba(34,211,238,0.3)',
+      bg: 'rgba(34,211,238,0.1)',
+      item: getMcItemUrl('Elytra.png'),
+    },
+    {
+      levelNum: 5,
+      level: '💎 Prestigio V',
+      rankName: 'Conquistador de Mundos',
+      bonus: '+25% KC + Trail',
+      tag: '[P5]',
+      color: '#E879F9',
+      border: 'rgba(232,121,249,0.4)',
+      bg: 'rgba(232,121,249,0.15)',
+      item: getMcItemUrl('Recovery_Compass.png'),
+    },
   ],
 };
 
 const PRESTIGE_TABS_CONFIG: Record<ArchetypeKey, { label: string; icon: string }> = {
-  constructor: { label: "Constructor", icon: ARCHETYPE_ICONS.CONSTRUCTOR },
-  luchador: { label: "Luchador", icon: getMcItemUrl("Netherite_Sword.png") },
-  mercader: { label: "Mercader", icon: ARCHETYPE_ICONS.MERCADER },
-  constancia: { label: "Constancia", icon: ARCHETYPE_ICONS.CONSTANCIA },
-  explorador: { label: "Explorador", icon: getMcItemUrl("Recovery_Compass.png") },
+  constructor: { label: 'Constructor', icon: ARCHETYPE_ICONS.CONSTRUCTOR },
+  luchador: { label: 'Luchador', icon: getMcItemUrl('Netherite_Sword.png') },
+  mercader: { label: 'Mercader', icon: ARCHETYPE_ICONS.MERCADER },
+  constancia: { label: 'Constancia', icon: ARCHETYPE_ICONS.CONSTANCIA },
+  explorador: { label: 'Explorador', icon: getMcItemUrl('Recovery_Compass.png') },
 };
 
 function buildAxes(stats?: PlayerStatsData): PentagonAxis[] {
   const blocksVal = (stats?.blocks_mined ?? 0) + (stats?.blocks_placed ?? 0) || 63600;
-  const scoreConstructor = getTopRelativeScore(blocksVal, stats?.top1_constructor_score || 100000, stats?.is_top1_constructor);
+  const scoreConstructor = getTopRelativeScore(
+    blocksVal,
+    stats?.top1_constructor_score || 100000,
+    stats?.is_top1_constructor,
+  );
 
   const killsVal = stats?.kills ?? 0;
   const mobKillsVal = stats?.mob_kills ?? 0;
   const totalCombatPoints = killsVal * 15 + mobKillsVal;
-  const scoreLuchador = getTopRelativeScore(totalCombatPoints, stats?.top1_luchador_score || 5000, stats?.is_top1_luchador);
+  const scoreLuchador = getTopRelativeScore(
+    totalCombatPoints,
+    stats?.top1_luchador_score || 5000,
+    stats?.is_top1_luchador,
+  );
 
-  const moneyVal = parseMoneyNum(stats?.money || "") || 12450;
+  const moneyVal = parseMoneyNum(stats?.money || '') || 12450;
   const merchantLogPoints = Math.round(100 * Math.log10(Math.max(1, moneyVal)));
-  const scoreMercader = getTopRelativeScore(merchantLogPoints, stats?.top1_mercader_score || 500, stats?.is_top1_mercader);
+  const scoreMercader = getTopRelativeScore(
+    merchantLogPoints,
+    stats?.top1_mercader_score || 500,
+    stats?.is_top1_mercader,
+  );
 
   const streakVal = stats?.streak_days ?? 14;
   const streakPoints = Math.pow(streakVal, 2);
-  const scoreConstancia = getTopRelativeScore(streakPoints, stats?.top1_constancia_score || 900, stats?.is_top1_constancia);
+  const scoreConstancia = getTopRelativeScore(
+    streakPoints,
+    stats?.top1_constancia_score || 900,
+    stats?.is_top1_constancia,
+  );
 
-  const playtimeHours = parsePlaytimeHours(stats?.playtime || "") || 14.2;
+  const playtimeHours = parsePlaytimeHours(stats?.playtime || '') || 14.2;
   const kmTraveled = playtimeHours * 35;
   const totalExploradorPts = playtimeHours * 10 + kmTraveled;
-  const scoreExplorador = getTopRelativeScore(totalExploradorPts, stats?.top1_explorador_score || 3000, stats?.is_top1_explorador);
+  const scoreExplorador = getTopRelativeScore(
+    totalExploradorPts,
+    stats?.top1_explorador_score || 3000,
+    stats?.is_top1_explorador,
+  );
 
   return [
-    { key: "constructor", label: "Constructor", value: `${(blocksVal / 1000).toFixed(1)}k`, score: scoreConstructor, rawPoints: blocksVal, icon: <img src={ARCHETYPE_ICONS.CONSTRUCTOR} style={{ width: 14, height: 14, objectFit: "contain" }} alt="Constructor" />, color: "#38BDF8" },
-    { key: "luchador", label: "Luchador", value: `${killsVal} Kills`, score: scoreLuchador, rawPoints: totalCombatPoints, icon: <img src={ARCHETYPE_ICONS.LUCHADOR} style={{ width: 14, height: 14, objectFit: "contain" }} alt="Luchador" />, color: "#F43F5E" },
-    { key: "mercader", label: "Mercader", value: stats?.money || "12.4k KC", score: scoreMercader, rawPoints: merchantLogPoints, icon: <img src={ARCHETYPE_ICONS.MERCADER} style={{ width: 14, height: 14, objectFit: "contain" }} alt="Mercader" />, color: "#F59E0B" },
-    { key: "constancia", label: "Constancia", value: `${streakVal} días`, score: scoreConstancia, rawPoints: streakPoints, icon: <img src={ARCHETYPE_ICONS.CONSTANCIA} style={{ width: 14, height: 14, objectFit: "contain" }} alt="Constancia" />, color: "#E879F9" },
-    { key: "explorador", label: "Explorador", value: `${playtimeHours.toFixed(1)}h`, score: scoreExplorador, rawPoints: Math.round(totalExploradorPts), icon: <img src={ARCHETYPE_ICONS.EXPLORADOR} style={{ width: 14, height: 14, objectFit: "contain" }} alt="Explorador" />, color: "#10B981" },
+    {
+      key: 'constructor',
+      label: 'Constructor',
+      value: `${(blocksVal / 1000).toFixed(1)}k`,
+      score: scoreConstructor,
+      rawPoints: blocksVal,
+      icon: (
+        <img
+          src={ARCHETYPE_ICONS.CONSTRUCTOR}
+          style={{ width: 14, height: 14, objectFit: 'contain' }}
+          alt="Constructor"
+        />
+      ),
+      color: '#38BDF8',
+    },
+    {
+      key: 'luchador',
+      label: 'Luchador',
+      value: `${killsVal} Kills`,
+      score: scoreLuchador,
+      rawPoints: totalCombatPoints,
+      icon: (
+        <img
+          src={ARCHETYPE_ICONS.LUCHADOR}
+          style={{ width: 14, height: 14, objectFit: 'contain' }}
+          alt="Luchador"
+        />
+      ),
+      color: '#F43F5E',
+    },
+    {
+      key: 'mercader',
+      label: 'Mercader',
+      value: stats?.money || '12.4k KC',
+      score: scoreMercader,
+      rawPoints: merchantLogPoints,
+      icon: (
+        <img
+          src={ARCHETYPE_ICONS.MERCADER}
+          style={{ width: 14, height: 14, objectFit: 'contain' }}
+          alt="Mercader"
+        />
+      ),
+      color: '#F59E0B',
+    },
+    {
+      key: 'constancia',
+      label: 'Constancia',
+      value: `${streakVal} días`,
+      score: scoreConstancia,
+      rawPoints: streakPoints,
+      icon: (
+        <img
+          src={ARCHETYPE_ICONS.CONSTANCIA}
+          style={{ width: 14, height: 14, objectFit: 'contain' }}
+          alt="Constancia"
+        />
+      ),
+      color: '#E879F9',
+    },
+    {
+      key: 'explorador',
+      label: 'Explorador',
+      value: `${playtimeHours.toFixed(1)}h`,
+      score: scoreExplorador,
+      rawPoints: Math.round(totalExploradorPts),
+      icon: (
+        <img
+          src={ARCHETYPE_ICONS.EXPLORADOR}
+          style={{ width: 14, height: 14, objectFit: 'contain' }}
+          alt="Explorador"
+        />
+      ),
+      color: '#10B981',
+    },
   ];
 }
 
@@ -244,90 +584,130 @@ function buildCareerTracks(stats?: PlayerStatsData): CareerTrack[] {
   const killsVal = stats?.kills ?? 0;
   const mobKillsVal = stats?.mob_kills ?? 0;
   const combatPoints = killsVal * 15 + mobKillsVal;
-  const moneyVal = parseMoneyNum(stats?.money || "") || 12450;
+  const moneyVal = parseMoneyNum(stats?.money || '') || 12450;
   const streakVal = stats?.streak_days ?? 14;
-  const playtimeHours = parsePlaytimeHours(stats?.playtime || "") || 14.2;
+  const playtimeHours = parsePlaytimeHours(stats?.playtime || '') || 14.2;
   const totalExploradorPts = playtimeHours * 10 + playtimeHours * 35;
 
   return [
     {
-      key: "constructor",
-      label: "Constructor",
-      color: "#38BDF8",
-      formula: "Bloques Minados + Colocados",
+      key: 'constructor',
+      label: 'Constructor',
+      color: '#38BDF8',
+      formula: 'Bloques Minados + Colocados',
       icon: ARCHETYPE_ICONS.CONSTRUCTOR,
       rawVal: blocksVal,
       isTop1: stats?.is_top1_constructor,
       tiers: [
-        { name: "Iniciado", req: "0", item: getMcItemUrl("Wooden_Pickaxe.png"), minVal: 0 },
-        { name: "Novato", req: "1k", item: getMcItemUrl("Iron_Pickaxe.png"), minVal: 1000 },
-        { name: "Hábil", req: "10k", item: getMcItemUrl("Diamond_Pickaxe.png"), minVal: 10000 },
-        { name: "Arquitecto", req: "50k", item: getMcItemUrl("Netherite_Pickaxe.png"), minVal: 50000 },
-        { name: "Maestro Constructor", req: "Top 1", item: getMcItemUrl("Beacon.png"), isTop1Tier: true },
+        { name: 'Iniciado', req: '0', item: getMcItemUrl('Wooden_Pickaxe.png'), minVal: 0 },
+        { name: 'Novato', req: '1k', item: getMcItemUrl('Iron_Pickaxe.png'), minVal: 1000 },
+        { name: 'Hábil', req: '10k', item: getMcItemUrl('Diamond_Pickaxe.png'), minVal: 10000 },
+        {
+          name: 'Arquitecto',
+          req: '50k',
+          item: getMcItemUrl('Netherite_Pickaxe.png'),
+          minVal: 50000,
+        },
+        {
+          name: 'Maestro Constructor',
+          req: 'Top 1',
+          item: getMcItemUrl('Beacon.png'),
+          isTop1Tier: true,
+        },
       ],
     },
     {
-      key: "luchador",
-      label: "Luchador",
-      color: "#F43F5E",
-      formula: "PvP (x15) + Mobs (x1)",
+      key: 'luchador',
+      label: 'Luchador',
+      color: '#F43F5E',
+      formula: 'PvP (x15) + Mobs (x1)',
       icon: ARCHETYPE_ICONS.LUCHADOR,
       rawVal: combatPoints,
       isTop1: stats?.is_top1_luchador,
       tiers: [
-        { name: "Recluta", req: "0", item: getMcItemUrl("Wooden_Sword.png"), minVal: 0 },
-        { name: "Novato", req: "50", item: getMcItemUrl("Iron_Sword.png"), minVal: 50 },
-        { name: "Guerrero", req: "500", item: getMcItemUrl("Diamond_Sword.png"), minVal: 500 },
-        { name: "Maestro de Armas", req: "2.5k", item: getMcItemUrl("Netherite_Sword.png"), minVal: 2500 },
-        { name: "Señor de la Guerra", req: "Top 1", item: getMcItemUrl("Mace.png"), isTop1Tier: true },
+        { name: 'Recluta', req: '0', item: getMcItemUrl('Wooden_Sword.png'), minVal: 0 },
+        { name: 'Novato', req: '50', item: getMcItemUrl('Iron_Sword.png'), minVal: 50 },
+        { name: 'Guerrero', req: '500', item: getMcItemUrl('Diamond_Sword.png'), minVal: 500 },
+        {
+          name: 'Maestro de Armas',
+          req: '2.5k',
+          item: getMcItemUrl('Netherite_Sword.png'),
+          minVal: 2500,
+        },
+        {
+          name: 'Señor de la Guerra',
+          req: 'Top 1',
+          item: getMcItemUrl('Mace.png'),
+          isTop1Tier: true,
+        },
       ],
     },
     {
-      key: "mercader",
-      label: "Mercader",
-      color: "#F59E0B",
-      formula: "100 × log₁₀(KilluCoins)",
+      key: 'mercader',
+      label: 'Mercader',
+      color: '#F59E0B',
+      formula: '100 × log₁₀(KilluCoins)',
       icon: ARCHETYPE_ICONS.MERCADER,
       rawVal: moneyVal,
       isTop1: stats?.is_top1_mercader,
       tiers: [
-        { name: "Ambulante", req: "0", item: "/images/killucoins/coin_cobre.webp", minVal: 0 },
-        { name: "Novato", req: "1k", item: "/images/killucoins/coin_plata.webp", minVal: 1000 },
-        { name: "Próspero", req: "10k", item: "/images/killucoins/coin_oro.webp", minVal: 10000 },
-        { name: "Noble", req: "50k", item: "/images/killucoins/coin_diamante.webp", minVal: 50000 },
-        { name: "Gran Maestro Gremial", req: "Top 1", item: "/images/killucoins/coin_iridium.webp", isTop1Tier: true },
+        { name: 'Ambulante', req: '0', item: '/images/killucoins/coin_cobre.webp', minVal: 0 },
+        { name: 'Novato', req: '1k', item: '/images/killucoins/coin_plata.webp', minVal: 1000 },
+        { name: 'Próspero', req: '10k', item: '/images/killucoins/coin_oro.webp', minVal: 10000 },
+        { name: 'Noble', req: '50k', item: '/images/killucoins/coin_diamante.webp', minVal: 50000 },
+        {
+          name: 'Gran Maestro Gremial',
+          req: 'Top 1',
+          item: '/images/killucoins/coin_iridium.webp',
+          isTop1Tier: true,
+        },
       ],
     },
     {
-      key: "constancia",
-      label: "Constancia",
-      color: "#E879F9",
-      formula: "(Días de Racha)²",
+      key: 'constancia',
+      label: 'Constancia',
+      color: '#E879F9',
+      formula: '(Días de Racha)²',
       icon: ARCHETYPE_ICONS.CONSTANCIA,
       rawVal: streakVal,
       isTop1: stats?.is_top1_constancia,
       tiers: [
-        { name: "Visitante", req: "0", item: getMcItemUrl("Clock.png"), minVal: 0 },
-        { name: "Viajero", req: "7d", item: getMcItemUrl("Compass.png"), minVal: 7 },
-        { name: "Devoto", req: "14d", item: getMcItemUrl("Bottle_o%27_Enchanting.png"), minVal: 14 },
-        { name: "Viciado", req: "30d", item: getMcItemUrl("Totem_of_Undying.png"), minVal: 30 },
-        { name: "Inquebrantable", req: "Top 1", item: getMcItemUrl("Nether_Star.png"), isTop1Tier: true },
+        { name: 'Visitante', req: '0', item: getMcItemUrl('Clock.png'), minVal: 0 },
+        { name: 'Viajero', req: '7d', item: getMcItemUrl('Compass.png'), minVal: 7 },
+        {
+          name: 'Devoto',
+          req: '14d',
+          item: getMcItemUrl('Bottle_o%27_Enchanting.png'),
+          minVal: 14,
+        },
+        { name: 'Viciado', req: '30d', item: getMcItemUrl('Totem_of_Undying.png'), minVal: 30 },
+        {
+          name: 'Inquebrantable',
+          req: 'Top 1',
+          item: getMcItemUrl('Nether_Star.png'),
+          isTop1Tier: true,
+        },
       ],
     },
     {
-      key: "explorador",
-      label: "Explorador",
-      color: "#10B981",
-      formula: "Horas (x10) + Km",
+      key: 'explorador',
+      label: 'Explorador',
+      color: '#10B981',
+      formula: 'Horas (x10) + Km',
       icon: ARCHETYPE_ICONS.EXPLORADOR,
       rawVal: totalExploradorPts,
       isTop1: stats?.is_top1_explorador,
       tiers: [
-        { name: "Novato", req: "0", item: getMcItemUrl("Leather_Boots_(item)_JE2.png"), minVal: 0 },
-        { name: "Curioso", req: "100", item: getMcItemUrl("Spyglass.png"), minVal: 100 },
-        { name: "Mapeador", req: "500", item: getMcItemUrl("Empty_Map.png"), minVal: 500 },
-        { name: "Pionero", req: "2k", item: getMcItemUrl("Elytra.png"), minVal: 2000 },
-        { name: "Explorador Experto", req: "Top 1", item: getMcItemUrl("Recovery_Compass.png"), isTop1Tier: true },
+        { name: 'Novato', req: '0', item: getMcItemUrl('Leather_Boots_(item)_JE2.png'), minVal: 0 },
+        { name: 'Curioso', req: '100', item: getMcItemUrl('Spyglass.png'), minVal: 100 },
+        { name: 'Mapeador', req: '500', item: getMcItemUrl('Empty_Map.png'), minVal: 500 },
+        { name: 'Pionero', req: '2k', item: getMcItemUrl('Elytra.png'), minVal: 2000 },
+        {
+          name: 'Explorador Experto',
+          req: 'Top 1',
+          item: getMcItemUrl('Recovery_Compass.png'),
+          isTop1Tier: true,
+        },
       ],
     },
   ];
@@ -369,26 +749,42 @@ function ProfileHeader({ username, rank }: { username: string; rank?: string }) 
   return (
     <div
       style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        padding: "14px 18px",
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '14px 18px',
         borderRadius: 16,
         background: UI_COLORS.CARD_BG,
-        border: "1px solid rgba(45, 212, 191, 0.25)",
-        backdropFilter: "blur(14px)",
+        border: '1px solid rgba(45, 212, 191, 0.25)',
+        backdropFilter: 'blur(14px)',
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <img
           src={`https://mc-heads.net/avatar/${username}/40`}
           alt={username}
-          style={{ width: 38, height: 38, borderRadius: 10, border: "1px solid rgba(45, 212, 191, 0.4)" }}
+          style={{
+            width: 38,
+            height: 38,
+            borderRadius: 10,
+            border: '1px solid rgba(45, 212, 191, 0.4)',
+          }}
         />
         <div>
-          <div style={{ fontSize: 14, fontWeight: 900, color: UI_COLORS.TEAL_ACCENT }}>{username}</div>
-          <div style={{ fontSize: 11, color: UI_COLORS.TEXT_MUTED, display: "flex", alignItems: "center", gap: 4, marginTop: 2 }}>
-            <Shield size={12} color="#38BDF8" /> {rank || "Aventurero"}
+          <div style={{ fontSize: 14, fontWeight: 900, color: UI_COLORS.TEAL_ACCENT }}>
+            {username}
+          </div>
+          <div
+            style={{
+              fontSize: 11,
+              color: UI_COLORS.TEXT_MUTED,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+              marginTop: 2,
+            }}
+          >
+            <Shield size={12} color="#38BDF8" /> {rank || 'Aventurero'}
           </div>
         </div>
       </div>
@@ -405,7 +801,7 @@ function RadarGridLevels({ axes }: { axes: PentagonAxis[] }) {
             const pt = getRadarCoordinates(i, scale * 100);
             return `${pt.x},${pt.y}`;
           })
-          .join(" ");
+          .join(' ');
         return (
           <polygon
             key={`scale-${scale}`}
@@ -413,7 +809,7 @@ function RadarGridLevels({ axes }: { axes: PentagonAxis[] }) {
             fill="none"
             stroke="rgba(255,255,255,0.08)"
             strokeWidth="1"
-            strokeDasharray={scale === 1.0 ? "none" : "2,2"}
+            strokeDasharray={scale === 1.0 ? 'none' : '2,2'}
           />
         );
       })}
@@ -441,18 +837,27 @@ function RadarChartSvg({ axes }: { axes: PentagonAxis[] }) {
       const pt = getRadarCoordinates(i, axis.score);
       return `${pt.x},${pt.y}`;
     })
-    .join(" ");
+    .join(' ');
 
   return (
-    <div style={{ position: "relative", width: "100%", height: 220, display: "flex", justifyContent: "center", alignItems: "center" }}>
-      <svg width="260" height="220" viewBox="0 0 260 220" style={{ overflow: "visible" }}>
+    <div
+      style={{
+        position: 'relative',
+        width: '100%',
+        height: 220,
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}
+    >
+      <svg width="260" height="220" viewBox="0 0 260 220" style={{ overflow: 'visible' }}>
         <RadarGridLevels axes={axes} />
         <polygon
           points={polygonPoints}
           fill="rgba(45, 212, 191, 0.28)"
           stroke={UI_COLORS.TEAL_ACCENT}
           strokeWidth="2.5"
-          style={{ filter: "drop-shadow(0 0 8px rgba(45,212,191,0.5))" }}
+          style={{ filter: 'drop-shadow(0 0 8px rgba(45,212,191,0.5))' }}
         />
         {axes.map((axis, i) => {
           const pt = getRadarCoordinates(i, axis.score);
@@ -492,27 +897,58 @@ function RadarChartSvg({ axes }: { axes: PentagonAxis[] }) {
 
 function RadarValuesGrid({ axes }: { axes: PentagonAxis[] }) {
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(5, minmax(0, 1fr))", gap: 4, width: "100%", marginTop: 12, boxSizing: "border-box" }}>
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(5, minmax(0, 1fr))',
+        gap: 4,
+        width: '100%',
+        marginTop: 12,
+        boxSizing: 'border-box',
+      }}
+    >
       {axes.map((axis) => (
         <div
           key={`val-${axis.key}`}
           style={{
-            background: "rgba(0,0,0,0.4)",
+            background: 'rgba(0,0,0,0.4)',
             borderRadius: 8,
-            padding: "6px 2px",
-            textAlign: "center",
+            padding: '6px 2px',
+            textAlign: 'center',
             border: `1px solid ${axis.color}30`,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
             minWidth: 0,
           }}
         >
           {axis.icon}
-          <div style={{ fontSize: 8.5, fontWeight: 800, color: UI_COLORS.TEXT_MUTED, marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", width: "100%" }}>
+          <div
+            style={{
+              fontSize: 8.5,
+              fontWeight: 800,
+              color: UI_COLORS.TEXT_MUTED,
+              marginTop: 2,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              width: '100%',
+            }}
+          >
             {axis.label}
           </div>
-          <div style={{ fontSize: 9.5, fontWeight: 900, color: "#FFF", marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", width: "100%" }}>
+          <div
+            style={{
+              fontSize: 9.5,
+              fontWeight: 900,
+              color: '#FFF',
+              marginTop: 2,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              width: '100%',
+            }}
+          >
             {axis.value}
           </div>
         </div>
@@ -523,8 +959,28 @@ function RadarValuesGrid({ axes }: { axes: PentagonAxis[] }) {
 
 function RadarStatsCard({ axes }: { axes: PentagonAxis[] }) {
   return (
-    <div style={{ padding: 20, borderRadius: 16, background: UI_COLORS.CARD_BG, border: UI_COLORS.CARD_BORDER, backdropFilter: "blur(14px)", display: "flex", flexDirection: "column", alignItems: "center" }}>
-      <div style={{ fontSize: 11, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.06em", color: UI_COLORS.TEXT_MUTED, marginBottom: 10 }}>
+    <div
+      style={{
+        padding: 20,
+        borderRadius: 16,
+        background: UI_COLORS.CARD_BG,
+        border: UI_COLORS.CARD_BORDER,
+        backdropFilter: 'blur(14px)',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+      }}
+    >
+      <div
+        style={{
+          fontSize: 11,
+          fontWeight: 900,
+          textTransform: 'uppercase',
+          letterSpacing: '0.06em',
+          color: UI_COLORS.TEXT_MUTED,
+          marginBottom: 10,
+        }}
+      >
         📊 Radar de Estilo de Juego (Histórico Total)
       </div>
       <RadarChartSvg axes={axes} />
@@ -535,22 +991,77 @@ function RadarStatsCard({ axes }: { axes: PentagonAxis[] }) {
 
 function ScoringGuideCard() {
   const guideItems = [
-    { label: "Constructor", color: "#38BDF8", icon: ARCHETYPE_ICONS.CONSTRUCTOR, desc: "Bloques minados + colocados en tu historia." },
-    { label: "Luchador", color: "#F43F5E", icon: ARCHETYPE_ICONS.LUCHADOR, desc: "15 pts por kill PvP a jugadores y 1 pt por mob hostil." },
-    { label: "Mercader", color: "#F59E0B", icon: ARCHETYPE_ICONS.MERCADER, desc: "Escala logarítmica (100 × log₁₀(KilluCoins))." },
-    { label: "Constancia", color: "#E879F9", icon: ARCHETYPE_ICONS.CONSTANCIA, desc: "Crecimiento cuadrático (Días de Racha)²." },
-    { label: "Explorador", color: "#10B981", icon: ARCHETYPE_ICONS.EXPLORADOR, desc: "10 pts por hora de juego + 1 pt por km recorrido." },
+    {
+      label: 'Constructor',
+      color: '#38BDF8',
+      icon: ARCHETYPE_ICONS.CONSTRUCTOR,
+      desc: 'Bloques minados + colocados en tu historia.',
+    },
+    {
+      label: 'Luchador',
+      color: '#F43F5E',
+      icon: ARCHETYPE_ICONS.LUCHADOR,
+      desc: '15 pts por kill PvP a jugadores y 1 pt por mob hostil.',
+    },
+    {
+      label: 'Mercader',
+      color: '#F59E0B',
+      icon: ARCHETYPE_ICONS.MERCADER,
+      desc: 'Escala logarítmica (100 × log₁₀(KilluCoins)).',
+    },
+    {
+      label: 'Constancia',
+      color: '#E879F9',
+      icon: ARCHETYPE_ICONS.CONSTANCIA,
+      desc: 'Crecimiento cuadrático (Días de Racha)².',
+    },
+    {
+      label: 'Explorador',
+      color: '#10B981',
+      icon: ARCHETYPE_ICONS.EXPLORADOR,
+      desc: '10 pts por hora de juego + 1 pt por km recorrido.',
+    },
   ];
 
   return (
-    <div style={{ padding: 16, borderRadius: 16, background: UI_COLORS.CARD_BG, border: UI_COLORS.CARD_BORDER, backdropFilter: "blur(14px)", display: "flex", flexDirection: "column", gap: 10, fontSize: 11, color: "rgba(255,255,255,0.75)", lineHeight: 1.4 }}>
-      <div style={{ fontWeight: 900, color: UI_COLORS.TEAL_ACCENT, fontSize: 12, display: "flex", alignItems: "center", gap: 6 }}>
+    <div
+      style={{
+        padding: 16,
+        borderRadius: 16,
+        background: UI_COLORS.CARD_BG,
+        border: UI_COLORS.CARD_BORDER,
+        backdropFilter: 'blur(14px)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 10,
+        fontSize: 11,
+        color: 'rgba(255,255,255,0.75)',
+        lineHeight: 1.4,
+      }}
+    >
+      <div
+        style={{
+          fontWeight: 900,
+          color: UI_COLORS.TEAL_ACCENT,
+          fontSize: 12,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+        }}
+      >
         <HelpCircle size={14} /> ¿Cómo se calcula cada Puntuación?
       </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {guideItems.map((item) => (
-          <div key={`guide-${item.label}`} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <img src={item.icon} style={{ width: 14, height: 14, objectFit: "contain" }} alt={item.label} />
+          <div
+            key={`guide-${item.label}`}
+            style={{ display: 'flex', alignItems: 'center', gap: 6 }}
+          >
+            <img
+              src={item.icon}
+              style={{ width: 14, height: 14, objectFit: 'contain' }}
+              alt={item.label}
+            />
             <strong style={{ color: item.color }}>{item.label}:</strong> {item.desc}
           </div>
         ))}
@@ -562,7 +1073,7 @@ function ScoringGuideCard() {
 function getPillVisuals(isCurrent: boolean, isTop1Tier: boolean | undefined, color: string) {
   if (!isCurrent) {
     return {
-      bg: "rgba(255, 255, 255, 0.04)",
+      bg: 'rgba(255, 255, 255, 0.04)',
       border: UI_COLORS.CARD_BORDER,
       color: UI_COLORS.TEXT_MUTED,
       glow: {},
@@ -570,7 +1081,7 @@ function getPillVisuals(isCurrent: boolean, isTop1Tier: boolean | undefined, col
   }
 
   const bg = isTop1Tier ? `${color}30` : `${color}20`;
-  const textColor = isTop1Tier ? "#FFF" : color;
+  const textColor = isTop1Tier ? '#FFF' : color;
   return {
     bg,
     border: `1.5px solid ${color}`,
@@ -587,47 +1098,74 @@ function CareerTrackRow({ track }: { track: CareerTrack }) {
       style={{
         padding: 12,
         borderRadius: 14,
-        background: "rgba(0, 0, 0, 0.4)",
+        background: 'rgba(0, 0, 0, 0.4)',
         border: `1px solid ${track.color}25`,
-        display: "flex",
-        flexDirection: "column",
+        display: 'flex',
+        flexDirection: 'column',
         gap: 10,
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <img src={track.icon} style={{ width: 16, height: 16, objectFit: "contain" }} alt={track.label} />
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <img
+            src={track.icon}
+            style={{ width: 16, height: 16, objectFit: 'contain' }}
+            alt={track.label}
+          />
           <span style={{ fontSize: 12, fontWeight: 900, color: track.color }}>{track.label}</span>
         </div>
-        <span style={{ fontSize: 10, color: "rgba(255,255,255,0.45)", fontWeight: 600 }}>{track.formula}</span>
+        <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)', fontWeight: 600 }}>
+          {track.formula}
+        </span>
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", flexWrap: "nowrap", gap: 4, overflowX: "auto" }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          flexWrap: 'nowrap',
+          gap: 4,
+          overflowX: 'auto',
+        }}
+      >
         {track.tiers.map((tier, tIdx) => {
           const isCurrent = tIdx === currentTierIndex;
           const visuals = getPillVisuals(isCurrent, tier.isTop1Tier, track.color);
 
           return (
-            <div key={`tier-${tier.name}`} style={{ display: "flex", alignItems: "center", gap: 4 }}>
-              {tIdx > 0 && <span style={{ fontSize: 9, color: "rgba(255,255,255,0.25)", padding: "0 1px" }}>→</span>}
+            <div
+              key={`tier-${tier.name}`}
+              style={{ display: 'flex', alignItems: 'center', gap: 4 }}
+            >
+              {tIdx > 0 && (
+                <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.25)', padding: '0 1px' }}>
+                  →
+                </span>
+              )}
               <div
                 style={{
-                  padding: "4px 8px",
+                  padding: '4px 8px',
                   borderRadius: 8,
                   background: visuals.bg,
                   border: visuals.border,
                   color: visuals.color,
                   fontSize: 10,
                   fontWeight: isCurrent ? 900 : 600,
-                  display: "flex",
-                  alignItems: "center",
+                  display: 'flex',
+                  alignItems: 'center',
                   gap: 5,
                   ...visuals.glow,
                 }}
               >
-                <img src={tier.item} style={{ width: 13, height: 13, objectFit: "contain" }} alt={tier.name} />
+                <img
+                  src={tier.item}
+                  style={{ width: 13, height: 13, objectFit: 'contain' }}
+                  alt={tier.name}
+                />
                 <span>{tier.name}</span>
-                {!tier.isTop1Tier && <span style={{ fontSize: 8.5, opacity: 0.65 }}>({tier.req})</span>}
+                {!tier.isTop1Tier && (
+                  <span style={{ fontSize: 8.5, opacity: 0.65 }}>({tier.req})</span>
+                )}
               </div>
             </div>
           );
@@ -639,25 +1177,77 @@ function CareerTrackRow({ track }: { track: CareerTrack }) {
 
 function CareerTracksCard({ tracks }: { tracks: CareerTrack[] }) {
   return (
-    <div style={{ padding: 18, borderRadius: 16, background: UI_COLORS.CARD_BG, border: UI_COLORS.CARD_BORDER, backdropFilter: "blur(14px)", display: "flex", flexDirection: "column", gap: 14 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 900, color: UI_COLORS.TEAL_ACCENT, borderBottom: UI_COLORS.CARD_BORDER, paddingBottom: 10 }}>
+    <div
+      style={{
+        padding: 18,
+        borderRadius: 16,
+        background: UI_COLORS.CARD_BG,
+        border: UI_COLORS.CARD_BORDER,
+        backdropFilter: 'blur(14px)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 14,
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+          fontSize: 13,
+          fontWeight: 900,
+          color: UI_COLORS.TEAL_ACCENT,
+          borderBottom: UI_COLORS.CARD_BORDER,
+          paddingBottom: 10,
+        }}
+      >
         <Award size={16} /> Líneas de Carrera y Maestría
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         {tracks.map((track) => (
           <CareerTrackRow key={`track-${track.key}`} track={track} />
         ))}
       </div>
 
-      <div style={{ marginTop: 4, padding: 12, borderRadius: 12, background: "rgba(245, 158, 11, 0.1)", border: "1px solid rgba(245, 158, 11, 0.25)", fontSize: 10.5, color: "#FDE68A", lineHeight: 1.4 }}>
-        <div style={{ fontWeight: 900, color: "#F59E0B", marginBottom: 6, fontSize: 11, display: "flex", alignItems: "center", gap: 4 }}>
+      <div
+        style={{
+          marginTop: 4,
+          padding: 12,
+          borderRadius: 12,
+          background: 'rgba(245, 158, 11, 0.1)',
+          border: '1px solid rgba(245, 158, 11, 0.25)',
+          fontSize: 10.5,
+          color: '#FDE68A',
+          lineHeight: 1.4,
+        }}
+      >
+        <div
+          style={{
+            fontWeight: 900,
+            color: '#F59E0B',
+            marginBottom: 6,
+            fontSize: 11,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 4,
+          }}
+        >
           🏆 Reglas del Rango Máximo
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 10 }}>
-          <div>• <strong>Requisito Rango Máximo:</strong> Debes ser el jugador con más puntos/estadística de la categoría en la que estás destacando.</div>
-          <div>• <strong>Límite de 1 Rango Activo:</strong> Solo puedes poseer 1 título máximo simultáneo al mismo tiempo.</div>
-          <div>• <strong>Transferencia Directa:</strong> Se transfiere si otro jugador supera tu puntaje. El Duelo 1v1 es exclusivo del Señor de la Guerra.</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 10 }}>
+          <div>
+            • <strong>Requisito Rango Máximo:</strong> Debes ser el jugador con más
+            puntos/estadística de la categoría en la que estás destacando.
+          </div>
+          <div>
+            • <strong>Límite de 1 Rango Activo:</strong> Solo puedes poseer 1 título máximo
+            simultáneo al mismo tiempo.
+          </div>
+          <div>
+            • <strong>Transferencia Directa:</strong> Se transfiere si otro jugador supera tu
+            puntaje. El Duelo 1v1 es exclusivo del Señor de la Guerra.
+          </div>
         </div>
       </div>
     </div>
@@ -670,8 +1260,8 @@ function getPrestigeCardStyles(isUnlocked: boolean, isNextTarget: boolean, item:
       bg: item.bg,
       border: `1px solid ${item.border}`,
       color: item.color,
-      nameColor: "#FFF",
-      bonusColor: "rgba(255,255,255,0.7)",
+      nameColor: '#FFF',
+      bonusColor: 'rgba(255,255,255,0.7)',
       tagColor: item.color,
       opacity: 1,
     };
@@ -679,19 +1269,19 @@ function getPrestigeCardStyles(isUnlocked: boolean, isNextTarget: boolean, item:
 
   if (isNextTarget) {
     return {
-      bg: "rgba(147,51,234,0.12)",
+      bg: 'rgba(147,51,234,0.12)',
       border: `1px solid ${UI_COLORS.PURPLE_LIGHT}`,
       color: UI_COLORS.PURPLE_LIGHT,
-      nameColor: "#FFF",
-      bonusColor: "rgba(255,255,255,0.7)",
+      nameColor: '#FFF',
+      bonusColor: 'rgba(255,255,255,0.7)',
       tagColor: UI_COLORS.TEXT_FAINT,
       opacity: 1,
     };
   }
 
   return {
-    bg: "rgba(0,0,0,0.5)",
-    border: "1px solid rgba(255,255,255,0.05)",
+    bg: 'rgba(0,0,0,0.5)',
+    border: '1px solid rgba(255,255,255,0.05)',
     color: UI_COLORS.TEXT_MUTED,
     nameColor: UI_COLORS.TEXT_MUTED,
     bonusColor: UI_COLORS.TEXT_FAINT,
@@ -700,74 +1290,165 @@ function getPrestigeCardStyles(isUnlocked: boolean, isNextTarget: boolean, item:
   };
 }
 
-function PrestigeTierCard({ item, currentPrestigeLevel, isTop1 }: { item: PrestigeMockup; currentPrestigeLevel: number; isTop1: boolean }) {
+function PrestigeTierCard({
+  item,
+  currentPrestigeLevel,
+  isTop1,
+}: {
+  item: PrestigeMockup;
+  currentPrestigeLevel: number;
+  isTop1: boolean;
+}) {
   const isUnlocked = item.levelNum <= currentPrestigeLevel;
   const isNextTarget = isTop1 && item.levelNum === currentPrestigeLevel + 1;
   const isLocked = !isUnlocked && !isNextTarget;
   const styles = getPrestigeCardStyles(isUnlocked, isNextTarget, item);
 
   return (
-    <div style={{ padding: 12, borderRadius: 12, background: styles.bg, border: styles.border, opacity: styles.opacity, display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: 4, position: "relative" }}>
+    <div
+      style={{
+        padding: 12,
+        borderRadius: 12,
+        background: styles.bg,
+        border: styles.border,
+        opacity: styles.opacity,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        textAlign: 'center',
+        gap: 4,
+        position: 'relative',
+      }}
+    >
       {isUnlocked && (
-        <span style={{ position: "absolute", top: 6, right: 6, fontSize: 9, color: "#10B981", display: "flex", alignItems: "center", gap: 2 }}>
+        <span
+          style={{
+            position: 'absolute',
+            top: 6,
+            right: 6,
+            fontSize: 9,
+            color: '#10B981',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2,
+          }}
+        >
           <CheckCircle size={10} /> Activo
         </span>
       )}
       {isLocked && (
-        <span style={{ position: "absolute", top: 6, right: 6, fontSize: 9, color: UI_COLORS.TEXT_FAINT, display: "flex", alignItems: "center", gap: 2 }}>
+        <span
+          style={{
+            position: 'absolute',
+            top: 6,
+            right: 6,
+            fontSize: 9,
+            color: UI_COLORS.TEXT_FAINT,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2,
+          }}
+        >
           <Lock size={10} /> Bloqueado
         </span>
       )}
-      <img src={item.item} style={{ width: 22, height: 22, objectFit: "contain", margin: "2px 0", filter: isLocked ? "grayscale(0.8)" : "none" }} alt={item.rankName} />
+      <img
+        src={item.item}
+        style={{
+          width: 22,
+          height: 22,
+          objectFit: 'contain',
+          margin: '2px 0',
+          filter: isLocked ? 'grayscale(0.8)' : 'none',
+        }}
+        alt={item.rankName}
+      />
       <span style={{ color: styles.color, fontWeight: 900, fontSize: 11 }}>{item.level}</span>
-      <span style={{ fontSize: 11, color: styles.nameColor, fontWeight: 800 }}>{item.rankName}</span>
+      <span style={{ fontSize: 11, color: styles.nameColor, fontWeight: 800 }}>
+        {item.rankName}
+      </span>
       <span style={{ fontSize: 10, color: styles.bonusColor }}>{item.bonus}</span>
-      <span style={{ fontSize: 9.5, color: styles.tagColor, fontFamily: "monospace", fontWeight: 700 }}>{item.tag}</span>
+      <span
+        style={{ fontSize: 9.5, color: styles.tagColor, fontFamily: 'monospace', fontWeight: 700 }}
+      >
+        {item.tag}
+      </span>
     </div>
   );
 }
 
-function PrestigeStatusBanner({ isTop1, currentLevel, tabName }: { isTop1: boolean; currentLevel: number; tabName: string }) {
+function PrestigeStatusBanner({
+  isTop1,
+  currentLevel,
+  tabName,
+}: {
+  isTop1: boolean;
+  currentLevel: number;
+  tabName: string;
+}) {
   const upperTab = tabName.toUpperCase();
   if (!isTop1) {
     return (
-      <span style={{ color: "#FCA5A5", display: "flex", alignItems: "center", gap: 4 }}>
-        <Lock size={13} color="#F87171" /> <em>Bloqueado: Debes ser el jugador #1 con Rango Máximo en <strong>{upperTab}</strong> para ascender.</em>
+      <span style={{ color: '#FCA5A5', display: 'flex', alignItems: 'center', gap: 4 }}>
+        <Lock size={13} color="#F87171" />{' '}
+        <em>
+          Bloqueado: Debes ser el jugador #1 con Rango Máximo en <strong>{upperTab}</strong> para
+          ascender.
+        </em>
       </span>
     );
   }
 
   if (currentLevel >= 5) {
     return (
-      <span>👑 <em>¡Felicidades! Has alcanzado el <strong>Nivel Máximo V de Prestigio</strong> en {upperTab}.</em></span>
+      <span>
+        👑{' '}
+        <em>
+          ¡Felicidades! Has alcanzado el <strong>Nivel Máximo V de Prestigio</strong> en {upperTab}.
+        </em>
+      </span>
     );
   }
 
   return (
-    <span>✨ <em>¡Requisito Cumplido! Eres el #1 del servidor en <strong>{upperTab}</strong>. Puedes ascender al Nivel {currentLevel + 1}.</em></span>
+    <span>
+      ✨{' '}
+      <em>
+        ¡Requisito Cumplido! Eres el #1 del servidor en <strong>{upperTab}</strong>. Puedes ascender
+        al Nivel {currentLevel + 1}.
+      </em>
+    </span>
   );
 }
 
-function AscendTriggerButton({ isTop1, currentLevel, onOpenModal }: { isTop1: boolean; currentLevel: number; onOpenModal: () => void }) {
+function AscendTriggerButton({
+  isTop1,
+  currentLevel,
+  onOpenModal,
+}: {
+  isTop1: boolean;
+  currentLevel: number;
+  onOpenModal: () => void;
+}) {
   const isDisabled = !isTop1 || currentLevel >= 5;
 
   const buttonStyle = {
-    padding: "8px 16px",
+    padding: '8px 16px',
     borderRadius: 10,
-    background: isDisabled ? "rgba(255,255,255,0.05)" : UI_COLORS.PURPLE_PRIMARY,
+    background: isDisabled ? 'rgba(255,255,255,0.05)' : UI_COLORS.PURPLE_PRIMARY,
     border: isDisabled ? UI_COLORS.BORDER_SUBTLE : `1px solid ${UI_COLORS.PURPLE_LIGHT}`,
-    color: isDisabled ? UI_COLORS.TEXT_FAINT : "#FFF",
+    color: isDisabled ? UI_COLORS.TEXT_FAINT : '#FFF',
     fontWeight: 900,
     fontSize: 11,
-    cursor: isDisabled ? "not-allowed" : "pointer",
-    display: "flex",
-    alignItems: "center",
+    cursor: isDisabled ? 'not-allowed' : 'pointer',
+    display: 'flex',
+    alignItems: 'center',
     gap: 6,
   };
 
   const getAriaLabel = () => {
-    if (!isTop1) return "Ascenso bloqueado: debes alcanzar el rango máximo";
-    if (currentLevel >= 5) return "Prestigio máximo alcanzado";
+    if (!isTop1) return 'Ascenso bloqueado: debes alcanzar el rango máximo';
+    if (currentLevel >= 5) return 'Prestigio máximo alcanzado';
     return `Ascender a prestigio nivel ${currentLevel + 1}`;
   };
 
@@ -780,7 +1461,7 @@ function AscendTriggerButton({ isTop1, currentLevel, onOpenModal }: { isTop1: bo
       );
     }
     if (currentLevel >= 5) {
-      return "👑 Prestigio Máximo Alcanzado";
+      return '👑 Prestigio Máximo Alcanzado';
     }
     return (
       <>
@@ -820,27 +1501,101 @@ function AscendConfirmModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby="ascend-modal-title"
-      style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", backdropFilter: "blur(8px)", zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(0,0,0,0.8)',
+        backdropFilter: 'blur(8px)',
+        zIndex: 50,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 16,
+      }}
     >
-      <div style={{ background: "#0F172A", border: "1px solid rgba(168,85,247,0.4)", borderRadius: 16, padding: 20, maxWidth: 360, width: "100%", color: "#FFF", display: "flex", flexDirection: "column", gap: 14 }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: UI_COLORS.PURPLE_BORDER_FADED, paddingBottom: 10 }}>
-          <span id="ascend-modal-title" style={{ fontWeight: 800, fontSize: 13, color: UI_COLORS.PURPLE_LIGHT }}>Confirmar Ascenso ⭐</span>
-          <button aria-label="Cerrar ventana de ascenso" type="button" onClick={onClose} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.6)", fontSize: 16, cursor: "pointer" }}>✕</button>
+      <div
+        style={{
+          background: '#0F172A',
+          border: '1px solid rgba(168,85,247,0.4)',
+          borderRadius: 16,
+          padding: 20,
+          maxWidth: 360,
+          width: '100%',
+          color: '#FFF',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 14,
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            borderBottom: UI_COLORS.PURPLE_BORDER_FADED,
+            paddingBottom: 10,
+          }}
+        >
+          <span
+            id="ascend-modal-title"
+            style={{ fontWeight: 800, fontSize: 13, color: UI_COLORS.PURPLE_LIGHT }}
+          >
+            Confirmar Ascenso ⭐
+          </span>
+          <button
+            aria-label="Cerrar ventana de ascenso"
+            type="button"
+            onClick={onClose}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'rgba(255,255,255,0.6)',
+              fontSize: 16,
+              cursor: 'pointer',
+            }}
+          >
+            ✕
+          </button>
         </div>
-        <p style={{ fontSize: 11, color: "rgba(255,255,255,0.8)", lineHeight: 1.4, margin: 0 }}>
-          ¿Deseas ascender al <strong>Nivel {currentLevel + 1} de Prestigio</strong> en <strong>{prestigeTab.toUpperCase()}</strong> para ganar +5% en multiplicadores de KilluCoins diarios?
+        <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.8)', lineHeight: 1.4, margin: 0 }}>
+          ¿Deseas ascender al <strong>Nivel {currentLevel + 1} de Prestigio</strong> en{' '}
+          <strong>{prestigeTab.toUpperCase()}</strong> para ganar +5% en multiplicadores de
+          KilluCoins diarios?
         </p>
-        <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, paddingTop: 4 }}>
-          <button type="button" onClick={onClose} style={{ padding: "6px 14px", borderRadius: 8, background: "rgba(255,255,255,0.05)", border: UI_COLORS.BORDER_SUBTLE, fontSize: 11, color: "#FFF", cursor: "pointer" }}>Cancelar</button>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, paddingTop: 4 }}>
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              padding: '6px 14px',
+              borderRadius: 8,
+              background: 'rgba(255,255,255,0.05)',
+              border: UI_COLORS.BORDER_SUBTLE,
+              fontSize: 11,
+              color: '#FFF',
+              cursor: 'pointer',
+            }}
+          >
+            Cancelar
+          </button>
           <button
             aria-label="Confirmar ascenso"
             aria-busy={isAscending}
             type="button"
             disabled={isAscending}
             onClick={onConfirm}
-            style={{ padding: "6px 14px", borderRadius: 8, background: UI_COLORS.PURPLE_PRIMARY, border: `1px solid ${UI_COLORS.PURPLE_LIGHT}`, fontSize: 11, fontWeight: 800, color: "#FFF", cursor: "pointer" }}
+            style={{
+              padding: '6px 14px',
+              borderRadius: 8,
+              background: UI_COLORS.PURPLE_PRIMARY,
+              border: `1px solid ${UI_COLORS.PURPLE_LIGHT}`,
+              fontSize: 11,
+              fontWeight: 800,
+              color: '#FFF',
+              cursor: 'pointer',
+            }}
           >
-            {isAscending ? "Procesando..." : "Confirmar Ascenso"}
+            {isAscending ? 'Procesando...' : 'Confirmar Ascenso'}
           </button>
         </div>
       </div>
@@ -848,26 +1603,34 @@ function AscendConfirmModal({
   );
 }
 
-const TAB_KEYS: ArchetypeKey[] = ["constructor", "luchador", "mercader", "constancia", "explorador"];
+const TAB_KEYS: ArchetypeKey[] = [
+  'constructor',
+  'luchador',
+  'mercader',
+  'constancia',
+  'explorador',
+];
 
-export function PlayerStatsWidget({ username }: PlayerStatsWidgetProps) {
-  const [prestigeTab, setPrestigeTab] = useState<ArchetypeKey>("constructor");
+export function PlayerStatsWidget({ username }: Readonly<PlayerStatsWidgetProps>) {
+  const [prestigeTab, setPrestigeTab] = useState<ArchetypeKey>('constructor');
   const [showAscendModal, setShowAscendModal] = useState(false);
   const [isAscending, setIsAscending] = useState(false);
 
   const queryClient = useQueryClient();
   const { data: stats } = useQuery<PlayerStatsData>({
-    queryKey: ["playerStats", username],
+    queryKey: ['playerStats', username],
     queryFn: async () => {
       try {
-        const res = await fetch(`https://api.crystaltidessmp.net/api/player-stats/${encodeURIComponent(username || "")}`);
-        if (!res.ok) throw new Error("Failed to fetch player stats");
+        const res = await fetch(
+          `https://api.crystaltidessmp.net/api/player-stats/${encodeURIComponent(username || '')}`,
+        );
+        if (!res.ok) throw new Error('Failed to fetch player stats');
         const data = await res.json();
         if (data.success && data.data) return data.data;
-        throw new Error("Invalid response format");
+        throw new Error('Invalid response format');
       } catch {
         return {
-          username: username || "",
+          username: username || '',
           ...DEFAULT_FALLBACK_STATS,
         };
       }
@@ -890,13 +1653,15 @@ export function PlayerStatsWidget({ username }: PlayerStatsWidgetProps) {
       const nextLevel = currentPrestigeLevel + 1;
       const keyName = `prestige_${prestigeTab}` as keyof PlayerStatsData;
 
-      queryClient.setQueryData<PlayerStatsData | undefined>(["playerStats", username], (prev) =>
-        prev ? { ...prev, [keyName]: nextLevel } : undefined
+      queryClient.setQueryData<PlayerStatsData | undefined>(['playerStats', username], (prev) =>
+        prev ? { ...prev, [keyName]: nextLevel } : undefined,
       );
 
-      alert(`🎉 ¡Felicidades! Has ascendido exitosamente al Prestigio ${nextLevel} en ${prestigeTab.toUpperCase()}! (+${nextLevel * 5}% KC Diarios)`);
+      alert(
+        `🎉 ¡Felicidades! Has ascendido exitosamente al Prestigio ${nextLevel} en ${prestigeTab.toUpperCase()}! (+${nextLevel * 5}% KC Diarios)`,
+      );
     } catch {
-      alert("Error al procesar el ascenso.");
+      alert('Error al procesar el ascenso.');
     } finally {
       setIsAscending(false);
       setShowAscendModal(false);
@@ -904,24 +1669,70 @@ export function PlayerStatsWidget({ username }: PlayerStatsWidgetProps) {
   };
 
   return (
-    <div style={{ width: "100%", color: "#FFF", fontSize: 12, display: "flex", flexDirection: "column", gap: 20, boxSizing: "border-box" }}>
+    <div
+      style={{
+        width: '100%',
+        color: '#FFF',
+        fontSize: 12,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 20,
+        boxSizing: 'border-box',
+      }}
+    >
       <ProfileHeader username={username} rank={stats?.rank} />
 
-      <div style={{ display: "grid", gridTemplateColumns: "350px 1fr", gap: 20 }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '350px 1fr', gap: 20 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           <RadarStatsCard axes={axes} />
           <ScoringGuideCard />
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <CareerTracksCard tracks={careerTracks} />
         </div>
       </div>
 
-      <div style={{ padding: 20, borderRadius: 16, background: "linear-gradient(135deg, rgba(88, 28, 135, 0.25) 0%, rgba(0,0,0,0.5) 100%)", border: "1px solid rgba(168, 85, 247, 0.3)", display: "flex", flexDirection: "column", gap: 14, boxShadow: "0 10px 30px rgba(0,0,0,0.4)" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: UI_COLORS.PURPLE_BORDER_FADED, paddingBottom: 12, flexWrap: "wrap", gap: 8 }}>
-          <span style={{ fontSize: 13, fontWeight: 900, color: "#FFF", display: "flex", alignItems: "center", gap: 6 }}>⭐ Sistema de Prestigios de Estilo de Juego</span>
-          <div role="tablist" aria-label="Pestañas de arquetipos de prestigio" style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+      <div
+        style={{
+          padding: 20,
+          borderRadius: 16,
+          background: 'linear-gradient(135deg, rgba(88, 28, 135, 0.25) 0%, rgba(0,0,0,0.5) 100%)',
+          border: '1px solid rgba(168, 85, 247, 0.3)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 14,
+          boxShadow: '0 10px 30px rgba(0,0,0,0.4)',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            borderBottom: UI_COLORS.PURPLE_BORDER_FADED,
+            paddingBottom: 12,
+            flexWrap: 'wrap',
+            gap: 8,
+          }}
+        >
+          <span
+            style={{
+              fontSize: 13,
+              fontWeight: 900,
+              color: '#FFF',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+            }}
+          >
+            ⭐ Sistema de Prestigios de Estilo de Juego
+          </span>
+          <div
+            role="tablist"
+            aria-label="Pestañas de arquetipos de prestigio"
+            style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}
+          >
             {TAB_KEYS.map((key) => {
               const item = PRESTIGE_TABS_CONFIG[key];
               const isActive = prestigeTab === key;
@@ -934,20 +1745,26 @@ export function PlayerStatsWidget({ username }: PlayerStatsWidgetProps) {
                   key={`tab-${key}`}
                   onClick={() => setPrestigeTab(key)}
                   style={{
-                    padding: "5px 10px",
+                    padding: '5px 10px',
                     borderRadius: 8,
                     fontSize: 10,
                     fontWeight: 800,
-                    border: isActive ? `1px solid ${UI_COLORS.PURPLE_LIGHT}` : UI_COLORS.BORDER_SUBTLE,
-                    background: isActive ? UI_COLORS.PURPLE_PRIMARY : "rgba(255,255,255,0.05)",
-                    color: isActive ? "#FFF" : "rgba(255,255,255,0.6)",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
+                    border: isActive
+                      ? `1px solid ${UI_COLORS.PURPLE_LIGHT}`
+                      : UI_COLORS.BORDER_SUBTLE,
+                    background: isActive ? UI_COLORS.PURPLE_PRIMARY : 'rgba(255,255,255,0.05)',
+                    color: isActive ? '#FFF' : 'rgba(255,255,255,0.6)',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
                     gap: 6,
                   }}
                 >
-                  <img src={item.icon} style={{ width: 14, height: 14, objectFit: "contain" }} alt={item.label} />
+                  <img
+                    src={item.icon}
+                    style={{ width: 14, height: 14, objectFit: 'contain' }}
+                    alt={item.label}
+                  />
                   {item.label}
                 </button>
               );
@@ -955,7 +1772,13 @@ export function PlayerStatsWidget({ username }: PlayerStatsWidgetProps) {
           </div>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 10 }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+            gap: 10,
+          }}
+        >
           {prestigeCards.map((item) => (
             <PrestigeTierCard
               key={`prestige-card-${item.levelNum}`}
@@ -966,7 +1789,17 @@ export function PlayerStatsWidget({ username }: PlayerStatsWidgetProps) {
           ))}
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 10, borderTop: UI_COLORS.PURPLE_BORDER_FADED, fontSize: 11, color: "rgba(255,255,255,0.7)" }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingTop: 10,
+            borderTop: UI_COLORS.PURPLE_BORDER_FADED,
+            fontSize: 11,
+            color: 'rgba(255,255,255,0.7)',
+          }}
+        >
           <PrestigeStatusBanner
             isTop1={isCurrentCategoryTop1}
             currentLevel={currentPrestigeLevel}

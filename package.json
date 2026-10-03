@@ -39,6 +39,10 @@
     "dev:lite": "pnpm --filter @crystaltides/launcher-lite dev",
     "clean:rust": "cargo clean",
     "sweep:rust": "cargo sweep -t 7",
+    "lint:rust": "cargo clippy --workspace --all-targets",
+    "lint:rust:pedantic": "cargo clippy --workspace --all-targets -- -W clippy::pedantic",
+    "deny:rust": "cargo deny check",
+    "machete:rust": "cargo machete",
     "install:all": "pnpm install",
     "prepare": "husky"
   },

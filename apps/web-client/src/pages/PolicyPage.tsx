@@ -247,7 +247,10 @@ interface LanguageTabsProps {
   onLanguageChange: (lang: SupportedLanguage) => void;
 }
 
-function LanguageTabs({ currentLanguage, onLanguageChange }: LanguageTabsProps): ReactElement {
+function LanguageTabs({
+  currentLanguage,
+  onLanguageChange,
+}: Readonly<LanguageTabsProps>): ReactElement {
   return (
     <div
       style={{
@@ -300,7 +303,7 @@ function PolicyHeader({
   updatedAt,
   currentLanguage,
   onLanguageChange,
-}: PolicyHeaderProps): ReactElement {
+}: Readonly<PolicyHeaderProps>): ReactElement {
   const { t } = useTranslation();
   const Icon = slug === 'privacy' ? Shield : FileText;
 
@@ -380,7 +383,7 @@ interface PolicyClausesProps {
   content: string;
 }
 
-function PolicyClauses({ content }: PolicyClausesProps): ReactElement {
+function PolicyClauses({ content }: Readonly<PolicyClausesProps>): ReactElement {
   return (
     <div className="policy-content" style={STYLES.contentContainer}>
       <div style={STYLES.contentDivider} />

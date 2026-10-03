@@ -7,10 +7,10 @@ import {
   Calendar,
   ChevronLeft,
   ChevronRight,
-} from "lucide-react";
-import { useTranslation } from "react-i18next";
-import Loader from "../../UI/Loader";
-import { Donation } from "./types";
+} from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import Loader from '../../UI/Loader';
+import { Donation } from './types';
 
 interface DonationsTableProps {
   donations: Donation[];
@@ -30,7 +30,7 @@ export default function DonationsTable({
   page,
   totalPages,
   setPage,
-}: DonationsTableProps) {
+}: Readonly<DonationsTableProps>) {
   const { t } = useTranslation();
 
   if (loading && donations.length === 0) {
@@ -47,13 +47,11 @@ export default function DonationsTable({
         <div className="empty-icon-pulse">
           <CircleDollarSign />
         </div>
-        <h4 style={{ color: "#fff", margin: 0 }}>
-          {t("admin.donations.empty")}
-        </h4>
+        <h4 style={{ color: '#fff', margin: 0 }}>{t('admin.donations.empty')}</h4>
         <p
           style={{
-            color: "rgba(255,255,255,0.3)",
-            maxWidth: "300px",
+            color: 'rgba(255,255,255,0.3)',
+            maxWidth: '300px',
             margin: 0,
           }}
         >
@@ -65,113 +63,100 @@ export default function DonationsTable({
 
   return (
     <div className="donations-table-wrapper">
-      <div style={{ flex: 1, overflowX: "auto" }}>
+      <div style={{ flex: 1, overflowX: 'auto' }}>
         <table className="premium-table">
           <thead>
             <tr>
-              <th>{t("admin.tickets.table.user")}</th>
-              <th>{t("admin.donations.form.message")}</th>
-              <th>{t("admin.donations.form.amount")}</th>
-              <th>{t("admin.tickets.table.date")}</th>
-              <th>{t("admin.tickets.table.status")}</th>
-              <th style={{ textAlign: "right" }}>Acciones</th>
+              <th>{t('admin.tickets.table.user')}</th>
+              <th>{t('admin.donations.form.message')}</th>
+              <th>{t('admin.donations.form.amount')}</th>
+              <th>{t('admin.tickets.table.date')}</th>
+              <th>{t('admin.tickets.table.status')}</th>
+              <th style={{ textAlign: 'right' }}>Acciones</th>
             </tr>
           </thead>
           <tbody>
             {donations.map((donation) => (
               <tr key={donation.id}>
-                <td
-                  aria-label={
-                    donation.from_name || t("admin.donations.anonymous")
-                  }
-                >
+                <td aria-label={donation.from_name || t('admin.donations.anonymous')}>
                   <div className="donor-cell">
                     <div className="donor-mini-avatar">
-                      {donation.from_name
-                        ? donation.from_name.charAt(0).toUpperCase()
-                        : "?"}
+                      {donation.from_name ? donation.from_name.charAt(0).toUpperCase() : '?'}
                     </div>
                     <div className="donor-name-link">
                       <span className="donor-name-text">
-                        {donation.from_name || t("admin.donations.anonymous")}
+                        {donation.from_name || t('admin.donations.anonymous')}
                       </span>
-                      <span className="donor-email-text">
-                        {donation.buyer_email || "---"}
-                      </span>
+                      <span className="donor-email-text">{donation.buyer_email || '---'}</span>
                     </div>
                   </div>
                 </td>
                 <td>
-                  <div
-                    className={`message-cell ${!donation.message ? "empty" : ""}`}
-                  >
-                    {donation.message || t("admin.donations.no_msg")}
+                  <div className={`message-cell ${!donation.message ? 'empty' : ''}`}>
+                    {donation.message || t('admin.donations.no_msg')}
                   </div>
                 </td>
                 <td>
                   <div
-                    className={`donation-amount-badge ${Number(donation.amount) >= 50 ? "high" : ""}`}
+                    className={`donation-amount-badge ${Number(donation.amount) >= 50 ? 'high' : ''}`}
                   >
-                    {donation.currency}{" "}
-                    {Number(donation.amount || 0).toFixed(2)}
+                    {donation.currency} {Number(donation.amount || 0).toFixed(2)}
                   </div>
                 </td>
                 <td>
                   <div
                     style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "0.6rem",
-                      color: "rgba(255,255,255,0.4)",
-                      fontSize: "0.85rem",
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.6rem',
+                      color: 'rgba(255,255,255,0.4)',
+                      fontSize: '0.85rem',
                       fontWeight: 600,
                     }}
                   >
                     <Calendar size={12} />
                     {donation.created_at
                       ? new Date(donation.created_at).toLocaleDateString()
-                      : "---"}
+                      : '---'}
                   </div>
                 </td>
                 <td>
-                  <span
-                    className={`visibility-badge ${donation.is_public ? "public" : "private"}`}
-                  >
+                  <span className={`visibility-badge ${donation.is_public ? 'public' : 'private'}`}>
                     {donation.is_public ? <Globe size={10} /> : <X size={10} />}
                     {donation.is_public
-                      ? t("admin.donations.public")
-                      : t("admin.donations.private")}
+                      ? t('admin.donations.public')
+                      : t('admin.donations.private')}
                   </span>
                 </td>
-                <td style={{ textAlign: "right" }}>
+                <td style={{ textAlign: 'right' }}>
                   <div
                     style={{
-                      display: "flex",
-                      justifyContent: "flex-end",
-                      gap: "0.6rem",
+                      display: 'flex',
+                      justifyContent: 'flex-end',
+                      gap: '0.6rem',
                     }}
                   >
                     <button
                       aria-label={t(
-                        "admin.donations.edit_donation",
-                        `Editar donación de ${donation.from_name || t("admin.donations.anonymous")}`,
+                        'admin.donations.edit_donation',
+                        `Editar donación de ${donation.from_name || t('admin.donations.anonymous')}`,
                       )}
                       type="button"
                       onClick={() => onEdit(donation)}
                       className="donor-btn-action edit"
-                      title={t("admin.polls.edit_btn")}
+                      title={t('admin.polls.edit_btn')}
                     >
                       <Edit2 size={14} aria-hidden="true" />
                     </button>
                     <button
                       aria-label={t(
-                        "admin.donations.delete_donation",
-                        `Eliminar donación de ${donation.from_name || t("admin.donations.anonymous")}`,
+                        'admin.donations.delete_donation',
+                        `Eliminar donación de ${donation.from_name || t('admin.donations.anonymous')}`,
                       )}
                       type="button"
                       onClick={() => onDelete(donation.id)}
                       className="donor-btn-action delete"
-                      title={t("admin.donors.delete_btn")}
+                      title={t('admin.donors.delete_btn')}
                     >
                       <Trash2 size={14} aria-hidden="true" />
                     </button>
@@ -186,7 +171,7 @@ export default function DonationsTable({
       {totalPages > 1 && (
         <div className="premium-pagination">
           <button
-            aria-label={t("common.prev_page", "Página anterior")}
+            aria-label={t('common.prev_page', 'Página anterior')}
             type="button"
             className="page-btn"
             onClick={() => setPage((p) => Math.max(1, p - 1))}
@@ -195,11 +180,11 @@ export default function DonationsTable({
             <ChevronLeft size={12} aria-hidden="true" />
           </button>
           <div className="page-info">
-            PAGINA <span className="tabular-nums">{page}</span> DE{" "}
+            PAGINA <span className="tabular-nums">{page}</span> DE{' '}
             <span className="tabular-nums">{totalPages}</span>
           </div>
           <button
-            aria-label={t("common.next_page", "Página siguiente")}
+            aria-label={t('common.next_page', 'Página siguiente')}
             type="button"
             className="page-btn"
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}

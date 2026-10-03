@@ -8,7 +8,10 @@ interface WikiArticleDetailProps {
   isMobArticle: boolean;
 }
 
-export default function WikiArticleDetail({ article, isMobArticle }: WikiArticleDetailProps) {
+export default function WikiArticleDetail({
+  article,
+  isMobArticle,
+}: Readonly<WikiArticleDetailProps>) {
   if (isMobArticle) {
     return (
       <div className="space-y-6">

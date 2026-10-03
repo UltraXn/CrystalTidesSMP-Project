@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState } from "react";
-import * as THREE from "three";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import React, { useEffect, useRef, useState } from 'react';
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import {
   Heart,
   Swords,
@@ -12,23 +12,22 @@ import {
   Sparkles,
   Layers,
   AlertTriangle,
-} from "lucide-react";
-import { WikiArticle } from "../../services/wikiService";
-import { resolveAssetUrl } from "../../utils/assetUtils";
+} from 'lucide-react';
+import { WikiArticle } from '../../services/wikiService';
+import { resolveAssetUrl } from '../../utils/assetUtils';
 
 interface WikiInfobox3DProps {
   article: WikiArticle;
 }
 
-export default function WikiInfobox3D({ article }: WikiInfobox3DProps) {
+export default function WikiInfobox3D({ article }: Readonly<WikiInfobox3DProps>) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [activePhase, setActivePhase] = useState<number>(1);
   const [isLoadingModel, setIsLoadingModel] = useState<boolean>(true);
   const [modelError, setModelError] = useState<string | null>(null);
   const hasMultiplePhases = Boolean(
-    article.model_3d_url_phase_2 ||
-    (article.boss_phases && article.boss_phases.length > 1),
+    article.model_3d_url_phase_2 || (article.boss_phases && article.boss_phases.length > 1),
   );
 
   // Three.js instances
@@ -70,7 +69,7 @@ export default function WikiInfobox3D({ article }: WikiInfobox3DProps) {
       canvas: canvasRef.current,
       alpha: true,
       antialias: true,
-      powerPreference: "high-performance",
+      powerPreference: 'high-performance',
     });
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -128,19 +127,18 @@ export default function WikiInfobox3D({ article }: WikiInfobox3DProps) {
 
     // Handle resize
     const handleResize = () => {
-      if (!containerRef.current || !rendererRef.current || !cameraRef.current)
-        return;
+      if (!containerRef.current || !rendererRef.current || !cameraRef.current) return;
       const w = containerRef.current.clientWidth || 320;
       const h = 260;
       cameraRef.current.aspect = w / h;
       cameraRef.current.updateProjectionMatrix();
       rendererRef.current.setSize(w, h);
     };
-    window.addEventListener("resize", handleResize);
+    window.addEventListener('resize', handleResize);
 
     return () => {
       cancelAnimationFrame(reqIdRef.current);
-      window.removeEventListener("resize", handleResize);
+      window.removeEventListener('resize', handleResize);
       ringGeo.dispose?.();
       ringMat.dispose?.();
       renderer.dispose?.();
@@ -186,9 +184,7 @@ export default function WikiInfobox3D({ article }: WikiInfobox3DProps) {
 
         model.traverse((child) => {
           if (child instanceof THREE.Mesh) {
-            const mats = Array.isArray(child.material)
-              ? child.material
-              : [child.material];
+            const mats = Array.isArray(child.material) ? child.material : [child.material];
             mats.forEach((mat) => {
               if (mat.map) {
                 mat.map.magFilter = THREE.NearestFilter;
@@ -213,8 +209,8 @@ export default function WikiInfobox3D({ article }: WikiInfobox3DProps) {
       },
       undefined,
       (error) => {
-        console.warn("Failed to load GLTF in infobox:", error);
-        setModelError("Modelo no disponible");
+        console.warn('Failed to load GLTF in infobox:', error);
+        setModelError('Modelo no disponible');
         setIsLoadingModel(false);
       },
     );
@@ -282,7 +278,7 @@ export default function WikiInfobox3D({ article }: WikiInfobox3DProps) {
             role="region"
             aria-label="Contenedor interactivo del modelo 3D"
             tabIndex={0}
-            className="h-65 relative flex w-full cursor-grab items-center justify-center active:cursor-grabbing focus:outline-none"
+            className="h-65 relative flex w-full cursor-grab items-center justify-center focus:outline-none active:cursor-grabbing"
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
@@ -297,14 +293,8 @@ export default function WikiInfobox3D({ article }: WikiInfobox3DProps) {
 
             {isLoadingModel && (
               <div className="text-(--accent) absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/75 backdrop-blur-sm">
-                <Sparkles
-                  size={24}
-                  aria-hidden="true"
-                  className="text-(--accent) animate-spin"
-                />
-                <span className="text-[11px] font-bold">
-                  Invocando Modelo 3D...
-                </span>
+                <Sparkles size={24} aria-hidden="true" className="text-(--accent) animate-spin" />
+                <span className="text-[11px] font-bold">Invocando Modelo 3D...</span>
               </div>
             )}
 
@@ -342,8 +332,8 @@ export default function WikiInfobox3D({ article }: WikiInfobox3DProps) {
                 onClick={() => setActivePhase(1)}
                 className={`cursor-pointer rounded-lg px-3 py-1 text-xs font-black transition-all ${
                   activePhase === 1
-                    ? "bg-[#168c80] text-white shadow-md"
-                    : "bg-white/5 text-white/50 hover:text-white"
+                    ? 'bg-[#168c80] text-white shadow-md'
+                    : 'bg-white/5 text-white/50 hover:text-white'
                 }`}
               >
                 Fase 1
@@ -354,8 +344,8 @@ export default function WikiInfobox3D({ article }: WikiInfobox3DProps) {
                 onClick={() => setActivePhase(2)}
                 className={`cursor-pointer rounded-lg px-3 py-1 text-xs font-black transition-all ${
                   activePhase === 2
-                    ? "bg-red-500 text-white shadow-md"
-                    : "bg-white/5 text-white/50 hover:text-white"
+                    ? 'bg-red-500 text-white shadow-md'
+                    : 'bg-white/5 text-white/50 hover:text-white'
                 }`}
               >
                 Fase 2 (Frenesí)
@@ -376,7 +366,7 @@ export default function WikiInfobox3D({ article }: WikiInfobox3DProps) {
           <div className="flex items-center justify-between pt-1.5">
             <span className="font-medium text-white/50">Categoría</span>
             <span className="font-bold capitalize text-white">
-              {article.category?.replaceAll("_", " ") || "General"}
+              {article.category?.replaceAll('_', ' ') || 'General'}
             </span>
           </div>
 
@@ -384,8 +374,7 @@ export default function WikiInfobox3D({ article }: WikiInfobox3DProps) {
           {article.boss_hp && (
             <div className="flex items-center justify-between pt-1.5">
               <span className="flex items-center gap-1.5 font-medium text-white/50">
-                <Heart size={13} aria-hidden="true" className="text-red-400" />{" "}
-                Puntos de Vida
+                <Heart size={13} aria-hidden="true" className="text-red-400" /> Puntos de Vida
               </span>
               <span className="font-mono font-black tabular-nums text-red-300">
                 {activePhase === 2 && article.boss_hp_phase_2
@@ -399,12 +388,7 @@ export default function WikiInfobox3D({ article }: WikiInfobox3DProps) {
           {article.boss_damage && (
             <div className="flex items-center justify-between pt-1.5">
               <span className="flex items-center gap-1.5 font-medium text-white/50">
-                <Swords
-                  size={13}
-                  aria-hidden="true"
-                  className="text-amber-400"
-                />{" "}
-                Poder de Ataque
+                <Swords size={13} aria-hidden="true" className="text-amber-400" /> Poder de Ataque
               </span>
               <span className="max-w-35 truncate text-right font-bold tabular-nums text-amber-200">
                 {activePhase === 2 && article.boss_damage_phase_2
@@ -418,12 +402,7 @@ export default function WikiInfobox3D({ article }: WikiInfobox3DProps) {
           {article.boss_armor && (
             <div className="flex items-center justify-between pt-1.5">
               <span className="flex items-center gap-1.5 font-medium text-white/50">
-                <Shield
-                  size={13}
-                  aria-hidden="true"
-                  className="text-blue-400"
-                />{" "}
-                Armadura
+                <Shield size={13} aria-hidden="true" className="text-blue-400" /> Armadura
               </span>
               <span className="max-w-35 truncate text-right font-semibold tabular-nums text-white/90">
                 {article.boss_armor}
@@ -435,12 +414,9 @@ export default function WikiInfobox3D({ article }: WikiInfobox3DProps) {
           {article.boss_speed && (
             <div className="flex items-center justify-between pt-1.5">
               <span className="flex items-center gap-1.5 font-medium text-white/50">
-                <Zap size={13} aria-hidden="true" className="text-yellow-400" />{" "}
-                Velocidad
+                <Zap size={13} aria-hidden="true" className="text-yellow-400" /> Velocidad
               </span>
-              <span className="font-mono tabular-nums text-white/80">
-                {article.boss_speed}
-              </span>
+              <span className="font-mono tabular-nums text-white/80">{article.boss_speed}</span>
             </div>
           )}
 
@@ -448,25 +424,16 @@ export default function WikiInfobox3D({ article }: WikiInfobox3DProps) {
           {article.boss_location && (
             <div className="flex items-start justify-between gap-2 pt-1.5">
               <span className="flex shrink-0 items-center gap-1.5 font-medium text-white/50">
-                <MapPin
-                  size={13}
-                  aria-hidden="true"
-                  className="text-(--accent)"
-                />{" "}
-                Hábitat
+                <MapPin size={13} aria-hidden="true" className="text-(--accent)" /> Hábitat
               </span>
-              <span className="text-right font-medium text-white/90">
-                {article.boss_location}
-              </span>
+              <span className="text-right font-medium text-white/90">{article.boss_location}</span>
             </div>
           )}
 
           {/* Spawn Method */}
           {article.boss_spawn_method && (
             <div className="flex items-start justify-between gap-2 pt-1.5">
-              <span className="shrink-0 font-medium text-white/50">
-                Aparición
-              </span>
+              <span className="shrink-0 font-medium text-white/50">Aparición</span>
               <span className="text-right text-[11px] font-medium text-white/80">
                 {article.boss_spawn_method}
               </span>
@@ -499,11 +466,9 @@ export default function WikiInfobox3D({ article }: WikiInfobox3DProps) {
                 key={`drop-${drop}`}
                 className="flex items-center justify-between rounded-lg border border-white/5 bg-black/40 p-2 text-xs"
               >
-                <span className="font-medium text-white/80">
-                  {drop.split("(")[0].trim()}
-                </span>
+                <span className="font-medium text-white/80">{drop.split('(')[0].trim()}</span>
                 <span className="text-(--accent) rounded-md border border-[#89d9d1]/20 bg-[#168c80]/20 px-2 py-0.5 font-mono text-[10px] font-bold tabular-nums">
-                  {drop.includes("(") ? `(${drop.split("(")[1]}` : "100%"}
+                  {drop.includes('(') ? `(${drop.split('(')[1]}` : '100%'}
                 </span>
               </div>
             ))}

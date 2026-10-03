@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import * as THREE from "three";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import ReactMarkdown from "react-markdown";
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import ReactMarkdown from 'react-markdown';
 import {
   Skull,
   AlertTriangle,
@@ -13,8 +13,8 @@ import {
   Coins,
   Maximize2,
   RotateCcw,
-} from "lucide-react";
-import { resolveAssetUrl } from "../../utils/assetUtils";
+} from 'lucide-react';
+import { resolveAssetUrl } from '../../utils/assetUtils';
 
 export interface WikiHostile3DCardProps {
   minimal3dOnly?: boolean;
@@ -31,19 +31,19 @@ export interface WikiHostile3DCardProps {
   kcReward?: number;
 }
 
-const DEFAULT_DROPS = ["Piel Mítica", "Diente Infectado"];
+const DEFAULT_DROPS = ['Piel Mítica', 'Diente Infectado'];
 
-export const WikiHostile3DCard: React.FC<WikiHostile3DCardProps> = ({
+export const WikiHostile3DCard: React.FC<Readonly<WikiHostile3DCardProps>> = ({
   minimal3dOnly = false,
-  modelPath = "/models/mythology/chupacabra.gltf",
-  bossName = "Chupacabra",
-  subtitle = "Criatura Hostil Mitológica",
-  hp = "40 HP (20 Corazones)",
-  damage = "8 HP (Daño Físico)",
-  speed = "0.35 (Marcha Agresiva)",
-  location = "Bosques Nocturnos & Cavernas",
-  spawnMethod = "Generación Natural Nocturna",
-  description = "Depredador nocturno sediento de sangre con mandíbulas retráctiles que acecha en la oscuridad.",
+  modelPath = '/models/mythology/chupacabra.gltf',
+  bossName = 'Chupacabra',
+  subtitle = 'Criatura Hostil Mitológica',
+  hp = '40 HP (20 Corazones)',
+  damage = '8 HP (Daño Físico)',
+  speed = '0.35 (Marcha Agresiva)',
+  location = 'Bosques Nocturnos & Cavernas',
+  spawnMethod = 'Generación Natural Nocturna',
+  description = 'Depredador nocturno sediento de sangre con mandíbulas retráctiles que acecha en la oscuridad.',
   drops = DEFAULT_DROPS,
   kcReward = 150,
 }) => {
@@ -90,7 +90,7 @@ export const WikiHostile3DCard: React.FC<WikiHostile3DCardProps> = ({
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
       alpha: true,
-      powerPreference: "high-performance",
+      powerPreference: 'high-performance',
     });
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -99,7 +99,7 @@ export const WikiHostile3DCard: React.FC<WikiHostile3DCardProps> = ({
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     rendererRef.current = renderer;
 
-    containerRef.current.innerHTML = "";
+    containerRef.current.innerHTML = '';
     containerRef.current.appendChild(renderer.domElement);
 
     // Lighting
@@ -188,11 +188,9 @@ export const WikiHostile3DCard: React.FC<WikiHostile3DCardProps> = ({
 
       if (modelGroupRef.current) {
         modelGroupRef.current.rotation.x +=
-          (targetRotationRef.current.x - modelGroupRef.current.rotation.x) *
-          0.08;
+          (targetRotationRef.current.x - modelGroupRef.current.rotation.x) * 0.08;
         modelGroupRef.current.rotation.y +=
-          (targetRotationRef.current.y - modelGroupRef.current.rotation.y) *
-          0.08;
+          (targetRotationRef.current.y - modelGroupRef.current.rotation.y) * 0.08;
       }
 
       renderer.render(scene, camera);
@@ -201,8 +199,7 @@ export const WikiHostile3DCard: React.FC<WikiHostile3DCardProps> = ({
     animate();
 
     const handleResize = () => {
-      if (!containerRef.current || !rendererRef.current || !cameraRef.current)
-        return;
+      if (!containerRef.current || !rendererRef.current || !cameraRef.current) return;
       const w = containerRef.current.clientWidth;
       const h = containerRef.current.clientHeight;
       cameraRef.current.aspect = w / h;
@@ -210,11 +207,11 @@ export const WikiHostile3DCard: React.FC<WikiHostile3DCardProps> = ({
       rendererRef.current.setSize(w, h);
     };
 
-    window.addEventListener("resize", handleResize);
+    window.addEventListener('resize', handleResize);
 
     return () => {
       cancelAnimationFrame(animationFrameId);
-      window.removeEventListener("resize", handleResize);
+      window.removeEventListener('resize', handleResize);
       renderer.dispose();
     };
   }, [modelPath]);
@@ -253,10 +250,7 @@ export const WikiHostile3DCard: React.FC<WikiHostile3DCardProps> = ({
             </span>
           </div>
         )}
-        <div
-          ref={containerRef}
-          className="absolute inset-0 z-10 h-full w-full"
-        />
+        <div ref={containerRef} className="absolute inset-0 z-10 h-full w-full" />
       </div>
     );
   }
@@ -270,7 +264,7 @@ export const WikiHostile3DCard: React.FC<WikiHostile3DCardProps> = ({
             role="region"
             aria-label="Visualizador 3D Hostil"
             tabIndex={0}
-            className="min-h-95 bg-radial relative flex h-full w-full cursor-grab items-center justify-center overflow-hidden border-b border-red-500/20 from-red-950/40 via-black to-black outline-none active:cursor-grabbing focus:outline-none lg:col-span-5 lg:border-b-0 lg:border-r"
+            className="min-h-95 bg-radial relative flex h-full w-full cursor-grab items-center justify-center overflow-hidden border-b border-red-500/20 from-red-950/40 via-black to-black outline-none focus:outline-none active:cursor-grabbing lg:col-span-5 lg:border-b-0 lg:border-r"
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
@@ -285,10 +279,7 @@ export const WikiHostile3DCard: React.FC<WikiHostile3DCardProps> = ({
               </div>
             )}
 
-            <div
-              ref={containerRef}
-              className="absolute inset-0 z-10 h-full w-full"
-            />
+            <div ref={containerRef} className="absolute inset-0 z-10 h-full w-full" />
 
             {/* Controls */}
             <div className="absolute right-3 top-3 z-20 flex items-center gap-1.5">
@@ -326,9 +317,7 @@ export const WikiHostile3DCard: React.FC<WikiHostile3DCardProps> = ({
 
               {description && (
                 <div className="mb-3 space-y-1.5 text-[11px] font-medium leading-relaxed text-gray-300 [&_p]:mb-1">
-                  <ReactMarkdown>
-                    {description.replaceAll('\\n', '\n')}
-                  </ReactMarkdown>
+                  <ReactMarkdown>{description.replaceAll('\\n', '\n')}</ReactMarkdown>
                 </div>
               )}
 
@@ -342,9 +331,7 @@ export const WikiHostile3DCard: React.FC<WikiHostile3DCardProps> = ({
                     <div className="font-mono text-[8px] uppercase tracking-wider text-gray-400">
                       Nivel de Amenaza
                     </div>
-                    <div className="text-[11px] font-bold text-orange-300">
-                      Hostil (Depredador)
-                    </div>
+                    <div className="text-[11px] font-bold text-orange-300">Hostil (Depredador)</div>
                   </div>
                 </div>
 
@@ -368,9 +355,7 @@ export const WikiHostile3DCard: React.FC<WikiHostile3DCardProps> = ({
                     <div className="font-mono text-[8px] uppercase tracking-wider text-gray-400">
                       Poder de Daño
                     </div>
-                    <div className="text-[11px] font-bold text-white">
-                      {damage}
-                    </div>
+                    <div className="text-[11px] font-bold text-white">{damage}</div>
                   </div>
                 </div>
 
@@ -382,9 +367,7 @@ export const WikiHostile3DCard: React.FC<WikiHostile3DCardProps> = ({
                     <div className="font-mono text-[8px] uppercase tracking-wider text-gray-400">
                       Velocidad
                     </div>
-                    <div className="text-[11px] font-bold text-white">
-                      {speed}
-                    </div>
+                    <div className="text-[11px] font-bold text-white">{speed}</div>
                   </div>
                 </div>
               </div>
@@ -398,8 +381,7 @@ export const WikiHostile3DCard: React.FC<WikiHostile3DCardProps> = ({
                   <strong className="text-white">Hábitat:</strong> {location}
                 </p>
                 <p className="text-[10px] font-medium leading-tight text-gray-300">
-                  <strong className="text-white">Aparición:</strong>{" "}
-                  {spawnMethod}
+                  <strong className="text-white">Aparición:</strong> {spawnMethod}
                 </p>
               </div>
 

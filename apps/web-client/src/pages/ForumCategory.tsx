@@ -142,7 +142,7 @@ interface CategoryHeaderProps {
   readonly isNewsCategory: boolean;
 }
 
-function CategoryHeader({ isNewsCategory }: CategoryHeaderProps) {
+function CategoryHeader({ isNewsCategory }: Readonly<CategoryHeaderProps>) {
   const { t } = useTranslation();
 
   return (
@@ -181,7 +181,7 @@ interface EmptyThreadsStateProps {
   readonly isNewsCategory: boolean;
 }
 
-function EmptyThreadsState({ isNewsCategory }: EmptyThreadsStateProps) {
+function EmptyThreadsState({ isNewsCategory }: Readonly<EmptyThreadsStateProps>) {
   const { t } = useTranslation();
 
   return (
@@ -204,7 +204,7 @@ interface ThreadRowProps {
   readonly isNewsCategory: boolean;
 }
 
-function ThreadRow({ thread, isNewsCategory }: ThreadRowProps) {
+function ThreadRow({ thread, isNewsCategory }: Readonly<ThreadRowProps>) {
   const { t } = useTranslation();
   const threadTargetId = thread.slug || thread.id;
   const threadUrl = isNewsCategory

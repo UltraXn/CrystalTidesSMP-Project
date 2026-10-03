@@ -102,7 +102,7 @@ export const updateStatus = async (req: Request, res: Response) => {
   try {
     const id = ensureString(req.params.id);
     const { status } = req.body;
-    const ticketId = parseInt(id);
+    const ticketId = Number.parseInt(id);
     const user = (req as AuthenticatedRequest).user!;
 
     // 1. Fetch ticket to check ownership
@@ -145,7 +145,7 @@ export const getStats = async (req: Request, res: Response) => {
 export const getMessages = async (req: Request, res: Response) => {
   try {
     const id = ensureString(req.params.id);
-    const ticketId = parseInt(id);
+    const ticketId = Number.parseInt(id);
     const user = (req as AuthenticatedRequest).user!;
 
     // 1. Fetch ticket to check ownership
@@ -169,7 +169,7 @@ export const addMessage = async (req: Request, res: Response) => {
   try {
     const id = ensureString(req.params.id);
     const { message } = req.body;
-    const ticketId = parseInt(id);
+    const ticketId = Number.parseInt(id);
     const user = (req as AuthenticatedRequest).user!;
 
     if (!message) return sendError(res, 'Message is required', ERROR_CODES.MISSING_FIELD, 400);
@@ -232,7 +232,7 @@ export const banUser = async (req: Request, res: Response) => {
 export const deleteTicket = async (req: Request, res: Response) => {
   try {
     const id = ensureString(req.params.id);
-    await ticketService.deleteTicket(parseInt(id));
+    await ticketService.deleteTicket(Number.parseInt(id));
 
     logService
       .createLog({

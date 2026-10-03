@@ -47,7 +47,7 @@ interface TicketStatusBadgeProps {
   status?: string;
 }
 
-function TicketStatusBadge({ status }: TicketStatusBadgeProps) {
+function TicketStatusBadge({ status }: Readonly<TicketStatusBadgeProps>) {
   const currentStatus = status ?? CONSTANTS.STATUS_OPEN;
   const badgeColor = getStatusColor(currentStatus);
 
@@ -77,7 +77,7 @@ interface TicketHeaderProps {
   onBack: () => void;
 }
 
-function TicketHeader({ subject, ticketId, status, onBack }: TicketHeaderProps) {
+function TicketHeader({ subject, ticketId, status, onBack }: Readonly<TicketHeaderProps>) {
   return (
     <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
       <button
@@ -110,7 +110,7 @@ interface MessageBubbleProps {
   isMe: boolean;
 }
 
-function MessageBubble({ message, isMe }: MessageBubbleProps) {
+function MessageBubble({ message, isMe }: Readonly<MessageBubbleProps>) {
   const formattedTime = new Date(message.created_at).toLocaleTimeString([], {
     hour: '2-digit',
     minute: '2-digit',
@@ -173,7 +173,11 @@ interface ConversationThreadProps {
   messagesEndRef: React.RefObject<HTMLDivElement | null>;
 }
 
-function ConversationThread({ messages, currentUserId, messagesEndRef }: ConversationThreadProps) {
+function ConversationThread({
+  messages,
+  currentUserId,
+  messagesEndRef,
+}: Readonly<ConversationThreadProps>) {
   return (
     <div
       style={{
@@ -202,7 +206,7 @@ interface TicketReplyBoxProps {
   onSendMessage: (data: AddTicketMessageFormValues) => Promise<void>;
 }
 
-function TicketReplyBox({ isClosed, onSendMessage }: TicketReplyBoxProps) {
+function TicketReplyBox({ isClosed, onSendMessage }: Readonly<TicketReplyBoxProps>) {
   const { t } = useTranslation();
   const {
     register,

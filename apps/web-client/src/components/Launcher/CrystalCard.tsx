@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 
 interface CrystalCardProps {
   children: React.ReactNode;
@@ -7,18 +7,15 @@ interface CrystalCardProps {
   style?: React.CSSProperties;
 }
 
-export const CrystalCard: React.FC<CrystalCardProps> = ({
+export const CrystalCard: React.FC<Readonly<CrystalCardProps>> = ({
   children,
   enableHoverEffect = true,
-  className = "",
+  className = '',
   style,
 }) => {
-  const hoverClass = enableHoverEffect ? "glass-card-hover" : "";
+  const hoverClass = enableHoverEffect ? 'glass-card-hover' : '';
   return (
-    <div
-      className={`glass-card ${hoverClass} ${className}`}
-      style={{ borderRadius: 18, ...style }}
-    >
+    <div className={`glass-card ${hoverClass} ${className}`} style={{ borderRadius: 18, ...style }}>
       {children}
     </div>
   );

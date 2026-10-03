@@ -165,7 +165,7 @@ interface SandboxProps {
 }
 
 // Sandbox Simulator Frame
-const LauncherSandbox: React.FC<SandboxProps> = ({
+const LauncherSandbox: React.FC<Readonly<SandboxProps>> = ({
   isFullscreen,
   simKey,
   onReset,
@@ -213,11 +213,7 @@ const LauncherSandbox: React.FC<SandboxProps> = ({
             title={isFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa'}
             className="flex cursor-pointer items-center gap-1.5 border border-slate-700/50 bg-slate-800/80 px-2.5 py-1 text-xs text-slate-300 transition-colors hover:bg-slate-700 hover:text-white"
           >
-            {isFullscreen ? (
-              <Minimize2 className="h-3 w-3" />
-            ) : (
-              <Maximize2 className="h-3 w-3" />
-            )}
+            {isFullscreen ? <Minimize2 className="h-3 w-3" /> : <Maximize2 className="h-3 w-3" />}
             <span>{isFullscreen ? 'Reducir' : 'Pantalla Completa'}</span>
           </button>
           <a
@@ -238,7 +234,7 @@ interface BenchmarkProps {
 }
 
 // Technical Benchmark Comparison
-const LauncherBenchmark: React.FC<BenchmarkProps> = ({ metric, onSelectMetric }) => {
+const LauncherBenchmark: React.FC<Readonly<BenchmarkProps>> = ({ metric, onSelectMetric }) => {
   const currentData = BENCHMARK_DATA[metric];
 
   const getMetricButtonClass = (target: BenchmarkMetric) =>
@@ -347,8 +343,8 @@ const LauncherBenchmark: React.FC<BenchmarkProps> = ({ metric, onSelectMetric })
             <span>Delta Sync de Mods</span>
           </div>
           <p className="text-xs leading-relaxed text-slate-300">
-            El cliente calcula hashes SHA-256 de tus carpetas de juego para descargar
-            exclusivamente los archivos modificados o faltantes.
+            El cliente calcula hashes SHA-256 de tus carpetas de juego para descargar exclusivamente
+            los archivos modificados o faltantes.
           </p>
         </div>
 
@@ -358,8 +354,8 @@ const LauncherBenchmark: React.FC<BenchmarkProps> = ({ metric, onSelectMetric })
             <span>Microsoft OAuth 2.0 PKCE</span>
           </div>
           <p className="text-xs leading-relaxed text-slate-300">
-            Autenticación criptográfica oficial directa con Microsoft sin almacenar credenciales
-            en servidores de terceros.
+            Autenticación criptográfica oficial directa con Microsoft sin almacenar credenciales en
+            servidores de terceros.
           </p>
         </div>
       </div>
@@ -377,7 +373,7 @@ interface DownloadSectionProps {
 }
 
 // Download & Checksum Verification Section
-const LauncherDownloadSection: React.FC<DownloadSectionProps> = ({
+const LauncherDownloadSection: React.FC<Readonly<DownloadSectionProps>> = ({
   activeOs,
   showChecksum,
   copiedHash,

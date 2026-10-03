@@ -1,8 +1,8 @@
-import React from "react";
-import { Star, Check, Trophy, Sparkles } from "lucide-react";
-import { useTranslation } from "react-i18next";
-import { GachaReward, MappedGachaResult, GachaTier } from "./types";
-import { isLossReward, resolveRewardImage, getGachaFailsafeImage } from "./gachaDisplayUtils";
+import React from 'react';
+import { Star, Check, Trophy, Sparkles } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { GachaReward, MappedGachaResult, GachaTier } from './types';
+import { isLossReward, resolveRewardImage, getGachaFailsafeImage } from './gachaDisplayUtils';
 
 interface GachaRewardsOverlayProps {
   showBulkRewards: boolean;
@@ -11,7 +11,7 @@ interface GachaRewardsOverlayProps {
   setShowBulkRewards: (val: boolean) => void;
 }
 
-export const GachaRewardsOverlay: React.FC<GachaRewardsOverlayProps> = ({
+export const GachaRewardsOverlay: React.FC<Readonly<GachaRewardsOverlayProps>> = ({
   showBulkRewards,
   bulkRewards,
   selectedTier,
@@ -36,27 +36,24 @@ export const GachaRewardsOverlay: React.FC<GachaRewardsOverlayProps> = ({
         className="reward-overlay"
       >
         <div className="reward-card">
-          <span className={`reward-rarity rarity-${item.rarity}`}>
-            {item.rarity.toUpperCase()}
-          </span>
+          <span className={`reward-rarity rarity-${item.rarity}`}>{item.rarity.toUpperCase()}</span>
           <div className={`reward-icon rarity-${item.rarity}`}>
             {(() => {
               const loss = isLossReward(item);
               const activeImg = loss
                 ? null
-                : resolveRewardImage(item.name, item.image_url) ||
-                  getFailsafeImg(item.name);
+                : resolveRewardImage(item.name, item.image_url) || getFailsafeImg(item.name);
               if (activeImg) {
                 return (
                   <img
                     src={activeImg}
                     alt={item.name}
                     style={{
-                      width: "120px",
-                      height: "120px",
-                      objectFit: "contain",
-                      imageRendering: "pixelated",
-                      filter: `drop-shadow(0 0 15px ${item.color || "#fff"}80)`,
+                      width: '120px',
+                      height: '120px',
+                      objectFit: 'contain',
+                      imageRendering: 'pixelated',
+                      filter: `drop-shadow(0 0 15px ${item.color || '#fff'}80)`,
                     }}
                   />
                 );
@@ -64,30 +61,18 @@ export const GachaRewardsOverlay: React.FC<GachaRewardsOverlayProps> = ({
 
               if (loss) {
                 return (
-                  <Sparkles
-                    size={100}
-                    color="#94a3b8"
-                    strokeWidth={1.25}
-                    aria-hidden="true"
-                  />
+                  <Sparkles size={100} color="#94a3b8" strokeWidth={1.25} aria-hidden="true" />
                 );
               }
 
-              return (
-                <Trophy
-                  size={100}
-                  color="#ffd700"
-                  strokeWidth={1}
-                  aria-hidden="true"
-                />
-              );
+              return <Trophy size={100} color="#ffd700" strokeWidth={1} aria-hidden="true" />;
             })()}
           </div>
           <h3 id="gacha-reward-title">{item.name}</h3>
           <p>
             {isLossReward(item)
-              ? "¡Vuelve a intentarlo en la próxima tirada!"
-              : "¡Has desbloqueado un nuevo objeto!"}
+              ? '¡Vuelve a intentarlo en la próxima tirada!'
+              : '¡Has desbloqueado un nuevo objeto!'}
           </p>
           <button
             type="button"
@@ -112,10 +97,7 @@ export const GachaRewardsOverlay: React.FC<GachaRewardsOverlayProps> = ({
       className="reward-overlay"
     >
       <div className="reward-card bulk-reward-card">
-        <div
-          className="reward-glow"
-          style={{ background: selectedTier.color }}
-        ></div>
+        <div className="reward-glow" style={{ background: selectedTier.color }}></div>
         <div className="reward-header">
           <Star
             size={24}
@@ -125,51 +107,49 @@ export const GachaRewardsOverlay: React.FC<GachaRewardsOverlayProps> = ({
             className="header-icon"
           />
           <h2 id="gacha-reward-title">
-            {t("gacha.results_title")} ({bulkRewards.length})
+            {t('gacha.results_title')} ({bulkRewards.length})
           </h2>
         </div>
 
         <div className="bulk-rewards-list custom-scrollbar">
           {bulkRewards.length === 0 ? (
-            <p className="no-rewards">{t("gacha.no_rewards")}</p>
+            <p className="no-rewards">{t('gacha.no_rewards')}</p>
           ) : (
             bulkRewards.map((r, index) => (
               <div
-                key={r.id || `reward-${r.name}-${r.rarity}-${'amount' in r && r.amount ? r.amount : ''}`}
+                key={
+                  r.id ||
+                  `reward-${r.name}-${r.rarity}-${'amount' in r && r.amount ? r.amount : ''}`
+                }
                 className={`bulk-item-row rarity-${r.rarity}`}
-                style={{ "--delay": `${index * 0.05}s` } as React.CSSProperties}
+                style={{ '--delay': `${index * 0.05}s` } as React.CSSProperties}
               >
                 <div className="bulk-item-icon">
                   {(() => {
                     const loss = isLossReward(r);
                     const activeImg = loss
                       ? null
-                      : resolveRewardImage(r.name, r.image_url) ||
-                        getFailsafeImg(r.name);
+                      : resolveRewardImage(r.name, r.image_url) || getFailsafeImg(r.name);
 
                     if (activeImg) {
                       const isKillucoin =
-                        r.name.toLowerCase().includes("killucoins") ||
-                        r.name.toLowerCase().includes(" kc");
+                        r.name.toLowerCase().includes('killucoins') ||
+                        r.name.toLowerCase().includes(' kc');
                       return (
                         <img
                           src={activeImg}
                           alt={r.name}
-                          className={
-                            isKillucoin
-                              ? "bulk-coin-img"
-                              : "reward-item-img-bulk"
-                          }
+                          className={isKillucoin ? 'bulk-coin-img' : 'reward-item-img-bulk'}
                           style={
                             {
-                              width: "28px",
-                              height: "28px",
-                              objectFit: "contain",
-                              imageRendering: "pixelated",
+                              width: '28px',
+                              height: '28px',
+                              objectFit: 'contain',
+                              imageRendering: 'pixelated',
                               filter: isKillucoin
-                                ? `drop-shadow(0 0 10px ${r.color || "#fff"})`
+                                ? `drop-shadow(0 0 10px ${r.color || '#fff'})`
                                 : `drop-shadow(0 0 8px ${r.color}80)`,
-                              "--item-glow": `${r.color}80`,
+                              '--item-glow': `${r.color}80`,
                             } as React.CSSProperties
                           }
                         />
@@ -178,25 +158,16 @@ export const GachaRewardsOverlay: React.FC<GachaRewardsOverlayProps> = ({
 
                     if (loss) {
                       return (
-                        <Sparkles
-                          size={24}
-                          color="#94a3b8"
-                          strokeWidth={1.5}
-                          aria-hidden="true"
-                        />
+                        <Sparkles size={24} color="#94a3b8" strokeWidth={1.5} aria-hidden="true" />
                       );
                     }
 
-                    return (
-                      <Trophy size={24} color="#94a3b8" aria-hidden="true" />
-                    );
+                    return <Trophy size={24} color="#94a3b8" aria-hidden="true" />;
                   })()}
                 </div>
                 <div className="bulk-item-info">
                   <span className="bulk-item-name">{r.name}</span>
-                  <span className="bulk-item-rarity">
-                    {r.rarity.toUpperCase()}
-                  </span>
+                  <span className="bulk-item-rarity">{r.rarity.toUpperCase()}</span>
                 </div>
               </div>
             ))

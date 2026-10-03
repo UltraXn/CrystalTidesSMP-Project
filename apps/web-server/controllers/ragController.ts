@@ -15,6 +15,22 @@ export const DEFAULT_MOD_PREFIX = 'custom';
 export const STATUS_SKIPPED = 'skipped' as const;
 export const STATUS_SUCCESS = 'success' as const;
 
+const HASH_ALGORITHM = 'sha256';
+const HASH_ENCODING = 'hex';
+const HEADER_X_RAG_SECRET = 'x-rag-secret';
+const HEADER_AUTHORIZATION = 'authorization';
+const BEARER_PREFIX = 'Bearer ';
+
+const INGEST_MESSAGES = {
+  AUTH_SECRET_MISSING: 'RAG_INGEST_SECRET no está configurado en el servidor.',
+  AUTH_UNAUTHORIZED: 'No autorizado. Se requiere x-rag-secret válido.',
+  SKIPPED_NO_CHANGES:
+    '✅ Sin cambios detectados en el modpack. Proceso omitido (0 costo de tokens).',
+  INGESTION_ERROR: 'Error interno en la ingesta RAG.',
+  buildSuccessMessage: (count: number): string =>
+    `✅ Ingesta completada. Insertados ${count} elementos nuevos.`,
+} as const;
+
 const RAG_INGEST_SECRET =
   process.env.RAG_INGEST_SECRET ||
   (process.env.NODE_ENV === 'test' ? 'CrystalRAGSecretKey2026' : undefined);
@@ -70,23 +86,23 @@ export interface ModKnowledgeInsertRow {
   embedding: number[];
 }
 
-export interface VectorMatchResult {
+export interface VectorMatchResult<TMetadata = Record<string, unknown>> {
   id?: number;
   mod_id: string;
   entity_type: string;
   entity_name: string;
-  metadata: Record<string, unknown>;
+  metadata: TMetadata;
   similarity?: number;
   score?: number;
   rerank_score?: number;
 }
 
-export interface VectorSearchResponsePayload {
+export interface VectorSearchResponsePayload<TMetadata = Record<string, unknown>> {
   query: string;
   total_found: number;
   is_supported: boolean;
   context: string;
-  results: VectorMatchResult[];
+  results: VectorMatchResult<TMetadata>[];
 }
 
 export interface RagIngestSuccessResponse {
@@ -121,7 +137,16 @@ type AuthValidationResult =
 export function buildEntityEmbeddingText(entity: RagEntityInput): string {
   const namePart = entity.name || '';
   const modPart = entity.mod || '';
-  return `${entity.id} ${namePart} ${modPart}`;
+  return `${entity.id} ${namePart} ${modPart}`.trim();
+}
+
+/**
+ * Genera el texto semántico optimizado para generar embeddings de ítems
+ */
+export function buildItemEmbeddingText(item: RagItemInput): string {
+  const namePart = item.name || '';
+  const modPart = item.mod || '';
+  return `${item.id} ${namePart} ${modPart}`.trim();
 }
 
 /**
@@ -132,15 +157,24 @@ export function buildSearchEmbeddingQuery(query: string): string {
 }
 
 /**
+ * Extrae el mod_id fallback a partir del prefijo en entity.id
+ */
+function resolveModId(entity: RagEntityInput): string {
+  if (entity.mod) {
+    return entity.mod;
+  }
+  const colonIndex = entity.id.indexOf(':');
+  return colonIndex > 0 ? entity.id.slice(0, colonIndex) : DEFAULT_MOD_PREFIX;
+}
+
+/**
  * Transforma una entidad en un registro tipado listo para inserción en mod_knowledge_base
  */
 export function buildKnowledgeRecord(
   entity: RagEntityInput,
   embedding: number[],
 ): ModKnowledgeInsertRow {
-  const colonIndex = entity.id.indexOf(':');
-  const fallbackMod = colonIndex > 0 ? entity.id.slice(0, colonIndex) : DEFAULT_MOD_PREFIX;
-  const modId = entity.mod || fallbackMod;
+  const modId = resolveModId(entity);
   const entityType: EntityType = entity.is_boss ? ENTITY_TYPE_BOSS : ENTITY_TYPE_MOB;
   const entityName = entity.name || entity.id;
 
@@ -157,6 +191,8 @@ export function buildKnowledgeRecord(
 // PURE UTILITY & CHECKSUM HELPERS
 // ============================================================================
 
+const getIsoTimestamp = (): string => new Date().toISOString();
+
 /**
  * Calcula el hash SHA-256 del contenido de entidades e ítems si no fue provisto
  */
@@ -168,7 +204,7 @@ export function computePayloadChecksum(
     return explicitChecksum;
   }
   const payloadString = JSON.stringify({ entities: payload.entities, items: payload.items });
-  return crypto.createHash('sha256').update(payloadString).digest('hex');
+  return crypto.createHash(HASH_ALGORITHM).update(payloadString).digest(HASH_ENCODING);
 }
 
 /**
@@ -179,19 +215,19 @@ function validateIngestAuth(req: Request): AuthValidationResult {
     return {
       isValid: false,
       statusCode: 500,
-      errorMessage: 'RAG_INGEST_SECRET no está configurado en el servidor.',
+      errorMessage: INGEST_MESSAGES.AUTH_SECRET_MISSING,
     };
   }
 
-  const authHeader = req.headers['x-rag-secret'] || req.headers['authorization'];
+  const authHeader = req.headers[HEADER_X_RAG_SECRET] || req.headers[HEADER_AUTHORIZATION];
   const isDirectMatch = authHeader === RAG_INGEST_SECRET;
-  const isBearerMatch = authHeader === `Bearer ${RAG_INGEST_SECRET}`;
+  const isBearerMatch = authHeader === `${BEARER_PREFIX}${RAG_INGEST_SECRET}`;
 
   if (!isDirectMatch && !isBearerMatch) {
     return {
       isValid: false,
       statusCode: 401,
-      errorMessage: 'No autorizado. Se requiere x-rag-secret válido.',
+      errorMessage: INGEST_MESSAGES.AUTH_UNAUTHORIZED,
     };
   }
 
@@ -244,11 +280,13 @@ async function ingestEntities(entities: RagEntityInput[]): Promise<number> {
  */
 async function updateManifestChecksum(computedChecksum: string): Promise<void> {
   memoryChecksumCache = computedChecksum;
-  await supabase.from(TABLE_PROCESSED_MANIFEST).upsert({
+  const manifestRecord: ProcessedManifestRecord = {
     mod_file: MANIFEST_FILE_LATEST,
     file_hash: computedChecksum,
-    processed_at: new Date().toISOString(),
-  });
+    processed_at: getIsoTimestamp(),
+  };
+
+  await supabase.from(TABLE_PROCESSED_MANIFEST).upsert(manifestRecord);
 }
 
 // Helpers para testing / inspección de caché
@@ -278,42 +316,44 @@ export async function handleRagIngestPush(req: Request, res: Response): Promise<
     const body = req.body as RagIngestBody;
     const { active_mods, entities, items, checksum } = body;
 
-    // 1. Verificación de Checksum de Cambios (10ms 200 OK si no hay cambios)
     const computedChecksum = computePayloadChecksum({ entities, items }, checksum);
     const isUnchanged = await isChecksumUnchanged(computedChecksum);
 
     if (isUnchanged) {
-      res.status(200).json({
+      const skippedResponse: RagIngestSkippedResponse = {
         status: STATUS_SKIPPED,
-        message: '✅ Sin cambios detectados en el modpack. Proceso omitido (0 costo de tokens).',
-        timestamp: new Date().toISOString(),
-      });
+        message: INGEST_MESSAGES.SKIPPED_NO_CHANGES,
+        timestamp: getIsoTimestamp(),
+      };
+      res.status(200).json(skippedResponse);
       return;
     }
 
-    // 2. Reconciliación y depuración de mods eliminados
     if (Array.isArray(active_mods)) {
       await reconcileOrphanMods(active_mods);
     }
 
-    // 3. Procesar e insertar entidades nuevas con embeddings
     let insertedCount = 0;
     if (Array.isArray(entities)) {
       insertedCount = await ingestEntities(entities);
     }
 
-    // 4. Actualizar memoria y manifiesto de checksum
     await updateManifestChecksum(computedChecksum);
 
-    res.status(200).json({
+    const successResponse: RagIngestSuccessResponse = {
       status: STATUS_SUCCESS,
-      message: `✅ Ingesta completada. Insertados ${insertedCount} elementos nuevos.`,
+      message: INGEST_MESSAGES.buildSuccessMessage(insertedCount),
       inserted_count: insertedCount,
-      timestamp: new Date().toISOString(),
-    });
+      timestamp: getIsoTimestamp(),
+    };
+    res.status(200).json(successResponse);
   } catch (err: unknown) {
     const errorMsg = err instanceof Error ? err.message : String(err);
     console.error('❌ Error en handleRagIngestPush:', errorMsg);
-    res.status(500).json({ error: 'Error interno en la ingesta RAG.', details: errorMsg });
+    const errorResponse: RagIngestErrorResponse = {
+      error: INGEST_MESSAGES.INGESTION_ERROR,
+      details: errorMsg,
+    };
+    res.status(500).json(errorResponse);
   }
 }

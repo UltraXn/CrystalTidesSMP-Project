@@ -82,7 +82,10 @@ function getSecureRandomInt(max: number): number {
   return array[0] % max;
 }
 
-function findMatchingReward(result: RawGachaResult, rewards: GachaReward[]): GachaReward | undefined {
+function findMatchingReward(
+  result: RawGachaResult,
+  rewards: GachaReward[],
+): GachaReward | undefined {
   return rewards.find(
     (r) =>
       (result.reward_id && r.id === result.reward_id) ||
@@ -251,6 +254,40 @@ async function postRollRequest(
 
   if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
   return res.json();
+}
+
+function triggerCelebration(setIsCelebrating: (v: boolean) => void, onComplete?: () => void) {
+  setIsCelebrating(true);
+  window.setTimeout(() => setIsCelebrating(false), 2200);
+  onComplete?.();
+}
+
+function runSpinTimeline(
+  reelRefs: React.RefObject<HTMLDivElement | null>[],
+  durations: readonly number[],
+  isBulk: boolean,
+  ease: string,
+  onComplete: () => void,
+) {
+  const reelH = GACHA_SPIN_TARGET_INDEX * 160;
+  const tl = gsap.timeline({ onComplete });
+  const baseDuration = durations[0];
+  const stagger = isBulk ? 0.2 : 1;
+
+  reelRefs.forEach((ref, i) => {
+    const currentReel = ref.current;
+    if (!currentReel) return;
+    gsap.set(currentReel, { y: 0 });
+    tl.to(
+      currentReel,
+      {
+        y: -reelH,
+        duration: baseDuration + i * stagger,
+        ease,
+      },
+      0,
+    );
+  });
 }
 
 export const Gacha = () => {
@@ -475,31 +512,8 @@ export const Gacha = () => {
             ease,
           });
 
-          const reelH = GACHA_SPIN_TARGET_INDEX * 160;
-          const tl = gsap.timeline({
-            onComplete: () => {
-              setIsCelebrating(true);
-              window.setTimeout(() => setIsCelebrating(false), 2200);
-              resolve();
-            },
-          });
-
-          const baseDuration = durations[0];
-          const stagger = isBulk ? 0.2 : 1;
-
-          reelRefs.forEach((ref, i) => {
-            const currentReel = ref.current;
-            if (!currentReel) return;
-            gsap.set(currentReel, { y: 0 });
-            tl.to(
-              currentReel,
-              {
-                y: -reelH,
-                duration: baseDuration + i * stagger,
-                ease,
-              },
-              0,
-            );
+          runSpinTimeline(reelRefs, durations, isBulk, ease, () => {
+            triggerCelebration(setIsCelebrating, resolve);
           });
         }, 50);
       });
@@ -709,9 +723,7 @@ export const Gacha = () => {
                 <img src={tier.icon} alt={tier.name} className="tier-icon" />
                 <div className="tier-info">
                   <span className="tier-name">{tier.name}</span>
-                  <div className="tier-value">
-                    {renderTierCost(tier, hasFreeRoll)}
-                  </div>
+                  <div className="tier-value">{renderTierCost(tier, hasFreeRoll)}</div>
                 </div>
                 {isLocked && <Lock className="lock-icon" size={14} />}
               </button>

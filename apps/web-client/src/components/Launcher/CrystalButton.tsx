@@ -1,7 +1,7 @@
-import React from "react";
+import React from 'react';
 
-type CrystalButtonVariant = "primary" | "secondary" | "ghost" | "danger";
-type CrystalButtonSize = "sm" | "md" | "lg";
+type CrystalButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
+type CrystalButtonSize = 'sm' | 'md' | 'lg';
 
 interface CrystalButtonProps {
   text: string;
@@ -15,21 +15,22 @@ interface CrystalButtonProps {
   style?: React.CSSProperties;
 }
 
-export const CrystalButton: React.FC<CrystalButtonProps> = ({
+export const CrystalButton: React.FC<Readonly<CrystalButtonProps>> = ({
   text,
   onPressed,
-  variant = "primary",
-  size = "md",
+  variant = 'primary',
+  size = 'md',
   isLoading = false,
   icon,
-  className = "",
+  className = '',
   disabled = false,
   style,
 }) => {
   const isButtonDisabled = disabled || isLoading || !onPressed;
-  
+
   return (
-    <button type="button"
+    <button
+      type="button"
       onClick={() => {
         if (!isButtonDisabled) onPressed?.();
       }}
@@ -38,7 +39,7 @@ export const CrystalButton: React.FC<CrystalButtonProps> = ({
       className={`btn btn-${variant} btn-${size} ${className}`}
       style={{
         opacity: isButtonDisabled ? 0.5 : 1,
-        cursor: isButtonDisabled ? "not-allowed" : "pointer",
+        cursor: isButtonDisabled ? 'not-allowed' : 'pointer',
         ...style,
       }}
     >
@@ -47,7 +48,11 @@ export const CrystalButton: React.FC<CrystalButtonProps> = ({
           ⏳
         </span>
       )}
-      {!isLoading && icon && <span style={{ marginRight: 8 }} aria-hidden="true">{icon}</span>}
+      {!isLoading && icon && (
+        <span style={{ marginRight: 8 }} aria-hidden="true">
+          {icon}
+        </span>
+      )}
       <span>{text}</span>
     </button>
   );

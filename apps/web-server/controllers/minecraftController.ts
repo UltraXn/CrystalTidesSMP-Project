@@ -71,21 +71,19 @@ const ERRORS = {
 } as const;
 
 // --- DATABASE INITIALIZATION ---
-void (async () => {
+try {
+  await pool.execute(
+    'ALTER TABLE linked_accounts ADD COLUMN IF NOT EXISTS gacha_balance BIGINT DEFAULT 0 AFTER web_user_id',
+  );
+} catch {
   try {
     await pool.execute(
-      'ALTER TABLE linked_accounts ADD COLUMN IF NOT EXISTS gacha_balance BIGINT DEFAULT 0 AFTER web_user_id',
+      'ALTER TABLE linked_accounts ADD COLUMN gacha_balance BIGINT DEFAULT 0 AFTER web_user_id',
     );
   } catch {
-    try {
-      await pool.execute(
-        'ALTER TABLE linked_accounts ADD COLUMN gacha_balance BIGINT DEFAULT 0 AFTER web_user_id',
-      );
-    } catch {
-      // Column exists or table cannot be altered in this environment
-    }
+    // Column exists or table cannot be altered in this environment
   }
-})();
+}
 
 // --- SUPABASE CLIENT SETUP ---
 const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
@@ -174,38 +172,39 @@ async function syncSupabaseMetadata(
   }
 }
 
-async function syncMinecraftLink(sourceId: string, playerName: string, targetUserId: string): Promise<void> {
+async function syncMinecraftLink(
+  sourceId: string,
+  playerName: string,
+  targetUserId: string,
+): Promise<void> {
   await pool.execute(SQL.DELETE_BY_MINECRAFT_UUID, [sourceId]);
 
-  const [existing] = await pool.execute<LinkedAccountRecord[]>(
-    SQL.SELECT_LINK_BY_WEB_ID,
-    [targetUserId],
-  );
+  const [existing] = await pool.execute<LinkedAccountRecord[]>(SQL.SELECT_LINK_BY_WEB_ID, [
+    targetUserId,
+  ]);
 
   if (existing.length > 0) {
     const oldRow = existing[0];
     await pool.execute(SQL.DELETE_BY_WEB_USER_ID, [targetUserId]);
-    await pool.execute(
-      SQL.INSERT_FULL_LINK,
-      [
-        sourceId,
-        playerName,
-        targetUserId,
-        oldRow.discord_id,
-        oldRow.discord_tag,
-        oldRow.gacha_balance,
-        oldRow.unlocked_tiers ?? null,
-      ],
-    );
+    await pool.execute(SQL.INSERT_FULL_LINK, [
+      sourceId,
+      playerName,
+      targetUserId,
+      oldRow.discord_id,
+      oldRow.discord_tag,
+      oldRow.gacha_balance,
+      oldRow.unlocked_tiers ?? null,
+    ]);
   } else {
-    await pool.execute(
-      SQL.INSERT_BASIC_LINK,
-      [sourceId, playerName, targetUserId],
-    );
+    await pool.execute(SQL.INSERT_BASIC_LINK, [sourceId, playerName, targetUserId]);
   }
 }
 
-async function syncDiscordLink(sourceId: string, playerName: string, targetUserId: string): Promise<void> {
+async function syncDiscordLink(
+  sourceId: string,
+  playerName: string,
+  targetUserId: string,
+): Promise<void> {
   await pool.execute(SQL.CLEAR_DISCORD_BY_DISCORD_ID, [sourceId]);
   await pool.execute(SQL.UPDATE_DISCORD_BY_WEB_ID, [sourceId, playerName, targetUserId]);
 }
@@ -250,11 +249,11 @@ async function clearSupabaseMetadata(
 }
 
 // --- MICROSOFT / XBOX AUTH PIPELINE ---
-async function fetchXboxLiveToken(accessToken: string): Promise<{ token: string; userHash: string } | null> {
+async function fetchXboxLiveToken(
+  accessToken: string,
+): Promise<{ token: string; userHash: string } | null> {
   const rpsTicket =
-    accessToken.startsWith('Ew') || accessToken.startsWith('d=')
-      ? accessToken
-      : `d=${accessToken}`;
+    accessToken.startsWith('Ew') || accessToken.startsWith('d=') ? accessToken : `d=${accessToken}`;
 
   const requestAuth = (ticket: string) =>
     fetch(URLS.XBOX_USER_AUTH, {
@@ -352,11 +351,7 @@ function extractDiscordIdentity(user: User) {
   if (!identity) return null;
 
   const data = identity.identity_data;
-  const tag =
-    data?.full_name ||
-    data?.name ||
-    data?.custom_claims?.global_name ||
-    data?.user_name;
+  const tag = data?.full_name || data?.name || data?.custom_claims?.global_name || data?.user_name;
   const avatar = data?.avatar_url || data?.image_url || data?.picture;
 
   return {
@@ -373,7 +368,10 @@ async function handleDiscordAutoSync(
 ): Promise<void> {
   if (!supabase) return;
   try {
-    const { data: { user }, error: userError } = await supabase.auth.admin.getUserById(userId);
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.admin.getUserById(userId);
     if (userError || !user) return;
 
     const discord = extractDiscordIdentity(user);
@@ -409,21 +407,21 @@ async function handleDiscordAutoSync(
 export const getStatus = async (req: Request, res: Response) => {
   try {
     const host = process.env.MC_SERVER_HOST || 'localhost';
-    const port = parseInt(process.env.MC_SERVER_PORT || '25565', 10);
+    const port = Number.parseInt(process.env.MC_SERVER_PORT || '25565', 10);
 
     const status = await minecraftService.getServerStatus(host, port);
     res.json(status);
   } catch (error) {
     console.error('[Minecraft Status CRITICAL 500]:', error);
+    let details: string | undefined;
+    if (process.env.NODE_ENV === 'development') {
+      details = error instanceof Error ? error.message : String(error);
+    }
+
     res.status(500).json({
       online: false,
       error: 'Internal server error fetching status',
-      details:
-        process.env.NODE_ENV === 'development'
-          ? error instanceof Error
-            ? error.message
-            : String(error)
-          : undefined,
+      details,
     });
   }
 };
@@ -461,10 +459,9 @@ export const verifyLinkCode = async (req: Request, res: Response) => {
     }
 
     const upperCode = code.toUpperCase();
-    const [rows] = await pool.execute<UniversalLinkRecord[]>(
-      SQL.SELECT_UNIVERSAL_LINK,
-      [upperCode],
-    );
+    const [rows] = await pool.execute<UniversalLinkRecord[]>(SQL.SELECT_UNIVERSAL_LINK, [
+      upperCode,
+    ]);
 
     if (rows.length === 0) {
       return res.status(404).json({ error: 'Código inválido o inexistente.' });
@@ -476,7 +473,12 @@ export const verifyLinkCode = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'El código ha expirado.' });
     }
 
-    const { source, source_id: sourceId, player_name: playerName, avatar_url: avatarUrl } = verification;
+    const {
+      source,
+      source_id: sourceId,
+      player_name: playerName,
+      avatar_url: avatarUrl,
+    } = verification;
 
     await syncDatabaseLink(source, sourceId, playerName, targetUserId);
     await pool.execute(SQL.DELETE_UNIVERSAL_CODE, [upperCode]);
@@ -520,10 +522,13 @@ export const initWebLink = async (req: Request, res: Response) => {
 
     const expiresAt = Date.now() + 15 * 60 * 1000;
 
-    await pool.execute(
-      SQL.INSERT_OR_UPDATE_UNIVERSAL_LINK,
-      [code, SOURCES.WEB, userId, expiresAt, expiresAt],
-    );
+    await pool.execute(SQL.INSERT_OR_UPDATE_UNIVERSAL_LINK, [
+      code,
+      SOURCES.WEB,
+      userId,
+      expiresAt,
+      expiresAt,
+    ]);
 
     res.json({ success: true, code });
   } catch (error) {
@@ -555,7 +560,9 @@ export const checkLinkStatus = async (req: Request, res: Response) => {
     const link = rows[0];
     let existingAvatar: string | null = null;
     try {
-      const { data: { user: userData } } = await supabase.auth.admin.getUserById(userId);
+      const {
+        data: { user: userData },
+      } = await supabase.auth.admin.getUserById(userId);
       existingAvatar = (userData?.user_metadata?.discord_avatar as string) || null;
     } catch {
       /* ignore */
@@ -592,10 +599,7 @@ export const unlinkAccount = async (req: Request, res: Response) => {
       return res.status(401).json({ error: ERRORS.UNAUTHORIZED });
     }
 
-    const [rows] = await pool.execute<RowDataPacket[]>(
-      SQL.SELECT_MC_NAME,
-      [userId],
-    );
+    const [rows] = await pool.execute<RowDataPacket[]>(SQL.SELECT_MC_NAME, [userId]);
     const minecraftName = (rows[0]?.minecraft_name as string) || null;
 
     await pool.execute(SQL.CLEAR_MC_BY_WEB_ID, [userId]);
@@ -612,9 +616,7 @@ export const unlinkAccount = async (req: Request, res: Response) => {
 
     if (minecraftName) {
       try {
-        await pool.execute(SQL.INSERT_PENDING_COMMAND, [
-          `crystalcore sync ${minecraftName}`,
-        ]);
+        await pool.execute(SQL.INSERT_PENDING_COMMAND, [`crystalcore sync ${minecraftName}`]);
       } catch (dbError) {
         console.error(
           'Warning: Could not insert sync command (Plugin likely not updated or table missing):',

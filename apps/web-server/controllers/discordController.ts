@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
+import { RowDataPacket } from 'mysql2';
 import db from '../config/database.js';
 import { updateUserMetadata } from '../services/userService.js';
-import { RowDataPacket } from 'mysql2';
 
 // Centralized role and identity strings to avoid duplication
 export const DISCORD_ROLES = {
@@ -96,7 +96,7 @@ const resolveAuthorUsername = (author?: DiscordAuthor): string => {
  * Resolves the author's avatar URL or provides a default skin fallback.
  */
 const resolveAuthorAvatar = (author?: DiscordAuthor): string => {
-  if (!author || !author.avatar) {
+  if (!author?.avatar) {
     return DEFAULT_AVATAR_PATH;
   }
   return `${DISCORD_CDN_AVATAR_BASE_URL}/${author.id}/${author.avatar}.png`;
@@ -145,9 +145,74 @@ const createFallbackAnnouncements = (): FormattedAnnouncement[] => [
 ];
 
 /**
+ * Type guard validating an unknown item matches the DiscordMessage interface.
+ */
+const isDiscordMessage = (item: unknown): item is DiscordMessage => {
+  return (
+    typeof item === 'object' &&
+    item !== null &&
+    'id' in item &&
+    'content' in item &&
+    'timestamp' in item
+  );
+};
+
+/**
  * Type guard for Discord API message arrays.
  */
-const isDiscordMessageList = (data: unknown): data is DiscordMessage[] => Array.isArray(data);
+const isDiscordMessageList = (data: unknown): data is DiscordMessage[] =>
+  Array.isArray(data) && data.every(isDiscordMessage);
+
+/**
+ * Fetches recent announcements directly from Discord's REST API.
+ */
+const fetchRemoteAnnouncements = async (): Promise<FormattedAnnouncement[]> => {
+  const endpoint = `${DISCORD_API_BASE_URL}/channels/${ANNOUNCEMENTS_CHANNEL_ID}/messages?limit=${ANNOUNCEMENTS_LIMIT}`;
+  const response = await fetch(endpoint, {
+    headers: {
+      Authorization: `Bot ${DISCORD_BOT_TOKEN}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Discord API status ${response.status}`);
+  }
+
+  const rawData: unknown = await response.json();
+  const messages = isDiscordMessageList(rawData) ? rawData : [];
+  return messages.map(formatAnnouncement);
+};
+
+/**
+ * Queries database for a verification code record.
+ */
+const findVerificationCode = async (code: string): Promise<VerificationCode | null> => {
+  const [rows] = await db.query<VerificationCode[]>(SQL_QUERIES.FIND_VERIFICATION_CODE, [code]);
+  return rows[0] ?? null;
+};
+
+/**
+ * Removes a consumed verification code from the database.
+ */
+const deleteVerificationCode = async (code: string): Promise<void> => {
+  await db.query(SQL_QUERIES.DELETE_VERIFICATION_CODE, [code]);
+};
+
+/**
+ * Synchronizes user metadata with Supabase profiles maintaining OAuth2 identity structure.
+ */
+const syncUserDiscordIdentity = async (
+  userId: string,
+  verification: VerificationCode,
+): Promise<void> => {
+  await updateUserMetadata(userId, {
+    discord: {
+      id: verification.discord_id,
+      username: verification.discord_username,
+    },
+    social_discord: verification.discord_username, // Legacy support
+  });
+};
 
 /**
  * Links a user's Discord account via an in-game or bot verification code.
@@ -166,26 +231,13 @@ export const linkAccount = async (req: Request, res: Response) => {
       return res.status(400).json({ message: MESSAGES.MISSING_CODE });
     }
 
-    // 1. Verify Code in MySQL
-    const [rows] = await db.query<VerificationCode[]>(SQL_QUERIES.FIND_VERIFICATION_CODE, [code]);
-
-    if (rows.length === 0) {
+    const verification = await findVerificationCode(code);
+    if (!verification) {
       return res.status(404).json({ message: MESSAGES.INVALID_OR_EXPIRED_CODE });
     }
 
-    const verification = rows[0];
-
-    // 2. Update Supabase User Profile (OAuth2 metadata invariance)
-    await updateUserMetadata(userId, {
-      discord: {
-        id: verification.discord_id,
-        username: verification.discord_username,
-      },
-      social_discord: verification.discord_username, // Legacy support
-    });
-
-    // 3. Delete Code
-    await db.query(SQL_QUERIES.DELETE_VERIFICATION_CODE, [code]);
+    await syncUserDiscordIdentity(userId, verification);
+    await deleteVerificationCode(code);
 
     return res.json({
       success: true,
@@ -204,22 +256,8 @@ export const linkAccount = async (req: Request, res: Response) => {
  */
 export const getDiscordAnnouncements = async (_req: Request, res: Response) => {
   try {
-    const endpoint = `${DISCORD_API_BASE_URL}/channels/${ANNOUNCEMENTS_CHANNEL_ID}/messages?limit=${ANNOUNCEMENTS_LIMIT}`;
-    const response = await fetch(endpoint, {
-      headers: {
-        Authorization: `Bot ${DISCORD_BOT_TOKEN}`,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`Discord API status ${response.status}`);
-    }
-
-    const rawData: unknown = await response.json();
-    const messages = isDiscordMessageList(rawData) ? rawData : [];
-    const formatted = messages.map(formatAnnouncement);
-
-    return res.json({ success: true, announcements: formatted });
+    const announcements = await fetchRemoteAnnouncements();
+    return res.json({ success: true, announcements });
   } catch (error) {
     console.error('Error fetching Discord announcements:', error);
     return res.json({

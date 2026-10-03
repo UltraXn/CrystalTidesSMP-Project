@@ -12,7 +12,7 @@ export default function WikiArticleToolbar({
   currentArticle,
   prevArticle,
   nextArticle,
-}: WikiArticleToolbarProps) {
+}: Readonly<WikiArticleToolbarProps>) {
   return (
     <div className="flex flex-col items-start justify-between gap-3 rounded-2xl border border-neutral-800 bg-neutral-900 p-3.5 shadow-md sm:flex-row sm:items-center">
       <div className="flex items-center gap-2 text-xs text-neutral-400">

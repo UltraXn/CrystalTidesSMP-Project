@@ -47,7 +47,7 @@ export default function PlayerStatsGrid({
   loading,
   isPublic,
   isAdmin,
-}: PlayerStatsGridProps) {
+}: Readonly<PlayerStatsGridProps>) {
   const { t } = useTranslation();
 
   return (

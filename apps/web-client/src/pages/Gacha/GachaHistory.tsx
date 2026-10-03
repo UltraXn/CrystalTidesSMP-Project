@@ -1,8 +1,8 @@
-import React from "react";
-import { X, Clock, Star, Trash2 } from "lucide-react";
-import { useTranslation } from "react-i18next";
-import { GachaHistoryEntry } from "./types";
-import { getGachaFailsafeImage } from "./gachaDisplayUtils";
+import React from 'react';
+import { X, Clock, Star, Trash2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { GachaHistoryEntry } from './types';
+import { getGachaFailsafeImage } from './gachaDisplayUtils';
 
 interface GachaHistoryProps {
   isOpen: boolean;
@@ -16,16 +16,16 @@ interface GachaHistoryProps {
 }
 
 const formatTime = (dateStr?: string) => {
-  if (!dateStr) return "Ahora mismo";
+  if (!dateStr) return 'Ahora mismo';
   const date = new Date(dateStr);
-  if (Number.isNaN(date.getTime())) return "Ahora mismo";
+  if (Number.isNaN(date.getTime())) return 'Ahora mismo';
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
   const diffMins = Math.floor(diffMs / 60000);
   const diffHours = Math.floor(diffMins / 60);
   const diffDays = Math.floor(diffHours / 24);
 
-  if (diffMins < 1) return "Ahora mismo";
+  if (diffMins < 1) return 'Ahora mismo';
   if (diffMins < 60) return `Hace ${diffMins} min`;
   if (diffHours < 24) return `Hace ${diffHours} h`;
   return `Hace ${diffDays} d`;
@@ -33,7 +33,7 @@ const formatTime = (dateStr?: string) => {
 
 const getFailsafeImg = (name: string) => getGachaFailsafeImage(name);
 
-export const GachaHistory: React.FC<GachaHistoryProps> = ({
+export const GachaHistory: React.FC<Readonly<GachaHistoryProps>> = ({
   isOpen,
   onClose,
   onOpen,
@@ -47,23 +47,23 @@ export const GachaHistory: React.FC<GachaHistoryProps> = ({
 
   return (
     <div
-      className={`gacha-history-overlay ${isOpen ? "active" : ""}`}
-      style={{ "--tier-accent-color": tierColor } as React.CSSProperties}
+      className={`gacha-history-overlay ${isOpen ? 'active' : ''}`}
+      style={{ '--tier-accent-color': tierColor } as React.CSSProperties}
     >
       {isOpen && (
         <button
           type="button"
-          aria-label={t("common.close", "Cerrar")}
+          aria-label={t('common.close', 'Cerrar')}
           tabIndex={-1}
           onClick={onClose}
           style={{
-            position: "absolute",
+            position: 'absolute',
             inset: 0,
-            width: "100%",
-            height: "100%",
-            background: "transparent",
-            border: "none",
-            cursor: "default",
+            width: '100%',
+            height: '100%',
+            background: 'transparent',
+            border: 'none',
+            cursor: 'default',
             padding: 0,
             margin: 0,
           }}
@@ -72,7 +72,7 @@ export const GachaHistory: React.FC<GachaHistoryProps> = ({
       <div
         role="dialog"
         aria-modal="true"
-        aria-label={t("gacha.history_title", "Historial de Premios")}
+        aria-label={t('gacha.history_title', 'Historial de Premios')}
         className="gacha-history-drawer"
       >
         <button
@@ -80,8 +80,8 @@ export const GachaHistory: React.FC<GachaHistoryProps> = ({
           className="history-handle-btn"
           aria-label={
             isOpen
-              ? t("common.close", "Cerrar historial")
-              : t("gacha.open_history", "Abrir historial")
+              ? t('common.close', 'Cerrar historial')
+              : t('gacha.open_history', 'Abrir historial')
           }
           aria-expanded={isOpen}
           onClick={(e) => {
@@ -92,7 +92,7 @@ export const GachaHistory: React.FC<GachaHistoryProps> = ({
               onOpen();
             }
           }}
-          style={{ "--tier-accent-color": tierColor } as React.CSSProperties}
+          style={{ '--tier-accent-color': tierColor } as React.CSSProperties}
         >
           <Clock size={18} aria-hidden="true" />
           <span>Historial</span>
@@ -100,10 +100,10 @@ export const GachaHistory: React.FC<GachaHistoryProps> = ({
         <div className="history-header">
           <div className="header-title">
             <Clock size={20} aria-hidden="true" style={{ color: tierColor }} />
-            <h2>{t("gacha.history_title", "Historial de Premios")}</h2>
+            <h2>{t('gacha.history_title', 'Historial de Premios')}</h2>
           </div>
           <button
-            aria-label={t("common.close", "Cerrar historial")}
+            aria-label={t('common.close', 'Cerrar historial')}
             type="button"
             className="close-btn"
             onClick={onClose}
@@ -114,29 +114,25 @@ export const GachaHistory: React.FC<GachaHistoryProps> = ({
 
         <div className="history-content">
           {loading ? (
-            <div role="status" aria-live="polite" className="history-loader">
-              <div
-                className="spinner"
-                style={{ borderTopColor: tierColor }}
-              ></div>
+            <output aria-live="polite" className="history-loader block">
+              <div className="spinner" style={{ borderTopColor: tierColor }}></div>
               <p>Cargando historial...</p>
-            </div>
+            </output>
           ) : history.length === 0 ? (
-            <div role="status" aria-live="polite" className="history-empty">
+            <output aria-live="polite" className="history-empty block">
               <Trash2 size={48} opacity={0.2} aria-hidden="true" />
               <p>No tienes premios registrados aún.</p>
               <span>¡Prueba suerte en la máquina!</span>
-            </div>
+            </output>
           ) : (
             <div className="history-list custom-scrollbar">
               {history.map((item) => {
                 const Icon = RARITY_ICONS[item.rarity] || Star;
-                const color = RARITY_COLORS[item.rarity] || "#fff";
+                const color = RARITY_COLORS[item.rarity] || '#fff';
 
                 // item.image_url comes if we mapped it in the results,
                 // but history usually comes from raw DB so we use failsafe
-                const activeImg =
-                  item.image_url || getFailsafeImg(item.reward_name);
+                const activeImg = item.image_url || getFailsafeImg(item.reward_name);
 
                 return (
                   <div
@@ -144,7 +140,7 @@ export const GachaHistory: React.FC<GachaHistoryProps> = ({
                     className="history-card"
                     style={
                       {
-                        "--rarity-indicator-color": color,
+                        '--rarity-indicator-color': color,
                       } as React.CSSProperties
                     }
                   >
@@ -155,10 +151,10 @@ export const GachaHistory: React.FC<GachaHistoryProps> = ({
                           src={activeImg}
                           alt={item.reward_name}
                           style={{
-                            width: "32px",
-                            height: "32px",
-                            objectFit: "contain",
-                            imageRendering: "pixelated",
+                            width: '32px',
+                            height: '32px',
+                            objectFit: 'contain',
+                            imageRendering: 'pixelated',
                           }}
                         />
                       ) : (

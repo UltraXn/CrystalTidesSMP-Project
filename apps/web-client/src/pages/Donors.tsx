@@ -203,7 +203,7 @@ interface RecentPerkLedgerProps {
   title: string;
 }
 
-function RecentPerkLedger({ title }: RecentPerkLedgerProps) {
+function RecentPerkLedger({ title }: Readonly<RecentPerkLedgerProps>) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
@@ -227,7 +227,7 @@ interface DonorTierShowcaseProps {
   buttonText: string;
 }
 
-function DonorTierShowcase({ donors, buttonText }: DonorTierShowcaseProps) {
+function DonorTierShowcase({ donors, buttonText }: Readonly<DonorTierShowcaseProps>) {
   return (
     <div className="relative mb-24">
       <div className="mb-12 flex w-full justify-center">

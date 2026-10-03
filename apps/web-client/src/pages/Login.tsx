@@ -67,7 +67,7 @@ function SocialLoginButton({
   colorClasses,
   disabled,
   onClick,
-}: SocialLoginButtonProps) {
+}: Readonly<SocialLoginButtonProps>) {
   return (
     <button
       type="button"

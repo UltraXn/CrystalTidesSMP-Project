@@ -58,7 +58,7 @@ interface PasswordFieldProps {
   disabled?: boolean;
 }
 
-function PasswordField({ id, label, registration, error, disabled }: PasswordFieldProps) {
+function PasswordField({ id, label, registration, error, disabled }: Readonly<PasswordFieldProps>) {
   const [showPassword, setShowPassword] = useState(false);
 
   return (

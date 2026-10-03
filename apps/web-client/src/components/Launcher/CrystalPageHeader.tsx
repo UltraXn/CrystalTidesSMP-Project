@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 
 interface CrystalPageHeaderProps {
   eyebrow: string;
@@ -7,32 +7,32 @@ interface CrystalPageHeaderProps {
   className?: string;
 }
 
-export const CrystalPageHeader: React.FC<CrystalPageHeaderProps> = ({
+export const CrystalPageHeader: React.FC<Readonly<CrystalPageHeaderProps>> = ({
   eyebrow,
   title,
   trailing,
-  className = "",
+  className = '',
 }) => {
   return (
     <div
       className={`crystal-page-header ${className}`}
       style={{
-        display: "flex",
-        alignItems: "flex-start",
-        justifyContent: "space-between",
-        width: "100%",
+        display: 'flex',
+        alignItems: 'flex-start',
+        justifyContent: 'space-between',
+        width: '100%',
         marginBottom: 24,
       }}
     >
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
         <span
           style={{
-            color: "var(--accent)",
+            color: 'var(--accent)',
             fontSize: 12,
-            fontWeight: "bold",
-            letterSpacing: "2px",
-            textTransform: "uppercase",
-            display: "block",
+            fontWeight: 'bold',
+            letterSpacing: '2px',
+            textTransform: 'uppercase',
+            display: 'block',
             marginBottom: 8,
           }}
         >
@@ -40,11 +40,11 @@ export const CrystalPageHeader: React.FC<CrystalPageHeaderProps> = ({
         </span>
         <h1
           style={{
-            color: "var(--text)",
+            color: 'var(--text)',
             fontSize: 32,
-            fontWeight: "bold",
+            fontWeight: 'bold',
             margin: 0,
-            textAlign: "left",
+            textAlign: 'left',
           }}
         >
           {title}

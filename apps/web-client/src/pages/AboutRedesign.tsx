@@ -265,7 +265,10 @@ interface SecurityChecksumDrawerProps {
   readonly onToggle: () => void;
 }
 
-const SecurityChecksumDrawer = ({ showChecksum, onToggle }: SecurityChecksumDrawerProps) => (
+const SecurityChecksumDrawer = ({
+  showChecksum,
+  onToggle,
+}: Readonly<SecurityChecksumDrawerProps>) => (
   <div className="space-y-3">
     <button
       aria-label="Alternar verificación de hashes de seguridad"
@@ -369,7 +372,7 @@ interface FaqItemRowProps {
   readonly onToggle: () => void;
 }
 
-const FaqItemRow = ({ item, isOpen, onToggle }: FaqItemRowProps) => (
+const FaqItemRow = ({ item, isOpen, onToggle }: Readonly<FaqItemRowProps>) => (
   <div className="overflow-hidden rounded-2xl border border-white/10 bg-slate-950/60">
     <button
       aria-label={`Pregunta: ${item.q}`}
