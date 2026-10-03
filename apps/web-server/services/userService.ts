@@ -14,24 +14,221 @@ export interface WebUser {
   last_sign_in?: string;
 }
 
+export interface PublicProfile {
+  id: string;
+  username: string;
+  minecraft_nick?: string;
+  original_username?: string;
+  full_name?: string;
+  role: string;
+  medals: unknown[];
+  avatar_url?: string;
+  profile_banner_url?: string;
+  created_at: string;
+  public_stats: boolean;
+  bio?: string;
+  reputation: number;
+  social_discord?: string;
+  social_twitter?: string;
+  social_twitch?: string;
+  social_youtube?: string;
+  minecraft_uuid?: string;
+  social_avatar_url?: string;
+  avatar_preference: string;
+}
+
+interface ConnectedIdentity {
+  id: string;
+  username: string;
+}
+
+interface IdentifierVariants {
+  space: string;
+  underscore: string;
+  dash: string;
+  raw: string;
+}
+
+const CONSTANTS = {
+  DEFAULT_ROLE: 'user',
+  DEFAULT_DISPLAY_NAME: 'Usuario',
+  FALLBACK_NICKNAME: 'Sin Nick',
+  DEFAULT_AVATAR_PREF: 'minecraft',
+  PG_UNIQUE_VIOLATION: '23505',
+  KARMA_TABLE: 'karma_votes',
+  PROVIDER_DISCORD: 'discord',
+  PROVIDER_TWITCH: 'twitch',
+} as const;
+
+const ERROR_MESSAGES = {
+  USER_NOT_FOUND: 'User not found',
+  ALREADY_VOTED: 'Ya le has dado karma a este usuario',
+} as const;
+
+/**
+ * Resolves Discord identity metadata for a Supabase auth user.
+ */
+const resolveDiscordIdentity = (user: User): ConnectedIdentity | null => {
+  const identity = user.identities?.find((i) => i.provider === CONSTANTS.PROVIDER_DISCORD);
+  if (!identity) return null;
+
+  const data = identity.identity_data;
+  const username =
+    (data?.full_name as string | undefined) ||
+    (data?.name as string | undefined) ||
+    (data?.custom_claims?.global_name as string | undefined) ||
+    '';
+
+  return { id: identity.id, username };
+};
+
+/**
+ * Resolves Twitch identity metadata for a Supabase auth user.
+ */
+const resolveTwitchIdentity = (user: User): ConnectedIdentity | null => {
+  const identity = user.identities?.find((i) => i.provider === CONSTANTS.PROVIDER_TWITCH);
+  if (!identity) return null;
+
+  const data = identity.identity_data;
+  const username =
+    (data?.full_name as string | undefined) ||
+    (data?.name as string | undefined) ||
+    (data?.preferred_username as string | undefined) ||
+    '';
+
+  return { id: identity.id, username };
+};
+
+/**
+ * Maps a Supabase user into the API's WebUser representation.
+ */
+const mapUserToWebUser = (u: User): WebUser => {
+  const meta = u.user_metadata || {};
+  const username =
+    (meta.username as string | undefined) ||
+    (meta.full_name as string | undefined) ||
+    CONSTANTS.FALLBACK_NICKNAME;
+
+  return {
+    id: u.id,
+    email: u.email,
+    username,
+    role: (meta.role as string | undefined) || CONSTANTS.DEFAULT_ROLE,
+    medals: (meta.medals as unknown[] | undefined) || [],
+    avatar_url: meta.avatar_url as string | undefined,
+    discord: resolveDiscordIdentity(u),
+    twitch: resolveTwitchIdentity(u),
+    created_at: u.created_at,
+    last_sign_in: u.last_sign_in_at,
+  };
+};
+
+/**
+ * Evaluates whether a user matches a case-insensitive query string.
+ */
+const matchesQuery = (u: User, query: string): boolean => {
+  const q = query.toLowerCase();
+  const emailMatches = Boolean(u.email?.toLowerCase().includes(q));
+  const usernameMatches = Boolean(u.user_metadata?.username?.toLowerCase().includes(q));
+  const fullNameMatches = Boolean(u.user_metadata?.full_name?.toLowerCase().includes(q));
+
+  return emailMatches || usernameMatches || fullNameMatches;
+};
+
+/**
+ * Normalizes an identifier string into space, underscore, and dash variants.
+ */
+const buildIdentifierVariants = (identifier: string): IdentifierVariants => {
+  const lower = identifier.toLowerCase();
+  return {
+    raw: identifier,
+    space: lower.replace(/[-_]/g, ' '),
+    underscore: lower.replaceAll(' ', '_'),
+    dash: lower.replaceAll(' ', '-'),
+  };
+};
+
+/**
+ * Checks whether a Supabase user matches any variant of an identifier.
+ */
+const userMatchesIdentifier = (user: User, variants: IdentifierVariants): boolean => {
+  const meta = user.user_metadata || {};
+  if (meta.minecraft_uuid && meta.minecraft_uuid === variants.raw) {
+    return true;
+  }
+
+  const candidates = [
+    (meta.username || '').toLowerCase(),
+    (meta.full_name || '').toLowerCase(),
+    (meta.minecraft_nick || '').toLowerCase(),
+  ];
+
+  return candidates.some(
+    (field) => field === variants.space || field === variants.underscore || field === variants.dash,
+  );
+};
+
+/**
+ * Builds the public profile representation from a Supabase auth user.
+ */
+const buildPublicProfile = (target: User): PublicProfile => {
+  const meta = target.user_metadata || {};
+  const displayName =
+    (meta.minecraft_nick as string | undefined) ||
+    (meta.username as string | undefined) ||
+    (meta.full_name as string | undefined) ||
+    CONSTANTS.DEFAULT_DISPLAY_NAME;
+
+  return {
+    id: target.id,
+    username: displayName,
+    minecraft_nick: meta.minecraft_nick as string | undefined,
+    original_username: meta.username as string | undefined,
+    full_name: meta.full_name as string | undefined,
+    role: (meta.role as string | undefined) || CONSTANTS.DEFAULT_ROLE,
+    medals: (meta.medals as unknown[] | undefined) || [],
+    avatar_url: meta.avatar_url as string | undefined,
+    profile_banner_url: meta.profile_banner_url as string | undefined,
+    created_at: target.created_at,
+    public_stats: (meta.public_stats as boolean | undefined) || false,
+    bio: meta.bio as string | undefined,
+    reputation: (meta.reputation as number | undefined) || 0,
+    social_discord:
+      (meta.social_discord as string | undefined) || (meta.discord as string | undefined),
+    social_twitter: meta.social_twitter as string | undefined,
+    social_twitch: meta.social_twitch as string | undefined,
+    social_youtube: meta.social_youtube as string | undefined,
+    minecraft_uuid: meta.minecraft_uuid as string | undefined,
+    social_avatar_url:
+      (meta.picture as string | undefined) || (meta.avatar_url as string | undefined),
+    avatar_preference:
+      (meta.avatar_preference as string | undefined) || CONSTANTS.DEFAULT_AVATAR_PREF,
+  };
+};
+
+/**
+ * Synchronizes denormalized reputation count in the user's metadata cache.
+ */
+const syncReputationCache = async (user: User, reputation: number): Promise<void> => {
+  const cleanMetadata = { ...user.user_metadata };
+  delete cleanMetadata.voters;
+
+  await supabase.auth.admin.updateUserById(user.id, {
+    user_metadata: { ...cleanMetadata, reputation },
+  });
+};
+
 /**
  * Get Staff Users from Database (Stubbed - Legacy)
  */
-export const getStaffUsers = async () => {
+export const getStaffUsers = async (): Promise<WebUser[]> => {
   return [];
 };
 
 /**
  * Get all users from Supabase Auth (Requires Service Role)
- * Note: 'auth.users' is a system table. We should fetch from 'public.profiles' if synced,
- * but for roles management often we interact with auth metadata or custom profile field.
- * For this implementation, we will fetch from public.profiles and assume it has role field,
- * OR we fetch auth.users using listUsers() admin method.
  */
 export const getAllUsers = async (query = ''): Promise<WebUser[]> => {
-  // Using Supabase Admin API to list users
-  // If you have a LOT of users, you should rely on server-side pagination or search if available.
-  // Standard Supabase List Users does not search by email easily. We will filter in memory for now.
   const {
     data: { users },
     error,
@@ -40,61 +237,22 @@ export const getAllUsers = async (query = ''): Promise<WebUser[]> => {
 
   let filtered = users || [];
   if (query) {
-    const q = query.toLowerCase();
-    filtered = filtered.filter(
-      (u) =>
-        Boolean(u.email?.toLowerCase().includes(q)) ||
-        Boolean(u.user_metadata?.username?.toLowerCase().includes(q)) ||
-        Boolean(u.user_metadata?.full_name?.toLowerCase().includes(q)),
-    );
+    filtered = filtered.filter((u) => matchesQuery(u, query));
   }
 
-  // Map to a friendlier format
-  return filtered.map((u) => {
-    const discordIdentity = u.identities?.find((i) => i.provider === 'discord');
-    const twitchIdentity = u.identities?.find((i) => i.provider === 'twitch');
-
-    return {
-      id: u.id,
-      email: u.email,
-      username: u.user_metadata?.username || u.user_metadata?.full_name || 'Sin Nick',
-      role: u.user_metadata?.role || 'user', // Read from metadata
-      medals: u.user_metadata?.medals || [], // Start empty if none
-      avatar_url: u.user_metadata?.avatar_url,
-      // Connected Accounts
-      discord: discordIdentity
-        ? {
-            id: discordIdentity.id,
-            username:
-              discordIdentity.identity_data?.full_name ||
-              discordIdentity.identity_data?.name ||
-              discordIdentity.identity_data?.custom_claims?.global_name,
-          }
-        : null,
-      twitch: twitchIdentity
-        ? {
-            id: twitchIdentity.id,
-            username:
-              twitchIdentity.identity_data?.full_name ||
-              twitchIdentity.identity_data?.name ||
-              twitchIdentity.identity_data?.preferred_username,
-          }
-        : null,
-      created_at: u.created_at,
-      last_sign_in: u.last_sign_in_at,
-    };
-  });
+  return filtered.map(mapUserToWebUser);
 };
 
 /**
- * Update user role
- * We will store the role in user_metadata for simplicity
+ * Update user role in user_metadata
  */
 export const updateUserRole = async (userId: string, newRole: string): Promise<User | null> => {
   const {
     data: { user },
     error,
-  } = await supabase.auth.admin.updateUserById(userId, { user_metadata: { role: newRole } });
+  } = await supabase.auth.admin.updateUserById(userId, {
+    user_metadata: { role: newRole },
+  });
 
   if (error) throw error;
   return user;
@@ -102,7 +260,6 @@ export const updateUserRole = async (userId: string, newRole: string): Promise<U
 
 /**
  * Update any user metadata (e.g. medals)
- * This performs a merge with existing metadata
  */
 export const updateUserMetadata = async (
   userId: string,
@@ -118,72 +275,21 @@ export const updateUserMetadata = async (
 };
 
 /**
- * Get public profile by username
+ * Get public profile by username, nickname, or Minecraft UUID
  */
-export const getPublicProfile = async (identifier: string) => {
-  // Note: In a production app with many users, this is inefficient.
-  // We should index username in a separate table.
+export const getPublicProfile = async (identifier: string): Promise<PublicProfile | null> => {
   const {
     data: { users },
     error,
   } = await supabase.auth.admin.listUsers();
   if (error) throw error;
 
-  const searchTerm = identifier.toLowerCase().replace(/[-_]/g, ' '); // Map neroferno_ultranix back to Neroferno Ultranix
-  const searchTermWithUnderscore = identifier.toLowerCase().replace(/ /g, '_');
-  const searchTermWithDash = identifier.toLowerCase().replace(/ /g, '-');
-
-  const target = users?.find((u) => {
-    const meta = u.user_metadata || {};
-    const uUsername = (meta.username || '').toLowerCase();
-    const uFullName = (meta.full_name || '').toLowerCase();
-    const uMcNick = (meta.minecraft_nick || '').toLowerCase();
-
-    return (
-      uUsername === searchTerm ||
-      uUsername === searchTermWithUnderscore ||
-      uUsername === searchTermWithDash ||
-      uFullName === searchTerm ||
-      uFullName === searchTermWithUnderscore ||
-      uFullName === searchTermWithDash ||
-      uMcNick === searchTerm ||
-      uMcNick === searchTermWithUnderscore ||
-      uMcNick === searchTermWithDash ||
-      (meta.minecraft_uuid && meta.minecraft_uuid === identifier)
-    );
-  });
+  const variants = buildIdentifierVariants(identifier);
+  const target = users?.find((u) => userMatchesIdentifier(u, variants));
 
   if (!target) return null;
 
-  // Determine displayName for UI
-  const displayName =
-    target.user_metadata?.minecraft_nick ||
-    target.user_metadata?.username ||
-    target.user_metadata?.full_name ||
-    'Usuario';
-
-  return {
-    id: target.id,
-    username: displayName,
-    minecraft_nick: target.user_metadata?.minecraft_nick,
-    original_username: target.user_metadata?.username,
-    full_name: target.user_metadata?.full_name,
-    role: target.user_metadata?.role || 'user',
-    medals: target.user_metadata?.medals || [],
-    avatar_url: target.user_metadata?.avatar_url,
-    profile_banner_url: target.user_metadata?.profile_banner_url,
-    created_at: target.created_at,
-    public_stats: target.user_metadata?.public_stats || false,
-    bio: target.user_metadata?.bio,
-    reputation: target.user_metadata?.reputation || 0,
-    social_discord: target.user_metadata?.social_discord || target.user_metadata?.discord,
-    social_twitter: target.user_metadata?.social_twitter,
-    social_twitch: target.user_metadata?.social_twitch,
-    social_youtube: target.user_metadata?.social_youtube,
-    minecraft_uuid: target.user_metadata?.minecraft_uuid,
-    social_avatar_url: target.user_metadata?.picture || target.user_metadata?.avatar_url,
-    avatar_preference: target.user_metadata?.avatar_preference || 'minecraft',
-  };
+  return buildPublicProfile(target);
 };
 
 /**
@@ -200,35 +306,32 @@ export const giveKarma = async (userId: string, voterId: string): Promise<number
     data: { user },
     error: fetchError,
   } = await supabase.auth.admin.getUserById(userId);
-  if (fetchError || !user) throw new Error('User not found');
+  if (fetchError || !user) {
+    throw new Error(ERROR_MESSAGES.USER_NOT_FOUND);
+  }
 
   const { error: insertError } = await supabase
-    .from('karma_votes')
+    .from(CONSTANTS.KARMA_TABLE)
     .insert({ user_id: userId, voter_id: voterId });
 
   if (insertError) {
-    // Unique violation -> this voter already voted for this user
-    if (insertError.code === '23505') {
-      throw new Error('Ya le has dado karma a este usuario');
+    if (insertError.code === CONSTANTS.PG_UNIQUE_VIOLATION) {
+      throw new Error(ERROR_MESSAGES.ALREADY_VOTED);
     }
     throw insertError;
   }
 
   const { count, error: countError } = await supabase
-    .from('karma_votes')
+    .from(CONSTANTS.KARMA_TABLE)
     .select('*', { count: 'exact', head: true })
     .eq('user_id', userId);
 
-  if (countError) throw countError;
+  if (countError) {
+    throw countError;
+  }
 
   const newReputation = count ?? 1;
-
-  // Best-effort cache sync for profile read paths (non-critical if it lags)
-  const cleanMetadata = { ...user.user_metadata };
-  delete cleanMetadata.voters; // drop legacy unbounded array
-  await supabase.auth.admin.updateUserById(userId, {
-    user_metadata: { ...cleanMetadata, reputation: newReputation },
-  });
+  await syncReputationCache(user, newReputation);
 
   return newReputation;
 };
