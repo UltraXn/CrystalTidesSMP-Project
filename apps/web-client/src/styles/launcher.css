@@ -71,13 +71,13 @@
 
 .btn-danger {
   background: rgba(239, 68, 68, 0.15) !important;
-  color: #FCA5A5 !important;
+  color: #FEE2E2 !important;
   border: 1px solid rgba(239, 68, 68, 0.3) !important;
 }
 
 .btn-ghost {
   background-color: transparent !important;
-  color: rgba(243, 244, 246, 0.6) !important;
+  color: rgba(243, 244, 246, 0.85) !important;
 }
 
 .btn-ghost:hover {
@@ -90,7 +90,7 @@
   flex: none;
   background: transparent;
   border: 1px solid transparent;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.75);
   font-family: inherit;
   font-size: 12.5px;
   font-weight: 600;
