@@ -1,39 +1,417 @@
 import crypto from 'node:crypto';
+import { Request, Response } from 'express';
+import { RowDataPacket } from 'mysql2';
+import { createClient, SupabaseClient, User } from '@supabase/supabase-js';
 import * as minecraftService from '../services/minecraftService.js';
 import * as skinService from '../services/skinService.js';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import pool from '../config/database.js';
-import { Request, Response } from 'express';
 import { ensureString } from '../utils/typeUtils.js';
 
-// Microsoft Xbox Live protocol specification mandates the exact audience URI "http://auth.xboxlive.com"
+// --- CONSTANTS ---
 const XBOX_AUTH_RELYING_PARTY = 'http://auth.xboxlive.com'; // NOSONAR
+const CLIENT_ID_AZURE = '3974b918-cd84-4d60-8955-2ad65234d16b';
+const CLIENT_ID_LIVE = '00000000402B5328';
+const XBOX_SCOPE = 'XboxLive.SignIn XboxLive.offline_access';
 
-// Database Schema Fix (Ensures missing columns exist)
-(async () => {
+const SOURCES = {
+  MINECRAFT: 'minecraft',
+  DISCORD: 'discord',
+  WEB: 'web',
+} as const;
+
+const URLS = {
+  LIVE_DEVICE_CODE: 'https://login.live.com/oauth20_connect.srf',
+  LIVE_TOKEN: 'https://login.live.com/oauth20_token.srf',
+  AZURE_DEVICE_CODE: 'https://login.microsoftonline.com/consumers/oauth2/v2.0/devicecode',
+  AZURE_TOKEN: 'https://login.microsoftonline.com/consumers/oauth2/v2.0/token',
+  XBOX_USER_AUTH: 'https://user.auth.xboxlive.com/user/authenticate',
+  XSTS_AUTH: 'https://xsts.auth.xboxlive.com/xsts/authorize',
+  MC_LOGIN_XBOX: 'https://api.minecraftservices.com/authentication/login_with_xbox',
+  MC_PROFILE: 'https://api.minecraftservices.com/minecraft/profile',
+  FALLBACK_MINOTAR_SKIN: 'https://minotar.net/skin',
+} as const;
+
+const HEADERS = {
+  URLENCODED: { 'Content-Type': 'application/x-www-form-urlencoded' },
+  JSON: { 'Content-Type': 'application/json', Accept: 'application/json' },
+} as const;
+
+const SQL = {
+  CLEANUP_EMPTY_LINKS:
+    'DELETE FROM linked_accounts WHERE web_user_id = ? AND minecraft_uuid IS NULL AND discord_id IS NULL',
+  SELECT_LINK_BY_WEB_ID: 'SELECT * FROM linked_accounts WHERE web_user_id = ?',
+  CLEAR_DISCORD_BY_DISCORD_ID:
+    'UPDATE linked_accounts SET discord_id = NULL, discord_tag = NULL WHERE discord_id = ?',
+  UPDATE_DISCORD_BY_WEB_ID:
+    'UPDATE linked_accounts SET discord_id = ?, discord_tag = ? WHERE web_user_id = ?',
+  DELETE_UNIVERSAL_CODE: 'DELETE FROM universal_links WHERE code = ?',
+  DELETE_BY_MINECRAFT_UUID: 'DELETE FROM linked_accounts WHERE minecraft_uuid = ?',
+  DELETE_BY_WEB_USER_ID: 'DELETE FROM linked_accounts WHERE web_user_id = ?',
+  INSERT_FULL_LINK:
+    'INSERT INTO linked_accounts (minecraft_uuid, minecraft_name, web_user_id, discord_id, discord_tag, gacha_balance, unlocked_tiers) VALUES (?, ?, ?, ?, ?, ?, ?)',
+  INSERT_BASIC_LINK:
+    'INSERT INTO linked_accounts (minecraft_uuid, minecraft_name, web_user_id) VALUES (?, ?, ?)',
+  SELECT_UNIVERSAL_LINK:
+    'SELECT source, source_id, player_name, avatar_url, expires_at FROM universal_links WHERE code = ?',
+  INSERT_OR_UPDATE_UNIVERSAL_LINK:
+    'INSERT INTO universal_links (code, source, source_id, expires_at) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE expires_at = ?',
+  SELECT_MC_NAME: 'SELECT minecraft_name FROM linked_accounts WHERE web_user_id = ?',
+  CLEAR_MC_BY_WEB_ID:
+    'UPDATE linked_accounts SET minecraft_uuid = NULL, minecraft_name = NULL WHERE web_user_id = ?',
+  CLEAR_DISCORD_BY_WEB_ID:
+    'UPDATE linked_accounts SET discord_id = NULL, discord_tag = NULL WHERE web_user_id = ?',
+  INSERT_PENDING_COMMAND: 'INSERT INTO web_pending_commands (command) VALUES (?)',
+} as const;
+
+const ERRORS = {
+  USER_ID_REQUIRED: 'UserId required',
+  UNAUTHORIZED: 'Unauthorized',
+  SUPABASE_UNCONFIGURED: 'Server configuration error (Supabase)',
+  AUTH_PENDING: 'authorization_pending',
+} as const;
+
+// --- DATABASE INITIALIZATION ---
+void (async () => {
   try {
     await pool.execute(
       'ALTER TABLE linked_accounts ADD COLUMN IF NOT EXISTS gacha_balance BIGINT DEFAULT 0 AFTER web_user_id',
     );
   } catch {
-    // Fallback for older MySQL that doesn't support IF NOT EXISTS in ALTER TABLE
     try {
       await pool.execute(
         'ALTER TABLE linked_accounts ADD COLUMN gacha_balance BIGINT DEFAULT 0 AFTER web_user_id',
       );
     } catch {
-      // Column probably already exists or other error we can't fix here
+      // Column exists or table cannot be altered in this environment
     }
   }
 })();
 
+// --- SUPABASE CLIENT SETUP ---
+const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+let supabase: SupabaseClient | null = null;
+if (supabaseUrl && supabaseKey) {
+  supabase = createClient(supabaseUrl, supabaseKey);
+}
+
+// --- INTERFACES & TYPES ---
+type AuthenticatedRequest = Request;
+
+interface MetadataSync {
+  minecraft_uuid?: string | null;
+  minecraft_nick?: string | null;
+  discord_id?: string | null;
+  discord_tag?: string | null;
+  discord_avatar?: string | null;
+  gacha_balance?: number | string | null;
+  social_discord?: string | null;
+}
+
+interface LinkedAccountRecord extends RowDataPacket {
+  minecraft_uuid: string | null;
+  minecraft_name: string | null;
+  web_user_id: string;
+  discord_id: string | null;
+  discord_tag: string | null;
+  gacha_balance: number | null;
+  unlocked_tiers: string | null;
+}
+
+interface UniversalLinkRecord extends RowDataPacket {
+  code: string;
+  source: string;
+  source_id: string;
+  player_name: string;
+  avatar_url: string | null;
+  expires_at: number;
+}
+
+interface XboxAuthResponse {
+  Token: string;
+  DisplayClaims?: {
+    xui?: Array<{ uhs?: string }>;
+  };
+}
+
+interface XstsAuthResponse {
+  Token: string;
+  XErr?: number;
+}
+
+interface MinecraftAuthResult {
+  error?: string;
+  profile?: Record<string, unknown>;
+}
+
+// --- PURE / SERVICE HELPERS ---
+const extractAuthToken = (req: Request): string | undefined => {
+  return req.headers.authorization?.split(' ')[1];
+};
+
+const getAuthUserId = (req: AuthenticatedRequest): string | undefined => {
+  return req.user?.id;
+};
+
+async function syncSupabaseMetadata(
+  userId: string,
+  _token: string | undefined,
+  metadata: MetadataSync,
+): Promise<boolean> {
+  if (!supabase) return false;
+  try {
+    const { error } = await supabase.auth.admin.updateUserById(userId, {
+      user_metadata: metadata,
+    });
+    if (error) {
+      console.error('Supabase Sync Error:', error.message);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error('Supabase Sync Exception:', err);
+    return false;
+  }
+}
+
+async function syncMinecraftLink(sourceId: string, playerName: string, targetUserId: string): Promise<void> {
+  await pool.execute(SQL.DELETE_BY_MINECRAFT_UUID, [sourceId]);
+
+  const [existing] = await pool.execute<LinkedAccountRecord[]>(
+    SQL.SELECT_LINK_BY_WEB_ID,
+    [targetUserId],
+  );
+
+  if (existing.length > 0) {
+    const oldRow = existing[0];
+    await pool.execute(SQL.DELETE_BY_WEB_USER_ID, [targetUserId]);
+    await pool.execute(
+      SQL.INSERT_FULL_LINK,
+      [
+        sourceId,
+        playerName,
+        targetUserId,
+        oldRow.discord_id,
+        oldRow.discord_tag,
+        oldRow.gacha_balance,
+        oldRow.unlocked_tiers ?? null,
+      ],
+    );
+  } else {
+    await pool.execute(
+      SQL.INSERT_BASIC_LINK,
+      [sourceId, playerName, targetUserId],
+    );
+  }
+}
+
+async function syncDiscordLink(sourceId: string, playerName: string, targetUserId: string): Promise<void> {
+  await pool.execute(SQL.CLEAR_DISCORD_BY_DISCORD_ID, [sourceId]);
+  await pool.execute(SQL.UPDATE_DISCORD_BY_WEB_ID, [sourceId, playerName, targetUserId]);
+}
+
+async function syncDatabaseLink(
+  source: string,
+  sourceId: string,
+  playerName: string,
+  targetUserId: string,
+): Promise<void> {
+  if (source === SOURCES.MINECRAFT) {
+    await syncMinecraftLink(sourceId, playerName, targetUserId);
+    return;
+  }
+
+  if (source === SOURCES.DISCORD) {
+    await syncDiscordLink(sourceId, playerName, targetUserId);
+  }
+}
+
+async function clearSupabaseMetadata(
+  userId: string,
+  token: string | undefined,
+  metadataToClear: Record<string, null>,
+): Promise<void> {
+  const sbUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+  const sbAnonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+
+  if (token && sbUrl && sbAnonKey) {
+    const userSupabase = createClient(sbUrl, sbAnonKey, {
+      global: { headers: { Authorization: `Bearer ${token}` } },
+    });
+    await userSupabase.auth.updateUser({ data: metadataToClear });
+    return;
+  }
+
+  if (supabase) {
+    await supabase.auth.admin.updateUserById(userId, {
+      user_metadata: metadataToClear,
+    });
+  }
+}
+
+// --- MICROSOFT / XBOX AUTH PIPELINE ---
+async function fetchXboxLiveToken(accessToken: string): Promise<{ token: string; userHash: string } | null> {
+  const rpsTicket =
+    accessToken.startsWith('Ew') || accessToken.startsWith('d=')
+      ? accessToken
+      : `d=${accessToken}`;
+
+  const requestAuth = (ticket: string) =>
+    fetch(URLS.XBOX_USER_AUTH, {
+      method: 'POST',
+      headers: HEADERS.JSON,
+      body: JSON.stringify({
+        Properties: {
+          AuthMethod: 'RPS',
+          SiteName: 'user.auth.xboxlive.com',
+          RpsTicket: ticket,
+        },
+        RelyingParty: XBOX_AUTH_RELYING_PARTY,
+        TokenType: 'JWT',
+      }),
+    });
+
+  let response = await requestAuth(rpsTicket);
+  if (!response.ok) {
+    response = await requestAuth(`t=${accessToken}`);
+    if (!response.ok) return null;
+  }
+
+  const xblData = (await response.json()) as XboxAuthResponse;
+  const token = xblData.Token;
+  const userHash = xblData.DisplayClaims?.xui?.[0]?.uhs ?? '';
+  return { token, userHash };
+}
+
+async function fetchXstsToken(xblToken: string): Promise<{ token?: string; error?: string }> {
+  const response = await fetch(URLS.XSTS_AUTH, {
+    method: 'POST',
+    headers: HEADERS.JSON,
+    body: JSON.stringify({
+      Properties: {
+        SandboxId: 'RETAIL',
+        UserTokens: [xblToken],
+      },
+      RelyingParty: 'rp://api.minecraftservices.com/',
+      TokenType: 'JWT',
+    }),
+  });
+
+  const xstsData = (await response.json()) as XstsAuthResponse;
+  if (!response.ok) {
+    if (xstsData.XErr === 2148916028) {
+      return { error: 'Esta cuenta de Microsoft no posee un perfil de Minecraft comprado.' };
+    }
+    return { error: `Error XSTS (${xstsData.XErr ?? 'desconocido'})` };
+  }
+
+  return { token: xstsData.Token };
+}
+
+async function authenticateMinecraftWithToken(accessToken: string): Promise<MinecraftAuthResult> {
+  const xboxAuth = await fetchXboxLiveToken(accessToken);
+  if (!xboxAuth) {
+    return { error: 'Fallo la autenticación con Xbox Live' };
+  }
+
+  const xstsAuth = await fetchXstsToken(xboxAuth.token);
+  if (xstsAuth.error || !xstsAuth.token) {
+    return { error: xstsAuth.error ?? 'Error al obtener token XSTS' };
+  }
+
+  const mcLoginRes = await fetch(URLS.MC_LOGIN_XBOX, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      identityToken: `XBL3.0 x=${xboxAuth.userHash};${xstsAuth.token}`,
+    }),
+  });
+  const mcAuthData = (await mcLoginRes.json()) as { access_token?: string };
+  if (!mcLoginRes.ok || !mcAuthData.access_token) {
+    return { error: 'Fallo el inicio de sesión en los servicios de Minecraft' };
+  }
+
+  const profileRes = await fetch(URLS.MC_PROFILE, {
+    headers: { Authorization: `Bearer ${mcAuthData.access_token}` },
+  });
+  const profile = (await profileRes.json()) as Record<string, unknown> & {
+    error?: string;
+    errorMessage?: string;
+  };
+
+  if (!profileRes.ok || profile.error) {
+    return { error: profile.errorMessage || 'No se pudo obtener el perfil de Minecraft' };
+  }
+
+  return { profile };
+}
+
+// --- DISCORD SYNC HELPER ---
+function extractDiscordIdentity(user: User) {
+  const identity = user.identities?.find((i) => i.provider === SOURCES.DISCORD);
+  if (!identity) return null;
+
+  const data = identity.identity_data;
+  const tag =
+    data?.full_name ||
+    data?.name ||
+    data?.custom_claims?.global_name ||
+    data?.user_name;
+  const avatar = data?.avatar_url || data?.image_url || data?.picture;
+
+  return {
+    id: identity.id,
+    tag: typeof tag === 'string' ? tag : null,
+    avatar: typeof avatar === 'string' ? avatar : null,
+  };
+}
+
+async function handleDiscordAutoSync(
+  userId: string,
+  userToken: string | undefined,
+  currentRows: RowDataPacket[],
+): Promise<void> {
+  if (!supabase) return;
+  try {
+    const { data: { user }, error: userError } = await supabase.auth.admin.getUserById(userId);
+    if (userError || !user) return;
+
+    const discord = extractDiscordIdentity(user);
+    if (!discord) return;
+
+    if (currentRows.length > 0) {
+      const link = currentRows[0];
+      if (link.discord_id !== discord.id || link.discord_tag !== discord.tag) {
+        await pool.execute(SQL.CLEAR_DISCORD_BY_DISCORD_ID, [discord.id]);
+        await pool.execute(SQL.UPDATE_DISCORD_BY_WEB_ID, [discord.id, discord.tag, userId]);
+
+        const [newRows] = await pool.execute<RowDataPacket[]>(SQL.SELECT_LINK_BY_WEB_ID, [userId]);
+        if (newRows.length > 0) {
+          currentRows[0] = newRows[0];
+        }
+      }
+    }
+
+    if (discord.avatar) {
+      await syncSupabaseMetadata(userId, userToken, {
+        discord_id: discord.id,
+        discord_tag: discord.tag,
+        discord_avatar: discord.avatar,
+      });
+    }
+  } catch (syncError) {
+    console.error('Discord auto-sync non-fatal error:', syncError);
+  }
+}
+
+// --- CONTROLLER ACTIONS ---
+
 export const getStatus = async (req: Request, res: Response) => {
   try {
     const host = process.env.MC_SERVER_HOST || 'localhost';
-    const port = parseInt(process.env.MC_SERVER_PORT || '25565');
+    const port = parseInt(process.env.MC_SERVER_PORT || '25565', 10);
 
     const status = await minecraftService.getServerStatus(host, port);
-
     res.json(status);
   } catch (error) {
     console.error('[Minecraft Status CRITICAL 500]:', error);
@@ -51,135 +429,41 @@ export const getStatus = async (req: Request, res: Response) => {
 };
 
 export const getSkin = async (req: Request, res: Response) => {
-  try {
-    const username = ensureString(req.params.username);
-    if (!username) return res.status(400).json({ error: 'Username required' });
+  const username = ensureString(req.params.username);
+  if (!username) {
+    return res.status(400).json({ error: 'Username required' });
+  }
 
+  try {
     const skinData = await skinService.getSkinUrl(username);
     res.json(skinData);
   } catch (error) {
     console.error('Error fetching skin:', error);
-    // Fallback to minotar direct
     res.json({
-      url: `https://minotar.net/skin/${ensureString(req.params.username)}`,
+      url: `${URLS.FALLBACK_MINOTAR_SKIN}/${username}`,
       source: 'fallback',
     });
   }
 };
 
-// Supabase Admin Client
-const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-let supabase: SupabaseClient | null = null;
-if (supabaseUrl && supabaseKey) supabase = createClient(supabaseUrl, supabaseKey);
-
-import { RowDataPacket } from 'mysql2';
-
-interface MetadataSync {
-  minecraft_uuid?: string | null;
-  minecraft_nick?: string | null;
-  discord_id?: string | null;
-  discord_tag?: string | null;
-  discord_avatar?: string | null;
-  gacha_balance?: number | string | null;
-  social_discord?: string | null;
-}
-
-async function syncSupabaseMetadata(
-  userId: string,
-  _token: string | undefined,
-  metadata: MetadataSync,
-) {
-  if (!supabase) return false;
-  try {
-    const { error } = await supabase.auth.admin.updateUserById(userId, {
-      user_metadata: metadata,
-    });
-    if (error) {
-      console.error('Supabase Sync Error:', error.message);
-      return false;
-    }
-    return true;
-  } catch (e) {
-    console.error('Supabase Sync Exception:', e);
-    return false;
-  }
-}
-
-async function syncDatabaseLink(
-  source: string,
-  sourceId: string,
-  playerName: string,
-  targetUserId: string,
-) {
-  if (source === 'minecraft') {
-    // First, remove ANY link currently tied to this Minecraft UUID
-    await pool.execute('DELETE FROM linked_accounts WHERE minecraft_uuid = ?', [sourceId]);
-
-    // Second, check existing data for the WEB user to preserve gacha/discord
-    const [existing] = await pool.execute<RowDataPacket[]>(
-      'SELECT * FROM linked_accounts WHERE web_user_id = ?',
-      [targetUserId],
-    );
-
-    if (existing.length > 0) {
-      const oldRow = existing[0];
-      // Delete old row because PK (minecraft_uuid) is changing
-      await pool.execute('DELETE FROM linked_accounts WHERE web_user_id = ?', [targetUserId]);
-
-      // Re-insert with new Minecraft data + preserved stats
-      await pool.execute(
-        `INSERT INTO linked_accounts 
-                  (minecraft_uuid, minecraft_name, web_user_id, discord_id, discord_tag, gacha_balance, unlocked_tiers) 
-                  VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [
-          sourceId,
-          playerName,
-          targetUserId,
-          oldRow.discord_id,
-          oldRow.discord_tag,
-          oldRow.gacha_balance,
-          oldRow.unlocked_tiers,
-        ],
-      );
-    } else {
-      await pool.execute(
-        'INSERT INTO linked_accounts (minecraft_uuid, minecraft_name, web_user_id) VALUES (?, ?, ?)',
-        [sourceId, playerName, targetUserId],
-      );
-    }
-  } else if (source === 'discord') {
-    // Discord logic: much simpler as discord_id is just UNIQUE, not PK
-    await pool.execute(
-      'UPDATE linked_accounts SET discord_id = NULL, discord_tag = NULL WHERE discord_id = ?',
-      [sourceId],
-    );
-    await pool.execute(
-      'UPDATE linked_accounts SET discord_id = ?, discord_tag = ? WHERE web_user_id = ?',
-      [sourceId, playerName, targetUserId],
-    );
-  }
-}
-
 export const verifyLinkCode = async (req: Request, res: Response) => {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const user = (req as any).user;
-    const authUserId = user?.id;
+    const authUserId = getAuthUserId(req as AuthenticatedRequest);
     const { code, userId: bodyUserId } = req.body;
-
     const targetUserId = authUserId || bodyUserId;
 
     if (!code || !targetUserId) {
       return res.status(400).json({ error: 'Code and Authentication required' });
     }
 
-    if (!supabase) return res.status(503).json({ error: 'Server configuration error (Supabase)' });
+    if (!supabase) {
+      return res.status(503).json({ error: ERRORS.SUPABASE_UNCONFIGURED });
+    }
 
-    // 1. Verify Code
-    const [rows] = await pool.execute<RowDataPacket[]>(
-      'SELECT source, source_id, player_name, avatar_url, expires_at FROM universal_links WHERE code = ?',
-      [code.toUpperCase()],
+    const upperCode = code.toUpperCase();
+    const [rows] = await pool.execute<UniversalLinkRecord[]>(
+      SQL.SELECT_UNIVERSAL_LINK,
+      [upperCode],
     );
 
     if (rows.length === 0) {
@@ -187,32 +471,23 @@ export const verifyLinkCode = async (req: Request, res: Response) => {
     }
 
     const verification = rows[0];
-
     if (Date.now() > Number(verification.expires_at)) {
-      await pool.execute('DELETE FROM universal_links WHERE code = ?', [code.toUpperCase()]);
+      await pool.execute(SQL.DELETE_UNIVERSAL_CODE, [upperCode]);
       return res.status(400).json({ error: 'El código ha expirado.' });
     }
 
-    const {
-      source,
-      source_id: sourceId,
-      player_name: playerName,
-      avatar_url: avatarUrl,
-    } = verification;
+    const { source, source_id: sourceId, player_name: playerName, avatar_url: avatarUrl } = verification;
 
-    // 2. Link Account (Unified Logic)
     await syncDatabaseLink(source, sourceId, playerName, targetUserId);
+    await pool.execute(SQL.DELETE_UNIVERSAL_CODE, [upperCode]);
 
-    await pool.execute('DELETE FROM universal_links WHERE code = ?', [code.toUpperCase()]);
-
-    // 3. Sync Meta
-    const token = req.headers.authorization?.split(' ')[1];
-    if (source === 'minecraft') {
+    const token = extractAuthToken(req);
+    if (source === SOURCES.MINECRAFT) {
       await syncSupabaseMetadata(targetUserId, token, {
         minecraft_uuid: sourceId,
         minecraft_nick: playerName,
       });
-    } else if (source === 'discord') {
+    } else if (source === SOURCES.DISCORD) {
       await syncSupabaseMetadata(targetUserId, token, {
         discord_id: sourceId,
         discord_tag: playerName,
@@ -233,9 +508,10 @@ export const verifyLinkCode = async (req: Request, res: Response) => {
 export const initWebLink = async (req: Request, res: Response) => {
   try {
     const { userId } = req.body;
-    if (!userId) return res.status(400).json({ error: 'UserId required' });
+    if (!userId) {
+      return res.status(400).json({ error: ERRORS.USER_ID_REQUIRED });
+    }
 
-    // Generate a random 6-char code
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     let code = '';
     for (let i = 0; i < 6; i++) {
@@ -245,8 +521,8 @@ export const initWebLink = async (req: Request, res: Response) => {
     const expiresAt = Date.now() + 15 * 60 * 1000;
 
     await pool.execute(
-      'INSERT INTO universal_links (code, source, source_id, expires_at) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE expires_at = ?',
-      [code, 'web', userId, expiresAt, expiresAt],
+      SQL.INSERT_OR_UPDATE_UNIVERSAL_LINK,
+      [code, SOURCES.WEB, userId, expiresAt, expiresAt],
     );
 
     res.json({ success: true, code });
@@ -259,107 +535,47 @@ export const initWebLink = async (req: Request, res: Response) => {
 export const checkLinkStatus = async (req: Request, res: Response) => {
   try {
     const userId = ensureString(req.query.userId);
-    if (!userId) return res.status(400).json({ error: 'UserId required' });
+    if (!userId) {
+      return res.status(400).json({ error: ERRORS.USER_ID_REQUIRED });
+    }
 
-    if (!supabase) return res.status(503).json({ error: 'Supabase not configured' });
+    if (!supabase) {
+      return res.status(503).json({ error: 'Supabase not configured' });
+    }
 
-    const [rows] = await pool.execute<RowDataPacket[]>(
-      'SELECT * FROM linked_accounts WHERE web_user_id = ?',
-      [userId],
-    );
+    const [rows] = await pool.execute<RowDataPacket[]>(SQL.SELECT_LINK_BY_WEB_ID, [userId]);
+    const token = extractAuthToken(req);
 
-    // --- DISCORD AUTO-SYNC LOGIC ---
+    await handleDiscordAutoSync(userId, token, rows);
+
+    if (rows.length === 0) {
+      return res.json({ linked: false });
+    }
+
+    const link = rows[0];
+    let existingAvatar: string | null = null;
     try {
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.admin.getUserById(userId as string);
-      if (!userError && user) {
-        const discordIdentity = user.identities?.find((i) => i.provider === 'discord');
-        if (discordIdentity) {
-          const discordId = discordIdentity.id;
-          const discordTag =
-            discordIdentity.identity_data?.full_name ||
-            discordIdentity.identity_data?.name ||
-            discordIdentity.identity_data?.custom_claims?.global_name ||
-            discordIdentity.identity_data?.user_name;
-          const discordAvatar =
-            discordIdentity.identity_data?.avatar_url ||
-            discordIdentity.identity_data?.image_url ||
-            discordIdentity.identity_data?.picture;
-
-          if (rows.length > 0) {
-            const link = rows[0];
-            // If discord info is missing or outdated in SQL
-            if (link.discord_id !== discordId || link.discord_tag !== discordTag) {
-              // Handle potential collisions
-              await pool.execute(
-                'UPDATE linked_accounts SET discord_id = NULL, discord_tag = NULL WHERE discord_id = ?',
-                [discordId],
-              );
-              await pool.execute(
-                'UPDATE linked_accounts SET discord_id = ?, discord_tag = ? WHERE web_user_id = ?',
-                [discordId, discordTag, userId],
-              );
-
-              const [newRows] = await pool.execute<RowDataPacket[]>(
-                'SELECT * FROM linked_accounts WHERE web_user_id = ?',
-                [userId],
-              );
-              if (newRows.length > 0) rows[0] = newRows[0];
-            }
-          }
-
-          // Always sync to Supabase metadata to ensure PFP is there
-          if (discordAvatar) {
-            await syncSupabaseMetadata(userId as string, req.headers.authorization?.split(' ')[1], {
-              discord_id: discordId,
-              discord_tag: discordTag,
-              discord_avatar: discordAvatar,
-            });
-          }
-        }
-      }
-    } catch (syncError) {
-      console.error('Discord auto-sync non-fatal error:', syncError);
-    }
-    // -------------------------------
-
-    if (rows.length > 0) {
-      const link = rows[0];
-
-      // Sync Supabase user metadata (Outward push)
-      const token = req.headers.authorization?.split(' ')[1];
-
-      // Try to preserve existing discord_avatar if we don't have a new one
-      let existingAvatar = null;
-      try {
-        const {
-          data: { user: userData },
-        } = await supabase.auth.admin.getUserById(userId as string);
-        existingAvatar = userData?.user_metadata?.discord_avatar;
-      } catch {
-        /* ignore */
-      }
-
-      await syncSupabaseMetadata(userId as string, token, {
-        minecraft_uuid: link.minecraft_uuid,
-        minecraft_nick: link.minecraft_name,
-        discord_id: link.discord_id,
-        discord_tag: link.discord_tag,
-        discord_avatar: existingAvatar,
-        gacha_balance: link.gacha_balance,
-      });
-
-      return res.json({
-        linked: true,
-        minecraft: { uuid: link.minecraft_uuid, name: link.minecraft_name },
-        discord: { id: link.discord_id, tag: link.discord_tag },
-        balance: link.gacha_balance,
-      });
+      const { data: { user: userData } } = await supabase.auth.admin.getUserById(userId);
+      existingAvatar = (userData?.user_metadata?.discord_avatar as string) || null;
+    } catch {
+      /* ignore */
     }
 
-    res.json({ linked: false });
+    await syncSupabaseMetadata(userId, token, {
+      minecraft_uuid: link.minecraft_uuid,
+      minecraft_nick: link.minecraft_name,
+      discord_id: link.discord_id,
+      discord_tag: link.discord_tag,
+      discord_avatar: existingAvatar,
+      gacha_balance: link.gacha_balance,
+    });
+
+    return res.json({
+      linked: true,
+      minecraft: { uuid: link.minecraft_uuid, name: link.minecraft_name },
+      discord: { id: link.discord_id, tag: link.discord_tag },
+      balance: link.gacha_balance,
+    });
   } catch (error) {
     console.error('Check Link Status Error:', error);
     const message = error instanceof Error ? error.message : String(error);
@@ -369,71 +585,34 @@ export const checkLinkStatus = async (req: Request, res: Response) => {
 
 export const unlinkAccount = async (req: Request, res: Response) => {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const user = (req as any).user;
-    const userId = user?.id;
-    const authHeader = req.headers.authorization;
-    const token = authHeader?.split(' ')[1];
+    const userId = getAuthUserId(req as AuthenticatedRequest);
+    const token = extractAuthToken(req);
 
-    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
-    // We need a supabase client, but for metadata update, we can try using the user's token
-    // to avoid dependency on SERVICE_ROLE_KEY if possible, OR fallback to admin if configured.
-
-    // 1. Remove from MySQL (Set Minecraft columns to NULL)
-    // First get the minecraft name to sync later
-    const [rows] = await pool.execute(
-      'SELECT minecraft_name FROM linked_accounts WHERE web_user_id = ?',
-      [userId],
-    );
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const minecraftName = (rows as any[])[0]?.minecraft_name;
-
-    await pool.execute(
-      'UPDATE linked_accounts SET minecraft_uuid = NULL, minecraft_name = NULL WHERE web_user_id = ?',
-      [userId],
-    );
-
-    // Clean up if row is fully empty (no discord link either)
-    await pool.execute(
-      'DELETE FROM linked_accounts WHERE web_user_id = ? AND minecraft_uuid IS NULL AND discord_id IS NULL',
-      [userId],
-    );
-
-    // 2. Clear Supabase Metadata
-    // Try to update using the user's own token first (safer/easier context)
-    // Try to update using the user's own token first (safer/easier context)
-    try {
-      const sbUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-      const sbAnonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
-
-      if (token && sbUrl && sbAnonKey) {
-        const userSupabase = createClient(sbUrl, sbAnonKey, {
-          global: { headers: { Authorization: `Bearer ${token}` } },
-        });
-        await userSupabase.auth.updateUser({
-          data: {
-            minecraft_uuid: null,
-            minecraft_nick: null,
-          },
-        });
-      } else if (supabase) {
-        // Fallback to admin if available and token method failed/skipped
-        await supabase.auth.admin.updateUserById(userId, {
-          user_metadata: {
-            minecraft_uuid: null,
-            minecraft_nick: null,
-          },
-        });
-      }
-    } catch (metaError) {
-      console.error('Error updating Supabase metadata (non-fatal):', metaError);
-      // Continue execution, as the primary unlink (MySQL) is done.
+    if (!userId) {
+      return res.status(401).json({ error: ERRORS.UNAUTHORIZED });
     }
 
-    // 3. Sync with CrystalCore Plugin
+    const [rows] = await pool.execute<RowDataPacket[]>(
+      SQL.SELECT_MC_NAME,
+      [userId],
+    );
+    const minecraftName = (rows[0]?.minecraft_name as string) || null;
+
+    await pool.execute(SQL.CLEAR_MC_BY_WEB_ID, [userId]);
+    await pool.execute(SQL.CLEANUP_EMPTY_LINKS, [userId]);
+
+    try {
+      await clearSupabaseMetadata(userId, token, {
+        minecraft_uuid: null,
+        minecraft_nick: null,
+      });
+    } catch (metaError) {
+      console.error('Error updating Supabase metadata (non-fatal):', metaError);
+    }
+
     if (minecraftName) {
       try {
-        await pool.execute('INSERT INTO web_pending_commands (command) VALUES (?)', [
+        await pool.execute(SQL.INSERT_PENDING_COMMAND, [
           `crystalcore sync ${minecraftName}`,
         ]);
       } catch (dbError) {
@@ -441,14 +620,12 @@ export const unlinkAccount = async (req: Request, res: Response) => {
           'Warning: Could not insert sync command (Plugin likely not updated or table missing):',
           dbError,
         );
-        // Swallow error so client still gets success for the unlink itself
       }
     }
 
     res.json({ success: true, message: 'Minecraft account unlinked successfully' });
   } catch (error) {
     console.error('Unlink Account Error:', error);
-    // Log detailed error for debugging schema issues
     if (error instanceof Error) {
       console.error('Stack:', error.stack);
       // @ts-expect-error sqlMessage exists on MySQL errors but not standard Error
@@ -460,53 +637,23 @@ export const unlinkAccount = async (req: Request, res: Response) => {
 
 export const unlinkDiscord = async (req: Request, res: Response) => {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const user = (req as any).user;
-    const userId = user?.id;
-    const authHeader = req.headers.authorization;
-    const token = authHeader?.split(' ')[1];
+    const userId = getAuthUserId(req as AuthenticatedRequest);
+    const token = extractAuthToken(req);
 
-    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+    if (!userId) {
+      return res.status(401).json({ error: ERRORS.UNAUTHORIZED });
+    }
 
-    // 1. Remove from MySQL (Set Discord columns to NULL)
-    await pool.execute(
-      'UPDATE linked_accounts SET discord_id = NULL, discord_tag = NULL WHERE web_user_id = ?',
-      [userId],
-    );
+    await pool.execute(SQL.CLEAR_DISCORD_BY_WEB_ID, [userId]);
+    await pool.execute(SQL.CLEANUP_EMPTY_LINKS, [userId]);
 
-    // Clean up if row is fully empty
-    await pool.execute(
-      'DELETE FROM linked_accounts WHERE web_user_id = ? AND minecraft_uuid IS NULL AND discord_id IS NULL',
-      [userId],
-    );
-
-    // 2. Clear Supabase Metadata
     try {
-      const sbUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-      const sbAnonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
-
-      if (token && sbUrl && sbAnonKey) {
-        const userSupabase = createClient(sbUrl, sbAnonKey, {
-          global: { headers: { Authorization: `Bearer ${token}` } },
-        });
-        await userSupabase.auth.updateUser({
-          data: {
-            discord_id: null,
-            discord_tag: null,
-            discord_avatar: null,
-            social_discord: null,
-          },
-        });
-      } else if (supabase) {
-        await supabase.auth.admin.updateUserById(userId, {
-          user_metadata: {
-            discord_id: null,
-            discord_tag: null,
-            discord_avatar: null,
-            social_discord: null,
-          },
-        });
-      }
+      await clearSupabaseMetadata(userId, token, {
+        discord_id: null,
+        discord_tag: null,
+        discord_avatar: null,
+        social_discord: null,
+      });
     } catch (metaError) {
       console.error('Error updating Supabase metadata (non-fatal):', metaError);
     }
@@ -518,25 +665,30 @@ export const unlinkDiscord = async (req: Request, res: Response) => {
   }
 };
 
-const CLIENT_ID_AZURE = '3974b918-cd84-4d60-8955-2ad65234d16b';
-const CLIENT_ID_LIVE = '00000000402B5328';
-
 export const requestMsDeviceCode = async (_req: Request, res: Response) => {
   try {
-    // 1. Try Live.com Device Code endpoint (standard for Minecraft public clients)
     const bodyLive = new URLSearchParams({
       client_id: CLIENT_ID_LIVE,
       scope: 'service::user.auth.xboxlive.com::MBI_SSL',
       response_type: 'device_code',
     });
 
-    const rLive = await fetch('https://login.live.com/oauth20_connect.srf', {
+    const rLive = await fetch(URLS.LIVE_DEVICE_CODE, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      headers: HEADERS.URLENCODED,
       body: bodyLive.toString(),
     });
 
-    const dataLive = await rLive.json();
+    const dataLive = (await rLive.json()) as Record<string, unknown> & {
+      user_code?: string;
+      device_code?: string;
+      verification_uri?: string;
+      interval?: number;
+      expires_in?: number;
+      error_description?: string;
+      error?: string;
+    };
+
     if (rLive.ok && dataLive.user_code && dataLive.device_code) {
       return res.json({
         user_code: dataLive.user_code,
@@ -548,22 +700,23 @@ export const requestMsDeviceCode = async (_req: Request, res: Response) => {
       });
     }
 
-    // 2. Fallback to Azure v2.0 endpoint
     const bodyAzure = new URLSearchParams({
       client_id: CLIENT_ID_AZURE,
-      scope: 'XboxLive.SignIn XboxLive.offline_access',
+      scope: XBOX_SCOPE,
     });
 
-    const rAzure = await fetch(
-      'https://login.microsoftonline.com/consumers/oauth2/v2.0/devicecode',
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: bodyAzure.toString(),
-      },
-    );
+    const rAzure = await fetch(URLS.AZURE_DEVICE_CODE, {
+      method: 'POST',
+      headers: HEADERS.URLENCODED,
+      body: bodyAzure.toString(),
+    });
 
-    const dataAzure = await rAzure.json();
+    const dataAzure = (await rAzure.json()) as Record<string, unknown> & {
+      device_code?: string;
+      error_description?: string;
+      error?: string;
+    };
+
     if (rAzure.ok && dataAzure.device_code) {
       return res.json({ ...dataAzure, isLive: false });
     }
@@ -582,139 +735,44 @@ export const requestMsDeviceCode = async (_req: Request, res: Response) => {
   }
 };
 
-async function authenticateMinecraftWithToken(accessToken: string) {
-  // 1. Xbox Live
-  const r1 = await fetch('https://user.auth.xboxlive.com/user/authenticate', {
+async function queryDeviceToken(
+  deviceCode: string,
+  isLive: boolean,
+): Promise<{ accessToken: string | null; authError: Record<string, unknown> | null }> {
+  const url = isLive ? URLS.LIVE_TOKEN : URLS.AZURE_TOKEN;
+  const clientId = isLive ? CLIENT_ID_LIVE : CLIENT_ID_AZURE;
+
+  const body = new URLSearchParams({
+    client_id: clientId,
+    grant_type: 'urn:ietf:params:oauth:grant-type:device_code',
+    device_code: deviceCode,
+  });
+
+  const response = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-    body: JSON.stringify({
-      Properties: {
-        AuthMethod: 'RPS',
-        SiteName: 'user.auth.xboxlive.com',
-        RpsTicket:
-          accessToken.startsWith('Ew') || accessToken.startsWith('d=')
-            ? accessToken
-            : `d=${accessToken}`,
-      },
-      RelyingParty: XBOX_AUTH_RELYING_PARTY,
-      TokenType: 'JWT',
-    }),
+    headers: HEADERS.URLENCODED,
+    body: body.toString(),
   });
-  let xblData = await r1.json();
-  if (!r1.ok) {
-    const r1Retry = await fetch('https://user.auth.xboxlive.com/user/authenticate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify({
-        Properties: {
-          AuthMethod: 'RPS',
-          SiteName: 'user.auth.xboxlive.com',
-          RpsTicket: `t=${accessToken}`,
-        },
-        RelyingParty: XBOX_AUTH_RELYING_PARTY,
-        TokenType: 'JWT',
-      }),
-    });
-    if (r1Retry.ok) xblData = await r1Retry.json();
-    else return { error: 'Fallo la autenticación con Xbox Live' };
-  }
 
-  const xblToken = xblData.Token;
-  const userHash = xblData.DisplayClaims?.xui?.[0]?.uhs;
+  const data = (await response.json()) as Record<string, unknown> & {
+    access_token?: string;
+    error?: string;
+  };
 
-  // 2. XSTS
-  const r2 = await fetch('https://xsts.auth.xboxlive.com/xsts/authorize', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-    body: JSON.stringify({
-      Properties: {
-        SandboxId: 'RETAIL',
-        UserTokens: [xblToken],
-      },
-      RelyingParty: 'rp://api.minecraftservices.com/',
-      TokenType: 'JWT',
-    }),
-  });
-  const xstsData = await r2.json();
-  if (!r2.ok) {
-    if (xstsData.XErr === 2148916028) {
-      return { error: 'Esta cuenta de Microsoft no posee un perfil de Minecraft comprado.' };
-    }
-    return { error: `Error XSTS (${xstsData.XErr || 'desconocido'})` };
-  }
-
-  const xstsToken = xstsData.Token;
-
-  // 3. Minecraft Login
-  const r3 = await fetch('https://api.minecraftservices.com/authentication/login_with_xbox', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      identityToken: `XBL3.0 x=${userHash};${xstsToken}`,
-    }),
-  });
-  const mcAuthData = await r3.json();
-  if (!r3.ok) return { error: 'Fallo el inicio de sesión en los servicios de Minecraft' };
-
-  // 4. Fetch Profile
-  const r4 = await fetch('https://api.minecraftservices.com/minecraft/profile', {
-    headers: { Authorization: `Bearer ${mcAuthData.access_token}` },
-  });
-  const profile = await r4.json();
-  if (!r4.ok || profile.error) {
-    return { error: profile.errorMessage || 'No se pudo obtener el perfil de Minecraft' };
-  }
-
-  return { profile };
+  return {
+    accessToken: data.access_token || null,
+    authError: data.error ? data : null,
+  };
 }
 
 export const pollMsDeviceToken = async (req: Request, res: Response) => {
   try {
     const { deviceCode, isLive } = req.body;
-    if (!deviceCode) return res.status(400).json({ error: 'deviceCode is required' });
-
-    let accessToken: string | null = null;
-    let authError: Record<string, unknown> | null = null;
-
-    if (isLive !== false) {
-      const bodyLive = new URLSearchParams({
-        client_id: CLIENT_ID_LIVE,
-        grant_type: 'urn:ietf:params:oauth:grant-type:device_code',
-        device_code: deviceCode,
-      });
-
-      const rLive = await fetch('https://login.live.com/oauth20_token.srf', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: bodyLive.toString(),
-      });
-
-      const dataLive = await rLive.json();
-      if (dataLive.access_token) {
-        accessToken = dataLive.access_token;
-      } else if (dataLive.error) {
-        authError = dataLive;
-      }
-    } else {
-      const bodyAzure = new URLSearchParams({
-        client_id: CLIENT_ID_AZURE,
-        grant_type: 'urn:ietf:params:oauth:grant-type:device_code',
-        device_code: deviceCode,
-      });
-
-      const rAzure = await fetch('https://login.microsoftonline.com/consumers/oauth2/v2.0/token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: bodyAzure.toString(),
-      });
-
-      const dataAzure = await rAzure.json();
-      if (dataAzure.access_token) {
-        accessToken = dataAzure.access_token;
-      } else if (dataAzure.error) {
-        authError = dataAzure;
-      }
+    if (!deviceCode) {
+      return res.status(400).json({ error: 'deviceCode is required' });
     }
+
+    const { accessToken, authError } = await queryDeviceToken(deviceCode, isLive !== false);
 
     if (accessToken) {
       const authResult = await authenticateMinecraftWithToken(accessToken);
@@ -724,7 +782,7 @@ export const pollMsDeviceToken = async (req: Request, res: Response) => {
       return res.json({ success: true, profile: authResult.profile });
     }
 
-    return res.json(authError || { error: 'authorization_pending' });
+    return res.json(authError || { error: ERRORS.AUTH_PENDING });
   } catch (err: unknown) {
     console.error('pollMsDeviceToken error:', err);
     res.status(500).json({ error: 'Error al verificar la autorización con Microsoft.' });
@@ -743,7 +801,7 @@ export const exchangeMsAuthCode = async (req: Request, res: Response) => {
       grant_type: 'authorization_code',
       code,
       redirect_uri: redirectUri,
-      scope: 'XboxLive.SignIn XboxLive.offline_access',
+      scope: XBOX_SCOPE,
     };
 
     if (process.env.MICROSOFT_CLIENT_SECRET) {
@@ -752,13 +810,18 @@ export const exchangeMsAuthCode = async (req: Request, res: Response) => {
 
     const body = new URLSearchParams(tokenParams);
 
-    const rMs = await fetch('https://login.microsoftonline.com/consumers/oauth2/v2.0/token', {
+    const rMs = await fetch(URLS.AZURE_TOKEN, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      headers: HEADERS.URLENCODED,
       body: body.toString(),
     });
 
-    const msData = await rMs.json();
+    const msData = (await rMs.json()) as Record<string, unknown> & {
+      access_token?: string;
+      error_description?: string;
+      error?: string;
+    };
+
     if (!rMs.ok || !msData.access_token) {
       return res.status(400).json({
         error:
@@ -768,11 +831,11 @@ export const exchangeMsAuthCode = async (req: Request, res: Response) => {
       });
     }
 
-    const accessToken = msData.access_token;
-    const authResult = await authenticateMinecraftWithToken(accessToken);
+    const authResult = await authenticateMinecraftWithToken(msData.access_token);
     if (authResult.error) {
       return res.status(400).json({ error: authResult.error });
     }
+
     return res.json({ success: true, profile: authResult.profile });
   } catch (err: unknown) {
     console.error('exchangeMsAuthCode error:', err);

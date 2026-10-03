@@ -49,10 +49,23 @@ interface UpdatePollDTO {
   closes_at?: string;
 }
 
+interface PaginatedPollsQuery {
+  page: number;
+  limit: number;
+}
+
 const TABLES = {
   POLLS: 'polls',
   POLL_OPTIONS: 'poll_options',
   POLL_VOTES: 'poll_votes',
+} as const;
+
+const COLUMNS = {
+  ID: 'id',
+  IS_ACTIVE: 'is_active',
+  CREATED_AT: 'created_at',
+  POLL_ID: 'poll_id',
+  VOTES: 'votes',
 } as const;
 
 const CONSTANTS = {
@@ -65,6 +78,8 @@ const CONSTANTS = {
 const TIME_STRINGS = {
   UNDEFINED: 'Indefinido',
   FINISHED: 'Finalizada',
+  DAYS_SUFFIX: 'días',
+  HOURS_SUFFIX: 'horas',
 } as const;
 
 const ERRORS = {
@@ -76,7 +91,7 @@ const ERRORS = {
   ALREADY_VOTED: 'Ya has votado en esta encuesta',
 } as const;
 
-// --- Helper Functions: Aggregations & Time Formatting ---
+// --- Helper Functions: Aggregations & Result Computation ---
 
 interface AggregatedPollOptions {
   totalVotes: number;
@@ -100,10 +115,10 @@ const formatClosesInActive = (closesAt?: string | null): string => {
   if (remainingMs <= 0) return TIME_STRINGS.FINISHED;
 
   const days = Math.floor(remainingMs / CONSTANTS.MS_PER_DAY);
-  if (days > 0) return `${days} días`;
+  if (days > 0) return `${days} ${TIME_STRINGS.DAYS_SUFFIX}`;
 
   const hours = Math.floor((remainingMs / CONSTANTS.MS_PER_HOUR) % 24);
-  return `${hours} horas`;
+  return `${hours} ${TIME_STRINGS.HOURS_SUFFIX}`;
 };
 
 const formatClosesInById = (closesAt?: string | null): string => {
@@ -113,34 +128,95 @@ const formatClosesInById = (closesAt?: string | null): string => {
   if (remainingMs <= 0) return TIME_STRINGS.FINISHED;
 
   const days = Math.floor(remainingMs / CONSTANTS.MS_PER_DAY);
-  return `${days} días`;
+  return `${days} ${TIME_STRINGS.DAYS_SUFFIX}`;
 };
 
-// --- Helper Functions: Vote Validations ---
+const buildEnrichedPoll = (
+  poll: Poll,
+  options: PollOption[] | null,
+  closesInFormatter: (closesAt?: string | null) => string,
+): Poll => {
+  const safeOptions: PollOption[] = options || [];
+  const { totalVotes, optionsWithPercent } = aggregateOptionVotes(safeOptions);
+  const closesIn = closesInFormatter(poll.closes_at);
+
+  return {
+    ...poll,
+    options: optionsWithPercent,
+    totalVotes,
+    closesIn,
+  };
+};
+
+const computePollTotalVotes = (
+  pollId: number,
+  options: Pick<PollOption, 'poll_id' | 'votes'>[],
+): number => {
+  return options
+    .filter((opt) => opt.poll_id === pollId)
+    .reduce((acc: number, curr) => acc + (curr.votes || 0), 0);
+};
+
+// --- Helper Functions: Vote Validations & Operations ---
 
 const validateOptionBelongsToPoll = async (pollId: number, optionId: number): Promise<void> => {
   const { data: option, error } = await supabase
     .from(TABLES.POLL_OPTIONS)
     .select('id, poll_id')
-    .eq('id', optionId)
+    .eq(COLUMNS.ID, optionId)
     .single();
 
-  if (error || !option) throw new Error(ERRORS.OPTION_NOT_FOUND);
-  if (option.poll_id !== pollId) throw new Error(ERRORS.INVALID_OPTION_FOR_POLL);
+  if (error || !option) {
+    throw new Error(ERRORS.OPTION_NOT_FOUND);
+  }
+  if (option.poll_id !== pollId) {
+    throw new Error(ERRORS.INVALID_OPTION_FOR_POLL);
+  }
 };
 
 const validatePollIsActiveAndOpen = async (pollId: number): Promise<void> => {
   const { data: poll, error } = await supabase
     .from(TABLES.POLLS)
     .select('is_active, closes_at')
-    .eq('id', pollId)
+    .eq(COLUMNS.ID, pollId)
     .single();
 
-  if (error || !poll) throw new Error(ERRORS.POLL_NOT_FOUND);
-  if (!poll.is_active) throw new Error(ERRORS.POLL_INACTIVE);
+  if (error || !poll) {
+    throw new Error(ERRORS.POLL_NOT_FOUND);
+  }
+  if (!poll.is_active) {
+    throw new Error(ERRORS.POLL_INACTIVE);
+  }
   if (poll.closes_at && new Date(poll.closes_at) <= new Date()) {
     throw new Error(ERRORS.POLL_EXPIRED);
   }
+};
+
+const recordUserVote = async (pollId: number, optionId: number, userId: string): Promise<void> => {
+  const { error: voteError } = await supabase.from(TABLES.POLL_VOTES).insert([
+    {
+      poll_id: pollId,
+      user_id: userId,
+      option_id: optionId,
+    },
+  ]);
+
+  if (!voteError) return;
+
+  if (voteError.code === CONSTANTS.PG_UNIQUE_VIOLATION) {
+    throw new Error(ERRORS.ALREADY_VOTED);
+  }
+  throw voteError;
+};
+
+const fetchOptionVotes = async (optionId: number): Promise<number> => {
+  const { data: updatedOption } = await supabase
+    .from(TABLES.POLL_OPTIONS)
+    .select(COLUMNS.VOTES)
+    .eq(COLUMNS.ID, optionId)
+    .single();
+
+  return updatedOption?.votes || 0;
 };
 
 // --- Helper Functions: Translation & Option Synchronization ---
@@ -186,33 +262,50 @@ const prepareOptionsForInsert = async (
   );
 };
 
+const upsertOptionAtIndex = async (
+  pollId: number,
+  optionInput: string | { label: string; label_en?: string },
+  existingOption?: PollOption,
+): Promise<void> => {
+  const { label, label_en } = await resolveOptionLabelAndTranslation(optionInput);
+
+  if (existingOption) {
+    await supabase
+      .from(TABLES.POLL_OPTIONS)
+      .update({ label, label_en })
+      .eq(COLUMNS.ID, existingOption.id);
+    return;
+  }
+
+  await supabase.from(TABLES.POLL_OPTIONS).insert({
+    poll_id: pollId,
+    label,
+    label_en,
+    votes: 0,
+  });
+};
+
 const syncPollOptions = async (
   pollId: number,
   options: (string | { label: string; label_en?: string })[],
   existingOptions: PollOption[],
 ): Promise<void> => {
   for (let i = 0; i < options.length; i++) {
-    const { label, label_en } = await resolveOptionLabelAndTranslation(options[i]);
-
-    if (i < existingOptions.length) {
-      await supabase
-        .from(TABLES.POLL_OPTIONS)
-        .update({ label, label_en })
-        .eq('id', existingOptions[i].id);
-    } else {
-      await supabase.from(TABLES.POLL_OPTIONS).insert({
-        poll_id: pollId,
-        label,
-        label_en,
-        votes: 0,
-      });
-    }
+    await upsertOptionAtIndex(pollId, options[i], existingOptions[i]);
   }
 
   if (existingOptions.length > options.length) {
     const toDelete = existingOptions.slice(options.length).map((o) => o.id);
-    await supabase.from(TABLES.POLL_OPTIONS).delete().in('id', toDelete);
+    await supabase.from(TABLES.POLL_OPTIONS).delete().in(COLUMNS.ID, toDelete);
   }
+};
+
+const deactivateGlobalPolls = async (): Promise<void> => {
+  await supabase
+    .from(TABLES.POLLS)
+    .update({ is_active: false })
+    .is('thread_id', null)
+    .neq(COLUMNS.ID, -1);
 };
 
 // --- Exported Service Operations ---
@@ -221,8 +314,8 @@ export const getActivePoll = async () => {
   const { data: poll, error } = await supabase
     .from(TABLES.POLLS)
     .select('*')
-    .eq('is_active', true)
-    .order('created_at', { ascending: false })
+    .eq(COLUMNS.IS_ACTIVE, true)
+    .order(COLUMNS.CREATED_AT, { ascending: false })
     .limit(1)
     .maybeSingle();
 
@@ -235,64 +328,36 @@ export const getActivePoll = async () => {
   const { data: options } = await supabase
     .from(TABLES.POLL_OPTIONS)
     .select('*')
-    .eq('poll_id', poll.id)
-    .order('id', { ascending: true });
+    .eq(COLUMNS.POLL_ID, poll.id)
+    .order(COLUMNS.ID, { ascending: true });
 
-  const safeOptions: PollOption[] = options || [];
-  const { totalVotes, optionsWithPercent } = aggregateOptionVotes(safeOptions);
-  const closesIn = formatClosesInActive(poll.closes_at);
-
-  return {
-    ...poll,
-    options: optionsWithPercent,
-    totalVotes,
-    closesIn,
-  };
+  return buildEnrichedPoll(poll as Poll, options, formatClosesInActive);
 };
 
 export const getPollById = async (id: number) => {
-  const { data: poll, error } = await supabase.from(TABLES.POLLS).select('*').eq('id', id).single();
+  const { data: poll, error } = await supabase
+    .from(TABLES.POLLS)
+    .select('*')
+    .eq(COLUMNS.ID, id)
+    .single();
 
   if (error || !poll) return null;
 
   const { data: options } = await supabase
     .from(TABLES.POLL_OPTIONS)
     .select('*')
-    .eq('poll_id', poll.id);
+    .eq(COLUMNS.POLL_ID, poll.id);
 
-  const safeOptions: PollOption[] = options || [];
-  const { totalVotes, optionsWithPercent } = aggregateOptionVotes(safeOptions);
-  const closesIn = formatClosesInById(poll.closes_at);
-
-  return { ...poll, options: optionsWithPercent, totalVotes, closesIn };
+  return buildEnrichedPoll(poll as Poll, options, formatClosesInById);
 };
 
 export const votePoll = async (pollId: number, optionId: number, userId: string) => {
   await validateOptionBelongsToPoll(pollId, optionId);
   await validatePollIsActiveAndOpen(pollId);
+  await recordUserVote(pollId, optionId, userId);
 
-  const { error: voteError } = await supabase.from(TABLES.POLL_VOTES).insert([
-    {
-      poll_id: pollId,
-      user_id: userId,
-      option_id: optionId,
-    },
-  ]);
-
-  if (voteError) {
-    if (voteError.code === CONSTANTS.PG_UNIQUE_VIOLATION) {
-      throw new Error(ERRORS.ALREADY_VOTED);
-    }
-    throw voteError;
-  }
-
-  const { data: updatedOption } = await supabase
-    .from(TABLES.POLL_OPTIONS)
-    .select('votes')
-    .eq('id', optionId)
-    .single();
-
-  return { success: true, votes: updatedOption?.votes || 0 };
+  const votes = await fetchOptionVotes(optionId);
+  return { success: true, votes };
 };
 
 export const createPoll = async ({
@@ -306,11 +371,7 @@ export const createPoll = async ({
   discord_link,
 }: CreatePollDTO) => {
   if (!thread_id) {
-    await supabase
-      .from(TABLES.POLLS)
-      .update({ is_active: false })
-      .is('thread_id', null)
-      .neq('id', -1);
+    await deactivateGlobalPolls();
   }
 
   const finalTitleEn = await resolveLocalizedText(title, title_en);
@@ -360,7 +421,7 @@ export const updatePoll = async (
       question_en: finalQuestionEn,
       closes_at,
     })
-    .eq('id', id)
+    .eq(COLUMNS.ID, id)
     .select()
     .single();
 
@@ -370,33 +431,32 @@ export const updatePoll = async (
     const { data: existingOptions } = await supabase
       .from(TABLES.POLL_OPTIONS)
       .select('*')
-      .eq('poll_id', id)
-      .order('id', { ascending: true });
+      .eq(COLUMNS.POLL_ID, id)
+      .order(COLUMNS.ID, { ascending: true });
 
-    const safeExisting: PollOption[] = existingOptions || [];
-    await syncPollOptions(id, options, safeExisting);
+    await syncPollOptions(id, options, existingOptions || []);
   }
 
   return poll;
 };
 
 export const closePoll = async (id: number) => {
-  const { error } = await supabase.from(TABLES.POLLS).update({ is_active: false }).eq('id', id);
+  const { error } = await supabase.from(TABLES.POLLS).update({ is_active: false }).eq(COLUMNS.ID, id);
 
   if (error) throw error;
   return { success: true };
 };
 
 export const deletePoll = async (id: number) => {
-  await supabase.from(TABLES.POLL_OPTIONS).delete().eq('poll_id', id);
+  await supabase.from(TABLES.POLL_OPTIONS).delete().eq(COLUMNS.POLL_ID, id);
 
-  const { error } = await supabase.from(TABLES.POLLS).delete().eq('id', id);
+  const { error } = await supabase.from(TABLES.POLLS).delete().eq(COLUMNS.ID, id);
   if (error) throw error;
 
   return { success: true };
 };
 
-export const getPolls = async ({ page = 1, limit = 10 }: { page: number; limit: number }) => {
+export const getPolls = async ({ page = 1, limit = 10 }: PaginatedPollsQuery) => {
   const offset = (page - 1) * limit;
 
   const {
@@ -406,7 +466,7 @@ export const getPolls = async ({ page = 1, limit = 10 }: { page: number; limit: 
   } = await supabase
     .from(TABLES.POLLS)
     .select('*', { count: 'exact' })
-    .order('created_at', { ascending: false })
+    .order(COLUMNS.CREATED_AT, { ascending: false })
     .range(offset, offset + limit - 1);
 
   if (error) throw error;
@@ -421,18 +481,14 @@ export const getPolls = async ({ page = 1, limit = 10 }: { page: number; limit: 
   const { data: options } = await supabase
     .from(TABLES.POLL_OPTIONS)
     .select('poll_id, votes')
-    .in('poll_id', pollIds);
+    .in(COLUMNS.POLL_ID, pollIds);
 
-  const safeOptions: Partial<PollOption>[] = options || [];
+  const safeOptions: Pick<PollOption, 'poll_id' | 'votes'>[] = options || [];
 
-  const enrichedPolls = safePolls.map((p) => {
-    const pOptions = safeOptions.filter((o) => o.poll_id === p.id);
-    const totalVotes = pOptions.reduce(
-      (acc: number, curr: Partial<PollOption>) => acc + (curr.votes || 0),
-      0,
-    );
-    return { ...p, totalVotes };
-  });
+  const enrichedPolls = safePolls.map((p) => ({
+    ...p,
+    totalVotes: computePollTotalVotes(p.id, safeOptions),
+  }));
 
   return {
     data: enrichedPolls,

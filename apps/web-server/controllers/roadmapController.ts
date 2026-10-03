@@ -12,19 +12,53 @@ export interface RoadmapDayConfig {
     is_jackpot?: boolean;
 }
 
-const ERROR_UNAUTHORIZED = 'UNAUTHORIZED';
-const MSG_USER_ID_REQUIRED = 'User ID required';
-const TABLE_ROADMAP_CONFIG = 'monthly_roadmap_config';
-const TABLE_USER_STREAKS = 'user_daily_streaks';
-const TABLE_USER_ACHIEVEMENTS = 'user_achievements';
-const TABLE_USER_TITLES = 'user_titles';
-const COL_USER_ID = 'user_id';
-const COL_DAY = 'day';
-const LOGRO_PREFIX = 'Logro: ';
+interface UserStreakRow {
+    user_id: string;
+    current_streak?: number;
+    streak_shields?: number;
+    prestige_level?: number;
+    last_claim_at?: string | null;
+    total_claims?: number;
+}
 
-const MAX_PRESTIGE = 6;
+interface StreakCalculationResult {
+    valid: boolean;
+    errorMsg?: string;
+    errorCode?: string;
+    newStreak: number;
+    remainingShields: number;
+    usedShield: boolean;
+}
 
-const DEFAULT_ROADMAP: RoadmapDayConfig[] = [
+interface PrestigeMilestoneResult {
+    nextPrestigeLevel: number;
+    prestigeUp: boolean;
+    achievementId: string;
+    achievementTitle: string;
+    unlockedAchievement: boolean;
+}
+
+const CONSTANTS = {
+    ERROR_UNAUTHORIZED: 'UNAUTHORIZED',
+    MSG_USER_ID_REQUIRED: 'User ID required',
+    TABLE_ROADMAP_CONFIG: 'monthly_roadmap_config',
+    TABLE_USER_STREAKS: 'user_daily_streaks',
+    TABLE_USER_ACHIEVEMENTS: 'user_achievements',
+    TABLE_USER_TITLES: 'user_titles',
+    COL_USER_ID: 'user_id',
+    COL_DAY: 'day',
+    ACHIEVEMENT_ID_COL: 'achievement_id',
+    LEGENDARY_ACHIEVEMENT_ID: 'legend_of_crystaltides',
+    LOGRO_PREFIX: 'Logro: ',
+    MIN_CLAIM_HOURS: 20,
+    RESET_CLAIM_HOURS: 48,
+    DEFAULT_SHIELDS: 3,
+    MAX_PRESTIGE: 6,
+    PRESTIGE_MULTIPLIER_STEP: 0.15,
+    MAX_DAYS: 30,
+} as const;
+
+const DEFAULT_ROADMAP: readonly RoadmapDayConfig[] = [
     { day: 1, title: 'Día 1: Bienvenida', reward_type: 'killucoins', reward_value: 25, multiplier: 1 },
     { day: 2, title: 'Día 2: Primer Paso', reward_type: 'killucoins', reward_value: 50, multiplier: 1 },
     { day: 3, title: 'Día 3: Giro Gacha Bronce', reward_type: 'gacha_spin', reward_value: 1, multiplier: 1 },
@@ -60,21 +94,186 @@ const DEFAULT_ROADMAP: RoadmapDayConfig[] = [
     { day: 30, title: 'Día 30: 👑 JACKPOT IRIDIUM X50', reward_type: 'achievement', reward_value: 2500, multiplier: 50, is_jackpot: true }
 ];
 
-const PRESTIGE_ACHIEVEMENTS: Record<number, { id: string; title: string }> = {
-    1: { id: 'prestige_bronce', title: `${LOGRO_PREFIX}Prestigio Bronce` },
-    2: { id: 'prestige_plata', title: `${LOGRO_PREFIX}Prestigio Plata` },
-    3: { id: 'prestige_oro', title: `${LOGRO_PREFIX}Prestigio Oro` },
-    4: { id: 'prestige_diamante', title: `${LOGRO_PREFIX}Prestigio Diamante` },
-    5: { id: 'prestige_esmeralda', title: `${LOGRO_PREFIX}Prestigio Esmeralda` },
-    6: { id: 'prestige_iridium', title: `${LOGRO_PREFIX}Prestigio Iridium Mítico` },
+const PRESTIGE_ACHIEVEMENTS: Readonly<Record<number, { id: string; title: string }>> = {
+    1: { id: 'prestige_bronce', title: `${CONSTANTS.LOGRO_PREFIX}Prestigio Bronce` },
+    2: { id: 'prestige_plata', title: `${CONSTANTS.LOGRO_PREFIX}Prestigio Plata` },
+    3: { id: 'prestige_oro', title: `${CONSTANTS.LOGRO_PREFIX}Prestigio Oro` },
+    4: { id: 'prestige_diamante', title: `${CONSTANTS.LOGRO_PREFIX}Prestigio Diamante` },
+    5: { id: 'prestige_esmeralda', title: `${CONSTANTS.LOGRO_PREFIX}Prestigio Esmeralda` },
+    6: { id: 'prestige_iridium', title: `${CONSTANTS.LOGRO_PREFIX}Prestigio Iridium Mítico` },
 };
+
+function extractUserId(req: Request): string | undefined {
+    const authUser = (req as Request & { user?: { id?: string } }).user;
+    return authUser?.id || (req.query.userId as string) || (req.body.userId as string) || undefined;
+}
+
+function canClaimStreak(lastClaimAt: string | null | undefined): boolean {
+    if (!lastClaimAt) return true;
+    const hoursSinceLastClaim = (Date.now() - new Date(lastClaimAt).getTime()) / (1000 * 60 * 60);
+    return hoursSinceLastClaim >= CONSTANTS.MIN_CLAIM_HOURS;
+}
+
+function calculateNextStreak(lastClaimAt: Date | null, currentStreak: number, streakShields: number): StreakCalculationResult {
+    if (!lastClaimAt) {
+        return { valid: true, newStreak: currentStreak, remainingShields: streakShields, usedShield: false };
+    }
+
+    const hoursDiff = (Date.now() - lastClaimAt.getTime()) / (1000 * 60 * 60);
+    if (hoursDiff < CONSTANTS.MIN_CLAIM_HOURS) {
+        return {
+            valid: false,
+            errorMsg: 'Debes esperar 20 horas entre reclamos',
+            errorCode: 'COOLDOWN_ACTIVE',
+            newStreak: currentStreak,
+            remainingShields: streakShields,
+            usedShield: false
+        };
+    }
+
+    const nextStreakValue = (currentStreak % CONSTANTS.MAX_DAYS) + 1;
+    if (hoursDiff > CONSTANTS.RESET_CLAIM_HOURS) {
+        if (streakShields > 0) {
+            return { valid: true, newStreak: nextStreakValue, remainingShields: streakShields - 1, usedShield: true };
+        }
+        return { valid: true, newStreak: 1, remainingShields: 0, usedShield: false };
+    }
+
+    return { valid: true, newStreak: nextStreakValue, remainingShields: streakShields, usedShield: false };
+}
+
+function calculateRewardAmount(dayConfig: RoadmapDayConfig, prestigeLevel: number): number {
+    const prestigeMultiplier = 1 + (prestigeLevel * CONSTANTS.PRESTIGE_MULTIPLIER_STEP);
+    const baseRewardAmount = (dayConfig.reward_value || 50) * (dayConfig.multiplier || 1);
+    return Math.floor(baseRewardAmount * prestigeMultiplier);
+}
+
+function resolvePrestigeMilestone(
+    currentStreak: number,
+    isJackpot: boolean | undefined,
+    currentPrestige: number
+): PrestigeMilestoneResult {
+    const isMilestone = currentStreak === CONSTANTS.MAX_DAYS || Boolean(isJackpot);
+    if (!isMilestone) {
+        return {
+            nextPrestigeLevel: currentPrestige,
+            prestigeUp: false,
+            achievementId: '',
+            achievementTitle: '',
+            unlockedAchievement: false
+        };
+    }
+
+    const canAdvancePrestige = currentPrestige < CONSTANTS.MAX_PRESTIGE;
+    const nextPrestigeLevel = canAdvancePrestige ? currentPrestige + 1 : currentPrestige;
+    const prestigeUp = canAdvancePrestige;
+
+    const fallbackAch = {
+        id: `prestige_${nextPrestigeLevel}`,
+        title: `${CONSTANTS.LOGRO_PREFIX}Prestigio Nivel ${nextPrestigeLevel}`
+    };
+    const ach = PRESTIGE_ACHIEVEMENTS[nextPrestigeLevel] || fallbackAch;
+
+    return {
+        nextPrestigeLevel,
+        prestigeUp,
+        achievementId: ach.id,
+        achievementTitle: ach.title,
+        unlockedAchievement: true
+    };
+}
+
+async function unlockAchievements(userId: string, achievementId: string, achievementTitle: string): Promise<void> {
+    const cleanTitleName = achievementTitle.replace(CONSTANTS.LOGRO_PREFIX, '');
+    const nowIso = new Date().toISOString();
+
+    await supabase
+        .from(CONSTANTS.TABLE_USER_ACHIEVEMENTS)
+        .upsert({
+            [CONSTANTS.COL_USER_ID]: userId,
+            achievement_id: achievementId,
+            title: achievementTitle,
+            unlocked_at: nowIso
+        });
+
+    await supabase
+        .from(CONSTANTS.TABLE_USER_TITLES)
+        .upsert({
+            [CONSTANTS.COL_USER_ID]: userId,
+            title_id: achievementId,
+            title_name: cleanTitleName,
+            unlocked_at: nowIso
+        });
+}
+
+function buildRewardMessage(
+    currentStreak: number,
+    prestigeUp: boolean,
+    achievementTitle: string,
+    prestigeLevel: number,
+    usedShield: boolean,
+    streakShields: number
+): string {
+    let msg = `¡Recompensa del Día ${currentStreak} reclamada!`;
+    if (prestigeUp) {
+        msg += ` 👑 ¡Avanzaste a ${achievementTitle} (+${prestigeLevel * 15}% KC)!`;
+    }
+    if (usedShield) {
+        msg += ` 🛡️ (¡Escudo de Racha activado! Tu racha fue salvada, escudos restantes: ${streakShields})`;
+    }
+    return msg;
+}
+
+async function fetchDayConfig(day: number): Promise<RoadmapDayConfig> {
+    const { data: config } = await supabase
+        .from(CONSTANTS.TABLE_ROADMAP_CONFIG)
+        .select('*')
+        .eq(CONSTANTS.COL_DAY, day)
+        .single();
+
+    return (
+        (config as RoadmapDayConfig | null) ||
+        DEFAULT_ROADMAP.find(d => d.day === day) ||
+        DEFAULT_ROADMAP[0]
+    );
+}
+
+async function checkLegendaryAchievement(userId: string): Promise<boolean> {
+    const { data } = await supabase
+        .from(CONSTANTS.TABLE_USER_ACHIEVEMENTS)
+        .select('*')
+        .eq(CONSTANTS.COL_USER_ID, userId)
+        .eq(CONSTANTS.ACHIEVEMENT_ID_COL, CONSTANTS.LEGENDARY_ACHIEVEMENT_ID)
+        .single();
+
+    return Boolean(data);
+}
+
+async function saveStreakUpdate(
+    userId: string,
+    streak: number,
+    prestige: number,
+    shields: number,
+    totalClaims: number
+): Promise<void> {
+    await supabase
+        .from(CONSTANTS.TABLE_USER_STREAKS)
+        .upsert({
+            [CONSTANTS.COL_USER_ID]: userId,
+            current_streak: streak,
+            prestige_level: prestige,
+            streak_shields: shields,
+            last_claim_at: new Date().toISOString(),
+            total_claims: totalClaims + 1
+        });
+}
 
 export const getRoadmapConfig = async (_req: Request, res: Response) => {
     try {
         const { data, error } = await supabase
-            .from(TABLE_ROADMAP_CONFIG)
+            .from(CONSTANTS.TABLE_ROADMAP_CONFIG)
             .select('*')
-            .order(COL_DAY, { ascending: true });
+            .order(CONSTANTS.COL_DAY, { ascending: true });
 
         if (error || !data || data.length === 0) {
             return sendSuccess(res, DEFAULT_ROADMAP);
@@ -89,34 +288,21 @@ export const getRoadmapConfig = async (_req: Request, res: Response) => {
 
 export const getUserStreakStatus = async (req: Request, res: Response) => {
     try {
-        const userId = req.user?.id || (req.query.userId as string);
+        const userId = extractUserId(req);
         if (!userId) {
-            return sendError(res, MSG_USER_ID_REQUIRED, ERROR_UNAUTHORIZED, 401);
+            return sendError(res, CONSTANTS.MSG_USER_ID_REQUIRED, CONSTANTS.ERROR_UNAUTHORIZED, 401);
         }
 
-        const { data: streak } = await supabase
-            .from(TABLE_USER_STREAKS)
+        const { data: rawStreak } = await supabase
+            .from(CONSTANTS.TABLE_USER_STREAKS)
             .select('*')
-            .eq(COL_USER_ID, userId)
+            .eq(CONSTANTS.COL_USER_ID, userId)
             .single();
 
+        const streak = rawStreak as UserStreakRow | null;
         const currentStreak = streak?.current_streak ?? 0;
-        const lastClaim = streak?.last_claim_at ? new Date(streak.last_claim_at) : null;
-        
-        let canClaim = true;
-        if (lastClaim) {
-            const hoursSinceLastClaim = (Date.now() - lastClaim.getTime()) / (1000 * 60 * 60);
-            if (hoursSinceLastClaim < 20) {
-                canClaim = false;
-            }
-        }
-
-        const { data: achievement } = await supabase
-            .from(TABLE_USER_ACHIEVEMENTS)
-            .select('*')
-            .eq(COL_USER_ID, userId)
-            .eq('achievement_id', 'legend_of_crystaltides')
-            .single();
+        const canClaim = canClaimStreak(streak?.last_claim_at);
+        const hasLegendaryAchievement = await checkLegendaryAchievement(userId);
 
         return sendSuccess(res, {
             currentStreak: currentStreak === 0 ? 1 : currentStreak,
@@ -124,8 +310,8 @@ export const getUserStreakStatus = async (req: Request, res: Response) => {
             lastClaimAt: streak?.last_claim_at ?? null,
             totalClaims: streak?.total_claims ?? 0,
             prestigeLevel: streak?.prestige_level ?? 0,
-            streakShields: streak?.streak_shields ?? 3,
-            hasLegendaryAchievement: !!achievement
+            streakShields: streak?.streak_shields ?? CONSTANTS.DEFAULT_SHIELDS,
+            hasLegendaryAchievement
         });
     } catch (error) {
         console.error('[Roadmap] Error fetching streak:', error);
@@ -135,160 +321,80 @@ export const getUserStreakStatus = async (req: Request, res: Response) => {
             lastClaimAt: null,
             totalClaims: 0,
             prestigeLevel: 0,
-            streakShields: 3,
+            streakShields: CONSTANTS.DEFAULT_SHIELDS,
             hasLegendaryAchievement: false
         });
     }
 };
 
-interface StreakCalculationResult {
-    valid: boolean;
-    errorMsg?: string;
-    errorCode?: string;
-    newStreak: number;
-    remainingShields: number;
-    usedShield: boolean;
-}
-
-function calculateNextStreak(lastClaimAt: Date | null, currentStreak: number, streakShields: number): StreakCalculationResult {
-    if (!lastClaimAt) {
-        return { valid: true, newStreak: currentStreak, remainingShields: streakShields, usedShield: false };
-    }
-
-    const hoursDiff = (Date.now() - lastClaimAt.getTime()) / (1000 * 60 * 60);
-    if (hoursDiff < 20) {
-        return { valid: false, errorMsg: 'Debes esperar 20 horas entre reclamos', errorCode: 'COOLDOWN_ACTIVE', newStreak: currentStreak, remainingShields: streakShields, usedShield: false };
-    }
-    
-    if (hoursDiff > 48) {
-        if (streakShields > 0) {
-            return { valid: true, newStreak: (currentStreak % 30) + 1, remainingShields: streakShields - 1, usedShield: true };
-        }
-        return { valid: true, newStreak: 1, remainingShields: 0, usedShield: false };
-    }
-    
-    return { valid: true, newStreak: (currentStreak % 30) + 1, remainingShields: streakShields, usedShield: false };
-}
-
-async function unlockAchievements(userId: string, achievementId: string, achievementTitle: string) {
-    const cleanTitleName = achievementTitle.replace(LOGRO_PREFIX, '');
-
-    await supabase
-        .from(TABLE_USER_ACHIEVEMENTS)
-        .upsert({
-            [COL_USER_ID]: userId,
-            achievement_id: achievementId,
-            title: achievementTitle,
-            unlocked_at: new Date().toISOString()
-        });
-
-    await supabase
-        .from(TABLE_USER_TITLES)
-        .upsert({
-            [COL_USER_ID]: userId,
-            title_id: achievementId,
-            title_name: cleanTitleName,
-            unlocked_at: new Date().toISOString()
-        });
-}
-
-function buildRewardMessage(currentStreak: number, prestigeUp: boolean, achievementTitle: string, prestigeLevel: number, usedShield: boolean, streakShields: number): string {
-    let msg = `¡Recompensa del Día ${currentStreak} reclamada!`;
-    if (prestigeUp) {
-        msg += ` 👑 ¡Avanzaste a ${achievementTitle} (+${prestigeLevel * 15}% KC)!`;
-    }
-    if (usedShield) {
-        msg += ` 🛡️ (¡Escudo de Racha activado! Tu racha fue salvada, escudos restantes: ${streakShields})`;
-    }
-    return msg;
-}
-
 export const claimDailyReward = async (req: Request, res: Response) => {
     try {
-        const userId = req.user?.id || (req.body.userId as string);
+        const userId = extractUserId(req);
         if (!userId) {
-            return sendError(res, MSG_USER_ID_REQUIRED, ERROR_UNAUTHORIZED, 401);
+            return sendError(res, CONSTANTS.MSG_USER_ID_REQUIRED, CONSTANTS.ERROR_UNAUTHORIZED, 401);
         }
 
-        const { data: streak } = await supabase
-            .from(TABLE_USER_STREAKS)
+        const { data: rawStreak } = await supabase
+            .from(CONSTANTS.TABLE_USER_STREAKS)
             .select('*')
-            .eq(COL_USER_ID, userId)
+            .eq(CONSTANTS.COL_USER_ID, userId)
             .single();
 
+        const streak = rawStreak as UserStreakRow | null;
         const lastClaimAt = streak?.last_claim_at ? new Date(streak.last_claim_at) : null;
-        let currentStreak = streak?.current_streak ?? 1;
-        let streakShields = streak?.streak_shields ?? 3;
-        let prestigeLevel = streak?.prestige_level ?? 0;
+        const streakResult = calculateNextStreak(
+            lastClaimAt,
+            streak?.current_streak ?? 1,
+            streak?.streak_shields ?? CONSTANTS.DEFAULT_SHIELDS
+        );
 
-        const streakResult = calculateNextStreak(lastClaimAt, currentStreak, streakShields);
         if (!streakResult.valid) {
             return sendError(res, streakResult.errorMsg!, streakResult.errorCode!, 400);
         }
 
-        currentStreak = streakResult.newStreak;
-        streakShields = streakResult.remainingShields;
-        const usedShield = streakResult.usedShield;
+        const dayConfig = await fetchDayConfig(streakResult.newStreak);
+        const milestone = resolvePrestigeMilestone(
+            streakResult.newStreak,
+            dayConfig.is_jackpot,
+            streak?.prestige_level ?? 0
+        );
 
-        const { data: config } = await supabase
-            .from(TABLE_ROADMAP_CONFIG)
-            .select('*')
-            .eq(COL_DAY, currentStreak)
-            .single();
-
-        const dayConfig: RoadmapDayConfig = config || DEFAULT_ROADMAP.find(d => d.day === currentStreak) || DEFAULT_ROADMAP[0];
-        
-        const prestigeMultiplier = 1 + (prestigeLevel * 0.15);
-        const baseRewardAmount = (dayConfig.reward_value || 50) * (dayConfig.multiplier || 1);
-        const rewardAmount = Math.floor(baseRewardAmount * prestigeMultiplier);
-
+        const rewardAmount = calculateRewardAmount(dayConfig, milestone.nextPrestigeLevel);
         await gachaBalanceService.refundGachaBalance(userId, rewardAmount);
 
-        let prestigeUp = false;
-        let achievementId = '';
-        let achievementTitle = '';
-        let unlockedAchievement = false;
+        await saveStreakUpdate(
+            userId,
+            streakResult.newStreak,
+            milestone.nextPrestigeLevel,
+            streakResult.remainingShields,
+            streak?.total_claims ?? 0
+        );
 
-        if (currentStreak === 30 || dayConfig.is_jackpot) {
-            if (prestigeLevel < MAX_PRESTIGE) {
-                prestigeLevel += 1;
-                prestigeUp = true;
-            }
-            const ach = PRESTIGE_ACHIEVEMENTS[prestigeLevel] || { id: `prestige_${prestigeLevel}`, title: `${LOGRO_PREFIX}Prestigio Nivel ${prestigeLevel}` };
-            achievementId = ach.id;
-            achievementTitle = ach.title;
-        }
-
-        await supabase
-            .from(TABLE_USER_STREAKS)
-            .upsert({
-                [COL_USER_ID]: userId,
-                current_streak: currentStreak,
-                prestige_level: prestigeLevel,
-                streak_shields: streakShields,
-                last_claim_at: new Date().toISOString(),
-                total_claims: (streak?.total_claims ?? 0) + 1
-            });
-
-        if (currentStreak === 30 || dayConfig.is_jackpot) {
-            await unlockAchievements(userId, achievementId, achievementTitle);
-            unlockedAchievement = true;
+        if (milestone.unlockedAchievement) {
+            await unlockAchievements(userId, milestone.achievementId, milestone.achievementTitle);
         }
 
         const newBalance = await gachaBalanceService.getGachaBalance(userId);
-        const msg = buildRewardMessage(currentStreak, prestigeUp, achievementTitle, prestigeLevel, usedShield, streakShields);
+        const message = buildRewardMessage(
+            streakResult.newStreak,
+            milestone.prestigeUp,
+            milestone.achievementTitle,
+            milestone.nextPrestigeLevel,
+            streakResult.usedShield,
+            streakResult.remainingShields
+        );
 
         return sendSuccess(res, {
-            claimedDay: currentStreak,
+            claimedDay: streakResult.newStreak,
             rewardAmount,
-            prestigeLevel,
-            achievementTitle,
-            streakShields,
-            usedShield,
+            prestigeLevel: milestone.nextPrestigeLevel,
+            achievementTitle: milestone.achievementTitle,
+            streakShields: streakResult.remainingShields,
+            usedShield: streakResult.usedShield,
             rewardType: dayConfig.reward_type,
             newBalance,
-            unlockedAchievement,
-            message: msg
+            unlockedAchievement: milestone.unlockedAchievement,
+            message
         });
     } catch (error) {
         console.error('[Roadmap] Error claiming daily reward:', error);
@@ -304,7 +410,7 @@ export const updateRoadmapAdminConfig = async (req: Request, res: Response) => {
         }
 
         const { error } = await supabase
-            .from(TABLE_ROADMAP_CONFIG)
+            .from(CONSTANTS.TABLE_ROADMAP_CONFIG)
             .upsert(days);
 
         if (error) {

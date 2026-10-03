@@ -105,6 +105,16 @@ const TABLES = {
   NEWS: 'news',
 } as const;
 
+const COLUMNS = {
+  ID: 'id',
+  SLUG: 'slug',
+  CATEGORY_ID: 'category_id',
+  USER_ID: 'user_id',
+  THREAD_ID: 'thread_id',
+  STATUS: 'status',
+  PINNED: 'pinned',
+} as const;
+
 const CONSTANTS = {
   CREATED_AT: 'created_at',
   PUBLISHED: 'Published',
@@ -118,6 +128,10 @@ const ERRORS = {
   FORBIDDEN_THREAD: 'Forbidden: You do not own this thread',
   FORBIDDEN_POST: 'Forbidden: You do not own this post',
 } as const;
+
+const THREAD_POST_COUNT_SELECT = '*, forum_posts(count)' as const;
+const AUTHOR_ACTIVITY_SELECT = 'author_name, created_at' as const;
+const EXACT_COUNT_CONFIG = { count: 'exact', head: true } as const;
 
 const BASE_PROFILE_FIELDS =
   'username, full_name, avatar_url, role, status_message, avatar_preference, community_pref, minecraft_uuid, minecraft_nick, social_discord, social_avatar_url' as const;
@@ -172,8 +186,8 @@ const resolveThreadId = async (idOrSlug: number | string): Promise<number | null
 
   const { data: thread } = await supabase
     .from(TABLES.FORUM_THREADS)
-    .select('id')
-    .eq('slug', idOrSlug)
+    .select(COLUMNS.ID)
+    .eq(COLUMNS.SLUG, idOrSlug)
     .maybeSingle();
 
   return thread?.id ?? null;
@@ -187,8 +201,8 @@ const getThreadForModification = async (
   const query = supabase.from(TABLES.FORUM_THREADS).select('id, user_id, poll_id');
 
   const { data: thread, error } = isNumeric
-    ? await query.eq('id', idOrSlug).maybeSingle()
-    : await query.eq('slug', idOrSlug).maybeSingle();
+    ? await query.eq(COLUMNS.ID, idOrSlug).maybeSingle()
+    : await query.eq(COLUMNS.SLUG, idOrSlug).maybeSingle();
 
   if (error || !thread) {
     throw new Error(ERRORS.THREAD_NOT_FOUND);
@@ -204,9 +218,10 @@ const getPostForModification = async (
 ): Promise<{ user_id: string }> => {
   const { data: post } = await supabase
     .from(TABLES.FORUM_POSTS)
-    .select('user_id')
-    .eq('id', id)
+    .select(COLUMNS.USER_ID)
+    .eq(COLUMNS.ID, id)
     .single();
+
   if (!post) {
     throw new Error(ERRORS.POST_NOT_FOUND);
   }
@@ -224,7 +239,7 @@ const fetchAuthorProfilesMap = async (userIds: string[]): Promise<Map<string, Us
   const { data: profiles } = await supabase
     .from(TABLES.PROFILES)
     .select(PROFILE_SELECT_FIELDS)
-    .in('id', uniqueIds);
+    .in(COLUMNS.ID, uniqueIds);
 
   return new Map(
     ((profiles ?? []) as unknown as UserProfile[]).map((profile) => [profile.id, profile]),
@@ -245,7 +260,7 @@ const attachPollToThread = async (
     discord_link: pollData.discord_link,
   });
 
-  await supabase.from(TABLES.FORUM_THREADS).update({ poll_id: poll.id }).eq('id', threadId);
+  await supabase.from(TABLES.FORUM_THREADS).update({ poll_id: poll.id }).eq(COLUMNS.ID, threadId);
 };
 
 const resolveLastActivity = (
@@ -265,16 +280,16 @@ const fetchLatestForumActivity = async (
 ): Promise<CategoryActivity> => {
   const { data: latestThread } = await supabase
     .from(TABLES.FORUM_THREADS)
-    .select('author_name, created_at')
-    .eq('category_id', catId)
+    .select(AUTHOR_ACTIVITY_SELECT)
+    .eq(COLUMNS.CATEGORY_ID, catId)
     .order(CONSTANTS.CREATED_AT, { ascending: false })
     .limit(1)
     .maybeSingle();
 
   const { data: latestReply } = await supabase
     .from(TABLES.FORUM_POSTS)
-    .select('author_name, created_at')
-    .in('thread_id', threadIds)
+    .select(AUTHOR_ACTIVITY_SELECT)
+    .in(COLUMNS.THREAD_ID, threadIds)
     .order(CONSTANTS.CREATED_AT, { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -293,13 +308,13 @@ const fetchLatestForumActivity = async (
 const getNewsCategoryStats = async (): Promise<CategoryStat> => {
   const { count: newsCount } = await supabase
     .from(TABLES.NEWS)
-    .select('*', { count: 'exact', head: true })
-    .eq('status', CONSTANTS.PUBLISHED);
+    .select('*', EXACT_COUNT_CONFIG)
+    .eq(COLUMNS.STATUS, CONSTANTS.PUBLISHED);
 
   const { data: latestNews } = await supabase
     .from(TABLES.NEWS)
     .select('author, created_at')
-    .eq('status', CONSTANTS.PUBLISHED)
+    .eq(COLUMNS.STATUS, CONSTANTS.PUBLISHED)
     .order(CONSTANTS.CREATED_AT, { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -320,48 +335,101 @@ const getNewsCategoryStats = async (): Promise<CategoryStat> => {
   };
 };
 
-const getForumCategoryStats = async (catId: number): Promise<CategoryStat> => {
-  const { count: threadCount } = await supabase
+const countCategoryThreads = async (catId: number): Promise<number> => {
+  const { count } = await supabase
     .from(TABLES.FORUM_THREADS)
-    .select('*', { count: 'exact', head: true })
-    .eq('category_id', catId);
+    .select('*', EXACT_COUNT_CONFIG)
+    .eq(COLUMNS.CATEGORY_ID, catId);
 
+  return count ?? 0;
+};
+
+const fetchCategoryThreadIds = async (catId: number): Promise<number[]> => {
   const { data: threads } = await supabase
     .from(TABLES.FORUM_THREADS)
-    .select('id')
-    .eq('category_id', catId);
+    .select(COLUMNS.ID)
+    .eq(COLUMNS.CATEGORY_ID, catId);
 
-  if (!threads || threads.length === 0) {
+  return threads ? threads.map((thread) => thread.id) : [];
+};
+
+const countThreadReplies = async (threadIds: number[]): Promise<number> => {
+  if (threadIds.length === 0) return 0;
+
+  const { count } = await supabase
+    .from(TABLES.FORUM_POSTS)
+    .select('*', EXACT_COUNT_CONFIG)
+    .in(COLUMNS.THREAD_ID, threadIds);
+
+  return count ?? 0;
+};
+
+const getForumCategoryStats = async (catId: number): Promise<CategoryStat> => {
+  const threadCount = await countCategoryThreads(catId);
+  const threadIds = await fetchCategoryThreadIds(catId);
+
+  if (threadIds.length === 0) {
     return {
       id: catId,
-      topics: threadCount ?? 0,
+      topics: threadCount,
       posts: 0,
       lastPost: { user: CONSTANTS.DASH, date: CONSTANTS.DASH },
     };
   }
 
-  const threadIds = threads.map((thread) => thread.id);
-  const { count: replyCount } = await supabase
-    .from(TABLES.FORUM_POSTS)
-    .select('*', { count: 'exact', head: true })
-    .in('thread_id', threadIds);
-
-  const lastPostData = await fetchLatestForumActivity(catId, threadIds);
+  const [replyCount, lastPostData] = await Promise.all([
+    countThreadReplies(threadIds),
+    fetchLatestForumActivity(catId, threadIds),
+  ]);
 
   return {
     id: catId,
-    topics: threadCount ?? 0,
-    posts: replyCount ?? 0,
+    topics: threadCount,
+    posts: replyCount,
     lastPost: lastPostData,
   };
+};
+
+const fetchThreadPoll = async (pollId: number | null | undefined) => {
+  if (!pollId) return null;
+  return pollService.getPollById(pollId);
+};
+
+const fetchFreshAuthorProfile = async (userId: string) => {
+  const { data: profile } = await supabase
+    .from(TABLES.PROFILES)
+    .select(BASE_PROFILE_FIELDS)
+    .eq(COLUMNS.ID, userId)
+    .maybeSingle();
+
+  return profile;
+};
+
+const attachAuthorProfilesToPosts = async (posts: ForumPost[]) => {
+  const profileMap = await fetchAuthorProfilesMap(posts.map((post) => post.user_id));
+
+  return posts.map((post) => ({
+    ...post,
+    author_data_fresh: profileMap.get(post.user_id) ?? null,
+  }));
+};
+
+const cleanupThreadPoll = async (pollId?: number | null): Promise<void> => {
+  if (!pollId) return;
+
+  try {
+    await pollService.deletePoll(pollId);
+  } catch (err) {
+    console.error('Error cleaning up poll:', err);
+  }
 };
 
 export const getThreads = async (categoryId: number): Promise<ForumThread[]> => {
   const { data, error } = await supabase
     .from(TABLES.FORUM_THREADS)
-    .select('*, forum_posts(count)')
-    .eq('category_id', categoryId)
-    .order('pinned', { ascending: false })
+    .select(THREAD_POST_COUNT_SELECT)
+    .eq(COLUMNS.CATEGORY_ID, categoryId)
+    .order(COLUMNS.PINNED, { ascending: false })
     .order(CONSTANTS.CREATED_AT, { ascending: false });
 
   if (error) throw error;
@@ -372,8 +440,8 @@ export const getThreads = async (categoryId: number): Promise<ForumThread[]> => 
 export const getUserThreads = async (userId: string): Promise<ForumThread[]> => {
   const { data, error } = await supabase
     .from(TABLES.FORUM_THREADS)
-    .select('*, forum_posts(count)')
-    .eq('user_id', userId)
+    .select(THREAD_POST_COUNT_SELECT)
+    .eq(COLUMNS.USER_ID, userId)
     .order(CONSTANTS.CREATED_AT, { ascending: false });
 
   if (error) throw error;
@@ -386,23 +454,17 @@ export const getThread = async (id: number | string) => {
   const query = supabase.from(TABLES.FORUM_THREADS).select('*');
 
   const { data: thread, error } = isNumeric
-    ? await query.eq('id', id).single()
-    : await query.eq('slug', id).single();
+    ? await query.eq(COLUMNS.ID, id).single()
+    : await query.eq(COLUMNS.SLUG, id).single();
 
   if (error) throw error;
 
-  let poll = null;
-  if (thread.poll_id) {
-    poll = await pollService.getPollById(thread.poll_id);
-  }
+  const [poll, authorProfile] = await Promise.all([
+    fetchThreadPoll(thread.poll_id),
+    fetchFreshAuthorProfile(thread.user_id),
+  ]);
 
-  const { data: profile } = await supabase
-    .from(TABLES.PROFILES)
-    .select(BASE_PROFILE_FIELDS)
-    .eq('id', thread.user_id)
-    .maybeSingle();
-
-  return { ...thread, poll, author_data_fresh: profile };
+  return { ...thread, poll, author_data_fresh: authorProfile };
 };
 
 export const createThread = async ({
@@ -452,7 +514,7 @@ export const getPosts = async (threadIdOrSlug: number | string) => {
   const { data: posts, error } = await supabase
     .from(TABLES.FORUM_POSTS)
     .select('*')
-    .eq('thread_id', threadId)
+    .eq(COLUMNS.THREAD_ID, threadId)
     .order(CONSTANTS.CREATED_AT, { ascending: true });
 
   if (error) {
@@ -464,12 +526,7 @@ export const getPosts = async (threadIdOrSlug: number | string) => {
     return [];
   }
 
-  const profileMap = await fetchAuthorProfilesMap(posts.map((post: ForumPost) => post.user_id));
-
-  return posts.map((post: ForumPost) => ({
-    ...post,
-    author_data_fresh: profileMap.get(post.user_id) ?? null,
-  }));
+  return attachAuthorProfilesToPosts(posts as unknown as ForumPost[]);
 };
 
 export const createPost = async ({
@@ -522,7 +579,7 @@ export const updateThread = async (
   const { data, error } = await supabase
     .from(TABLES.FORUM_THREADS)
     .update(updates)
-    .eq('id', thread.id)
+    .eq(COLUMNS.ID, thread.id)
     .select()
     .single();
 
@@ -536,15 +593,10 @@ export const deleteThread = async (
 ): Promise<void> => {
   const thread = await getThreadForModification(idOrSlug, requestor);
 
-  if (thread.poll_id) {
-    await pollService
-      .deletePoll(thread.poll_id)
-      .catch((err) => console.error('Error cleaning up poll:', err));
-  }
+  await cleanupThreadPoll(thread.poll_id);
+  await supabase.from(TABLES.FORUM_POSTS).delete().eq(COLUMNS.THREAD_ID, thread.id);
 
-  await supabase.from(TABLES.FORUM_POSTS).delete().eq('thread_id', thread.id);
-
-  const { error } = await supabase.from(TABLES.FORUM_THREADS).delete().eq('id', thread.id);
+  const { error } = await supabase.from(TABLES.FORUM_THREADS).delete().eq(COLUMNS.ID, thread.id);
   if (error) throw error;
 };
 
@@ -558,7 +610,7 @@ export const updatePost = async (
   const { data, error } = await supabase
     .from(TABLES.FORUM_POSTS)
     .update({ content: updates.content })
-    .eq('id', id)
+    .eq(COLUMNS.ID, id)
     .select()
     .single();
 
@@ -569,6 +621,6 @@ export const updatePost = async (
 export const deletePost = async (id: number, requestor: Requestor): Promise<void> => {
   await getPostForModification(id, requestor);
 
-  const { error } = await supabase.from(TABLES.FORUM_POSTS).delete().eq('id', id);
+  const { error } = await supabase.from(TABLES.FORUM_POSTS).delete().eq(COLUMNS.ID, id);
   if (error) throw error;
 };
