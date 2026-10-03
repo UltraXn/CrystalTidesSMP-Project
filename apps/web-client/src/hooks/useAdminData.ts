@@ -6,28 +6,188 @@ import { UserDefinition } from '../components/Admin/Users/types';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
+const HTTP_HEADERS = {
+    CONTENT_TYPE: 'Content-Type',
+    APPLICATION_JSON: 'application/json',
+} as const;
+
+const HTTP_METHODS = {
+    POST: 'POST',
+    PUT: 'PUT',
+    PATCH: 'PATCH',
+    DELETE: 'DELETE',
+} as const;
+
+const QUERY_KEYS = {
+    ADMIN: 'admin',
+    SETTINGS: 'settings',
+    USERS: 'users',
+    TICKETS: 'tickets',
+    STATS: 'stats',
+    SUGGESTIONS: 'suggestions',
+    POLLS: 'polls',
+    ACTIVE: 'active',
+    HISTORY: 'history',
+    TRANSLATIONS: 'translations',
+    NEWS: 'news',
+    WIKI: 'wiki',
+    DONATIONS: 'donations',
+    EVENTS: 'events',
+    STAFF_ONLINE: 'staff-online',
+    AUDIT_LOGS: 'audit-logs',
+    SERVER: 'server',
+    RESOURCES: 'resources',
+    STATUS: 'status',
+    LIVE: 'live',
+    RULES: 'rules',
+    POLICIES: 'policies',
+    POLICY: 'policy',
+} as const;
+
+const TIME_CONSTANTS = {
+    TEN_SECONDS: 10000,
+    THIRTY_SECONDS: 30000,
+    ONE_MINUTE: 60000,
+    FIVE_MINUTES: 1000 * 60 * 5,
+    TEN_MINUTES: 1000 * 60 * 10,
+    ONE_HOUR: 1000 * 60 * 60,
+    ONE_DAY: 1000 * 60 * 60 * 24,
+} as const;
+
+// --- Helper Functions ---
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+const getSessionAccessToken = async (): Promise<string | null> => {
+    const { data } = await supabase.auth.getSession();
+    return data.session?.access_token ?? null;
+};
+
+const getAuthHeadersAsync = async (): Promise<Record<string, string>> => {
+    const token = await getSessionAccessToken();
+    return getAuthHeaders(token);
+};
+
+const getJsonAuthHeadersAsync = async (): Promise<Record<string, string>> => {
+    const token = await getSessionAccessToken();
+    return {
+        [HTTP_HEADERS.CONTENT_TYPE]: HTTP_HEADERS.APPLICATION_JSON,
+        ...getAuthHeaders(token),
+    };
+};
+
+const parseJsonError = async (res: Response, fallbackMessage: string): Promise<string> => {
+    try {
+        const errorData = (await res.json()) as { error?: string };
+        if (typeof errorData?.error === 'string' && errorData.error.length > 0) {
+            return errorData.error;
+        }
+    } catch {
+        // Fall back to provided default message
+    }
+    return fallbackMessage;
+};
+
+const sendJsonAuthRequest = async <T>(
+    url: string,
+    method: (typeof HTTP_METHODS)[keyof typeof HTTP_METHODS],
+    bodyPayload: unknown,
+    fallbackErrorMessage: string
+): Promise<T> => {
+    const headers = await getJsonAuthHeadersAsync();
+    const res = await fetch(url, {
+        method,
+        headers,
+        body: JSON.stringify(bodyPayload),
+    });
+
+    if (!res.ok) {
+        const message = await parseJsonError(res, fallbackErrorMessage);
+        throw new Error(message);
+    }
+
+    return (await res.json()) as T;
+};
+
+const executeDeleteRequest = async (url: string, fallbackErrorMessage: string): Promise<boolean> => {
+    const headers = await getAuthHeadersAsync();
+    const res = await fetch(url, {
+        method: HTTP_METHODS.DELETE,
+        headers,
+    });
+
+    if (!res.ok) {
+        throw new Error(fallbackErrorMessage);
+    }
+
+    return true;
+};
+
+const unwrapDataField = <T = any>(payload: any): T => {
+    if (payload && typeof payload === 'object' && 'success' in payload && 'data' in payload) {
+        const withSuccess = payload as { success: boolean; data: any };
+        return (withSuccess.success ? withSuccess.data : payload) as T;
+    }
+    return payload as T;
+};
+
+const unwrapArrayField = <T = any>(payload: unknown): T[] => {
+    if (Array.isArray(payload)) {
+        return payload as T[];
+    }
+    if (payload && typeof payload === 'object' && 'data' in payload) {
+        const withData = payload as { data: unknown };
+        if (Array.isArray(withData.data)) {
+            return withData.data as T[];
+        }
+    }
+    return [];
+};
+
+const parseJsonArray = <T = any>(val: unknown): T[] => {
+    if (!val) {
+        return [];
+    }
+    if (Array.isArray(val)) {
+        return val as T[];
+    }
+    if (typeof val !== 'string') {
+        return [];
+    }
+    try {
+        const parsed = JSON.parse(val);
+        return (Array.isArray(parsed) ? parsed : []) as T[];
+    } catch {
+        return [];
+    }
+};
+
 // --- Auth ---
 
 export const useVerifyAdmin2FA = () => {
     return useMutation({
         mutationFn: async (code: string) => {
-            const session = (await supabase.auth.getSession()).data.session;
-            if (!session) throw new Error('No session');
-            
+            const { data: sessionData } = await supabase.auth.getSession();
+            const session = sessionData.session;
+            if (!session) {
+                throw new Error('No session');
+            }
+
             const res = await fetch(`${API_URL}/auth/2fa/verify`, {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${session.access_token}` 
+                method: HTTP_METHODS.POST,
+                headers: {
+                    [HTTP_HEADERS.CONTENT_TYPE]: HTTP_HEADERS.APPLICATION_JSON,
+                    Authorization: `Bearer ${session.access_token}`,
                 },
                 body: JSON.stringify({ token: code }),
             });
+
             if (!res.ok) {
-                const errorData = await res.json();
-                throw new Error(errorData.error || 'Verification failed');
+                const message = await parseJsonError(res, 'Verification failed');
+                throw new Error(message);
             }
-            const data = await res.json();
-            return data.data; // { adminToken: string }
+
+            const data = (await res.json()) as { data: { adminToken: string } };
+            return data.data;
         },
     });
 };
@@ -51,36 +211,31 @@ export interface SiteSettings {
 
 export const useSiteSettings = () => {
     return useQuery<SiteSettings>({
-        queryKey: ['admin', 'settings'],
+        queryKey: [QUERY_KEYS.ADMIN, QUERY_KEYS.SETTINGS],
         queryFn: async () => {
             const res = await fetch(`${API_URL}/settings`);
-            if (!res.ok) throw new Error('Failed to fetch settings');
-            const data = await res.json();
-            return data;
+            if (!res.ok) {
+                throw new Error('Failed to fetch settings');
+            }
+            return (await res.json()) as SiteSettings;
         },
-        staleTime: 1000 * 60 * 10, // 10 minutes
+        staleTime: TIME_CONSTANTS.TEN_MINUTES,
     });
 };
 
 export const useAdminSettings = () => {
     const query = useSiteSettings();
-    
-    const parsedData = useMemo(() => {
-        if (!query.data) return { medals: [], achievements: [], donors: [], staff: [] };
 
-        const parseDef = (val: unknown) => {
-            if (!val) return [];
-            try {
-                const p = typeof val === 'string' ? JSON.parse(val) : val;
-                return Array.isArray(p) ? p : [];
-            } catch { return []; }
-        };
+    const parsedData = useMemo(() => {
+        if (!query.data) {
+            return { medals: [], achievements: [], donors: [], staff: [] };
+        }
 
         return {
-            medals: parseDef(query.data.medal_definitions),
-            achievements: parseDef(query.data.achievement_definitions),
-            donors: parseDef(query.data.donors_list),
-            staff: parseDef(query.data.staff_cards)
+            medals: parseJsonArray(query.data.medal_definitions),
+            achievements: parseJsonArray(query.data.achievement_definitions),
+            donors: parseJsonArray(query.data.donors_list),
+            staff: parseJsonArray(query.data.staff_cards),
         };
     }, [query.data]);
 
@@ -91,22 +246,16 @@ export const useUpdateSiteSetting = () => {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async ({ key, value, username, userId }: { key: string; value: unknown; username?: string; userId?: string }) => {
-            const session = (await supabase.auth.getSession()).data.session;
-            const headers = { 
-                'Content-Type': 'application/json',
-                ...getAuthHeaders(session?.access_token || null)
-            };
-            const res = await fetch(`${API_URL}/settings/${key}`, {
-                method: 'PUT',
-                headers,
-                body: JSON.stringify({ value: String(value), username, userId })
-            });
-            if (!res.ok) throw new Error('Failed to update setting');
-            return await res.json();
+            return sendJsonAuthRequest(
+                `${API_URL}/settings/${key}`,
+                HTTP_METHODS.PUT,
+                { value: String(value), username, userId },
+                'Failed to update setting'
+            );
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['admin', 'settings'] });
-        }
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ADMIN, QUERY_KEYS.SETTINGS] });
+        },
     });
 };
 
@@ -114,20 +263,18 @@ export const useUpdateSiteSetting = () => {
 
 export const useUsers = (search = '') => {
     return useQuery<UserDefinition[]>({
-        queryKey: ['admin', 'users', search],
+        queryKey: [QUERY_KEYS.ADMIN, QUERY_KEYS.USERS, search],
         queryFn: async () => {
-            const session = (await supabase.auth.getSession()).data.session;
-            const headers = getAuthHeaders(session?.access_token || null);
-
+            const headers = await getAuthHeadersAsync();
             const res = await fetch(`${API_URL}/users?search=${encodeURIComponent(search)}`, { headers });
             if (!res.ok) {
-                const errorData = await res.json();
-                throw new Error(errorData.error || 'User search failed');
+                const message = await parseJsonError(res, 'User search failed');
+                throw new Error(message);
             }
             const response = await res.json();
-            return Array.isArray(response) ? response : (response.data || []);
+            return unwrapArrayField<UserDefinition>(response);
         },
-        staleTime: 1000 * 60 * 5, // 5 minutes
+        staleTime: TIME_CONSTANTS.FIVE_MINUTES,
     });
 };
 
@@ -135,28 +282,16 @@ export const useUpdateUserRole = () => {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async ({ userId, role }: { userId: string; role: string }) => {
-            const session = (await supabase.auth.getSession()).data.session;
-            const headers = {
-                'Content-Type': 'application/json',
-                ...getAuthHeaders(session?.access_token || null)
-            };
-
-            const res = await fetch(`${API_URL}/users/${userId}/role`, {
-                method: 'PATCH',
-                headers,
-                body: JSON.stringify({ role })
-            });
-
-            if (!res.ok) {
-                const errorData = await res.json();
-                throw new Error(errorData.error || 'Failed to update user role');
-            }
-            return await res.json();
+            return sendJsonAuthRequest(
+                `${API_URL}/users/${userId}/role`,
+                HTTP_METHODS.PATCH,
+                { role },
+                'Failed to update user role'
+            );
         },
         onSuccess: () => {
-            // We might want to invalidate queries that show users
-            queryClient.invalidateQueries({ queryKey: ['admin', 'users'] });
-        }
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ADMIN, QUERY_KEYS.USERS] });
+        },
     });
 };
 
@@ -164,31 +299,20 @@ export const useUpdateUserMetadata = () => {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async ({ userId, type, values }: { userId: string; type: 'medals' | 'achievements'; values: (string | number)[] }) => {
-            const session = (await supabase.auth.getSession()).data.session;
-            const headers = {
-                'Content-Type': 'application/json',
-                ...getAuthHeaders(session?.access_token || null)
-            };
-
             const payload = type === 'medals' ? { medals: values } : { achievements: values };
-
-            const res = await fetch(`${API_URL}/users/${userId}/metadata`, {
-                method: 'PATCH',
-                headers,
-                body: JSON.stringify({ metadata: payload })
-            });
-
-            if (!res.ok) {
-                const errorData = await res.json();
-                throw new Error(errorData.error || 'Failed to update user metadata');
-            }
-            return await res.json();
+            return sendJsonAuthRequest(
+                `${API_URL}/users/${userId}/metadata`,
+                HTTP_METHODS.PATCH,
+                { metadata: payload },
+                'Failed to update user metadata'
+            );
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['admin', 'users'] });
-        }
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ADMIN, QUERY_KEYS.USERS] });
+        },
     });
 };
+
 // --- Tickets Management ---
 
 export interface Ticket {
@@ -206,54 +330,46 @@ export interface Ticket {
 }
 
 export const useAdminTickets = () => {
-    return useQuery({
-        queryKey: ['admin', 'tickets'],
+    return useQuery<Ticket[]>({
+        queryKey: [QUERY_KEYS.ADMIN, QUERY_KEYS.TICKETS],
         queryFn: async () => {
-            const session = (await supabase.auth.getSession()).data.session;
-            const headers = getAuthHeaders(session?.access_token || null);
+            const headers = await getAuthHeadersAsync();
             const res = await fetch(`${API_URL}/tickets`, { headers });
-            
-            if (!res.ok) throw new Error('Failed to fetch tickets');
+            if (!res.ok) {
+                throw new Error('Failed to fetch tickets');
+            }
             const data = await res.json();
-            const tickets = Array.isArray(data) ? data : data.data || [];
-            return tickets as Ticket[];
-        }
+            return unwrapArrayField<Ticket>(data);
+        },
     });
 };
 
 export const useTicketStats = () => {
     return useQuery({
-        queryKey: ['admin', 'tickets', 'stats'],
+        queryKey: [QUERY_KEYS.ADMIN, QUERY_KEYS.TICKETS, QUERY_KEYS.STATS],
         queryFn: async () => {
-            const session = (await supabase.auth.getSession()).data.session;
-            const headers = getAuthHeaders(session?.access_token || null);
+            const headers = await getAuthHeadersAsync();
             const res = await fetch(`${API_URL}/tickets/stats`, { headers });
-            if (!res.ok) throw new Error('Failed to fetch ticket stats');
+            if (!res.ok) {
+                throw new Error('Failed to fetch ticket stats');
+            }
             const data = await res.json();
-            return data.success ? data.data : data;
+            return unwrapDataField(data);
         },
-        refetchInterval: 30000, // Refresh every 30s
+        refetchInterval: TIME_CONSTANTS.THIRTY_SECONDS,
     });
 };
 
 export const useDeleteTicket = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: async (id: number) => {
-            const session = (await supabase.auth.getSession()).data.session;
-            const headers = getAuthHeaders(session?.access_token || null);
-            const res = await fetch(`${API_URL}/tickets/${id}`, {
-                method: 'DELETE',
-                headers
-            });
-            if (!res.ok) throw new Error('Failed to delete ticket');
-            return true;
-        },
+        mutationFn: (id: number) => executeDeleteRequest(`${API_URL}/tickets/${id}`, 'Failed to delete ticket'),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['admin', 'tickets'] });
-        }
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ADMIN, QUERY_KEYS.TICKETS] });
+        },
     });
 };
+
 // --- Suggestions Management ---
 
 export interface Suggestion {
@@ -267,15 +383,16 @@ export interface Suggestion {
 }
 
 export const useAdminSuggestions = () => {
-    return useQuery({
-        queryKey: ['admin', 'suggestions'],
+    return useQuery<Suggestion[]>({
+        queryKey: [QUERY_KEYS.ADMIN, QUERY_KEYS.SUGGESTIONS],
         queryFn: async () => {
             const res = await fetch(`${API_URL}/suggestions`);
-            if (!res.ok) throw new Error('Failed to fetch suggestions');
-            const data = await res.json();
-            return data as Suggestion[];
+            if (!res.ok) {
+                throw new Error('Failed to fetch suggestions');
+            }
+            return (await res.json()) as Suggestion[];
         },
-        staleTime: 1000 * 60 * 5, // 5 minutes
+        staleTime: TIME_CONSTANTS.FIVE_MINUTES,
     });
 };
 
@@ -283,41 +400,26 @@ export const useUpdateSuggestionStatus = () => {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async ({ id, status }: { id: number; status: string }) => {
-            const session = (await supabase.auth.getSession()).data.session;
-            const headers = { 
-                'Content-Type': 'application/json',
-                ...getAuthHeaders(session?.access_token || null)
-            };
-            const res = await fetch(`${API_URL}/suggestions/${id}/status`, {
-                method: 'PATCH',
-                headers,
-                body: JSON.stringify({ status })
-            });
-            if (!res.ok) throw new Error('Failed to update status');
-            return await res.json();
+            return sendJsonAuthRequest(
+                `${API_URL}/suggestions/${id}/status`,
+                HTTP_METHODS.PATCH,
+                { status },
+                'Failed to update status'
+            );
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['admin', 'suggestions'] });
-        }
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ADMIN, QUERY_KEYS.SUGGESTIONS] });
+        },
     });
 };
 
 export const useDeleteSuggestion = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: async (id: number) => {
-            const session = (await supabase.auth.getSession()).data.session;
-            const headers = getAuthHeaders(session?.access_token || null);
-            const res = await fetch(`${API_URL}/suggestions/${id}`, {
-                method: 'DELETE',
-                headers
-            });
-            if (!res.ok) throw new Error('Failed to delete suggestion');
-            return true;
-        },
+        mutationFn: (id: number) => executeDeleteRequest(`${API_URL}/suggestions/${id}`, 'Failed to delete suggestion'),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['admin', 'suggestions'] });
-        }
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ADMIN, QUERY_KEYS.SUGGESTIONS] });
+        },
     });
 };
 
@@ -334,31 +436,35 @@ export interface PollPayload {
 
 export const useAdminActivePoll = () => {
     return useQuery({
-        queryKey: ['admin', 'polls', 'active'],
+        queryKey: [QUERY_KEYS.ADMIN, QUERY_KEYS.POLLS, QUERY_KEYS.ACTIVE],
         queryFn: async () => {
             const res = await fetch(`${API_URL}/polls/active`);
-            if (!res.ok) throw new Error('Failed to fetch active poll');
+            if (!res.ok) {
+                throw new Error('Failed to fetch active poll');
+            }
             const data = await res.json();
-            return data.success ? data.data : data;
+            return unwrapDataField(data);
         },
-        staleTime: 1000 * 60, // 1 minute
+        staleTime: TIME_CONSTANTS.ONE_MINUTE,
     });
 };
 
 export const useAdminPolls = (page: number, limit: number = 10) => {
     return useQuery({
-        queryKey: ['admin', 'polls', 'history', page, limit],
+        queryKey: [QUERY_KEYS.ADMIN, QUERY_KEYS.POLLS, QUERY_KEYS.HISTORY, page, limit],
         queryFn: async () => {
             const res = await fetch(`${API_URL}/polls?page=${page}&limit=${limit}`);
-            if (!res.ok) throw new Error('Failed to fetch polls history');
+            if (!res.ok) {
+                throw new Error('Failed to fetch polls history');
+            }
             const data = await res.json();
-            const payload = data.success ? data.data : data;
+            const payload = unwrapDataField<{ data?: any[]; totalPages?: number }>(data);
             return {
                 data: Array.isArray(payload.data) ? payload.data : [],
-                totalPages: payload.totalPages || 1
+                totalPages: payload.totalPages || 1,
             };
         },
-        placeholderData: (previousData) => previousData, 
+        placeholderData: (previousData) => previousData,
     });
 };
 
@@ -366,21 +472,11 @@ export const useCreatePoll = () => {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async (payload: PollPayload) => {
-            const session = (await supabase.auth.getSession()).data.session;
-            const res = await fetch(`${API_URL}/polls/create`, {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    ...getAuthHeaders(session?.access_token || null)
-                },
-                body: JSON.stringify(payload)
-            });
-            if (!res.ok) throw new Error('Failed to create poll');
-            return await res.json();
+            return sendJsonAuthRequest(`${API_URL}/polls/create`, HTTP_METHODS.POST, payload, 'Failed to create poll');
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['admin', 'polls'] });
-        }
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ADMIN, QUERY_KEYS.POLLS] });
+        },
     });
 };
 
@@ -388,21 +484,11 @@ export const useUpdatePoll = () => {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async ({ id, payload }: { id: number; payload: PollPayload }) => {
-            const session = (await supabase.auth.getSession()).data.session;
-            const res = await fetch(`${API_URL}/polls/update/${id}`, {
-                method: 'PUT',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    ...getAuthHeaders(session?.access_token || null)
-                },
-                body: JSON.stringify(payload)
-            });
-            if (!res.ok) throw new Error('Failed to update poll');
-            return await res.json();
+            return sendJsonAuthRequest(`${API_URL}/polls/update/${id}`, HTTP_METHODS.PUT, payload, 'Failed to update poll');
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['admin', 'polls'] });
-        }
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ADMIN, QUERY_KEYS.POLLS] });
+        },
     });
 };
 
@@ -410,35 +496,29 @@ export const useClosePoll = () => {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async (id: number) => {
-            const session = (await supabase.auth.getSession()).data.session;
+            const headers = await getAuthHeadersAsync();
             const res = await fetch(`${API_URL}/polls/close/${id}`, {
-                method: 'POST',
-                headers: getAuthHeaders(session?.access_token || null)
+                method: HTTP_METHODS.POST,
+                headers,
             });
-            if (!res.ok) throw new Error('Failed to close poll');
+            if (!res.ok) {
+                throw new Error('Failed to close poll');
+            }
             return true;
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['admin', 'polls'] });
-        }
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ADMIN, QUERY_KEYS.POLLS] });
+        },
     });
 };
 
 export const useDeletePoll = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: async (id: number) => {
-            const session = (await supabase.auth.getSession()).data.session;
-            const res = await fetch(`${API_URL}/polls/${id}`, {
-                method: 'DELETE',
-                headers: getAuthHeaders(session?.access_token || null)
-            });
-            if (!res.ok) throw new Error('Failed to delete poll');
-            return true;
-        },
+        mutationFn: (id: number) => executeDeleteRequest(`${API_URL}/polls/${id}`, 'Failed to delete poll'),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['admin', 'polls'] });
-        }
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ADMIN, QUERY_KEYS.POLLS] });
+        },
     });
 };
 
@@ -446,22 +526,17 @@ export const useTranslateText = () => {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async ({ text, targetLang = 'en' }: { text: string; targetLang?: string }) => {
-            const session = (await supabase.auth.getSession()).data.session;
-            const res = await fetch(`${API_URL}/translation`, {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    ...getAuthHeaders(session?.access_token || null)
-                },
-                body: JSON.stringify({ text, targetLang })
-            });
-            if (!res.ok) throw new Error('Translation failed');
-            const data = await res.json();
+            const data = await sendJsonAuthRequest<{ translatedText?: string }>(
+                `${API_URL}/translation`,
+                HTTP_METHODS.POST,
+                { text, targetLang },
+                'Translation failed'
+            );
             return data.translatedText || '';
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['admin', 'translations'] });
-        }
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ADMIN, QUERY_KEYS.TRANSLATIONS] });
+        },
     });
 };
 
@@ -478,7 +553,6 @@ export interface NewsPayload {
     image?: string;
     image_url?: string;
     author?: string;
-    // Optional audit fields accepted by the backend (newsController)
     author_id?: string;
     username?: string;
     user_id?: string;
@@ -486,12 +560,14 @@ export interface NewsPayload {
 
 export const useAdminNews = () => {
     return useQuery({
-        queryKey: ['admin', 'news'],
+        queryKey: [QUERY_KEYS.ADMIN, QUERY_KEYS.NEWS],
         queryFn: async () => {
             const res = await fetch(`${API_URL}/news`);
-            if (!res.ok) throw new Error('Failed to fetch news');
+            if (!res.ok) {
+                throw new Error('Failed to fetch news');
+            }
             return await res.json();
-        }
+        },
     });
 };
 
@@ -499,21 +575,11 @@ export const useCreateNews = () => {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async (payload: NewsPayload) => {
-            const session = (await supabase.auth.getSession()).data.session;
-            const res = await fetch(`${API_URL}/news`, {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    ...getAuthHeaders(session?.access_token || null)
-                },
-                body: JSON.stringify(payload)
-            });
-            if (!res.ok) throw new Error('Failed to create news');
-            return await res.json();
+            return sendJsonAuthRequest(`${API_URL}/news`, HTTP_METHODS.POST, payload, 'Failed to create news');
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['admin', 'news'] });
-        }
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ADMIN, QUERY_KEYS.NEWS] });
+        },
     });
 };
 
@@ -521,39 +587,21 @@ export const useUpdateNews = () => {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async ({ id, payload }: { id: string | number; payload: NewsPayload }) => {
-            const session = (await supabase.auth.getSession()).data.session;
-            const res = await fetch(`${API_URL}/news/${id}`, {
-                method: 'PUT',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    ...getAuthHeaders(session?.access_token || null)
-                },
-                body: JSON.stringify(payload)
-            });
-            if (!res.ok) throw new Error('Failed to update news');
-            return await res.json();
+            return sendJsonAuthRequest(`${API_URL}/news/${id}`, HTTP_METHODS.PUT, payload, 'Failed to update news');
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['admin', 'news'] });
-        }
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ADMIN, QUERY_KEYS.NEWS] });
+        },
     });
 };
 
 export const useDeleteNews = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: async (id: string | number) => {
-            const session = (await supabase.auth.getSession()).data.session;
-            const res = await fetch(`${API_URL}/news/${id}`, {
-                method: 'DELETE',
-                headers: getAuthHeaders(session?.access_token || null)
-            });
-            if (!res.ok) throw new Error('Failed to delete news');
-            return true;
-        },
+        mutationFn: (id: string | number) => executeDeleteRequest(`${API_URL}/news/${id}`, 'Failed to delete news'),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['admin', 'news'] });
-        }
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ADMIN, QUERY_KEYS.NEWS] });
+        },
     });
 };
 
@@ -573,13 +621,15 @@ export interface WikiPayload {
 
 export const useWikiArticles = () => {
     return useQuery({
-        queryKey: ['admin', 'wiki'],
+        queryKey: [QUERY_KEYS.ADMIN, QUERY_KEYS.WIKI],
         queryFn: async () => {
             const res = await fetch(`${API_URL}/wiki`);
-            if (!res.ok) throw new Error('Failed to fetch wiki articles');
+            if (!res.ok) {
+                throw new Error('Failed to fetch wiki articles');
+            }
             const json = await res.json();
-            return Array.isArray(json) ? json : json.data || [];
-        }
+            return unwrapArrayField(json);
+        },
     });
 };
 
@@ -587,21 +637,11 @@ export const useCreateWikiArticle = () => {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async (payload: WikiPayload) => {
-            const session = (await supabase.auth.getSession()).data.session;
-            const res = await fetch(`${API_URL}/wiki`, {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    ...getAuthHeaders(session?.access_token || null)
-                },
-                body: JSON.stringify(payload)
-            });
-            if (!res.ok) throw new Error('Failed to create wiki article');
-            return await res.json();
+            return sendJsonAuthRequest(`${API_URL}/wiki`, HTTP_METHODS.POST, payload, 'Failed to create wiki article');
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['admin', 'wiki'] });
-        }
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ADMIN, QUERY_KEYS.WIKI] });
+        },
     });
 };
 
@@ -609,39 +649,21 @@ export const useUpdateWikiArticle = () => {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async ({ id, payload }: { id: string | number; payload: WikiPayload }) => {
-            const session = (await supabase.auth.getSession()).data.session;
-            const res = await fetch(`${API_URL}/wiki/${id}`, {
-                method: 'PUT',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    ...getAuthHeaders(session?.access_token || null)
-                },
-                body: JSON.stringify(payload)
-            });
-            if (!res.ok) throw new Error('Failed to update wiki article');
-            return await res.json();
+            return sendJsonAuthRequest(`${API_URL}/wiki/${id}`, HTTP_METHODS.PUT, payload, 'Failed to update wiki article');
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['admin', 'wiki'] });
-        }
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ADMIN, QUERY_KEYS.WIKI] });
+        },
     });
 };
 
 export const useDeleteWikiArticle = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: async (id: string | number) => {
-            const session = (await supabase.auth.getSession()).data.session;
-            const res = await fetch(`${API_URL}/wiki/${id}`, {
-                method: 'DELETE',
-                headers: getAuthHeaders(session?.access_token || null)
-            });
-            if (!res.ok) throw new Error('Failed to delete wiki article');
-            return true;
-        },
+        mutationFn: (id: string | number) => executeDeleteRequest(`${API_URL}/wiki/${id}`, 'Failed to delete wiki article'),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['admin', 'wiki'] });
-        }
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ADMIN, QUERY_KEYS.WIKI] });
+        },
     });
 };
 
@@ -658,13 +680,15 @@ export interface DonationPayload {
 
 export const useAdminDonations = (page: number, limit: number, search: string) => {
     return useQuery({
-        queryKey: ['admin', 'donations', page, limit, search],
+        queryKey: [QUERY_KEYS.ADMIN, QUERY_KEYS.DONATIONS, page, limit, search],
         queryFn: async () => {
-            const session = (await supabase.auth.getSession()).data.session;
-            const res = await fetch(`${API_URL}/donations?page=${page}&limit=${limit}&search=${search}`, {
-                headers: getAuthHeaders(session?.access_token || null)
+            const headers = await getAuthHeadersAsync();
+            const res = await fetch(`${API_URL}/donations?page=${page}&limit=${limit}&search=${encodeURIComponent(search)}`, {
+                headers,
             });
-            if (!res.ok) throw new Error('Donations fetch failed');
+            if (!res.ok) {
+                throw new Error('Donations fetch failed');
+            }
             return await res.json();
         },
         placeholderData: (previousData) => previousData,
@@ -675,21 +699,11 @@ export const useCreateDonation = () => {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async (payload: DonationPayload) => {
-            const session = (await supabase.auth.getSession()).data.session;
-            const res = await fetch(`${API_URL}/donations`, {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    ...getAuthHeaders(session?.access_token || null)
-                },
-                body: JSON.stringify(payload)
-            });
-            if (!res.ok) throw new Error('Donation creation failed');
-            return await res.json();
+            return sendJsonAuthRequest(`${API_URL}/donations`, HTTP_METHODS.POST, payload, 'Donation creation failed');
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['admin', 'donations'] });
-        }
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ADMIN, QUERY_KEYS.DONATIONS] });
+        },
     });
 };
 
@@ -697,54 +711,37 @@ export const useUpdateDonation = () => {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async ({ id, payload }: { id: string | number; payload: DonationPayload }) => {
-            const session = (await supabase.auth.getSession()).data.session;
-            const res = await fetch(`${API_URL}/donations/${id}`, {
-                method: 'PUT',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    ...getAuthHeaders(session?.access_token || null)
-                },
-                body: JSON.stringify(payload)
-            });
-            if (!res.ok) throw new Error('Donation update failed');
-            return await res.json();
+            return sendJsonAuthRequest(`${API_URL}/donations/${id}`, HTTP_METHODS.PUT, payload, 'Donation update failed');
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['admin', 'donations'] });
-        }
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ADMIN, QUERY_KEYS.DONATIONS] });
+        },
     });
 };
 
 export const useDeleteDonation = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: async (id: string | number) => {
-            const session = (await supabase.auth.getSession()).data.session;
-            const res = await fetch(`${API_URL}/donations/${id}`, {
-                method: 'DELETE',
-                headers: getAuthHeaders(session?.access_token || null)
-            });
-            if (!res.ok) throw new Error('Donation deletion failed');
-            return true;
-        },
+        mutationFn: (id: string | number) => executeDeleteRequest(`${API_URL}/donations/${id}`, 'Donation deletion failed'),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['admin', 'donations'] });
-        }
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ADMIN, QUERY_KEYS.DONATIONS] });
+        },
     });
 };
 
 export const useDonationStats = () => {
     return useQuery({
-        queryKey: ['admin', 'donations', 'stats'],
+        queryKey: [QUERY_KEYS.ADMIN, QUERY_KEYS.DONATIONS, QUERY_KEYS.STATS],
         queryFn: async () => {
-            const session = (await supabase.auth.getSession()).data.session;
-            const headers = getAuthHeaders(session?.access_token || null);
+            const headers = await getAuthHeadersAsync();
             const res = await fetch(`${API_URL}/donations/stats`, { headers });
-            if (!res.ok) throw new Error('Failed to fetch donation stats');
+            if (!res.ok) {
+                throw new Error('Failed to fetch donation stats');
+            }
             const data = await res.json();
-            return data.success ? data.data : data;
+            return unwrapDataField(data);
         },
-        refetchInterval: 60000, // Refresh every minute
+        refetchInterval: TIME_CONSTANTS.ONE_MINUTE,
     });
 };
 
@@ -763,15 +760,15 @@ export interface EventPayload {
 
 export const useAdminEvents = () => {
     return useQuery({
-        queryKey: ['admin', 'events'],
+        queryKey: [QUERY_KEYS.ADMIN, QUERY_KEYS.EVENTS],
         queryFn: async () => {
-            const session = (await supabase.auth.getSession()).data.session;
-            const res = await fetch(`${API_URL}/events`, {
-                headers: getAuthHeaders(session?.access_token || null)
-            });
-            if (!res.ok) throw new Error('Events fetch failed');
+            const headers = await getAuthHeadersAsync();
+            const res = await fetch(`${API_URL}/events`, { headers });
+            if (!res.ok) {
+                throw new Error('Events fetch failed');
+            }
             return await res.json();
-        }
+        },
     });
 };
 
@@ -779,21 +776,11 @@ export const useCreateEvent = () => {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async (payload: EventPayload) => {
-            const session = (await supabase.auth.getSession()).data.session;
-            const res = await fetch(`${API_URL}/events`, {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    ...getAuthHeaders(session?.access_token || null)
-                },
-                body: JSON.stringify(payload)
-            });
-            if (!res.ok) throw new Error('Event creation failed');
-            return await res.json();
+            return sendJsonAuthRequest(`${API_URL}/events`, HTTP_METHODS.POST, payload, 'Event creation failed');
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['admin', 'events'] });
-        }
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ADMIN, QUERY_KEYS.EVENTS] });
+        },
     });
 };
 
@@ -801,66 +788,51 @@ export const useUpdateEvent = () => {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async ({ id, payload }: { id: string | number; payload: EventPayload }) => {
-            const session = (await supabase.auth.getSession()).data.session;
-            const res = await fetch(`${API_URL}/events/${id}`, {
-                method: 'PUT',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    ...getAuthHeaders(session?.access_token || null)
-                },
-                body: JSON.stringify(payload)
-            });
-            if (!res.ok) throw new Error('Event update failed');
-            return await res.json();
+            return sendJsonAuthRequest(`${API_URL}/events/${id}`, HTTP_METHODS.PUT, payload, 'Event update failed');
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['admin', 'events'] });
-        }
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ADMIN, QUERY_KEYS.EVENTS] });
+        },
     });
 };
 
 export const useDeleteEvent = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: async (id: string | number) => {
-            const session = (await supabase.auth.getSession()).data.session;
-            const res = await fetch(`${API_URL}/events/${id}`, {
-                method: 'DELETE',
-                headers: getAuthHeaders(session?.access_token || null)
-            });
-            if (!res.ok) throw new Error('Event deletion failed');
-            return true;
-        },
+        mutationFn: (id: string | number) => executeDeleteRequest(`${API_URL}/events/${id}`, 'Event deletion failed'),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['admin', 'events'] });
-        }
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ADMIN, QUERY_KEYS.EVENTS] });
+        },
     });
 };
 
 export const useStaffOnlineStatus = () => {
     return useQuery({
-        queryKey: ['admin', 'staff-online'],
+        queryKey: [QUERY_KEYS.ADMIN, QUERY_KEYS.STAFF_ONLINE],
         queryFn: async () => {
             const res = await fetch(`${API_URL}/server/staff`);
-            if (!res.ok) throw new Error('Staff online status fetch failed');
+            if (!res.ok) {
+                throw new Error('Staff online status fetch failed');
+            }
             const data = await res.json();
-            return Array.isArray(data) ? data : (data.data || []);
+            return unwrapArrayField(data);
         },
-        refetchInterval: 60000 // Poll every 60s
+        refetchInterval: TIME_CONSTANTS.ONE_MINUTE,
     });
 };
 
 export const useAuditLogs = (page: number, limit: number, search: string, source: string) => {
     return useQuery({
-        queryKey: ['admin', 'audit-logs', page, limit, search, source],
+        queryKey: [QUERY_KEYS.ADMIN, QUERY_KEYS.AUDIT_LOGS, page, limit, search, source],
         queryFn: async () => {
-            const session = (await supabase.auth.getSession()).data.session;
-            const res = await fetch(`${API_URL}/logs?page=${page}&limit=${limit}&search=${search}&source=${source}`, {
-                headers: getAuthHeaders(session?.access_token || null)
-            });
-            if (!res.ok) throw new Error('Failed to fetch audit logs');
+            const headers = await getAuthHeadersAsync();
+            const queryParams = `page=${page}&limit=${limit}&search=${encodeURIComponent(search)}&source=${encodeURIComponent(source)}`;
+            const res = await fetch(`${API_URL}/logs?${queryParams}`, { headers });
+            if (!res.ok) {
+                throw new Error('Failed to fetch audit logs');
+            }
             return await res.json();
-        }
+        },
     });
 };
 
@@ -868,29 +840,32 @@ export const useAuditLogs = (page: number, limit: number, search: string, source
 
 export const useServerResources = () => {
     return useQuery({
-        queryKey: ['admin', 'server', 'resources'],
+        queryKey: [QUERY_KEYS.ADMIN, QUERY_KEYS.SERVER, QUERY_KEYS.RESOURCES],
         queryFn: async () => {
-            const session = (await supabase.auth.getSession()).data.session;
-            const headers = getAuthHeaders(session?.access_token || null);
+            const headers = await getAuthHeadersAsync();
             const res = await fetch(`${API_URL}/server/resources`, { headers });
-            if (!res.ok) throw new Error('Failed to fetch server resources');
+            if (!res.ok) {
+                throw new Error('Failed to fetch server resources');
+            }
             const data = await res.json();
-            return data.success ? data.data : data;
+            return unwrapDataField(data);
         },
-        refetchInterval: 10000, // 10s for near real-time telemetry
+        refetchInterval: TIME_CONSTANTS.TEN_SECONDS,
     });
 };
 
 export const useServerLiveStatus = () => {
     return useQuery({
-        queryKey: ['admin', 'server', 'status', 'live'],
+        queryKey: [QUERY_KEYS.ADMIN, QUERY_KEYS.SERVER, QUERY_KEYS.STATUS, QUERY_KEYS.LIVE],
         queryFn: async () => {
             const res = await fetch(`${API_URL}/server/status/live`);
-            if (!res.ok) throw new Error('Failed to fetch live status');
+            if (!res.ok) {
+                throw new Error('Failed to fetch live status');
+            }
             const data = await res.json();
-            return data.success ? data.data : data;
+            return unwrapDataField(data);
         },
-        refetchInterval: 10000, // 10s
+        refetchInterval: TIME_CONSTANTS.TEN_SECONDS,
     });
 };
 
@@ -909,14 +884,16 @@ export interface Rule {
 
 export const useRules = () => {
     return useQuery({
-        queryKey: ['admin', 'rules'],
+        queryKey: [QUERY_KEYS.ADMIN, QUERY_KEYS.RULES],
         queryFn: async () => {
             const res = await fetch(`${API_URL}/rules`);
-            if (!res.ok) throw new Error('Failed to fetch rules');
+            if (!res.ok) {
+                throw new Error('Failed to fetch rules');
+            }
             const data = await res.json();
-            return data.success ? data.data : data;
+            return unwrapDataField(data);
         },
-        staleTime: 1000 * 60 * 60, // Rules are fairly static
+        staleTime: TIME_CONSTANTS.ONE_HOUR,
     });
 };
 
@@ -924,22 +901,17 @@ export const useCreateRule = () => {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async (payload: Omit<Rule, 'id'>) => {
-            const session = (await supabase.auth.getSession()).data.session;
-            const res = await fetch(`${API_URL}/rules`, {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    ...getAuthHeaders(session?.access_token || null)
-                },
-                body: JSON.stringify(payload)
-            });
-            if (!res.ok) throw new Error('Failed to create rule');
-            const data = await res.json();
+            const data = await sendJsonAuthRequest<{ data: Rule }>(
+                `${API_URL}/rules`,
+                HTTP_METHODS.POST,
+                payload,
+                'Failed to create rule'
+            );
             return data.data;
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['admin', 'rules'] });
-        }
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ADMIN, QUERY_KEYS.RULES] });
+        },
     });
 };
 
@@ -947,40 +919,27 @@ export const useUpdateRule = () => {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async ({ id, payload }: { id: number; payload: Partial<Rule> }) => {
-            const session = (await supabase.auth.getSession()).data.session;
-            const res = await fetch(`${API_URL}/rules/${id}`, {
-                method: 'PUT',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    ...getAuthHeaders(session?.access_token || null)
-                },
-                body: JSON.stringify(payload)
-            });
-            if (!res.ok) throw new Error('Failed to update rule');
-            const data = await res.json();
+            const data = await sendJsonAuthRequest<{ data: Rule }>(
+                `${API_URL}/rules/${id}`,
+                HTTP_METHODS.PUT,
+                payload,
+                'Failed to update rule'
+            );
             return data.data;
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['admin', 'rules'] });
-        }
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ADMIN, QUERY_KEYS.RULES] });
+        },
     });
 };
 
 export const useDeleteRule = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: async (id: number) => {
-            const session = (await supabase.auth.getSession()).data.session;
-            const res = await fetch(`${API_URL}/rules/${id}`, {
-                method: 'DELETE',
-                headers: getAuthHeaders(session?.access_token || null)
-            });
-            if (!res.ok) throw new Error('Failed to delete rule');
-            return true;
-        },
+        mutationFn: (id: number) => executeDeleteRequest(`${API_URL}/rules/${id}`, 'Failed to delete rule'),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['admin', 'rules'] });
-        }
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ADMIN, QUERY_KEYS.RULES] });
+        },
     });
 };
 
@@ -998,14 +957,16 @@ export interface Policy {
 
 export const usePolicies = () => {
     return useQuery({
-        queryKey: ['admin', 'policies'],
+        queryKey: [QUERY_KEYS.ADMIN, QUERY_KEYS.POLICIES],
         queryFn: async () => {
             const res = await fetch(`${API_URL}/policies`);
-            if (!res.ok) throw new Error('Failed to fetch policies');
+            if (!res.ok) {
+                throw new Error('Failed to fetch policies');
+            }
             const data = await res.json();
-            return data.success ? data.data : data;
+            return unwrapDataField(data);
         },
-        staleTime: 1000 * 60 * 60 * 24, // Policies are very static
+        staleTime: TIME_CONSTANTS.ONE_DAY,
     });
 };
 
@@ -1013,23 +974,17 @@ export const useUpdatePolicy = () => {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async ({ slug, payload }: { slug: string; payload: Partial<Policy> }) => {
-            const session = (await supabase.auth.getSession()).data.session;
-            const res = await fetch(`${API_URL}/policies/${slug}`, {
-                method: 'PUT',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    ...getAuthHeaders(session?.access_token || null)
-                },
-                body: JSON.stringify(payload)
-            });
-            if (!res.ok) throw new Error('Failed to update policy');
-            const data = await res.json();
+            const data = await sendJsonAuthRequest<{ data: Policy }>(
+                `${API_URL}/policies/${slug}`,
+                HTTP_METHODS.PUT,
+                payload,
+                'Failed to update policy'
+            );
             return data.data;
         },
         onSuccess: (_, { slug }) => {
-            queryClient.invalidateQueries({ queryKey: ['admin', 'policies'] });
-            queryClient.invalidateQueries({ queryKey: ['admin', 'policy', slug] });
-        }
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ADMIN, QUERY_KEYS.POLICIES] });
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ADMIN, QUERY_KEYS.POLICY, slug] });
+        },
     });
 };
-
