@@ -3,17 +3,125 @@ import { BookOpen, Flame, Skull, Heart, Search, ArrowRight, Book } from 'lucide-
 import type { WikiArticle } from '../../services/wikiService';
 
 interface CategoryCounts {
-  bosses: number;
-  hostiles: number;
-  critters: number;
-  guides: number;
+  readonly bosses: number;
+  readonly hostiles: number;
+  readonly critters: number;
+  readonly guides: number;
 }
 
 interface WikiPortalViewProps {
-  portalArticles: WikiArticle[];
-  portalSearch: string;
-  onSearchChange: (query: string) => void;
-  categoryCounts: CategoryCounts;
+  readonly portalArticles: WikiArticle[];
+  readonly portalSearch: string;
+  readonly onSearchChange: (query: string) => void;
+  readonly categoryCounts: CategoryCounts;
+}
+
+interface QuickCategoryCard {
+  readonly key: string;
+  readonly countText: string;
+  readonly title: string;
+  readonly description: string;
+  readonly colorClass: string;
+  readonly icon: React.ReactNode;
+}
+
+function getCategoryIcon(category: string): React.ReactNode {
+  switch (category) {
+    case 'bosses':
+      return <Flame size={16} className="text-red-400" />;
+    case 'mobs_hostiles':
+      return <Skull size={16} className="text-purple-400" />;
+    case 'mobs_pacificos':
+      return <Heart size={16} className="text-emerald-400" />;
+    default:
+      return <BookOpen size={16} className="text-blue-400" />;
+  }
+}
+
+function buildCategoryCards(counts: CategoryCounts): readonly QuickCategoryCard[] {
+  return [
+    {
+      key: 'bosses',
+      countText: `${counts.bosses} Jefes`,
+      title: 'Jefes Imperiales',
+      description: 'Bosses míticos con múltiples fases y botines épicos.',
+      colorClass: 'text-red-400',
+      icon: <Flame size={20} />,
+    },
+    {
+      key: 'hostiles',
+      countText: `${counts.hostiles} Mobs`,
+      title: 'Hostiles Míticos',
+      description: 'Depredadores y constructos que patrullan el mundo.',
+      colorClass: 'text-purple-400',
+      icon: <Skull size={20} />,
+    },
+    {
+      key: 'critters',
+      countText: `${counts.critters} Especies`,
+      title: 'Fauna & Compañeros',
+      description: 'Criaturas pacíficas y mascotas domesticables.',
+      colorClass: 'text-emerald-400',
+      icon: <Heart size={20} />,
+    },
+    {
+      key: 'guides',
+      countText: `${counts.guides} Guías`,
+      title: 'Guías & Servidor',
+      description: 'Comandos esenciales y sistema de KilluCoins.',
+      colorClass: 'text-blue-400',
+      icon: <Book size={20} />,
+    },
+  ];
+}
+
+interface ArticleRowProps {
+  readonly article: WikiArticle;
+}
+
+function ArticleRow({ article }: ArticleRowProps) {
+  const is3D = Boolean(article.model_3d_url);
+  const formattedCategory = article.category.replaceAll('_', ' ');
+
+  return (
+    <Link
+      to={`/wiki/${article.slug}`}
+      className="group flex flex-col justify-between gap-2 rounded-xl px-3 py-3.5 transition-colors hover:bg-neutral-800/60 sm:flex-row sm:items-center"
+    >
+      <div className="flex items-center gap-3">
+        <div className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-neutral-800 bg-neutral-950 text-neutral-400 transition-colors group-hover:text-white">
+          {getCategoryIcon(article.category)}
+        </div>
+        <div>
+          <div className="flex items-center gap-2 text-sm font-bold text-white transition-colors group-hover:text-neutral-200">
+            <span>{article.title}</span>
+            {is3D && (
+              <span className="py-0.2 rounded-sm border border-neutral-700 bg-neutral-800 px-1.5 font-mono text-[9px] font-semibold text-neutral-300">
+                3D
+              </span>
+            )}
+          </div>
+          <div className="mt-0.5 flex items-center gap-2 text-xs text-neutral-500">
+            <span className="capitalize">{formattedCategory}</span>
+            {article.boss_mod_name && <span>• {article.boss_mod_name}</span>}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex shrink-0 items-center gap-4 text-xs font-semibold text-neutral-400">
+        {article.boss_hp && <span className="font-mono text-neutral-300">{article.boss_hp}</span>}
+        {article.boss_kc_reward ? (
+          <span className="font-mono font-bold text-amber-400">
+            +{article.boss_kc_reward} KC
+          </span>
+        ) : null}
+        <ArrowRight
+          size={14}
+          className="text-neutral-600 transition-colors group-hover:text-neutral-300"
+        />
+      </div>
+    </Link>
+  );
 }
 
 export default function WikiPortalView({
@@ -21,7 +129,9 @@ export default function WikiPortalView({
   portalSearch,
   onSearchChange,
   categoryCounts,
-}: WikiPortalViewProps) {
+}: Readonly<WikiPortalViewProps>) {
+  const quickCategories = buildCategoryCards(categoryCounts);
+
   return (
     <div className="space-y-8">
       {/* Portal Hero Banner (Clean Neutral Dark) */}
@@ -44,45 +154,19 @@ export default function WikiPortalView({
 
       {/* Portal Hub Quick Category Links */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="space-y-2 rounded-2xl border border-neutral-800 bg-neutral-900 p-5">
-          <div className="flex items-center justify-between text-red-400">
-            <Flame size={20} />
-            <span className="font-mono text-xs font-bold">{categoryCounts.bosses} Jefes</span>
+        {quickCategories.map((card) => (
+          <div
+            key={card.key}
+            className="space-y-2 rounded-2xl border border-neutral-800 bg-neutral-900 p-5"
+          >
+            <div className={`flex items-center justify-between ${card.colorClass}`}>
+              {card.icon}
+              <span className="font-mono text-xs font-bold">{card.countText}</span>
+            </div>
+            <h3 className="text-sm font-bold text-white">{card.title}</h3>
+            <p className="text-xs text-neutral-400">{card.description}</p>
           </div>
-          <h3 className="text-sm font-bold text-white">Jefes Imperiales</h3>
-          <p className="text-xs text-neutral-400">
-            Bosses míticos con múltiples fases y botines épicos.
-          </p>
-        </div>
-
-        <div className="space-y-2 rounded-2xl border border-neutral-800 bg-neutral-900 p-5">
-          <div className="flex items-center justify-between text-purple-400">
-            <Skull size={20} />
-            <span className="font-mono text-xs font-bold">{categoryCounts.hostiles} Mobs</span>
-          </div>
-          <h3 className="text-sm font-bold text-white">Hostiles Míticos</h3>
-          <p className="text-xs text-neutral-400">
-            Depredadores y constructos que patrullan el mundo.
-          </p>
-        </div>
-
-        <div className="space-y-2 rounded-2xl border border-neutral-800 bg-neutral-900 p-5">
-          <div className="flex items-center justify-between text-emerald-400">
-            <Heart size={20} />
-            <span className="font-mono text-xs font-bold">{categoryCounts.critters} Especies</span>
-          </div>
-          <h3 className="text-sm font-bold text-white">Fauna & Compañeros</h3>
-          <p className="text-xs text-neutral-400">Criaturas pacíficas y mascotas domesticables.</p>
-        </div>
-
-        <div className="space-y-2 rounded-2xl border border-neutral-800 bg-neutral-900 p-5">
-          <div className="flex items-center justify-between text-blue-400">
-            <Book size={20} />
-            <span className="font-mono text-xs font-bold">{categoryCounts.guides} Guías</span>
-          </div>
-          <h3 className="text-sm font-bold text-white">Guías & Servidor</h3>
-          <p className="text-xs text-neutral-400">Comandos esenciales y sistema de KilluCoins.</p>
-        </div>
+        ))}
       </div>
 
       {/* Portal Index Table / Directory */}
@@ -113,58 +197,9 @@ export default function WikiPortalView({
         </div>
 
         <div className="divide-y divide-neutral-800/80">
-          {portalArticles.map((art) => {
-            const is3D = Boolean(art.model_3d_url);
-
-            return (
-              <Link
-                key={art.id}
-                to={`/wiki/${art.slug}`}
-                className="group flex flex-col justify-between gap-2 rounded-xl px-3 py-3.5 transition-colors hover:bg-neutral-800/60 sm:flex-row sm:items-center"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-neutral-800 bg-neutral-950 text-neutral-400 transition-colors group-hover:text-white">
-                    {art.category === 'bosses' ? (
-                      <Flame size={16} className="text-red-400" />
-                    ) : art.category === 'mobs_hostiles' ? (
-                      <Skull size={16} className="text-purple-400" />
-                    ) : art.category === 'mobs_pacificos' ? (
-                      <Heart size={16} className="text-emerald-400" />
-                    ) : (
-                      <BookOpen size={16} className="text-blue-400" />
-                    )}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2 text-sm font-bold text-white transition-colors group-hover:text-neutral-200">
-                      <span>{art.title}</span>
-                      {is3D && (
-                        <span className="py-0.2 rounded-sm border border-neutral-700 bg-neutral-800 px-1.5 font-mono text-[9px] font-semibold text-neutral-300">
-                          3D
-                        </span>
-                      )}
-                    </div>
-                    <div className="mt-0.5 flex items-center gap-2 text-xs text-neutral-500">
-                      <span className="capitalize">{art.category.replaceAll('_', ' ')}</span>
-                      {art.boss_mod_name && <span>• {art.boss_mod_name}</span>}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex shrink-0 items-center gap-4 text-xs font-semibold text-neutral-400">
-                  {art.boss_hp && <span className="font-mono text-neutral-300">{art.boss_hp}</span>}
-                  {art.boss_kc_reward ? (
-                    <span className="font-mono font-bold text-amber-400">
-                      +{art.boss_kc_reward} KC
-                    </span>
-                  ) : null}
-                  <ArrowRight
-                    size={14}
-                    className="text-neutral-600 transition-colors group-hover:text-neutral-300"
-                  />
-                </div>
-              </Link>
-            );
-          })}
+          {portalArticles.map((article) => (
+            <ArticleRow key={article.id} article={article} />
+          ))}
         </div>
       </div>
     </div>
