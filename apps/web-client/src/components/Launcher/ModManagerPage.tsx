@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { CrystalCard } from "./CrystalCard";
 import { CrystalPageHeader } from "./CrystalPageHeader";
 import {
@@ -10,11 +10,10 @@ import {
   installModFromCurseForge,
   type ServerModItem,
   type SearchModResult,
-  MOCK_SEARCH_MODS
-} from "./mockLauncherState";
-import { getActiveProfile, resolveProfileGameDir } from "./mockLauncherState";
-import { fetchVanillaVersions } from "./mockLauncherState";
-import {
+  MOCK_SEARCH_MODS,
+  getActiveProfile,
+  resolveProfileGameDir,
+  fetchVanillaVersions,
   listInstalledMods,
   setModEnabled,
   deleteInstalledMod,
@@ -26,8 +25,24 @@ import {
   type InstalledMod,
   type ModRegistryEntry,
 } from "./mockLauncherState";
-const invoke = async (_cmd: string, _args?: unknown) => { return null; };
 import { openPath } from "@tauri-apps/plugin-opener";
+
+const invoke = async (_cmd: string, _args?: unknown): Promise<string | null> => null;
+
+const CONSTANTS = {
+  CF_API_KEY_STORAGE: "crystaltides_cf_api_key_v1",
+  DEFAULT_MC_VERSION: "1.21.1",
+  DEFAULT_LOADER: "neoforge",
+  DEFAULT_SORT: "relevance",
+  SOURCE_MODRINTH: "modrinth" as const,
+  SOURCE_CURSEFORGE: "curseforge" as const,
+  INPUT_TRANSITION: "color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease",
+  MUTED_WHITE_COLOR: "rgba(255, 255, 255, 0.4)",
+  DARK_BG_COLOR: "rgba(0, 0, 0, 0.25)",
+  BORDER_LOW: "1px solid var(--border-low)",
+} as const;
+
+type ModSource = typeof CONSTANTS.SOURCE_MODRINTH | typeof CONSTANTS.SOURCE_CURSEFORGE;
 
 const CATEGORIES = [
   { label: "🚀 Optimización", value: "optimization" },
@@ -35,8 +50,23 @@ const CATEGORIES = [
   { label: "⚙️ Tecnología", value: "technology" },
   { label: "🎨 Decoración", value: "decoration" },
   { label: "🌳 Mundo", value: "worldgen" },
-  { label: "📂 Librería", value: "library" }
+  { label: "📂 Librería", value: "library" },
 ];
+
+const KNOWN_MOD_ICONS: ReadonlyArray<{ pattern: string; url: string }> = [
+  { pattern: "sodium", url: "https://raw.githubusercontent.com/CaffeineMC/sodium-fabric/1.20.x/dev/logo.png" },
+  { pattern: "iris", url: "https://raw.githubusercontent.com/IrisShaders/Iris/main/logo.png" },
+  { pattern: "voice", url: "https://raw.githubusercontent.com/henkelmax/simple-voice-chat/main/logo.png" },
+  { pattern: "ferrite", url: "https://raw.githubusercontent.com/malte0811/FerriteCore/1.20/logo.png" },
+];
+
+const CATEGORY_COLORS: Record<string, { bg: string; text: string }> = {
+  Audio: { bg: "rgba(168, 85, 247, 0.15)", text: "#C084FC" },
+  Mundo: { bg: "rgba(34, 197, 94, 0.15)", text: "#4ADE80" },
+  "Optimización": { bg: "rgba(45, 212, 191, 0.15)", text: "var(--accent)" },
+  Interfaz: { bg: "rgba(59, 130, 246, 0.15)", text: "#60A5FA" },
+  Biblioteca: { bg: "rgba(234, 179, 8, 0.15)", text: "#FACC15" },
+};
 
 const resolveGameDir = async (): Promise<string | null> => {
   const homeDir: string | null = await invoke("get_home_dir").catch(() => null);
@@ -60,26 +90,1081 @@ const formatRelativeDate = (iso?: string): string => {
 };
 
 const getCategoryColor = (cat?: string): string => {
-  switch (cat) {
-    case "Audio": return "rgba(168, 85, 247, 0.15)";
-    case "Mundo": return "rgba(34, 197, 94, 0.15)";
-    case "Optimización": return "rgba(45, 212, 191, 0.15)";
-    case "Interfaz": return "rgba(59, 130, 246, 0.15)";
-    case "Biblioteca": return "rgba(234, 179, 8, 0.15)";
-    default: return "rgba(255, 255, 255, 0.08)";
-  };
+  if (!cat || !CATEGORY_COLORS[cat]) return "rgba(255, 255, 255, 0.08)";
+  return CATEGORY_COLORS[cat].bg;
 };
 
 const getCategoryTextColor = (cat?: string): string => {
-  switch (cat) {
-    case "Audio": return "#C084FC";
-    case "Mundo": return "#4ADE80";
-    case "Optimización": return "var(--accent)";
-    case "Interfaz": return "#60A5FA";
-    case "Biblioteca": return "#FACC15";
-    default: return "rgba(255,255,255,0.6)";
-  };
+  if (!cat || !CATEGORY_COLORS[cat]) return "rgba(255, 255, 255, 0.6)";
+  return CATEGORY_COLORS[cat].text;
 };
+
+const getModInitials = (title: string): string => {
+  return (
+    title
+      .replace(/^[0-9.]+\s*/, "")
+      .replace(/\.jar(\.disabled)?$/i, "")
+      .split(/[\s-_+.]+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((w) => w[0]?.toUpperCase())
+      .join("") || "MD"
+  );
+};
+
+const resolveFallbackIcon = (filename: string, title: string): string | null => {
+  const f = filename.toLowerCase();
+  const t = title.toLowerCase();
+  for (const item of KNOWN_MOD_ICONS) {
+    if (f.includes(item.pattern) || t.includes(item.pattern)) {
+      return item.url;
+    }
+  }
+  return null;
+};
+
+// ============================================================================
+// SUBCOMPONENT: InstalledModCard
+// ============================================================================
+
+interface InstalledModCardProps {
+  mod: InstalledMod;
+  registry?: ModRegistryEntry;
+  isBusy: boolean;
+  onToggle: (mod: InstalledMod) => void;
+  onDelete: (mod: InstalledMod) => void;
+}
+
+const InstalledModCard: React.FC<InstalledModCardProps> = ({
+  mod,
+  registry,
+  isBusy,
+  onToggle,
+  onDelete,
+}) => {
+  const title = registry?.title || prettyModName(mod.filename);
+  const initials = getModInitials(title);
+
+  const catalogMatch = MOCK_SEARCH_MODS.find((m: SearchModResult) => {
+    const f = mod.filename.toLowerCase();
+    const t = title.toLowerCase();
+    const id = m.id.toLowerCase();
+    const mTitle = m.title.toLowerCase();
+    return f.includes(id) || t.includes(id) || mTitle.includes(t) || t.includes(mTitle);
+  });
+
+  const resolvedIconUrl =
+    registry?.iconUrl ||
+    catalogMatch?.icon_url ||
+    catalogMatch?.iconUrl ||
+    resolveFallbackIcon(mod.filename, title);
+
+  const getSourceBadge = () => {
+    if (mod.official) {
+      return (
+        <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, backgroundColor: "rgba(45, 212, 191, 0.1)", color: "var(--accent)", fontWeight: "bold" }}>
+          Oficial
+        </span>
+      );
+    }
+    if (registry?.source) {
+      const isCf = registry.source === CONSTANTS.SOURCE_CURSEFORGE;
+      return (
+        <span style={{
+          fontSize: 10,
+          padding: "2px 6px",
+          borderRadius: 4,
+          backgroundColor: isCf ? "rgba(249, 115, 22, 0.1)" : "rgba(34, 197, 94, 0.1)",
+          color: isCf ? "#F97316" : "#22C55E",
+          textTransform: "capitalize",
+          fontWeight: "bold",
+        }}>
+          {registry.source}
+        </span>
+      );
+    }
+    return (
+      <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, backgroundColor: "rgba(255, 255, 255, 0.05)", color: "rgba(255, 255, 255, 0.5)", fontWeight: "bold" }}>
+        Manual
+      </span>
+    );
+  };
+
+  return (
+    <div className="reveal-up" style={{
+      display: "flex",
+      alignItems: "center",
+      padding: "14px 8px",
+      borderBottom: "1px solid rgba(255,255,255,0.04)",
+      textAlign: "left",
+      gap: 16,
+      opacity: mod.enabled ? 1 : 0.5,
+      transition: "opacity 0.2s ease",
+    }}>
+      <div style={{
+        width: 44,
+        height: 44,
+        borderRadius: 12,
+        overflow: "hidden",
+        background: resolvedIconUrl ? "rgba(0,0,0,0.3)" : "linear-gradient(135deg, rgba(15,118,110,0.4) 0%, rgba(45,212,191,0.15) 100%)",
+        border: "1px solid rgba(45, 212, 191, 0.25)",
+        boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0,
+        color: "#2DD4BF",
+        fontWeight: 900,
+        fontSize: 13,
+        letterSpacing: "0.05em",
+      }}>
+        {resolvedIconUrl ? (
+          <img
+            src={resolvedIconUrl}
+            alt={title}
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            onError={(e) => {
+              e.currentTarget.style.display = "none";
+              if (e.currentTarget.parentElement) {
+                e.currentTarget.parentElement.innerText = initials;
+              }
+            }}
+          />
+        ) : (
+          <span>{initials}</span>
+        )}
+      </div>
+
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ fontSize: 14, fontWeight: "bold", color: "#FFFFFF" }}>{title}</span>
+          {getSourceBadge()}
+        </div>
+        <div style={{ fontSize: 11, color: "rgba(255, 255, 255, 0.35)", marginTop: 2, display: "flex", gap: 8 }}>
+          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 400 }}>{mod.filename}</span>
+          <span>•</span>
+          <span>{formatModSize(mod.sizeBytes)}</span>
+        </div>
+      </div>
+
+      <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ fontSize: 11, color: mod.enabled ? "var(--accent)" : "rgba(255,255,255,0.3)" }}>
+            {mod.enabled ? "Activo" : "Inactivo"}
+          </span>
+          <input
+            aria-label={`Activar o desactivar mod ${title || mod.filename}`}
+            type="checkbox"
+            checked={mod.enabled}
+            disabled={mod.official || isBusy}
+            onChange={() => onToggle(mod)}
+            style={{
+              width: 32,
+              height: 18,
+              appearance: "none",
+              backgroundColor: mod.enabled ? "rgba(45, 212, 191, 0.3)" : "rgba(255, 255, 255, 0.1)",
+              border: `1px solid ${mod.enabled ? "var(--accent)" : "rgba(255, 255, 255, 0.2)"}`,
+              borderRadius: 9,
+              position: "relative",
+              cursor: mod.official ? "not-allowed" : "pointer",
+              outline: "none",
+              transition: CONSTANTS.INPUT_TRANSITION,
+            }}
+            className="mod-toggle-switch"
+          />
+        </div>
+
+        <button
+          type="button"
+          onClick={() => onDelete(mod)}
+          disabled={mod.official || isBusy}
+          style={{
+            background: "none",
+            border: "none",
+            cursor: mod.official ? "not-allowed" : "pointer",
+            opacity: mod.official ? 0.2 : 0.6,
+            padding: 6,
+            color: "var(--danger)",
+            fontSize: 16,
+            transition: CONSTANTS.INPUT_TRANSITION,
+          }}
+          className={mod.official ? "" : "pressable"}
+          title={mod.official ? "Los mods oficiales no se pueden eliminar" : "Eliminar mod"}
+        >
+          🗑️
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// ============================================================================
+// SUBCOMPONENT: InstalledModsSidebar
+// ============================================================================
+
+interface InstalledModsSidebarProps {
+  activeProfile: ReturnType<typeof getActiveProfile>;
+  installedMods: InstalledMod[];
+}
+
+const InstalledModsSidebar: React.FC<InstalledModsSidebarProps> = ({ activeProfile, installedMods }) => {
+  const activeCount = useMemo(() => installedMods.filter((m) => m.enabled).length, [installedMods]);
+  const inactiveCount = useMemo(() => installedMods.filter((m) => !m.enabled).length, [installedMods]);
+  const officialCount = useMemo(() => installedMods.filter((m) => m.official).length, [installedMods]);
+
+  return (
+    <div style={{ flex: 0.9, display: "flex", flexDirection: "column", gap: 20 }}>
+      <div style={{
+        textAlign: "left",
+        backgroundColor: "rgba(255, 255, 255, 0.02)",
+        border: CONSTANTS.BORDER_LOW,
+        borderRadius: 12,
+        padding: 20,
+      }}>
+        <span className="section-label">Perfil Activo</span>
+        <h3 style={{ margin: "4px 0 0 0", color: "#FFFFFF", fontSize: 18, fontWeight: "bold" }}>
+          {activeProfile ? activeProfile.name : "Ninguno"}
+        </h3>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 16, fontSize: 13, color: "rgba(255,255,255,0.6)" }}>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <span>Versión MC:</span>
+            <span style={{ color: "#FFFFFF", fontWeight: "bold" }}>{activeProfile ? activeProfile.mcVersion : "-"}</span>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <span>Cargador:</span>
+            <span style={{ color: "#FFFFFF", fontWeight: "bold", textTransform: "capitalize" }}>{activeProfile ? activeProfile.loaderType : "-"}</span>
+          </div>
+          <div style={{ height: "1px", backgroundColor: "rgba(255,255,255,0.06)", margin: "4px 0" }} />
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <span>Mods Instalados:</span>
+            <span style={{ color: "var(--accent)", fontWeight: "bold" }}>{installedMods.length}</span>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <span>Activos:</span>
+            <span style={{ color: "var(--success)", fontWeight: "bold" }}>{activeCount}</span>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <span>Inactivos:</span>
+            <span style={{ color: CONSTANTS.MUTED_WHITE_COLOR, fontWeight: "bold" }}>{inactiveCount}</span>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <span>Oficiales:</span>
+            <span style={{ color: "#38BDF8", fontWeight: "bold" }}>{officialCount}</span>
+          </div>
+        </div>
+      </div>
+
+      <div style={{
+        textAlign: "left",
+        backgroundColor: "rgba(45, 212, 191, 0.03)",
+        border: "1px solid rgba(45, 212, 191, 0.15)",
+        borderRadius: 12,
+        padding: 20,
+        fontSize: 12,
+        color: "rgba(255,255,255,0.55)",
+        lineHeight: 1.6,
+      }}>
+        <span style={{ display: "block", color: "var(--accent)", fontWeight: "bold", fontSize: 11, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 8 }}>
+          💡 Consejos de Uso
+        </span>
+        <ul style={{ margin: 0, paddingLeft: 16 }}>
+          <li style={{ marginBottom: 6 }}>Puedes activar o desactivar mods individuales para hacer pruebas de rendimiento o compatibilidad sin borrarlos.</li>
+          <li style={{ marginBottom: 6 }}>Los mods oficiales del servidor están bloqueados para garantizar que puedas conectarte al SMP sin problemas.</li>
+          <li>Si descargas un mod manualmente (`.jar`), puedes colocarlo directamente haciendo click en **Carpeta Mods**.</li>
+        </ul>
+      </div>
+    </div>
+  );
+};
+
+// ============================================================================
+// SUBCOMPONENT: InstalledModsTab
+// ============================================================================
+
+interface InstalledModsTabProps {
+  installedMods: InstalledMod[];
+  modsRegistry: Record<string, ModRegistryEntry>;
+  isLoading: boolean;
+  filter: string;
+  busyModFile: string | null;
+  activeProfile: ReturnType<typeof getActiveProfile>;
+  onFilterChange: (text: string) => void;
+  onRefresh: () => void;
+  onOpenFolder: () => void;
+  onToggleMod: (mod: InstalledMod) => void;
+  onDeleteMod: (mod: InstalledMod) => void;
+}
+
+const InstalledModsTab: React.FC<InstalledModsTabProps> = ({
+  installedMods,
+  modsRegistry,
+  isLoading,
+  filter,
+  busyModFile,
+  activeProfile,
+  onFilterChange,
+  onRefresh,
+  onOpenFolder,
+  onToggleMod,
+  onDeleteMod,
+}) => {
+  const filteredMods = useMemo(() => {
+    return installedMods.filter((m) => {
+      const reg = modsRegistry[m.filename] || modsRegistry[m.filename.replace(/\.disabled$/, "")] || {};
+      const title = reg.title || prettyModName(m.filename);
+      return (
+        title.toLowerCase().includes(filter.toLowerCase()) ||
+        m.filename.toLowerCase().includes(filter.toLowerCase())
+      );
+    });
+  }, [installedMods, modsRegistry, filter]);
+
+  return (
+    <div style={{ display: "flex", gap: 24, alignItems: "stretch" }}>
+      <div style={{ flex: 2, display: "flex", flexDirection: "column", gap: 16 }}>
+        <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+          <div
+            style={{
+              flex: 1,
+              display: "flex",
+              alignItems: "center",
+              borderRadius: 12,
+              border: "1.5px solid var(--border-low)",
+              backgroundColor: CONSTANTS.DARK_BG_COLOR,
+              padding: "4px 14px",
+              height: 44,
+              boxSizing: "border-box",
+              transition: CONSTANTS.INPUT_TRANSITION,
+            }}
+            onFocusCapture={(e) => {
+              e.currentTarget.style.borderColor = "rgba(45, 212, 191, 0.5)";
+              e.currentTarget.style.boxShadow = "0 0 0 3px rgba(45, 212, 191, 0.08)";
+            }}
+            onBlurCapture={(e) => {
+              e.currentTarget.style.borderColor = "var(--border-low)";
+              e.currentTarget.style.boxShadow = "none";
+            }}
+          >
+            <span style={{ color: "rgba(255,255,255,0.25)", fontSize: 16, marginRight: 10 }}>🔍</span>
+            <input
+              aria-label="Filtrar mods instalados por nombre"
+              type="text"
+              placeholder="Buscar en tus mods instalados..."
+              value={filter}
+              onChange={(e) => onFilterChange(e.target.value)}
+              style={{
+                flex: 1,
+                background: "none",
+                border: "none",
+                color: "#FFFFFF",
+                fontSize: 13,
+                outline: "none",
+                padding: 0,
+                width: "100%",
+              }}
+            />
+          </div>
+
+          <button
+            aria-label="Abrir carpeta de mods local"
+            type="button"
+            onClick={onOpenFolder}
+            className="btn btn-secondary pressable"
+            style={{ height: 44, display: "flex", alignItems: "center", gap: 8, padding: "0 16px" }}
+          >
+            📂 Carpeta Mods
+          </button>
+
+          <button
+            aria-label="Recargar lista de mods instalados"
+            type="button"
+            onClick={onRefresh}
+            className="btn btn-secondary pressable"
+            style={{ height: 44, width: 44, padding: 0, display: "flex", alignItems: "center", justifyContent: "center" }}
+          >
+            🔄
+          </button>
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", borderTop: "1.5px solid rgba(255,255,255,0.03)", marginTop: 8 }}>
+          {isLoading && (
+            <div style={{ padding: "80px 0", color: CONSTANTS.MUTED_WHITE_COLOR, fontSize: 13 }}>
+              Cargando mods instalados...
+            </div>
+          )}
+          {!isLoading && installedMods.length === 0 && (
+            <div style={{ padding: "80px 0", color: CONSTANTS.MUTED_WHITE_COLOR, fontSize: 13 }}>
+              No hay mods instalados en este perfil. Usa el buscador o sincroniza los oficiales para añadir mods.
+            </div>
+          )}
+          {!isLoading && installedMods.length > 0 && filteredMods.length === 0 && (
+            <div style={{ padding: "80px 0", color: CONSTANTS.MUTED_WHITE_COLOR, fontSize: 13 }}>
+              No se encontraron mods que coincidan con la búsqueda.
+            </div>
+          )}
+          {!isLoading &&
+            filteredMods.map((mod) => (
+              <InstalledModCard
+                key={mod.filename}
+                mod={mod}
+                registry={modsRegistry[mod.filename] || modsRegistry[mod.filename.replace(/\.disabled$/, "")]}
+                isBusy={busyModFile === mod.filename}
+                onToggle={onToggleMod}
+                onDelete={onDeleteMod}
+              />
+            ))}
+        </div>
+      </div>
+
+      <InstalledModsSidebar activeProfile={activeProfile} installedMods={installedMods} />
+    </div>
+  );
+};
+
+// ============================================================================
+// SUBCOMPONENT: SyncOfficialModsTab
+// ============================================================================
+
+interface SyncOfficialModsTabProps {
+  isSyncing: boolean;
+  syncStatus: string | null;
+  syncProgress: number;
+  syncError: string | null;
+  modsList: ServerModItem[];
+  isLoadingMods: boolean;
+  activeProfileName: string;
+  onSync: () => void;
+}
+
+const SyncOfficialModsTab: React.FC<SyncOfficialModsTabProps> = ({
+  isSyncing,
+  syncStatus,
+  syncProgress,
+  syncError,
+  modsList,
+  isLoadingMods,
+  activeProfileName,
+  onSync,
+}) => {
+  return (
+    <div style={{ display: "flex", gap: 24, alignItems: "stretch" }}>
+      <div style={{ flex: 1.2, display: "flex", flexDirection: "column", gap: 20 }}>
+        <CrystalCard style={{ padding: 24 }} enableHoverEffect={false}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <span style={{ fontSize: 24 }}>📦</span>
+              <div style={{ flex: 1, textAlign: "left" }}>
+                <h3 style={{ margin: 0, fontSize: 16, fontWeight: "bold", color: "#FFFFFF" }}>
+                  Sincronización de Mods Oficiales
+                </h3>
+                <p style={{ margin: "4px 0 0 0", fontSize: 13, color: "rgba(255,255,255,0.5)", lineHeight: 1.5 }}>
+                  Sincroniza los mods requeridos por CrystalTides SMP en el perfil activo: <strong>{activeProfileName}</strong>.
+                  Usa enlaces físicos (hardlinks) para evitar duplicar archivos y ahorrar espacio.
+                </p>
+              </div>
+            </div>
+
+            {syncStatus && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "var(--accent)" }}>
+                  <span>{syncStatus}</span>
+                  <span>{Math.round(syncProgress * 100)}%</span>
+                </div>
+                <div style={{ width: "100%", height: 5, borderRadius: 3, backgroundColor: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
+                  <div style={{
+                    width: `${syncProgress * 100}%`,
+                    height: "100%",
+                    backgroundColor: "var(--accent)",
+                    boxShadow: "0 0 8px var(--accent)",
+                    transition: "width 200ms ease",
+                  }} />
+                </div>
+              </div>
+            )}
+
+            {syncError && (
+              <div style={{
+                backgroundColor: "rgba(239, 68, 68, 0.1)",
+                border: "1px solid var(--danger)",
+                borderRadius: 8,
+                padding: "10px 12px",
+                color: "#FFBABA",
+                fontSize: 13,
+                textAlign: "left",
+              }}>
+                ⚠️ {syncError}
+              </div>
+            )}
+
+            <button
+              aria-label="Sincronizar mods con el servidor"
+              aria-busy={isSyncing}
+              type="button"
+              onClick={onSync}
+              disabled={isSyncing}
+              className="btn btn-primary btn-md pressable"
+              style={{ width: "100%" }}
+            >
+              {isSyncing ? "Sincronizando..." : "Sincronizar Mods"}
+            </button>
+          </div>
+        </CrystalCard>
+
+        <CrystalCard style={{ padding: 20 }} enableHoverEffect={false}>
+          <div style={{ textAlign: "left" }}>
+            <h4 style={{ margin: "0 0 8px 0", fontSize: 14, fontWeight: "bold", color: "#FFFFFF" }}>
+              ¿Cómo funciona la biblioteca virtual?
+            </h4>
+            <ul style={{ margin: 0, padding: "0 0 0 20px", fontSize: 13, color: "rgba(255,255,255,0.6)", lineHeight: 1.7 }}>
+              <li>Los archivos jar se bajan directamente desde el CDN seguro del servidor.</li>
+              <li>Se almacenan de forma indexada en <code>~/.crystaltides/virtual_library</code>.</li>
+              <li>Se vinculan a la carpeta del juego sin crear copias repetidas en tu disco duro.</li>
+              <li>Se verifica el hash SHA-1 de cada mod en cada inicio para autodetectar actualizaciones.</li>
+            </ul>
+          </div>
+        </CrystalCard>
+      </div>
+
+      <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+        <CrystalCard style={{ padding: 24, flex: 1, display: "flex", flexDirection: "column", minHeight: 400 }} enableHoverEffect={false}>
+          <h3 style={{ margin: "0 0 16px 0", fontSize: 16, fontWeight: "bold", color: "#FFFFFF", textAlign: "left" }}>
+            📚 Mods del Servidor ({modsList.length})
+          </h3>
+          <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: 12, paddingRight: 4, maxHeight: 340 }}>
+            {isLoadingMods && (
+              <div style={{ color: "rgba(255,255,255,0.45)", fontSize: 13, padding: "40px 0" }}>Cargando lista de mods...</div>
+            )}
+            {!isLoadingMods && modsList.length === 0 && (
+              <div style={{ color: "rgba(255,255,255,0.45)", fontSize: 13, padding: "40px 0" }}>No hay mods registrados.</div>
+            )}
+            {!isLoadingMods && modsList.map((mod) => (
+              <div key={mod.sha1} style={{
+                padding: 12,
+                borderRadius: 10,
+                border: CONSTANTS.BORDER_LOW,
+                backgroundColor: "rgba(255, 255, 255, 0.01)",
+                display: "flex",
+                flexDirection: "column",
+                gap: 6,
+                textAlign: "left",
+              }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{
+                    fontSize: 13,
+                    fontWeight: 600,
+                    color: "#FFFFFF",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    maxWidth: "70%",
+                  }} title={mod.name}>
+                    {mod.name.replace(/\.jar$/, "")}
+                  </span>
+                  <span style={{
+                    padding: "2px 8px",
+                    borderRadius: 6,
+                    backgroundColor: getCategoryColor(mod.category),
+                    color: getCategoryTextColor(mod.category),
+                    fontSize: 10,
+                    fontWeight: 600,
+                  }}>
+                    {mod.category || "General"}
+                  </span>
+                </div>
+                {mod.description && (
+                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", lineHeight: 1.4 }}>
+                    {mod.description}
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        </CrystalCard>
+      </div>
+    </div>
+  );
+};
+
+// ============================================================================
+// SUBCOMPONENT: SearchModCard
+// ============================================================================
+
+interface SearchModCardProps {
+  result: SearchModResult;
+  index: number;
+  status?: string;
+  isInstalling: boolean;
+  selectedLoader: string;
+  onInstall: (mod: SearchModResult) => void;
+}
+
+const SearchModCard: React.FC<SearchModCardProps> = ({
+  result,
+  index,
+  status,
+  isInstalling,
+  selectedLoader,
+  onInstall,
+}) => {
+  const cats = (result.categories || [])
+    .filter((c) => c !== selectedLoader && c !== "minecraft")
+    .slice(0, 2);
+
+  const getStatusColor = (msg: string) => {
+    if (msg.includes("❌")) return "#FF8A8A";
+    if (msg.includes("✅")) return "var(--accent)";
+    return "#FFA726";
+  };
+
+  return (
+    <div className="reveal-up" style={{
+      animationDelay: `${Math.min(index * 30, 300)}ms`,
+      display: "flex",
+      alignItems: "center",
+      padding: "16px 8px",
+      borderBottom: "1px solid rgba(255,255,255,0.04)",
+      textAlign: "left",
+      gap: 16,
+    }}>
+      <div style={{
+        width: 52,
+        height: 52,
+        borderRadius: 12,
+        overflow: "hidden",
+        backgroundColor: "rgba(255,255,255,0.02)",
+        border: CONSTANTS.BORDER_LOW,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0,
+      }}>
+        {result.icon_url ? (
+          <img
+            src={result.icon_url}
+            alt={result.title}
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            onError={(e) => {
+              e.currentTarget.style.display = "none";
+              if (e.currentTarget.parentElement) {
+                e.currentTarget.parentElement.innerHTML = '<span style="font-size: 22px">🧩</span>';
+              }
+            }}
+          />
+        ) : (
+          <span style={{ fontSize: 22 }}>🧩</span>
+        )}
+      </div>
+
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <span style={{ fontSize: 15, fontWeight: "bold", color: "#FFFFFF" }}>{result.title}</span>
+          <span style={{ fontSize: 12, color: "var(--accent)" }}>✓</span>
+        </div>
+
+        <p style={{
+          margin: "4px 0 6px 0",
+          fontSize: 12,
+          color: "rgba(255,255,255,0.55)",
+          lineHeight: 1.4,
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          display: "-webkit-box",
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: "vertical",
+        }}>
+          {result.description}
+        </p>
+
+        <div style={{ display: "flex", alignItems: "center", gap: 14, fontSize: 11, color: CONSTANTS.MUTED_WHITE_COLOR }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <span style={{ fontSize: 11 }}>👤</span>
+            <span>{result.author}</span>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <span style={{ fontSize: 11 }}>⚙️</span>
+            <span style={{ textTransform: "capitalize" }}>{selectedLoader}</span>
+          </div>
+          {cats.length > 0 && (
+            <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              <span>📁</span>
+              <span style={{ textTransform: "capitalize" }}>{cats[0]}</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 10, flexShrink: 0, width: 220 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
+          <span>⬇️ {formatDownloads(result.downloads)}</span>
+          <span>•</span>
+          <span>Act: {formatRelativeDate(result.date_modified)}</span>
+        </div>
+
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          {status && (
+            <span style={{
+              fontSize: 11,
+              fontWeight: 600,
+              color: getStatusColor(status),
+              maxWidth: 100,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }} title={status}>
+              {status}
+            </span>
+          )}
+          <button
+            aria-label={`${status ? "Reinstalar" : "Instalar"} mod ${result.title}`}
+            aria-busy={isInstalling}
+            type="button"
+            onClick={() => onInstall(result)}
+            disabled={isInstalling}
+            className={`btn ${status ? "btn-secondary" : "btn-primary"} btn-sm pressable`}
+          >
+            {isInstalling ? "Bajando..." : status ? "Reinstalar" : "Instalar"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ============================================================================
+// SUBCOMPONENT: SearchPagination
+// ============================================================================
+
+interface SearchPaginationProps {
+  currentPage: number;
+  totalResults: number;
+  pageSize: number;
+  isSearching: boolean;
+  onPageChange: (newPage: number) => void;
+}
+
+const SearchPagination: React.FC<SearchPaginationProps> = ({
+  currentPage,
+  totalResults,
+  pageSize,
+  isSearching,
+  onPageChange,
+}) => {
+  const totalPages = Math.max(1, Math.ceil(totalResults / pageSize));
+
+  const pageButtons = useMemo(() => {
+    const maxButtons = 5;
+    let startPage = Math.max(1, currentPage - 2);
+    const endPage = Math.min(totalPages, startPage + maxButtons - 1);
+    if (endPage - startPage < maxButtons - 1) {
+      startPage = Math.max(1, endPage - (maxButtons - 1));
+    }
+    const pages: number[] = [];
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+    return pages;
+  }, [currentPage, totalPages]);
+
+  const navBtnStyle = (disabled: boolean): React.CSSProperties => ({
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    border: "1px solid rgba(255,255,255,0.06)",
+    backgroundColor: "rgba(255,255,255,0.02)",
+    color: disabled ? "rgba(255,255,255,0.25)" : "rgba(255,255,255,0.75)",
+    cursor: disabled ? "not-allowed" : "pointer",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    transition: CONSTANTS.INPUT_TRANSITION,
+    fontSize: 13,
+  });
+
+  return (
+    <div style={{
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      padding: "20px 0",
+      borderTop: "1.5px solid rgba(255, 255, 255, 0.03)",
+      marginTop: 16,
+    }}>
+      <span style={{ fontSize: 13, color: "rgba(255, 255, 255, 0.45)" }}>
+        Página {currentPage} de {totalPages} ({totalResults} resultados)
+      </span>
+
+      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+        <button
+          type="button"
+          onClick={() => onPageChange(1)}
+          disabled={currentPage === 1 || isSearching}
+          className="pressable"
+          style={navBtnStyle(currentPage === 1 || isSearching)}
+          title="Primera página"
+        >
+          «
+        </button>
+
+        <button
+          type="button"
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 1 || isSearching}
+          className="pressable"
+          style={navBtnStyle(currentPage === 1 || isSearching)}
+          title="Página anterior"
+        >
+          ‹
+        </button>
+
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          {pageButtons.map((p) => {
+            const isCurrent = p === currentPage;
+            return (
+              <button
+                aria-label={`Ir a página ${p}`}
+                aria-current={isCurrent ? "page" : undefined}
+                type="button"
+                key={`page-${p}`}
+                onClick={() => onPageChange(p)}
+                disabled={isSearching}
+                className="pressable"
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 8,
+                  border: isCurrent ? "1px solid var(--accent)" : "1px solid rgba(255,255,255,0.06)",
+                  backgroundColor: isCurrent ? "rgba(45, 212, 191, 0.12)" : "rgba(255,255,255,0.02)",
+                  color: isCurrent ? "var(--accent)" : "rgba(255,255,255,0.75)",
+                  fontSize: 13,
+                  fontWeight: isCurrent ? "bold" : "normal",
+                  cursor: "pointer",
+                  transition: CONSTANTS.INPUT_TRANSITION,
+                }}
+              >
+                {p}
+              </button>
+            );
+          })}
+        </div>
+
+        <button
+          type="button"
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages || isSearching}
+          className="pressable"
+          style={navBtnStyle(currentPage === totalPages || isSearching)}
+          title="Página siguiente"
+        >
+          ›
+        </button>
+
+        <button
+          type="button"
+          onClick={() => onPageChange(totalPages)}
+          disabled={currentPage === totalPages || isSearching}
+          className="pressable"
+          style={navBtnStyle(currentPage === totalPages || isSearching)}
+          title="Última página"
+        >
+          »
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// ============================================================================
+// SUBCOMPONENT: SearchFilterSidebar
+// ============================================================================
+
+interface SearchFilterSidebarProps {
+  selectedSource: ModSource;
+  selectedVersion: string;
+  selectedLoader: string;
+  selectedCategory: string | null;
+  versionsList: string[];
+  activeProfile: ReturnType<typeof getActiveProfile>;
+  onSourceChange: (source: ModSource) => void;
+  onVersionChange: (version: string) => void;
+  onLoaderChange: (loader: string) => void;
+  onCategoryChange: (category: string | null) => void;
+}
+
+const SearchFilterSidebar: React.FC<SearchFilterSidebarProps> = ({
+  selectedSource,
+  selectedVersion,
+  selectedLoader,
+  selectedCategory,
+  versionsList,
+  activeProfile,
+  onSourceChange,
+  onVersionChange,
+  onLoaderChange,
+  onCategoryChange,
+}) => {
+  return (
+    <div style={{ flex: 0.9, display: "flex", flexDirection: "column", gap: 20 }}>
+      <div style={{ textAlign: "left" }}>
+        <span className="section-label">Plataforma de Búsqueda</span>
+        <div style={{
+          display: "flex",
+          gap: 6,
+          marginTop: 6,
+          backgroundColor: CONSTANTS.DARK_BG_COLOR,
+          padding: 4,
+          borderRadius: 12,
+          border: "1.5px solid var(--border-low)",
+        }}>
+          <button
+            aria-label="Buscar en Modrinth"
+            aria-pressed={selectedSource === CONSTANTS.SOURCE_MODRINTH}
+            type="button"
+            onClick={() => onSourceChange(CONSTANTS.SOURCE_MODRINTH)}
+            className={`chip pressable ${selectedSource === CONSTANTS.SOURCE_MODRINTH ? "active" : ""}`}
+            style={{ flex: 1, borderRadius: 8, justifyContent: "center", gap: 8 }}
+          >
+            <div style={{
+              width: 16,
+              height: 16,
+              flexShrink: 0,
+              backgroundColor: selectedSource === CONSTANTS.SOURCE_MODRINTH ? "var(--accent)" : "rgba(255,255,255,0.5)",
+              maskImage: "url(/icons/modrinth.svg)",
+              maskSize: "contain",
+              maskRepeat: "no-repeat",
+              maskPosition: "center",
+              WebkitMaskImage: "url(/icons/modrinth.svg)",
+              WebkitMaskSize: "contain",
+              WebkitMaskRepeat: "no-repeat",
+              WebkitMaskPosition: "center",
+              transition: "background-color 0.2s ease",
+            }} />
+            Modrinth
+          </button>
+          <button
+            aria-label="Buscar en CurseForge"
+            aria-pressed={selectedSource === CONSTANTS.SOURCE_CURSEFORGE}
+            type="button"
+            onClick={() => onSourceChange(CONSTANTS.SOURCE_CURSEFORGE)}
+            className={`chip pressable ${selectedSource === CONSTANTS.SOURCE_CURSEFORGE ? "active" : ""}`}
+            style={{
+              flex: 1,
+              borderRadius: 8,
+              justifyContent: "center",
+              gap: 8,
+              ...(selectedSource === CONSTANTS.SOURCE_CURSEFORGE ? {
+                backgroundColor: "rgba(249, 115, 22, 0.12)",
+                color: "#F97316",
+                borderColor: "rgba(249, 115, 22, 0.35)",
+              } : {}),
+            }}
+          >
+            <div style={{
+              width: 16,
+              height: 16,
+              flexShrink: 0,
+              backgroundColor: selectedSource === CONSTANTS.SOURCE_CURSEFORGE ? "#F97316" : "rgba(255,255,255,0.5)",
+              maskImage: "url(/icons/curseforge.svg)",
+              maskSize: "contain",
+              maskRepeat: "no-repeat",
+              maskPosition: "center",
+              WebkitMaskImage: "url(/icons/curseforge.svg)",
+              WebkitMaskSize: "contain",
+              WebkitMaskRepeat: "no-repeat",
+              WebkitMaskPosition: "center",
+              transition: "background-color 0.2s ease",
+            }} />
+            CurseForge
+          </button>
+        </div>
+      </div>
+
+      <div style={{ textAlign: "left" }}>
+        <span className="section-label">Versión de Minecraft</span>
+        <div style={{ marginTop: 6 }}>
+          <select
+            aria-label="Filtrar por versión de Minecraft"
+            value={selectedVersion}
+            onChange={(e) => onVersionChange(e.target.value)}
+          >
+            {versionsList.map((v) => (
+              <option key={v} value={v}>{v}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <div style={{ textAlign: "left" }}>
+        <span className="section-label">Cargador (Mod Loader)</span>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 8 }}>
+          {["fabric", "forge", "neoforge", "quilt"].map((loader) => (
+            <button
+              aria-label={`Filtrar por cargador ${loader}`}
+              aria-pressed={selectedLoader === loader}
+              type="button"
+              key={loader}
+              onClick={() => onLoaderChange(loader)}
+              className={`chip pressable ${selectedLoader === loader ? "active" : ""}`}
+            >
+              {loader === "neoforge" ? "NeoForge" : loader.charAt(0).toUpperCase() + loader.slice(1)}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ textAlign: "left" }}>
+        <span className="section-label">Categorías de Mods</span>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 8 }}>
+          <button
+            aria-label="Mostrar todas las categorías de mods"
+            aria-pressed={selectedCategory === null}
+            type="button"
+            onClick={() => onCategoryChange(null)}
+            className={`chip pressable ${selectedCategory === null ? "active-white" : ""}`}
+          >
+            🌟 Todos
+          </button>
+          {CATEGORIES.map((cat) => (
+            <button
+              aria-label={`Filtrar categoría ${cat.label}`}
+              aria-pressed={selectedCategory === cat.value}
+              type="button"
+              key={cat.value}
+              onClick={() => onCategoryChange(cat.value)}
+              className={`chip pressable ${selectedCategory === cat.value ? "active-white" : ""}`}
+            >
+              {cat.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div style={{
+        textAlign: "left",
+        backgroundColor: "rgba(45, 212, 191, 0.03)",
+        border: "1px solid rgba(45, 212, 191, 0.15)",
+        borderRadius: 10,
+        padding: 14,
+        fontSize: 12,
+        color: "rgba(255,255,255,0.6)",
+        lineHeight: 1.5,
+        marginTop: 10,
+      }}>
+        <span style={{ display: "block", color: "var(--accent)", fontWeight: "bold", fontSize: 11, textTransform: "uppercase", letterSpacing: 0.5 }}>
+          ⚙️ Destino de Instalación
+        </span>
+        <span>Los mods descargados se guardarán en la carpeta de juego de tu perfil actual:</span>
+        <strong style={{ display: "block", color: "#FFFFFF", marginTop: 4 }}>
+          "{activeProfile.name}" ({activeProfile.mcVersion})
+        </strong>
+      </div>
+    </div>
+  );
+};
+
+// ============================================================================
+// MAIN COMPONENT: ModManagerPage
+// ============================================================================
 
 export const ModManagerPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"installed" | "sync" | "search">("installed");
@@ -90,36 +1175,112 @@ export const ModManagerPage: React.FC = () => {
   const [modsList, setModsList] = useState<ServerModItem[]>([]);
   const [isLoadingMods, setIsLoadingMods] = useState(true);
 
-  // Installed mods (gestor)
   const [installedMods, setInstalledMods] = useState<InstalledMod[]>([]);
   const [modsRegistry, setModsRegistry] = useState<Record<string, ModRegistryEntry>>({});
   const [isLoadingInstalled, setIsLoadingInstalled] = useState(true);
   const [installedFilter, setInstalledFilter] = useState("");
   const [busyModFile, setBusyModFile] = useState<string | null>(null);
 
-  // Modrinth / CurseForge Search states
-  const [selectedSource, setSelectedSource] = useState<"modrinth" | "curseforge">("modrinth");
+  const [selectedSource, setSelectedSource] = useState<ModSource>(CONSTANTS.SOURCE_MODRINTH);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<SearchModResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [installingId, setInstallingId] = useState<string | null>(null);
-  const [installStatus, setInstallStatus] = useState<{ [id: string]: string }>({});
-  
-  // CurseForge API Key setup
-  const [cfApiKeyInput, setCfApiKeyInput] = useState(() => localStorage.getItem("crystaltides_cf_api_key_v1") || "");
+  const [installStatus, setInstallStatus] = useState<Record<string, string>>({});
+
+  const [cfApiKeyInput, setCfApiKeyInput] = useState(() => localStorage.getItem(CONSTANTS.CF_API_KEY_STORAGE) || "");
   const [hasCfApiKey, setHasCfApiKey] = useState(true);
 
-  // Search Filters
-  const [selectedVersion, setSelectedVersion] = useState("1.21.1");
-  const [selectedLoader, setSelectedLoader] = useState("neoforge");
+  const [selectedVersion, setSelectedVersion] = useState<string>(CONSTANTS.DEFAULT_MC_VERSION);
+  const [selectedLoader, setSelectedLoader] = useState<string>(CONSTANTS.DEFAULT_LOADER);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [selectedSort, setSelectedSort] = useState("relevance");
+  const [selectedSort, setSelectedSort] = useState<string>(CONSTANTS.DEFAULT_SORT);
   const [versionsList, setVersionsList] = useState<string[]>([]);
   const [totalResults, setTotalResults] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(15);
 
   const activeProfile = getActiveProfile();
+
+  const loadInstalled = useCallback(async () => {
+    setIsLoadingInstalled(true);
+    try {
+      const dir = await resolveGameDir();
+      if (!dir) throw new Error("No se pudo resolver el directorio de juego.");
+      const [mods, registry] = await Promise.all([listInstalledMods(dir), getModsRegistry(dir)]);
+      setInstalledMods(mods);
+      setModsRegistry(registry);
+    } catch (e: unknown) {
+      console.error("Error cargando mods instalados:", e);
+      setInstalledMods([]);
+    } finally {
+      setIsLoadingInstalled(false);
+    }
+  }, []);
+
+  const loadSearchFilters = useCallback(async () => {
+    try {
+      const versions = await fetchVanillaVersions();
+      setVersionsList(versions);
+      if (activeProfile) {
+        setSelectedVersion(activeProfile.mcVersion || CONSTANTS.DEFAULT_MC_VERSION);
+        setSelectedLoader(activeProfile.loaderType || CONSTANTS.DEFAULT_LOADER);
+      }
+    } catch (err: unknown) {
+      console.error(err);
+    }
+  }, [activeProfile]);
+
+  const performSearch = useCallback(
+    async (page: number, size: number) => {
+      if (selectedSource === CONSTANTS.SOURCE_CURSEFORGE && !hasCfApiKey) {
+        setSearchResults([]);
+        setTotalResults(0);
+        return;
+      }
+
+      setIsSearching(true);
+      const currentOffset = (page - 1) * size;
+
+      try {
+        const res =
+          selectedSource === CONSTANTS.SOURCE_CURSEFORGE
+            ? await searchCurseForge(
+                searchQuery,
+                selectedVersion,
+                selectedLoader,
+                currentOffset,
+                size,
+                selectedCategory || undefined,
+                selectedSort
+              )
+            : await searchModrinth(
+                searchQuery,
+                selectedVersion,
+                selectedLoader,
+                currentOffset,
+                size,
+                selectedCategory || undefined,
+                selectedSort
+              );
+
+        setSearchResults(res.hits || []);
+        setTotalResults(res.total || 0);
+      } catch (err: unknown) {
+        console.error(err);
+        setSearchResults([]);
+        setTotalResults(0);
+      } finally {
+        setIsSearching(false);
+      }
+    },
+    [selectedSource, hasCfApiKey, searchQuery, selectedVersion, selectedLoader, selectedCategory, selectedSort]
+  );
+
+  const triggerFreshSearch = useCallback(async () => {
+    setCurrentPage(1);
+    await performSearch(1, pageSize);
+  }, [performSearch, pageSize]);
 
   useEffect(() => {
     let ignore = false;
@@ -128,7 +1289,7 @@ export const ModManagerPage: React.FC = () => {
       try {
         const mods = await fetchOfficialModsList();
         if (!ignore) setModsList(mods);
-      } catch (e) {
+      } catch (e: unknown) {
         console.error(e);
       } finally {
         if (!ignore) setIsLoadingMods(false);
@@ -137,11 +1298,11 @@ export const ModManagerPage: React.FC = () => {
     runLoad();
     loadSearchFilters();
     loadInstalled();
-    return () => { ignore = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    return () => {
+      ignore = true;
+    };
+  }, [loadSearchFilters, loadInstalled]);
 
-  // Whenever filters change, trigger a fresh search
   useEffect(() => {
     let ignore = false;
     if (activeTab === "search") {
@@ -150,85 +1311,21 @@ export const ModManagerPage: React.FC = () => {
         await performSearch(1, pageSize);
       })();
     }
-    return () => { ignore = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedVersion, selectedLoader, selectedCategory, selectedSort, selectedSource, pageSize]);
-
-  const loadSearchFilters = async () => {
-    try {
-      const versions = await fetchVanillaVersions();
-      setVersionsList(versions);
-      // Auto-set filters based on active profile
-      if (activeProfile) {
-        setSelectedVersion(activeProfile.mcVersion || "1.21.1");
-        setSelectedLoader(activeProfile.loaderType || "neoforge");
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
+    return () => {
+      ignore = true;
+    };
+  }, [activeTab, selectedVersion, selectedLoader, selectedCategory, selectedSort, selectedSource, pageSize, performSearch]);
 
   const saveCfApiKey = () => {
     if (cfApiKeyInput.trim()) {
-      // react-doctor-ignore-next-line auth-token-in-web-storage -- Verified FP: CurseForge public API key for mod search, not user auth token
-      localStorage.setItem("crystaltides_cf_api_key_v1", cfApiKeyInput.trim());
+      localStorage.setItem(CONSTANTS.CF_API_KEY_STORAGE, cfApiKeyInput.trim());
       setHasCfApiKey(true);
       alert("Clave API de CurseForge guardada correctamente.");
       triggerFreshSearch();
     } else {
-      localStorage.removeItem("crystaltides_cf_api_key_v1");
+      localStorage.removeItem(CONSTANTS.CF_API_KEY_STORAGE);
       setHasCfApiKey(true);
       alert("Clave API de CurseForge de respaldo reactivada.");
-    }
-  };
-
-  const triggerFreshSearch = async () => {
-    setCurrentPage(1);
-    await performSearch(1, pageSize);
-  };
-
-  const performSearch = async (page: number, size: number) => {
-    if (selectedSource === "curseforge" && !hasCfApiKey) {
-      setSearchResults([]);
-      setTotalResults(0);
-      return;
-    }
-
-    setIsSearching(true);
-    const currentOffset = (page - 1) * size;
-
-    try {
-      let res;
-      if (selectedSource === "curseforge") {
-        res = await searchCurseForge(
-          searchQuery,
-          selectedVersion,
-          selectedLoader,
-          currentOffset,
-          size,
-          selectedCategory || undefined,
-          selectedSort
-        );
-      } else {
-        res = await searchModrinth(
-          searchQuery,
-          selectedVersion,
-          selectedLoader,
-          currentOffset,
-          size,
-          selectedCategory || undefined,
-          selectedSort
-        );
-      }
-      
-      setSearchResults(res.hits || []);
-      setTotalResults(res.total || 0);
-    } catch (err) {
-      console.error(err);
-      setSearchResults([]);
-      setTotalResults(0);
-    } finally {
-      setIsSearching(false);
     }
   };
 
@@ -242,8 +1339,6 @@ export const ModManagerPage: React.FC = () => {
     if (newPage < 1 || newPage > totalPages || isSearching) return;
     setCurrentPage(newPage);
     await performSearch(newPage, pageSize);
-    
-    // Scroll page content to top
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -283,13 +1378,11 @@ export const ModManagerPage: React.FC = () => {
       const homeDir: string | null = await invoke("get_home_dir").catch(() => null);
       const resolvedGameDir = resolveProfileGameDir(activeProfile, homeDir || undefined);
 
-      let fileName = "";
-      if (selectedSource === "curseforge") {
-        fileName = await installModFromCurseForge(resolvedGameDir, mod.id, selectedVersion);
-      } else {
-        fileName = await installModFromModrinth(resolvedGameDir, mod.id, selectedVersion);
-      }
-      // Guardar metadata para mostrar icono/título en la pestaña Instalados
+      const fileName =
+        selectedSource === CONSTANTS.SOURCE_CURSEFORGE
+          ? await installModFromCurseForge(resolvedGameDir, mod.id, selectedVersion)
+          : await installModFromModrinth(resolvedGameDir, mod.id, selectedVersion);
+
       await registerInstalledMod(resolvedGameDir, fileName, {
         title: mod.title,
         iconUrl: mod.icon_url,
@@ -299,30 +1392,10 @@ export const ModManagerPage: React.FC = () => {
       setInstallStatus((prev) => ({ ...prev, [mod.id]: `✅ ${fileName}` }));
     } catch (err: unknown) {
       console.error(err);
-      setInstallStatus((prev) => ({ ...prev, [mod.id]: `❌ Falló` }));
+      setInstallStatus((prev) => ({ ...prev, [mod.id]: "❌ Falló" }));
     } finally {
       setInstallingId(null);
     }
-  };
-
-  /* ── Gestor de mods instalados ── */
-
-  const loadInstalled = async () => {
-    setIsLoadingInstalled(true);
-    try {
-      const dir = await resolveGameDir();
-      if (!dir) throw new Error("No se pudo resolver el directorio de juego.");
-      const [mods, registry] = await Promise.all([
-        listInstalledMods(dir),
-        getModsRegistry(dir),
-      ]);
-      setInstalledMods(mods);
-      setModsRegistry(registry);
-    } catch (e) {
-      console.error("Error cargando mods instalados:", e);
-      setInstalledMods([]);
-    }
-    setIsLoadingInstalled(false);
   };
 
   const handleToggleMod = async (mod: InstalledMod) => {
@@ -335,8 +1408,9 @@ export const ModManagerPage: React.FC = () => {
       await loadInstalled();
     } catch (e: unknown) {
       alert(`No se pudo cambiar el estado del mod: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+      setBusyModFile(null);
     }
-    setBusyModFile(null);
   };
 
   const handleDeleteMod = async (mod: InstalledMod) => {
@@ -351,15 +1425,16 @@ export const ModManagerPage: React.FC = () => {
       await loadInstalled();
     } catch (e: unknown) {
       alert(`No se pudo eliminar el mod: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+      setBusyModFile(null);
     }
-    setBusyModFile(null);
   };
 
   const handleOpenModsFolder = useCallback(async () => {
     try {
       const dir = await resolveGameDir();
       if (!dir) throw new Error("No se pudo resolver el directorio de juego.");
-      const modsPath = `${dir.replaceAll('\\', "/")}/mods`;
+      const modsPath = `${dir.replaceAll("\\", "/")}/mods`;
       try {
         await openPath(modsPath);
       } catch {
@@ -372,12 +1447,8 @@ export const ModManagerPage: React.FC = () => {
 
   return (
     <div style={{ padding: "24px 32px", display: "flex", flexDirection: "column", height: "100%", boxSizing: "border-box", overflowY: "auto" }}>
-      <CrystalPageHeader
-        eyebrow="Biblioteca"
-        title="Gestión de Mods"
-      />
+      <CrystalPageHeader eyebrow="Biblioteca" title="Gestión de Mods" />
 
-      {/* Top Navigation Tabs */}
       <div role="tablist" aria-label="Secciones del administrador de mods" style={{
         display: "flex",
         gap: 8,
@@ -425,502 +1496,52 @@ export const ModManagerPage: React.FC = () => {
         </button>
       </div>
 
-      {activeTab === "installed" ? (
+      {activeTab === "installed" && (
+        <InstalledModsTab
+          installedMods={installedMods}
+          modsRegistry={modsRegistry}
+          isLoading={isLoadingInstalled}
+          filter={installedFilter}
+          busyModFile={busyModFile}
+          activeProfile={activeProfile}
+          onFilterChange={setInstalledFilter}
+          onRefresh={loadInstalled}
+          onOpenFolder={handleOpenModsFolder}
+          onToggleMod={handleToggleMod}
+          onDeleteMod={handleDeleteMod}
+        />
+      )}
+
+      {activeTab === "sync" && (
+        <SyncOfficialModsTab
+          isSyncing={isSyncing}
+          syncStatus={syncStatus}
+          syncProgress={syncProgress}
+          syncError={syncError}
+          modsList={modsList}
+          isLoadingMods={isLoadingMods}
+          activeProfileName={activeProfile.name}
+          onSync={handleSync}
+        />
+      )}
+
+      {activeTab === "search" && (
         <div style={{ display: "flex", gap: 24, alignItems: "stretch" }}>
-          {/* Left Column: Installed Mods List */}
           <div style={{ flex: 2, display: "flex", flexDirection: "column", gap: 16 }}>
-            {/* Search Input and action buttons */}
-            <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-              <div style={{
-                flex: 1,
-                display: "flex",
-                alignItems: "center",
-                borderRadius: 12,
-                border: "1.5px solid var(--border-low)",
-                backgroundColor: "rgba(0, 0, 0, 0.25)",
-                padding: "4px 14px",
-                height: 44,
-                boxSizing: "border-box",
-                transition: "color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease",
-              }}
-                onFocusCapture={(e) => {
-                  e.currentTarget.style.borderColor = "rgba(45, 212, 191, 0.5)";
-                  e.currentTarget.style.boxShadow = "0 0 0 3px rgba(45, 212, 191, 0.08)";
-                }}
-                onBlurCapture={(e) => {
-                  e.currentTarget.style.borderColor = "var(--border-low)";
-                  e.currentTarget.style.boxShadow = "none";
-                }}
-              >
-                <span style={{ color: "rgba(255,255,255,0.25)", fontSize: 16, marginRight: 10 }}>🔍</span>
-                <input aria-label="Filtrar mods instalados por nombre"
-                  type="text"
-                  placeholder="Buscar en tus mods instalados..."
-                  value={installedFilter}
-                  onChange={(e) => setInstalledFilter(e.target.value)}
-                  style={{
-                    flex: 1,
-                    background: "none",
-                    border: "none",
-                    color: "#FFFFFF",
-                    fontSize: 13,
-                    outline: "none",
-                    padding: 0,
-                    width: "100%",
-                  }}
-                />
-              </div>
-
-              <button aria-label="Abrir carpeta de mods local" type="button"
-                onClick={handleOpenModsFolder}
-                className="btn btn-secondary pressable"
-                style={{ height: 44, display: "flex", alignItems: "center", gap: 8, padding: "0 16px" }}
-              >
-                📂 Carpeta Mods
-              </button>
-
-              <button aria-label="Recargar lista de mods instalados" type="button"
-                onClick={loadInstalled}
-                className="btn btn-secondary pressable"
-                style={{ height: 44, width: 44, padding: 0, display: "flex", alignItems: "center", justifyContent: "center" }}
-              >
-                🔄
-              </button>
-            </div>
-
-            {/* List */}
-            <div style={{ display: "flex", flexDirection: "column", borderTop: "1.5px solid rgba(255,255,255,0.03)", marginTop: 8 }}>
-              {isLoadingInstalled ? (
-                <div style={{ padding: "80px 0", color: "rgba(255,255,255,0.4)", fontSize: 13 }}>
-                  Cargando mods instalados...
-                </div>
-              ) : installedMods.length === 0 ? (
-                <div style={{ padding: "80px 0", color: "rgba(255,255,255,0.4)", fontSize: 13 }}>
-                  No hay mods instalados en este perfil. Usa el buscador o sincroniza los oficiales para añadir mods.
-                </div>
-              ) : (() => {
-                const filtered = installedMods.filter(m => {
-                  const reg = modsRegistry[m.filename] || modsRegistry[m.filename.replace(/\.disabled$/, "")] || {};
-                  const title = reg.title || prettyModName(m.filename);
-                  return title.toLowerCase().includes(installedFilter.toLowerCase()) ||
-                    m.filename.toLowerCase().includes(installedFilter.toLowerCase());
-                });
-
-                if (filtered.length === 0) {
-                  return (
-                    <div style={{ padding: "80px 0", color: "rgba(255,255,255,0.4)", fontSize: 13 }}>
-                      No se encontraron mods que coincidan con la búsqueda.
-                    </div>
-                  );
-                }
-
-                return filtered.map((mod) => {
-                  const reg = modsRegistry[mod.filename] || modsRegistry[mod.filename.replace(/\.disabled$/, "")] || {};
-                  const title = reg.title || prettyModName(mod.filename);
-                  const isBusy = busyModFile === mod.filename;
-
-                  const f = mod.filename.toLowerCase();
-                  const t = title.toLowerCase();
-
-                  const catalogMatch = MOCK_SEARCH_MODS.find((m: SearchModResult) => {
-                    const id = m.id.toLowerCase();
-                    const mTitle = m.title.toLowerCase();
-                    return f.includes(id) || t.includes(id) || mTitle.includes(t) || t.includes(mTitle);
-                  });
-
-                  const resolvedIconUrl = reg.iconUrl || catalogMatch?.icon_url || catalogMatch?.iconUrl || (
-                    f.includes("sodium") || t.includes("sodium") ? "https://raw.githubusercontent.com/CaffeineMC/sodium-fabric/1.20.x/dev/logo.png" :
-                    f.includes("iris") || t.includes("iris") ? "https://raw.githubusercontent.com/IrisShaders/Iris/main/logo.png" :
-                    f.includes("voicechat") || t.includes("voice") ? "https://raw.githubusercontent.com/henkelmax/simple-voice-chat/main/logo.png" :
-                    f.includes("ferrite") || t.includes("ferrite") ? "https://raw.githubusercontent.com/malte0811/FerriteCore/1.20/logo.png" :
-                    null
-                  );
-
-                  const initials = title
-                    .replace(/^[0-9.]+\s*/, "")
-                    .replace(/\.jar(\.disabled)?$/i, "")
-                    .split(/[\s-_+.]+/)
-                    .filter(Boolean)
-                    .slice(0, 2)
-                    .map((w) => w[0].toUpperCase())
-                    .join("") || "MD";
-
-                  return (
-                    <div key={mod.filename} className="reveal-up" style={{
-                      display: "flex",
-                      alignItems: "center",
-                      padding: "14px 8px",
-                      borderBottom: "1px solid rgba(255,255,255,0.04)",
-                      textAlign: "left",
-                      gap: 16,
-                      opacity: mod.enabled ? 1 : 0.5,
-                      transition: "opacity 0.2s ease",
-                    }}>
-                      {/* Icon */}
-                      <div style={{
-                        width: 44,
-                        height: 44,
-                        borderRadius: 12,
-                        overflow: "hidden",
-                        background: resolvedIconUrl ? "rgba(0,0,0,0.3)" : "linear-gradient(135deg, rgba(15,118,110,0.4) 0%, rgba(45,212,191,0.15) 100%)",
-                        border: "1px solid rgba(45, 212, 191, 0.25)",
-                        boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        flexShrink: 0,
-                        color: "#2DD4BF",
-                        fontWeight: 900,
-                        fontSize: 13,
-                        letterSpacing: "0.05em",
-                      }}>
-                        {resolvedIconUrl ? (
-                          <img
-                            src={resolvedIconUrl}
-                            alt={title}
-                            style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                            onError={(e) => {
-                              e.currentTarget.style.display = "none";
-                              if (e.currentTarget.parentElement) {
-                                e.currentTarget.parentElement.innerText = initials;
-                              }
-                            }}
-                          />
-                        ) : (
-                          <span>{initials}</span>
-                        )}
-                      </div>
-
-                      {/* Info */}
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                          <span style={{ fontSize: 14, fontWeight: "bold", color: "#FFFFFF" }}>{title}</span>
-                          {mod.official && (
-                            <span style={{
-                              fontSize: 10,
-                              padding: "2px 6px",
-                              borderRadius: 4,
-                              backgroundColor: "rgba(45, 212, 191, 0.1)",
-                              color: "var(--accent)",
-                              fontWeight: "bold",
-                            }}>
-                              Oficial
-                            </span>
-                          )}
-                          {reg.source && (
-                            <span style={{
-                              fontSize: 10,
-                              padding: "2px 6px",
-                              borderRadius: 4,
-                              backgroundColor: reg.source === "curseforge" ? "rgba(249, 115, 22, 0.1)" : "rgba(34, 197, 94, 0.1)",
-                              color: reg.source === "curseforge" ? "#F97316" : "#22C55E",
-                              textTransform: "capitalize",
-                              fontWeight: "bold",
-                            }}>
-                              {reg.source}
-                            </span>
-                          )}
-                          {!mod.official && !reg.source && (
-                            <span style={{
-                              fontSize: 10,
-                              padding: "2px 6px",
-                              borderRadius: 4,
-                              backgroundColor: "rgba(255, 255, 255, 0.05)",
-                              color: "rgba(255, 255, 255, 0.5)",
-                              fontWeight: "bold",
-                            }}>
-                              Manual
-                            </span>
-                          )}
-                        </div>
-                        <div style={{ fontSize: 11, color: "rgba(255, 255, 255, 0.35)", marginTop: 2, display: "flex", gap: 8 }}>
-                          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 400 }}>{mod.filename}</span>
-                          <span>•</span>
-                          <span>{formatModSize(mod.sizeBytes)}</span>
-                        </div>
-                      </div>
-
-                      {/* Controls */}
-                      <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                        {/* Switch */}
-                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                          <span style={{ fontSize: 11, color: mod.enabled ? "var(--accent)" : "rgba(255,255,255,0.3)" }}>
-                            {mod.enabled ? "Activo" : "Inactivo"}
-                          </span>
-                          <input
-                            aria-label={`Activar o desactivar mod ${title || mod.filename}`}
-                            type="checkbox"
-                            checked={mod.enabled}
-                            disabled={mod.official || isBusy}
-                            onChange={() => handleToggleMod(mod)}
-                            style={{
-                              width: 32,
-                              height: 18,
-                              appearance: "none",
-                              backgroundColor: mod.enabled ? "rgba(45, 212, 191, 0.3)" : "rgba(255, 255, 255, 0.1)",
-                              border: `1px solid ${mod.enabled ? "var(--accent)" : "rgba(255, 255, 255, 0.2)"}`,
-                              borderRadius: 9,
-                              position: "relative",
-                              cursor: mod.official ? "not-allowed" : "pointer",
-                              outline: "none",
-                              transition: "color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease",
-                            }}
-                            className="mod-toggle-switch"
-                          />
-                        </div>
-
-                        {/* Delete button */}
-                        <button type="button"
-                          onClick={() => handleDeleteMod(mod)}
-                          disabled={mod.official || isBusy}
-                          style={{
-                            background: "none",
-                            border: "none",
-                            cursor: mod.official ? "not-allowed" : "pointer",
-                            opacity: mod.official ? 0.2 : 0.6,
-                            padding: 6,
-                            color: "var(--danger)",
-                            fontSize: 16,
-                            transition: "color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease",
-                          }}
-                          className={mod.official ? "" : "pressable"}
-                          title={mod.official ? "Los mods oficiales no se pueden eliminar" : "Eliminar mod"}
-                        >
-                          🗑️
-                        </button>
-                      </div>
-                    </div>
-                  );
-                });
-              })()}
-            </div>
-          </div>
-
-          {/* Right Column: Sidebar Stats & Help */}
-          <div style={{ flex: 0.9, display: "flex", flexDirection: "column", gap: 20 }}>
-            {/* Profile Info card */}
-            <div style={{
-              textAlign: "left",
-              backgroundColor: "rgba(255, 255, 255, 0.02)",
-              border: "1px solid var(--border-low)",
-              borderRadius: 12,
-              padding: 20,
-            }}>
-              <span className="section-label">Perfil Activo</span>
-              <h3 style={{ margin: "4px 0 0 0", color: "#FFFFFF", fontSize: 18, fontWeight: "bold" }}>
-                {activeProfile ? activeProfile.name : "Ninguno"}
-              </h3>
-              
-              <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 16, fontSize: 13, color: "rgba(255,255,255,0.6)" }}>
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span>Versión MC:</span>
-                  <span style={{ color: "#FFFFFF", fontWeight: "bold" }}>{activeProfile ? activeProfile.mcVersion : "-"}</span>
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span>Cargador:</span>
-                  <span style={{ color: "#FFFFFF", fontWeight: "bold", textTransform: "capitalize" }}>{activeProfile ? activeProfile.loaderType : "-"}</span>
-                </div>
-                <div style={{ height: "1px", backgroundColor: "rgba(255,255,255,0.06)", margin: "4px 0" }} />
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span>Mods Instalados:</span>
-                  <span style={{ color: "var(--accent)", fontWeight: "bold" }}>{installedMods.length}</span>
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span>Activos:</span>
-                  <span style={{ color: "var(--success)", fontWeight: "bold" }}>{installedMods.filter(m => m.enabled).length}</span>
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span>Inactivos:</span>
-                  <span style={{ color: "rgba(255,255,255,0.4)", fontWeight: "bold" }}>{installedMods.filter(m => !m.enabled).length}</span>
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span>Oficiales:</span>
-                  <span style={{ color: "#38BDF8", fontWeight: "bold" }}>{installedMods.filter(m => m.official).length}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Help / Tips */}
-            <div style={{
-              textAlign: "left",
-              backgroundColor: "rgba(45, 212, 191, 0.03)",
-              border: "1px solid rgba(45, 212, 191, 0.15)",
-              borderRadius: 12,
-              padding: 20,
-              fontSize: 12,
-              color: "rgba(255,255,255,0.55)",
-              lineHeight: 1.6,
-            }}>
-              <span style={{ display: "block", color: "var(--accent)", fontWeight: "bold", fontSize: 11, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 8 }}>
-                💡 Consejos de Uso
-              </span>
-              <ul style={{ margin: 0, paddingLeft: 16 }}>
-                <li style={{ marginBottom: 6 }}>Puedes activar o desactivar mods individuales para hacer pruebas de rendimiento o compatibilidad sin borrarlos.</li>
-                <li style={{ marginBottom: 6 }}>Los mods oficiales del servidor están bloqueados para garantizar que puedas conectarte al SMP sin problemas.</li>
-                <li>Si descargas un mod manualmente (`.jar`), puedes colocarlo directamente haciendo click en **Carpeta Mods**.</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      ) : activeTab === "sync" ? (
-        <div style={{ display: "flex", gap: 24, alignItems: "stretch" }}>
-          {/* Left Column: Sync Controls + Info */}
-          <div style={{ flex: 1.2, display: "flex", flexDirection: "column", gap: 20 }}>
-            <CrystalCard style={{ padding: 24 }} enableHoverEffect={false}>
-              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <span style={{ fontSize: 24 }}>📦</span>
-                  <div style={{ flex: 1, textAlign: "left" }}>
-                    <h3 style={{ margin: 0, fontSize: 16, fontWeight: "bold", color: "#FFFFFF" }}>
-                      Sincronización de Mods Oficiales
-                    </h3>
-                    <p style={{ margin: "4px 0 0 0", fontSize: 13, color: "rgba(255,255,255,0.5)", lineHeight: 1.5 }}>
-                      Sincroniza los mods requeridos por CrystalTides SMP en el perfil activo: <strong>{activeProfile.name}</strong>.
-                      Usa enlaces físicos (hardlinks) para evitar duplicar archivos y ahorrar espacio.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Progress bar */}
-                {syncStatus && (
-                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "var(--accent)" }}>
-                      <span>{syncStatus}</span>
-                      <span>{Math.round(syncProgress * 100)}%</span>
-                    </div>
-                    <div style={{ width: "100%", height: 5, borderRadius: 3, backgroundColor: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
-                      <div style={{
-                        width: `${syncProgress * 100}%`,
-                        height: "100%",
-                        backgroundColor: "var(--accent)",
-                        boxShadow: "0 0 8px var(--accent)",
-                        transition: "width 200ms ease",
-                      }} />
-                    </div>
-                  </div>
-                )}
-
-                {syncError && (
-                  <div style={{
-                    backgroundColor: "rgba(239, 68, 68, 0.1)",
-                    border: "1px solid var(--danger)",
-                    borderRadius: 8,
-                    padding: "10px 12px",
-                    color: "#FFBABA",
-                    fontSize: 13,
-                    textAlign: "left",
-                  }}>
-                    ⚠️ {syncError}
-                  </div>
-                )}
-
-                <button
-                  aria-label="Sincronizar mods con el servidor"
-                  aria-busy={isSyncing}
-                  type="button"
-                  onClick={handleSync}
-                  disabled={isSyncing}
-                  className="btn btn-primary btn-md pressable"
-                  style={{ width: "100%" }}
-                >
-                  {isSyncing ? "Sincronizando..." : "Sincronizar Mods"}
-                </button>
-              </div>
-            </CrystalCard>
-
-            <CrystalCard style={{ padding: 20 }} enableHoverEffect={false}>
-              <div style={{ textAlign: "left" }}>
-                <h4 style={{ margin: "0 0 8px 0", fontSize: 14, fontWeight: "bold", color: "#FFFFFF" }}>
-                  ¿Cómo funciona la biblioteca virtual?
-                </h4>
-                <ul style={{ margin: 0, padding: "0 0 0 20px", fontSize: 13, color: "rgba(255,255,255,0.6)", lineHeight: 1.7 }}>
-                  <li>Los archivos jar se bajan directamente desde el CDN seguro del servidor.</li>
-                  <li>Se almacenan de forma indexada en <code>~/.crystaltides/virtual_library</code>.</li>
-                  <li>Se vinculan a la carpeta del juego sin crear copias repetidas en tu disco duro.</li>
-                  <li>Se verifica el hash SHA-1 de cada mod en cada inicio para autodetectar actualizaciones.</li>
-                </ul>
-              </div>
-            </CrystalCard>
-          </div>
-
-          {/* Right Column: List of Server Mods */}
-          <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-            <CrystalCard style={{ padding: 24, flex: 1, display: "flex", flexDirection: "column", minHeight: 400 }} enableHoverEffect={false}>
-              <h3 style={{ margin: "0 0 16px 0", fontSize: 16, fontWeight: "bold", color: "#FFFFFF", textAlign: "left" }}>
-                📚 Mods del Servidor ({modsList.length})
-              </h3>
-              <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: 12, paddingRight: 4, maxHeight: 340 }}>
-                {isLoadingMods ? (
-                  <div style={{ color: "rgba(255,255,255,0.45)", fontSize: 13, padding: "40px 0" }}>Cargando lista de mods...</div>
-                ) : modsList.length === 0 ? (
-                  <div style={{ color: "rgba(255,255,255,0.45)", fontSize: 13, padding: "40px 0" }}>No hay mods registrados.</div>
-                ) : (
-                  modsList.map((mod) => (
-                    <div key={mod.sha1} style={{
-                      padding: 12,
-                      borderRadius: 10,
-                      border: "1px solid var(--border-low)",
-                      backgroundColor: "rgba(255, 255, 255, 0.01)",
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 6,
-                      textAlign: "left",
-                    }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <span style={{
-                          fontSize: 13,
-                          fontWeight: 600,
-                          color: "#FFFFFF",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                          maxWidth: "70%",
-                        }} title={mod.name}>
-                          {mod.name.replace(/\.jar$/, "")}
-                        </span>
-                        <span style={{
-                          padding: "2px 8px",
-                          borderRadius: 6,
-                          backgroundColor: getCategoryColor(mod.category),
-                          color: getCategoryTextColor(mod.category),
-                          fontSize: 10,
-                          fontWeight: 600,
-                        }}>
-                          {mod.category || "General"}
-                        </span>
-                      </div>
-                      {mod.description && (
-                        <span style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", lineHeight: 1.4 }}>
-                          {mod.description}
-                        </span>
-                      )}
-                    </div>
-                  ))
-                )}
-              </div>
-            </CrystalCard>
-          </div>
-        </div>
-      ) : (
-        /* Redesigned Search Tab with advanced modern inputs and layout */
-        <div style={{ display: "flex", gap: 24, alignItems: "stretch" }}>
-          
-          {/* Left Column: Search Results */}
-          <div style={{ flex: 2, display: "flex", flexDirection: "column", gap: 16 }}>
-            {/* Search Input and Sort control */}
             <form onSubmit={handleSearchSubmit} style={{ display: "flex", gap: 12, alignItems: "center" }}>
-              <div style={{
-                flex: 1,
-                display: "flex",
-                alignItems: "center",
-                borderRadius: 12,
-                border: "1.5px solid var(--border-low)",
-                backgroundColor: "rgba(0, 0, 0, 0.25)",
-                padding: "4px 14px",
-                height: 44,
-                boxSizing: "border-box",
-                transition: "color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease",
-              }}
+              <div
+                style={{
+                  flex: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  borderRadius: 12,
+                  border: "1.5px solid var(--border-low)",
+                  backgroundColor: CONSTANTS.DARK_BG_COLOR,
+                  padding: "4px 14px",
+                  height: 44,
+                  boxSizing: "border-box",
+                  transition: CONSTANTS.INPUT_TRANSITION,
+                }}
                 onFocusCapture={(e) => {
                   e.currentTarget.style.borderColor = "rgba(45, 212, 191, 0.5)";
                   e.currentTarget.style.boxShadow = "0 0 0 3px rgba(45, 212, 191, 0.08)";
@@ -930,11 +1551,13 @@ export const ModManagerPage: React.FC = () => {
                   e.currentTarget.style.boxShadow = "none";
                 }}
               >
-                <span style={{ color: "rgba(255,255,255,0.25)", fontSize: 16, marginRight: 10 }} aria-hidden="true">🔍</span>
+                <span style={{ color: "rgba(255,255,255,0.25)", fontSize: 16, marginRight: 10 }} aria-hidden="true">
+                  🔍
+                </span>
                 <input
-                  aria-label={`Buscar mods en ${selectedSource === "curseforge" ? "CurseForge" : "Modrinth"}`}
+                  aria-label={`Buscar mods en ${selectedSource === CONSTANTS.SOURCE_CURSEFORGE ? "CurseForge" : "Modrinth"}`}
                   type="text"
-                  placeholder={`Buscar mods en ${selectedSource === "curseforge" ? "CurseForge" : "Modrinth"}...`}
+                  placeholder={`Buscar mods en ${selectedSource === CONSTANTS.SOURCE_CURSEFORGE ? "CurseForge" : "Modrinth"}...`}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   style={{
@@ -949,13 +1572,12 @@ export const ModManagerPage: React.FC = () => {
                   }}
                 />
               </div>
-              
-              {/* Custom Sort selector */}
+
               <div style={{
                 display: "flex",
                 alignItems: "center",
                 gap: 8,
-                backgroundColor: "rgba(0, 0, 0, 0.25)",
+                backgroundColor: CONSTANTS.DARK_BG_COLOR,
                 border: "1.5px solid var(--border-low)",
                 borderRadius: 12,
                 padding: "0 14px",
@@ -963,7 +1585,7 @@ export const ModManagerPage: React.FC = () => {
                 boxSizing: "border-box",
               }}>
                 <span style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", whiteSpace: "nowrap" }}>Ordenar por:</span>
-                <select 
+                <select
                   aria-label="Ordenar mods por criterio"
                   value={selectedSort}
                   onChange={(e) => setSelectedSort(e.target.value)}
@@ -989,12 +1611,11 @@ export const ModManagerPage: React.FC = () => {
                 </select>
               </div>
 
-              {/* Custom Page Size selector */}
               <div style={{
                 display: "flex",
                 alignItems: "center",
                 gap: 8,
-                backgroundColor: "rgba(0, 0, 0, 0.25)",
+                backgroundColor: CONSTANTS.DARK_BG_COLOR,
                 border: "1.5px solid var(--border-low)",
                 borderRadius: 12,
                 padding: "0 14px",
@@ -1002,7 +1623,7 @@ export const ModManagerPage: React.FC = () => {
                 boxSizing: "border-box",
               }}>
                 <span style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", whiteSpace: "nowrap" }}>Cantidad:</span>
-                <select 
+                <select
                   aria-label="Cantidad de mods por página"
                   value={pageSize}
                   onChange={(e) => setPageSize(Number(e.target.value))}
@@ -1039,8 +1660,7 @@ export const ModManagerPage: React.FC = () => {
               </button>
             </form>
 
-            {/* CurseForge API Key configuration warning banner */}
-            {selectedSource === "curseforge" && !hasCfApiKey && (
+            {selectedSource === CONSTANTS.SOURCE_CURSEFORGE && !hasCfApiKey && (
               <CrystalCard style={{ padding: "16px 20px", border: "1px solid var(--danger)", backgroundColor: "rgba(239, 68, 68, 0.05)", textAlign: "left" }} enableHoverEffect={false}>
                 <h4 style={{ margin: 0, color: "#FF8A8A", fontSize: 14, fontWeight: "bold" }}>⚠️ Requiere CurseForge API Key</h4>
                 <p style={{ margin: "4px 0 12px 0", fontSize: 12, color: "rgba(255,255,255,0.6)", lineHeight: 1.4 }}>
@@ -1069,12 +1689,7 @@ export const ModManagerPage: React.FC = () => {
                     type="button"
                     onClick={saveCfApiKey}
                     className="btn btn-primary pressable"
-                    style={{
-                      borderRadius: 8,
-                      padding: "0 20px",
-                      fontSize: 12,
-                      height: 38,
-                    }}
+                    style={{ borderRadius: 8, padding: "0 20px", fontSize: 12, height: 38 }}
                   >
                     Guardar
                   </button>
@@ -1082,7 +1697,6 @@ export const ModManagerPage: React.FC = () => {
               </CrystalCard>
             )}
 
-            {/* Results list */}
             <div style={{
               display: "flex",
               flexDirection: "column",
@@ -1090,467 +1704,51 @@ export const ModManagerPage: React.FC = () => {
               marginTop: 8,
             }}>
               {searchResults.length === 0 && !isSearching ? (
-                <div style={{ padding: "80px 0", color: "rgba(255,255,255,0.4)", fontSize: 13 }}>
-                  {selectedSource === "curseforge" && !hasCfApiKey
+                <div style={{ padding: "80px 0", color: CONSTANTS.MUTED_WHITE_COLOR, fontSize: 13 }}>
+                  {selectedSource === CONSTANTS.SOURCE_CURSEFORGE && !hasCfApiKey
                     ? "Ingrese su clave API de CurseForge arriba para habilitar la búsqueda."
                     : "No se encontraron resultados. Intenta ajustar los filtros de búsqueda o ingresa otras palabras clave."}
                 </div>
               ) : (
                 <>
-                  {searchResults.map((result) => {
-                    const status = installStatus[result.id];
-                    const isInstalling = installingId === result.id;
-                    const cats = (result.categories || [])
-                      .filter((c) => c !== selectedLoader && c !== "minecraft")
-                      .slice(0, 2);
+                  {searchResults.map((result, idx) => (
+                    <SearchModCard
+                      key={result.id}
+                      result={result}
+                      index={idx}
+                      status={installStatus[result.id]}
+                      isInstalling={installingId === result.id}
+                      selectedLoader={selectedLoader}
+                      onInstall={handleInstallMod}
+                    />
+                  ))}
 
-                    return (
-                      <div key={result.id} className="reveal-up" style={{
-                        animationDelay: `${Math.min(searchResults.indexOf(result) * 30, 300)}ms`,
-                        display: "flex",
-                        alignItems: "center",
-                        padding: "16px 8px",
-                        borderBottom: "1px solid rgba(255,255,255,0.04)",
-                        textAlign: "left",
-                        gap: 16,
-                      }}>
-                        {/* Mod Icon */}
-                        <div style={{
-                          width: 52,
-                          height: 52,
-                          borderRadius: 12,
-                          overflow: "hidden",
-                          backgroundColor: "rgba(255,255,255,0.02)",
-                          border: "1px solid var(--border-low)",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          flexShrink: 0,
-                        }}>
-                          {result.icon_url ? (
-                            <img
-                              src={result.icon_url}
-                              alt={result.title}
-                              style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                              onError={(e) => {
-                                e.currentTarget.style.display = "none";
-                                if (e.currentTarget.parentElement) {
-                                  e.currentTarget.parentElement.innerHTML = '<span style="font-size: 22px">🧩</span>';
-                                }
-                              }}
-                            />
-                          ) : (
-                            <span style={{ fontSize: 22 }}>🧩</span>
-                          )}
-                        </div>
-
-                        {/* Mod details */}
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                            <span style={{ fontSize: 15, fontWeight: "bold", color: "#FFFFFF" }}>{result.title}</span>
-                            <span style={{ fontSize: 12, color: "var(--accent)" }}>✓</span>
-                          </div>
-                          
-                          <p style={{
-                            margin: "4px 0 6px 0",
-                            fontSize: 12,
-                            color: "rgba(255,255,255,0.55)",
-                            lineHeight: 1.4,
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            display: "-webkit-box",
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: "vertical",
-                          }}>
-                            {result.description}
-                          </p>
-
-                          {/* Footer row */}
-                          <div style={{ display: "flex", alignItems: "center", gap: 14, fontSize: 11, color: "rgba(255,255,255,0.4)" }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                              <span style={{ fontSize: 11 }}>👤</span>
-                              <span>{result.author}</span>
-                            </div>
-                            <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                              <span style={{ fontSize: 11 }}>⚙️</span>
-                              <span style={{ textTransform: "capitalize" }}>{selectedLoader}</span>
-                            </div>
-                            {cats.length > 0 && (
-                              <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                                <span>📁</span>
-                                <span style={{ textTransform: "capitalize" }}>{cats[0]}</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Right columns: downloads count & Action buttons */}
-                        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 10, flexShrink: 0, width: 220 }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
-                            <span>⬇️ {formatDownloads(result.downloads)}</span>
-                            <span>•</span>
-                            <span>Act: {formatRelativeDate(result.date_modified)}</span>
-                          </div>
-
-                          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                            {status && (
-                              <span style={{
-                                fontSize: 11,
-                                fontWeight: 600,
-                                color: status.includes("❌") ? "#FF8A8A" : status.includes("✅") ? "var(--accent)" : "#FFA726",
-                                maxWidth: 100,
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                                whiteSpace: "nowrap",
-                              }} title={status}>
-                                {status}
-                              </span>
-                            )}
-                            <button
-                              aria-label={`${status ? "Reinstalar" : "Instalar"} mod ${result.title}`}
-                              aria-busy={isInstalling}
-                              type="button"
-                              onClick={() => handleInstallMod(result)}
-                              disabled={isInstalling}
-                              className={`btn ${status ? "btn-secondary" : "btn-primary"} btn-sm pressable`}
-                            >
-                              {isInstalling ? "Bajando..." : status ? "Reinstalar" : "Instalar"}
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-
-                  {/* Premium Pagination Bar */}
                   {totalResults > 0 && (
-                    <div style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      padding: "20px 0",
-                      borderTop: "1.5px solid rgba(255, 255, 255, 0.03)",
-                      marginTop: 16,
-                    }}>
-                      <span style={{ fontSize: 13, color: "rgba(255, 255, 255, 0.45)" }}>
-                        Página {currentPage} de {Math.max(1, Math.ceil(totalResults / pageSize))} ({totalResults} resultados)
-                      </span>
-                      
-                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                        {/* First Page Button */}
-                        <button type="button"
-                          onClick={() => handlePageChange(1)}
-                          disabled={currentPage === 1 || isSearching}
-                          className="pressable"
-                          style={{
-                            width: 32,
-                            height: 32,
-                            borderRadius: 8,
-                            border: "1px solid rgba(255,255,255,0.06)",
-                            backgroundColor: "rgba(255,255,255,0.02)",
-                            color: currentPage === 1 ? "rgba(255,255,255,0.25)" : "rgba(255,255,255,0.75)",
-                            cursor: currentPage === 1 ? "not-allowed" : "pointer",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            transition: "color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease",
-                            fontSize: 13,
-                          }}
-                          title="Primera página"
-                        >
-                          «
-                        </button>
-
-                        {/* Prev Button */}
-                        <button type="button"
-                          onClick={() => handlePageChange(currentPage - 1)}
-                          disabled={currentPage === 1 || isSearching}
-                          className="pressable"
-                          style={{
-                            width: 32,
-                            height: 32,
-                            borderRadius: 8,
-                            border: "1px solid rgba(255,255,255,0.06)",
-                            backgroundColor: "rgba(255,255,255,0.02)",
-                            color: currentPage === 1 ? "rgba(255,255,255,0.25)" : "rgba(255,255,255,0.75)",
-                            cursor: currentPage === 1 ? "not-allowed" : "pointer",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            transition: "color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease",
-                          }}
-                          title="Página anterior"
-                        >
-                          ‹
-                        </button>
-                        
-                        {/* Page Numbers wrapper without fixed-width (the sliding window has constant width itself) */}
-                        <div style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 6,
-                        }}>
-                          {(() => {
-                            const totalPages = Math.max(1, Math.ceil(totalResults / pageSize));
-                            const maxButtons = 5;
-                            let startPage = Math.max(1, currentPage - 2);
-                            const endPage = Math.min(totalPages, startPage + maxButtons - 1);
-                            
-                            if (endPage - startPage < maxButtons - 1) {
-                              startPage = Math.max(1, endPage - (maxButtons - 1));
-                            }
-                            
-                            const pages = [];
-                            for (let i = startPage; i <= endPage; i++) {
-                              pages.push(i);
-                            }
-
-                            return pages.map((p) => {
-                              const isCurrent = p === currentPage;
-                              return (
-                                <button
-                                  aria-label={`Ir a página ${p}`}
-                                  aria-current={isCurrent ? "page" : undefined}
-                                  type="button"
-                                  key={`page-${p}`}
-                                  onClick={() => handlePageChange(p)}
-                                  disabled={isSearching}
-                                  className="pressable"
-                                  style={{
-                                    width: 32,
-                                    height: 32,
-                                    borderRadius: 8,
-                                    border: isCurrent ? "1px solid var(--accent)" : "1px solid rgba(255,255,255,0.06)",
-                                    backgroundColor: isCurrent ? "rgba(45, 212, 191, 0.12)" : "rgba(255,255,255,0.02)",
-                                    color: isCurrent ? "var(--accent)" : "rgba(255,255,255,0.75)",
-                                    fontSize: 13,
-                                    fontWeight: isCurrent ? "bold" : "normal",
-                                    cursor: "pointer",
-                                    transition: "color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease",
-                                  }}
-                                >
-                                  {p}
-                                </button>
-                              );
-                            });
-                          })()}
-                        </div>
-                        
-                        {/* Next Button */}
-                        <button type="button"
-                          onClick={() => handlePageChange(currentPage + 1)}
-                          disabled={currentPage === Math.max(1, Math.ceil(totalResults / pageSize)) || isSearching}
-                          className="pressable"
-                          style={{
-                            width: 32,
-                            height: 32,
-                            borderRadius: 8,
-                            border: "1px solid rgba(255,255,255,0.06)",
-                            backgroundColor: "rgba(255,255,255,0.02)",
-                            color: currentPage === Math.max(1, Math.ceil(totalResults / pageSize)) ? "rgba(255,255,255,0.25)" : "rgba(255,255,255,0.75)",
-                            cursor: currentPage === Math.max(1, Math.ceil(totalResults / pageSize)) ? "not-allowed" : "pointer",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            transition: "color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease",
-                          }}
-                          title="Página siguiente"
-                        >
-                          ›
-                        </button>
-
-                        {/* Last Page Button */}
-                        <button type="button"
-                          onClick={() => handlePageChange(Math.max(1, Math.ceil(totalResults / pageSize)))}
-                          disabled={currentPage === Math.max(1, Math.ceil(totalResults / pageSize)) || isSearching}
-                          className="pressable"
-                          style={{
-                            width: 32,
-                            height: 32,
-                            borderRadius: 8,
-                            border: "1px solid rgba(255,255,255,0.06)",
-                            backgroundColor: "rgba(255,255,255,0.02)",
-                            color: currentPage === Math.max(1, Math.ceil(totalResults / pageSize)) ? "rgba(255,255,255,0.25)" : "rgba(255,255,255,0.75)",
-                            cursor: currentPage === Math.max(1, Math.ceil(totalResults / pageSize)) ? "not-allowed" : "pointer",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            transition: "color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease",
-                            fontSize: 13,
-                          }}
-                          title="Última página"
-                        >
-                          »
-                        </button>
-                      </div>
-                    </div>
+                    <SearchPagination
+                      currentPage={currentPage}
+                      totalResults={totalResults}
+                      pageSize={pageSize}
+                      isSearching={isSearching}
+                      onPageChange={handlePageChange}
+                    />
                   )}
                 </>
               )}
             </div>
           </div>
 
-          {/* Right Column: Sidebar Filters */}
-          <div style={{ flex: 0.9, display: "flex", flexDirection: "column", gap: 20 }}>
-            {/* Source Switcher */}
-            <div style={{ textAlign: "left" }}>
-              <span className="section-label">Plataforma de Búsqueda</span>
-              <div style={{
-                display: "flex",
-                gap: 6,
-                marginTop: 6,
-                backgroundColor: "rgba(0, 0, 0, 0.25)",
-                padding: 4,
-                borderRadius: 12,
-                border: "1.5px solid var(--border-low)"
-              }}>
-                <button
-                  aria-label="Buscar en Modrinth"
-                  aria-pressed={selectedSource === "modrinth"}
-                  type="button"
-                  onClick={() => setSelectedSource("modrinth")}
-                  className={`chip pressable ${selectedSource === "modrinth" ? "active" : ""}`}
-                  style={{ flex: 1, borderRadius: 8, justifyContent: "center", gap: 8 }}
-                >
-                  <div style={{
-                    width: 16,
-                    height: 16,
-                    flexShrink: 0,
-                    backgroundColor: selectedSource === "modrinth" ? "var(--accent)" : "rgba(255,255,255,0.5)",
-                    maskImage: "url(/icons/modrinth.svg)",
-                    maskSize: "contain",
-                    maskRepeat: "no-repeat",
-                    maskPosition: "center",
-                    WebkitMaskImage: "url(/icons/modrinth.svg)",
-                    WebkitMaskSize: "contain",
-                    WebkitMaskRepeat: "no-repeat",
-                    WebkitMaskPosition: "center",
-                    transition: "background-color 0.2s ease",
-                  }} />
-                  Modrinth
-                </button>
-                <button
-                  aria-label="Buscar en CurseForge"
-                  aria-pressed={selectedSource === "curseforge"}
-                  type="button"
-                  onClick={() => setSelectedSource("curseforge")}
-                  className={`chip pressable ${selectedSource === "curseforge" ? "active" : ""}`}
-                  style={{
-                    flex: 1,
-                    borderRadius: 8,
-                    justifyContent: "center",
-                    gap: 8,
-                    ...(selectedSource === "curseforge" ? {
-                      backgroundColor: "rgba(249, 115, 22, 0.12)",
-                      color: "#F97316",
-                      borderColor: "rgba(249, 115, 22, 0.35)",
-                    } : {}),
-                  }}
-                >
-                  <div style={{
-                    width: 16,
-                    height: 16,
-                    flexShrink: 0,
-                    backgroundColor: selectedSource === "curseforge" ? "#F97316" : "rgba(255,255,255,0.5)",
-                    maskImage: "url(/icons/curseforge.svg)",
-                    maskSize: "contain",
-                    maskRepeat: "no-repeat",
-                    maskPosition: "center",
-                    WebkitMaskImage: "url(/icons/curseforge.svg)",
-                    WebkitMaskSize: "contain",
-                    WebkitMaskRepeat: "no-repeat",
-                    WebkitMaskPosition: "center",
-                    transition: "background-color 0.2s ease",
-                  }} />
-                  CurseForge
-                </button>
-              </div>
-            </div>
-
-            {/* Version Select */}
-            <div style={{ textAlign: "left" }}>
-              <span className="section-label">Versión de Minecraft</span>
-              <div style={{ marginTop: 6 }}>
-                <select
-                  aria-label="Filtrar por versión de Minecraft"
-                  value={selectedVersion}
-                  onChange={(e) => setSelectedVersion(e.target.value)}
-                >
-                  {versionsList.map((v) => (
-                    <option key={v} value={v}>{v}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {/* Loader Select */}
-            <div style={{ textAlign: "left" }}>
-              <span className="section-label">Cargador (Mod Loader)</span>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 8 }}>
-                {["fabric", "forge", "neoforge", "quilt"].map((loader) => (
-                  <button
-                    aria-label={`Filtrar por cargador ${loader}`}
-                    aria-pressed={selectedLoader === loader}
-                    type="button"
-                    key={loader}
-                    onClick={() => setSelectedLoader(loader)}
-                    className={`chip pressable ${selectedLoader === loader ? "active" : ""}`}
-                  >
-                    {loader === "neoforge" ? "NeoForge" : loader.charAt(0).toUpperCase() + loader.slice(1)}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Categories Select */}
-            <div style={{ textAlign: "left" }}>
-              <span className="section-label">Categorías de Mods</span>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 8 }}>
-                <button
-                  aria-label="Mostrar todas las categorías de mods"
-                  aria-pressed={selectedCategory === null}
-                  type="button"
-                  onClick={() => setSelectedCategory(null)}
-                  className={`chip pressable ${selectedCategory === null ? "active-white" : ""}`}
-                >
-                  🌟 Todos
-                </button>
-                {CATEGORIES.map((cat) => (
-                  <button
-                    aria-label={`Filtrar categoría ${cat.label}`}
-                    aria-pressed={selectedCategory === cat.value}
-                    type="button"
-                    key={cat.value}
-                    onClick={() => setSelectedCategory(cat.value)}
-                    className={`chip pressable ${selectedCategory === cat.value ? "active-white" : ""}`}
-                  >
-                    {cat.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Profile Destination info card */}
-            <div style={{
-              textAlign: "left",
-              backgroundColor: "rgba(45, 212, 191, 0.03)",
-              border: "1px solid rgba(45, 212, 191, 0.15)",
-              borderRadius: 10,
-              padding: 14,
-              fontSize: 12,
-              color: "rgba(255,255,255,0.6)",
-              lineHeight: 1.5,
-              marginTop: 10,
-            }}>
-              <span style={{ display: "block", color: "var(--accent)", fontWeight: "bold", fontSize: 11, textTransform: "uppercase", letterSpacing: 0.5 }}>
-                ⚙️ Destino de Instalación
-              </span>
-              <span>Los mods descargados se guardarán en la carpeta de juego de tu perfil actual:</span>
-              <strong style={{ display: "block", color: "#FFFFFF", marginTop: 4 }}>
-                "{activeProfile.name}" ({activeProfile.mcVersion})
-              </strong>
-            </div>
-          </div>
+          <SearchFilterSidebar
+            selectedSource={selectedSource}
+            selectedVersion={selectedVersion}
+            selectedLoader={selectedLoader}
+            selectedCategory={selectedCategory}
+            versionsList={versionsList}
+            activeProfile={activeProfile}
+            onSourceChange={setSelectedSource}
+            onVersionChange={setSelectedVersion}
+            onLoaderChange={setSelectedLoader}
+            onCategoryChange={setSelectedCategory}
+          />
         </div>
       )}
     </div>
