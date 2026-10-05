@@ -1,11 +1,25 @@
 import { z } from 'zod';
 
-export const createTicketPayloadSchema = z.object({
-  title: z.string().min(5, 'Title must be at least 5 characters').max(100, 'Title too long'),
-  description: z.string().min(20, 'Please provide more detail (min 20 chars)').max(2000),
-  priority: z.enum(['low', 'medium', 'high', 'urgent']).optional(),
-  category: z.enum(['general', 'bug', 'report', 'billing', 'other']).optional(),
-});
+export const createTicketPayloadSchema = z
+  .object({
+    title: z
+      .string()
+      .min(5, 'Title must be at least 5 characters')
+      .max(100, 'Title too long')
+      .optional(),
+    subject: z
+      .string()
+      .min(5, 'Subject must be at least 5 characters')
+      .max(100, 'Subject too long')
+      .optional(),
+    description: z.string().min(20, 'Please provide more detail (min 20 chars)').max(2000),
+    priority: z.enum(['low', 'medium', 'high', 'urgent']).optional(),
+    category: z.enum(['general', 'bug', 'report', 'billing', 'other']).optional(),
+  })
+  .refine((data) => Boolean(data.title || data.subject), {
+    message: 'Title or subject is required',
+    path: ['title'],
+  });
 
 export const addTicketMessagePayloadSchema = z.object({
   message: z.string().min(1, 'Message cannot be empty').max(1000),

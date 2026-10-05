@@ -1,6 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Request, Response, NextFunction } from 'express';
-import { authenticateToken, require2FA, optionalAuthenticateToken } from '../../middleware/authMiddleware.js';
+import {
+  authenticateToken,
+  require2FA,
+  optionalAuthenticateToken,
+} from '../../middleware/authMiddleware.js';
 import { checkRole, ADMIN_ROLES, STAFF_ROLES } from '../../utils/roleUtils.js';
 import supabase from '../../config/supabaseClient.js';
 
@@ -45,7 +49,7 @@ describe('Auth Middleware Suite', () => {
             code: 'AUTH_ERROR',
             message: 'No authentication token provided',
           }),
-        })
+        }),
       );
       expect(mockNext).not.toHaveBeenCalled();
     });
@@ -103,7 +107,11 @@ describe('Auth Middleware Suite', () => {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValueOnce({
-          data: { username: 'AlexCrystal', role: 'developer', avatar_url: 'https://example.com/alex.png' },
+          data: {
+            username: 'AlexCrystal',
+            role: 'developer',
+            avatar_url: 'https://example.com/alex.png',
+          },
           error: null,
         }),
       } as unknown as ReturnType<typeof supabase.from>);
@@ -165,6 +173,25 @@ describe('Auth Middleware Suite', () => {
       expect(mockNext).toHaveBeenCalled();
     });
 
+    it('returns 403 if user is admin but has not enrolled in 2FA', async () => {
+      // Arrange
+      mockReq.user = {
+        id: 'admin-1',
+        email: 'admin@test.com',
+        username: 'Admin1',
+        role: 'admin',
+        avatar_url: '',
+        app_metadata: { two_factor_enabled: false },
+      };
+
+      // Act
+      await require2FA(mockReq as Request, mockRes as Response, mockNext);
+
+      // Assert
+      expect(mockRes.status).toHaveBeenCalledWith(403);
+      expect(mockNext).not.toHaveBeenCalled();
+    });
+
     it('returns 403 if 2FA is enabled but no admin token provided', async () => {
       // Arrange
       mockReq.user = {
@@ -187,7 +214,7 @@ describe('Auth Middleware Suite', () => {
           error: expect.objectContaining({
             code: '2FA_REQUIRED',
           }),
-        })
+        }),
       );
       expect(mockNext).not.toHaveBeenCalled();
     });

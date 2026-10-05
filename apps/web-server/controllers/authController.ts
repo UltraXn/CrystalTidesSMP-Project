@@ -91,7 +91,7 @@ export const RegisterUserSchema = z.object({
     .string()
     .min(3, AUTH_MESSAGES.USERNAME_MIN_LENGTH)
     .max(30)
-    .regex(/^[a-zA-Z0-9_]+$/, AUTH_MESSAGES.USERNAME_INVALID_CHARS),
+    .regex(/^\w+$/, AUTH_MESSAGES.USERNAME_INVALID_CHARS),
   website: z.string().optional(),
   turnstileToken: z.string().optional(),
 });

@@ -208,6 +208,15 @@ export function computePayloadChecksum(
 }
 
 /**
+ * Timing-safe secret comparison to prevent side-channel timing attacks.
+ */
+function safeSecretEqual(provided: string, expected: string): boolean {
+  const bufA = Buffer.from(provided);
+  const bufB = Buffer.from(expected);
+  return bufA.length === bufB.length && crypto.timingSafeEqual(bufA, bufB);
+}
+
+/**
  * Valida la cabecera de autenticación contra el secreto configurado en el servidor
  */
 function validateIngestAuth(req: Request): AuthValidationResult {
@@ -219,9 +228,19 @@ function validateIngestAuth(req: Request): AuthValidationResult {
     };
   }
 
-  const authHeader = req.headers[HEADER_X_RAG_SECRET] || req.headers[HEADER_AUTHORIZATION];
-  const isDirectMatch = authHeader === RAG_INGEST_SECRET;
-  const isBearerMatch = authHeader === `${BEARER_PREFIX}${RAG_INGEST_SECRET}`;
+  const rawHeader = req.headers[HEADER_X_RAG_SECRET] || req.headers[HEADER_AUTHORIZATION];
+  const authHeader = Array.isArray(rawHeader) ? rawHeader[0] : rawHeader;
+
+  if (typeof authHeader !== 'string') {
+    return {
+      isValid: false,
+      statusCode: 401,
+      errorMessage: INGEST_MESSAGES.AUTH_UNAUTHORIZED,
+    };
+  }
+
+  const isDirectMatch = safeSecretEqual(authHeader, RAG_INGEST_SECRET);
+  const isBearerMatch = safeSecretEqual(authHeader, `${BEARER_PREFIX}${RAG_INGEST_SECRET}`);
 
   if (!isDirectMatch && !isBearerMatch) {
     return {

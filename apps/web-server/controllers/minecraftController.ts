@@ -8,9 +8,15 @@ import pool from '../config/database.js';
 import { ensureString } from '../utils/typeUtils.js';
 
 // --- CONSTANTS ---
+/**
+ * Official Microsoft Xbox Live RelyingParty audience URI.
+ * NOTE: Must literally be 'http://auth.xboxlive.com' per Xbox Live User Authentication protocol spec.
+ * This is an audience identifier, not an active network endpoint (requests go to https://user.auth.xboxlive.com).
+ */
+// eslint-disable-next-line
 const XBOX_AUTH_RELYING_PARTY = 'http://auth.xboxlive.com'; // NOSONAR
-const CLIENT_ID_AZURE = '3974b918-cd84-4d60-8955-2ad65234d16b';
-const CLIENT_ID_LIVE = '00000000402B5328';
+const CLIENT_ID_AZURE = process.env.MICROSOFT_CLIENT_ID || '';
+const CLIENT_ID_LIVE = process.env.MICROSOFT_LIVE_CLIENT_ID || '';
 const XBOX_SCOPE = 'XboxLive.SignIn XboxLive.offline_access';
 
 const SOURCES = {
@@ -446,9 +452,13 @@ export const getSkin = async (req: Request, res: Response) => {
 
 export const verifyLinkCode = async (req: Request, res: Response) => {
   try {
+    const { code } = req.body;
     const authUserId = getAuthUserId(req as AuthenticatedRequest);
-    const { code, userId: bodyUserId } = req.body;
-    const targetUserId = authUserId || bodyUserId;
+    const userRole = (req as AuthenticatedRequest).user?.role?.toLowerCase();
+    const isStaff = Boolean(
+      userRole && ['admin', 'owner', 'developer', 'moderator', 'staff'].includes(userRole),
+    );
+    const targetUserId = authUserId || (isStaff ? req.body.userId : undefined);
 
     if (!code || !targetUserId) {
       return res.status(400).json({ error: 'Code and Authentication required' });
@@ -509,7 +519,12 @@ export const verifyLinkCode = async (req: Request, res: Response) => {
 
 export const initWebLink = async (req: Request, res: Response) => {
   try {
-    const { userId } = req.body;
+    const authUserId = getAuthUserId(req as AuthenticatedRequest);
+    const userRole = (req as AuthenticatedRequest).user?.role?.toLowerCase();
+    const isStaff = Boolean(
+      userRole && ['admin', 'owner', 'developer', 'moderator', 'staff'].includes(userRole),
+    );
+    const userId = (isStaff && req.body.userId) || authUserId || req.body.userId;
     if (!userId) {
       return res.status(400).json({ error: ERRORS.USER_ID_REQUIRED });
     }
@@ -669,19 +684,14 @@ export const unlinkDiscord = async (req: Request, res: Response) => {
 
 export const requestMsDeviceCode = async (_req: Request, res: Response) => {
   try {
-    const bodyLive = new URLSearchParams({
-      client_id: CLIENT_ID_LIVE,
-      scope: 'service::user.auth.xboxlive.com::MBI_SSL',
-      response_type: 'device_code',
-    });
+    if (!CLIENT_ID_LIVE && !CLIENT_ID_AZURE) {
+      return res.status(500).json({
+        error:
+          'Las credenciales de autenticación con Microsoft no están configuradas en el servidor.',
+      });
+    }
 
-    const rLive = await fetch(URLS.LIVE_DEVICE_CODE, {
-      method: 'POST',
-      headers: HEADERS.URLENCODED,
-      body: bodyLive.toString(),
-    });
-
-    const dataLive = (await rLive.json()) as Record<string, unknown> & {
+    let dataLive: Record<string, unknown> & {
       user_code?: string;
       device_code?: string;
       verification_uri?: string;
@@ -689,17 +699,33 @@ export const requestMsDeviceCode = async (_req: Request, res: Response) => {
       expires_in?: number;
       error_description?: string;
       error?: string;
-    };
+    } = {};
 
-    if (rLive.ok && dataLive.user_code && dataLive.device_code) {
-      return res.json({
-        user_code: dataLive.user_code,
-        device_code: dataLive.device_code,
-        verification_uri: dataLive.verification_uri || 'https://www.microsoft.com/link',
-        interval: dataLive.interval || 5,
-        expires_in: dataLive.expires_in || 900,
-        isLive: true,
+    if (CLIENT_ID_LIVE) {
+      const bodyLive = new URLSearchParams({
+        client_id: CLIENT_ID_LIVE,
+        scope: 'service::user.auth.xboxlive.com::MBI_SSL',
+        response_type: 'device_code',
       });
+
+      const rLive = await fetch(URLS.LIVE_DEVICE_CODE, {
+        method: 'POST',
+        headers: HEADERS.URLENCODED,
+        body: bodyLive.toString(),
+      });
+
+      dataLive = (await rLive.json()) as typeof dataLive;
+
+      if (rLive.ok && dataLive.user_code && dataLive.device_code) {
+        return res.json({
+          user_code: dataLive.user_code,
+          device_code: dataLive.device_code,
+          verification_uri: dataLive.verification_uri || 'https://www.microsoft.com/link',
+          interval: dataLive.interval || 5,
+          expires_in: dataLive.expires_in || 900,
+          isLive: true,
+        });
+      }
     }
 
     const bodyAzure = new URLSearchParams({
@@ -741,8 +767,18 @@ async function queryDeviceToken(
   deviceCode: string,
   isLive: boolean,
 ): Promise<{ accessToken: string | null; authError: Record<string, unknown> | null }> {
-  const url = isLive ? URLS.LIVE_TOKEN : URLS.AZURE_TOKEN;
   const clientId = isLive ? CLIENT_ID_LIVE : CLIENT_ID_AZURE;
+  if (!clientId) {
+    return {
+      accessToken: null,
+      authError: {
+        error: 'microsoft_auth_not_configured',
+        error_description: 'Microsoft Client ID no está configurado en el servidor.',
+      },
+    };
+  }
+
+  const url = isLive ? URLS.LIVE_TOKEN : URLS.AZURE_TOKEN;
 
   const body = new URLSearchParams({
     client_id: clientId,
@@ -796,6 +832,27 @@ export const exchangeMsAuthCode = async (req: Request, res: Response) => {
     const { code, redirectUri } = req.body;
     if (!code || !redirectUri) {
       return res.status(400).json({ error: 'Code and redirectUri are required' });
+    }
+
+    try {
+      const parsedUri = new URL(redirectUri);
+      const isAllowed =
+        parsedUri.protocol === 'https:' ||
+        parsedUri.protocol === 'tauri:' ||
+        parsedUri.hostname === 'localhost' ||
+        parsedUri.hostname === '127.0.0.1';
+      if (!isAllowed) {
+        return res.status(400).json({ error: 'Invalid redirectUri' });
+      }
+    } catch {
+      return res.status(400).json({ error: 'Malformed redirectUri' });
+    }
+
+    if (!CLIENT_ID_AZURE) {
+      return res.status(500).json({
+        error:
+          'El Client ID de Microsoft Azure (MICROSOFT_CLIENT_ID) no está configurado en el servidor.',
+      });
     }
 
     const tokenParams: Record<string, string> = {

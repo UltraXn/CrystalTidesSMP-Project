@@ -1,6 +1,18 @@
 import { Router, Request, Response } from 'express';
+import { z } from 'zod';
+import { authenticateToken } from '../middleware/authMiddleware.js';
+import { checkRole, ADMIN_ROLES } from '../utils/roleUtils.js';
+import { validate } from '../middleware/validateResource.js';
 
 const router = Router();
+
+const triggerBountySchema = z.object({
+  body: z.object({
+    bossName: z.string().min(2).max(100).optional(),
+    multiplier: z.string().max(20).optional(),
+    durationMinutes: z.number().int().min(5).max(1440).optional(),
+  }),
+});
 
 // In-memory active Flash Bounty state (Synced with Supabase in production)
 let activeBounty = {
@@ -14,7 +26,7 @@ let activeBounty = {
   startsAt: new Date().toISOString(),
   expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(), // 1 hour duration
   status: 'ACTIVE',
-  recentKillsCount: 3
+  recentKillsCount: 3,
 };
 
 /**
@@ -31,36 +43,42 @@ router.get('/active', (_req: Request, res: Response) => {
     bounty: {
       ...activeBounty,
       remainingSeconds,
-      isExpired: remainingSeconds <= 0
-    }
+      isExpired: remainingSeconds <= 0,
+    },
   });
 });
 
 /**
  * POST /api/bounties/trigger (Admin / Cronjob Trigger)
  */
-router.post('/trigger', (req: Request, res: Response) => {
-  const { bossName, multiplier, durationMinutes } = req.body || {};
+router.post(
+  '/trigger',
+  authenticateToken,
+  checkRole(ADMIN_ROLES),
+  validate(triggerBountySchema),
+  (req: Request, res: Response) => {
+    const { bossName, multiplier, durationMinutes } = req.body || {};
 
-  activeBounty = {
-    id: `bounty-${Date.now()}`,
-    bossId: bossName ? bossName.toLowerCase().replace(/\s+/g, '-') : 'netherite-monstrosity',
-    bossName: bossName || 'Netherite Monstrosity',
-    location: 'Mazmorra de Netherita del Nether',
-    multiplier: multiplier || '3.0x KC',
-    rewardKc: 7500,
-    model3dUrl: '/models/cataclysm/netherite_monstrosity.gltf',
-    startsAt: new Date().toISOString(),
-    expiresAt: new Date(Date.now() + (durationMinutes || 60) * 60 * 1000).toISOString(),
-    status: 'ACTIVE',
-    recentKillsCount: 0
-  };
+    activeBounty = {
+      id: `bounty-${Date.now()}`,
+      bossId: bossName ? bossName.toLowerCase().replace(/\s+/g, '-') : 'netherite-monstrosity',
+      bossName: bossName || 'Netherite Monstrosity',
+      location: 'Mazmorra de Netherita del Nether',
+      multiplier: multiplier || '3.0x KC',
+      rewardKc: 7500,
+      model3dUrl: '/models/cataclysm/netherite_monstrosity.gltf',
+      startsAt: new Date().toISOString(),
+      expiresAt: new Date(Date.now() + (durationMinutes || 60) * 60 * 1000).toISOString(),
+      status: 'ACTIVE',
+      recentKillsCount: 0,
+    };
 
-  res.json({
-    success: true,
-    message: 'Flash Bounty disparada con éxito.',
-    bounty: activeBounty
-  });
-});
+    res.json({
+      success: true,
+      message: 'Flash Bounty disparada con éxito.',
+      bounty: activeBounty,
+    });
+  },
+);
 
 export default router;

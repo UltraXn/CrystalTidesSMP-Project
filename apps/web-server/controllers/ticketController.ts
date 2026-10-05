@@ -72,7 +72,8 @@ export const getAllTickets = async (req: Request, res: Response) => {
 // User: Create ticket
 export const createTicket = async (req: Request, res: Response) => {
   try {
-    const { subject, description, priority } = req.body;
+    const subject = req.body.subject || req.body.title;
+    const { description, priority } = req.body;
     const user = (req as AuthenticatedRequest).user!;
 
     if (!subject) {
@@ -198,11 +199,13 @@ export const banUser = async (req: Request, res: Response) => {
     if (!username) return sendError(res, 'Username required', ERROR_CODES.MISSING_FIELD, 400);
 
     const sanitizedReason = String(reason || 'Banned via Web Panel')
-      // eslint-disable-next-line no-control-regex -- intentionally stripping control chars
-      .replace(/[;&|`\\\r\n\x00-\x1F]/g, '')
+      .replace(/[;&|`\\]/g, '')
+      .split('')
+      .filter((char) => char.charCodeAt(0) >= 32)
+      .join('')
       .trim();
 
-    const usernameRegex = /^[A-Za-z0-9_]{3,16}$/;
+    const usernameRegex = /^\w{3,16}$/;
     if (!usernameRegex.test(username)) {
       return sendError(res, 'Invalid Minecraft username', ERROR_CODES.INVALID_FIELD, 400);
     }

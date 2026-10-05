@@ -1,33 +1,34 @@
 import express from 'express';
 import * as userController from '../controllers/userController.js';
-import { authenticateToken, optionalAuthenticateToken, require2FA } from '../middleware/authMiddleware.js';
+import {
+  authenticateToken,
+  optionalAuthenticateToken,
+  require2FA,
+} from '../middleware/authMiddleware.js';
+import { sensitiveActionLimiter } from '../middleware/rateLimitMiddleware.js';
 import { validate } from '../middleware/validateResource.js';
-import { 
-    updateUserMetadataSchema, 
-    updateUserRoleSchema,
-    voteKarmaSchema,
-    profileSchema
+import {
+  updateUserMetadataSchema,
+  updateUserRoleSchema,
+  voteKarmaSchema,
+  profileSchema,
 } from '../schemas/userSchemas.js';
 import { checkRole, ADMIN_ROLES, STAFF_ROLES } from '../utils/roleUtils.js';
 
 const ROUTES = {
-    ROOT: '/',
-    STAFF: '/staff',
-    PROFILE: '/profile/:username',
-    PROFILE_FULL: '/profile/:username/full',
-    ROLE: '/:id/role',
-    METADATA: '/:id/metadata',
-    KARMA: '/:id/karma',
+  ROOT: '/',
+  STAFF: '/staff',
+  PROFILE: '/profile/:username',
+  PROFILE_FULL: '/profile/:username/full',
+  ROLE: '/:id/role',
+  METADATA: '/:id/metadata',
+  KARMA: '/:id/karma',
 } as const;
 
 const router = express.Router();
 
 const validateProfile = validate(profileSchema);
-const requireAdminWith2FA = [
-    authenticateToken, 
-    checkRole(ADMIN_ROLES), 
-    require2FA
-] as const;
+const requireAdminWith2FA = [authenticateToken, checkRole(ADMIN_ROLES), require2FA] as const;
 
 /**
  * @swagger
@@ -95,7 +96,12 @@ router.get(ROUTES.PROFILE, validateProfile, userController.getPublicProfile);
  *         description: Usuario no encontrado
  */
 // optionalAuthenticateToken: wallet data is only exposed to the owner or staff
-router.get(ROUTES.PROFILE_FULL, optionalAuthenticateToken, validateProfile, userController.getFullProfile);
+router.get(
+  ROUTES.PROFILE_FULL,
+  optionalAuthenticateToken,
+  validateProfile,
+  userController.getFullProfile,
+);
 
 /**
  * @swagger
@@ -123,10 +129,26 @@ router.get(ROUTES.PROFILE_FULL, optionalAuthenticateToken, validateProfile, user
  *       200:
  *         description: Rol actualizado
  */
-router.patch(ROUTES.ROLE, ...requireAdminWith2FA, validate(updateUserRoleSchema), userController.updateUserRole);
+router.patch(
+  ROUTES.ROLE,
+  ...requireAdminWith2FA,
+  validate(updateUserRoleSchema),
+  userController.updateUserRole,
+);
 
-router.patch(ROUTES.METADATA, ...requireAdminWith2FA, validate(updateUserMetadataSchema), userController.updateUserMetadata);
+router.patch(
+  ROUTES.METADATA,
+  ...requireAdminWith2FA,
+  validate(updateUserMetadataSchema),
+  userController.updateUserMetadata,
+);
 
-router.post(ROUTES.KARMA, authenticateToken, validate(voteKarmaSchema), userController.giveKarma);
+router.post(
+  ROUTES.KARMA,
+  authenticateToken,
+  sensitiveActionLimiter,
+  validate(voteKarmaSchema),
+  userController.giveKarma,
+);
 
 export default router;

@@ -44,6 +44,26 @@ describe('validateResource Middleware', () => {
     expect(mockRes.status).not.toHaveBeenCalled();
   });
 
+  it('strips extraneous unmodeled fields from req.body to prevent Mass Assignment', () => {
+    // Arrange
+    mockReq.body = {
+      title: 'Valhalla',
+      count: 5,
+      injectedAdminRole: 'owner',
+      maliciousExtra: 1337,
+    };
+    const middleware = validate(testSchema);
+
+    // Act
+    middleware(mockReq as Request, mockRes as Response, mockNext);
+
+    // Assert
+    expect(mockNext).toHaveBeenCalled();
+    expect(mockReq.body).toEqual({ title: 'Valhalla', count: 5 });
+    expect((mockReq.body as any).injectedAdminRole).toBeUndefined();
+    expect((mockReq.body as any).maliciousExtra).toBeUndefined();
+  });
+
   it('returns 400 and structured error details when payload is invalid', () => {
     // Arrange
     mockReq.body = { title: 'AB', count: -1 }; // title too short and count negative
@@ -60,7 +80,7 @@ describe('validateResource Middleware', () => {
         details: expect.arrayContaining([
           expect.objectContaining({ field: 'body.title', message: 'Title too short' }),
         ]),
-      })
+      }),
     );
     expect(mockNext).not.toHaveBeenCalled();
   });

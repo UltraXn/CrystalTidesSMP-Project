@@ -12,7 +12,7 @@ describe('MemoryRateLimiter (Sliding Window TDD)', () => {
   });
 
   it('allows requests within the configured max limit', () => {
-    const key = '192.168.1.1';
+    const key = 'ip-test-1';
     const now = 1000000;
 
     const res1 = limiter.check(key, now);
@@ -29,7 +29,7 @@ describe('MemoryRateLimiter (Sliding Window TDD)', () => {
   });
 
   it('blocks subsequent requests exceeding maxRequests within the window', () => {
-    const key = '192.168.1.2';
+    const key = 'ip-test-2';
     const now = 1000000;
 
     limiter.check(key, now);
@@ -43,7 +43,7 @@ describe('MemoryRateLimiter (Sliding Window TDD)', () => {
   });
 
   it('slides the window and allows new requests after windowMs expires', () => {
-    const key = '192.168.1.3';
+    const key = 'ip-test-3';
     const now = 1000000;
 
     // Fill the window

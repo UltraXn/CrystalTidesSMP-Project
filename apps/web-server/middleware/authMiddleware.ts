@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import { Request, Response, NextFunction } from 'express';
 import supabase from '../config/supabaseClient.js';
 import { sendError } from '../utils/responseHandler.js';
@@ -66,7 +67,15 @@ function extractBearerToken(req: Request): string | null {
 
 function isBotApiKey(token: string): boolean {
   const botApiKey = process.env.BOT_API_KEY || process.env.SERVER_API_KEY;
-  return Boolean(botApiKey && token === botApiKey);
+  if (!botApiKey || !token) {
+    return false;
+  }
+  const tokenBuf = Buffer.from(token);
+  const keyBuf = Buffer.from(botApiKey);
+  if (tokenBuf.length !== keyBuf.length) {
+    return false;
+  }
+  return crypto.timingSafeEqual(tokenBuf, keyBuf);
 }
 
 function createBotUser(): CachedUser {
@@ -211,7 +220,22 @@ export const require2FA = async (
     return sendError(res, ERROR_MESSAGES.AUTH_REQUIRED, ERROR_CODES.AUTH_REQUIRED, 401);
   }
 
-  const is2FAEnabled = user.app_metadata?.two_factor_enabled;
+  const is2FAEnabled = Boolean(user.app_metadata?.two_factor_enabled);
+  const userRole = (user.role || '').toLowerCase();
+  const isStaffOrAdmin = ['admin', 'owner', 'developer', 'neroferno', 'killu', 'killuwu'].includes(
+    userRole,
+  );
+
+  if (isStaffOrAdmin && !is2FAEnabled) {
+    logSecurityEvent(req, '2FA Enrollment Required for Admin Action', true);
+    return sendError(
+      res,
+      '2FA Enrollment Required for Admin Action',
+      ERROR_CODES.TWO_FA_REQUIRED,
+      403,
+    );
+  }
+
   if (!is2FAEnabled) {
     return next();
   }

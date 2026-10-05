@@ -169,11 +169,12 @@ const assertPostOwnership = (userId: string, requestor: Requestor): void => {
 
 const mapThreadReplyCount = (thread: ThreadWithCountRelation): ForumThread => {
   const replyCount = thread.forum_posts?.[0]?.count ?? 0;
-  const { forum_posts: _, ...rest } = thread;
-  return {
-    ...rest,
+  const threadWithoutRelation: ForumThread = {
+    ...thread,
     reply_count: replyCount,
   };
+  delete threadWithoutRelation.forum_posts;
+  return threadWithoutRelation;
 };
 
 const resolveThreadId = async (idOrSlug: number | string): Promise<number | null> => {

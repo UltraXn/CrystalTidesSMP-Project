@@ -58,7 +58,9 @@ interface RollExecutionPlan {
   commands: string[];
 }
 
-const sanitizeNick = (nick: string): string => nick.replace(/[^a-zA-Z0-9_]/g, '');
+export type GachaTestResult = 'win' | 'loss' | 'random';
+
+const sanitizeNick = (nick: string): string => nick.replace(/\W/g, '');
 
 const checkCooldown = async (userId: string, tierId: string, hours: number): Promise<boolean> => {
   if (hours <= 0) return true;
@@ -144,7 +146,7 @@ const resolveWinReward = (tier: (typeof GACHA_TIERS_MAP)[string]): GachaRewardCo
 const resolveAdminTestReward = (
   tier: (typeof GACHA_TIERS_MAP)[string],
   tierKey: string,
-  testResult?: 'win' | 'loss' | 'random',
+  testResult?: GachaTestResult,
 ): GachaRewardConfig | null => {
   if (!testResult || testResult === 'random') return null;
   return testResult === 'loss' ? resolveLossReward(tier, tierKey) : resolveWinReward(tier);
@@ -154,7 +156,7 @@ const generateSingleReward = (
   tier: (typeof GACHA_TIERS_MAP)[string],
   tierKey: string,
   isAdmin: boolean,
-  testResult?: 'win' | 'loss' | 'random',
+  testResult?: GachaTestResult,
 ): GachaRewardConfig => {
   if (isAdmin && testResult) {
     const adminReward = resolveAdminTestReward(tier, tierKey, testResult);

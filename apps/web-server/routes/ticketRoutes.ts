@@ -89,7 +89,7 @@ router.post(
   TICKET_ROUTES.ROOT,
   sensitiveActionLimiter,
   validateCreateTicket,
-  ticketController.createTicket
+  ticketController.createTicket,
 );
 
 /**
@@ -149,7 +149,7 @@ router.post(
   TICKET_ROUTES.MESSAGES,
   sensitiveActionLimiter,
   validateAddMessage,
-  ticketController.addMessage
+  ticketController.addMessage,
 );
 
 /**
@@ -161,12 +161,6 @@ router.post(
  *     security:
  *       - bearerAuth: []
  */
-router.post(
-  TICKET_ROUTES.BAN,
-  requireAdmin,
-  require2FA,
-  validateBanUser,
-  ticketController.banUser
-);
+router.post('/ban', requireAdmin, require2FA, validateBanUser, ticketController.banUser);
 
 export default router;

@@ -11,7 +11,6 @@ const CONSTANTS = {
   TABLE_MOD_KNOWLEDGE_BASE: 'mod_knowledge_base',
   RPC_HYBRID_SEARCH_RRF: 'hybrid_search_rrf',
   RPC_MATCH_MOD_KNOWLEDGE: 'match_mod_knowledge',
-  DEFAULT_SUPABASE_URL: 'https://gyoqnqvqhuxlcbrvtfia.supabase.co',
   HEADER_CONTENT_TYPE: 'Content-Type',
   CONTENT_TYPE_JSON: 'application/json',
   HTTP_POST: 'POST',
@@ -25,8 +24,12 @@ const CONSTANTS = {
   VECTOR_DIMENSIONS: 3072,
 } as const;
 
-const supabaseUrl = process.env.SUPABASE_URL || CONSTANTS.DEFAULT_SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+const supabaseUrl =
+  process.env.SUPABASE_URL ||
+  (process.env.NODE_ENV === 'test' ? 'https://placeholder-supabase-url.supabase.co' : '');
+const supabaseServiceKey =
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||
+  (process.env.NODE_ENV === 'test' ? 'placeholder-key-value-for-testing' : '');
 const geminiApiKey = process.env.GEMINI_API_KEY || '';
 const cohereApiKey = process.env.COHERE_API_KEY || '';
 
