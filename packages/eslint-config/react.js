@@ -9,6 +9,9 @@ import security from 'eslint-plugin-security';
 import { flatConfigs as importXFlatConfigs } from 'eslint-plugin-import-x';
 import reactDoctor from 'eslint-plugin-react-doctor';
 import tailwind from 'eslint-plugin-better-tailwindcss';
+import regexp from 'eslint-plugin-regexp';
+import vitest from 'eslint-plugin-vitest';
+import testingLibrary from 'eslint-plugin-testing-library';
 import { fixupPluginRules } from '@eslint/compat';
 import oxlint from 'eslint-plugin-oxlint';
 
@@ -35,6 +38,7 @@ export default [
   importXFlatConfigs.recommended,
   reactDoctor.configs.recommended,
   tailwind.configs.recommended,
+  regexp.configs['flat/recommended'],
   {
     settings: {
       'better-tailwindcss': {
@@ -91,6 +95,19 @@ export default [
       'react-hooks/incompatible-library': 'off',
     },
   },
+  {
+    files: ['**/*.{test,spec}.{ts,tsx}', '**/__tests__/**/*.{ts,tsx}'],
+    plugins: {
+      vitest,
+      'testing-library': testingLibrary,
+    },
+    rules: {
+      ...vitest.configs.recommended.rules,
+      ...testingLibrary.configs['flat/react'].rules,
+      'vitest/expect-expect': 'warn',
+      'vitest/no-disabled-tests': 'warn',
+      'vitest/no-focused-tests': 'error',
+    },
+  },
   ...oxlint.configs['flat/recommended'],
 ];
-

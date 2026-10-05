@@ -2,29 +2,96 @@
 
 Este documento detalla los estándares de calidad, configuración de linters y estructura de mantenimiento unificada para el ecosistema CrystalTides.
 
-## 🏗️ Monorepo & ESLint Unificado
+## 🏗️ Estrategia de Calidad y Linting en Dos Capas
 
-Hemos migrado a una configuración de ESLint centralizada para garantizar la consistencia entre el Cliente (React) y el Servidor (Node.js).
+El ecosistema utiliza una **estrategia de linting híbrida en 2 capas** que balancea la velocidad instantánea del bucle de desarrollo con la rigurosidad semántica en CI/CD:
 
-### Estructura de Paquetes
+1. **Capa 1: Bucle TDD y Pre-commit Ultrarrápido (`oxlint`)**:
+   - Motor Rust nativo (`oxc`) con ejecución en $< 2.5\text{ s}$ sobre más de 500 archivos.
+   - Integración nativa con `oxlint-plugin-react-doctor` para detectar anti-patrones de React sin costo de arranque en Node.js.
+   - Comando: `pnpm lint:fast`
 
-La configuración se encuentra en el workspace `packages/eslint-config`:
+2. **Capa 2: Auditoría Semántica Profunda (ESLint 9 Flat Config)**:
+   - Configuración centralizada y tipada en `packages/eslint-config` (`base.js` y `react.js`).
+   - Gobernanza de complejidad cognitiva ($\le 15$), cero strings duplicados, seguridad SAST y accesibilidad WCAG.
+   - Delegación final a `oxlint.configs['flat/recommended']` para apagar reglas redundantes de ESLint y mantener el rendimiento.
 
-- **base.js**: Reglas comunes para TypeScript/JavaScript (usado por [server](../packages/eslint-config/base.js)).
-- **react.js**: Reglas específicas para React + Vite + Hooks (usado por [client](../packages/eslint-config/react.js)).
+### Estructura de Paquetes y Plugins Especializados
+
+La configuración modular en `packages/eslint-config` incorpora:
+
+- **`base.js`**:
+  - `@eslint/js` y `typescript-eslint`: Tipado estricto y estándares ECMAScript modernos.
+  - `eslint-plugin-sonarjs`: Detección de complejidad cognitiva, duplicación de funciones y code smells.
+  - `eslint-plugin-security`: Detección de inyecciones y patrones inseguros.
+  - `eslint-plugin-import-x`: Resolución eficiente de módulos ESM.
+- **`react.js`**:
+  - `eslint-plugin-react-hooks` & `eslint-plugin-react-refresh`: Ciclos de vida y HMR confiable.
+  - `eslint-plugin-react-doctor`: Reglas de arquitectura React 19 (prevención de fugas en effects, supresión de re-renders innecesarios y flags de componentes gigantes).
+  - `eslint-plugin-better-tailwindcss`: Específico para **Tailwind CSS v4** (reemplazo estricto del obsoleto `eslint-plugin-tailwindcss`).
+  - `eslint-plugin-regexp`: Prevención de vulnerabilidades ReDoS (catastrophic backtracking) y optimización de expresiones regulares.
+  - **Suites de Testing (`**/\*.{test,spec}.{ts,tsx}`, `**/**tests**/**`)\*\*:
+    - `eslint-plugin-vitest`: Verificación de aserciones asíncronas, bloqueo de `.only` accidentales y consistencia en tests.
+    - `eslint-plugin-testing-library`: Enforce de consultas semánticas y accesibles (`getByRole`) y prevención de falsos positivos en el renderizado.
+  - **E2E & Delimitación de Capas**:
+    - `eslint-plugin-playwright`: Aserciones asíncronas fiables en flujos de navegación.
+    - `eslint-plugin-boundaries`: Arquitectura modular y fronteras de importación entre paquetes y features.
 
 ### Comandos de Mantenimiento
 
-Desde la raíz del proyecto (Turborepo):
+Desde la raíz del monorepo:
 
 ```bash
-# Verificar linting en todos los workspaces
-turbo run lint
+# ⚡ Capa 1: Linting ultrarrápido en Rust (<2.5s)
+pnpm lint:fast
 
-# Verificar linting solo en cliente o servidor
-turbo run lint --filter=client
-turbo run lint --filter=server
+# 🔍 Capa 2: Linting semántico completo con ESLint 9
+pnpm lint:eslint
+
+# 🛠️ DX: Resolución interactiva de warnings y errores por regla
+pnpm lint:interactive
+
+# 🩺 Diagnóstico arquitectónico con React Doctor
+pnpm doctor
+pnpm doctor:score
 ```
+
+## 🗄️ Calidad y Auditoría de Base de Datos (PostgreSQL & Supabase)
+
+El ecosistema aplica auditoría estática y gobernanza estricta en las capas de base de datos y migraciones SQL para garantizar rendimiento, seguridad y despliegues sin tiempo de inactividad (_zero-downtime_):
+
+### 1. Herramientas y Linters de Base de Datos
+
+- **SQLFluff (`.sqlfluff`)**: Linter estático para archivos SQL en tiempo real. Enforce de palabras reservadas en mayúsculas (`SELECT`, `INSERT`), identificadores en `snake_case`, y prohibición de subconsultas anidadas ineficientes donde un CTE o `JOIN` es más óptimo.
+- **Supabase DB Lint (`splinter`)**: Linter nativo de Supabase para auditar políticas RLS, permisos de ejecución y funciones en vivo o localmente:
+  ```bash
+  npx supabase db lint
+  ```
+- **Migraciones Seguras (Squawk / Eugene)**: Prevención de _table locks_ bloqueantes (`ACCESS EXCLUSIVE`) en producción:
+  ```bash
+  npx squawk database/web-server/migrations/*.sql
+  ```
+
+### 2. Invariantes y Antipatrones Prohibidos en PostgreSQL
+
+1. **InitPlan Obligatorio en RLS (`auth_rls_initplan`)**:
+   - ❌ **Prohibido**: `USING (auth.uid() = user_id)` (fuerza a Postgres a reevaluar la función por cada fila escaneada).
+   - ✅ **Obligatorio**: `USING ((SELECT auth.uid()) = user_id)` (evalúa la función una sola vez como un InitPlan).
+2. **Endurecimiento de Funciones `SECURITY DEFINER`**:
+   - Toda función `SECURITY DEFINER` debe fijar obligatoriamente `SET search_path = public, pg_temp` para evitar secuestro de esquemas.
+   - No exponer funciones administrativas a `anon`. Validar identidad del caller con `auth.uid()`.
+3. **Claves Foráneas Siempre Indexadas**:
+   - Toda columna referenciada en un foreign key debe tener un índice de cobertura para evitar _Sequential Scans_ en borrados y actualizaciones en cascada.
+4. **Cero Políticas Permisivas Abiertas en Tablas Privadas**:
+   - Prohibido combinar políticas permisivas (`PERMISSIVE`) con `WITH CHECK (auth.role() = 'authenticated')` en tablas con datos privados (ej. tickets o mensajes), ya que un `OR` permisivo anula cualquier restricción de pertenencia.
+
+### 3. Extensiones Recomendadas para el IDE (`.vscode/extensions.json`)
+
+Para habilitar autocompletado, formateo on-save y diagnóstico visual en el IDE:
+
+- **`sqlfluff.sqlfluff`**: Linter y formateador SQL en tiempo real en el editor.
+- **`supabase.supabase-vscode`**: Extensión oficial de Supabase para generación de tipos y gestión de esquemas.
+- **`cweijan.vscode-database-client2`**: Explorador visual de base de datos integrado en el IDE.
 
 ## ✅ Política Zero-Lint (Cero Advertencias)
 
@@ -65,7 +132,7 @@ client/src/locales/
 3.  **Implementar**: Usar el hook `t`:
     ```tsx
     const { t } = useTranslation();
-    <h2>{t("section.key", "Texto Fallback")}</h2>;
+    <h2>{t('section.key', 'Texto Fallback')}</h2>;
     ```
 
 ## 🎨 UI & Responsividad

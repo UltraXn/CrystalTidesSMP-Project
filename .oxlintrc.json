@@ -54,9 +54,6 @@
     // (Resuelto a nivel de código encapsulando menús y modales en subcomponentes atómicos)
     "react-doctor/motion-animate-presence-must-outlive-child": "warn",
 
-    // Prevención de memory leaks: detección de fetch directo en useEffect sin AbortController ni React Query
-    "react-doctor/no-fetch-in-effect": "warn",
-
     // Rendimiento: evitar derivar estado mediante useEffect (calcularlo inline o via useMemo)
     "react-doctor/no-derived-state-effect": "warn",
 
@@ -68,9 +65,6 @@
 
     // Seguridad XSS: auditar puntos de inyección HTML sin sanitizar
     "react-doctor/dangerous-html-sink": "warn",
-
-    // Ciclo de vida y memory leaks: verificar que timers, listeners o suscripciones tengan return de limpieza
-    "react-doctor/effect-needs-cleanup": "warn",
 
     // Estándar HTML5: exigir atributo type explícito en botones ('button' o 'submit') para evitar submit accidental
     "react-doctor/button-has-type": "warn",
@@ -169,14 +163,6 @@
     "**/storybook-static/**",
     "**/src-tauri/target/**",
     "**/target/**",
-    // Apps de escritorio Tauri / Rust: gestionan su propio pipeline de linter y contienen junctions NTFS
-    "apps/launcher/**",
-    "apps/launcher/**/*",
-    "apps/launcher-lite/**",
-    "**/apps/launcher/**",
-    "**/apps/launcher/**/*",
-    "**/apps/launcher-lite/**",
-    "**/launcher/**",
     "**/coverage/**",
     "**/.next/**",
     "**/.turbo/**",

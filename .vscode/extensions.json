@@ -1,7 +1,10 @@
 {
   "recommendations": [
-    "Dart-Code.flutter",
-    "Dart-Code.dart-code",
+    "sqlfluff.sqlfluff",
+    "supabase.supabase-vscode",
+    "cweijan.vscode-database-client2",
+    "oxc.oxc-vscode",
+    "dbaeumer.vscode-eslint",
     "ms-vscode.cmake-tools"
   ]
 }
