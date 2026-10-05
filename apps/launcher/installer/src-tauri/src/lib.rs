@@ -5,13 +5,14 @@ use std::process::Command;
 #[tauri::command]
 fn get_home_dir() -> Result<String, String> {
     dirs::home_dir()
-        .map(|p| p.to_string_lossy().to_string())
+        .map(|p: std::path::PathBuf| p.to_string_lossy().to_string())
         .ok_or_else(|| "No se pudo obtener el directorio personal".to_string())
 }
 
 #[tauri::command]
 fn get_default_install_dir() -> Result<String, String> {
     if let Some(home) = dirs::home_dir() {
+        let home: std::path::PathBuf = home;
         #[cfg(target_os = "windows")]
         {
             let p = home.join(".crystaltides");

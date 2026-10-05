@@ -8,6 +8,17 @@ members = [
   "apps/launcher-lite/src-tauri",
 ]
 
+[workspace.lints.rust]
+unsafe_code = "warn"
+
+[workspace.lints.clippy]
+correctness = { level = "deny", priority = -1 }
+suspicious = { level = "warn", priority = -1 }
+style = { level = "warn", priority = -1 }
+complexity = { level = "warn", priority = -1 }
+perf = { level = "warn", priority = -1 }
+
+
 [profile.dev]
 # Reduce el tamaño de .pdb y target/ hasta un 70% preservando stack traces con nombres de archivo y líneas
 debug = 1
@@ -19,7 +30,7 @@ opt-level = 2
 
 [profile.release]
 opt-level = 3
-lto = "thin"
+lto = false
 codegen-units = 16
 panic = "abort"
 strip = true

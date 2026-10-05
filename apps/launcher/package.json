@@ -17,7 +17,11 @@
     "build:client": "npm run build --workspace=client",
     "build:installer": "npm run build --workspace=installer",
     "build:uninstaller": "npm run build --workspace=uninstaller",
-    "build:tauri": "npm run build:tauri --workspace=client"
+    "build:tauri": "npm run build:tauri --workspace=client",
+    "lint": "npm run lint --workspace=client",
+    "lint:fast": "npm run lint:fast --workspace=client",
+    "doctor": "npm run doctor --workspace=client",
+    "doctor:score": "npm run doctor:score --workspace=client"
   },
   "keywords": [
     "minecraft-launcher",

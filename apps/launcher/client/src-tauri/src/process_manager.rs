@@ -1,5 +1,6 @@
 use std::io::{BufRead, BufReader};
 use std::process::{Child, Command, Stdio};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex, OnceLock};
 use std::thread;
 use std::time::Duration;
@@ -18,6 +19,31 @@ pub struct GameStoppedPayload {
 }
 
 static GAME_PROCESS: OnceLock<Arc<Mutex<Option<Child>>>> = OnceLock::new();
+static TIMER_ACTIVE: AtomicBool = AtomicBool::new(false);
+
+#[cfg(target_os = "windows")]
+mod winmm {
+    #[link(name = "winmm")]
+    extern "system" {
+        pub fn timeBeginPeriod(uPeriod: u32) -> u32;
+        pub fn timeEndPeriod(uPeriod: u32) -> u32;
+    }
+}
+
+pub fn set_high_resolution_timer(enable: bool) {
+    #[cfg(target_os = "windows")]
+    unsafe {
+        if enable {
+            if !TIMER_ACTIVE.swap(true, Ordering::SeqCst) {
+                winmm::timeBeginPeriod(1);
+                println!("[ProcessManager] Windows high-resolution timer (1ms) enabled.");
+            }
+        } else if TIMER_ACTIVE.swap(false, Ordering::SeqCst) {
+            winmm::timeEndPeriod(1);
+            println!("[ProcessManager] Windows high-resolution timer restored.");
+        }
+    }
+}
 
 fn get_game_process_handle() -> &'static Arc<Mutex<Option<Child>>> {
     GAME_PROCESS.get_or_init(|| Arc::new(Mutex::new(None)))
@@ -77,13 +103,17 @@ pub fn launch_minecraft_process(
 
     println!("[ProcessManager] Launching validated Java binary at: {:?}", validated_java_path);
 
-    // 2. Spawn Child Process with piped stdout & stderr
     let mut command = Command::new(&validated_java_path);
-    command
-        .args(&args)
-        .current_dir(&game_dir)
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped());
+    command.args(&args);
+    command.current_dir(&game_dir);
+    command.stdout(Stdio::piped());
+    command.stderr(Stdio::piped());
+
+    // 2. Inject high-performance driver environment variables
+    command.env("__GL_THREADED_OPTIMIZATIONS", "1");
+    command.env("SHIM_MCCOMPAT", "0");
+    #[cfg(target_os = "linux")]
+    command.env("mesa_glthread", "true");
 
     let mut child = command
         .spawn()
@@ -91,6 +121,10 @@ pub fn launch_minecraft_process(
 
     let pid = child.id();
     println!("[ProcessManager] Game process spawned successfully. PID: {}", pid);
+
+    // 3. Apply low-level OS process optimizations (CPU Affinity, High Priority, No EcoQoS, 1ms Timer)
+    apply_os_optimizations(pid);
+    set_high_resolution_timer(true);
 
     let stdout = child.stdout.take();
     let stderr = child.stderr.take();
@@ -160,7 +194,10 @@ pub fn launch_minecraft_process(
             let process_lock = get_game_process_handle();
             let mut lock = match process_lock.lock() {
                 Ok(guard) => guard,
-                Err(_) => break,
+                Err(_) => {
+                    set_high_resolution_timer(false);
+                    break;
+                }
             };
 
             if let Some(ref mut child) = *lock {
@@ -173,6 +210,7 @@ pub fn launch_minecraft_process(
                             pid, exit_code, success
                         );
                         *lock = None;
+                        set_high_resolution_timer(false);
                         let _ = app.emit(
                             "game-stopped",
                             GameStoppedPayload {
@@ -186,6 +224,7 @@ pub fn launch_minecraft_process(
                     Err(e) => {
                         println!("[ProcessManager] Error checking process status: {}", e);
                         *lock = None;
+                        set_high_resolution_timer(false);
                         let _ = app.emit(
                             "game-stopped",
                             GameStoppedPayload {
@@ -197,6 +236,7 @@ pub fn launch_minecraft_process(
                     }
                 }
             } else {
+                set_high_resolution_timer(false);
                 break;
             }
         }
@@ -205,19 +245,32 @@ pub fn launch_minecraft_process(
     Ok(pid)
 }
 
-pub fn kill_minecraft_process() -> Result<bool, String> {
+#[tauri::command]
+pub fn launch_minecraft(
+    app_handle: AppHandle,
+    java_path: String,
+    args: Vec<String>,
+    game_dir: String,
+) -> Result<u32, String> {
+    launch_minecraft_process(app_handle, java_path, args, game_dir)
+}
+
+#[tauri::command]
+pub fn kill_minecraft() -> Result<bool, String> {
     let process_lock = get_game_process_handle();
     let mut lock = process_lock.lock().map_err(|e| e.to_string())?;
     if let Some(ref mut child) = *lock {
         println!("[ProcessManager] Forcefully killing active game process PID: {}", child.id());
         let _ = child.kill();
         *lock = None;
+        set_high_resolution_timer(false);
         Ok(true)
     } else {
         Ok(false)
     }
 }
 
+#[tauri::command]
 pub fn is_game_running() -> bool {
     let process_lock = get_game_process_handle();
     let mut lock = match process_lock.lock() {
@@ -229,6 +282,7 @@ pub fn is_game_running() -> bool {
             Ok(None) => true,
             _ => {
                 *lock = None;
+                set_high_resolution_timer(false);
                 false
             }
         }
@@ -236,3 +290,81 @@ pub fn is_game_running() -> bool {
         false
     }
 }
+
+#[cfg(target_os = "windows")]
+pub fn apply_os_optimizations(pid: u32) {
+    use windows::Win32::Foundation::CloseHandle;
+    use windows::Win32::System::Threading::{
+        OpenProcess, SetPriorityClass, SetProcessAffinityMask,
+        HIGH_PRIORITY_CLASS, PROCESS_SET_INFORMATION, PROCESS_QUERY_LIMITED_INFORMATION,
+    };
+    use crate::hardware::detect_hardware_profile;
+
+    unsafe {
+        let desired_access = PROCESS_SET_INFORMATION | PROCESS_QUERY_LIMITED_INFORMATION;
+        if let Ok(handle) = OpenProcess(desired_access, false, pid) {
+            // 1. Assign High Priority Class to javaw.exe
+            let prio_res = SetPriorityClass(handle, HIGH_PRIORITY_CLASS);
+            println!("[ProcessManager] Applied HIGH_PRIORITY_CLASS to PID {}: {:?}", pid, prio_res.is_ok());
+
+            // 2. CPU Affinity (P-cores for Intel Hybrid, CCD0 for AMD Ryzen Dual-CCD X3D)
+            let hw = detect_hardware_profile();
+            if hw.recommended_affinity_mask > 0 {
+                let mask = hw.recommended_affinity_mask as usize;
+                let aff_res = SetProcessAffinityMask(handle, mask);
+                println!(
+                    "[ProcessManager] Applied CPU Affinity Mask 0x{:X} to PID {}: {:?}",
+                    mask, pid, aff_res.is_ok()
+                );
+            }
+
+            // 3. Disable Windows 11 EcoQoS (PowerThrottling)
+            disable_windows_power_throttling(handle);
+
+            let _ = CloseHandle(handle);
+        } else {
+            eprintln!("[ProcessManager] Warning: Failed to OpenProcess for optimization on PID {}", pid);
+        }
+    }
+}
+
+#[cfg(target_os = "windows")]
+#[repr(C)]
+struct ProcessPowerThrottlingState {
+    version: u32,
+    control_mask: u32,
+    state_mask: u32,
+}
+
+#[cfg(target_os = "windows")]
+unsafe fn disable_windows_power_throttling(handle: windows::Win32::Foundation::HANDLE) {
+    #[link(name = "kernel32")]
+    extern "system" {
+        fn SetProcessInformation(
+            hProcess: windows::Win32::Foundation::HANDLE,
+            ProcessInformationClass: i32,
+            ProcessInformation: *const std::ffi::c_void,
+            ProcessInformationSize: u32,
+        ) -> windows::Win32::Foundation::BOOL;
+    }
+
+    let state = ProcessPowerThrottlingState {
+        version: 1, // PROCESS_POWER_THROTTLING_CURRENT_VERSION
+        control_mask: 0x1, // PROCESS_POWER_THROTTLING_EXECUTION_SPEED
+        state_mask: 0, // 0 = Turn off throttling / EcoQoS
+    };
+
+    let ok = SetProcessInformation(
+        handle,
+        4, // ProcessPowerThrottling
+        &state as *const _ as *const std::ffi::c_void,
+        std::mem::size_of::<ProcessPowerThrottlingState>() as u32,
+    );
+    println!("[ProcessManager] Disabled Windows PowerThrottling (EcoQoS): {:?}", ok.as_bool());
+}
+
+#[cfg(not(target_os = "windows"))]
+pub fn apply_os_optimizations(pid: u32) {
+    println!("[ProcessManager] OS process optimizations not applicable on this platform for PID: {}", pid);
+}
+

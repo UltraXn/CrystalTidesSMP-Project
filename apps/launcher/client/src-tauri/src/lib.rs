@@ -12,6 +12,7 @@ mod java_manager;
 mod mod_library;
 mod mod_loaders;
 mod neoforge;
+mod process_manager;
 mod r2_sync;
 mod system;
 
@@ -151,16 +152,6 @@ fn write_text_file(path: String, content: String) -> Result<(), String> {
         let _ = std::fs::create_dir_all(parent);
     }
     std::fs::write(path, content).map_err(|e| e.to_string())
-}
-
-#[tauri::command]
-fn launch_minecraft(java_path: String, args: Vec<String>, game_dir: String) -> Result<(), String> {
-    std::process::Command::new(java_path)
-        .args(&args)
-        .current_dir(game_dir)
-        .spawn()
-        .map_err(|e| e.to_string())?;
-    Ok(())
 }
 
 #[tauri::command]
@@ -586,7 +577,9 @@ pub fn run() {
             get_home_dir,
             read_text_file,
             write_text_file,
-            launch_minecraft,
+            process_manager::launch_minecraft,
+            process_manager::kill_minecraft,
+            process_manager::is_game_running,
             http_post,
             http_get,
             http_put,

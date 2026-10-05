@@ -4,6 +4,8 @@ version = "0.1.0"
 description = "CTLauncher Uninstaller"
 authors = ["CrystalTides"]
 edition = "2021"
+publish = false
+license = "MIT"
 
 [build-dependencies]
 tauri-build = { version = "2.2", features = [] }

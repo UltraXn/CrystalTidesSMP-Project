@@ -7,6 +7,36 @@ const CREATE_NO_WINDOW: u32 = 0x08000000;
 
 use crate::errors::{NativeError, NativeResult};
 
+pub fn cleanup_installer_artifacts(game_dir: &Path) {
+    if !game_dir.is_dir() {
+        return;
+    }
+
+    let entries = match std::fs::read_dir(game_dir) {
+        Ok(e) => e,
+        Err(_) => return,
+    };
+
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if !path.is_file() {
+            continue;
+        }
+
+        let file_name = entry.file_name();
+        let name_str = file_name.to_string_lossy().to_lowercase();
+
+        let is_installer_jar = name_str.ends_with(".jar") && name_str.contains("installer");
+        let is_installer_log = (name_str.ends_with(".log") || name_str.ends_with(".txt")) && name_str.contains("installer");
+        let is_crash_log = (name_str.starts_with("hs_err_pid") || name_str.starts_with("replay_pid"))
+            && name_str.ends_with(".log");
+
+        if is_installer_jar || is_installer_log || is_crash_log {
+            let _ = std::fs::remove_file(&path);
+        }
+    }
+}
+
 pub fn install_mod_loader(
     loader_type: &str,
     loader_version: &str,
@@ -14,7 +44,10 @@ pub fn install_mod_loader(
     game_dir: &str,
     java_path: &str,
 ) -> NativeResult<i32> {
-    match loader_type {
+    let game_path = Path::new(game_dir);
+    cleanup_installer_artifacts(game_path);
+
+    let res = match loader_type {
         "fabric" => install_fabric(loader_version, mc_version, game_dir, java_path),
         "quilt" => install_quilt(loader_version, mc_version, game_dir, java_path),
         "neoforge" | "forge" => {
@@ -24,7 +57,10 @@ pub fn install_mod_loader(
             "Unknown loader type: {}",
             loader_type
         ))),
-    }
+    };
+
+    cleanup_installer_artifacts(game_path);
+    res
 }
 
 fn install_fabric(

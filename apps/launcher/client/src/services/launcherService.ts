@@ -1,5 +1,6 @@
-import { invoke } from "@tauri-apps/api/core";
-import { ensureJava, getJavaVersionForMinecraft } from "./javaService";
+import { invoke } from '@tauri-apps/api/core';
+import { ensureJava, getJavaVersionForMinecraft } from './javaService';
+import { fetchGpuProfile, applyOptimalGpuOptions } from './gpuShaderService';
 
 export interface LaunchParams {
   username: string;
@@ -36,7 +37,7 @@ interface VersionManifest {
 
 const isLibraryAllowed = (lib: VersionLibrary): boolean => {
   if (!lib.rules) return true;
-  return !lib.rules.some((rule) => rule.action === "allow" && rule.os?.name === "osx");
+  return !lib.rules.some((rule) => rule.action === 'allow' && rule.os?.name === 'osx');
 };
 
 const resolveLibraryPath = (lib: VersionLibrary): string | null => {
@@ -45,10 +46,10 @@ const resolveLibraryPath = (lib: VersionLibrary): string | null => {
   }
   if (!lib.name) return null;
 
-  const parts = lib.name.split(":");
+  const parts = lib.name.split(':');
   if (parts.length < 3) return null;
 
-  const group = parts[0].replace(/\./g, "/");
+  const group = parts[0].replace(/\./g, '/');
   const artifact = parts[1];
   const version = parts[2];
   return `${group}/${artifact}/${version}/${artifact}-${version}.jar`;
@@ -57,13 +58,13 @@ const resolveLibraryPath = (lib: VersionLibrary): string | null => {
 const buildClasspath = (
   gameDirectory: string,
   versionId: string,
-  versionData: VersionManifest
+  versionData: VersionManifest,
 ): string => {
   const classpathList: string[] = [`${gameDirectory}/versions/${versionId}/${versionId}.jar`];
 
   const libraries = versionData.libraries;
   if (!Array.isArray(libraries)) {
-    return classpathList.map((p) => p.replace(/\//g, "\\")).join(";");
+    return classpathList.map((p) => p.replace(/\//g, '\\')).join(';');
   }
 
   for (const lib of libraries) {
@@ -74,36 +75,59 @@ const buildClasspath = (
     }
   }
 
-  return classpathList.map((p) => p.replace(/\//g, "\\")).join(";");
+  return classpathList.map((p) => p.replace(/\//g, '\\')).join(';');
 };
 
-const buildJvmArgs = (
+const buildJvmArgs = async (
   params: LaunchParams,
   gameDirectory: string,
   versionId: string,
   mainClass: string,
-  cpString: string
-): string[] => {
+  cpString: string,
+): Promise<string[]> => {
   const args: string[] = [`-Xmx${params.maxRam}M`, `-Xms${params.minRam}M`];
 
   if (params.javaArgs && params.javaArgs.trim().length > 0) {
     args.push(...params.javaArgs.trim().split(/\s+/));
   } else if (params.useOptimization) {
-    args.push(
-      "-XX:+UnlockExperimentalVMOptions",
-      "-XX:+UseG1GC",
-      "-XX:G1NewSizePercent=20",
-      "-XX:G1ReservePercent=20",
-      "-XX:MaxGCPauseMillis=50",
-      "-XX:G1HeapRegionSize=32M",
-      "-Djava.net.preferIPv4Stack=true"
-    );
+    try {
+      // Consult dynamic CPU topology & JVM recommendations from Rust backend
+      const hwProfile = await invoke<{ jvm_recommended_flags: string[] }>(
+        'detect_hardware_profile',
+      );
+      if (hwProfile?.jvm_recommended_flags && hwProfile.jvm_recommended_flags.length > 0) {
+        args.push(...hwProfile.jvm_recommended_flags);
+      } else {
+        args.push(
+          '-XX:+UnlockExperimentalVMOptions',
+          '-XX:+UseG1GC',
+          '-XX:G1NewSizePercent=25',
+          '-XX:G1ReservePercent=15',
+          '-XX:MaxGCPauseMillis=50',
+          '-XX:G1HeapRegionSize=16M',
+        );
+      }
+    } catch (err) {
+      console.warn('[LauncherService] Error al consultar perfil de hardware:', err);
+      args.push('-XX:+UseG1GC');
+    }
+    args.push('-Djava.net.preferIPv4Stack=true');
   } else {
-    args.push("-XX:+UseG1GC");
+    args.push('-XX:+UseG1GC');
   }
 
-  const nativesPath = `${gameDirectory}/versions/${versionId}/natives`.replace(/\//g, "\\");
-  args.push(`-Djava.library.path=${nativesPath}`, "-cp", cpString, mainClass);
+  // Inject Crystal Agent JVM arguments if present
+  try {
+    const agentArgs = await invoke<string[]>('get_agent_jvm_args', { gameDir: gameDirectory });
+    if (agentArgs && agentArgs.length > 0) {
+      args.push(...agentArgs);
+    }
+  } catch {
+    // Non-blocking fallback if agent is not configured
+  }
+
+  const nativesPath = `${gameDirectory}/versions/${versionId}/natives`.replace(/\//g, '\\');
+  args.push(`-Djava.library.path=${nativesPath}`, '-cp', cpString, mainClass);
 
   return args;
 };
@@ -112,11 +136,11 @@ const buildGameArgs = (
   versionData: VersionManifest,
   params: LaunchParams,
   versionId: string,
-  gameDirectory: string
+  gameDirectory: string,
 ): string[] => {
   const rawGameArgs: string[] = versionData.minecraftArguments
-    ? versionData.minecraftArguments.split(" ")
-    : ((versionData.arguments?.game || []).filter((arg): arg is string => typeof arg === "string"));
+    ? versionData.minecraftArguments.split(' ')
+    : (versionData.arguments?.game || []).filter((arg): arg is string => typeof arg === 'string');
 
   const placeholders: Record<string, string> = {
     auth_player_name: params.username,
@@ -126,8 +150,8 @@ const buildGameArgs = (
     assets_index_name: params.mcVersion,
     auth_uuid: params.uuid,
     auth_access_token: params.accessToken,
-    user_type: "legacy",
-    version_type: "release",
+    user_type: 'legacy',
+    version_type: 'release',
     clientid: params.uuid,
     auth_xuid: params.uuid,
   };
@@ -135,7 +159,7 @@ const buildGameArgs = (
   return rawGameArgs.map((rawArg) => {
     let arg = rawArg;
     for (const [key, val] of Object.entries(placeholders)) {
-      const pattern = "${" + key + "}";
+      const pattern = '${' + key + '}';
       arg = arg.split(pattern).join(val);
     }
     return arg;
@@ -144,10 +168,10 @@ const buildGameArgs = (
 
 const resolveVersionId = (params: LaunchParams): string => {
   if (params.loaderType && params.loaderVersion) {
-    if (params.loaderType === "neoforge") {
+    if (params.loaderType === 'neoforge') {
       return `neoforge-${params.loaderVersion}`;
     }
-    if (params.loaderType === "fabric") {
+    if (params.loaderType === 'fabric') {
       return `fabric-loader-${params.loaderVersion}-${params.mcVersion}`;
     }
   }
@@ -157,16 +181,16 @@ const resolveVersionId = (params: LaunchParams): string => {
 const readVersionManifest = async (
   gameDirectory: string,
   versionId: string,
-  mcVersion: string
+  mcVersion: string,
 ): Promise<VersionManifest> => {
   const versionJsonPath = `${gameDirectory}/versions/${versionId}/${versionId}.json`;
   try {
-    const versionJsonContent = await invoke<string>("read_text_file", { path: versionJsonPath });
+    const versionJsonContent = await invoke<string>('read_text_file', { path: versionJsonPath });
     return JSON.parse(versionJsonContent);
   } catch {
     if (versionId !== mcVersion) {
       const vanillaJsonPath = `${gameDirectory}/versions/${mcVersion}/${mcVersion}.json`;
-      const vanillaContent = await invoke<string>("read_text_file", { path: vanillaJsonPath });
+      const vanillaContent = await invoke<string>('read_text_file', { path: vanillaJsonPath });
       return JSON.parse(vanillaContent);
     }
     throw new Error(`No se encontró el manifiesto de versión en: ${versionJsonPath}`);
@@ -175,62 +199,70 @@ const readVersionManifest = async (
 
 export const launchGame = async (
   params: LaunchParams,
-  onProgress?: (status: string, progress: number) => void
+  onProgress?: (status: string, progress: number) => void,
 ): Promise<number> => {
   try {
-    onProgress?.("Resolviendo directorios del juego...", 0.05);
+    onProgress?.('Resolviendo directorios del juego...', 0.05);
 
-    const homeDir = await invoke<string | null>("get_home_dir");
-    if (!homeDir) throw new Error("No se pudo obtener el directorio del usuario.");
+    const homeDir = await invoke<string | null>('get_home_dir');
+    if (!homeDir) throw new Error('No se pudo obtener el directorio del usuario.');
 
-    const normalizedHome = homeDir.replace(/\\/g, "/");
+    const normalizedHome = homeDir.replace(/\\/g, '/');
     const gameDirectory = params.gameDir || `${normalizedHome}/.crystaltides`;
 
-    onProgress?.("Comprobando entorno de Java...", 0.1);
+    onProgress?.('Comprobando entorno de Java...', 0.1);
     const requiredJavaVersion = getJavaVersionForMinecraft(params.mcVersion);
     const runtimesDir = `${normalizedHome}/.crystaltides/runtimes`;
     const javaPath = params.javaPath || (await ensureJava(requiredJavaVersion, runtimesDir));
 
-    onProgress?.("Cargando perfil de Minecraft...", 0.2);
+    onProgress?.('Cargando perfil de Minecraft...', 0.2);
     const versionId = resolveVersionId(params);
     const versionData = await readVersionManifest(gameDirectory, versionId, params.mcVersion);
-    const mainClass = versionData.mainClass || "net.minecraft.client.main.Main";
+    const mainClass = versionData.mainClass || 'net.minecraft.client.main.Main';
 
-    onProgress?.("Construyendo argumentos de ejecución...", 0.5);
+    onProgress?.('Sincronizando preajustes de GPU y shaders...', 0.4);
+    try {
+      const gpuProfile = await fetchGpuProfile();
+      await applyOptimalGpuOptions(gameDirectory, gpuProfile);
+    } catch (gpuErr) {
+      console.warn('[LauncherService] No se pudieron aplicar los preajustes de GPU:', gpuErr);
+    }
+
+    onProgress?.('Construyendo argumentos de ejecución...', 0.6);
     const cpString = buildClasspath(gameDirectory, versionId, versionData);
-    const jvmArgs = buildJvmArgs(params, gameDirectory, versionId, mainClass, cpString);
+    const jvmArgs = await buildJvmArgs(params, gameDirectory, versionId, mainClass, cpString);
     const gameArgs = buildGameArgs(versionData, params, versionId, gameDirectory);
     const fullArgs = [...jvmArgs, ...gameArgs];
 
-    onProgress?.("Iniciando Minecraft...", 0.9);
+    onProgress?.('Iniciando Minecraft...', 0.9);
     console.log(`Executing java at ${javaPath} with args:`, fullArgs);
 
-    const pid = await invoke<number>("launch_minecraft", {
+    const pid = await invoke<number>('launch_minecraft', {
       javaPath,
       args: fullArgs,
       gameDir: gameDirectory,
     });
 
-    onProgress?.("¡Juego iniciado con éxito!", 1.0);
+    onProgress?.('¡Juego iniciado con éxito!', 1.0);
     return pid;
   } catch (err) {
-    console.error("Failed to launch game:", err);
+    console.error('Failed to launch game:', err);
     throw err;
   }
 };
 
 export const killGame = async (): Promise<boolean> => {
   try {
-    return await invoke<boolean>("kill_minecraft");
+    return await invoke<boolean>('kill_minecraft');
   } catch (err) {
-    console.error("Failed to kill game process:", err);
+    console.error('Failed to kill game process:', err);
     return false;
   }
 };
 
 export const checkGameRunning = async (): Promise<boolean> => {
   try {
-    return await invoke<boolean>("is_game_running");
+    return await invoke<boolean>('is_game_running');
   } catch {
     return false;
   }

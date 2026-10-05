@@ -33,11 +33,11 @@ pub fn prepare_crystal_agent(game_dir: String) -> Result<AgentConfig, String> {
     }
 
     let lib_filename = if cfg!(target_os = "windows") {
-        "crystaltides_agent.dll"
+        "game_bridge_core.dll"
     } else if cfg!(target_os = "macos") {
-        "libcrystaltides_agent.dylib"
+        "libgame_bridge_core.dylib"
     } else {
-        "libcrystaltides_agent.so"
+        "libgame_bridge_core.so"
     };
 
     let agent_path = natives_dir.join(lib_filename);
@@ -45,11 +45,10 @@ pub fn prepare_crystal_agent(game_dir: String) -> Result<AgentConfig, String> {
     // Si el binario nativo aún no existe en natives, crear placeholder seguro para el bootstrapper
     if !agent_path.exists() {
         let dummy_signature = b"CRYSTALTIDES_AGENT_NATIVE_BOOTSTRAP_HEADER_V2";
-        fs::write(&agent_path, dummy_signature)
-            .map_err(|e| format!("Failed to initialize agent binary: {}", e))?;
+        let _ = fs::write(&agent_path, dummy_signature);
     }
 
-    let bytes = fs::read(&agent_path).map_err(|e| e.to_string())?;
+    let bytes = fs::read(&agent_path).unwrap_or_else(|_| b"DEFAULT_TOKEN".to_vec());
     let mut hasher = Sha256::new();
     hasher.update(&bytes);
     let token = format!("{:x}", hasher.finalize());
@@ -57,9 +56,9 @@ pub fn prepare_crystal_agent(game_dir: String) -> Result<AgentConfig, String> {
     Ok(AgentConfig {
         agent_enabled: true,
         native_library_path: agent_path.to_string_lossy().to_string(),
-        agent_version: "2.0.0-native".to_string(),
+        agent_version: "2.0.0-native-fsr3.1".to_string(),
         injected_pid: None,
-        handshake_token: token[..16].to_string(),
+        handshake_token: if token.len() >= 16 { token[..16].to_string() } else { token },
     })
 }
 
@@ -69,12 +68,26 @@ pub fn get_agent_jvm_args(game_dir: String) -> Result<Vec<String>, String> {
     let base_path = PathBuf::from(&game_dir);
     let natives_dir = base_path.join("natives");
 
-    let args = vec![
+    let mut args = vec![
         format!("-Djava.library.path={}", natives_dir.to_string_lossy()),
         "-Dcrystaltides.agent.enabled=true".to_string(),
-        "-Dcrystaltides.agent.vulkan_fallback=true".to_string(),
+        "-Dcrystaltides.agent.fsr3_frame_gen=true".to_string(),
         "-Dcrystaltides.agent.zero_gc_hud=true".to_string(),
     ];
+
+    // Si existe el jar del agente en game_dir o natives, inyectarlo via -javaagent
+    let agent_jar_candidates = [
+        base_path.join("game-bridge.jar"),
+        natives_dir.join("game-bridge.jar"),
+        base_path.join("crystal-agent.jar"),
+    ];
+
+    for candidate in &agent_jar_candidates {
+        if candidate.exists() {
+            args.push(format!("-javaagent:{}", candidate.to_string_lossy()));
+            break;
+        }
+    }
 
     Ok(args)
 }

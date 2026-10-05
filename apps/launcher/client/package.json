@@ -11,7 +11,12 @@
     "build:analyze": "vite build --mode analyze",
     "build:tauri": "tauri build",
     "preview": "vite preview",
-    "lint": "oxlint .",
+    "lint": "oxlint --no-ignore src",
+    "lint:fast": "oxlint --no-ignore src",
+    "doctor": "react-doctor",
+    "doctor:score": "react-doctor --score",
+    "doctor:staged": "react-doctor --staged --blocking warning",
+    "doctor:changed": "react-doctor --verbose --scope changed",
     "typecheck": "tsc --noEmit",
     "tauri": "tauri"
   },

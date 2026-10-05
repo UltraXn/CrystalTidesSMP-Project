@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "id": "crystaltides-boost",
+  "version": "1.0.0",
+  "name": "CrystalTides Boost",
+  "description": "Low-level PC client optimization mod: ThreadQos scheduling, SaveSkip chunk hash deduplication, and LazyNarrator fast boot. 100% compatible with Sodium and Iris Shaders.",
+  "authors": ["CrystalTides Team"],
+  "contact": {
+    "homepage": "https://crystaltides.net"
+  },
+  "license": "MIT",
+  "environment": "client",
+  "entrypoints": {
+    "client": ["com.crystaltides.boost.CrystalTidesBoostClient"]
+  },
+  "mixins": ["crystaltides-boost.mixins.json"],
+  "depends": {
+    "fabricloader": ">=0.15.0",
+    "minecraft": "~1.21"
+  },
+  "suggests": {
+    "sodium": "*",
+    "iris": "*"
+  }
+}
