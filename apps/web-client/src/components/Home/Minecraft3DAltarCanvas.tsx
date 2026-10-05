@@ -160,41 +160,46 @@ function setupWitherStage(
   onMixerCreated: (mixer: THREE.AnimationMixer) => void,
 ): void {
   const loader = new GLTFLoader();
-  loader.load(TEXTURE_PATHS.TORO_WITHER_MODEL, (gltf) => {
-    if (!isSubscribed()) return;
+  loader.load(
+    TEXTURE_PATHS.TORO_WITHER_MODEL,
+    (gltf) => {
+      if (!isSubscribed()) return;
 
-    const model = gltf.scene;
-    model.traverse((child) => {
-      if (child instanceof THREE.Mesh) {
-        filterWitherMaterials(child);
+      const model = gltf.scene;
+      model.traverse((child) => {
+        if (child instanceof THREE.Mesh) {
+          filterWitherMaterials(child);
+        }
+      });
+
+      const box = new THREE.Box3().setFromObject(model);
+      const center = box.getCenter(new THREE.Vector3());
+      const size = box.getSize(new THREE.Vector3());
+      const maxDim = Math.max(size.x, size.y, size.z) || 1;
+      const scale = 3.2 / maxDim;
+
+      model.scale.set(scale, scale, scale);
+      model.position.set(-center.x * scale, -center.y * scale, -center.z * scale);
+
+      const witherPivot = new THREE.Group();
+      witherPivot.add(model);
+      witherPivot.rotation.y = Math.PI;
+      mainGroup.add(witherPivot);
+
+      if (gltf.animations && gltf.animations.length > 0) {
+        const mixer = new THREE.AnimationMixer(model);
+        const idleClip =
+          gltf.animations.find((clip) => clip.name.toLowerCase() === 'idle') || gltf.animations[0];
+        if (idleClip) {
+          const action = mixer.clipAction(idleClip);
+          action.play();
+        }
+        onMixerCreated(mixer);
       }
-    });
-
-    const box = new THREE.Box3().setFromObject(model);
-    const center = box.getCenter(new THREE.Vector3());
-    const size = box.getSize(new THREE.Vector3());
-    const maxDim = Math.max(size.x, size.y, size.z) || 1;
-    const scale = 3.2 / maxDim;
-
-    model.scale.set(scale, scale, scale);
-    model.position.set(-center.x * scale, -center.y * scale, -center.z * scale);
-
-    const witherPivot = new THREE.Group();
-    witherPivot.add(model);
-    witherPivot.rotation.y = Math.PI;
-    mainGroup.add(witherPivot);
-
-    if (gltf.animations && gltf.animations.length > 0) {
-      const mixer = new THREE.AnimationMixer(model);
-      const idleClip =
-        gltf.animations.find((clip) => clip.name.toLowerCase() === 'idle') || gltf.animations[0];
-      if (idleClip) {
-        const action = mixer.clipAction(idleClip);
-        action.play();
-      }
-      onMixerCreated(mixer);
-    }
-  });
+    },
+    undefined,
+    (err) => console.error('Failed to load 3D model/texture:', err),
+  );
 }
 
 function createBeaconStructure(
@@ -988,7 +993,6 @@ export const Minecraft3DAltarCanvas: React.FC<Readonly<Minecraft3DAltarCanvasPro
       explosionDelayTimerRef,
     };
 
-    let animationFrameId: number;
     const clock = new THREE.Clock();
 
     const updateStageTwo = (delta: number, elapsedTime: number) => {
@@ -1058,8 +1062,7 @@ export const Minecraft3DAltarCanvas: React.FC<Readonly<Minecraft3DAltarCanvasPro
       });
     };
 
-    const animate = () => {
-      animationFrameId = requestAnimationFrame(animate);
+    renderer.setAnimationLoop((_time) => {
       const delta = clock.getDelta();
       const elapsedTime = clock.getElapsedTime();
 
@@ -1078,9 +1081,7 @@ export const Minecraft3DAltarCanvas: React.FC<Readonly<Minecraft3DAltarCanvasPro
       particles.rotation.x = Math.sin(elapsedTime * 0.05) * 0.1;
 
       renderer.render(scene, camera);
-    };
-
-    animate();
+    });
 
     const handleResize = () => {
       if (!container) return;
@@ -1094,7 +1095,7 @@ export const Minecraft3DAltarCanvas: React.FC<Readonly<Minecraft3DAltarCanvasPro
     return () => {
       isSubscribed = false;
       window.removeEventListener('resize', handleResize);
-      cancelAnimationFrame(animationFrameId);
+      renderer.setAnimationLoop(null);
       renderer.dispose();
       particleGeo.dispose();
       particleMat.dispose();
@@ -1108,7 +1109,7 @@ export const Minecraft3DAltarCanvas: React.FC<Readonly<Minecraft3DAltarCanvasPro
   return (
     <div
       ref={containerRef}
-      className="pointer-events-none h-full w-full select-none"
+      className="pointer-events-none size-full select-none"
       aria-hidden="true"
     />
   );

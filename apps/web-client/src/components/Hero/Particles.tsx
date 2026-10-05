@@ -9,7 +9,7 @@ export default function HeroParticles() {
     const container = containerRef.current;
     if (!container) return;
 
-    let timer: NodeJS.Timeout;
+    let timer: ReturnType<typeof setTimeout>;
 
     // Delay particle creation to ensure 0 main-thread blocking during initial paint
     const startParticles = () => {

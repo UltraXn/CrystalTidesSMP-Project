@@ -5,30 +5,7 @@ interface Minecraft3DServerRackCanvasProps {
   accentColor?: string;
 }
 
-interface IFaceInfo {
-  three_idx: number;
-  mc_face: string;
-  texture: string;
-  uv: [number, number, number, number];
-  rotation: number;
-}
-
-interface ICubePrecise {
-  name: string;
-  size: [number, number, number];
-  position: [number, number, number];
-  faces: IFaceInfo[];
-}
-
-let rackModelPromise: Promise<ICubePrecise[]> | null = null;
-function loadRackModel(): Promise<ICubePrecise[]> {
-  rackModelPromise ??= fetch('/models/server_rack_precise.json').then((res) => {
-    if (!res.ok) throw new Error('HTTP error ' + res.status);
-    return res.json();
-  });
-  return rackModelPromise;
-}
-loadRackModel().catch(() => {});
+import { loadRackModel, type ICubePrecise, type IFaceInfo } from '../../services/serverRackModel';
 
 function applyFaceUV(
   face: IFaceInfo,
@@ -151,23 +128,38 @@ export const Minecraft3DServerRackCanvas: React.FC<Readonly<Minecraft3DServerRac
 
     // Load textures with nearest pixel-art filter
     const textureLoader = new THREE.TextureLoader();
-    const caseTex = textureLoader.load('/models/server_rack/case.png', (t) => {
-      t.magFilter = THREE.NearestFilter;
-      t.minFilter = THREE.NearestFilter;
-      t.colorSpace = THREE.SRGBColorSpace;
-    });
-    const serverTex = textureLoader.load('/models/server_rack/server.png', (t) => {
-      t.magFilter = THREE.NearestFilter;
-      t.minFilter = THREE.NearestFilter;
-      t.colorSpace = THREE.SRGBColorSpace;
-    });
-    const lightsTex = textureLoader.load('/models/server_rack/server_lights.png', (t) => {
-      t.magFilter = THREE.NearestFilter;
-      t.minFilter = THREE.NearestFilter;
-      t.colorSpace = THREE.SRGBColorSpace;
-      t.wrapS = THREE.RepeatWrapping;
-      t.wrapT = THREE.RepeatWrapping;
-    });
+    const caseTex = textureLoader.load(
+      '/models/server_rack/case.png',
+      (t) => {
+        t.magFilter = THREE.NearestFilter;
+        t.minFilter = THREE.NearestFilter;
+        t.colorSpace = THREE.SRGBColorSpace;
+      },
+      undefined,
+      (err) => console.error('Failed to load 3D model/texture:', err),
+    );
+    const serverTex = textureLoader.load(
+      '/models/server_rack/server.png',
+      (t) => {
+        t.magFilter = THREE.NearestFilter;
+        t.minFilter = THREE.NearestFilter;
+        t.colorSpace = THREE.SRGBColorSpace;
+      },
+      undefined,
+      (err) => console.error('Failed to load 3D model/texture:', err),
+    );
+    const lightsTex = textureLoader.load(
+      '/models/server_rack/server_lights.png',
+      (t) => {
+        t.magFilter = THREE.NearestFilter;
+        t.minFilter = THREE.NearestFilter;
+        t.colorSpace = THREE.SRGBColorSpace;
+        t.wrapS = THREE.RepeatWrapping;
+        t.wrapT = THREE.RepeatWrapping;
+      },
+      undefined,
+      (err) => console.error('Failed to load 3D model/texture:', err),
+    );
 
     // Base materials
     const invisibleMat = new THREE.MeshBasicMaterial({
@@ -259,10 +251,8 @@ export const Minecraft3DServerRackCanvas: React.FC<Readonly<Minecraft3DServerRac
     let currentFrame = 0;
     const frameDuration = 0.15;
 
-    let animationFrameId: number;
-    const animate = () => {
+    renderer.setAnimationLoop((_time) => {
       if (!isSubscribed) return;
-      animationFrameId = requestAnimationFrame(animate);
 
       const delta = clock.getDelta();
       const elapsedTime = clock.getElapsedTime();
@@ -292,9 +282,7 @@ export const Minecraft3DServerRackCanvas: React.FC<Readonly<Minecraft3DServerRac
       lightsMat.emissiveIntensity = pulse;
 
       renderer.render(scene, camera);
-    };
-
-    animate();
+    });
 
     // Handle Window Resize
     const handleResize = () => {
@@ -308,7 +296,7 @@ export const Minecraft3DServerRackCanvas: React.FC<Readonly<Minecraft3DServerRac
 
     return () => {
       isSubscribed = false;
-      cancelAnimationFrame(animationFrameId);
+      renderer.setAnimationLoop(null);
       domElem.removeEventListener('mousedown', onMouseDown);
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', onMouseUp);
@@ -321,7 +309,7 @@ export const Minecraft3DServerRackCanvas: React.FC<Readonly<Minecraft3DServerRac
   return (
     <div
       ref={containerRef}
-      className="min-h-65 sm:min-h-75 relative z-10 flex h-full w-full cursor-grab items-center justify-center active:cursor-grabbing"
+      className="min-h-65 sm:min-h-75 relative z-10 flex size-full cursor-grab items-center justify-center active:cursor-grabbing"
     />
   );
 };

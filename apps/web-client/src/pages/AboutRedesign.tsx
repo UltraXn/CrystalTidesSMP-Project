@@ -116,18 +116,18 @@ const HeroSection = () => (
       animate={{ opacity: 1, scale: 1 }}
       className="inline-flex items-center gap-2 rounded-full border border-cyan-400/40 bg-cyan-950/60 px-4 py-1.5 text-xs font-black uppercase tracking-widest text-cyan-300 shadow-[0_0_20px_rgba(34,211,238,0.25)]"
     >
-      <Zap className="h-3.5 w-3.5 animate-bounce text-cyan-400" /> CLIENTE OFICIAL ULTRA OPTIMIZADO
+      <Zap className="size-3.5 animate-bounce text-cyan-400" /> CLIENTE OFICIAL ULTRA OPTIMIZADO
       (TAURI + RUST)
     </motion.span>
 
-    <h2 className="text-4xl font-black leading-tight tracking-tight text-white md:text-6xl">
+    <h2 className="text-4xl/tight font-black tracking-tight text-white md:text-6xl">
       El Launcher de Próxima Generación para{' '}
       <span className="bg-linear-to-r from-cyan-400 via-emerald-300 to-purple-400 bg-clip-text text-transparent">
         CrystalTidesSMP
       </span>
     </h2>
 
-    <p className="mx-auto max-w-3xl text-base leading-relaxed text-gray-300 md:text-xl">
+    <p className="mx-auto max-w-3xl text-base/relaxed text-gray-300 md:text-xl">
       Arranque instantáneo, +140% rendimiento de FPS, sincronización inteligente de mods en tiempo
       real y el radar de maestrías integrado en tu escritorio.
     </p>
@@ -170,7 +170,7 @@ const BenchmarkBarRow = ({
   <div className="space-y-2">
     <div className={`flex justify-between text-xs font-bold ${labelColorClass}`}>
       <span className="flex items-center gap-1.5">
-        {isPrimary && <Zap className="h-3.5 w-3.5" />}
+        {isPrimary && <Zap className="size-3.5" />}
         {label}
       </span>
       <span className={`font-mono ${isPrimary ? 'text-cyan-300' : ''}`}>{value}</span>
@@ -295,7 +295,7 @@ const SecurityChecksumDrawer = ({
     )}
 
     <div className="flex items-center justify-center gap-2 pt-2 text-xs font-semibold text-emerald-400">
-      <ShieldCheck className="h-4 w-4 text-emerald-400" />
+      <ShieldCheck className="size-4 text-emerald-400" />
       <span>Archivos verificados contra malware • Firmados digitalmente • 100% Gratuito</span>
     </div>
   </div>
@@ -351,7 +351,7 @@ const InstallerSection = () => {
           href={currentOs.downloadUrl}
           className="flex shrink-0 items-center gap-2.5 rounded-xl bg-cyan-500 px-8 py-3.5 text-xs font-black uppercase tracking-wider text-black shadow-lg shadow-cyan-500/20 transition-colors hover:scale-105 hover:bg-cyan-400"
         >
-          <Download className="h-4 w-4" /> DESCARGAR AHORA
+          <Download className="size-4" /> DESCARGAR AHORA
         </a>
       </div>
 
@@ -382,14 +382,14 @@ const FaqItemRow = ({ item, isOpen, onToggle }: Readonly<FaqItemRowProps>) => (
     >
       <span>{item.q}</span>
       <ChevronRight
-        className={`h-5 w-5 text-cyan-400 transition-transform duration-300 ${
+        className={`size-5 text-cyan-400 transition-transform duration-300 ${
           isOpen ? 'rotate-90' : ''
         }`}
       />
     </button>
 
     {isOpen && (
-      <div className="border-t border-white/5 bg-black/20 p-5 pt-0 text-xs leading-relaxed text-gray-300 md:text-sm">
+      <div className="border-t border-white/5 bg-black/20 p-5 pt-0 text-xs/relaxed text-gray-300 md:text-sm">
         {item.a}
       </div>
     )}
