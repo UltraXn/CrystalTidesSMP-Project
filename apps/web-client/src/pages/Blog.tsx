@@ -2,7 +2,7 @@ import { secureRandom } from '../utils/random';
 import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Calendar, ArrowRight, Tag } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import Section from '../components/Layout/Section';
 import { useTranslation } from 'react-i18next';
 import { m as motion, AnimatePresence } from 'framer-motion';

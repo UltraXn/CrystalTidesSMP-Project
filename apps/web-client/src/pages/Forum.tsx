@@ -9,7 +9,7 @@ import {
   Flame,
   BarChart3,
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import Section from '../components/Layout/Section';
@@ -119,7 +119,7 @@ function getLocalizedText(language: string, defaultText: string, englishText?: s
 }
 
 function stripHtml(html: string): string {
-  return html.replace(/<[^>]*>?/gm, '');
+  return html.replace(/<[^>]*>?/g, '');
 }
 
 async function fetchActivePoll(apiUrl: string): Promise<Poll | null> {
@@ -206,9 +206,7 @@ function PollCard({ poll }: Readonly<PollCardProps>) {
       </div>
 
       <div className="flex flex-1 flex-col">
-        <h3 className="mb-6 text-xl font-bold leading-tight text-white md:text-2xl">
-          {questionText}
-        </h3>
+        <h3 className="mb-6 text-xl/tight font-bold text-white md:text-2xl">{questionText}</h3>
         <div className="flex-1 space-y-4">
           {visibleOptions.map((opt) => {
             const labelText = getLocalizedText(i18n.language, opt.label, opt.label_en);
@@ -244,7 +242,7 @@ function NewsCard({ news }: Readonly<NewsCardProps>) {
     return (
       <div className="h-full">
         <div className="flex h-full flex-col items-center justify-center gap-4 rounded-3xl border border-white/5 bg-black/40 p-8 text-center backdrop-blur-xl">
-          <div className="mb-2 flex h-16 w-16 items-center justify-center rounded-full bg-white/5 text-gray-500">
+          <div className="mb-2 flex size-16 items-center justify-center rounded-full bg-white/5 text-gray-500">
             <Megaphone className="text-2xl" />
           </div>
           <p className="text-sm font-medium uppercase tracking-widest text-gray-400">
@@ -283,7 +281,7 @@ function NewsCard({ news }: Readonly<NewsCardProps>) {
               {t('forum_page.news_section')}
             </span>
           </div>
-          <h3 className="group-hover:text-(--accent) mb-2 text-2xl font-black leading-tight text-white transition-colors">
+          <h3 className="group-hover:text-(--accent) mb-2 text-2xl/tight font-black text-white transition-colors">
             {titleText}
           </h3>
           <p className="line-clamp-2 text-sm text-gray-300">{contentText}</p>
@@ -305,7 +303,7 @@ function CategoryCard({ category }: Readonly<CategoryCardProps>) {
       to={`/forum/${category.slug}`}
       className="hover:border-(--accent)/40 hover:shadow-(--accent)/5 group flex flex-col items-center gap-6 rounded-2xl border border-white/5 bg-white/5 p-6 backdrop-blur-md transition-colors duration-300 hover:-translate-y-1 hover:bg-white/10 hover:shadow-xl sm:flex-row sm:items-stretch"
     >
-      <div className="group-hover:text-(--accent) group-hover:bg-(--accent)/10 flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-black/40 text-3xl text-gray-400 transition-colors sm:h-auto sm:w-20">
+      <div className="group-hover:text-(--accent) group-hover:bg-(--accent)/10 flex size-16 shrink-0 items-center justify-center rounded-xl bg-black/40 text-3xl text-gray-400 transition-colors sm:h-auto sm:w-20">
         {category.icon}
       </div>
 
@@ -403,7 +401,7 @@ export default function Forum() {
     <div className="min-h-screen pt-24">
       <Section title={t('forum_page.title')}>
         <div className="mx-auto mb-16 max-w-3xl text-center">
-          <p className="text-lg leading-relaxed text-gray-400">{t('forum_page.subtitle')}</p>
+          <p className="text-lg/relaxed text-gray-400">{t('forum_page.subtitle')}</p>
         </div>
 
         <div className="mx-auto mb-16 grid max-w-6xl grid-cols-1 gap-8 lg:grid-cols-2">

@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useForumThread } from '../../hooks/useForumThread';
 import * as AuthContext from '../../context/AuthContext';
-import * as ReactRouter from 'react-router-dom';
+import * as ReactRouter from 'react-router';
 import * as ReactQuery from '@tanstack/react-query';
 
 vi.mock('../../context/AuthContext', () => ({

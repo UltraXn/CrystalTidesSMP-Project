@@ -61,8 +61,8 @@ export interface DailyQuest {
 const isSafeImageUrl = (url: string): boolean => {
   let cleaned = '';
   for (let i = 0; i < url.length; i += 1) {
-    const code = url.charCodeAt(i);
-    if (code > 32 && code !== 127) {
+    const code = url.codePointAt(i);
+    if (code !== undefined && code > 32 && code !== 127) {
       cleaned += url[i];
     }
   }
@@ -84,10 +84,23 @@ function getCoverImage(edition: NewspaperEdition, index = 0): string {
 
 function cleanTitle(rawHeadline: string | undefined | null): string {
   if (!rawHeadline) return UI_STRINGS.DEFAULT_HEADLINE;
-  return rawHeadline
-    .replace(/^#+\s*/, '')
-    .replace(/^[\s\d.\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}]*/u, '')
-    .trim();
+  let title = rawHeadline.replace(/^#+\s*/, '').trim();
+  while (title.length > 0) {
+    const codePoint = title.codePointAt(0);
+    if (!codePoint) break;
+    const isWhitespace = /\s/.test(title[0]);
+    const isDigitOrDot = (codePoint >= 48 && codePoint <= 57) || codePoint === 46;
+    const isEmoji =
+      (codePoint >= 0x1f300 && codePoint <= 0x1f9ff) ||
+      (codePoint >= 0x2600 && codePoint <= 0x26ff);
+    if (isWhitespace || isDigitOrDot || isEmoji) {
+      const charLen = codePoint > 0xffff ? 2 : 1;
+      title = title.slice(charLen);
+    } else {
+      break;
+    }
+  }
+  return title.trim();
 }
 
 async function fetchLatestNewspaper(): Promise<NewspaperEdition | null> {
@@ -238,7 +251,7 @@ function renderMarkdownBlock(para: string): ReactNode {
 /**
  * Renderizador de Markdown Enriquecido estilo Blog con soporte de Imágenes Inline `![alt](url)`
  */
-export function RichBlogMarkdownRenderer({ markdown }: { readonly markdown: string }) {
+export function RichBlogMarkdownRenderer({ markdown }: Readonly<{ readonly markdown: string }>) {
   if (!markdown) return null;
 
   const paragraphs = markdown.split('\n\n').filter(Boolean);
@@ -250,7 +263,7 @@ export function RichBlogMarkdownRenderer({ markdown }: { readonly markdown: stri
   );
 }
 
-function DailyQuestCard({ quest }: { readonly quest: DailyQuest }) {
+function DailyQuestCard({ quest }: Readonly<{ readonly quest: DailyQuest }>) {
   return (
     <div className={`rounded-3xl p-6 ${STYLES.GLASS_PANEL} space-y-4`}>
       <div className="flex items-center justify-between">
@@ -282,10 +295,10 @@ function DailyQuestCard({ quest }: { readonly quest: DailyQuest }) {
 function DailyQuestsBoard({
   quests,
   isLoading,
-}: {
+}: Readonly<{
   readonly quests?: DailyQuest[];
   readonly isLoading: boolean;
-}) {
+}>) {
   if (isLoading) {
     return (
       <div className="py-16 text-center text-sm text-gray-400">
@@ -321,11 +334,11 @@ function ArticleReaderHeader({
   edition,
   hasLiked,
   onLike,
-}: {
+}: Readonly<{
   readonly edition: NewspaperEdition;
   readonly hasLiked: boolean;
   readonly onLike: (id: string) => void;
-}) {
+}>) {
   const extraLikes = hasLiked ? 1 : 0;
   const likeBtnClass = hasLiked
     ? `${STYLES.BG_ACCENT} text-black shadow-lg shadow-(--accent)/20`
@@ -377,11 +390,11 @@ function ArticleReader({
   edition,
   hasLiked,
   onLike,
-}: {
+}: Readonly<{
   readonly edition: NewspaperEdition;
   readonly hasLiked: boolean;
   readonly onLike: (id: string) => void;
-}) {
+}>) {
   return (
     <article className={`space-y-8 ${STYLES.GLASS_PANEL} rounded-3xl p-8 shadow-2xl sm:p-12`}>
       <ArticleReaderHeader edition={edition} hasLiked={hasLiked} onLike={onLike} />
@@ -405,12 +418,12 @@ function HeroArticleCard({
   likes,
   onRead,
   onLike,
-}: {
+}: Readonly<{
   readonly hero: NewspaperEdition;
   readonly likes: number;
   readonly onRead: (art: NewspaperEdition) => void;
   readonly onLike: (id: string) => void;
-}) {
+}>) {
   const headline = cleanTitle(hero.headline);
 
   return (
@@ -475,11 +488,11 @@ function CatalogCard({
   art,
   idx,
   onSelect,
-}: {
+}: Readonly<{
   readonly art: NewspaperEdition;
   readonly idx: number;
   readonly onSelect: (art: NewspaperEdition) => void;
-}) {
+}>) {
   return (
     <button
       type="button"
@@ -506,9 +519,7 @@ function CatalogCard({
           <h4 className="group-hover:text-(--accent) line-clamp-2 text-base/snug font-bold text-white transition-colors">
             {cleanTitle(art.headline)}
           </h4>
-          <p className="line-clamp-3 text-xs/relaxed text-gray-400">
-            {art.front_page_summary}
-          </p>
+          <p className="line-clamp-3 text-xs/relaxed text-gray-400">{art.front_page_summary}</p>
         </div>
 
         <div
@@ -525,10 +536,10 @@ function CatalogCard({
 function ArticlesCatalog({
   articles,
   onSelect,
-}: {
+}: Readonly<{
   readonly articles: NewspaperEdition[];
   readonly onSelect: (art: NewspaperEdition) => void;
-}) {
+}>) {
   if (articles.length === 0) {
     return <p className="text-sm text-gray-400">No hay ediciones anteriores archivadas.</p>;
   }
@@ -545,10 +556,10 @@ function ArticlesCatalog({
 function SidebarQuestsList({
   quests,
   isLoading,
-}: {
+}: Readonly<{
   readonly quests?: DailyQuest[];
   readonly isLoading: boolean;
-}) {
+}>) {
   if (isLoading) {
     return (
       <div className="p-6 text-center text-xs text-gray-400">
@@ -582,10 +593,10 @@ function SidebarQuestsList({
 function RecentEditionsList({
   articles,
   onSelectArticle,
-}: {
+}: Readonly<{
   readonly articles: NewspaperEdition[];
   readonly onSelectArticle: (art: NewspaperEdition) => void;
-}) {
+}>) {
   if (articles.length === 0) return null;
 
   return (
@@ -629,12 +640,12 @@ function SidebarWidgets({
   loadingQuests,
   allArticles,
   onSelectArticle,
-}: {
+}: Readonly<{
   readonly dailyQuests?: DailyQuest[];
   readonly loadingQuests: boolean;
   readonly allArticles: NewspaperEdition[];
   readonly onSelectArticle: (art: NewspaperEdition) => void;
-}) {
+}>) {
   return (
     <div className="sticky top-28 space-y-8 lg:col-span-4">
       <div className={`rounded-3xl p-6 ${STYLES.GLASS_PANEL} space-y-4`}>
@@ -666,7 +677,7 @@ function MainArticlesFeed({
   likes,
   onLike,
   onSelectEdition,
-}: {
+}: Readonly<{
   readonly readingEdition: NewspaperEdition | null;
   readonly loadingLatest: boolean;
   readonly activeHero: NewspaperEdition | null;
@@ -675,7 +686,7 @@ function MainArticlesFeed({
   readonly likes: number;
   readonly onLike: (id: string) => void;
   readonly onSelectEdition: (art: NewspaperEdition) => void;
-}) {
+}>) {
   if (readingEdition) {
     return <ArticleReader edition={readingEdition} hasLiked={hasLiked} onLike={onLike} />;
   }
@@ -710,13 +721,13 @@ function TabNavigation({
   showReturn,
   onTabChange,
   onReturn,
-}: {
+}: Readonly<{
   readonly activeTab: TabType;
   readonly questCount: number;
   readonly showReturn: boolean;
   readonly onTabChange: (tab: TabType) => void;
   readonly onReturn: () => void;
-}) {
+}>) {
   const blogTabStyle =
     activeTab === TABS.BLOG
       ? `${STYLES.BG_ACCENT} text-black shadow-lg shadow-(--accent)/20`

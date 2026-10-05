@@ -1,9 +1,10 @@
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link } from 'react-router';
 import { User, MessageSquare, Clock, Pen, Pin, ArrowLeft } from 'lucide-react';
 import Loader from '../components/UI/Loader';
 import { useTranslation } from 'react-i18next';
 import Section from '../components/Layout/Section';
 import { useQuery } from '@tanstack/react-query';
+import { formatDate } from '../utils/date';
 
 interface ThreadSummary {
   id: string | number;
@@ -83,7 +84,7 @@ function mapNewsToThreadSummary(n: NewsResponse): ThreadSummary {
     author: 'Staff',
     replies: n.replies || 0,
     views: n.views || 0,
-    lastActivity: new Date(n.created_at).toLocaleDateString(),
+    lastActivity: formatDate(n.created_at),
     pinned: true,
     tag: 'NEWS',
     slug: n.slug || `news-${n.id}`,
@@ -97,7 +98,7 @@ function mapThreadToSummary(t: ThreadResponse): ThreadSummary {
     author: t.author_name || 'Aventurero',
     replies: t.reply_count || 0,
     views: t.views || 0,
-    lastActivity: new Date(t.created_at).toLocaleDateString(),
+    lastActivity: formatDate(t.created_at),
     pinned: t.pinned || false,
     tag: null,
     slug: t.slug,
@@ -171,7 +172,7 @@ function CategoryLoadingState() {
 
   return (
     <div className="flex flex-col items-center justify-center gap-4 py-20">
-      <div className="border-t-(--accent) h-12 w-12 animate-spin rounded-full border-4 border-white/10" />
+      <div className="border-t-(--accent) size-12 animate-spin rounded-full border-4 border-white/10" />
       <Loader text={t('forum_category.loading')} />
     </div>
   );
@@ -219,7 +220,7 @@ function ThreadRow({ thread, isNewsCategory }: Readonly<ThreadRowProps>) {
     <Link to={threadUrl} className="group block">
       <div className="hover:border-(--accent)/30 hover:shadow-(--accent)/5 flex items-center gap-6 rounded-2xl border border-white/5 bg-black/40 p-6 backdrop-blur-xl transition-colors duration-300 hover:-translate-y-1 hover:bg-white/5 hover:shadow-xl">
         <div
-          className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-xl ${iconStyle}`}
+          className={`flex size-12 shrink-0 items-center justify-center rounded-full text-xl ${iconStyle}`}
         >
           {thread.pinned ? <Pin className="rotate-45" /> : <MessageSquare />}
         </div>
@@ -227,7 +228,7 @@ function ThreadRow({ thread, isNewsCategory }: Readonly<ThreadRowProps>) {
         <div className="min-w-0 grow">
           <div className="mb-2 flex items-center gap-3">
             {thread.tag && (
-              <span className="bg-(--accent) shrink-0 rounded px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-black">
+              <span className="bg-(--accent) shrink-0 rounded-sm px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-black">
                 {thread.tag}
               </span>
             )}

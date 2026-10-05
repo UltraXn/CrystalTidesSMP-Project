@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { User, Lock, Send, X, Image as ImageIcon } from 'lucide-react';
 import type { useAuth } from '../../context/AuthContext';
 import type { useTranslation } from 'react-i18next';

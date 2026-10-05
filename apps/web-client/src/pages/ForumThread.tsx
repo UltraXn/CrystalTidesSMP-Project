@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { ArrowLeft, Reply } from 'lucide-react';
 import Loader from '../components/UI/Loader';
 import { useForumThread } from '../hooks/useForumThread';

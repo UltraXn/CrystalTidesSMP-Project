@@ -43,7 +43,7 @@ interface StoryDropcapTextProps {
 function StoryDropcapText({ text }: Readonly<StoryDropcapTextProps>) {
   const { first, rest } = splitStoryText(text);
   return (
-    <p className="whitespace-pre-line text-justify font-serif text-lg italic leading-relaxed text-amber-100/70">
+    <p className="whitespace-pre-line text-justify font-serif text-lg/relaxed italic text-amber-100/70">
       {first && (
         <span className="float-left mr-3 mt-1.5 border-b-2 border-amber-400/40 pb-1 font-serif text-5xl font-black leading-none text-amber-400 md:text-6xl">
           {first}
@@ -57,10 +57,10 @@ function StoryDropcapText({ text }: Readonly<StoryDropcapTextProps>) {
 function CodexCornerDecorations() {
   return (
     <>
-      <div className="pointer-events-none absolute left-4 top-4 z-30 h-8 w-8 rounded-tl-lg border-l-2 border-t-2 border-amber-500/30" />
-      <div className="pointer-events-none absolute right-4 top-4 z-30 h-8 w-8 rounded-tr-lg border-r-2 border-t-2 border-amber-500/30" />
-      <div className="pointer-events-none absolute bottom-4 left-4 z-30 h-8 w-8 rounded-bl-lg border-b-2 border-l-2 border-amber-500/30" />
-      <div className="pointer-events-none absolute bottom-4 right-4 z-30 h-8 w-8 rounded-br-lg border-b-2 border-r-2 border-amber-500/30" />
+      <div className="pointer-events-none absolute left-4 top-4 z-30 size-8 rounded-tl-lg border-l-2 border-t-2 border-amber-500/30" />
+      <div className="pointer-events-none absolute right-4 top-4 z-30 size-8 rounded-tr-lg border-r-2 border-t-2 border-amber-500/30" />
+      <div className="pointer-events-none absolute bottom-4 left-4 z-30 size-8 rounded-bl-lg border-b-2 border-l-2 border-amber-500/30" />
+      <div className="pointer-events-none absolute bottom-4 right-4 z-30 size-8 rounded-br-lg border-b-2 border-r-2 border-amber-500/30" />
     </>
   );
 }
@@ -83,7 +83,7 @@ function StoryAuthorsList({ authors }: Readonly<StoryAuthorsListProps>) {
           <img
             src={`https://minotar.net/helm/${auth.name}/100.png`}
             alt={auth.name}
-            className="sepia-15 h-8 w-8 rounded-lg shadow-lg filter"
+            className="sepia-15 size-8 rounded-lg shadow-lg filter"
           />
           <div className="flex flex-col">
             <span className="text-[8px] font-black uppercase tracking-widest text-amber-500/60">
@@ -137,14 +137,14 @@ function StoryCard({ place, onSelect, onCopyCoords }: Readonly<StoryCardProps>) 
               className="hover:bg-(--accent) text-(--accent) group/coords absolute left-4 top-4 z-20 flex items-center gap-2 rounded-full border border-white/10 bg-black/80 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest backdrop-blur-md transition-colors hover:text-black"
               title="Haz clic para copiar comando /tp"
             >
-              <Compass className="h-3.5 w-3.5 transition-transform duration-500 group-hover/coords:rotate-180" />
+              <Compass className="size-3.5 transition-transform duration-500 group-hover/coords:rotate-180" />
               <span>{place.coords}</span>
-              <Copy className="ml-1 h-3 w-3 opacity-40 group-hover/coords:opacity-100" />
+              <Copy className="ml-1 size-3 opacity-40 group-hover/coords:opacity-100" />
             </button>
             <img
               src={place.image_url || ''}
               alt={place.title}
-              className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+              className="size-full object-cover transition-transform duration-700 group-hover:scale-110"
             />
             <div className="bg-linear-to-t absolute inset-0 from-[#0a0a0a] via-transparent to-transparent opacity-60 transition-opacity group-hover:opacity-40" />
           </>
@@ -158,7 +158,7 @@ function StoryCard({ place, onSelect, onCopyCoords }: Readonly<StoryCardProps>) 
         >
           {place.title}
         </h3>
-        <p className="line-clamp-2 text-sm font-medium italic leading-relaxed text-gray-400">
+        <p className="line-clamp-2 text-sm/relaxed font-medium italic text-gray-400">
           "{place.description}"
         </p>
       </div>
@@ -196,7 +196,7 @@ function StoryModal({ place, onClose, onCopyCoords }: Readonly<StoryModalProps>)
           aria-label={t('common.close', 'Cerrar')}
           type="button"
           onClick={onClose}
-          className="absolute right-6 top-6 z-50 flex h-12 w-12 cursor-pointer items-center justify-center rounded-full border border-amber-500/20 bg-black/40 text-xl text-amber-500/70 transition-colors hover:rotate-90 hover:bg-amber-500 hover:text-black"
+          className="absolute right-6 top-6 z-50 flex size-12 cursor-pointer items-center justify-center rounded-full border border-amber-500/20 bg-black/40 text-xl text-amber-500/70 transition-colors hover:rotate-90 hover:bg-amber-500 hover:text-black"
         >
           <X />
         </button>
@@ -211,7 +211,7 @@ function StoryModal({ place, onClose, onCopyCoords }: Readonly<StoryModalProps>)
             <img
               src={place.image_url || ''}
               alt={place.title}
-              className="sepia-20 brightness-85 h-full w-full object-cover filter transition-colors duration-700 hover:scale-105"
+              className="sepia-20 brightness-85 size-full object-cover filter transition-colors duration-700 hover:scale-105"
             />
           )}
           <div className="bg-linear-to-t md:bg-linear-to-r absolute inset-0 from-[#120f0a] via-transparent to-transparent" />
@@ -226,9 +226,9 @@ function StoryModal({ place, onClose, onCopyCoords }: Readonly<StoryModalProps>)
               onClick={() => onCopyCoords(place.coords || '')}
               className="group/modal-coords flex cursor-pointer items-center gap-2 self-start rounded-xl border border-amber-500/20 bg-amber-500/10 px-4 py-2 font-mono text-xs tracking-widest text-amber-400 transition-colors hover:bg-amber-500 hover:text-black"
             >
-              <Compass className="h-4 w-4 transition-transform duration-500 group-hover/modal-coords:rotate-180" />
+              <Compass className="size-4 transition-transform duration-500 group-hover/modal-coords:rotate-180" />
               <span>{place.coords}</span>
-              <Copy className="ml-1 h-3.5 w-3.5 opacity-50 group-hover/modal-coords:opacity-100" />
+              <Copy className="ml-1 size-3.5 opacity-50 group-hover/modal-coords:opacity-100" />
             </button>
 
             <h2 className="mb-2 font-serif text-4xl font-black uppercase leading-none tracking-tighter text-amber-100 md:text-5xl">
@@ -272,7 +272,7 @@ function ToastNotification({ message }: Readonly<ToastNotificationProps>) {
           exit={{ opacity: 0, y: 20, scale: 0.9 }}
           className="z-1000 fixed bottom-10 right-10 flex items-center gap-3 rounded-2xl border border-amber-500/30 bg-[#120f0a] px-6 py-4 text-xs font-black uppercase tracking-widest text-amber-100 shadow-2xl backdrop-blur-md"
         >
-          <span className="h-2.5 w-2.5 animate-ping rounded-full bg-amber-500" />
+          <span className="size-2.5 animate-ping rounded-full bg-amber-500" />
           {message}
         </motion.div>
       )}
@@ -308,7 +308,7 @@ export default function Stories() {
     <Section title={t('stories.title')}>
       <Section>
         <div className="mx-auto mb-16 max-w-3xl rounded-2xl border border-white/10 bg-white/5 p-8 text-center shadow-xl backdrop-blur-xl">
-          <p className="text-lg leading-relaxed text-gray-300">{t('stories.intro')}</p>
+          <p className="text-lg/relaxed text-gray-300">{t('stories.intro')}</p>
         </div>
 
         {loading ? (

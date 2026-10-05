@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { gsap } from 'gsap';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { m as motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 
@@ -228,13 +228,13 @@ const ContestCard = ({
       <div className="flex items-start justify-between">{getStatusBadge(status, statusLabel)}</div>
 
       <div className="relative z-10 flex flex-col gap-4">
-        <div className="text-(--accent) flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-3xl transition-colors group-hover:rotate-12 group-hover:scale-110">
+        <div className="text-(--accent) flex size-14 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-3xl transition-colors group-hover:rotate-12 group-hover:scale-110">
           {cardIcon}
         </div>
         <h3 className="group-hover:text-(--accent) text-2xl font-black text-white transition-colors">
           {displayTitle}
         </h3>
-        <p className="line-clamp-3 text-sm font-medium italic leading-relaxed text-gray-400">
+        <p className="line-clamp-3 text-sm/relaxed font-medium italic text-gray-400">
           "{displayDescription}"
         </p>
 
@@ -371,7 +371,7 @@ const PodiumModal = ({ event, onClose }: Readonly<PodiumModalProps>) => {
           aria-label="Action"
           type="button"
           onClick={onClose}
-          className="absolute right-6 top-6 z-50 flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/5 text-xl text-white transition-colors hover:rotate-90 hover:bg-white hover:text-black"
+          className="absolute right-6 top-6 z-50 flex size-12 items-center justify-center rounded-full border border-white/10 bg-white/5 text-xl text-white transition-colors hover:rotate-90 hover:bg-white hover:text-black"
         >
           <X />
         </button>
@@ -596,7 +596,7 @@ export default function Contests() {
     <div className="min-h-screen pt-24">
       <Section title={t('contests.title')}>
         <div className="mx-auto mb-16 max-w-3xl rounded-2xl border border-white/10 bg-white/5 p-8 text-center shadow-xl backdrop-blur-xl">
-          <p className="text-lg leading-relaxed text-gray-300">{t('contests.intro')}</p>
+          <p className="text-lg/relaxed text-gray-300">{t('contests.intro')}</p>
         </div>
 
         <div className="grid grid-cols-1 gap-8 px-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

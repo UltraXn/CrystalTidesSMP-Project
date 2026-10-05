@@ -121,49 +121,43 @@ export const checkIsAdmin = (
 };
 
 export const compressImage = async (file: File): Promise<Blob> => {
-  const objectUrl = URL.createObjectURL(file);
-  return await new Promise<Blob>((resolve, reject) => {
-    const img = new Image();
-    img.onerror = () => {
-      URL.revokeObjectURL(objectUrl);
-      reject(new Error('Image load failed'));
-    };
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      const MAX_SIZE = 1920;
-      let width = img.width;
-      let height = img.height;
+  const bitmap = await createImageBitmap(file);
+  try {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const MAX_SIZE = 1920;
+    let width = bitmap.width;
+    let height = bitmap.height;
 
-      if (width > MAX_SIZE || height > MAX_SIZE) {
-        if (width > height) {
-          height = Math.round((height * MAX_SIZE) / width);
-          width = MAX_SIZE;
-        } else {
-          width = Math.round((width * MAX_SIZE) / height);
-          height = MAX_SIZE;
-        }
-      }
-
-      canvas.width = width;
-      canvas.height = height;
-
-      if (ctx) {
-        ctx.drawImage(img, 0, 0, width, height);
-        canvas.toBlob(
-          (blob) => {
-            URL.revokeObjectURL(objectUrl);
-            if (blob) resolve(blob);
-            else reject(new Error('Canvas toBlob failed'));
-          },
-          'image/webp',
-          0.8,
-        );
+    if (width > MAX_SIZE || height > MAX_SIZE) {
+      if (width > height) {
+        height = Math.round((height * MAX_SIZE) / width);
+        width = MAX_SIZE;
       } else {
-        URL.revokeObjectURL(objectUrl);
-        reject(new Error('Could not get canvas context'));
+        width = Math.round((width * MAX_SIZE) / height);
+        height = MAX_SIZE;
       }
-    };
-    img.src = objectUrl;
-  });
+    }
+
+    canvas.width = width;
+    canvas.height = height;
+
+    if (!ctx) {
+      throw new Error('Could not get canvas context');
+    }
+
+    ctx.drawImage(bitmap, 0, 0, width, height);
+    return await new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob(
+        (blob) => {
+          if (blob) resolve(blob);
+          else reject(new Error('Canvas toBlob failed'));
+        },
+        'image/webp',
+        0.8,
+      );
+    });
+  } finally {
+    bitmap.close();
+  }
 };

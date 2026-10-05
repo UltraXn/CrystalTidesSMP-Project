@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { supabase } from '../services/supabaseClient';
 import { Plus, Ticket as TicketIcon, ChevronRight, Clock, AlertCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router';
 import SectionDivider from '../components/Layout/SectionDivider';
 import TicketForm from '../components/Support/TicketForm';
 import { CreateTicketFormValues } from '../schemas/ticket';
@@ -79,7 +79,6 @@ async function createTicketRecord(userId: string, data: CreateTicketFormValues) 
       ticket_id: ticketData.id,
       user_id: userId,
       message: data.description,
-      is_staff: false,
     },
   ]);
 
@@ -434,7 +433,12 @@ function TicketCard({ ticket, index, onClick }: Readonly<TicketCardProps>) {
           >
             <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <Clock size={14} style={{ opacity: 0.5 }} />{' '}
-              {new Date(ticket.created_at).toLocaleDateString()}
+              {new Date(ticket.created_at).toLocaleDateString('es-ES', {
+                timeZone: 'UTC',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+              })}
             </span>
             <span style={{ color: 'rgba(255,255,255,0.1)' }}>|</span>
             <span style={{ color: THEME.ACCENT, fontWeight: 600 }}>{formattedCategory}</span>
@@ -584,18 +588,18 @@ function CreateTicketModal({ isOpen, onClose, onSubmit }: Readonly<CreateTicketM
           }}
           role="button"
           tabIndex={0}
-          onClick={onClose}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              onClose();
+            }
+          }}
           onKeyDown={(e) => {
-            if (e.key === 'Escape' || e.key === 'Enter') {
+            if ((e.key === 'Escape' || e.key === 'Enter') && e.target === e.currentTarget) {
               onClose();
             }
           }}
         >
-          <div
-            role="presentation"
-            onClick={(e) => e.stopPropagation()}
-            onKeyDown={(e) => e.stopPropagation()}
-          >
+          <div>
             <TicketForm onClose={onClose} onSubmit={onSubmit} />
           </div>
         </motion.div>

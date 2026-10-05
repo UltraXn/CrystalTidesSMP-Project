@@ -72,7 +72,7 @@ export default function ForumThreadActionButtons({
           <button
             type="button"
             onClick={onTogglePin}
-            className="rounded p-1 transition-colors hover:bg-white/5"
+            className="rounded-sm p-1 transition-colors hover:bg-white/5"
             title={pinned ? 'Desfijar' : 'Fijar'}
           >
             <Pin
@@ -87,7 +87,7 @@ export default function ForumThreadActionButtons({
           <button
             type="button"
             onClick={onToggleLock}
-            className="rounded p-1 transition-colors hover:bg-white/5"
+            className="rounded-sm p-1 transition-colors hover:bg-white/5"
             title={locked ? 'Desbloquear' : 'Bloquear'}
           >
             {locked ? (

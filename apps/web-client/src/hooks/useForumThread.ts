@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../services/supabaseClient';
 import { uploadImage } from '../services/uploadService';
+import { formatDate, formatTime } from '../utils/date';
 import { parseThreadDetail } from '@crystaltides/shared';
 import {
   type Thread,
@@ -57,13 +58,10 @@ export async function fetchThreadDetail(type: string, id: string | undefined, ap
           avatar: (isTopic ? c.author_avatar : c.user_avatar) || null,
           role: (isTopic ? c.author_role : c.user_role) || 'user',
           content: c.content,
-          date:
-            new Date(c.created_at).toLocaleDateString() +
-            ' ' +
-            new Date(c.created_at).toLocaleTimeString([], {
-              hour: '2-digit',
-              minute: '2-digit',
-            }),
+          date: `${formatDate(c.created_at)} ${formatTime(c.created_at, {
+            hour: '2-digit',
+            minute: '2-digit',
+          })}`,
           author_data_fresh: c.author_data_fresh as ForumAuthorData,
         }),
       )

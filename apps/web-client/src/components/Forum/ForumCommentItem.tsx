@@ -15,6 +15,42 @@ interface ForumCommentItemProps {
   readonly t: ReturnType<typeof useTranslation>['t'];
 }
 
+function getCommentAuthorAvatar(comment: Comment): string {
+  const metadata = comment.author_data_fresh;
+  const pref = metadata?.avatar_preference || 'minecraft';
+  const mcNick = metadata?.minecraft_nick;
+  const useMinecraft = pref === 'minecraft' && Boolean(mcNick);
+
+  if (useMinecraft && mcNick) {
+    return `https://mc-heads.net/avatar/${mcNick}/128`;
+  }
+  return (
+    metadata?.social_avatar_url ||
+    metadata?.avatar_url ||
+    comment.avatar ||
+    `https://ui-avatars.com/api/?name=${comment.user}`
+  );
+}
+
+function getCommentAuthorDisplayName(comment: Comment): string {
+  const metadata = comment.author_data_fresh;
+  const pref = metadata?.avatar_preference || 'minecraft';
+  const mcNick = metadata?.minecraft_nick;
+  const useMinecraft = pref === 'minecraft' && Boolean(mcNick);
+
+  if (useMinecraft && mcNick) {
+    return mcNick;
+  }
+  return metadata?.full_name || metadata?.username || comment.user;
+}
+
+function getCommentAuthorRoleInfo(comment: Comment): { roleRaw: string; roleImage: string } {
+  const roleRaw = (comment.author_data_fresh?.role || comment.role || 'user').toLowerCase();
+  const roleImage =
+    RANK_IMAGES[roleRaw] || (roleRaw.includes('donador') ? RANK_IMAGES.donador : RANK_IMAGES.user);
+  return { roleRaw, roleImage };
+}
+
 export default function ForumCommentItem({
   comment,
   isOwnerOrAdmin,
@@ -28,43 +64,31 @@ export default function ForumCommentItem({
   t,
 }: Readonly<ForumCommentItemProps>) {
   const metadata = comment.author_data_fresh;
-  const pref = metadata?.avatar_preference || 'minecraft';
   const mcNick = metadata?.minecraft_nick;
-  const useMinecraft = pref === 'minecraft' && Boolean(mcNick);
-
-  const displayAvatar = useMinecraft
-    ? `https://mc-heads.net/avatar/${mcNick}/128`
-    : metadata?.social_avatar_url ||
-      metadata?.avatar_url ||
-      comment.avatar ||
-      `https://ui-avatars.com/api/?name=${comment.user}`;
-
+  const discordTag = metadata?.social_discord || metadata?.discord_tag;
   const statusMessage = metadata?.status_message;
-  const displayName = useMinecraft
-    ? mcNick || comment.user
-    : metadata?.full_name || metadata?.username || comment.user;
-  const roleRaw = (metadata?.role || comment.role || 'user').toLowerCase();
-  const roleImage =
-    RANK_IMAGES[roleRaw] ||
-    (roleRaw.includes('donador') ? RANK_IMAGES['donador'] : RANK_IMAGES['user']);
+
+  const displayAvatar = getCommentAuthorAvatar(comment);
+  const displayName = getCommentAuthorDisplayName(comment);
+  const { roleRaw, roleImage } = getCommentAuthorRoleInfo(comment);
 
   return (
     <div style={{ display: 'flex', gap: '1rem' }}>
       {/* Avatar Sidebar with Tooltip */}
       <div className="group/comment relative flex shrink-0 items-center">
-        <div className="h-12 w-12 cursor-pointer overflow-hidden rounded-xl border border-white/10 bg-black/20 shadow-lg transition-transform group-hover/comment:scale-105">
-          <img src={displayAvatar} alt={displayName} className="h-full w-full object-cover" />
+        <div className="size-12 cursor-pointer overflow-hidden rounded-xl border border-white/10 bg-black/20 shadow-lg transition-transform group-hover/comment:scale-105">
+          <img src={displayAvatar} alt={displayName} className="size-full object-cover" />
         </div>
 
         <div className="pointer-events-none absolute bottom-full left-0 z-50 mb-3 w-64 translate-y-2 rounded-xl border border-white/10 bg-[#0a0a0a]/95 p-4 text-left opacity-0 shadow-2xl backdrop-blur-xl transition-colors duration-300 group-hover/comment:translate-y-0 group-hover/comment:opacity-100">
           <div className="mb-3 flex items-center gap-3 border-b border-white/5 pb-3">
             <img
               src={displayAvatar}
-              className="h-10 w-10 rounded-lg border border-white/10 shadow-inner"
+              className="size-10 rounded-lg border border-white/10 shadow-inner"
               alt="Avatar"
             />
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-bold leading-tight text-white">{displayName}</p>
+              <p className="truncate text-sm/tight font-bold text-white">{displayName}</p>
               {statusMessage && (
                 <p className="mt-0.5 line-clamp-2 text-[10px] italic text-gray-400">
                   "{statusMessage}"
@@ -85,14 +109,12 @@ export default function ForumCommentItem({
                 <span className="font-mono text-white">{mcNick}</span>
               </div>
             )}
-            {(metadata?.social_discord || metadata?.discord_tag) && (
+            {discordTag && (
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-bold uppercase tracking-wider opacity-70">
                   Discord
                 </span>
-                <span className="text-indigo-300">
-                  {metadata?.social_discord || metadata?.discord_tag}
-                </span>
+                <span className="text-indigo-300">{discordTag}</span>
               </div>
             )}
             <div className="flex items-center justify-between">

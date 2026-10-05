@@ -124,7 +124,7 @@ const HARDCODED_DONOR_DEFINITIONS: readonly RawDonorDefinition[] = [
   },
 ] as const;
 
-function RankBadgeGroup({ ranks, t }: { ranks: readonly string[]; t: TranslateFn }) {
+function RankBadgeGroup({ ranks, t }: Readonly<{ ranks: readonly string[]; t: TranslateFn }>) {
   const validRanks = ranks.filter((rank) => Boolean(RANK_IMAGES[rank]));
 
   return (
@@ -182,7 +182,7 @@ async function fetchSettings(): Promise<SettingsResponse> {
   return res.json();
 }
 
-function DonorsSectionTitle({ title }: { title: string }) {
+function DonorsSectionTitle({ title }: Readonly<{ title: string }>) {
   return (
     <div className="flex items-center justify-center gap-3">
       <img
@@ -287,7 +287,7 @@ export default function Donors() {
     <div className="min-h-screen pt-24">
       <Section title={<DonorsSectionTitle title={t('donors.title')} />}>
         <div className="mx-auto mb-16 max-w-3xl text-center">
-          <p className="text-lg leading-relaxed text-gray-400">{t('donors.intro')}</p>
+          <p className="text-lg/relaxed text-gray-400">{t('donors.intro')}</p>
         </div>
 
         <RecentPerkLedger title={t('donors.latest_title')} />

@@ -1,6 +1,6 @@
 import { useState, useId } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { BarChart3, X, Plus, CheckCircle2, Image as ImageIcon } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../services/supabaseClient';
@@ -81,38 +81,27 @@ const calculateScaledDimensions = (
 };
 
 const compressImage = async (file: File): Promise<Blob> => {
-  const objectUrl = URL.createObjectURL(file);
+  const bitmap = await createImageBitmap(file);
+  try {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const { width, height } = calculateScaledDimensions(
+      bitmap.width,
+      bitmap.height,
+      MAX_IMAGE_DIMENSION,
+    );
 
-  return await new Promise<Blob>((resolve, reject) => {
-    const img = new Image();
+    canvas.width = width;
+    canvas.height = height;
 
-    img.onerror = () => {
-      URL.revokeObjectURL(objectUrl);
-      reject(new Error('Image load failed'));
-    };
+    if (!ctx) {
+      throw new Error('Could not get canvas context');
+    }
 
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      const { width, height } = calculateScaledDimensions(
-        img.width,
-        img.height,
-        MAX_IMAGE_DIMENSION,
-      );
-
-      canvas.width = width;
-      canvas.height = height;
-
-      if (!ctx) {
-        URL.revokeObjectURL(objectUrl);
-        reject(new Error('Could not get canvas context'));
-        return;
-      }
-
-      ctx.drawImage(img, 0, 0, width, height);
+    ctx.drawImage(bitmap, 0, 0, width, height);
+    return await new Promise<Blob>((resolve, reject) => {
       canvas.toBlob(
         (blob) => {
-          URL.revokeObjectURL(objectUrl);
           if (blob) {
             resolve(blob);
           } else {
@@ -122,10 +111,10 @@ const compressImage = async (file: File): Promise<Blob> => {
         'image/webp',
         WEBP_QUALITY,
       );
-    };
-
-    img.src = objectUrl;
-  });
+    });
+  } finally {
+    bitmap.close();
+  }
 };
 
 interface BuildPollParams {

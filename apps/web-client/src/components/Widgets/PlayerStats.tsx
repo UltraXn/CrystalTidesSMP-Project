@@ -128,7 +128,7 @@ export default function PlayerStats({ statsData, loading, error }: Readonly<Play
             <img
               src="/images/killucoin.png"
               alt="Coin"
-              className="h-8 w-8 object-contain [image-rendering:pixelated]"
+              className="size-8 object-contain [image-rendering:pixelated]"
             />
           }
           label={t('account.overview.coins')}
@@ -205,7 +205,7 @@ function StatItem({ icon, label, value, color }: Readonly<StatItemProps>) {
       transition={{ duration: 0.3 }}
     >
       <div
-        className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl transition-transform group-hover:scale-110"
+        className="mb-6 flex size-16 items-center justify-center rounded-2xl transition-transform group-hover:scale-110"
         style={{ backgroundColor: `${color}15`, color: color }}
       >
         <div className="text-2xl drop-shadow-2xl">{icon}</div>
