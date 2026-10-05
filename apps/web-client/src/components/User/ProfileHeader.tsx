@@ -137,7 +137,7 @@ export default function ProfileHeader({
                 >
                   <div className="rounded-2xl border border-white/10 bg-[#111] px-4 py-2.5 shadow-[0_4px_20px_rgba(0,0,0,0.5)] backdrop-blur-md">
                     <p className="flex items-center gap-2 text-sm font-medium text-gray-300">
-                      <span className="h-2 w-2 animate-pulse rounded-full bg-green-500 shadow-[0_0_10px_#22c55e]" />
+                      <span className="size-2 animate-pulse rounded-full bg-green-500 shadow-[0_0_10px_#22c55e]" />
                       "{statusMsg}"
                     </p>
                   </div>

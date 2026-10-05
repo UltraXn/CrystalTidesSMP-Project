@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import {
   Medal,
@@ -44,6 +44,22 @@ const NavButton = ({ active, onClick, icon, label }: Readonly<NavButtonProps>) =
     <span className="text-xs font-black uppercase tracking-widest">{label}</span>
   </button>
 );
+
+function resolveAccountAvatarUrl(
+  user: User | null | undefined,
+  isLinked: boolean,
+  username?: string,
+): string {
+  const metadata = user?.user_metadata;
+  if (metadata?.avatar_preference === 'social' && metadata?.avatar_url) {
+    return metadata.avatar_url;
+  }
+  if (isLinked) {
+    return `https://mc-heads.net/avatar/${username || 'steve'}/128`;
+  }
+  const fullName = metadata?.full_name || 'User';
+  return `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}`;
+}
 
 interface AccountSidebarProps {
   activeTab: string;
@@ -137,7 +153,7 @@ const AccountSidebar: React.FC<Readonly<AccountSidebarProps>> = ({
       <button
         aria-label={t('common.close', 'Cerrar menú')}
         type="button"
-        className="absolute right-6 top-6 flex h-10 w-10 items-center justify-center rounded-xl bg-white/5 text-gray-400 transition-colors hover:bg-white/10 lg:hidden"
+        className="absolute right-6 top-6 flex size-10 items-center justify-center rounded-xl bg-white/5 text-gray-400 transition-colors hover:bg-white/10 lg:hidden"
         onClick={onClose}
       >
         <X size={18} />
@@ -158,24 +174,16 @@ const AccountSidebar: React.FC<Readonly<AccountSidebarProps>> = ({
               }
             }}
           >
-            <div className="bg-linear-to-tr from-(--accent)/40 ring-(--accent)/30 group-hover/avatar:ring-(--accent)/70 relative h-24 w-24 overflow-hidden rounded-full via-white/10 to-white/5 p-1 shadow-2xl ring-2 transition-colors duration-300">
+            <div className="bg-linear-to-tr from-(--accent)/40 ring-(--accent)/30 group-hover/avatar:ring-(--accent)/70 relative size-24 overflow-hidden rounded-full via-white/10 to-white/5 p-1 shadow-2xl ring-2 transition-colors duration-300">
               {uploading ? (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/70 backdrop-blur-md">
                   <Loader minimal />
                 </div>
               ) : (
                 <img
-                  src={
-                    user?.user_metadata?.avatar_preference === 'social' &&
-                    user?.user_metadata?.avatar_url
-                      ? user.user_metadata.avatar_url
-                      : isLinked
-                        ? `https://mc-heads.net/avatar/${statsData?.username || mcUsername}/128`
-                        : 'https://ui-avatars.com/api/?name=' +
-                          (user?.user_metadata?.full_name || 'User')
-                  }
+                  src={resolveAccountAvatarUrl(user, isLinked, statsData?.username || mcUsername)}
                   alt="Avatar"
-                  className="h-full w-full rounded-full object-cover transition-transform duration-500 group-hover/avatar:scale-105"
+                  className="size-full rounded-full object-cover transition-transform duration-500 group-hover/avatar:scale-105"
                 />
               )}
               <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50 opacity-0 transition-opacity duration-300 group-hover/avatar:opacity-100">
@@ -231,7 +239,7 @@ const AccountSidebar: React.FC<Readonly<AccountSidebarProps>> = ({
 
             {user?.user_metadata?.status_message && (
               <div className="mt-3 flex max-w-full items-center justify-center gap-2 rounded-xl border border-white/5 bg-white/5 px-3.5 py-1.5 backdrop-blur-md">
-                <div className="h-1.5 w-1.5 shrink-0 animate-pulse rounded-full bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.6)]" />
+                <div className="size-1.5 shrink-0 animate-pulse rounded-full bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.6)]" />
                 <p className="max-w-45 truncate text-[10px] font-bold italic text-gray-300">
                   "{user.user_metadata.status_message}"
                 </p>
@@ -244,7 +252,7 @@ const AccountSidebar: React.FC<Readonly<AccountSidebarProps>> = ({
                 <img
                   src="/images/killucoin.png"
                   alt="KC"
-                  className="h-4 w-4 object-contain [image-rendering:pixelated]"
+                  className="size-4 object-contain [image-rendering:pixelated]"
                   onError={(e) => {
                     (e.target as HTMLImageElement).style.display = 'none';
                   }}
@@ -273,7 +281,7 @@ const AccountSidebar: React.FC<Readonly<AccountSidebarProps>> = ({
         </div>
 
         {/* Nav Links */}
-        <nav className="flex-1 space-y-1.5 overflow-y-auto pb-24 pr-1 [-ms-overflow-style:none] [scrollbar-width:none] lg:pb-0 [&::-webkit-scrollbar]:hidden">
+        <nav className="scrollbar-none flex-1 space-y-1.5 overflow-y-auto pb-24 pr-1 [-ms-overflow-style:none] lg:pb-0 [&::-webkit-scrollbar]:hidden">
           <NavButton
             active={activeTab === 'overview'}
             onClick={() => handleNav('overview')}

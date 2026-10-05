@@ -1,7 +1,7 @@
-import { useNavigate, Link, useSearchParams } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router';
 import { Medal, Info, CheckCircle, Lock, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { useEffect, useState, useRef, lazy, Suspense } from 'react';
+import { useEffect, useState, useMemo, lazy, Suspense, type ComponentProps } from 'react';
 import { supabase } from '../services/supabaseClient';
 import { UserIdentity, Provider, User } from '@supabase/supabase-js';
 import { useTranslation } from 'react-i18next';
@@ -11,18 +11,11 @@ import Loader from '../components/UI/Loader';
 import ConfirmationModal from '../components/UI/ConfirmationModal';
 import PlayerStats from '../components/Widgets/PlayerStats';
 import { MEDAL_ICONS } from '../utils/MedalIcons';
+import { formatDate } from '../utils/date';
 import Toast, { ToastType } from '../components/UI/Toast';
 import { useSidebar } from '../hooks/useSidebar';
-import {
-  useAccountSettings,
-  useUserThreads,
-  usePlayerStats,
-  useLinkStatus,
-  useGenerateLinkCode,
-  useVerifyLinkCode,
-  useUnlinkAccount,
-  useLinkMicrosoftAccount,
-} from '../hooks/useAccountData';
+import { useAccountSettings, useUserThreads, usePlayerStats } from '../hooks/useAccountData';
+import { useAccountConnections } from '../hooks/useAccountConnections';
 
 // Extracted Components
 import AccountSidebar from '../components/Account/AccountSidebar';
@@ -210,343 +203,205 @@ const getPrestigeCategoryStatus = (
   };
 };
 
-const getArchetypeMockups = (t: TranslationFunction): Record<PrestigeBranch, ArchetypeItem[]> => ({
+interface PrestigeTierStyle {
+  levelNum: number;
+  tag: string;
+  color: string;
+  border: string;
+  bg: string;
+}
+
+const PRESTIGE_TIER_STYLES: readonly PrestigeTierStyle[] = [
+  {
+    levelNum: 1,
+    tag: '[P1] Chat',
+    color: 'text-amber-400',
+    border: 'border-amber-600/40',
+    bg: 'bg-amber-900/20',
+  },
+  {
+    levelNum: 2,
+    tag: '[P2] Chat',
+    color: 'text-slate-300',
+    border: 'border-slate-400/40',
+    bg: 'bg-slate-700/20',
+  },
+  {
+    levelNum: 3,
+    tag: '[P3] Chat',
+    color: 'text-yellow-400',
+    border: 'border-yellow-400/40',
+    bg: 'bg-yellow-500/10',
+  },
+  {
+    levelNum: 4,
+    tag: '[P4] Chat',
+    color: 'text-cyan-400',
+    border: 'border-cyan-400/40',
+    bg: 'bg-cyan-500/10',
+  },
+  {
+    levelNum: 5,
+    tag: '',
+    color: 'text-fuchsia-300',
+    border: 'border-fuchsia-400/50',
+    bg: 'bg-fuchsia-500/15',
+  },
+];
+
+interface BranchTierSpec {
+  rankKey: string;
+  rankDefault: string;
+  item: string;
+  bonus?: string;
+  bonusKey?: string;
+  bonusDefault?: string;
+}
+
+const BRANCH_TIER_SPECS: Record<PrestigeBranch, readonly BranchTierSpec[]> = {
   constructor: [
+    { rankKey: 'constructor.p1', rankDefault: 'Iniciado de Piedra', item: ASSETS.COBBLESTONE },
+    { rankKey: 'constructor.p2', rankDefault: 'Constructor Consagrado', item: ASSETS.IRON_PICKAXE },
     {
-      levelNum: 1,
-      level: t('account.overview.prestige.level1', { defaultValue: '⭐ Prestigio I' }),
-      rankName: t('account.overview.prestige.arch.constructor.p1', {
-        defaultValue: 'Iniciado de Piedra',
-      }),
-      bonus: t('account.overview.prestige.bonus1', { defaultValue: '+5% KC Diarios' }),
-      tag: '[P1] Chat',
-      color: 'text-amber-400',
-      border: 'border-amber-600/40',
-      bg: 'bg-amber-900/20',
-      item: ASSETS.COBBLESTONE,
-    },
-    {
-      levelNum: 2,
-      level: t('account.overview.prestige.level2', { defaultValue: '⭐⭐ Prestigio II' }),
-      rankName: t('account.overview.prestige.arch.constructor.p2', {
-        defaultValue: 'Constructor Consagrado',
-      }),
-      bonus: t('account.overview.prestige.bonus2', { defaultValue: '+10% KC Diarios' }),
-      tag: '[P2] Chat',
-      color: 'text-slate-300',
-      border: 'border-slate-400/40',
-      bg: 'bg-slate-700/20',
-      item: ASSETS.IRON_PICKAXE,
-    },
-    {
-      levelNum: 3,
-      level: t('account.overview.prestige.level3', { defaultValue: '⭐⭐⭐ Prestigio III' }),
-      rankName: t('account.overview.prestige.arch.constructor.p3', {
-        defaultValue: 'Gran Arquitecto',
-      }),
-      bonus: t('account.overview.prestige.bonus3_discount', {
-        defaultValue: '+15% KC + Descuento',
-      }),
-      tag: '[P3] Chat',
-      color: 'text-yellow-400',
-      border: 'border-yellow-400/40',
-      bg: 'bg-yellow-500/10',
+      rankKey: 'constructor.p3',
+      rankDefault: 'Gran Arquitecto',
       item: ASSETS.GOLDEN_PICKAXE,
+      bonusKey: 'bonus3_discount',
+      bonusDefault: '+15% KC + Descuento',
     },
+    { rankKey: 'constructor.p4', rankDefault: 'Maestro Constructor', item: ASSETS.DIAMOND_PICKAXE },
     {
-      levelNum: 4,
-      level: t('account.overview.prestige.level4', { defaultValue: '⭐⭐⭐⭐ Prestigio IV' }),
-      rankName: t('account.overview.prestige.arch.constructor.p4', {
-        defaultValue: 'Maestro Constructor',
-      }),
-      bonus: '+20% KC + 3 Spins',
-      tag: '[P4] Chat',
-      color: 'text-cyan-400',
-      border: 'border-cyan-400/40',
-      bg: 'bg-cyan-500/10',
-      item: ASSETS.DIAMOND_PICKAXE,
-    },
-    {
-      levelNum: 5,
-      level: t('account.overview.prestige.level5', { defaultValue: '💎 Prestigio V' }),
-      rankName: t('account.overview.prestige.arch.constructor.p5', {
-        defaultValue: 'Arquitecto Mítico',
-      }),
-      bonus: '+25% KC + Title',
-      tag: t('account.overview.prestige.tag_neon', { defaultValue: '[P5] Neón' }),
-      color: 'text-fuchsia-300',
-      border: 'border-fuchsia-400/50',
-      bg: 'bg-fuchsia-500/15',
+      rankKey: 'constructor.p5',
+      rankDefault: 'Arquitecto Mítico',
       item: ASSETS.BEACON,
+      bonus: '+25% KC + Title',
     },
   ],
   luchador: [
+    { rankKey: 'luchador.p1', rankDefault: 'Guerrero de Bronce', item: ASSETS.WOODEN_SWORD },
+    { rankKey: 'luchador.p2', rankDefault: 'Campeón de Batalla', item: ASSETS.IRON_SWORD },
     {
-      levelNum: 1,
-      level: t('account.overview.prestige.level1', { defaultValue: '⭐ Prestigio I' }),
-      rankName: t('account.overview.prestige.arch.luchador.p1', {
-        defaultValue: 'Guerrero de Bronce',
-      }),
-      bonus: t('account.overview.prestige.bonus1', { defaultValue: '+5% KC Diarios' }),
-      tag: '[P1] Chat',
-      color: 'text-amber-400',
-      border: 'border-amber-600/40',
-      bg: 'bg-amber-900/20',
-      item: ASSETS.WOODEN_SWORD,
-    },
-    {
-      levelNum: 2,
-      level: t('account.overview.prestige.level2', { defaultValue: '⭐⭐ Prestigio II' }),
-      rankName: t('account.overview.prestige.arch.luchador.p2', {
-        defaultValue: 'Campeón de Batalla',
-      }),
-      bonus: t('account.overview.prestige.bonus2', { defaultValue: '+10% KC Diarios' }),
-      tag: '[P2] Chat',
-      color: 'text-slate-300',
-      border: 'border-slate-400/40',
-      bg: 'bg-slate-700/20',
-      item: ASSETS.IRON_SWORD,
-    },
-    {
-      levelNum: 3,
-      level: t('account.overview.prestige.level3', { defaultValue: '⭐⭐⭐ Prestigio III' }),
-      rankName: t('account.overview.prestige.arch.luchador.p3', {
-        defaultValue: 'Señor de Guerra',
-      }),
-      bonus: t('account.overview.prestige.bonus3_aura', { defaultValue: '+15% KC + Aura' }),
-      tag: '[P3] Chat',
-      color: 'text-yellow-400',
-      border: 'border-yellow-400/40',
-      bg: 'bg-yellow-500/10',
+      rankKey: 'luchador.p3',
+      rankDefault: 'Señor de Guerra',
       item: ASSETS.GOLDEN_SWORD,
+      bonusKey: 'bonus3_aura',
+      bonusDefault: '+15% KC + Aura',
     },
+    { rankKey: 'luchador.p4', rankDefault: 'Maestro de Armas', item: ASSETS.DIAMOND_SWORD },
     {
-      levelNum: 4,
-      level: t('account.overview.prestige.level4', { defaultValue: '⭐⭐⭐⭐ Prestigio IV' }),
-      rankName: t('account.overview.prestige.arch.luchador.p4', {
-        defaultValue: 'Maestro de Armas',
-      }),
-      bonus: '+20% KC + 3 Spins',
-      tag: '[P4] Chat',
-      color: 'text-cyan-400',
-      border: 'border-cyan-400/40',
-      bg: 'bg-cyan-500/10',
-      item: ASSETS.DIAMOND_SWORD,
-    },
-    {
-      levelNum: 5,
-      level: t('account.overview.prestige.level5', { defaultValue: '💎 Prestigio V' }),
-      rankName: t('account.overview.prestige.arch.luchador.p5', {
-        defaultValue: 'Gladiador Supremo',
-      }),
-      bonus: t('account.overview.prestige.bonus5_swords', { defaultValue: '+25% KC + Espadas' }),
-      tag: t('account.overview.prestige.tag_neon', { defaultValue: '[P5] Neón' }),
-      color: 'text-fuchsia-300',
-      border: 'border-fuchsia-400/50',
-      bg: 'bg-fuchsia-500/15',
+      rankKey: 'luchador.p5',
+      rankDefault: 'Gladiador Supremo',
       item: ASSETS.MACE,
+      bonusKey: 'bonus5_swords',
+      bonusDefault: '+25% KC + Espadas',
     },
   ],
   mercader: [
+    { rankKey: 'mercader.p1', rankDefault: 'Mercader Próspero', item: ASSETS.COIN_COBRE },
+    { rankKey: 'mercader.p2', rankDefault: 'Comerciante de Élite', item: ASSETS.COIN_PLATA },
     {
-      levelNum: 1,
-      level: t('account.overview.prestige.level1', { defaultValue: '⭐ Prestigio I' }),
-      rankName: t('account.overview.prestige.arch.mercader.p1', {
-        defaultValue: 'Mercader Próspero',
-      }),
-      bonus: t('account.overview.prestige.bonus1', { defaultValue: '+5% KC Diarios' }),
-      tag: '[P1] Chat',
-      color: 'text-amber-400',
-      border: 'border-amber-600/40',
-      bg: 'bg-amber-900/20',
-      item: ASSETS.COIN_COBRE,
-    },
-    {
-      levelNum: 2,
-      level: t('account.overview.prestige.level2', { defaultValue: '⭐⭐ Prestigio II' }),
-      rankName: t('account.overview.prestige.arch.mercader.p2', {
-        defaultValue: 'Comerciante de Élite',
-      }),
-      bonus: t('account.overview.prestige.bonus2', { defaultValue: '+10% KC Diarios' }),
-      tag: '[P2] Chat',
-      color: 'text-slate-300',
-      border: 'border-slate-400/40',
-      bg: 'bg-slate-700/20',
-      item: ASSETS.COIN_PLATA,
-    },
-    {
-      levelNum: 3,
-      level: t('account.overview.prestige.level3', { defaultValue: '⭐⭐⭐ Prestigio III' }),
-      rankName: t('account.overview.prestige.arch.mercader.p3', {
-        defaultValue: 'Barón Financiero',
-      }),
-      bonus: '+15% KC + 10% Off',
-      tag: '[P3] Chat',
-      color: 'text-yellow-400',
-      border: 'border-yellow-400/40',
-      bg: 'bg-yellow-500/10',
+      rankKey: 'mercader.p3',
+      rankDefault: 'Barón Financiero',
       item: ASSETS.COIN_ORO,
+      bonus: '+15% KC + 10% Off',
     },
+    { rankKey: 'mercader.p4', rankDefault: 'Gran Maestro Gremial', item: ASSETS.COIN_DIAMANTE },
     {
-      levelNum: 4,
-      level: t('account.overview.prestige.level4', { defaultValue: '⭐⭐⭐⭐ Prestigio IV' }),
-      rankName: t('account.overview.prestige.arch.mercader.p4', {
-        defaultValue: 'Gran Maestro Gremial',
-      }),
-      bonus: '+20% KC + 3 Spins',
-      tag: '[P4] Chat',
-      color: 'text-cyan-400',
-      border: 'border-cyan-400/40',
-      bg: 'bg-cyan-500/10',
-      item: ASSETS.COIN_DIAMANTE,
-    },
-    {
-      levelNum: 5,
-      level: t('account.overview.prestige.level5', { defaultValue: '💎 Prestigio V' }),
-      rankName: t('account.overview.prestige.arch.mercader.p5', {
-        defaultValue: 'Magnate Legendario',
-      }),
-      bonus: '+25% KC + Rain',
-      tag: t('account.overview.prestige.tag_neon', { defaultValue: '[P5] Neón' }),
-      color: 'text-fuchsia-300',
-      border: 'border-fuchsia-400/50',
-      bg: 'bg-fuchsia-500/15',
+      rankKey: 'mercader.p5',
+      rankDefault: 'Magnate Legendario',
       item: ASSETS.COIN_IRIDIUM,
+      bonus: '+25% KC + Rain',
     },
   ],
   constancia: [
+    { rankKey: 'constancia.p1', rankDefault: 'Devoto del Servidor', item: ASSETS.CLOCK },
+    { rankKey: 'constancia.p2', rankDefault: 'Pilar Inquebrantable', item: ASSETS.COMPASS },
     {
-      levelNum: 1,
-      level: t('account.overview.prestige.level1', { defaultValue: '⭐ Prestigio I' }),
-      rankName: t('account.overview.prestige.arch.constancia.p1', {
-        defaultValue: 'Devoto del Servidor',
-      }),
-      bonus: t('account.overview.prestige.bonus1', { defaultValue: '+5% KC Diarios' }),
-      tag: '[P1] Chat',
-      color: 'text-amber-400',
-      border: 'border-amber-600/40',
-      bg: 'bg-amber-900/20',
-      item: ASSETS.CLOCK,
-    },
-    {
-      levelNum: 2,
-      level: t('account.overview.prestige.level2', { defaultValue: '⭐⭐ Prestigio II' }),
-      rankName: t('account.overview.prestige.arch.constancia.p2', {
-        defaultValue: 'Pilar Inquebrantable',
-      }),
-      bonus: t('account.overview.prestige.bonus2', { defaultValue: '+10% KC Diarios' }),
-      tag: '[P2] Chat',
-      color: 'text-slate-300',
-      border: 'border-slate-400/40',
-      bg: 'bg-slate-700/20',
-      item: ASSETS.COMPASS,
-    },
-    {
-      levelNum: 3,
-      level: t('account.overview.prestige.level3', { defaultValue: '⭐⭐⭐ Prestigio III' }),
-      rankName: t('account.overview.prestige.arch.constancia.p3', {
-        defaultValue: 'Guardián de Racha',
-      }),
-      bonus: '+15% KC + Shield',
-      tag: '[P3] Chat',
-      color: 'text-yellow-400',
-      border: 'border-yellow-400/40',
-      bg: 'bg-yellow-500/10',
+      rankKey: 'constancia.p3',
+      rankDefault: 'Guardián de Racha',
       item: ASSETS.BOTTLE_ENCHANTING,
+      bonus: '+15% KC + Shield',
     },
+    { rankKey: 'constancia.p4', rankDefault: 'Leyenda Inquebrantable', item: ASSETS.TOTEM },
     {
-      levelNum: 4,
-      level: t('account.overview.prestige.level4', { defaultValue: '⭐⭐⭐⭐ Prestigio IV' }),
-      rankName: t('account.overview.prestige.arch.constancia.p4', {
-        defaultValue: 'Leyenda Inquebrantable',
-      }),
-      bonus: '+20% KC + 3 Spins',
-      tag: '[P4] Chat',
-      color: 'text-cyan-400',
-      border: 'border-cyan-400/40',
-      bg: 'bg-cyan-500/10',
-      item: ASSETS.TOTEM,
-    },
-    {
-      levelNum: 5,
-      level: t('account.overview.prestige.level5', { defaultValue: '💎 Prestigio V' }),
-      rankName: t('account.overview.prestige.arch.constancia.p5', { defaultValue: 'Titán Eterno' }),
-      bonus: '+25% KC + Totem',
-      tag: t('account.overview.prestige.tag_neon', { defaultValue: '[P5] Neón' }),
-      color: 'text-fuchsia-300',
-      border: 'border-fuchsia-400/50',
-      bg: 'bg-fuchsia-500/15',
+      rankKey: 'constancia.p5',
+      rankDefault: 'Titán Eterno',
       item: ASSETS.NETHER_STAR,
+      bonus: '+25% KC + Totem',
     },
   ],
   explorador: [
+    { rankKey: 'explorador.p1', rankDefault: 'Navegante de Reinos', item: ASSETS.LEATHER_BOOTS },
+    { rankKey: 'explorador.p2', rankDefault: 'Mapeador Ancestral', item: ASSETS.SPYGLASS },
     {
-      levelNum: 1,
-      level: t('account.overview.prestige.level1', { defaultValue: '⭐ Prestigio I' }),
-      rankName: t('account.overview.prestige.arch.explorador.p1', {
-        defaultValue: 'Navegante de Reinos',
-      }),
-      bonus: t('account.overview.prestige.bonus1', { defaultValue: '+5% KC Diarios' }),
-      tag: '[P1] Chat',
-      color: 'text-amber-400',
-      border: 'border-amber-600/40',
-      bg: 'bg-amber-900/20',
-      item: ASSETS.LEATHER_BOOTS,
-    },
-    {
-      levelNum: 2,
-      level: t('account.overview.prestige.level2', { defaultValue: '⭐⭐ Prestigio II' }),
-      rankName: t('account.overview.prestige.arch.explorador.p2', {
-        defaultValue: 'Mapeador Ancestral',
-      }),
-      bonus: t('account.overview.prestige.bonus2', { defaultValue: '+10% KC Diarios' }),
-      tag: '[P2] Chat',
-      color: 'text-slate-300',
-      border: 'border-slate-400/40',
-      bg: 'bg-slate-700/20',
-      item: ASSETS.SPYGLASS,
-    },
-    {
-      levelNum: 3,
-      level: t('account.overview.prestige.level3', { defaultValue: '⭐⭐⭐ Prestigio III' }),
-      rankName: t('account.overview.prestige.arch.explorador.p3', {
-        defaultValue: 'Pionero del Horizonte',
-      }),
-      bonus: '+15% KC + Compass',
-      tag: '[P3] Chat',
-      color: 'text-yellow-400',
-      border: 'border-yellow-400/40',
-      bg: 'bg-yellow-500/10',
+      rankKey: 'explorador.p3',
+      rankDefault: 'Pionero del Horizonte',
       item: ASSETS.EMPTY_MAP,
+      bonus: '+15% KC + Compass',
     },
+    { rankKey: 'explorador.p4', rankDefault: 'Explorador Experto', item: ASSETS.ELYTRA },
     {
-      levelNum: 4,
-      level: t('account.overview.prestige.level4', { defaultValue: '⭐⭐⭐⭐ Prestigio IV' }),
-      rankName: t('account.overview.prestige.arch.explorador.p4', {
-        defaultValue: 'Explorador Experto',
-      }),
-      bonus: '+20% KC + 3 Spins',
-      tag: '[P4] Chat',
-      color: 'text-cyan-400',
-      border: 'border-cyan-400/40',
-      bg: 'bg-cyan-500/10',
-      item: ASSETS.ELYTRA,
-    },
-    {
-      levelNum: 5,
-      level: t('account.overview.prestige.level5', { defaultValue: '💎 Prestigio V' }),
-      rankName: t('account.overview.prestige.arch.explorador.p5', {
-        defaultValue: 'Conquistador de Mundos',
-      }),
-      bonus: '+25% KC + Trail',
-      tag: t('account.overview.prestige.tag_neon', { defaultValue: '[P5] Neón' }),
-      color: 'text-fuchsia-300',
-      border: 'border-fuchsia-400/50',
-      bg: 'bg-fuchsia-500/15',
+      rankKey: 'explorador.p5',
+      rankDefault: 'Conquistador de Mundos',
       item: ASSETS.RECOVERY_COMPASS,
+      bonus: '+25% KC + Trail',
     },
   ],
-});
+};
+
+const getArchetypeMockups = (t: TranslationFunction): Record<PrestigeBranch, ArchetypeItem[]> => {
+  const levelLabels = [
+    t('account.overview.prestige.level1', { defaultValue: '⭐ Prestigio I' }),
+    t('account.overview.prestige.level2', { defaultValue: '⭐⭐ Prestigio II' }),
+    t('account.overview.prestige.level3', { defaultValue: '⭐⭐⭐ Prestigio III' }),
+    t('account.overview.prestige.level4', { defaultValue: '⭐⭐⭐⭐ Prestigio IV' }),
+    t('account.overview.prestige.level5', { defaultValue: '💎 Prestigio V' }),
+  ];
+
+  const defaultBonuses: Record<number, string> = {
+    1: t('account.overview.prestige.bonus1', { defaultValue: '+5% KC Diarios' }),
+    2: t('account.overview.prestige.bonus2', { defaultValue: '+10% KC Diarios' }),
+    4: '+20% KC + 3 Spins',
+  };
+
+  const neonTag = t('account.overview.prestige.tag_neon', { defaultValue: '[P5] Neón' });
+
+  const buildBranch = (branch: PrestigeBranch): ArchetypeItem[] =>
+    BRANCH_TIER_SPECS[branch].map((spec, index) => {
+      const style = PRESTIGE_TIER_STYLES[index];
+      const level = levelLabels[index];
+      const rankName = t(`account.overview.prestige.arch.${spec.rankKey}`, {
+        defaultValue: spec.rankDefault,
+      });
+
+      let bonus = spec.bonus || defaultBonuses[style.levelNum] || '';
+      if (spec.bonusKey) {
+        bonus = t(`account.overview.prestige.${spec.bonusKey}`, {
+          defaultValue: spec.bonusDefault,
+        });
+      }
+
+      return {
+        levelNum: style.levelNum,
+        level,
+        rankName,
+        bonus,
+        tag: style.levelNum === 5 ? neonTag : style.tag,
+        color: style.color,
+        border: style.border,
+        bg: style.bg,
+        item: spec.item,
+      };
+    });
+
+  return {
+    constructor: buildBranch('constructor'),
+    luchador: buildBranch('luchador'),
+    mercader: buildBranch('mercader'),
+    constancia: buildBranch('constancia'),
+    explorador: buildBranch('explorador'),
+  };
+};
 
 const calculateUnlockStatus = (
   user: User | null,
@@ -670,7 +525,7 @@ function PlaystyleRadarSection({ statsData, t }: Readonly<RadarSectionProps>) {
             <strong className="flex shrink-0 items-center gap-1 font-bold text-sky-400">
               <img
                 src={ASSETS.CRAFTING_TABLE}
-                className="h-4 w-4 object-contain"
+                className="size-4 object-contain"
                 alt="Constructor"
               />
               {t('about.roles.radar.builder', { defaultValue: 'Constructor' })}:
@@ -684,7 +539,7 @@ function PlaystyleRadarSection({ statsData, t }: Readonly<RadarSectionProps>) {
           </div>
           <div className="flex items-start gap-1.5">
             <strong className="flex shrink-0 items-center gap-1 font-bold text-rose-500">
-              <img src={ASSETS.DIAMOND_SWORD} className="h-4 w-4 object-contain" alt="Luchador" />
+              <img src={ASSETS.DIAMOND_SWORD} className="size-4 object-contain" alt="Luchador" />
               {t('about.roles.radar.fighter', { defaultValue: 'Luchador' })}:
             </strong>
             <span>
@@ -695,7 +550,7 @@ function PlaystyleRadarSection({ statsData, t }: Readonly<RadarSectionProps>) {
           </div>
           <div className="flex items-start gap-1.5">
             <strong className="flex shrink-0 items-center gap-1 font-bold text-amber-400">
-              <img src={ASSETS.COIN_ORO} className="h-4 w-4 object-contain" alt="Mercader" />
+              <img src={ASSETS.COIN_ORO} className="size-4 object-contain" alt="Mercader" />
               {t('about.roles.radar.merchant', { defaultValue: 'Mercader' })}:
             </strong>
             <span>
@@ -707,7 +562,7 @@ function PlaystyleRadarSection({ statsData, t }: Readonly<RadarSectionProps>) {
           </div>
           <div className="flex items-start gap-1.5">
             <strong className="flex shrink-0 items-center gap-1 font-bold text-fuchsia-400">
-              <img src={ASSETS.TOTEM} className="h-4 w-4 object-contain" alt="Constancia" />
+              <img src={ASSETS.TOTEM} className="size-4 object-contain" alt="Constancia" />
               {t('about.roles.radar.constancy', { defaultValue: 'Constancia' })}:
             </strong>
             <span>
@@ -719,7 +574,7 @@ function PlaystyleRadarSection({ statsData, t }: Readonly<RadarSectionProps>) {
           </div>
           <div className="flex items-start gap-1.5">
             <strong className="flex shrink-0 items-center gap-1 font-bold text-emerald-400">
-              <img src={ASSETS.COMPASS} className="h-4 w-4 object-contain" alt="Explorador" />
+              <img src={ASSETS.COMPASS} className="size-4 object-contain" alt="Explorador" />
               {t('about.roles.radar.explorer', { defaultValue: 'Explorador' })}:
             </strong>
             <span>
@@ -730,6 +585,372 @@ function PlaystyleRadarSection({ statsData, t }: Readonly<RadarSectionProps>) {
             </span>
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function PlaystyleRankRulesCard({ t }: Readonly<{ t: TranslationFunction }>) {
+  return (
+    <div className="mt-4 flex flex-col gap-2 rounded-xl border border-amber-500/20 bg-amber-500/10 p-4 text-xs/relaxed text-amber-200/90">
+      <div className="flex items-center gap-1.5 text-sm font-bold text-amber-400">
+        🏆 {t('about.roles.rules.max_rank_title', { defaultValue: 'Reglas del Rango Máximo' })}
+      </div>
+      <div className="flex flex-col gap-1.5 text-[11.5px]">
+        <div>
+          •{' '}
+          <strong>
+            {t('about.roles.rules.req_label', { defaultValue: 'Requisito Rango Máximo:' })}
+          </strong>{' '}
+          {t('about.roles.rules.max_rank_req', {
+            defaultValue:
+              'Debes ser el jugador con más puntos/estadística de la categoría en la que estás destacando.',
+          })}
+        </div>
+        <div>
+          •{' '}
+          <strong>
+            {t('about.roles.rules.limit_label', { defaultValue: 'Límite de 1 Rango Activo:' })}
+          </strong>{' '}
+          {t('about.roles.rules.limit_active', {
+            defaultValue: 'Solo puedes poseer 1 título máximo simultáneo al mismo tiempo.',
+          })}
+        </div>
+        <div>
+          •{' '}
+          <strong>
+            {t('about.roles.rules.transfer_label', { defaultValue: 'Transferencia Directa:' })}
+          </strong>{' '}
+          {t('about.roles.rules.transfer', {
+            defaultValue:
+              'Se transfiere si otro jugador supera tu puntaje. El Duelo 1v1 es exclusivo del Señor de la Guerra.',
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface MetricRankConfig {
+  icon: string;
+  nameKey: string;
+  nameDefault: string;
+  reqKey?: string;
+  reqDefault?: string;
+  isMax?: boolean;
+}
+
+interface PlaystyleMetricConfig {
+  icon: string;
+  titleKey: string;
+  titleDefault: string;
+  formulaKey: string;
+  formulaDefault: string;
+  textColor: string;
+  hoverBorder: string;
+  maxBadgeBorder: string;
+  maxBadgeBg: string;
+  maxBadgeText: string;
+  maxShadow: string;
+  ranks: readonly MetricRankConfig[];
+}
+
+const PLAYSTYLE_METRIC_CONFIGS: readonly PlaystyleMetricConfig[] = [
+  {
+    icon: ASSETS.CRAFTING_TABLE,
+    titleKey: 'about.roles.radar.builder',
+    titleDefault: 'Constructor',
+    formulaKey: 'account.overview.playstyle.blocks_formula',
+    formulaDefault: 'Bloques Minados + Colocados',
+    textColor: 'text-sky-400',
+    hoverBorder: 'hover:border-sky-500/30',
+    maxBadgeBorder: 'border-sky-500/30',
+    maxBadgeBg: 'bg-sky-500/10',
+    maxBadgeText: 'text-sky-400',
+    maxShadow: 'drop-shadow-[0_0_6px_rgba(56,189,248,0.5)]',
+    ranks: [
+      {
+        icon: ASSETS.WOODEN_PICKAXE,
+        nameKey: 'about.roles.branch.constructor.rank.1.name',
+        nameDefault: 'Iniciado',
+        reqKey: 'about.roles.branch.constructor.rank.1.req',
+        reqDefault: '0',
+      },
+      {
+        icon: ASSETS.IRON_PICKAXE,
+        nameKey: 'about.roles.branch.constructor.rank.2.name',
+        nameDefault: 'Novato',
+        reqKey: 'about.roles.branch.constructor.rank.2.req',
+        reqDefault: '1k',
+      },
+      {
+        icon: ASSETS.DIAMOND_PICKAXE,
+        nameKey: 'about.roles.branch.constructor.rank.3.name',
+        nameDefault: 'Hábil',
+        reqKey: 'about.roles.branch.constructor.rank.3.req',
+        reqDefault: '10k',
+      },
+      {
+        icon: ASSETS.NETHERITE_PICKAXE,
+        nameKey: 'about.roles.branch.constructor.rank.4.name',
+        nameDefault: 'Arquitecto',
+        reqKey: 'about.roles.branch.constructor.rank.4.req',
+        reqDefault: '50k',
+      },
+      {
+        icon: ASSETS.BEACON,
+        nameKey: 'about.roles.branch.constructor.rank.5.name',
+        nameDefault: 'Maestro Constructor',
+        isMax: true,
+      },
+    ],
+  },
+  {
+    icon: ASSETS.DIAMOND_SWORD,
+    titleKey: 'about.roles.radar.fighter',
+    titleDefault: 'Luchador',
+    formulaKey: 'account.overview.playstyle.pvp_formula',
+    formulaDefault: 'PvP (x15) + Mobs (x1)',
+    textColor: 'text-rose-400',
+    hoverBorder: 'hover:border-rose-500/30',
+    maxBadgeBorder: 'border-rose-500/30',
+    maxBadgeBg: 'bg-rose-500/10',
+    maxBadgeText: 'text-rose-400',
+    maxShadow: 'drop-shadow-[0_0_6px_rgba(244,63,94,0.5)]',
+    ranks: [
+      {
+        icon: ASSETS.WOODEN_SWORD,
+        nameKey: 'about.roles.branch.luchador.rank.1.name',
+        nameDefault: 'Recluta',
+        reqKey: 'about.roles.branch.luchador.rank.1.req',
+        reqDefault: '0',
+      },
+      {
+        icon: ASSETS.IRON_SWORD,
+        nameKey: 'about.roles.branch.luchador.rank.2.name',
+        nameDefault: 'Novato',
+        reqKey: 'about.roles.branch.luchador.rank.2.req',
+        reqDefault: '50',
+      },
+      {
+        icon: ASSETS.DIAMOND_SWORD,
+        nameKey: 'about.roles.branch.luchador.rank.3.name',
+        nameDefault: 'Guerrero',
+        reqKey: 'about.roles.branch.luchador.rank.3.req',
+        reqDefault: '500',
+      },
+      {
+        icon: ASSETS.NETHERITE_SWORD,
+        nameKey: 'about.roles.branch.luchador.rank.4.name',
+        nameDefault: 'Maestro de Armas',
+        reqKey: 'about.roles.branch.luchador.rank.4.req',
+        reqDefault: '2.5k',
+      },
+      {
+        icon: ASSETS.MACE,
+        nameKey: 'about.roles.branch.luchador.rank.5.name',
+        nameDefault: 'Señor de la Guerra',
+        isMax: true,
+      },
+    ],
+  },
+  {
+    icon: ASSETS.COIN_ORO,
+    titleKey: 'about.roles.radar.merchant',
+    titleDefault: 'Mercader',
+    formulaKey: 'account.overview.playstyle.merchant_formula',
+    formulaDefault: '100 × log₁₀(KilluCoins)',
+    textColor: 'text-amber-400',
+    hoverBorder: 'hover:border-amber-500/30',
+    maxBadgeBorder: 'border-amber-500/30',
+    maxBadgeBg: 'bg-amber-500/10',
+    maxBadgeText: 'text-amber-400',
+    maxShadow: 'drop-shadow-[0_0_6px_rgba(245,158,11,0.5)]',
+    ranks: [
+      {
+        icon: ASSETS.COIN_COBRE,
+        nameKey: 'about.roles.branch.mercader.rank.1.name',
+        nameDefault: 'Ambulante',
+        reqKey: 'about.roles.branch.mercader.rank.1.req',
+        reqDefault: '0',
+      },
+      {
+        icon: ASSETS.COIN_PLATA,
+        nameKey: 'about.roles.branch.mercader.rank.2.name',
+        nameDefault: 'Novato',
+        reqKey: 'about.roles.branch.mercader.rank.2.req',
+        reqDefault: '1k',
+      },
+      {
+        icon: ASSETS.COIN_ORO,
+        nameKey: 'about.roles.branch.mercader.rank.3.name',
+        nameDefault: 'Próspero',
+        reqKey: 'about.roles.branch.mercader.rank.3.req',
+        reqDefault: '10k',
+      },
+      {
+        icon: ASSETS.COIN_DIAMANTE,
+        nameKey: 'about.roles.branch.mercader.rank.4.name',
+        nameDefault: 'Noble',
+        reqKey: 'about.roles.branch.mercader.rank.4.req',
+        reqDefault: '50k',
+      },
+      {
+        icon: ASSETS.COIN_IRIDIUM,
+        nameKey: 'about.roles.branch.mercader.rank.5.name',
+        nameDefault: 'Gran Maestro Gremial',
+        isMax: true,
+      },
+    ],
+  },
+  {
+    icon: ASSETS.TOTEM,
+    titleKey: 'about.roles.radar.constancy',
+    titleDefault: 'Constancia',
+    formulaKey: 'account.overview.playstyle.constancy_formula',
+    formulaDefault: '(Días de Racha)²',
+    textColor: 'text-fuchsia-400',
+    hoverBorder: 'hover:border-fuchsia-500/30',
+    maxBadgeBorder: 'border-fuchsia-500/30',
+    maxBadgeBg: 'bg-fuchsia-500/10',
+    maxBadgeText: 'text-fuchsia-400',
+    maxShadow: 'drop-shadow-[0_0_6px_rgba(217,70,239,0.5)]',
+    ranks: [
+      {
+        icon: ASSETS.CLOCK,
+        nameKey: 'about.roles.branch.constancia.rank.1.name',
+        nameDefault: 'Visitante',
+        reqKey: 'about.roles.branch.constancia.rank.1.req',
+        reqDefault: '0d',
+      },
+      {
+        icon: ASSETS.COMPASS,
+        nameKey: 'about.roles.branch.constancia.rank.2.name',
+        nameDefault: 'Viajero',
+        reqKey: 'about.roles.branch.constancia.rank.2.req',
+        reqDefault: '7d',
+      },
+      {
+        icon: ASSETS.BOTTLE_ENCHANTING,
+        nameKey: 'about.roles.branch.constancia.rank.3.name',
+        nameDefault: 'Devoto',
+        reqKey: 'about.roles.branch.constancia.rank.3.req',
+        reqDefault: '14d',
+      },
+      {
+        icon: ASSETS.TOTEM,
+        nameKey: 'about.roles.branch.constancia.rank.4.name',
+        nameDefault: 'Viciado',
+        reqKey: 'about.roles.branch.constancia.rank.4.req',
+        reqDefault: '30d',
+      },
+      {
+        icon: ASSETS.NETHER_STAR,
+        nameKey: 'about.roles.branch.constancia.rank.5.name',
+        nameDefault: 'Inquebrantable',
+        isMax: true,
+      },
+    ],
+  },
+  {
+    icon: ASSETS.COMPASS,
+    titleKey: 'about.roles.radar.explorer',
+    titleDefault: 'Explorador',
+    formulaKey: 'account.overview.playstyle.explorer_formula',
+    formulaDefault: 'Horas (x10) + Km',
+    textColor: 'text-emerald-400',
+    hoverBorder: 'hover:border-emerald-500/30',
+    maxBadgeBorder: 'border-emerald-500/30',
+    maxBadgeBg: 'bg-emerald-500/10',
+    maxBadgeText: 'text-emerald-400',
+    maxShadow: 'drop-shadow-[0_0_6px_rgba(16,185,129,0.5)]',
+    ranks: [
+      {
+        icon: ASSETS.LEATHER_BOOTS,
+        nameKey: 'about.roles.branch.explorador.rank.1.name',
+        nameDefault: 'Novato',
+        reqKey: 'about.roles.branch.explorador.rank.1.req',
+        reqDefault: '0 pts',
+      },
+      {
+        icon: ASSETS.SPYGLASS,
+        nameKey: 'about.roles.branch.explorador.rank.2.name',
+        nameDefault: 'Curioso',
+        reqKey: 'about.roles.branch.explorador.rank.2.req',
+        reqDefault: '100 pts',
+      },
+      {
+        icon: ASSETS.EMPTY_MAP,
+        nameKey: 'about.roles.branch.explorador.rank.3.name',
+        nameDefault: 'Mapeador',
+        reqKey: 'about.roles.branch.explorador.rank.3.req',
+        reqDefault: '500 pts',
+      },
+      {
+        icon: ASSETS.ELYTRA,
+        nameKey: 'about.roles.branch.explorador.rank.4.name',
+        nameDefault: 'Pionero',
+        reqKey: 'about.roles.branch.explorador.rank.4.req',
+        reqDefault: '2k pts',
+      },
+      {
+        icon: ASSETS.RECOVERY_COMPASS,
+        nameKey: 'about.roles.branch.explorador.rank.5.name',
+        nameDefault: 'Explorador Experto',
+        isMax: true,
+      },
+    ],
+  },
+];
+
+function PlaystyleMetricCard({
+  config,
+  t,
+}: Readonly<{
+  config: PlaystyleMetricConfig;
+  t: TranslationFunction;
+}>) {
+  return (
+    <div
+      className={`bg-white/3 rounded-xl border border-white/5 p-3.5 transition-colors ${config.hoverBorder}`}
+    >
+      <div className="mb-2 flex items-center justify-between">
+        <div className={`flex items-center gap-2 text-sm font-bold ${config.textColor}`}>
+          <img src={config.icon} className="size-4 object-contain" alt={config.titleDefault} />
+          {t(config.titleKey, { defaultValue: config.titleDefault })}
+        </div>
+        <span className="text-[11px] font-medium text-gray-400">
+          {t(config.formulaKey, { defaultValue: config.formulaDefault })}
+        </span>
+      </div>
+      <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
+        {config.ranks.map((rank, idx) => {
+          const rankName = t(rank.nameKey, { defaultValue: rank.nameDefault });
+          const reqText = rank.reqKey ? t(rank.reqKey, { defaultValue: rank.reqDefault }) : '';
+
+          return (
+            <span key={rank.nameDefault} className="inline-flex items-center gap-1.5">
+              {idx > 0 && <span className="text-gray-600">→</span>}
+              {rank.isMax ? (
+                <span
+                  className={`flex items-center gap-1 rounded-lg border ${config.maxBadgeBorder} ${config.maxBadgeBg} px-2.5 py-1 font-extrabold ${config.maxBadgeText}`}
+                >
+                  <img
+                    alt=""
+                    src={rank.icon}
+                    className={`size-3.5 object-contain ${config.maxShadow}`}
+                  />{' '}
+                  {rankName}
+                </span>
+              ) : (
+                <span className="flex items-center gap-1 rounded-lg bg-white/5 px-2.5 py-1 text-gray-300">
+                  <img alt="" src={rank.icon} className="size-3.5 object-contain" /> {rankName} (
+                  {reqText})
+                </span>
+              )}
+            </span>
+          );
+        })}
       </div>
     </div>
   );
@@ -746,299 +967,12 @@ function PlaystyleMetricsSection({ t }: Readonly<{ t: TranslationFunction }>) {
       </h3>
 
       <div className="flex flex-col gap-3.5">
-        {/* Constructor */}
-        <div className="bg-white/3 rounded-xl border border-white/5 p-3.5 transition-colors hover:border-sky-500/30">
-          <div className="mb-2 flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm font-bold text-sky-400">
-              <img
-                src={ASSETS.CRAFTING_TABLE}
-                className="h-4 w-4 object-contain"
-                alt="Constructor"
-              />
-              {t('about.roles.radar.builder', { defaultValue: 'Constructor' })}
-            </div>
-            <span className="text-[11px] font-medium text-gray-400">
-              {t('account.overview.playstyle.blocks_formula', {
-                defaultValue: 'Bloques Minados + Colocados',
-              })}
-            </span>
-          </div>
-          <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
-            <span className="flex items-center gap-1 rounded-lg bg-white/5 px-2.5 py-1 text-gray-300">
-              <img alt="" src={ASSETS.WOODEN_PICKAXE} className="h-3.5 w-3.5 object-contain" />{' '}
-              {t('about.roles.branch.constructor.rank.1.name', { defaultValue: 'Iniciado' })} (
-              {t('about.roles.branch.constructor.rank.1.req', { defaultValue: '0' })})
-            </span>
-            <span className="text-gray-600">→</span>
-            <span className="flex items-center gap-1 rounded-lg bg-white/5 px-2.5 py-1 text-gray-300">
-              <img alt="" src={ASSETS.IRON_PICKAXE} className="h-3.5 w-3.5 object-contain" />{' '}
-              {t('about.roles.branch.constructor.rank.2.name', { defaultValue: 'Novato' })} (
-              {t('about.roles.branch.constructor.rank.2.req', { defaultValue: '1k' })})
-            </span>
-            <span className="text-gray-600">→</span>
-            <span className="flex items-center gap-1 rounded-lg bg-white/5 px-2.5 py-1 text-gray-300">
-              <img alt="" src={ASSETS.DIAMOND_PICKAXE} className="h-3.5 w-3.5 object-contain" />{' '}
-              {t('about.roles.branch.constructor.rank.3.name', { defaultValue: 'Hábil' })} (
-              {t('about.roles.branch.constructor.rank.3.req', { defaultValue: '10k' })})
-            </span>
-            <span className="text-gray-600">→</span>
-            <span className="flex items-center gap-1 rounded-lg bg-white/5 px-2.5 py-1 text-gray-300">
-              <img alt="" src={ASSETS.NETHERITE_PICKAXE} className="h-3.5 w-3.5 object-contain" />{' '}
-              {t('about.roles.branch.constructor.rank.4.name', { defaultValue: 'Arquitecto' })} (
-              {t('about.roles.branch.constructor.rank.4.req', { defaultValue: '50k' })})
-            </span>
-            <span className="text-gray-600">→</span>
-            <span className="flex items-center gap-1 rounded-lg border border-sky-500/30 bg-sky-500/10 px-2.5 py-1 font-extrabold text-sky-400">
-              <img
-                alt=""
-                src={ASSETS.BEACON}
-                className="h-3.5 w-3.5 object-contain drop-shadow-[0_0_6px_rgba(56,189,248,0.5)]"
-              />{' '}
-              {t('about.roles.branch.constructor.rank.5.name', {
-                defaultValue: 'Maestro Constructor',
-              })}
-            </span>
-          </div>
-        </div>
-
-        {/* Luchador */}
-        <div className="bg-white/3 rounded-xl border border-white/5 p-3.5 transition-colors hover:border-rose-500/30">
-          <div className="mb-2 flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm font-bold text-rose-400">
-              <img src={ASSETS.DIAMOND_SWORD} className="h-4 w-4 object-contain" alt="Luchador" />
-              {t('about.roles.radar.fighter', { defaultValue: 'Luchador' })}
-            </div>
-            <span className="text-[11px] font-medium text-gray-400">
-              {t('account.overview.playstyle.pvp_formula', {
-                defaultValue: 'PvP (x15) + Mobs (x1)',
-              })}
-            </span>
-          </div>
-          <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
-            <span className="flex items-center gap-1 rounded-lg bg-white/5 px-2.5 py-1 text-gray-300">
-              <img alt="" src={ASSETS.WOODEN_SWORD} className="h-3.5 w-3.5 object-contain" />{' '}
-              {t('about.roles.branch.luchador.rank.1.name', { defaultValue: 'Recluta' })} (
-              {t('about.roles.branch.luchador.rank.1.req', { defaultValue: '0' })})
-            </span>
-            <span className="text-gray-600">→</span>
-            <span className="flex items-center gap-1 rounded-lg bg-white/5 px-2.5 py-1 text-gray-300">
-              <img alt="" src={ASSETS.IRON_SWORD} className="h-3.5 w-3.5 object-contain" />{' '}
-              {t('about.roles.branch.luchador.rank.2.name', { defaultValue: 'Novato' })} (
-              {t('about.roles.branch.luchador.rank.2.req', { defaultValue: '50' })})
-            </span>
-            <span className="text-gray-600">→</span>
-            <span className="flex items-center gap-1 rounded-lg bg-white/5 px-2.5 py-1 text-gray-300">
-              <img alt="" src={ASSETS.DIAMOND_SWORD} className="h-3.5 w-3.5 object-contain" />{' '}
-              {t('about.roles.branch.luchador.rank.3.name', { defaultValue: 'Guerrero' })} (
-              {t('about.roles.branch.luchador.rank.3.req', { defaultValue: '500' })})
-            </span>
-            <span className="text-gray-600">→</span>
-            <span className="flex items-center gap-1 rounded-lg bg-white/5 px-2.5 py-1 text-gray-300">
-              <img alt="" src={ASSETS.NETHERITE_SWORD} className="h-3.5 w-3.5 object-contain" />{' '}
-              {t('about.roles.branch.luchador.rank.4.name', { defaultValue: 'Maestro de Armas' })} (
-              {t('about.roles.branch.luchador.rank.4.req', { defaultValue: '2.5k' })})
-            </span>
-            <span className="text-gray-600">→</span>
-            <span className="flex items-center gap-1 rounded-lg border border-rose-500/30 bg-rose-500/10 px-2.5 py-1 font-extrabold text-rose-400">
-              <img
-                alt=""
-                src={ASSETS.MACE}
-                className="h-3.5 w-3.5 object-contain drop-shadow-[0_0_6px_rgba(244,63,94,0.5)]"
-              />{' '}
-              {t('about.roles.branch.luchador.rank.5.name', { defaultValue: 'Señor de la Guerra' })}
-            </span>
-          </div>
-        </div>
-
-        {/* Mercader */}
-        <div className="bg-white/3 rounded-xl border border-white/5 p-3.5 transition-colors hover:border-amber-500/30">
-          <div className="mb-2 flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm font-bold text-amber-400">
-              <img src={ASSETS.COIN_ORO} className="h-4 w-4 object-contain" alt="Mercader" />
-              {t('about.roles.radar.merchant', { defaultValue: 'Mercader' })}
-            </div>
-            <span className="text-[11px] font-medium text-gray-400">
-              {t('account.overview.playstyle.merchant_formula', {
-                defaultValue: '100 × log₁₀(KilluCoins)',
-              })}
-            </span>
-          </div>
-          <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
-            <span className="flex items-center gap-1 rounded-lg bg-white/5 px-2.5 py-1 text-gray-300">
-              <img alt="" src={ASSETS.COIN_COBRE} className="h-3.5 w-3.5 object-contain" />{' '}
-              {t('about.roles.branch.mercader.rank.1.name', { defaultValue: 'Ambulante' })} (
-              {t('about.roles.branch.mercader.rank.1.req', { defaultValue: '0' })})
-            </span>
-            <span className="text-gray-600">→</span>
-            <span className="flex items-center gap-1 rounded-lg bg-white/5 px-2.5 py-1 text-gray-300">
-              <img alt="" src={ASSETS.COIN_PLATA} className="h-3.5 w-3.5 object-contain" />{' '}
-              {t('about.roles.branch.mercader.rank.2.name', { defaultValue: 'Novato' })} (
-              {t('about.roles.branch.mercader.rank.2.req', { defaultValue: '1k' })})
-            </span>
-            <span className="text-gray-600">→</span>
-            <span className="flex items-center gap-1 rounded-lg bg-white/5 px-2.5 py-1 text-gray-300">
-              <img alt="" src={ASSETS.COIN_ORO} className="h-3.5 w-3.5 object-contain" />{' '}
-              {t('about.roles.branch.mercader.rank.3.name', { defaultValue: 'Próspero' })} (
-              {t('about.roles.branch.mercader.rank.3.req', { defaultValue: '10k' })})
-            </span>
-            <span className="text-gray-600">→</span>
-            <span className="flex items-center gap-1 rounded-lg bg-white/5 px-2.5 py-1 text-gray-300">
-              <img alt="" src={ASSETS.COIN_DIAMANTE} className="h-3.5 w-3.5 object-contain" />{' '}
-              {t('about.roles.branch.mercader.rank.4.name', { defaultValue: 'Noble' })} (
-              {t('about.roles.branch.mercader.rank.4.req', { defaultValue: '50k' })})
-            </span>
-            <span className="text-gray-600">→</span>
-            <span className="flex items-center gap-1 rounded-lg border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 font-extrabold text-amber-400">
-              <img
-                alt=""
-                src={ASSETS.COIN_IRIDIUM}
-                className="h-3.5 w-3.5 object-contain drop-shadow-[0_0_6px_rgba(245,158,11,0.5)]"
-              />{' '}
-              {t('about.roles.branch.mercader.rank.5.name', {
-                defaultValue: 'Gran Maestro Gremial',
-              })}
-            </span>
-          </div>
-        </div>
-
-        {/* Constancia */}
-        <div className="bg-white/3 rounded-xl border border-white/5 p-3.5 transition-colors hover:border-fuchsia-500/30">
-          <div className="mb-2 flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm font-bold text-fuchsia-400">
-              <img src={ASSETS.TOTEM} className="h-4 w-4 object-contain" alt="Constancia" />
-              {t('about.roles.radar.constancy', { defaultValue: 'Constancia' })}
-            </div>
-            <span className="text-[11px] font-medium text-gray-400">
-              {t('account.overview.playstyle.constancy_formula', {
-                defaultValue: '(Días de Racha)²',
-              })}
-            </span>
-          </div>
-          <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
-            <span className="flex items-center gap-1 rounded-lg bg-white/5 px-2.5 py-1 text-gray-300">
-              <img alt="" src={ASSETS.CLOCK} className="h-3.5 w-3.5 object-contain" />{' '}
-              {t('about.roles.branch.constancia.rank.1.name', { defaultValue: 'Visitante' })} (
-              {t('about.roles.branch.constancia.rank.1.req', { defaultValue: '0d' })})
-            </span>
-            <span className="text-gray-600">→</span>
-            <span className="flex items-center gap-1 rounded-lg bg-white/5 px-2.5 py-1 text-gray-300">
-              <img alt="" src={ASSETS.COMPASS} className="h-3.5 w-3.5 object-contain" />{' '}
-              {t('about.roles.branch.constancia.rank.2.name', { defaultValue: 'Viajero' })} (
-              {t('about.roles.branch.constancia.rank.2.req', { defaultValue: '7d' })})
-            </span>
-            <span className="text-gray-600">→</span>
-            <span className="flex items-center gap-1 rounded-lg bg-white/5 px-2.5 py-1 text-gray-300">
-              <img alt="" src={ASSETS.BOTTLE_ENCHANTING} className="h-3.5 w-3.5 object-contain" />{' '}
-              {t('about.roles.branch.constancia.rank.3.name', { defaultValue: 'Devoto' })} (
-              {t('about.roles.branch.constancia.rank.3.req', { defaultValue: '14d' })})
-            </span>
-            <span className="text-gray-600">→</span>
-            <span className="flex items-center gap-1 rounded-lg bg-white/5 px-2.5 py-1 text-gray-300">
-              <img alt="" src={ASSETS.TOTEM} className="h-3.5 w-3.5 object-contain" />{' '}
-              {t('about.roles.branch.constancia.rank.4.name', { defaultValue: 'Viciado' })} (
-              {t('about.roles.branch.constancia.rank.4.req', { defaultValue: '30d' })})
-            </span>
-            <span className="text-gray-600">→</span>
-            <span className="flex items-center gap-1 rounded-lg border border-fuchsia-500/30 bg-fuchsia-500/10 px-2.5 py-1 font-extrabold text-fuchsia-400">
-              <img
-                alt=""
-                src={ASSETS.NETHER_STAR}
-                className="h-3.5 w-3.5 object-contain drop-shadow-[0_0_6px_rgba(217,70,239,0.5)]"
-              />{' '}
-              {t('about.roles.branch.constancia.rank.5.name', { defaultValue: 'Inquebrantable' })}
-            </span>
-          </div>
-        </div>
-
-        {/* Explorador */}
-        <div className="bg-white/3 rounded-xl border border-white/5 p-3.5 transition-colors hover:border-emerald-500/30">
-          <div className="mb-2 flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm font-bold text-emerald-400">
-              <img src={ASSETS.COMPASS} className="h-4 w-4 object-contain" alt="Explorador" />
-              {t('about.roles.radar.explorer', { defaultValue: 'Explorador' })}
-            </div>
-            <span className="text-[11px] font-medium text-gray-400">
-              {t('account.overview.playstyle.explorer_formula', {
-                defaultValue: 'Horas (x10) + Km',
-              })}
-            </span>
-          </div>
-          <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
-            <span className="flex items-center gap-1 rounded-lg bg-white/5 px-2.5 py-1 text-gray-300">
-              <img alt="" src={ASSETS.LEATHER_BOOTS} className="h-3.5 w-3.5 object-contain" />{' '}
-              {t('about.roles.branch.explorador.rank.1.name', { defaultValue: 'Novato' })} (
-              {t('about.roles.branch.explorador.rank.1.req', { defaultValue: '0 pts' })})
-            </span>
-            <span className="text-gray-600">→</span>
-            <span className="flex items-center gap-1 rounded-lg bg-white/5 px-2.5 py-1 text-gray-300">
-              <img alt="" src={ASSETS.SPYGLASS} className="h-3.5 w-3.5 object-contain" />{' '}
-              {t('about.roles.branch.explorador.rank.2.name', { defaultValue: 'Curioso' })} (
-              {t('about.roles.branch.explorador.rank.2.req', { defaultValue: '100 pts' })})
-            </span>
-            <span className="text-gray-600">→</span>
-            <span className="flex items-center gap-1 rounded-lg bg-white/5 px-2.5 py-1 text-gray-300">
-              <img alt="" src={ASSETS.EMPTY_MAP} className="h-3.5 w-3.5 object-contain" />{' '}
-              {t('about.roles.branch.explorador.rank.3.name', { defaultValue: 'Mapeador' })} (
-              {t('about.roles.branch.explorador.rank.3.req', { defaultValue: '500 pts' })})
-            </span>
-            <span className="text-gray-600">→</span>
-            <span className="flex items-center gap-1 rounded-lg bg-white/5 px-2.5 py-1 text-gray-300">
-              <img alt="" src={ASSETS.ELYTRA} className="h-3.5 w-3.5 object-contain" />{' '}
-              {t('about.roles.branch.explorador.rank.4.name', { defaultValue: 'Pionero' })} (
-              {t('about.roles.branch.explorador.rank.4.req', { defaultValue: '2k pts' })})
-            </span>
-            <span className="text-gray-600">→</span>
-            <span className="flex items-center gap-1 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 font-extrabold text-emerald-400">
-              <img
-                alt=""
-                src={ASSETS.RECOVERY_COMPASS}
-                className="h-3.5 w-3.5 object-contain drop-shadow-[0_0_6px_rgba(16,185,129,0.5)]"
-              />{' '}
-              {t('about.roles.branch.explorador.rank.5.name', {
-                defaultValue: 'Explorador Experto',
-              })}
-            </span>
-          </div>
-        </div>
+        {PLAYSTYLE_METRIC_CONFIGS.map((config) => (
+          <PlaystyleMetricCard key={config.titleDefault} config={config} t={t} />
+        ))}
       </div>
 
-      {/* Reglas del Rango Máximo */}
-      <div className="mt-4 flex flex-col gap-2 rounded-xl border border-amber-500/20 bg-amber-500/10 p-4 text-xs leading-relaxed text-amber-200/90">
-        <div className="flex items-center gap-1.5 text-sm font-bold text-amber-400">
-          🏆 {t('about.roles.rules.max_rank_title', { defaultValue: 'Reglas del Rango Máximo' })}
-        </div>
-        <div className="flex flex-col gap-1.5 text-[11.5px]">
-          <div>
-            •{' '}
-            <strong>
-              {t('about.roles.rules.req_label', { defaultValue: 'Requisito Rango Máximo:' })}
-            </strong>{' '}
-            {t('about.roles.rules.max_rank_req', {
-              defaultValue:
-                'Debes ser el jugador con más puntos/estadística de la categoría en la que estás destacando.',
-            })}
-          </div>
-          <div>
-            •{' '}
-            <strong>
-              {t('about.roles.rules.limit_label', { defaultValue: 'Límite de 1 Rango Activo:' })}
-            </strong>{' '}
-            {t('about.roles.rules.limit_active', {
-              defaultValue: 'Solo puedes poseer 1 título máximo simultáneo al mismo tiempo.',
-            })}
-          </div>
-          <div>
-            •{' '}
-            <strong>
-              {t('about.roles.rules.transfer_label', { defaultValue: 'Transferencia Directa:' })}
-            </strong>{' '}
-            {t('about.roles.rules.transfer', {
-              defaultValue:
-                'Se transfiere si otro jugador supera tu puntaje. El Duelo 1v1 es exclusivo del Señor de la Guerra.',
-            })}
-          </div>
-        </div>
-      </div>
+      <PlaystyleRankRulesCard t={t} />
     </div>
   );
 }
@@ -1065,7 +999,7 @@ function PrestigeStatusBanner({
     if (!isTop1) {
       return (
         <span className="flex items-center gap-1.5 text-red-400">
-          <Lock className="h-4 w-4 text-red-400" />{' '}
+          <Lock className="size-4 text-red-400" />{' '}
           <em>
             {t('account.overview.prestige.locked_msg', {
               defaultValue:
@@ -1109,7 +1043,7 @@ function PrestigeStatusBanner({
     if (!isTop1) {
       return (
         <>
-          <Lock className="h-4 w-4" />{' '}
+          <Lock className="size-4" />{' '}
           {t('account.overview.prestige.btn_req', {
             defaultValue: '🔒 Requisito: Alcanzar Rango Máximo',
           })}
@@ -1127,7 +1061,7 @@ function PrestigeStatusBanner({
     }
     return (
       <>
-        <Sparkles className="h-4 w-4" />{' '}
+        <Sparkles className="size-4" />{' '}
         {t('account.overview.prestige.btn_ascend', {
           defaultValue: '⭐ Ascender a Prestigio {{level}}',
           level: currentLevel + 1,
@@ -1210,7 +1144,7 @@ function PrestigeSystemSection({
   const archetypeList = mockups[prestigeTab];
 
   return (
-    <div className="dashboard-card animate-slide-up bg-linear-to-br mt-8 flex flex-col gap-5 rounded-2xl border border-purple-500/30 from-purple-900/20 via-black/40 to-indigo-900/30 p-6 text-xs leading-relaxed text-purple-100 shadow-lg shadow-purple-950/40">
+    <div className="dashboard-card animate-slide-up bg-linear-to-br mt-8 flex flex-col gap-5 rounded-2xl border border-purple-500/30 from-purple-900/20 via-black/40 to-indigo-900/30 p-6 text-xs/relaxed text-purple-100 shadow-lg shadow-purple-950/40">
       <div className="flex flex-col justify-between gap-3 border-b border-purple-500/20 pb-5 text-base font-extrabold text-purple-300 sm:flex-row sm:items-center">
         <span className="flex items-center gap-2 text-white">
           ⭐{' '}
@@ -1235,7 +1169,7 @@ function PrestigeSystemSection({
                 onClick={() => setPrestigeTab(key)}
                 className={`flex cursor-pointer items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-bold outline-none transition-colors focus:outline-none focus:ring-0 focus-visible:outline-none ${tabClasses}`}
               >
-                <img src={item.icon} className="h-4 w-4 object-contain" alt={item.label} />
+                <img src={item.icon} className="size-4 object-contain" alt={item.label} />
                 {item.label}
               </button>
             );
@@ -1274,19 +1208,19 @@ function PrestigeSystemSection({
             >
               {isUnlocked && (
                 <span className="absolute right-2 top-2 flex items-center gap-1 text-[9.5px] font-bold text-emerald-400">
-                  <CheckCircle className="h-3 w-3" />{' '}
+                  <CheckCircle className="size-3" />{' '}
                   {t('account.overview.prestige.active', { defaultValue: 'Activo' })}
                 </span>
               )}
               {isLocked && (
                 <span className="absolute right-2 top-2 flex items-center gap-1 text-[9.5px] font-bold text-gray-500">
-                  <Lock className="h-3 w-3" />{' '}
+                  <Lock className="size-3" />{' '}
                   {t('account.overview.prestige.locked', { defaultValue: 'Bloqueado' })}
                 </span>
               )}
               <img
                 src={item.item}
-                className={`my-1 h-6 w-6 object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)] transition-transform group-hover:scale-110 ${isLocked ? 'grayscale' : ''}`}
+                className={`my-1 size-6 object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)] transition-transform group-hover:scale-110 ${isLocked ? 'grayscale' : ''}`}
                 alt={item.rankName}
               />
               <span className={`${itemColor} text-xs font-extrabold tracking-wide`}>
@@ -1340,13 +1274,13 @@ function PrestigeAscendModal({
           aria-label="Action"
           type="button"
           onClick={onClose}
-          className="absolute right-4 top-4 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-white/5 text-lg font-bold text-gray-400 hover:text-white"
+          className="absolute right-4 top-4 flex size-8 cursor-pointer items-center justify-center rounded-full bg-white/5 text-lg font-bold text-gray-400 hover:text-white"
         >
           ✕
         </button>
 
         <div className="flex flex-col items-center gap-2 text-center">
-          <div className="mb-1 flex h-16 w-16 items-center justify-center rounded-2xl border border-purple-400/40 bg-purple-600/20 text-3xl shadow-[0_0_20px_rgba(147,51,234,0.4)]">
+          <div className="mb-1 flex size-16 items-center justify-center rounded-2xl border border-purple-400/40 bg-purple-600/20 text-3xl shadow-[0_0_20px_rgba(147,51,234,0.4)]">
             ⭐
           </div>
           <h3 className="text-xl font-black uppercase tracking-tight text-white">
@@ -1379,7 +1313,7 @@ function PrestigeAscendModal({
           </div>
           <div className="flex items-center justify-between">
             <span className="text-gray-400">Badge de Chat:</span>
-            <span className="rounded border border-purple-500/40 bg-purple-900/40 px-2 py-0.5 font-mono text-[11px] text-purple-300">
+            <span className="rounded-sm border border-purple-500/40 bg-purple-900/40 px-2 py-0.5 font-mono text-[11px] text-purple-300">
               [P1] Chat
             </span>
           </div>
@@ -1435,11 +1369,11 @@ function AchievementsTimeline({ statsData, t }: Readonly<AchievementsTimelinePro
         {t('account.journey_title', { defaultValue: '📅 Tu Travesía en CrystalTides' })}
       </h3>
       <div className="scrollbar-none relative flex items-center gap-0 overflow-x-auto py-4">
-        <div className="left-17.5 right-17.5 absolute top-8 z-0 h-px bg-white/10" />
+        <div className="inset-x-17.5 absolute top-8 z-0 h-px bg-white/10" />
 
         <div className="min-w-35 relative z-10 flex flex-col items-center">
-          <div className="bg-(--accent) mb-4 h-4 w-4 rounded-full shadow-[0_0_15px_rgba(var(--accent-rgb),0.5)]" />
-          <span className="text-xs font-black uppercase leading-loose tracking-widest text-white">
+          <div className="bg-(--accent) mb-4 size-4 rounded-full shadow-[0_0_15px_rgba(var(--accent-rgb),0.5)]" />
+          <span className="text-xs/loose font-black uppercase tracking-widest text-white">
             {t('account.journey_arrival', { defaultValue: 'Llegada' })}
           </span>
           <span className="mt-1 text-[10px] font-bold uppercase tracking-widest text-gray-500">
@@ -1449,8 +1383,8 @@ function AchievementsTimeline({ statsData, t }: Readonly<AchievementsTimelinePro
 
         {showPromotion && (
           <div className="min-w-35 relative z-10 mx-auto flex flex-col items-center">
-            <div className="mb-4 h-3 w-3 rounded-full bg-white" />
-            <span className="text-xs font-black uppercase leading-loose tracking-widest text-white">
+            <div className="mb-4 size-3 rounded-full bg-white" />
+            <span className="text-xs/loose font-black uppercase tracking-widest text-white">
               {t('account.journey_promotion', { defaultValue: 'Ascenso' })}
             </span>
             <span className="text-(--accent) mt-1 text-[10px] font-black uppercase tracking-widest">
@@ -1460,8 +1394,8 @@ function AchievementsTimeline({ statsData, t }: Readonly<AchievementsTimelinePro
         )}
 
         <div className="min-w-35 relative z-10 ml-auto flex flex-col items-center text-right">
-          <div className="mb-4 h-4 w-4 rotate-45 bg-green-500 shadow-[0_0_15px_rgba(34,197,94,0.5)]" />
-          <span className="text-xs font-black uppercase leading-loose tracking-widest text-white">
+          <div className="mb-4 size-4 rotate-45 bg-green-500 shadow-[0_0_15px_rgba(34,197,94,0.5)]" />
+          <span className="text-xs/loose font-black uppercase tracking-widest text-white">
             {t('account.journey_today', { defaultValue: 'Hoy' })}
           </span>
           <span className="mt-1 text-[10px] font-bold uppercase tracking-widest text-gray-500">
@@ -1530,7 +1464,7 @@ function PostsTabContent({ threads, isLoading, t }: Readonly<PostsTabProps>) {
             <div>
               <h4 style={{ color: '#fff', margin: '0 0 0.3rem 0' }}>{thread.title}</h4>
               <span style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>
-                {new Date(thread.created_at).toLocaleDateString()}
+                {formatDate(thread.created_at)}
               </span>
             </div>
             <div
@@ -1663,50 +1597,207 @@ function MedalsTabContent({ userMedals, medalDefinitions, t, lang }: Readonly<Me
   );
 }
 
-// --- MAIN ACCOUNT COMPONENT ---
+interface OverviewTabProps {
+  isLinked: boolean;
+  statsData?: ComponentProps<typeof PlayerStats>['statsData'];
+  loadingStats: boolean;
+  statsError: boolean;
+  prestigeTab: PrestigeBranch;
+  setPrestigeTab: (tab: PrestigeBranch) => void;
+  showAscendModal: boolean;
+  setShowAscendModal: (show: boolean) => void;
+  onVerifyClick: () => void;
+  showToast: (message: string, type?: ToastType) => void;
+  t: TranslationFunction;
+}
 
-export default function Account() {
-  const { t, i18n } = useTranslation();
-  const { user, loading } = useAuth();
-  const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
+function OverviewTabContent({
+  isLinked,
+  statsData,
+  loadingStats,
+  statsError,
+  prestigeTab,
+  setPrestigeTab,
+  showAscendModal,
+  setShowAscendModal,
+  onVerifyClick,
+  showToast,
+  t,
+}: Readonly<OverviewTabProps>) {
+  return (
+    <div className="fade-in">
+      <h2 className="mb-8 border-b border-white/5 pb-4 text-2xl font-black uppercase tracking-tighter text-white">
+        {t('account.overview.stats_title')}
+      </h2>
 
-  // Navigation State
-  const [activeTab, setActiveTab] = useState(() => searchParams.get('tab') || 'overview');
-  const [prestigeTab, setPrestigeTab] = useState<PrestigeBranch>('constructor');
-  const [showAscendModal, setShowAscendModal] = useState(false);
+      {isLinked ? (
+        <PlayerStats statsData={statsData || null} loading={loadingStats} error={statsError} />
+      ) : (
+        <UnlinkedNotice onVerifyClick={onVerifyClick} t={t} />
+      )}
 
-  const handleTabChange = (tab: string) => {
-    setActiveTab(tab);
-    setSearchParams({ tab });
+      {isLinked && (
+        <>
+          <div className="mt-8 grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-6">
+            <PlaystyleRadarSection statsData={statsData ?? undefined} t={t} />
+            <PlaystyleMetricsSection t={t} />
+          </div>
+
+          <PrestigeSystemSection
+            prestigeTab={prestigeTab}
+            setPrestigeTab={setPrestigeTab}
+            statsData={statsData ?? undefined}
+            onOpenModal={() => setShowAscendModal(true)}
+            t={t}
+          />
+
+          <PrestigeAscendModal
+            isOpen={showAscendModal}
+            onClose={() => setShowAscendModal(false)}
+            branch={prestigeTab}
+            onSimulateSuccess={() =>
+              showToast(
+                `✨ ¡Ascenso a Prestigio I (${prestigeTab.toUpperCase()}) simulado con éxito!`,
+                'success',
+              )
+            }
+          />
+        </>
+      )}
+    </div>
+  );
+}
+
+interface AchievementsTabProps {
+  statsData?: PlayerStatsData;
+  achievementDefinitions: TranslatableItem[];
+  unlockStatus: Record<string, boolean>;
+  userAchievementsSet: Set<string>;
+  username: string;
+  t: TranslationFunction;
+  lang: string;
+}
+
+function AchievementsTabContent({
+  statsData,
+  achievementDefinitions,
+  unlockStatus,
+  userAchievementsSet,
+  username,
+  t,
+  lang,
+}: Readonly<AchievementsTabProps>) {
+  const [sharingAchievement, setSharingAchievement] = useState<{
+    title: string;
+    description: string;
+    icon: React.ReactNode;
+    unlocked: boolean;
+  } | null>(null);
+
+  const handleShare = (achievement: TranslatableItem, iconElement: React.ReactNode) => {
+    setSharingAchievement({
+      ...achievement,
+      title: achievement.name,
+      description: achievement.description,
+      icon: iconElement,
+      unlocked: true,
+    });
   };
 
-  useEffect(() => {
-    const tab = searchParams.get('tab') || 'overview';
-    if (tab !== activeTab) setActiveTab(tab);
-  }, [searchParams, activeTab]);
+  return (
+    <div key="achievements" className="fade-in">
+      <h2 className="mb-8 border-b border-white/5 pb-4 text-2xl font-black uppercase tracking-tighter text-white">
+        {t('account.achievements.title')}
+      </h2>
 
-  // Queries
-  const { data: settingsData } = useAccountSettings();
-  const medalDefinitions = settingsData?.medal_definitions || [];
-  const achievementDefinitions = settingsData?.achievement_definitions || [];
+      {sharingAchievement && (
+        <ShareableCard
+          achievement={sharingAchievement}
+          username={username}
+          onClose={() => setSharingAchievement(null)}
+        />
+      )}
 
-  const { data: userThreads = [], isLoading: loadingThreads } = useUserThreads(
-    user?.id,
-    activeTab === 'posts',
+      <AchievementsTimeline statsData={statsData} t={t} />
+
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+          gap: '1.5rem',
+        }}
+      >
+        {achievementDefinitions.length > 0 ? (
+          achievementDefinitions.map((achievement) => {
+            const achievementId = String(achievement.id ?? '');
+            const isUnlocked =
+              unlockStatus[achievementId] || userAchievementsSet.has(achievementId) || false;
+
+            const renderedIcon = achievement.image_url ? (
+              <img
+                src={achievement.image_url}
+                alt={achievement.name}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain',
+                  borderRadius: '8px',
+                }}
+              />
+            ) : (
+              (achievement.icon as React.ReactNode)
+            );
+
+            return (
+              <AchievementCard
+                key={achievementId}
+                title={getLocalizedText(
+                  achievement,
+                  'name',
+                  t,
+                  lang,
+                  `account.achievements.items.${achievementId}`,
+                )}
+                description={getLocalizedText(
+                  achievement,
+                  'description',
+                  t,
+                  lang,
+                  `account.achievements.items.${achievementId}_desc`,
+                )}
+                criteria={getLocalizedText(
+                  achievement,
+                  'criteria',
+                  t,
+                  lang,
+                  `account.achievements.items.${achievementId}_criteria`,
+                )}
+                icon={renderedIcon}
+                unlocked={isUnlocked}
+                onShare={isUnlocked ? () => handleShare(achievement, renderedIcon) : undefined}
+                color={achievement.color}
+              />
+            );
+          })
+        ) : (
+          <p
+            style={{
+              color: '#666',
+              gridColumn: '1/-1',
+              textAlign: 'center',
+            }}
+          >
+            No hay logros.
+          </p>
+        )}
+      </div>
+    </div>
   );
+}
 
-  const mcUUID = user?.user_metadata?.minecraft_uuid;
-  const {
-    data: statsData,
-    isLoading: loadingStats,
-    isError: statsError,
-  } = usePlayerStats(mcUUID, activeTab === 'overview' || activeTab === 'connections');
+// --- MAIN ACCOUNT COMPONENT ---
 
-  const [linkCode, setLinkCode] = useState<string | null>(null);
-  const { data: linkStatus } = useLinkStatus(user?.id, !!linkCode && !mcUUID);
-
-  // Mobile / Sidebar State
+function useMobileSidebar() {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
   const { sidebarOpen, setSidebarOpen } = useSidebar();
 
@@ -1724,11 +1815,15 @@ export default function Account() {
     document.body.style.overflow = isMobile && sidebarOpen ? 'hidden' : 'unset';
   }, [isMobile, sidebarOpen]);
 
-  // Derived Info
-  const isLinked = !!mcUUID;
+  return { isMobile, sidebarOpen, setSidebarOpen };
+}
+
+function useAccountDerivedUser(user: User | null, defaultNotLinkedText: string) {
+  const mcUUID = user?.user_metadata?.minecraft_uuid;
+  const isLinked = Boolean(mcUUID);
   const mcUsername = isLinked
-    ? user?.user_metadata?.minecraft_nick || user?.user_metadata?.username
-    : t('account.minecraft.not_linked');
+    ? (user?.user_metadata?.minecraft_nick as string) || (user?.user_metadata?.username as string)
+    : defaultNotLinkedText;
 
   const identities = user?.identities || [];
   const discordIdentity = identities.find((id: UserIdentity) => id.provider === 'discord');
@@ -1737,172 +1832,225 @@ export default function Account() {
     user?.user_metadata?.discord_id ||
     user?.user_metadata?.discord_name ||
     user?.user_metadata?.discord_tag;
-  const isDiscordLinked = !!discordIdentity || !!discordMetadata;
+  const isDiscordLinked = Boolean(discordIdentity || discordMetadata);
 
+  const userAchievementsSet = useMemo(
+    () => new Set<string>((user?.user_metadata?.achievements as string[]) || []),
+    [user?.user_metadata?.achievements],
+  );
+
+  return {
+    mcUUID,
+    isLinked,
+    mcUsername,
+    discordIdentity,
+    twitchIdentity,
+    isDiscordLinked,
+    userAchievementsSet,
+  };
+}
+
+interface AccountContentAreaProps {
+  activeTab: string;
+  isLinked: boolean;
+  mcUsername: string;
+  statsData?: PlayerStatsData | null;
+  loadingStats: boolean;
+  statsError: boolean;
+  prestigeTab: PrestigeBranch;
+  setPrestigeTab: React.Dispatch<React.SetStateAction<PrestigeBranch>>;
+  showAscendModal: boolean;
+  setShowAscendModal: React.Dispatch<React.SetStateAction<boolean>>;
+  onTabChange: (tab: string) => void;
+  connections: ReturnType<typeof useAccountConnections>;
+  t: ReturnType<typeof useTranslation>['t'];
+  lang: string;
+  achievementDefinitions: TranslatableItem[];
+  unlockStatus: Record<string, boolean>;
+  userAchievementsSet: Set<string>;
+  user: User;
+  userThreads: UserThread[];
+  loadingThreads: boolean;
+  medalDefinitions: TranslatableItem[];
+  discordIdentity?: UserIdentity;
+  twitchIdentity?: UserIdentity;
+  isDiscordLinked: boolean;
+}
+
+const AccountContentArea: React.FC<Readonly<AccountContentAreaProps>> = (props) => {
+  switch (props.activeTab) {
+    case 'overview':
+      return (
+        <OverviewTabContent
+          isLinked={props.isLinked}
+          statsData={
+            props.statsData as unknown as ComponentProps<typeof OverviewTabContent>['statsData']
+          }
+          loadingStats={props.loadingStats}
+          statsError={props.statsError}
+          prestigeTab={props.prestigeTab}
+          setPrestigeTab={props.setPrestigeTab}
+          showAscendModal={props.showAscendModal}
+          setShowAscendModal={props.setShowAscendModal}
+          onVerifyClick={() => props.onTabChange('connections')}
+          showToast={props.connections.showToast}
+          t={props.t}
+        />
+      );
+    case 'achievements':
+      return (
+        <AchievementsTabContent
+          statsData={props.statsData || undefined}
+          achievementDefinitions={props.achievementDefinitions}
+          unlockStatus={props.unlockStatus}
+          userAchievementsSet={props.userAchievementsSet}
+          username={
+            props.statsData?.username ||
+            (props.user?.user_metadata?.full_name as string) ||
+            'Jugador'
+          }
+          t={props.t}
+          lang={props.lang}
+        />
+      );
+    case 'posts':
+      return (
+        <div key="posts" className="fade-in">
+          <div className="mb-8 flex items-center justify-between border-b border-white/5 pb-4">
+            <h2 className="m-0 text-2xl font-black uppercase tracking-tighter text-white">
+              {props.t('account.posts.title')}
+            </h2>
+            <Link
+              to="/forum"
+              className="hover:bg-(--accent) rounded-xl bg-white px-6 py-2 text-xs font-black uppercase tracking-widest text-black shadow-xl shadow-white/5 transition-colors"
+            >
+              + {props.t('account.posts.create_topic', { defaultValue: 'Crear Tema' })}
+            </Link>
+          </div>
+          <PostsTabContent
+            threads={props.userThreads}
+            isLoading={props.loadingThreads}
+            t={props.t}
+          />
+        </div>
+      );
+    case 'medals':
+      return (
+        <div key="medals" className="fade-in">
+          <h2 className="mb-8 border-b border-white/5 pb-4 text-2xl font-black uppercase tracking-tighter text-white">
+            {props.t('account.medals_title', { defaultValue: 'Mis Medallas' })}
+          </h2>
+          <MedalsTabContent
+            userMedals={props.user?.user_metadata?.medals}
+            medalDefinitions={props.medalDefinitions}
+            t={props.t}
+            lang={props.lang}
+          />
+        </div>
+      );
+    case 'connections':
+      return (
+        <div key="connections" className="fade-in">
+          <h2 className="mb-8 border-b border-white/5 pb-4 text-2xl font-black uppercase tracking-tighter text-white">
+            {props.t('account.connections.title')}
+          </h2>
+          <ConnectionCards
+            isLinked={props.isLinked}
+            mcUsername={props.mcUsername}
+            statsDataUsername={props.statsData?.username}
+            linkCode={props.connections.linkCode}
+            linkLoading={props.connections.linkLoading}
+            onGenerateCode={props.connections.handleGenerateCode}
+            discordIdentity={props.discordIdentity}
+            isDiscordLinked={props.isDiscordLinked}
+            discordMetadataName={
+              (props.user?.user_metadata?.discord_tag as string) ||
+              (props.user?.user_metadata?.discord_name as string) ||
+              (props.user?.user_metadata?.social_discord as string)
+            }
+            discordMetadataAvatar={props.user?.user_metadata?.discord_avatar as string}
+            twitchIdentity={props.twitchIdentity}
+            onLinkProvider={handleLinkProvider}
+            onUnlinkProvider={props.connections.handleUnlinkProvider}
+            onUnlinkMinecraft={props.connections.handleUnlinkMinecraft}
+            onUnlinkDiscord={props.connections.handleUnlinkDiscord}
+            manualCode={props.connections.manualCode}
+            onManualCodeChange={props.connections.setManualCode}
+            onVerifyCode={props.connections.handleVerifyManualCode}
+            isVerifying={props.connections.isVerifyingMutation}
+            discordManualCode={props.connections.discordManualCode}
+            onDiscordManualCodeChange={props.connections.setDiscordManualCode}
+            onVerifyDiscordCode={props.connections.handleVerifyDiscordCode}
+            isVerifyingDiscord={props.connections.isVerifyingMutation}
+            onLinkMicrosoft={props.connections.handleLinkMicrosoft}
+          />
+        </div>
+      );
+    case 'settings':
+      return (
+        <ProfileSettings
+          user={props.user}
+          mcUsername={props.mcUsername}
+          discordIdentity={props.discordIdentity}
+          twitchIdentity={props.twitchIdentity}
+          showToast={props.connections.showToast}
+        />
+      );
+    default:
+      return null;
+  }
+};
+
+// --- MAIN ACCOUNT COMPONENT ---
+
+export default function Account() {
+  const { t, i18n } = useTranslation();
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Navigation State
+  const activeTab = searchParams.get('tab') || 'overview';
+  const [prestigeTab, setPrestigeTab] = useState<PrestigeBranch>('constructor');
+  const [showAscendModal, setShowAscendModal] = useState(false);
+
+  const handleTabChange = (tab: string) => {
+    setSearchParams({ tab });
+  };
+
+  // Queries
+  const { data: settingsData } = useAccountSettings();
+  const medalDefinitions = settingsData?.medal_definitions || [];
+  const achievementDefinitions = settingsData?.achievement_definitions || [];
+
+  const { data: userThreads = [], isLoading: loadingThreads } = useUserThreads(
+    user?.id,
+    activeTab === 'posts',
+  );
+
+  const {
+    mcUUID,
+    isLinked,
+    mcUsername,
+    discordIdentity,
+    twitchIdentity,
+    isDiscordLinked,
+    userAchievementsSet,
+  } = useAccountDerivedUser(user, t('account.minecraft.not_linked'));
+
+  const {
+    data: statsData,
+    isLoading: loadingStats,
+    isError: statsError,
+  } = usePlayerStats(mcUUID, activeTab === 'overview' || activeTab === 'connections');
+
+  const { isMobile, sidebarOpen, setSidebarOpen } = useMobileSidebar();
+  const connections = useAccountConnections(user);
   const unlockStatus = calculateUnlockStatus(user, statsData);
-
-  // Mutations
-  const { mutate: generateCode, isPending: linkLoading } = useGenerateLinkCode();
-  const { mutate: verifyCode, isPending: isVerifyingMutation } = useVerifyLinkCode();
-  const { mutate: unlinkAccount, isPending: isUnlinking } = useUnlinkAccount();
-  const { mutate: linkMicrosoft } = useLinkMicrosoftAccount();
-
-  // Modals & Notifications
-  const [isUnlinkModalOpen, setIsUnlinkModalOpen] = useState(false);
-  const identityToUnlinkRef = useRef<UserIdentity | null>(null);
-  const unlinkTargetRef = useRef<'provider' | 'minecraft' | 'discord' | null>(null);
-
-  const [manualCode, setManualCode] = useState('');
-  const [discordManualCode, setDiscordManualCode] = useState('');
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-
-  const [toast, setToast] = useState<{ visible: boolean; message: string; type: ToastType }>({
-    visible: false,
-    message: '',
-    type: 'info',
-  });
-  const showToast = (message: string, type: ToastType = 'info') => {
-    setToast({ visible: true, message, type });
-  };
-
-  const [sharingAchievement, setSharingAchievement] = useState<{
-    title: string;
-    description: string;
-    icon: React.ReactNode;
-    unlocked: boolean;
-  } | null>(null);
-
-  const handleShare = (achievement: {
-    name: string;
-    description: string;
-    icon: React.ReactNode;
-    image_url?: string;
-  }) => {
-    const iconElement = achievement.image_url ? (
-      <img
-        src={achievement.image_url}
-        alt={achievement.name}
-        className="h-full w-full rounded-lg object-contain"
-      />
-    ) : (
-      achievement.icon
-    );
-
-    setSharingAchievement({
-      ...achievement,
-      title: achievement.name,
-      icon: iconElement,
-      unlocked: true,
-    });
-  };
-
-  const handleLinkMicrosoft = ({ uuid, nick }: { uuid: string; nick: string }) => {
-    linkMicrosoft(
-      { uuid, nick },
-      {
-        onSuccess: () => {
-          supabase.auth.refreshSession();
-          setShowSuccessModal(true);
-        },
-        onError: (err: Error) =>
-          showToast(err.message || 'Error al vincular cuenta de Microsoft', 'error'),
-      },
-    );
-  };
-
-  // Popup OAuth redirect handler
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const code = urlParams.get('code');
-    if (code && window.opener && window.opener !== window) {
-      window.opener.postMessage({ type: 'MS_AUTH_CODE', code }, window.location.origin);
-      window.close();
-    }
-  }, []);
-
-  // Sync session on link success
-  useEffect(() => {
-    if (linkStatus?.linked) {
-      setLinkCode(null);
-      supabase.auth.refreshSession().then(() => setShowSuccessModal(true));
-    }
-  }, [linkStatus]);
 
   useEffect(() => {
     if (!loading && !user) navigate('/login');
   }, [user, loading, navigate]);
-
-  const handleGenerateCode = () => {
-    if (!user) return;
-    generateCode(user.id, {
-      onSuccess: (code) => setLinkCode(code),
-      onError: (err: Error) => showToast(err.message || 'Error al generar código', 'error'),
-    });
-  };
-
-  const handleVerifyManualCode = () => {
-    if (!user || !manualCode.trim()) return;
-    verifyCode(
-      { userId: user.id, code: manualCode.trim().toUpperCase() },
-      {
-        onSuccess: () => {
-          supabase.auth.refreshSession();
-          setShowSuccessModal(true);
-        },
-        onError: (err: Error) => showToast(err.message, 'error'),
-      },
-    );
-  };
-
-  const handleVerifyDiscordCode = () => {
-    if (!user || !discordManualCode.trim()) return;
-    verifyCode(
-      { userId: user.id, code: discordManualCode.trim().toUpperCase() },
-      {
-        onSuccess: () => {
-          supabase.auth.refreshSession();
-          setShowSuccessModal(true);
-        },
-        onError: (err: Error) => showToast(err.message, 'error'),
-      },
-    );
-  };
-
-  const handleUnlinkProvider = (identity: UserIdentity) => {
-    identityToUnlinkRef.current = identity;
-    unlinkTargetRef.current = 'provider';
-    setIsUnlinkModalOpen(true);
-  };
-
-  const handleUnlinkMinecraft = () => {
-    unlinkTargetRef.current = 'minecraft';
-    setIsUnlinkModalOpen(true);
-  };
-
-  const handleUnlinkDiscord = () => {
-    unlinkTargetRef.current = 'discord';
-    setIsUnlinkModalOpen(true);
-  };
-
-  const confirmUnlink = () => {
-    const target = unlinkTargetRef.current;
-    if (!target) return;
-    unlinkAccount(
-      { target, identity: identityToUnlinkRef.current || undefined },
-      {
-        onSuccess: () => {
-          showToast('Cambios guardados correctamente', 'success');
-          setIsUnlinkModalOpen(false);
-          identityToUnlinkRef.current = null;
-          unlinkTargetRef.current = null;
-        },
-        onError: (err: Error) => {
-          showToast(err.message || 'Error al desvincular', 'error');
-          setIsUnlinkModalOpen(false);
-        },
-      },
-    );
-  };
 
   if (loading || !user) {
     return (
@@ -1921,8 +2069,6 @@ export default function Account() {
       </div>
     );
   }
-
-  const userAchievementsSet = new Set(user?.user_metadata?.achievements || []);
 
   return (
     <div className="min-h-screen bg-[#080808] pb-16 pt-28">
@@ -1951,228 +2097,40 @@ export default function Account() {
 
         {/* Main Content Area */}
         <main className="animate-fade-in relative mt-8 flex-1 lg:mt-0">
-          {activeTab === 'overview' && (
-            <div className="fade-in">
-              <h2 className="mb-8 border-b border-white/5 pb-4 text-2xl font-black uppercase tracking-tighter text-white">
-                {t('account.overview.stats_title')}
-              </h2>
-
-              {isLinked ? (
-                <PlayerStats statsData={statsData} loading={loadingStats} error={statsError} />
-              ) : (
-                <UnlinkedNotice onVerifyClick={() => setActiveTab('connections')} t={t} />
-              )}
-
-              {isLinked && (
-                <>
-                  <div className="mt-8 grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-6">
-                    <PlaystyleRadarSection statsData={statsData} t={t} />
-                    <PlaystyleMetricsSection t={t} />
-                  </div>
-
-                  <PrestigeSystemSection
-                    prestigeTab={prestigeTab}
-                    setPrestigeTab={setPrestigeTab}
-                    statsData={statsData}
-                    onOpenModal={() => setShowAscendModal(true)}
-                    t={t}
-                  />
-
-                  <PrestigeAscendModal
-                    isOpen={showAscendModal}
-                    onClose={() => setShowAscendModal(false)}
-                    branch={prestigeTab}
-                    onSimulateSuccess={() =>
-                      showToast(
-                        `✨ ¡Ascenso a Prestigio I (${prestigeTab.toUpperCase()}) simulado con éxito!`,
-                        'success',
-                      )
-                    }
-                  />
-                </>
-              )}
-            </div>
-          )}
-
-          {activeTab === 'achievements' && (
-            <div key="achievements" className="fade-in">
-              <h2 className="mb-8 border-b border-white/5 pb-4 text-2xl font-black uppercase tracking-tighter text-white">
-                {t('account.achievements.title')}
-              </h2>
-
-              {sharingAchievement && (
-                <ShareableCard
-                  achievement={sharingAchievement}
-                  username={statsData?.username || user?.user_metadata?.full_name || 'Jugador'}
-                  onClose={() => setSharingAchievement(null)}
-                />
-              )}
-
-              <AchievementsTimeline statsData={statsData} t={t} />
-
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-                  gap: '1.5rem',
-                }}
-              >
-                {achievementDefinitions.length > 0 ? (
-                  achievementDefinitions.map((achievement) => {
-                    const isUnlocked =
-                      unlockStatus[achievement.id] ||
-                      userAchievementsSet.has(achievement.id) ||
-                      false;
-
-                    const renderedIcon = achievement.image_url ? (
-                      <img
-                        src={achievement.image_url}
-                        alt={achievement.name}
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'contain',
-                          borderRadius: '8px',
-                        }}
-                      />
-                    ) : (
-                      achievement.icon
-                    );
-
-                    return (
-                      <AchievementCard
-                        key={achievement.id}
-                        title={getLocalizedText(
-                          achievement,
-                          'name',
-                          t,
-                          i18n.language,
-                          `account.achievements.items.${achievement.id}`,
-                        )}
-                        description={getLocalizedText(
-                          achievement,
-                          'description',
-                          t,
-                          i18n.language,
-                          `account.achievements.items.${achievement.id}_desc`,
-                        )}
-                        criteria={getLocalizedText(
-                          achievement,
-                          'criteria',
-                          t,
-                          i18n.language,
-                          `account.achievements.items.${achievement.id}_criteria`,
-                        )}
-                        icon={renderedIcon}
-                        unlocked={isUnlocked}
-                        onShare={isUnlocked ? () => handleShare(achievement) : undefined}
-                        color={achievement.color}
-                      />
-                    );
-                  })
-                ) : (
-                  <p
-                    style={{
-                      color: '#666',
-                      gridColumn: '1/-1',
-                      textAlign: 'center',
-                    }}
-                  >
-                    No hay logros.
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'posts' && (
-            <div key="posts" className="fade-in">
-              <div className="mb-8 flex items-center justify-between border-b border-white/5 pb-4">
-                <h2 className="m-0 text-2xl font-black uppercase tracking-tighter text-white">
-                  {t('account.posts.title')}
-                </h2>
-                <Link
-                  to="/forum"
-                  className="hover:bg-(--accent) rounded-xl bg-white px-6 py-2 text-xs font-black uppercase tracking-widest text-black shadow-xl shadow-white/5 transition-colors"
-                >
-                  + {t('account.posts.create_topic', { defaultValue: 'Crear Tema' })}
-                </Link>
-              </div>
-
-              <PostsTabContent threads={userThreads} isLoading={loadingThreads} t={t} />
-            </div>
-          )}
-
-          {activeTab === 'medals' && (
-            <div key="medals" className="fade-in">
-              <h2 className="mb-8 border-b border-white/5 pb-4 text-2xl font-black uppercase tracking-tighter text-white">
-                {t('account.medals_title', { defaultValue: 'Mis Medallas' })}
-              </h2>
-              <MedalsTabContent
-                userMedals={user?.user_metadata?.medals}
-                medalDefinitions={medalDefinitions}
-                t={t}
-                lang={i18n.language}
-              />
-            </div>
-          )}
-
-          {activeTab === 'connections' && (
-            <div key="connections" className="fade-in">
-              <h2 className="mb-8 border-b border-white/5 pb-4 text-2xl font-black uppercase tracking-tighter text-white">
-                {t('account.connections.title')}
-              </h2>
-
-              <ConnectionCards
-                isLinked={isLinked}
-                mcUsername={mcUsername}
-                statsDataUsername={statsData?.username}
-                linkCode={linkCode}
-                linkLoading={linkLoading}
-                onGenerateCode={handleGenerateCode}
-                discordIdentity={discordIdentity}
-                isDiscordLinked={isDiscordLinked}
-                discordMetadataName={
-                  user?.user_metadata?.discord_tag ||
-                  user?.user_metadata?.discord_name ||
-                  user?.user_metadata?.social_discord
-                }
-                discordMetadataAvatar={user?.user_metadata?.discord_avatar}
-                twitchIdentity={twitchIdentity}
-                onLinkProvider={handleLinkProvider}
-                onUnlinkProvider={handleUnlinkProvider}
-                onUnlinkMinecraft={handleUnlinkMinecraft}
-                onUnlinkDiscord={handleUnlinkDiscord}
-                manualCode={manualCode}
-                onManualCodeChange={setManualCode}
-                onVerifyCode={handleVerifyManualCode}
-                isVerifying={isVerifyingMutation}
-                discordManualCode={discordManualCode}
-                onDiscordManualCodeChange={setDiscordManualCode}
-                onVerifyDiscordCode={handleVerifyDiscordCode}
-                isVerifyingDiscord={isVerifyingMutation}
-                onLinkMicrosoft={handleLinkMicrosoft}
-              />
-            </div>
-          )}
-
-          {activeTab === 'settings' && (
-            <ProfileSettings
-              user={user}
-              mcUsername={mcUsername}
-              discordIdentity={discordIdentity}
-              twitchIdentity={twitchIdentity}
-              showToast={showToast}
-            />
-          )}
+          <AccountContentArea
+            activeTab={activeTab}
+            isLinked={isLinked}
+            mcUsername={mcUsername}
+            statsData={statsData}
+            loadingStats={loadingStats}
+            statsError={statsError}
+            prestigeTab={prestigeTab}
+            setPrestigeTab={setPrestigeTab}
+            showAscendModal={showAscendModal}
+            setShowAscendModal={setShowAscendModal}
+            onTabChange={handleTabChange}
+            connections={connections}
+            t={t}
+            lang={i18n.language}
+            achievementDefinitions={achievementDefinitions as unknown as TranslatableItem[]}
+            unlockStatus={unlockStatus}
+            userAchievementsSet={userAchievementsSet}
+            user={user}
+            userThreads={userThreads as unknown as UserThread[]}
+            loadingThreads={loadingThreads}
+            medalDefinitions={medalDefinitions as unknown as TranslatableItem[]}
+            discordIdentity={discordIdentity}
+            twitchIdentity={twitchIdentity}
+            isDiscordLinked={isDiscordLinked}
+          />
         </main>
       </div>
 
       <ConfirmationModal
-        isOpen={isUnlinkModalOpen}
-        onClose={() => !isUnlinking && setIsUnlinkModalOpen(false)}
-        onConfirm={confirmUnlink}
-        isLoading={isUnlinking}
+        isOpen={connections.isUnlinkModalOpen}
+        onClose={() => !connections.isUnlinking && connections.setIsUnlinkModalOpen(false)}
+        onConfirm={connections.confirmUnlink}
+        isLoading={connections.isUnlinking}
         title={t('account.unlink_confirm_title', { defaultValue: 'Desvincular cuenta' })}
         message={t('account.unlink_confirm_msg', {
           defaultValue: '¿Estás seguro? Podrías perder acceso a ciertas características.',
@@ -2180,15 +2138,15 @@ export default function Account() {
       />
 
       <Toast
-        isVisible={toast.visible}
-        message={toast.message}
-        type={toast.type}
-        onClose={() => setToast((prev) => ({ ...prev, visible: false }))}
+        isVisible={connections.toast.visible}
+        message={connections.toast.message}
+        type={connections.toast.type}
+        onClose={() => connections.setToast((prev) => ({ ...prev, visible: false }))}
       />
 
       <SuccessModal
-        isOpen={showSuccessModal}
-        onClose={() => setShowSuccessModal(false)}
+        isOpen={connections.showSuccessModal}
+        onClose={() => connections.setShowSuccessModal(false)}
         onAction={() => window.location.reload()}
         title={t('account.connections.verify_success', { defaultValue: '¡VINCULACIÓN EXITOSA!' })}
         message={t('account.connections.success_link_desc', {

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { m as motion, AnimatePresence } from 'framer-motion';
 import { Trash2, Send, MessageCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -11,6 +12,7 @@ import {
   ProfileComment,
 } from '../../services/profileCommentService';
 import Loader from '../UI/Loader';
+import { formatDate } from '../../utils/date';
 
 import ConfirmationModal from '../UI/ConfirmationModal';
 
@@ -32,6 +34,88 @@ const RANK_IMAGES: Record<string, string> = {
   neroferno: '/ranks/rank-neroferno.png',
   user: '/ranks/user.png',
 };
+
+import type { User } from '@supabase/supabase-js';
+
+interface AuthorMetadata {
+  avatar_preference?: string;
+  minecraft_nick?: string;
+  status_message?: string;
+  full_name?: string;
+  username?: string;
+  discord_tag?: string;
+}
+
+function resolveCommentAvatar(
+  authorMetadata: AuthorMetadata | undefined,
+  isMe: boolean,
+  user: User | null,
+  commentAuthor: ProfileComment['author'],
+): string {
+  const pref = authorMetadata?.avatar_preference || 'minecraft';
+  const mcNick = authorMetadata?.minecraft_nick || '';
+  if (pref === 'minecraft' && mcNick) {
+    return `https://mc-heads.net/avatar/${mcNick}/128`;
+  }
+  if (isMe) {
+    return (user?.user_metadata?.picture ||
+      user?.user_metadata?.avatar_url ||
+      commentAuthor?.avatar_url ||
+      '') as string;
+  }
+  return (commentAuthor?.social_avatar_url || commentAuthor?.avatar_url || '') as string;
+}
+
+function resolveCommentRole(
+  isMe: boolean,
+  user: User | null,
+  commentAuthor: ProfileComment['author'],
+): string {
+  if (isMe) {
+    return String(user ? getUserRole(user) : 'user').toLowerCase();
+  }
+  return String(commentAuthor?.role || 'user').toLowerCase();
+}
+
+function renderWallContent(
+  loading: boolean,
+  comments: ProfileComment[],
+  t: TFunction,
+  renderComments: () => React.ReactNode,
+) {
+  if (loading) {
+    return (
+      <motion.div
+        key="loading-wall"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="flex flex-col items-center justify-center py-12"
+      >
+        <Loader text={t('common.loading')} />
+      </motion.div>
+    );
+  }
+
+  if (comments.length === 0) {
+    return (
+      <motion.div
+        key="empty-wall"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="rounded-2xl border border-white/5 bg-black/20 px-6 py-12 text-center"
+      >
+        <div className="mb-4 text-4xl opacity-20">💬</div>
+        <p className="font-bold italic text-gray-500">
+          {t('profile.wall.empty', 'Aún no hay mensajes. ¡Sé el primero!')}
+        </p>
+      </motion.div>
+    );
+  }
+
+  return renderComments();
+}
 
 export default function ProfileWall({
   profileId,
@@ -158,31 +242,37 @@ export default function ProfileWall({
       {/* Comments List */}
       <div className="space-y-4">
         <AnimatePresence mode="popLayout">
-          {loading ? (
-            <motion.div
-              key="loading-wall"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="flex flex-col items-center justify-center py-12"
-            >
-              <Loader text={t('common.loading')} />
-            </motion.div>
-          ) : comments.length === 0 ? (
-            <motion.div
-              key="empty-wall"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="rounded-2xl border border-white/5 bg-black/20 px-6 py-12 text-center"
-            >
-              <div className="mb-4 text-4xl opacity-20">💬</div>
-              <p className="font-bold italic text-gray-500">
-                {t('profile.wall.empty', 'Aún no hay mensajes. ¡Sé el primero!')}
-              </p>
-            </motion.div>
-          ) : (
+          {renderWallContent(loading, comments, t, () =>
             comments.map((comment) => {
+              const isMe = user?.id === comment.author_id;
+              const authorMetadata = (isMe ? user?.user_metadata : comment.author) as
+                | AuthorMetadata
+                | undefined;
+
+              const mcNick = (authorMetadata?.minecraft_nick as string) || '';
+              const statusMessage = (authorMetadata?.status_message as string) || '';
+              const discordTag = (authorMetadata?.discord_tag as string) || '';
+              const displayAvatar = resolveCommentAvatar(
+                authorMetadata,
+                isMe,
+                user,
+                comment.author,
+              );
+
+              const displayName = String(
+                mcNick && authorMetadata?.avatar_preference === 'minecraft'
+                  ? mcNick
+                  : authorMetadata?.full_name ||
+                      authorMetadata?.username ||
+                      comment.author?.username ||
+                      t('common.anonymous', 'Anónimo'),
+              );
+
+              const role = resolveCommentRole(isMe, user, comment.author);
+              const roleImage =
+                RANK_IMAGES[role] ||
+                (role.includes('donador') ? RANK_IMAGES['donador'] : RANK_IMAGES['user']);
+
               return (
                 <motion.div
                   key={comment.id}
@@ -191,157 +281,101 @@ export default function ProfileWall({
                   exit={{ opacity: 0, scale: 0.95 }}
                   className="group relative rounded-2xl border border-white/5 bg-black/20 p-6 transition-colors duration-300 hover:-translate-y-2 hover:scale-[1.02] hover:border-white/20 hover:bg-black/30 hover:shadow-[0_40px_80px_-15px_rgba(0,0,0,0.5)]"
                 >
-                  {(() => {
-                    // Use local user data if it's my own comment (to ensure settings are up-to-date)
-                    const isMe = user?.id === comment.author_id;
-
-                    interface AuthorMetadata {
-                      avatar_preference?: string;
-                      minecraft_nick?: string;
-                      status_message?: string;
-                      full_name?: string;
-                      username?: string;
-                      discord_tag?: string;
-                    }
-
-                    const authorMetadata = (isMe ? user?.user_metadata : comment.author) as
-                      | AuthorMetadata
-                      | undefined;
-
-                    const pref = (authorMetadata?.avatar_preference as string) || 'minecraft';
-                    const mcNick = (authorMetadata?.minecraft_nick as string) || '';
-                    const statusMessage = (authorMetadata?.status_message as string) || '';
-                    const discordTag = (authorMetadata?.discord_tag as string) || '';
-
-                    const useMinecraft = pref === 'minecraft' && mcNick;
-
-                    const displayAvatar = useMinecraft
-                      ? `https://mc-heads.net/avatar/${mcNick}/128`
-                      : isMe
-                        ? ((user?.user_metadata?.picture ||
-                            user?.user_metadata?.avatar_url ||
-                            comment.author?.avatar_url) as string)
-                        : ((comment.author?.social_avatar_url ||
-                            comment.author?.avatar_url) as string);
-
-                    const displayName = String(
-                      useMinecraft && mcNick
-                        ? mcNick
-                        : authorMetadata?.full_name ||
-                            authorMetadata?.username ||
-                            comment.author?.username ||
-                            t('common.anonymous', 'Anónimo'),
-                    );
-
-                    const roleRaw = isMe ? (user ? getUserRole(user) : null) : comment.author?.role;
-                    const role = String(roleRaw || 'user').toLowerCase();
-                    const roleImage =
-                      RANK_IMAGES[role] ||
-                      (role.includes('donador') ? RANK_IMAGES['donador'] : RANK_IMAGES['user']);
-
-                    return (
-                      <div className="flex gap-4">
-                        {/* Author Avatar & Info with Tooltip */}
-                        <div className="group/author relative shrink-0">
-                          {/* Avatar Display */}
-                          <div className="cursor-pointer">
-                            {displayAvatar ? (
-                              <img
-                                src={displayAvatar}
-                                alt={displayName}
-                                className="h-12 w-12 rounded-xl border border-white/10 object-cover shadow-lg"
-                              />
-                            ) : (
-                              <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white/20">
-                                <MessageCircle className="h-6 w-6" />
-                              </div>
-                            )}
+                  <div className="flex gap-4">
+                    {/* Author Avatar & Info with Tooltip */}
+                    <div className="group/author relative shrink-0">
+                      {/* Avatar Display */}
+                      <div className="cursor-pointer">
+                        {displayAvatar ? (
+                          <img
+                            src={displayAvatar}
+                            alt={displayName}
+                            className="size-12 rounded-xl border border-white/10 object-cover shadow-lg"
+                          />
+                        ) : (
+                          <div className="flex size-12 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white/20">
+                            <MessageCircle className="size-6" />
                           </div>
+                        )}
+                      </div>
 
-                          {/* Tooltip implementation ... */}
-                          <div className="pointer-events-none absolute bottom-full left-0 z-50 mb-3 w-64 translate-y-2 rounded-xl border border-white/10 bg-[#0a0a0a]/95 p-4 opacity-0 shadow-2xl backdrop-blur-xl transition-opacity duration-200 group-hover/author:translate-y-0 group-hover/author:opacity-100">
-                            <div className="mb-3 flex items-center gap-3 border-b border-white/5 pb-3">
-                              <img
-                                src={
-                                  displayAvatar || `https://ui-avatars.com/api/?name=${displayName}`
-                                }
-                                className="h-10 w-10 rounded-lg shadow-inner"
-                                alt="Avatar"
-                              />
-                              <div>
-                                <p className="text-sm font-bold leading-tight text-white">
-                                  {displayName}
-                                </p>
-                                {statusMessage && (
-                                  <p className="mt-0.5 line-clamp-2 text-[10px] italic text-gray-400">
-                                    "{statusMessage}"
-                                  </p>
-                                )}
-                                <img
-                                  src={roleImage}
-                                  alt={role}
-                                  className="mt-1 object-contain object-left"
-                                  style={{ maxHeight: '24px' }}
-                                />
-                              </div>
-                            </div>
-
-                            <div className="space-y-2 text-xs text-gray-400">
-                              {mcNick && (
-                                <div className="flex items-center justify-between">
-                                  <span className="text-[10px] font-bold uppercase tracking-wider opacity-70">
-                                    Minecraft
-                                  </span>
-                                  <span className="font-mono text-white">{mcNick}</span>
-                                </div>
-                              )}
-                              {discordTag && (
-                                <div className="flex items-center justify-between">
-                                  <span className="text-[10px] font-bold uppercase tracking-wider opacity-70">
-                                    Discord
-                                  </span>
-                                  <span className="text-indigo-300">{discordTag}</span>
-                                </div>
-                              )}
-                              <div className="flex items-center justify-between">
-                                <span className="text-[10px] font-bold uppercase tracking-wider opacity-70">
-                                  Rol
-                                </span>
-                                <span className="capitalize text-white">{role}</span>
-                              </div>
-                            </div>
+                      {/* Tooltip implementation ... */}
+                      <div className="pointer-events-none absolute bottom-full left-0 z-50 mb-3 w-64 translate-y-2 rounded-xl border border-white/10 bg-[#0a0a0a]/95 p-4 opacity-0 shadow-2xl backdrop-blur-xl transition-opacity duration-200 group-hover/author:translate-y-0 group-hover/author:opacity-100">
+                        <div className="mb-3 flex items-center gap-3 border-b border-white/5 pb-3">
+                          <img
+                            src={displayAvatar || `https://ui-avatars.com/api/?name=${displayName}`}
+                            className="size-10 rounded-lg shadow-inner"
+                            alt="Avatar"
+                          />
+                          <div>
+                            <p className="text-sm/tight font-bold text-white">{displayName}</p>
+                            {statusMessage && (
+                              <p className="mt-0.5 line-clamp-2 text-[10px] italic text-gray-400">
+                                "{statusMessage}"
+                              </p>
+                            )}
+                            <img
+                              src={roleImage}
+                              alt={role}
+                              className="mt-1 object-contain object-left"
+                              style={{ maxHeight: '24px' }}
+                            />
                           </div>
                         </div>
 
-                        {/* Comment Content */}
-                        <div className="min-w-0 flex-1">
-                          <div className="mb-2 flex items-start justify-between">
-                            <div className="flex flex-wrap items-center gap-3">
-                              <span className="hover:text-(--accent) cursor-pointer text-sm font-black tracking-wide text-white transition-colors">
-                                {displayName}
+                        <div className="space-y-2 text-xs text-gray-400">
+                          {mcNick && (
+                            <div className="flex items-center justify-between">
+                              <span className="text-[10px] font-bold uppercase tracking-wider opacity-70">
+                                Minecraft
                               </span>
-                              <img
-                                src={roleImage}
-                                alt={role}
-                                className="select-none object-contain"
-                                style={{ maxHeight: '28px' }}
-                                onError={(e) => {
-                                  e.currentTarget.style.display = 'none';
-                                }}
-                              />
+                              <span className="font-mono text-white">{mcNick}</span>
                             </div>
-                            <span className="rounded-lg bg-black/20 px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-gray-600">
-                              {new Date(comment.created_at).toLocaleDateString()}
+                          )}
+                          {discordTag && (
+                            <div className="flex items-center justify-between">
+                              <span className="text-[10px] font-bold uppercase tracking-wider opacity-70">
+                                Discord
+                              </span>
+                              <span className="text-indigo-300">{discordTag}</span>
+                            </div>
+                          )}
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-bold uppercase tracking-wider opacity-70">
+                              Rol
                             </span>
-                          </div>
-                          <div className="wrap-break-word whitespace-pre-wrap text-sm font-medium leading-relaxed text-gray-300">
-                            {comment.content}
+                            <span className="capitalize text-white">{role}</span>
                           </div>
                         </div>
                       </div>
-                    );
-                  })()}
+                    </div>
 
+                    {/* Comment Content */}
+                    <div className="min-w-0 flex-1">
+                      <div className="mb-2 flex items-start justify-between">
+                        <div className="flex flex-wrap items-center gap-3">
+                          <span className="hover:text-(--accent) cursor-pointer text-sm font-black tracking-wide text-white transition-colors">
+                            {displayName}
+                          </span>
+                          <img
+                            src={roleImage}
+                            alt={role}
+                            className="select-none object-contain"
+                            style={{ maxHeight: '28px' }}
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                            }}
+                          />
+                        </div>
+                        <span className="rounded-lg bg-black/20 px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-gray-600">
+                          {formatDate(comment.created_at)}
+                        </span>
+                      </div>
+                      <div className="wrap-break-word whitespace-pre-wrap text-sm/relaxed font-medium text-gray-300">
+                        {comment.content}
+                      </div>
+                    </div>
+                  </div>
                   {/* Actions */}
                   {(isAdmin || user?.id === comment.author_id || user?.id === profileId) && (
                     <button
@@ -355,7 +389,7 @@ export default function ProfileWall({
                   )}
                 </motion.div>
               );
-            })
+            }),
           )}
         </AnimatePresence>
       </div>

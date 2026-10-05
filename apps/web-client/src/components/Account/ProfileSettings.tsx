@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useForm, useWatch } from 'react-hook-form';
+import React, { useState } from 'react';
+import { useForm, useWatch, type UseFormRegister } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from 'react-i18next';
 import {
@@ -112,9 +112,10 @@ function useProfileSettingsForm({
     resolver: zodResolver(updateUserSchema),
     defaultValues: {
       bio: user?.user_metadata?.bio || '',
-      social_discord: user?.user_metadata?.social_discord || '',
+      social_discord:
+        user?.user_metadata?.social_discord || resolveDiscordName(discordIdentity) || '',
       social_twitter: user?.user_metadata?.social_twitter || '',
-      social_twitch: user?.user_metadata?.social_twitch || '',
+      social_twitch: user?.user_metadata?.social_twitch || resolveTwitchUrl(twitchIdentity) || '',
       social_youtube: user?.user_metadata?.social_youtube || '',
       social_kofi: user?.user_metadata?.social_kofi || '',
       avatar_preference: user?.user_metadata?.avatar_preference || 'minecraft',
@@ -124,20 +125,6 @@ function useProfileSettingsForm({
       notify_mentions: user?.user_metadata?.notify_mentions ?? true,
     },
   });
-
-  const { setValue } = form;
-
-  useEffect(() => {
-    if (!user) return;
-    const discordName = resolveDiscordName(discordIdentity);
-    if (discordName && !user.user_metadata?.social_discord) {
-      setValue('social_discord', discordName);
-    }
-    const twitchUrl = resolveTwitchUrl(twitchIdentity);
-    if (twitchUrl && !user.user_metadata?.social_twitch) {
-      setValue('social_twitch', twitchUrl);
-    }
-  }, [discordIdentity, twitchIdentity, user, setValue]);
 
   const handleUpdatePassword = () => {
     if (passwords.new !== passwords.confirm) {
@@ -202,6 +189,124 @@ function useProfileSettingsForm({
   };
 }
 
+interface AvatarPreferenceSectionProps {
+  avatarPreference?: string;
+  onSelectPreference: (pref: 'minecraft' | 'social') => void;
+  mcUsername: string;
+  user: { user_metadata?: { picture?: string; avatar_url?: string; full_name?: string } } | null;
+  t: (key: string, fallback: string) => string;
+}
+
+const AvatarPreferenceSection: React.FC<Readonly<AvatarPreferenceSectionProps>> = ({
+  avatarPreference,
+  onSelectPreference,
+  mcUsername,
+  user,
+  t,
+}) => (
+  <div className="bg-white/2 rounded-4xl space-y-6 border border-white/5 p-8">
+    <div className="text-xs font-black uppercase tracking-[0.2em] text-gray-500">
+      {t('account.settings.avatar_pref', 'Preferencia de Avatar')}
+    </div>
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <button
+        type="button"
+        onClick={() => onSelectPreference('minecraft')}
+        className={`flex items-center gap-4 rounded-2xl border p-5 transition-colors ${avatarPreference === 'minecraft' ? 'bg-(--accent)/10 border-(--accent)/40 shadow-(--accent)/5 shadow-lg' : 'bg-white/2 border-white/5 hover:border-white/10 hover:bg-white/5'}`}
+      >
+        <img
+          src={`https://mc-heads.net/avatar/${mcUsername}/64`}
+          alt="MC"
+          className="size-12 rounded-xl object-contain [image-rendering:pixelated]"
+        />
+        <div className="text-left">
+          <span
+            className={`block text-xs font-black uppercase tracking-widest ${avatarPreference === 'minecraft' ? 'text-(--accent)' : 'text-gray-400'}`}
+          >
+            {t('account.settings.mc_head', 'Minecraft Head')}
+          </span>
+          <span className="text-[10px] font-bold uppercase text-gray-600">{mcUsername}</span>
+        </div>
+      </button>
+
+      <button
+        type="button"
+        onClick={() => onSelectPreference('social')}
+        className={`flex items-center gap-4 rounded-2xl border p-5 transition-colors ${avatarPreference === 'social' ? 'bg-(--accent)/10 border-(--accent)/40 shadow-(--accent)/5 shadow-lg' : 'bg-white/2 border-white/5 hover:border-white/10 hover:bg-white/5'}`}
+      >
+        <img
+          src={
+            user?.user_metadata?.picture ||
+            user?.user_metadata?.avatar_url ||
+            'https://ui-avatars.com/api/?name=' + (user?.user_metadata?.full_name || 'User')
+          }
+          alt="Social"
+          className="size-12 rounded-xl object-cover"
+        />
+        <div className="text-left">
+          <span
+            className={`block text-xs font-black uppercase tracking-widest ${avatarPreference === 'social' ? 'text-(--accent)' : 'text-gray-400'}`}
+          >
+            {t('account.settings.social_web', 'Social / Web')}
+          </span>
+          <span className="max-w-30 truncate text-[10px] font-bold uppercase text-gray-600">
+            {user?.user_metadata?.full_name}
+          </span>
+        </div>
+      </button>
+    </div>
+  </div>
+);
+
+interface LanguageSettingsSectionProps {
+  currentLanguage?: string;
+  onChangeLanguage: (lng: string) => void;
+  t: (key: string, fallback: string) => string;
+}
+
+const LanguageSettingsSection: React.FC<Readonly<LanguageSettingsSectionProps>> = ({
+  currentLanguage,
+  onChangeLanguage,
+  t,
+}) => (
+  <div className="bg-white/2 rounded-4xl space-y-6 border border-white/5 p-8">
+    <div className="text-(--accent) flex items-center gap-4">
+      <Globe className="text-xl" />
+      <h3 className="text-xs font-black uppercase tracking-[0.2em]">
+        {t('account.settings.language', 'Idioma / Language')}
+      </h3>
+    </div>
+
+    <div className="grid grid-cols-2 gap-4">
+      <button
+        type="button"
+        onClick={() => onChangeLanguage('es')}
+        className={`flex flex-col items-center justify-center gap-2 rounded-2xl border p-4 transition-colors ${currentLanguage?.startsWith('es') ? 'bg-(--accent)/10 border-(--accent)/40 shadow-[0_0_15px_rgba(var(--accent-rgb),0.1)]' : 'border-white/5 bg-black/20 hover:border-white/10 hover:bg-white/5'}`}
+      >
+        <span className="text-2xl">🇪🇸</span>
+        <span
+          className={`text-[10px] font-black uppercase tracking-widest ${currentLanguage?.startsWith('es') ? 'text-(--accent)' : 'text-gray-500'}`}
+        >
+          Español
+        </span>
+      </button>
+
+      <button
+        type="button"
+        onClick={() => onChangeLanguage('en')}
+        className={`flex flex-col items-center justify-center gap-2 rounded-2xl border p-4 transition-colors ${currentLanguage?.startsWith('en') ? 'bg-(--accent)/10 border-(--accent)/40 shadow-[0_0_15px_rgba(var(--accent-rgb),0.1)]' : 'border-white/5 bg-black/20 hover:border-white/10 hover:bg-white/5'}`}
+      >
+        <span className="text-2xl">🇺🇸</span>
+        <span
+          className={`text-[10px] font-black uppercase tracking-widest ${currentLanguage?.startsWith('en') ? 'text-(--accent)' : 'text-gray-500'}`}
+        >
+          English
+        </span>
+      </button>
+    </div>
+  </div>
+);
+
 const ProfileSettings: React.FC<Readonly<ProfileSettingsProps>> = ({
   user,
   mcUsername,
@@ -245,290 +350,39 @@ const ProfileSettings: React.FC<Readonly<ProfileSettingsProps>> = ({
         {/* Profile Header Settings */}
         <div className="space-y-8 xl:col-span-2">
           {/* Avatar Preference */}
-          <div className="bg-white/2 rounded-4xl space-y-6 border border-white/5 p-8">
-            <div className="text-xs font-black uppercase tracking-[0.2em] text-gray-500">
-              {t('account.settings.avatar_pref', 'Preferencia de Avatar')}
-            </div>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <button
-                type="button"
-                onClick={() => setValue('avatar_preference', 'minecraft')}
-                className={`flex items-center gap-4 rounded-2xl border p-5 transition-colors ${avatarPreference === 'minecraft' ? 'bg-(--accent)/10 border-(--accent)/40 shadow-(--accent)/5 shadow-lg' : 'bg-white/2 border-white/5 hover:border-white/10 hover:bg-white/5'}`}
-              >
-                <img
-                  src={`https://mc-heads.net/avatar/${mcUsername}/64`}
-                  alt="MC"
-                  className="h-12 w-12 rounded-xl object-contain [image-rendering:pixelated]"
-                />
-                <div className="text-left">
-                  <span
-                    className={`block text-xs font-black uppercase tracking-widest ${avatarPreference === 'minecraft' ? 'text-(--accent)' : 'text-gray-400'}`}
-                  >
-                    {t('account.settings.mc_head', 'Minecraft Head')}
-                  </span>
-                  <span className="text-[10px] font-bold uppercase text-gray-600">
-                    {mcUsername}
-                  </span>
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setValue('avatar_preference', 'social')}
-                className={`flex items-center gap-4 rounded-2xl border p-5 transition-colors ${avatarPreference === 'social' ? 'bg-(--accent)/10 border-(--accent)/40 shadow-(--accent)/5 shadow-lg' : 'bg-white/2 border-white/5 hover:border-white/10 hover:bg-white/5'}`}
-              >
-                <img
-                  src={
-                    user?.user_metadata?.picture ||
-                    user?.user_metadata?.avatar_url ||
-                    'https://ui-avatars.com/api/?name=' + (user?.user_metadata?.full_name || 'User')
-                  }
-                  alt="Social"
-                  className="h-12 w-12 rounded-xl object-cover"
-                />
-                <div className="text-left">
-                  <span
-                    className={`block text-xs font-black uppercase tracking-widest ${avatarPreference === 'social' ? 'text-(--accent)' : 'text-gray-400'}`}
-                  >
-                    {t('account.settings.social_web', 'Social / Web')}
-                  </span>
-                  <span className="max-w-30 truncate text-[10px] font-bold uppercase text-gray-600">
-                    {user?.user_metadata?.full_name}
-                  </span>
-                </div>
-              </button>
-            </div>
-          </div>
+          <AvatarPreferenceSection
+            avatarPreference={avatarPreference}
+            onSelectPreference={(pref) => setValue('avatar_preference', pref)}
+            mcUsername={mcUsername}
+            user={user}
+            t={t}
+          />
 
           {/* Profile Banner */}
-          <div className="bg-white/2 rounded-4xl space-y-6 border border-white/5 p-8">
-            <div className="text-xs font-black uppercase tracking-[0.2em] text-gray-500">
-              {t('account.settings.banner', 'Banner del Perfil')}
-            </div>
+          <ProfileBannerSection bannerUrl={bannerUrl} register={register} t={t} />
 
-            <div className="group/banner relative flex h-48 w-full items-center justify-center overflow-hidden rounded-3xl border border-white/5 bg-black/40">
-              {bannerUrl ? (
-                <>
-                  <img
-                    src={bannerUrl}
-                    alt="Banner Preview"
-                    className="h-full w-full object-cover transition-transform duration-700 group-hover/banner:scale-105"
-                  />
-                  <div className="bg-linear-to-t absolute inset-0 from-black/60 via-transparent to-transparent" />
-                </>
-              ) : (
-                <div className="flex flex-col items-center gap-4 text-gray-700">
-                  <Camera className="text-4xl opacity-20" />
-                  <span className="text-[10px] font-black uppercase tracking-widest">
-                    {t('account.settings.no_banner', 'Sin Banner')}
-                  </span>
-                </div>
-              )}
-            </div>
-
-            <div className="flex gap-4">
-              <div className="group/input relative flex-1">
-                <div className="group-hover/input:text-(--accent) pointer-events-none absolute inset-y-0 left-5 flex items-center text-gray-500 transition-colors">
-                  <Link className="text-xs" />
-                </div>
-                <input
-                  aria-label="Input field"
-                  {...register('profile_banner_url')}
-                  placeholder={t(
-                    'account.settings.banner_placeholder',
-                    'URL de la imagen (ej: https://imgur.com/...)',
-                  )}
-                  className="bg-white/2 focus:border-(--accent)/40 w-full rounded-2xl border border-white/5 py-4 pl-12 pr-6 text-sm font-bold text-white shadow-inner transition-colors placeholder:text-gray-700 focus:outline-none"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Community Settings (Filler for layout balance) */}
-          <div className="bg-white/2 rounded-4xl space-y-6 border border-white/5 p-8">
-            <div className="text-xs font-black uppercase tracking-[0.2em] text-gray-500">
-              {t('account.settings.community_pref', 'Preferencias de Comunidad')}
-            </div>
-
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              {/* Status Message */}
-              <div className="space-y-2">
-                <label
-                  htmlFor="profile-status-msg"
-                  className="ml-1 text-[10px] font-black uppercase tracking-widest text-gray-600"
-                >
-                  {t('account.settings.status_msg', 'Mensaje de Estado (Corto)')}
-                </label>
-                <div className="group/status relative">
-                  <div className="group-focus-within/status:text-(--accent) pointer-events-none absolute inset-y-0 left-4 flex items-center text-gray-500 transition-colors">
-                    <div className="h-2 w-2 animate-pulse rounded-full bg-green-500" />
-                  </div>
-                  <input
-                    id="profile-status-msg"
-                    {...register('status_message')}
-                    placeholder={t(
-                      'account.settings.status_placeholder',
-                      'Ej: Explorando el End...',
-                    )}
-                    className="w-full rounded-2xl border border-white/5 bg-black/20 py-4 pl-10 pr-4 text-xs font-bold text-white transition-colors placeholder:text-gray-700 focus:border-white/20 focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              {/* Notification Toggles */}
-              <div className="space-y-4">
-                <div className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-widest text-gray-600">
-                  {t('account.settings.notifications', 'Notificaciones')}
-                </div>
-                <div className="flex flex-col gap-3">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setValue('notify_events', !notifyEvents, {
-                        shouldDirty: true,
-                      })
-                    }
-                    className="group flex items-center justify-between rounded-xl border border-white/5 bg-black/20 p-3 transition-colors hover:bg-white/5"
-                  >
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 transition-colors group-hover:text-gray-200">
-                      {t('account.settings.notify_events', 'Eventos Globales')}
-                    </span>
-                    <div
-                      className={`relative h-4 w-8 rounded-full transition-colors duration-300 ${notifyEvents ? 'bg-green-500/20' : 'bg-white/10'}`}
-                    >
-                      <div
-                        className={`absolute top-0.5 h-3 w-3 rounded-full shadow-sm transition-colors duration-300 ${notifyEvents ? 'left-4 bg-green-500' : 'left-1 bg-gray-400'}`}
-                      />
-                    </div>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setValue('notify_mentions', !notifyMentions, {
-                        shouldDirty: true,
-                      })
-                    }
-                    className="group flex items-center justify-between rounded-xl border border-white/5 bg-black/20 p-3 transition-colors hover:bg-white/5"
-                  >
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 transition-colors group-hover:text-gray-200">
-                      {t('account.settings.notify_mentions', 'Menciones / Respuestas')}
-                    </span>
-                    <div
-                      className={`relative h-4 w-8 rounded-full transition-colors duration-300 ${notifyMentions ? 'bg-green-500/20' : 'bg-white/10'}`}
-                    >
-                      <div
-                        className={`absolute top-0.5 h-3 w-3 rounded-full shadow-sm transition-colors duration-300 ${notifyMentions ? 'left-4 bg-green-500' : 'left-1 bg-gray-400'}`}
-                      />
-                    </div>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+          {/* Community Preferences */}
+          <ProfileCommunityPreferencesSection
+            register={register}
+            notifyEvents={notifyEvents ?? true}
+            notifyMentions={notifyMentions ?? true}
+            onToggleEvents={() => setValue('notify_events', !notifyEvents, { shouldDirty: true })}
+            onToggleMentions={() =>
+              setValue('notify_mentions', !notifyMentions, { shouldDirty: true })
+            }
+            t={t}
+          />
         </div>
 
         {/* Sidebar Settings (Left Column) */}
-        <div className="space-y-8">
-          {/* Privacy */}
-          <div className="bg-white/2 rounded-4xl space-y-6 border border-white/5 p-8">
-            <div className="text-(--accent) flex items-center gap-4">
-              <Shield className="text-xl" />
-              <h3 className="text-xs font-black uppercase tracking-[0.2em]">
-                {t('account.settings.privacy', 'Privacidad')}
-              </h3>
-            </div>
-
-            <div className="flex items-center justify-between gap-4 rounded-2xl border border-white/5 bg-black/20 p-4">
-              <div className="space-y-1">
-                <p className="text-[11px] font-black uppercase tracking-widest text-white">
-                  {t('account.settings.public_stats', 'Público')}
-                </p>
-                <p className="text-[10px] font-bold leading-tight text-gray-600">
-                  {t('account.settings.public_stats_desc', 'Estadísticas visibles.')}
-                </p>
-              </div>
-              <button
-                aria-label="Action"
-                type="button"
-                onClick={handlePrivacyToggle}
-                className={`relative h-7 w-14 shrink-0 rounded-full transition-colors duration-300 ${publicStats ? 'bg-linear-to-r from-(--accent) to-(--accent)/80 shadow-[0_0_15px_rgba(var(--accent-rgb),0.3)]' : 'border border-white/10 bg-black/50'}`}
-              >
-                <div
-                  className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow-md transition-colors duration-300 ${publicStats ? 'left-8' : 'left-1 opacity-50'}`}
-                />
-              </button>
-            </div>
-          </div>
-
-          {/* Language Settings */}
-          <div className="bg-white/2 rounded-4xl space-y-6 border border-white/5 p-8">
-            <div className="text-(--accent) flex items-center gap-4">
-              <Globe className="text-xl" />
-              <h3 className="text-xs font-black uppercase tracking-[0.2em]">
-                {t('account.settings.language', 'Idioma / Language')}
-              </h3>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <button
-                type="button"
-                onClick={() => i18n.changeLanguage('es')}
-                className={`flex flex-col items-center justify-center gap-2 rounded-2xl border p-4 transition-colors ${i18n.language?.startsWith('es') ? 'bg-(--accent)/10 border-(--accent)/40 shadow-[0_0_15px_rgba(var(--accent-rgb),0.1)]' : 'border-white/5 bg-black/20 hover:border-white/10 hover:bg-white/5'}`}
-              >
-                <span className="text-2xl">🇪🇸</span>
-                <span
-                  className={`text-[10px] font-black uppercase tracking-widest ${i18n.language?.startsWith('es') ? 'text-(--accent)' : 'text-gray-500'}`}
-                >
-                  Español
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => i18n.changeLanguage('en')}
-                className={`flex flex-col items-center justify-center gap-2 rounded-2xl border p-4 transition-colors ${i18n.language?.startsWith('en') ? 'bg-(--accent)/10 border-(--accent)/40 shadow-[0_0_15px_rgba(var(--accent-rgb),0.1)]' : 'border-white/5 bg-black/20 hover:border-white/10 hover:bg-white/5'}`}
-              >
-                <span className="text-2xl">🇺🇸</span>
-                <span
-                  className={`text-[10px] font-black uppercase tracking-widest ${i18n.language?.startsWith('en') ? 'text-(--accent)' : 'text-gray-500'}`}
-                >
-                  English
-                </span>
-              </button>
-            </div>
-          </div>
-
-          {/* Social Links Section (Moved Here) */}
-          <div className="bg-white/2 rounded-4xl space-y-6 border border-white/5 p-8">
-            <div className="text-xs font-black uppercase tracking-[0.2em] text-gray-500">
-              {t('account.settings.social_links', 'Redes Sociales')}
-            </div>
-
-            <div className="space-y-4">
-              {SOCIAL_ITEMS.map((item) => {
-                const IconComponent = item.icon;
-                return (
-                  <div key={item.id} className="group/social relative">
-                    <div
-                      className="pointer-events-none absolute inset-y-0 left-5 flex items-center transition-transform group-focus-within/social:scale-110"
-                      style={{ color: item.color }}
-                    >
-                      <IconComponent className="h-4 w-4" />
-                    </div>
-                    <input
-                      aria-label="Input field"
-                      {...register(item.id as keyof UpdateUserFormValues)}
-                      autoComplete="off"
-                      placeholder={item.label}
-                      className="w-full rounded-2xl border border-white/5 bg-black/20 py-4 pl-12 pr-4 text-xs font-bold text-white transition-colors placeholder:text-gray-700 focus:border-white/20 focus:outline-none"
-                    />
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
+        <ProfileSidebarSettings
+          publicStats={publicStats}
+          onPrivacyToggle={handlePrivacyToggle}
+          language={i18n.language}
+          onChangeLanguage={(lng) => i18n.changeLanguage(lng)}
+          register={register}
+          t={t}
+        />
 
         {/* Main Profile Form & Security */}
         <div className="xl:col-span-3">
@@ -536,121 +390,381 @@ const ProfileSettings: React.FC<Readonly<ProfileSettingsProps>> = ({
             onSubmit={handleSubmit(handleSaveProfile)}
             className="grid grid-cols-1 gap-8 lg:grid-cols-2"
           >
-            {/* Bio Section */}
-            <div className="bg-white/2 rounded-4xl flex h-full flex-col space-y-6 border border-white/5 p-8 lg:row-span-2">
-              <label
-                htmlFor="profile-bio"
-                className="text-xs font-black uppercase tracking-[0.2em] text-gray-500"
-              >
-                {t('account.settings.bio_label', 'Biografía')}
-              </label>
-              <div className="relative flex-1">
-                <textarea
-                  id="profile-bio"
-                  {...register('bio')}
-                  rows={10}
-                  maxLength={500}
-                  placeholder={t('account.settings.bio_ph', 'Cuenta tu historia...')}
-                  className="min-h-50 focus:border-(--accent)/40 scrollbar-thin scrollbar-thumb-white/5 h-full w-full resize-none rounded-3xl border border-white/5 bg-black/20 p-6 text-sm font-medium leading-relaxed text-gray-300 transition-colors placeholder:text-gray-700 focus:outline-none"
-                />
-                <div className="absolute bottom-4 right-4 rounded-lg bg-black/40 px-2 py-1 text-[10px] font-black text-gray-700 backdrop-blur-md">
-                  {bioValue?.length || 0}/500
-                </div>
-              </div>
-              <a
-                href="https://www.markdownguide.org/cheat-sheet/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-(--accent) flex cursor-help items-center gap-2 px-2 text-[10px] font-black uppercase tracking-widest text-gray-600 transition-colors"
-                title="**Negrita**, *Cursiva*, [Enlace](url), > Cita"
-              >
-                <FileCode className="text-lg opacity-50" />
-                <span>{t('account.settings.markdown_support', 'Soporte Markdown')}</span>
-              </a>
-            </div>
+            <ProfileBioSection register={register} bioLength={bioValue?.length || 0} t={t} />
 
-            {/* Security Section (Right Column) */}
-            <div className="flex h-full flex-col gap-8">
-              {/* Password Change */}
-              <div className="bg-white/2 rounded-4xl space-y-6 border border-white/5 p-8">
-                <div className="flex items-center gap-4 text-red-400">
-                  <Lock className="text-xl" />
-                  <h3 className="text-xs font-black uppercase tracking-[0.2em]">
-                    {t('account.settings.security', 'Seguridad')}
-                  </h3>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <label
-                      htmlFor="profile-new-password"
-                      className="ml-2 text-[10px] font-black uppercase tracking-widest text-gray-600"
-                    >
-                      {t('account.settings.new_password', 'Nueva Contraseña')}
-                    </label>
-                    <input
-                      id="profile-new-password"
-                      type="password"
-                      value={passwords.new}
-                      onChange={(e) => setPasswords({ ...passwords, new: e.target.value })}
-                      className="w-full rounded-2xl border border-white/5 bg-black/20 p-4 font-mono text-sm text-white transition-colors focus:border-red-500/30 focus:outline-none"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label
-                      htmlFor="profile-confirm-password"
-                      className="ml-2 text-[10px] font-black uppercase tracking-widest text-gray-600"
-                    >
-                      {t('account.settings.confirm_password', 'Confirmar')}
-                    </label>
-                    <input
-                      id="profile-confirm-password"
-                      type="password"
-                      value={passwords.confirm}
-                      onChange={(e) => setPasswords({ ...passwords, confirm: e.target.value })}
-                      className="w-full rounded-2xl border border-white/5 bg-black/20 p-4 font-mono text-sm text-white transition-colors focus:border-red-500/30 focus:outline-none"
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleUpdatePassword}
-                    disabled={isUpdatingPassword}
-                    className="w-full rounded-2xl border border-white/5 bg-white/5 py-4 text-[10px] font-black uppercase tracking-widest text-gray-400 transition-colors hover:border-red-500/20 hover:bg-red-500/10 hover:text-red-400 disabled:opacity-30"
-                  >
-                    {isUpdatingPassword ? (
-                      <Loader minimal />
-                    ) : (
-                      t('account.settings.update_password', 'Actualizar Password')
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              <TwoFactorSetup />
-
-              {/* Save Button */}
-              <div className="mt-auto pt-4">
-                <button
-                  type="submit"
-                  disabled={isSavingProfile}
-                  className="bg-linear-to-r from-(--accent) to-(--accent)/80 shadow-(--accent)/20 flex w-full items-center justify-center gap-3 rounded-2xl border border-white/10 py-5 text-xs font-black uppercase tracking-[0.2em] text-white shadow-lg transition-colors hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:shadow-none"
-                >
-                  {isSavingProfile ? (
-                    <Loader minimal />
-                  ) : (
-                    <>
-                      <UserIcon className="text-lg" />{' '}
-                      {t('account.settings.save_profile', 'Actualizar Perfil')}
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
+            <ProfileSecuritySection
+              passwords={passwords}
+              setPasswords={setPasswords}
+              handleUpdatePassword={handleUpdatePassword}
+              isUpdatingPassword={isUpdatingPassword}
+              isSavingProfile={isSavingProfile}
+              t={t}
+            />
           </form>
         </div>
       </div>
     </div>
   );
 };
+
+interface ProfileBannerSectionProps {
+  bannerUrl?: string;
+  register: UseFormRegister<UpdateUserFormValues>;
+  t: (key: string, fallback: string) => string;
+}
+
+const ProfileBannerSection: React.FC<Readonly<ProfileBannerSectionProps>> = ({
+  bannerUrl,
+  register,
+  t,
+}) => (
+  <div className="bg-white/2 rounded-4xl space-y-6 border border-white/5 p-8">
+    <div className="text-xs font-black uppercase tracking-[0.2em] text-gray-500">
+      {t('account.settings.banner', 'Banner del Perfil')}
+    </div>
+
+    <div className="group/banner relative flex h-48 w-full items-center justify-center overflow-hidden rounded-3xl border border-white/5 bg-black/40">
+      {bannerUrl ? (
+        <>
+          <img
+            src={bannerUrl}
+            alt="Banner Preview"
+            className="size-full object-cover transition-transform duration-700 group-hover/banner:scale-105"
+          />
+          <div className="bg-linear-to-t absolute inset-0 from-black/60 via-transparent to-transparent" />
+        </>
+      ) : (
+        <div className="flex flex-col items-center gap-4 text-gray-700">
+          <Camera className="text-4xl opacity-20" />
+          <span className="text-[10px] font-black uppercase tracking-widest">
+            {t('account.settings.no_banner', 'Sin Banner')}
+          </span>
+        </div>
+      )}
+    </div>
+
+    <div className="flex gap-4">
+      <div className="group/input relative flex-1">
+        <div className="group-hover/input:text-(--accent) pointer-events-none absolute inset-y-0 left-5 flex items-center text-gray-500 transition-colors">
+          <Link className="text-xs" />
+        </div>
+        <input
+          aria-label="Input field"
+          {...register('profile_banner_url')}
+          placeholder={t(
+            'account.settings.banner_placeholder',
+            'URL de la imagen (ej: https://imgur.com/...)',
+          )}
+          className="bg-white/2 focus:border-(--accent)/40 w-full rounded-2xl border border-white/5 py-4 pl-12 pr-6 text-sm font-bold text-white shadow-inner transition-colors placeholder:text-gray-700 focus:outline-none"
+        />
+      </div>
+    </div>
+  </div>
+);
+
+interface ProfileCommunityPreferencesSectionProps {
+  register: UseFormRegister<UpdateUserFormValues>;
+  notifyEvents: boolean;
+  notifyMentions: boolean;
+  onToggleEvents: () => void;
+  onToggleMentions: () => void;
+  t: (key: string, fallback: string) => string;
+}
+
+const ProfileCommunityPreferencesSection: React.FC<
+  Readonly<ProfileCommunityPreferencesSectionProps>
+> = ({ register, notifyEvents, notifyMentions, onToggleEvents, onToggleMentions, t }) => (
+  <div className="bg-white/2 rounded-4xl space-y-6 border border-white/5 p-8">
+    <div className="text-xs font-black uppercase tracking-[0.2em] text-gray-500">
+      {t('account.settings.community_pref', 'Preferencias de Comunidad')}
+    </div>
+
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+      <div className="space-y-2">
+        <label
+          htmlFor="profile-status-msg"
+          className="ml-1 text-[10px] font-black uppercase tracking-widest text-gray-600"
+        >
+          {t('account.settings.status_msg', 'Mensaje de Estado (Corto)')}
+        </label>
+        <div className="group/status relative">
+          <div className="group-focus-within/status:text-(--accent) pointer-events-none absolute inset-y-0 left-4 flex items-center text-gray-500 transition-colors">
+            <div className="size-2 animate-pulse rounded-full bg-green-500" />
+          </div>
+          <input
+            id="profile-status-msg"
+            {...register('status_message')}
+            placeholder={t('account.settings.status_placeholder', 'Ej: Explorando el End...')}
+            className="w-full rounded-2xl border border-white/5 bg-black/20 py-4 pl-10 pr-4 text-xs font-bold text-white transition-colors placeholder:text-gray-700 focus:border-white/20 focus:outline-none"
+          />
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <div className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-widest text-gray-600">
+          {t('account.settings.notifications', 'Notificaciones')}
+        </div>
+        <div className="flex flex-col gap-3">
+          <button
+            type="button"
+            onClick={onToggleEvents}
+            className="group flex items-center justify-between rounded-xl border border-white/5 bg-black/20 p-3 transition-colors hover:bg-white/5"
+          >
+            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 transition-colors group-hover:text-gray-200">
+              {t('account.settings.notify_events', 'Eventos Globales')}
+            </span>
+            <div
+              className={`relative h-4 w-8 rounded-full transition-colors duration-300 ${notifyEvents ? 'bg-green-500/20' : 'bg-white/10'}`}
+            >
+              <div
+                className={`absolute top-0.5 size-3 rounded-full shadow-sm transition-colors duration-300 ${notifyEvents ? 'left-4 bg-green-500' : 'left-1 bg-gray-400'}`}
+              />
+            </div>
+          </button>
+
+          <button
+            type="button"
+            onClick={onToggleMentions}
+            className="group flex items-center justify-between rounded-xl border border-white/5 bg-black/20 p-3 transition-colors hover:bg-white/5"
+          >
+            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 transition-colors group-hover:text-gray-200">
+              {t('account.settings.notify_mentions', 'Menciones / Respuestas')}
+            </span>
+            <div
+              className={`relative h-4 w-8 rounded-full transition-colors duration-300 ${notifyMentions ? 'bg-green-500/20' : 'bg-white/10'}`}
+            >
+              <div
+                className={`absolute top-0.5 size-3 rounded-full shadow-sm transition-colors duration-300 ${notifyMentions ? 'left-4 bg-green-500' : 'left-1 bg-gray-400'}`}
+              />
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+interface ProfileSidebarSettingsProps {
+  publicStats: boolean;
+  onPrivacyToggle: () => void;
+  language?: string;
+  onChangeLanguage: (lng: string) => void;
+  register: UseFormRegister<UpdateUserFormValues>;
+  t: (key: string, fallback: string) => string;
+}
+
+const ProfileSidebarSettings: React.FC<Readonly<ProfileSidebarSettingsProps>> = ({
+  publicStats,
+  onPrivacyToggle,
+  language,
+  onChangeLanguage,
+  register,
+  t,
+}) => (
+  <div className="space-y-8">
+    {/* Privacy */}
+    <div className="bg-white/2 rounded-4xl space-y-6 border border-white/5 p-8">
+      <div className="text-(--accent) flex items-center gap-4">
+        <Shield className="text-xl" />
+        <h3 className="text-xs font-black uppercase tracking-[0.2em]">
+          {t('account.settings.privacy', 'Privacidad')}
+        </h3>
+      </div>
+
+      <div className="flex items-center justify-between gap-4 rounded-2xl border border-white/5 bg-black/20 p-4">
+        <div className="space-y-1">
+          <p className="text-[11px] font-black uppercase tracking-widest text-white">
+            {t('account.settings.public_stats', 'Público')}
+          </p>
+          <p className="text-[10px] font-bold leading-tight text-gray-600">
+            {t('account.settings.public_stats_desc', 'Estadísticas visibles.')}
+          </p>
+        </div>
+        <button
+          aria-label="Action"
+          type="button"
+          onClick={onPrivacyToggle}
+          className={`relative h-7 w-14 shrink-0 rounded-full transition-colors duration-300 ${publicStats ? 'bg-linear-to-r from-(--accent) to-(--accent)/80 shadow-[0_0_15px_rgba(var(--accent-rgb),0.3)]' : 'border border-white/10 bg-black/50'}`}
+        >
+          <div
+            className={`absolute top-1 size-5 rounded-full bg-white shadow-md transition-colors duration-300 ${publicStats ? 'left-8' : 'left-1 opacity-50'}`}
+          />
+        </button>
+      </div>
+    </div>
+
+    {/* Language Settings */}
+    <LanguageSettingsSection currentLanguage={language} onChangeLanguage={onChangeLanguage} t={t} />
+
+    {/* Social Links Section */}
+    <div className="bg-white/2 rounded-4xl space-y-6 border border-white/5 p-8">
+      <div className="text-xs font-black uppercase tracking-[0.2em] text-gray-500">
+        {t('account.settings.social_links', 'Redes Sociales')}
+      </div>
+
+      <div className="space-y-4">
+        {SOCIAL_ITEMS.map((item) => {
+          const IconComponent = item.icon;
+          return (
+            <div key={item.id} className="group/social relative">
+              <div
+                className="pointer-events-none absolute inset-y-0 left-5 flex items-center transition-transform group-focus-within/social:scale-110"
+                style={{ color: item.color }}
+              >
+                <IconComponent className="size-4" />
+              </div>
+              <input
+                aria-label="Input field"
+                {...register(item.id as keyof UpdateUserFormValues)}
+                autoComplete="off"
+                placeholder={item.label}
+                className="w-full rounded-2xl border border-white/5 bg-black/20 py-4 pl-12 pr-4 text-xs font-bold text-white transition-colors placeholder:text-gray-700 focus:border-white/20 focus:outline-none"
+              />
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  </div>
+);
+
+interface ProfileBioSectionProps {
+  register: UseFormRegister<UpdateUserFormValues>;
+  bioLength: number;
+  t: (key: string, fallback: string) => string;
+}
+
+const ProfileBioSection: React.FC<Readonly<ProfileBioSectionProps>> = ({
+  register,
+  bioLength,
+  t,
+}) => (
+  <div className="bg-white/2 rounded-4xl flex h-full flex-col space-y-6 border border-white/5 p-8 lg:row-span-2">
+    <label
+      htmlFor="profile-bio"
+      className="text-xs font-black uppercase tracking-[0.2em] text-gray-500"
+    >
+      {t('account.settings.bio_label', 'Biografía')}
+    </label>
+    <div className="relative flex-1">
+      <textarea
+        id="profile-bio"
+        {...register('bio')}
+        rows={10}
+        maxLength={500}
+        placeholder={t('account.settings.bio_ph', 'Cuenta tu historia...')}
+        className="min-h-50 focus:border-(--accent)/40 scrollbar-thin scrollbar-thumb-white/5 size-full resize-none rounded-3xl border border-white/5 bg-black/20 p-6 text-sm/relaxed font-medium text-gray-300 transition-colors placeholder:text-gray-700 focus:outline-none"
+      />
+      <div className="absolute bottom-4 right-4 rounded-lg bg-black/40 px-2 py-1 text-[10px] font-black text-gray-700 backdrop-blur-md">
+        {bioLength}/500
+      </div>
+    </div>
+    <a
+      href="https://www.markdownguide.org/cheat-sheet/"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="hover:text-(--accent) flex cursor-help items-center gap-2 px-2 text-[10px] font-black uppercase tracking-widest text-gray-600 transition-colors"
+      title="**Negrita**, *Cursiva*, [Enlace](url), > Cita"
+    >
+      <FileCode className="text-lg opacity-50" />
+      <span>{t('account.settings.markdown_support', 'Soporte Markdown')}</span>
+    </a>
+  </div>
+);
+
+interface ProfileSecuritySectionProps {
+  passwords: { new: string; confirm: string };
+  setPasswords: React.Dispatch<React.SetStateAction<{ new: string; confirm: string }>>;
+  handleUpdatePassword: () => void;
+  isUpdatingPassword: boolean;
+  isSavingProfile: boolean;
+  t: (key: string, fallback: string) => string;
+}
+
+const ProfileSecuritySection: React.FC<Readonly<ProfileSecuritySectionProps>> = ({
+  passwords,
+  setPasswords,
+  handleUpdatePassword,
+  isUpdatingPassword,
+  isSavingProfile,
+  t,
+}) => (
+  <div className="flex h-full flex-col gap-8">
+    {/* Password Change */}
+    <div className="bg-white/2 rounded-4xl space-y-6 border border-white/5 p-8">
+      <div className="flex items-center gap-4 text-red-400">
+        <Lock className="text-xl" />
+        <h3 className="text-xs font-black uppercase tracking-[0.2em]">
+          {t('account.settings.security', 'Seguridad')}
+        </h3>
+      </div>
+
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <label
+            htmlFor="profile-new-password"
+            className="ml-2 text-[10px] font-black uppercase tracking-widest text-gray-600"
+          >
+            {t('account.settings.new_password', 'Nueva Contraseña')}
+          </label>
+          <input
+            id="profile-new-password"
+            type="password"
+            value={passwords.new}
+            onChange={(e) => setPasswords({ ...passwords, new: e.target.value })}
+            className="w-full rounded-2xl border border-white/5 bg-black/20 p-4 font-mono text-sm text-white transition-colors focus:border-red-500/30 focus:outline-none"
+          />
+        </div>
+        <div className="space-y-2">
+          <label
+            htmlFor="profile-confirm-password"
+            className="ml-2 text-[10px] font-black uppercase tracking-widest text-gray-600"
+          >
+            {t('account.settings.confirm_password', 'Confirmar')}
+          </label>
+          <input
+            id="profile-confirm-password"
+            type="password"
+            value={passwords.confirm}
+            onChange={(e) => setPasswords({ ...passwords, confirm: e.target.value })}
+            className="w-full rounded-2xl border border-white/5 bg-black/20 p-4 font-mono text-sm text-white transition-colors focus:border-red-500/30 focus:outline-none"
+          />
+        </div>
+        <button
+          type="button"
+          onClick={handleUpdatePassword}
+          disabled={isUpdatingPassword}
+          className="w-full rounded-2xl border border-white/5 bg-white/5 py-4 text-[10px] font-black uppercase tracking-widest text-gray-400 transition-colors hover:border-red-500/20 hover:bg-red-500/10 hover:text-red-400 disabled:opacity-30"
+        >
+          {isUpdatingPassword ? (
+            <Loader minimal />
+          ) : (
+            t('account.settings.update_password', 'Actualizar Password')
+          )}
+        </button>
+      </div>
+    </div>
+
+    <TwoFactorSetup />
+
+    {/* Save Button */}
+    <div className="mt-auto pt-4">
+      <button
+        type="submit"
+        disabled={isSavingProfile}
+        className="bg-linear-to-r from-(--accent) to-(--accent)/80 shadow-(--accent)/20 flex w-full items-center justify-center gap-3 rounded-2xl border border-white/10 py-5 text-xs font-black uppercase tracking-[0.2em] text-white shadow-lg transition-colors hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:shadow-none"
+      >
+        {isSavingProfile ? (
+          <Loader minimal />
+        ) : (
+          <>
+            <UserIcon className="text-lg" />{' '}
+            {t('account.settings.save_profile', 'Actualizar Perfil')}
+          </>
+        )}
+      </button>
+    </div>
+  </div>
+);
 
 export default ProfileSettings;

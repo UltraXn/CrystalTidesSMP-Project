@@ -2,94 +2,110 @@ import React from 'react';
 import { Medal, Lock, Share2 } from 'lucide-react';
 
 export interface AchievementCardProps {
-    title: string;
-    description: string;
-    icon: React.ReactNode;
-    unlocked: boolean;
-    criteria?: string;
-    onShare?: () => void;
-    color?: string;
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+  unlocked: boolean;
+  criteria?: string;
+  onShare?: () => void;
+  color?: string;
 }
 
-const AchievementCard = ({ title, description, icon, unlocked, criteria, onShare, color = '#4CAF50' }: AchievementCardProps) => (
-    <div 
-        className={`group relative flex flex-col items-center text-center p-8 rounded-4xl transition-colors duration-500 overflow-hidden ${unlocked ? 'bg-white/5 border border-white/5 hover:bg-white/10 hover:-translate-y-1' : 'bg-transparent border border-dashed border-white/10 opacity-60'}`}
-        style={{ '--accent-color': color } as React.CSSProperties}
-    >
-        {/* Background Glow */}
-        {unlocked && (
-            <div 
-                className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity pointer-events-none"
-                style={{ background: `radial-gradient(circle at center, ${color} 0%, transparent 70%)` }}
-            />
-        )}
+const AchievementCard = ({
+  title,
+  description,
+  icon,
+  unlocked,
+  criteria,
+  onShare,
+  color = '#4CAF50',
+}: AchievementCardProps) => (
+  <div
+    className={`rounded-4xl group relative flex flex-col items-center overflow-hidden p-8 text-center transition-colors duration-500 ${unlocked ? 'border border-white/5 bg-white/5 hover:-translate-y-1 hover:bg-white/10' : 'border border-dashed border-white/10 bg-transparent opacity-60'}`}
+    style={{ '--accent-color': color } as React.CSSProperties}
+  >
+    {/* Background Glow */}
+    {unlocked && (
+      <div
+        className="pointer-events-none absolute inset-0 opacity-0 transition-opacity group-hover:opacity-10"
+        style={{ background: `radial-gradient(circle at center, ${color} 0%, transparent 70%)` }}
+      />
+    )}
 
-        {/* Status Badges */}
-        <div className="absolute top-6 right-6 flex flex-col gap-2">
-            {unlocked ? (
-                <>
-                    <div 
-                        className="w-9 h-9 flex items-center justify-center bg-white/5 rounded-full"
-                        style={{ color }}
-                    >
-                        <Medal size={14} className="drop-shadow-[0_0_8px_currentColor]" />
-                    </div>
-                    {onShare && (
-                        <button type="button" 
-                            onClick={(e) => { e.stopPropagation(); onShare(); }}
-                            className="w-9 h-9 flex items-center justify-center bg-white/5 border border-white/10 rounded-full text-white transition-colors hover:bg-(--accent-color) hover:text-black hover:scale-110 active:scale-90"
-                            title="Compartir Logro"
-                        >
-                            <Share2 size={12} />
-                        </button>
-                    )}
-                </>
-            ) : (
-                <div className="w-9 h-9 flex items-center justify-center bg-white/2 rounded-full text-gray-700">
-                    <Lock size={12} />
-                </div>
-            )}
+    {/* Status Badges */}
+    <div className="absolute right-6 top-6 flex flex-col gap-2">
+      {unlocked ? (
+        <>
+          <div
+            className="flex size-9 items-center justify-center rounded-full bg-white/5"
+            style={{ color }}
+          >
+            <Medal size={14} className="drop-shadow-[0_0_8px_currentColor]" />
+          </div>
+          {onShare && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onShare();
+              }}
+              className="hover:bg-(--accent-color) flex size-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white transition-colors hover:scale-110 hover:text-black active:scale-90"
+              title="Compartir Logro"
+            >
+              <Share2 size={12} />
+            </button>
+          )}
+        </>
+      ) : (
+        <div className="bg-white/2 flex size-9 items-center justify-center rounded-full text-gray-700">
+          <Lock size={12} />
         </div>
-        
-        {/* Icon Container */}
-        <div className={`relative w-20 h-20 flex items-center justify-center rounded-3xl mb-6 transition-colors duration-500 ${unlocked ? 'bg-white/5 border border-white/10 shadow-2xl group-hover:scale-110' : 'bg-white/2 border border-white/5 grayscale opacity-30 shadow-none'}`}>
-             <div className="text-4xl">
-                {icon}
-             </div>
-             {unlocked && (
-                <div 
-                    className="absolute inset-0 rounded-3xl opacity-20 blur-xl pointer-events-none"
-                    style={{ backgroundColor: color }}
-                />
-             )}
-        </div>
-        
-        {/* Text Content */}
-        <div className="space-y-3">
-            <h3 className={`text-lg font-black uppercase tracking-tighter transition-colors ${unlocked ? 'text-white' : 'text-gray-600'}`}>
-                {title}
-            </h3>
-            <p className={`text-xs font-medium leading-relaxed max-w-[180px] mx-auto transition-colors ${unlocked ? 'text-gray-400' : 'text-gray-700'}`}>
-                {description}
-            </p>
-            
-            {!unlocked && criteria && (
-                <div className="mt-4 inline-block px-3 py-1 bg-black/40 rounded-lg border border-white/5">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-gray-700 italic">
-                        🔒 {criteria}
-                    </p>
-                </div>
-            )}
-        </div>
-
-        {/* Progress Line (Decorative) */}
-        {unlocked && (
-            <div 
-                className="absolute bottom-0 left-0 h-[2px] w-0 group-hover:w-full transition-colors duration-700 ease-out"
-                style={{ backgroundColor: color }}
-            />
-        )}
+      )}
     </div>
-)
+
+    {/* Icon Container */}
+    <div
+      className={`relative mb-6 flex size-20 items-center justify-center rounded-3xl transition-colors duration-500 ${unlocked ? 'border border-white/10 bg-white/5 shadow-2xl group-hover:scale-110' : 'bg-white/2 border border-white/5 opacity-30 shadow-none grayscale'}`}
+    >
+      <div className="text-4xl">{icon}</div>
+      {unlocked && (
+        <div
+          className="pointer-events-none absolute inset-0 rounded-3xl opacity-20 blur-xl"
+          style={{ backgroundColor: color }}
+        />
+      )}
+    </div>
+
+    {/* Text Content */}
+    <div className="space-y-3">
+      <h3
+        className={`text-lg font-black uppercase tracking-tighter transition-colors ${unlocked ? 'text-white' : 'text-gray-600'}`}
+      >
+        {title}
+      </h3>
+      <p
+        className={`mx-auto max-w-[180px] text-xs/relaxed font-medium transition-colors ${unlocked ? 'text-gray-400' : 'text-gray-700'}`}
+      >
+        {description}
+      </p>
+
+      {!unlocked && criteria && (
+        <div className="mt-4 inline-block rounded-lg border border-white/5 bg-black/40 px-3 py-1">
+          <p className="text-[10px] font-black uppercase italic tracking-widest text-gray-700">
+            🔒 {criteria}
+          </p>
+        </div>
+      )}
+    </div>
+
+    {/* Progress Line (Decorative) */}
+    {unlocked && (
+      <div
+        className="absolute bottom-0 left-0 h-[2px] w-0 transition-colors duration-700 ease-out group-hover:w-full"
+        style={{ backgroundColor: color }}
+      />
+    )}
+  </div>
+);
 
 export default AchievementCard;

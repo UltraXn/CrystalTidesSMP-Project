@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { m as motion } from 'framer-motion';
 import { User, Medal, Gamepad2, Home, Twitter, Twitch, Youtube } from 'lucide-react';
@@ -186,7 +186,7 @@ function getSocialUrl(platform: 'twitter' | 'twitch' | 'youtube', value: string)
   return `${platformPrefixMap[platform]}${value}`;
 }
 
-function ProfileNotFound({ onBackHome }: { onBackHome: () => void }) {
+function ProfileNotFound({ onBackHome }: Readonly<{ onBackHome: () => void }>) {
   const { t } = useTranslation();
   return (
     <div
@@ -377,10 +377,10 @@ function SocialLinks({
 function BioSection({
   profile,
   onCopyDiscord,
-}: {
+}: Readonly<{
   profile: Profile;
   onCopyDiscord: (tag: string) => void;
-}) {
+}>) {
   const { t } = useTranslation();
 
   return (
@@ -422,10 +422,10 @@ function BioSection({
 function MedalItem({
   medalId,
   definition,
-}: {
+}: Readonly<{
   medalId: string | number;
   definition: MedalDefinition;
-}) {
+}>) {
   const { t, i18n } = useTranslation();
   const Icon = MEDAL_ICONS[definition.icon as keyof typeof MEDAL_ICONS] || Medal;
   const title =
@@ -464,10 +464,10 @@ function MedalItem({
 function MedalsShowcase({
   medals,
   definitions,
-}: {
+}: Readonly<{
   medals: (string | number)[];
   definitions: MedalDefinition[];
-}) {
+}>) {
   const { t } = useTranslation();
   if (medals.length === 0) return null;
 

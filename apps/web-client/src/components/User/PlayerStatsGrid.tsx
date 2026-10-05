@@ -2,6 +2,7 @@ import { Suspense, lazy } from 'react';
 import { Trophy } from 'lucide-react';
 import Loader from '../UI/Loader';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 
 const PlaystyleRadar = lazy(() => import('../Account/PlaystyleRadarFinal'));
 
@@ -42,6 +43,48 @@ const parseMoney = (moneyStr: string): number => {
   return Number.parseFloat(moneyStr.replace(/[^0-9.-]+/g, '')) || 0;
 };
 
+function renderRadarContent(loading: boolean, stats: PlayerStats | null, t: TFunction) {
+  if (loading) {
+    return (
+      <div className="py-12">
+        <Loader text={t('profile.loading_stats')} />
+      </div>
+    );
+  }
+
+  if (stats) {
+    return (
+      <div className="h-[220px] w-full">
+        <Suspense
+          fallback={
+            <div className="flex h-full items-center justify-center">
+              <Loader />
+            </div>
+          }
+        >
+          <PlaystyleRadar
+            stats={{
+              blocksPlaced: Number(stats.blocks_placed || 0),
+              blocksMined: Number(stats.blocks_mined || 0),
+              kills: Number(stats.kills || 0),
+              mobKills: Number(stats.mob_kills || 0),
+              playtimeHours: parsePlaytime(stats.playtime),
+              money: parseMoney(stats.money),
+              rank: stats.rank || 'default',
+            }}
+          />
+        </Suspense>
+      </div>
+    );
+  }
+
+  return (
+    <div className="py-8 text-center text-xs font-bold italic text-gray-500">
+      {t('profile.error_stats', 'No se pudieron cargar los datos de estilo.')}
+    </div>
+  );
+}
+
 export default function PlayerStatsGrid({
   stats,
   loading,
@@ -57,41 +100,7 @@ export default function PlayerStatsGrid({
       </h3>
 
       {isPublic || isAdmin ? (
-        <div className="flex flex-col items-center">
-          {loading ? (
-            <div className="py-12">
-              <Loader text={t('profile.loading_stats')} />
-            </div>
-          ) : stats ? (
-            <>
-              <div className="h-[220px] w-full">
-                <Suspense
-                  fallback={
-                    <div className="flex h-full items-center justify-center">
-                      <Loader />
-                    </div>
-                  }
-                >
-                  <PlaystyleRadar
-                    stats={{
-                      blocksPlaced: Number(stats.blocks_placed || 0),
-                      blocksMined: Number(stats.blocks_mined || 0),
-                      kills: Number(stats.kills || 0),
-                      mobKills: Number(stats.mob_kills || 0),
-                      playtimeHours: parsePlaytime(stats.playtime),
-                      money: parseMoney(stats.money),
-                      rank: stats.rank || 'default',
-                    }}
-                  />
-                </Suspense>
-              </div>
-            </>
-          ) : (
-            <div className="py-8 text-center text-xs font-bold italic text-gray-500">
-              {t('profile.error_stats', 'No se pudieron cargar los datos de estilo.')}
-            </div>
-          )}
-        </div>
+        <div className="flex flex-col items-center">{renderRadarContent(loading, stats, t)}</div>
       ) : (
         <div className="rounded-2xl border border-dashed border-white/5 bg-black/20 px-6 py-12 text-center">
           <div className="mb-2 text-2xl opacity-30">🔒</div>

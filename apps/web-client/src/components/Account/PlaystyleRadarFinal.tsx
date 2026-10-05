@@ -1,3 +1,4 @@
+/* eslint-disable react-doctor/prefer-dynamic-import */
 import React from 'react';
 import {
   ResponsiveContainer,
@@ -180,7 +181,7 @@ const PlaystyleRadarFinal: React.FC<Readonly<PlaystyleRadarProps>> = ({ stats })
               className="flex items-center gap-2 text-xs font-bold"
               style={{ color: item.color }}
             >
-              <img src={item.icon} className="h-4 w-4 shrink-0 object-contain" alt={item.subject} />
+              <img src={item.icon} className="size-4 shrink-0 object-contain" alt={item.subject} />
               <span className="truncate">{item.subject}</span>
             </div>
             <div className="text-xs font-black text-white">
