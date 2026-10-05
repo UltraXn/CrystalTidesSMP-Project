@@ -9,6 +9,9 @@ import { TFunction } from 'i18next';
 import { WikiArticle } from '../../../services/wikiService';
 import { BossMetadataFields } from './BossForm/BossMetadataFields';
 
+const INPUT_BORDER = '1px solid rgba(255, 255, 255, 0.1)';
+const INPUT_PADDING = '0.8rem 1rem';
+
 interface WikiArticleFormModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -143,9 +146,9 @@ function WikiArticleEditorFields({
             style={{
               width: '100%',
               background: 'rgba(0, 0, 0, 0.3)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
+              border: INPUT_BORDER,
               borderRadius: '8px',
-              padding: '0.8rem 1rem',
+              padding: INPUT_PADDING,
               color: '#fff',
               outline: 'none',
             }}
@@ -177,9 +180,9 @@ function WikiArticleEditorFields({
             style={{
               width: '100%',
               background: 'rgba(0, 0, 0, 0.3)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
+              border: INPUT_BORDER,
               borderRadius: '8px',
-              padding: '0.8rem 1rem',
+              padding: INPUT_PADDING,
               color: '#fff',
               outline: 'none',
             }}
@@ -243,9 +246,9 @@ function WikiArticleEditorFields({
             style={{
               flex: 1,
               background: 'rgba(0, 0, 0, 0.3)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
+              border: INPUT_BORDER,
               borderRadius: '8px',
-              padding: '0.8rem 1rem',
+              padding: INPUT_PADDING,
               color: '#fff',
               outline: 'none',
             }}
@@ -284,9 +287,9 @@ function WikiArticleEditorFields({
             style={{
               width: '180px',
               background: 'rgba(0, 0, 0, 0.4)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
+              border: INPUT_BORDER,
               borderRadius: '8px',
-              padding: '0.8rem 1rem',
+              padding: INPUT_PADDING,
               color: '#38bdf8',
               fontFamily: 'monospace',
               fontSize: '0.85rem',
@@ -324,9 +327,9 @@ function WikiArticleEditorFields({
           style={{
             width: '100%',
             background: 'rgba(0, 0, 0, 0.3)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
+            border: INPUT_BORDER,
             borderRadius: '8px',
-            padding: '0.8rem 1rem',
+            padding: INPUT_PADDING,
             color: '#fff',
             outline: 'none',
             fontFamily: 'monospace',
@@ -378,7 +381,7 @@ function WikiArticleForm({
           display: 'flex',
           gap: '0.5rem',
           marginBottom: '1.5rem',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+          borderBottom: INPUT_BORDER,
           paddingBottom: '0.8rem',
         }}
       >
@@ -515,7 +518,7 @@ export default function WikiArticleFormModal({
             className="form-container"
             style={{
               background: '#111',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
+              border: INPUT_BORDER,
               borderRadius: '20px',
               width: '100%',
               maxWidth: '1250px',

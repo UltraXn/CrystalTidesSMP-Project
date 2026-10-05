@@ -65,14 +65,22 @@ export default function DonationFormModal({
   };
 
   return (
-    <div className="sync-modal-overlay" role="presentation">
-      <div
-        className="sync-modal-content"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="donation-modal-title"
-        style={{ maxWidth: '700px' }}
-      >
+    <dialog
+      open
+      aria-labelledby="donation-modal-title"
+      className="sync-modal-overlay"
+      style={{
+        border: 'none',
+        margin: 0,
+        padding: 0,
+        width: '100vw',
+        height: '100vh',
+        maxWidth: 'none',
+        maxHeight: 'none',
+        background: 'transparent',
+      }}
+    >
+      <div className="sync-modal-content" style={{ maxWidth: '700px' }}>
         <div className="modal-accent-line"></div>
 
         <div className="poll-form-header">
@@ -142,7 +150,7 @@ export default function DonationFormModal({
                     className="admin-input-premium"
                     value={formData.amount}
                     onChange={(e) =>
-                      setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })
+                      setFormData({ ...formData, amount: Number.parseFloat(e.target.value) || 0 })
                     }
                     required
                   />
@@ -236,6 +244,6 @@ export default function DonationFormModal({
           </div>
         </form>
       </div>
-    </div>
+    </dialog>
   );
 }

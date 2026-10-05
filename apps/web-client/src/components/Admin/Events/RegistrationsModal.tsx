@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { Users, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import Loader from '../../UI/Loader';
-import { supabase } from '../../../services/supabaseClient';
-import { getAuthHeaders } from '../../../services/adminAuth';
+import { formatDate } from '../../../utils/date';
+import { loadEventRegistrations } from '../../../services/eventService';
 import { Registration } from './types';
 
 const STYLES = {
@@ -73,7 +73,7 @@ interface RegistrationRowProps {
 
 function RegistrationRow({ registration, unknownUserLabel }: Readonly<RegistrationRowProps>) {
   const username = registration.profiles?.username || unknownUserLabel;
-  const formattedDate = new Date(registration.created_at).toLocaleDateString();
+  const formattedDate = formatDate(registration.created_at);
 
   return (
     <div className="registration-item">
@@ -91,7 +91,7 @@ function RegistrationRow({ registration, unknownUserLabel }: Readonly<Registrati
   );
 }
 
-function RegistrationsLoadingState({ label }: { label: string }) {
+function RegistrationsLoadingState({ label }: Readonly<{ label: string }>) {
   return (
     <div
       style={{
@@ -118,7 +118,7 @@ function RegistrationsLoadingState({ label }: { label: string }) {
   );
 }
 
-function RegistrationsEmptyState({ label }: { label: string }) {
+function RegistrationsEmptyState({ label }: Readonly<{ label: string }>) {
   return (
     <div className="poll-empty-state" style={{ padding: '3rem 1rem', marginTop: 0 }}>
       <Users size={40} style={{ color: 'rgba(255,255,255,0.05)' }} />
@@ -154,20 +154,6 @@ function RegistrationsBody({ loading, registrations }: Readonly<RegistrationsBod
   );
 }
 
-async function fetchEventRegistrations(apiUrl: string, eventId: number): Promise<Registration[]> {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  const res = await fetch(`${apiUrl}/events/${eventId}/registrations`, {
-    headers: getAuthHeaders(session?.access_token || null),
-  });
-
-  if (!res.ok) {
-    return [];
-  }
-  return res.json();
-}
-
 export default function RegistrationsModal({
   eventId,
   onClose,
@@ -184,7 +170,7 @@ export default function RegistrationsModal({
     const loadRegistrations = async () => {
       if (mockRegistrations) return;
       try {
-        const data = await fetchEventRegistrations(API_URL, eventId);
+        const data = await loadEventRegistrations(API_URL, eventId);
         if (!ignore) setRegistrations(data);
       } catch (error) {
         console.error(error);
@@ -199,19 +185,24 @@ export default function RegistrationsModal({
     };
   }, [eventId, API_URL, mockRegistrations]);
 
-  const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
-  };
-
   return (
-    <div className="sync-modal-overlay" onClick={handleOverlayClick} role="presentation">
+    <dialog
+      open
+      aria-labelledby="registrations-modal-title"
+      className="sync-modal-overlay"
+      style={{
+        border: 'none',
+        margin: 0,
+        padding: 0,
+        width: '100vw',
+        height: '100vh',
+        maxWidth: 'none',
+        maxHeight: 'none',
+        background: 'transparent',
+      }}
+    >
       <div
         className="sync-modal-content poll-modal-content"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="registrations-modal-title"
         style={{
           maxWidth: '550px',
           maxHeight: '85vh',
@@ -276,6 +267,6 @@ export default function RegistrationsModal({
           </button>
         </div>
       </div>
-    </div>
+    </dialog>
   );
 }

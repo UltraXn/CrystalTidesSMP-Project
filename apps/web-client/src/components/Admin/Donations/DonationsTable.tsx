@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import Loader from '../../UI/Loader';
+import { formatDate } from '../../../utils/date';
 import { Donation } from './types';
 
 interface DonationsTableProps {
@@ -115,9 +116,7 @@ export default function DonationsTable({
                     }}
                   >
                     <Calendar size={12} />
-                    {donation.created_at
-                      ? new Date(donation.created_at).toLocaleDateString()
-                      : '---'}
+                    {donation.created_at ? formatDate(donation.created_at) : '---'}
                   </div>
                 </td>
                 <td>

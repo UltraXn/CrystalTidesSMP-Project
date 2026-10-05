@@ -1,18 +1,17 @@
-import { useState, useMemo } from "react";
-import { useTranslation } from "react-i18next";
-import { Users } from "lucide-react";
-import { DropResult } from "@hello-pangea/dnd";
-import Loader from "../UI/Loader";
-import { StaffCardData as StaffCard } from "./Staff/StaffFormModal";
-import StaffFormModal from "./Staff/StaffFormModal";
-import StaffList from "./Staff/StaffList";
-import StaffSyncModal from "./Staff/StaffSyncModal";
+import { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Users } from 'lucide-react';
+import { DropResult } from '@hello-pangea/dnd';
+import Loader from '../UI/Loader';
+import StaffFormModal, { StaffCardData as StaffCard } from './Staff/StaffFormModal';
+import StaffList from './Staff/StaffList';
+import StaffSyncModal from './Staff/StaffSyncModal';
 import {
   useAdminSettings,
   useUpdateSiteSetting,
   useStaffOnlineStatus,
-} from "../../hooks/useAdminData";
-import { supabase } from "../../services/supabaseClient";
+} from '../../hooks/useAdminData';
+import { supabase } from '../../services/supabaseClient';
 
 interface ServerStaffUser {
   uuid?: string;
@@ -51,46 +50,46 @@ export default function StaffCardsManager({
   const [editingCard, setEditingCard] = useState<StaffCard | null>(null);
   const [isNew, setIsNew] = useState(false);
 
-  const API_URL = import.meta.env.VITE_API_URL || "/api";
+  const API_URL = import.meta.env.VITE_API_URL || '/api';
 
   const PRESET_ROLES = useMemo(
     () => [
       {
-        value: "Neroferno",
-        label: t("admin.staff.roles.neroferno"),
-        color: "#8b5cf6",
+        value: 'Neroferno',
+        label: t('admin.staff.roles.neroferno'),
+        color: '#8b5cf6',
       },
       {
-        value: "Killuwu",
-        label: t("admin.staff.roles.killuwu"),
-        color: "#0ea5e9",
+        value: 'Killuwu',
+        label: t('admin.staff.roles.killuwu'),
+        color: '#0ea5e9',
       },
       {
-        value: "Developer",
-        label: t("admin.staff.roles.developer"),
-        color: "#ec4899",
+        value: 'Developer',
+        label: t('admin.staff.roles.developer'),
+        color: '#ec4899',
       },
-      { value: "Admin", label: t("admin.staff.roles.admin"), color: "#ef4444" },
+      { value: 'Admin', label: t('admin.staff.roles.admin'), color: '#ef4444' },
       {
-        value: "Moderator",
-        label: t("admin.staff.roles.moderator"),
-        color: "#21cb20",
-      },
-      {
-        value: "Helper",
-        label: t("admin.staff.roles.helper"),
-        color: "#6bfa16",
-      },
-      { value: "Staff", label: "Staff", color: "#89c606" },
-      {
-        value: "Usuario",
-        label: t("admin.staff.roles.user"),
-        color: "#db7700",
+        value: 'Moderator',
+        label: t('admin.staff.roles.moderator'),
+        color: '#21cb20',
       },
       {
-        value: "Custom",
-        label: t("admin.staff.roles.custom"),
-        color: "#ffffff",
+        value: 'Helper',
+        label: t('admin.staff.roles.helper'),
+        color: '#6bfa16',
+      },
+      { value: 'Staff', label: 'Staff', color: '#89c606' },
+      {
+        value: 'Usuario',
+        label: t('admin.staff.roles.user'),
+        color: '#db7700',
+      },
+      {
+        value: 'Custom',
+        label: t('admin.staff.roles.custom'),
+        color: '#ffffff',
       },
     ],
     [t],
@@ -98,7 +97,7 @@ export default function StaffCardsManager({
 
   const handleSaveList = async (newList: StaffCard[]) => {
     updateSettingMutation.mutate({
-      key: "staff_cards",
+      key: 'staff_cards',
       value: JSON.stringify(newList),
     });
   };
@@ -111,14 +110,14 @@ export default function StaffCardsManager({
         data: { session },
       } = await supabase.auth.getSession();
       const res = await fetch(`${API_URL}/users/staff`, {
-        headers: { Authorization: `Bearer ${session?.access_token || ""}` },
+        headers: { Authorization: `Bearer ${session?.access_token || ''}` },
       });
       if (!res.ok) throw new Error(`Error ${res.status}`);
       const json = await res.json();
       const staffUsers = json.data || [];
 
       if (staffUsers.length === 0) {
-        alert(t("admin.staff.sync_no_users"));
+        alert(t('admin.staff.sync_no_users'));
         return;
       }
 
@@ -126,25 +125,22 @@ export default function StaffCardsManager({
         const existing = cards.find(
           (c: StaffCard) => c.name.toLowerCase() === u.username.toLowerCase(),
         );
-        const roleConfig = PRESET_ROLES.find(
-          (r) => r.value.toLowerCase() === u.role.toLowerCase(),
-        );
+        const roleConfig = PRESET_ROLES.find((r) => r.value.toLowerCase() === u.role.toLowerCase());
         const finalRole = roleConfig ? roleConfig.value : u.role;
 
         return {
           id: u.uuid || u.web_id || Date.now(),
           name: u.username,
           role: finalRole,
-          description: existing?.description || t("admin.staff.default_desc"),
+          description: existing?.description || t('admin.staff.default_desc'),
           image:
-            u.avatar_url ||
-            (existing?.image?.startsWith("http") ? existing.image : u.username),
-          color: roleConfig?.color || "#fff",
+            u.avatar_url || (existing?.image?.startsWith('http') ? existing.image : u.username),
+          color: roleConfig?.color || '#fff',
           socials: {
-            twitter: existing?.socials?.twitter || "",
-            discord: u.discord?.username || existing?.socials?.discord || "",
-            twitch: u.twitch?.username || existing?.socials?.twitch || "",
-            youtube: existing?.socials?.youtube || "",
+            twitter: existing?.socials?.twitter || '',
+            discord: u.discord?.username || existing?.socials?.discord || '',
+            twitch: u.twitch?.username || existing?.socials?.twitch || '',
+            youtube: existing?.socials?.youtube || '',
           },
           isNew: !existing,
         };
@@ -153,8 +149,8 @@ export default function StaffCardsManager({
       setFoundStaff(mappedStaff);
       setShowSyncModal(true);
     } catch (error) {
-      console.error("Sync error:", error);
-      alert(t("admin.staff.sync_error"));
+      console.error('Sync error:', error);
+      alert(t('admin.staff.sync_error'));
     } finally {
       setSyncing(false);
     }
@@ -176,7 +172,7 @@ export default function StaffCardsManager({
   };
 
   const handleDelete = (id: number | string) => {
-    if (!confirm(t("admin.staff.confirm_delete_profile"))) return;
+    if (!confirm(t('admin.staff.confirm_delete_profile'))) return;
     const newCards = cards.filter((c: StaffCard) => c.id !== id);
     handleSaveList(newCards);
   };
@@ -186,9 +182,7 @@ export default function StaffCardsManager({
     if (isNew) {
       newCards = [...cards, { ...formData, id: Date.now() }];
     } else {
-      newCards = cards.map((c: StaffCard) =>
-        c.id === formData.id ? formData : c,
-      );
+      newCards = cards.map((c: StaffCard) => (c.id === formData.id ? formData : c));
     }
     handleSaveList(newCards);
     setEditingCard(null);
@@ -207,7 +201,7 @@ export default function StaffCardsManager({
 
   if (loading)
     return (
-      <div style={{ padding: "6rem 0" }}>
+      <div style={{ padding: '6rem 0' }}>
         <Loader />
       </div>
     );
@@ -223,8 +217,7 @@ export default function StaffCardsManager({
 
       <div className="staff-manager-header">
         <h3>
-          <Users style={{ color: "#fbbf24" }} />{" "}
-          {t("admin.staff.manager_title")}
+          <Users style={{ color: '#fbbf24' }} /> {t('admin.staff.manager_title')}
         </h3>
       </div>
 

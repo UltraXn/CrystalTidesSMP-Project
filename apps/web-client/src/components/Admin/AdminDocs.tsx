@@ -22,10 +22,8 @@ import PremiumAlert from '../UI/PremiumAlert';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../../services/supabaseClient';
 import { uploadImage as uploadImageSecure } from '../../services/uploadService';
-import { getAuthHeaders } from '../../services/adminAuth';
+import { loadRemoteDocs, saveRemoteDocs } from '../../services/adminDocsService';
 import '../../styles/admin/admin_docs.css';
-
-const API_URL = import.meta.env.VITE_API_URL;
 
 const UI_CONSTANTS = {
   ACCENT_COLOR: 'var(--accent)',
@@ -227,37 +225,6 @@ Sistema de eliminación protegido con modales animados para evitar pérdidas acc
     [t],
   );
 };
-
-async function fetchRemoteDocs(token: string | null): Promise<AdminDoc[] | null> {
-  const res = await fetch(`${API_URL}/settings/admin_docs`, {
-    headers: getAuthHeaders(token),
-  });
-  if (!res.ok) return null;
-  const data = await res.json();
-  if (!data?.value) return null;
-  return typeof data.value === 'string' ? JSON.parse(data.value) : data.value;
-}
-
-async function saveRemoteDocs(
-  updatedDocs: AdminDoc[],
-  token: string | null,
-  userId?: string,
-  username?: string,
-): Promise<boolean> {
-  const res = await fetch(`${API_URL}/settings/admin_docs`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      ...getAuthHeaders(token),
-    },
-    body: JSON.stringify({
-      value: JSON.stringify(updatedDocs),
-      userId,
-      username: username || 'Admin',
-    }),
-  });
-  return res.ok;
-}
 
 interface DesktopSidebarProps {
   docs: AdminDoc[];
@@ -535,7 +502,7 @@ function DocEditor({ value, onChange, uploading, onUploadImage }: Readonly<DocEd
   );
 }
 
-function DocViewer({ content }: { content: string }) {
+function DocViewer({ content }: Readonly<{ content: string }>) {
   return (
     <div className="markdown-body" style={{ color: '#ddd', lineHeight: 1.6 }}>
       <MarkdownRenderer content={content} />
@@ -569,7 +536,7 @@ export default function AdminDocs({ mockDocs }: AdminDocsProps = {}) {
         const {
           data: { session },
         } = await supabase.auth.getSession();
-        const remote = await fetchRemoteDocs(session?.access_token || null);
+        const remote = await loadRemoteDocs(session?.access_token || null);
         if (!ignore) {
           setDocs(remote ?? defaults);
         }

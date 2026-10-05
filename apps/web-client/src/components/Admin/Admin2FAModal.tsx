@@ -45,9 +45,8 @@ export default function Admin2FAModal({
   };
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
+    <dialog
+      open
       aria-labelledby="admin-2fa-title"
       style={{
         position: 'fixed',
@@ -58,6 +57,13 @@ export default function Admin2FAModal({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
+        border: 'none',
+        margin: 0,
+        padding: 0,
+        width: '100vw',
+        height: '100vh',
+        maxWidth: 'none',
+        maxHeight: 'none',
         animation: 'fadeIn 0.2s',
       }}
     >
@@ -142,7 +148,7 @@ export default function Admin2FAModal({
               maxLength={6}
               value={code}
               onChange={(e) => {
-                const val = e.target.value.replace(/[^0-9]/g, '');
+                const val = e.target.value.replace(/\D/g, '');
                 setCode(val);
                 if (error) setError(null); // Clear error on typing
               }}
@@ -232,6 +238,6 @@ export default function Admin2FAModal({
           </div>
         </form>
       </div>
-    </div>
+    </dialog>
   );
 }

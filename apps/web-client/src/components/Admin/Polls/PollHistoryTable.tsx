@@ -1,6 +1,7 @@
 import { Trash2, Square, History } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import Loader from '../../UI/Loader';
+import { formatDate } from '../../../utils/date';
 import { Poll } from './types';
 
 interface PollHistoryTableProps {
@@ -58,7 +59,7 @@ export default function PollHistoryTable({
                       {poll.title}
                     </td>
                     <td style={{ color: 'rgba(255,255,255,0.4)', fontWeight: '600' }}>
-                      {poll.created_at ? new Date(poll.created_at).toLocaleDateString() : '-'}
+                      {poll.created_at ? formatDate(poll.created_at) : '-'}
                     </td>
                     <td>
                       <span style={{ fontWeight: '900', color: 'var(--accent)' }}>
@@ -137,8 +138,7 @@ export default function PollHistoryTable({
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div
-              role="navigation"
+            <nav
               aria-label={t('common.pagination', 'Paginación de encuestas')}
               style={{
                 display: 'flex',
@@ -181,7 +181,7 @@ export default function PollHistoryTable({
               >
                 &gt;
               </button>
-            </div>
+            </nav>
           )}
         </div>
       )}

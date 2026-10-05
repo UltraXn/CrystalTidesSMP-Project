@@ -13,6 +13,19 @@ export interface KPIStatsProps {
   donationStats: { currentMonth: string; percentChange: number };
 }
 
+function getServerStatusLabel(
+  serverStats: KPIStatsProps['serverStats'],
+  t: (key: string) => string,
+): string {
+  if (serverStats.online) {
+    return t('admin.dashboard.stats.server_online');
+  }
+  if (serverStats.status) {
+    return t(`admin.dashboard.stats.status_${serverStats.status}`).toUpperCase();
+  }
+  return t('admin.dashboard.stats.server_offline').toUpperCase();
+}
+
 export default function KPIStats({
   serverStats,
   ticketStats,
@@ -24,14 +37,7 @@ export default function KPIStats({
     <div className="admin-kpi-grid">
       <StatCard
         title={t('admin.dashboard.stats.server_status')}
-        value={
-          serverStats.online
-            ? t('admin.dashboard.stats.server_online')
-            : (serverStats.status
-                ? t(`admin.dashboard.stats.status_${serverStats.status}`)
-                : t('admin.dashboard.stats.server_offline')
-              ).toUpperCase()
-        }
+        value={getServerStatusLabel(serverStats, t)}
         percent={
           serverStats.online
             ? t('admin.dashboard.stats.running_smooth')
@@ -58,7 +64,7 @@ export default function KPIStats({
         title={t('admin.dashboard.stats.revenue')}
         value={
           <AnimatedCounter
-            value={parseFloat(donationStats.currentMonth) || 0}
+            value={Number.parseFloat(donationStats.currentMonth) || 0}
             decimals={2}
             prefix="$"
           />

@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Crown, X, Loader2, Globe, CheckCircle } from 'lucide-react';
+import { Crown, X, Loader2, CheckCircle } from 'lucide-react';
 import { supabase } from '../../../services/supabaseClient';
 import { getAuthHeaders } from '../../../services/adminAuth';
+import { DonorBasicFields } from './DonorBasicFields';
+import { DonorDescriptionFields } from './DonorDescriptionFields';
+import { DonorPreviewCard } from './DonorPreviewCard';
 
 const API_URL = import.meta.env.VITE_API_URL || '/api';
 
@@ -23,18 +26,6 @@ interface DonorFormModalProps {
   onSave: (donor: Donor) => void;
   saving: boolean;
 }
-
-const AVAILABLE_RANKS = [
-  { id: 'donador', label: 'Donador', img: '/ranks/rank-donador.png' },
-  { id: 'fundador', label: 'Fundador', img: '/ranks/rank-fundador.png' },
-  { id: 'killu', label: 'Killu', img: '/ranks/rank-killu.png' },
-  { id: 'neroferno', label: 'Neroferno', img: '/ranks/rank-neroferno.png' },
-  { id: 'developer', label: 'Developer', img: '/ranks/developer.png' },
-  { id: 'admin', label: 'Admin', img: '/ranks/admin.png' },
-  { id: 'mod', label: 'Moderator', img: '/ranks/moderator.png' },
-  { id: 'helper', label: 'Helper', img: '/ranks/helper.png' },
-  { id: 'staff', label: 'Staff', img: '/ranks/staff.png' },
-];
 
 export default function DonorFormModal({
   donor,
@@ -102,14 +93,33 @@ export default function DonorFormModal({
   if (!donor) return null;
 
   return (
-    <div className="sync-modal-overlay" role="presentation">
-      <div
-        className="sync-modal-content"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="donor-modal-title"
-        style={{ maxWidth: '850px' }}
-      >
+    <dialog
+      open
+      aria-labelledby="donor-modal-title"
+      onCancel={(e) => {
+        e.preventDefault();
+        onClose();
+      }}
+      className="sync-modal-overlay"
+      style={{
+        position: 'fixed',
+        inset: 0,
+        width: '100vw',
+        height: '100vh',
+        background: 'rgba(0, 0, 0, 0.8)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1000,
+        backdropFilter: 'blur(8px)',
+        border: 'none',
+        margin: 0,
+        padding: 0,
+        maxWidth: 'none',
+        maxHeight: 'none',
+      }}
+    >
+      <div className="sync-modal-content" style={{ maxWidth: '850px' }}>
         <div className="modal-accent-line"></div>
 
         <div className="poll-form-header">
@@ -150,224 +160,17 @@ export default function DonorFormModal({
             }}
           >
             {/* Left Side: Basic Info */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-              <div className="form-group">
-                <label htmlFor="donor-nick" className="admin-label-premium">
-                  {t('admin.donors.form.nick')}
-                </label>
-                <input
-                  id="donor-nick"
-                  className="admin-input-premium"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder={t('admin.donors.form.nick_ph')}
-                />
-              </div>
-
-              <div className="form-group">
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    background: 'rgba(255,255,255,0.03)',
-                    padding: '1rem',
-                    borderRadius: '16px',
-                    border: '1px solid rgba(255,255,255,0.05)',
-                  }}
-                >
-                  <input
-                    aria-label={t('admin.donors.form.is_premium', 'Es donador premium')}
-                    type="checkbox"
-                    id="isPremiumDonor"
-                    checked={formData.isPremium || false}
-                    onChange={(e) => setFormData({ ...formData, isPremium: e.target.checked })}
-                    style={{ width: '20px', height: '20px', cursor: 'pointer' }}
-                  />
-                  <label
-                    htmlFor="isPremiumDonor"
-                    style={{
-                      cursor: 'pointer',
-                      fontSize: '0.95rem',
-                      color: '#fff',
-                      fontWeight: 700,
-                    }}
-                  >
-                    {t('admin.donors.form.is_premium')}
-                  </label>
-                </div>
-              </div>
-
-              {!formData.isPremium && (
-                <div className="form-group">
-                  <label htmlFor="donor-skin-url" className="admin-label-premium">
-                    {t('admin.donors.form.skin_url')}
-                  </label>
-                  <input
-                    id="donor-skin-url"
-                    className="admin-input-premium"
-                    value={formData.skinUrl}
-                    onChange={(e) => setFormData({ ...formData, skinUrl: e.target.value })}
-                    placeholder={t('admin.donors.form.skin_ph')}
-                  />
-                  <p
-                    style={{
-                      fontSize: '0.75rem',
-                      color: 'rgba(255,255,255,0.3)',
-                      marginTop: '0.5rem',
-                    }}
-                  >
-                    {t('admin.donors.form.skin_hint')}
-                  </p>
-                </div>
-              )}
-
-              <div className="form-group">
-                <div className="admin-label-premium">{t('admin.donors.form.ranks')}</div>
-                <div className="donor-ranks-selector">
-                  {AVAILABLE_RANKS.map((rank) => {
-                    const isSelected = formData.ranks.includes(rank.id);
-                    return (
-                      <button
-                        type="button"
-                        key={rank.id}
-                        aria-pressed={isSelected}
-                        onClick={() => {
-                          const newRanks = isSelected
-                            ? formData.ranks.filter((r) => r !== rank.id)
-                            : [...formData.ranks, rank.id];
-                          setFormData({ ...formData, ranks: newRanks });
-                        }}
-                        className={`rank-select-item ${isSelected ? 'active' : ''}`}
-                      >
-                        <img src={rank.img} alt={rank.label} />
-                        <span>{rank.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
+            <DonorBasicFields formData={formData} setFormData={setFormData} />
 
             {/* Right Side: Descriptions & Preview */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-              <div className="form-group">
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBottom: '8px',
-                  }}
-                >
-                  <label htmlFor="donor-desc" className="admin-label-premium">
-                    {t('admin.donors.form.desc')}
-                  </label>
-                  <button
-                    type="button"
-                    className="btn-premium-mini"
-                    onClick={() => handleTranslate(formData.description, 'en', 'description_en')}
-                    disabled={translating || !formData.description}
-                  >
-                    {translating ? <Loader2 className="spin" size={14} /> : <Globe size={14} />}
-                    {t('admin.donors.form.translate_en')}
-                  </button>
-                </div>
-                <textarea
-                  id="donor-desc"
-                  className="admin-textarea-premium"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder={t('admin.donors.form.desc_ph')}
-                  rows={3}
-                />
-              </div>
-
-              <div className="form-group">
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBottom: '8px',
-                  }}
-                >
-                  <label htmlFor="donor-desc-en" className="admin-label-premium">
-                    {t('admin.donors.form.desc_en')}
-                  </label>
-                  <button
-                    type="button"
-                    className="btn-premium-mini"
-                    onClick={() =>
-                      handleTranslate(formData.description_en || '', 'es', 'description')
-                    }
-                    disabled={translating || !formData.description_en}
-                  >
-                    {translating ? <Loader2 className="spin" size={14} /> : <Globe size={14} />}
-                    {t('admin.donors.form.translate_es')}
-                  </button>
-                </div>
-                <textarea
-                  id="donor-desc-en"
-                  className="admin-textarea-premium"
-                  value={formData.description_en || ''}
-                  onChange={(e) => setFormData({ ...formData, description_en: e.target.value })}
-                  placeholder={t('admin.donors.form.desc_en_ph')}
-                  rows={3}
-                />
-              </div>
-
-              <div className="donor-preview-pane">
-                <span
-                  style={{
-                    fontSize: '0.7rem',
-                    fontWeight: 900,
-                    color: 'rgba(255,255,255,0.2)',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.1em',
-                  }}
-                >
-                  Preview
-                </span>
-                <div
-                  className="donor-card-premium"
-                  style={{
-                    width: '100%',
-                    pointerEvents: 'none',
-                    background: 'rgba(255,255,255,0.02)',
-                  }}
-                >
-                  <div className="donor-card-header">
-                    <div className="donor-avatar-wrapper">
-                      <img
-                        className="donor-avatar"
-                        src={
-                          formData.isPremium
-                            ? `https://mc-heads.net/avatar/${formData.name}/64`
-                            : formData.skinUrl
-                        }
-                        alt="preview"
-                        onError={(e) =>
-                          (e.currentTarget.src = `https://mc-heads.net/avatar/Steve/64`)
-                        }
-                      />
-                    </div>
-                    <div className="donor-info">
-                      <h4 className="donor-name">{formData.name || 'New Donor'}</h4>
-                      <div className="donor-ranks">
-                        {formData.ranks.map((r) => (
-                          <span key={r} className="donor-rank-badge">
-                            {r}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                  <p className="donor-description" style={{ fontSize: '0.8rem' }}>
-                    "{formData.description || 'Description goes here...'}"
-                  </p>
-                </div>
-              </div>
+              <DonorDescriptionFields
+                formData={formData}
+                setFormData={setFormData}
+                translating={translating}
+                onTranslate={handleTranslate}
+              />
+              <DonorPreviewCard formData={formData} />
             </div>
           </div>
 
@@ -401,6 +204,6 @@ export default function DonorFormModal({
           </div>
         </div>
       </div>
-    </div>
+    </dialog>
   );
 }

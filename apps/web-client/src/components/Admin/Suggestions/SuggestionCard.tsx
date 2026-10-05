@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Check, X, Trash2 } from 'lucide-react';
+import { formatDate } from '../../../utils/date';
 import { Suggestion, getTypeColor, getStatusColor, getTypeIcon } from './types';
 
 interface SuggestionCardProps {
@@ -60,7 +61,7 @@ export default function SuggestionCard({
             {s.nickname}
           </h4>
           <span style={{ fontSize: '0.75rem', color: '#888' }}>
-            {new Date(s.created_at).toLocaleDateString(undefined, {
+            {formatDate(s.created_at, {
               month: 'short',
               day: 'numeric',
             })}

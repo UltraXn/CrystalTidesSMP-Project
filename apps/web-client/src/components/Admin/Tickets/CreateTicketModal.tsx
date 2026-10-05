@@ -82,14 +82,29 @@ export default function CreateTicketModal({
   };
 
   return createPortal(
-    <div
+    <dialog
+      open
+      aria-labelledby="create-ticket-modal-title"
       className="modal-overlay"
-      style={{ backdropFilter: 'blur(10px)', background: 'rgba(0,0,0,0.7)' }}
+      style={{
+        backdropFilter: 'blur(10px)',
+        background: 'rgba(0,0,0,0.7)',
+        position: 'fixed',
+        inset: 0,
+        zIndex: 1000,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        border: 'none',
+        margin: 0,
+        padding: 0,
+        width: '100vw',
+        height: '100vh',
+        maxWidth: 'none',
+        maxHeight: 'none',
+      }}
     >
       <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="create-ticket-modal-title"
         className="admin-card modal-content"
         style={{
           width: '500px',
@@ -280,7 +295,7 @@ export default function CreateTicketModal({
       {alert && (
         <CustomAlert message={alert.message} type={alert.type} onClose={() => setAlert(null)} />
       )}
-    </div>,
+    </dialog>,
     document.body,
   );
 }

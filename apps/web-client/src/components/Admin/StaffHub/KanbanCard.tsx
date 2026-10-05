@@ -2,6 +2,7 @@ import React from 'react';
 import { GripVertical, UserCircle2, Clock, Trash2, Edit2 } from 'lucide-react';
 import { KanbanTask } from '@crystaltides/shared';
 import { useTranslation } from 'react-i18next';
+import { formatTime } from '../../../utils/date';
 
 interface KanbanCardProps {
   card: KanbanTask;
@@ -96,27 +97,43 @@ export default function KanbanCard({
               : card.assignee}
           </span>
         </div>
-        {card.columnId === 'idea' ? (
-          <div className="card-date-badge backlog">
-            <Clock size={10} color="#666" />
-            <span>{t('admin.staff_hub.kanban.card.backlog', 'Por confirmar')}</span>
-          </div>
-        ) : card.due_date ? (
-          <div className="card-date-badge">
-            <Clock size={10} color="var(--accent)" />
-            <span style={{ fontWeight: '800' }}>
-              {hasTime
-                ? new Date(card.due_date).toLocaleTimeString([], {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })
-                : card.date}
-            </span>
-          </div>
-        ) : null}
+        {renderCardDateBadge(card.columnId, card.due_date, hasTime, card.date, t)}
       </div>
     </div>
   );
+}
+
+function renderCardDateBadge(
+  columnId: string,
+  dueDate: string | null | undefined,
+  hasTime: boolean | undefined,
+  date: string | null | undefined,
+  t: (key: string, defaultVal: string) => string,
+) {
+  if (columnId === 'idea') {
+    return (
+      <div className="card-date-badge backlog">
+        <Clock size={10} color="#666" />
+        <span>{t('admin.staff_hub.kanban.card.backlog', 'Por confirmar')}</span>
+      </div>
+    );
+  }
+  if (dueDate) {
+    return (
+      <div className="card-date-badge">
+        <Clock size={10} color="var(--accent)" />
+        <span style={{ fontWeight: '800' }}>
+          {hasTime
+            ? formatTime(dueDate, {
+                hour: '2-digit',
+                minute: '2-digit',
+              })
+            : date}
+        </span>
+      </div>
+    );
+  }
+  return null;
 }
 
 function getPriorityColor(p: string) {

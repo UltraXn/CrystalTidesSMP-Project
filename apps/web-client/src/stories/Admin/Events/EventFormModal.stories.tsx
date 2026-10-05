@@ -11,7 +11,7 @@ const mockEvent: Event = {
   description_en: 'Compete for the PvP throne in the celestial arena and win 50,000 Killucoins.',
   type: 'dice',
   status: 'active',
-  image_url: 'https://images.unsplash.com/photo-1542751371-adc38448a05e'
+  image_url: 'https://images.unsplash.com/photo-1542751371-adc38448a05e',
 };
 
 const meta: Meta<typeof EventFormModal> = {
@@ -26,18 +26,29 @@ const meta: Meta<typeof EventFormModal> = {
 export default meta;
 type Story = StoryObj<typeof EventFormModal>;
 
-function EventFormModalStoryComponent({ initialEvent }: { initialEvent: Event }) {
+function EventFormModalStoryComponent({ initialEvent }: Readonly<{ initialEvent: Event }>) {
   const [event, setEvent] = useState<Event | null>(initialEvent);
 
   if (!event) return null;
 
   return (
-    <div style={{ maxWidth: '1000px', margin: '0 auto', background: '#0d0f17', padding: '1.5rem', borderRadius: '12px' }}>
+    <div
+      style={{
+        maxWidth: '1000px',
+        margin: '0 auto',
+        background: '#0d0f17',
+        padding: '1.5rem',
+        borderRadius: '12px',
+      }}
+    >
       <EventFormModal
         currentEvent={event}
         setCurrentEvent={setEvent}
         onClose={() => console.log('Close event modal')}
-        onSave={async (e) => { e.preventDefault(); console.log('Save event:', event); }}
+        onSave={async (e) => {
+          e.preventDefault();
+          console.log('Save event:', event);
+        }}
         API_URL="/api"
         saving={false}
       />
@@ -46,7 +57,7 @@ function EventFormModalStoryComponent({ initialEvent }: { initialEvent: Event })
 }
 
 export const EditExistingEvent: Story = {
-  render: () => <EventFormModalStoryComponent initialEvent={mockEvent} />
+  render: () => <EventFormModalStoryComponent initialEvent={mockEvent} />,
 };
 
 export const CreateNewEvent: Story = {
@@ -60,8 +71,8 @@ export const CreateNewEvent: Story = {
         description_en: '',
         type: 'dice',
         status: 'active',
-        image_url: ''
+        image_url: '',
       }}
     />
-  )
+  ),
 };

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import {
   Waves,
   Ghost,
@@ -31,6 +31,9 @@ import DonorsManager from './DonorsManager';
 import PoliciesManager from './Config/PoliciesManager';
 
 // Define the settings interface to cover all known keys
+const THEME_SETTING_KEY = 'theme';
+const TEXT_MUTED_COLOR = 'rgba(255,255,255,0.5)';
+
 interface Rule {
   id: number;
   title: string;
@@ -52,11 +55,13 @@ interface User {
   };
 }
 
-export default function SiteConfig() {
-  const { t } = useTranslation();
-  const { user } = useAuth() as { user: User | null };
+const EVENT_MAP: Record<string, string> = {
+  theme: 'themeChanged',
+  broadcast_config: 'broadcastChanged',
+  maintenance_mode: 'maintenanceChanged',
+};
 
-  // TanStack Query Hooks
+function useSiteConfigManager(user: User | null, t: (key: string) => string) {
   const { data: fetchedSettings, isLoading: loading } = useSiteSettings();
   const updateSettingMutation = useUpdateSiteSetting();
 
@@ -75,41 +80,252 @@ export default function SiteConfig() {
     ...localSettings,
   };
 
-  const handleUpdate = async (key: string, value: string | boolean) => {
-    const username = user?.user_metadata?.full_name || user?.email || 'Admin';
+  const handleUpdate = useCallback(
+    async (key: string, value: string | boolean) => {
+      const username = user?.user_metadata?.full_name || user?.email || 'Admin';
 
-    updateSettingMutation.mutate(
-      {
-        key,
-        value,
-        username,
-        userId: user?.id,
-      },
-      {
-        onSuccess: () => {
-          // Clear local override on success
-          setLocalSettings((prev) => {
-            const next = { ...prev };
-            delete next[key];
-            return next;
-          });
+      updateSettingMutation.mutate(
+        {
+          key,
+          value,
+          username,
+          userId: user?.id,
+        },
+        {
+          onSuccess: () => {
+            setLocalSettings((prev) => {
+              const next = { ...prev };
+              delete next[key];
+              return next;
+            });
 
-          const EVENT_MAP: Record<string, string> = {
-            theme: 'themeChanged',
-            broadcast_config: 'broadcastChanged',
-            maintenance_mode: 'maintenanceChanged',
-          };
-          const eventName = EVENT_MAP[key];
-          if (eventName) {
-            window.dispatchEvent(new CustomEvent(eventName, { detail: String(value) }));
-          }
+            const eventName = EVENT_MAP[key];
+            if (eventName) {
+              window.dispatchEvent(new CustomEvent(eventName, { detail: String(value) }));
+            }
+          },
+          onError: () => {
+            alert(t('admin.settings.error_save'));
+          },
         },
-        onError: () => {
-          alert(t('admin.settings.error_save'));
-        },
-      },
-    );
+      );
+    },
+    [user, updateSettingMutation, t],
+  );
+
+  return {
+    loading,
+    settings,
+    handleUpdate,
+    showMaintenanceModal,
+    setShowMaintenanceModal,
+    maintenanceTarget,
+    setMaintenanceTarget,
+    updateSettingMutation,
+    setLocalSettings,
   };
+}
+
+function ThemeSelectionCard({
+  theme,
+  isPending,
+  pendingKey,
+  onSelectTheme,
+  t,
+}: Readonly<{
+  theme: string;
+  isPending: boolean;
+  pendingKey?: string;
+  onSelectTheme: (theme: string) => void;
+  t: (key: string) => string;
+}>) {
+  return (
+    <div
+      className="admin-card"
+      style={{
+        background: 'rgba(10, 10, 15, 0.4)',
+        backdropFilter: 'blur(20px)',
+        border: '1px solid rgba(255, 255, 255, 0.05)',
+        borderRadius: '24px',
+        padding: '1.5rem',
+        margin: 0,
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '1.5rem',
+          flexWrap: 'wrap',
+          gap: '1rem',
+        }}
+      >
+        <div style={{ flex: '1 1 200px' }}>
+          <h3
+            style={{
+              marginBottom: '0.4rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.75rem',
+              fontSize: '1.1rem',
+              fontWeight: '800',
+            }}
+          >
+            <div
+              style={{
+                padding: '6px',
+                background: 'rgba(0, 188, 212, 0.1)',
+                borderRadius: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Waves style={{ color: '#00bcd4' }} />
+            </div>
+            {t('admin.settings.theme.title')}
+          </h3>
+          <p style={{ color: TEXT_MUTED_COLOR, margin: 0, fontSize: '0.85rem' }}>
+            {t('admin.settings.theme.desc')}
+          </p>
+        </div>
+      </div>
+
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
+          gap: '0.8rem',
+        }}
+      >
+        <ThemeCard
+          active={theme === 'default'}
+          onClick={() => onSelectTheme('default')}
+          icon={<Waves size={24} color="#00bcd4" />}
+          title={t('admin.settings.theme.default')}
+          color="#00bcd4"
+          loading={isPending && pendingKey === THEME_SETTING_KEY}
+        />
+        <ThemeCard
+          active={theme === 'halloween'}
+          onClick={() => onSelectTheme('halloween')}
+          icon={<Ghost size={24} color="#ff7518" />}
+          title={t('admin.settings.theme.halloween')}
+          color="#ff7518"
+          loading={isPending && pendingKey === THEME_SETTING_KEY}
+        />
+        <ThemeCard
+          active={theme === 'christmas'}
+          onClick={() => onSelectTheme('christmas')}
+          icon={<TreePine size={24} color="#ef4444" />}
+          title={t('admin.settings.theme.christmas')}
+          color="#ef4444"
+          loading={isPending && pendingKey === THEME_SETTING_KEY}
+        />
+      </div>
+    </div>
+  );
+}
+
+function MaintenanceCard({
+  maintenanceMode,
+  onToggle,
+  t,
+}: Readonly<{
+  maintenanceMode: boolean;
+  onToggle: () => void;
+  t: ReturnType<typeof useTranslation>['t'];
+}>) {
+  return (
+    <div
+      className="admin-card"
+      style={{
+        background: maintenanceMode ? 'rgba(239, 68, 68, 0.05)' : 'rgba(10, 10, 15, 0.4)',
+        backdropFilter: 'blur(20px)',
+        border: maintenanceMode
+          ? '1px solid rgba(239, 68, 68, 0.3)'
+          : '1px solid rgba(255, 255, 255, 0.05)',
+        borderRadius: '24px',
+        padding: '1.5rem',
+        margin: 0,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: '1rem',
+      }}
+    >
+      <div style={{ flex: '1' }}>
+        <h3
+          style={{
+            marginBottom: '0.4rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem',
+            fontSize: '1rem',
+            fontWeight: '800',
+          }}
+        >
+          <div
+            style={{
+              padding: '6px',
+              background: maintenanceMode ? 'rgba(239, 68, 68, 0.2)' : 'rgba(255,255,255,0.05)',
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Settings style={{ color: maintenanceMode ? '#ef4444' : '#fff' }} />
+          </div>
+          {t('admin.settings.maintenance_label')}
+        </h3>
+        <p
+          style={{
+            color: maintenanceMode ? '#fca5a5' : TEXT_MUTED_COLOR,
+            margin: 0,
+            fontSize: '0.8rem',
+          }}
+        >
+          {maintenanceMode
+            ? 'El sitio está inaccesible para usuarios normales.'
+            : 'El sitio está activo y visible.'}
+        </p>
+      </div>
+
+      <label className="switch" style={{ margin: 0 }}>
+        <input
+          aria-label={t('admin.settings.maintenance.toggle', 'Alternar modo mantenimiento')}
+          type="checkbox"
+          checked={maintenanceMode}
+          onChange={() => {}}
+          onClick={(e) => {
+            e.preventDefault();
+            onToggle();
+          }}
+        />
+        <span className="slider round"></span>
+      </label>
+    </div>
+  );
+}
+
+export default function SiteConfig() {
+  const { t } = useTranslation();
+  const { user } = useAuth() as { user: User | null };
+
+  const {
+    loading,
+    settings,
+    handleUpdate,
+    showMaintenanceModal,
+    setShowMaintenanceModal,
+    maintenanceTarget,
+    setMaintenanceTarget,
+    updateSettingMutation,
+    setLocalSettings,
+  } = useSiteConfigManager(user, t);
 
   if (loading)
     return (
@@ -145,184 +361,22 @@ export default function SiteConfig() {
         >
           {/* TEMA + MANTENIMIENTO */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            <div
-              className="admin-card"
-              style={{
-                background: 'rgba(10, 10, 15, 0.4)',
-                backdropFilter: 'blur(20px)',
-                border: '1px solid rgba(255, 255, 255, 0.05)',
-                borderRadius: '24px',
-                padding: '1.5rem',
-                margin: 0,
+            <ThemeSelectionCard
+              theme={settings.theme}
+              isPending={updateSettingMutation.isPending}
+              pendingKey={updateSettingMutation.variables?.key}
+              onSelectTheme={(theme) => handleUpdate(THEME_SETTING_KEY, theme)}
+              t={t}
+            />
+            <MaintenanceCard
+              maintenanceMode={settings.maintenance_mode === 'true'}
+              onToggle={() => {
+                const nextState = settings.maintenance_mode !== 'true';
+                setMaintenanceTarget(nextState);
+                setShowMaintenanceModal(true);
               }}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  marginBottom: '1.5rem',
-                  flexWrap: 'wrap',
-                  gap: '1rem',
-                }}
-              >
-                <div style={{ flex: '1 1 200px' }}>
-                  <h3
-                    style={{
-                      marginBottom: '0.4rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.75rem',
-                      fontSize: '1.1rem',
-                      fontWeight: '800',
-                    }}
-                  >
-                    <div
-                      style={{
-                        padding: '6px',
-                        background: 'rgba(0, 188, 212, 0.1)',
-                        borderRadius: '8px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <Waves style={{ color: '#00bcd4' }} />
-                    </div>
-                    {t('admin.settings.theme.title')}
-                  </h3>
-                  <p style={{ color: 'rgba(255,255,255,0.5)', margin: 0, fontSize: '0.85rem' }}>
-                    {t('admin.settings.theme.desc')}
-                  </p>
-                </div>
-              </div>
-
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
-                  gap: '0.8rem',
-                }}
-              >
-                <ThemeCard
-                  active={settings.theme === 'default'}
-                  onClick={() => handleUpdate('theme', 'default')}
-                  icon={<Waves size={24} color="#00bcd4" />}
-                  title={t('admin.settings.theme.default')}
-                  color="#00bcd4"
-                  loading={
-                    updateSettingMutation.isPending &&
-                    updateSettingMutation.variables?.key === 'theme'
-                  }
-                />
-                <ThemeCard
-                  active={settings.theme === 'halloween'}
-                  onClick={() => handleUpdate('theme', 'halloween')}
-                  icon={<Ghost size={24} color="#ff7518" />}
-                  title={t('admin.settings.theme.halloween')}
-                  color="#ff7518"
-                  loading={
-                    updateSettingMutation.isPending &&
-                    updateSettingMutation.variables?.key === 'theme'
-                  }
-                />
-                <ThemeCard
-                  active={settings.theme === 'christmas'}
-                  onClick={() => handleUpdate('theme', 'christmas')}
-                  icon={<TreePine size={24} color="#ef4444" />}
-                  title={t('admin.settings.theme.christmas')}
-                  color="#ef4444"
-                  loading={
-                    updateSettingMutation.isPending &&
-                    updateSettingMutation.variables?.key === 'theme'
-                  }
-                />
-              </div>
-            </div>
-
-            {/* MANTENIMIENTO CARD SEPARADA */}
-            <div
-              className="admin-card"
-              style={{
-                background:
-                  settings.maintenance_mode === 'true'
-                    ? 'rgba(239, 68, 68, 0.05)'
-                    : 'rgba(10, 10, 15, 0.4)',
-                backdropFilter: 'blur(20px)',
-                border:
-                  settings.maintenance_mode === 'true'
-                    ? '1px solid rgba(239, 68, 68, 0.3)'
-                    : '1px solid rgba(255, 255, 255, 0.05)',
-                borderRadius: '24px',
-                padding: '1.5rem',
-                margin: 0,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                flexWrap: 'wrap',
-                gap: '1rem',
-              }}
-            >
-              <div style={{ flex: '1' }}>
-                <h3
-                  style={{
-                    marginBottom: '0.4rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.75rem',
-                    fontSize: '1rem',
-                    fontWeight: '800',
-                  }}
-                >
-                  <div
-                    style={{
-                      padding: '6px',
-                      background:
-                        settings.maintenance_mode === 'true'
-                          ? 'rgba(239, 68, 68, 0.2)'
-                          : 'rgba(255,255,255,0.05)',
-                      borderRadius: '8px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <Settings
-                      style={{ color: settings.maintenance_mode === 'true' ? '#ef4444' : '#fff' }}
-                    />
-                  </div>
-                  {t('admin.settings.maintenance_label')}
-                </h3>
-                <p
-                  style={{
-                    color:
-                      settings.maintenance_mode === 'true' ? '#fca5a5' : 'rgba(255,255,255,0.5)',
-                    margin: 0,
-                    fontSize: '0.8rem',
-                  }}
-                >
-                  {settings.maintenance_mode === 'true'
-                    ? 'El sitio está inaccesible para usuarios normales.'
-                    : 'El sitio está activo y visible.'}
-                </p>
-              </div>
-
-              <label className="switch" style={{ margin: 0 }}>
-                <input
-                  aria-label={t('admin.settings.maintenance.toggle', 'Alternar modo mantenimiento')}
-                  type="checkbox"
-                  checked={settings.maintenance_mode === 'true'}
-                  onChange={() => {}}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    const nextState = !(settings.maintenance_mode === 'true');
-                    setMaintenanceTarget(nextState);
-                    setShowMaintenanceModal(true);
-                  }}
-                />
-                <span className="slider round"></span>
-              </label>
-            </div>
+              t={t}
+            />
           </div>
 
           {/* RECLUTAMIENTO */}
@@ -400,7 +454,7 @@ export default function SiteConfig() {
                   <span
                     style={{
                       fontSize: '0.8rem',
-                      color: 'rgba(255,255,255,0.5)',
+                      color: TEXT_MUTED_COLOR,
                       fontWeight: '600',
                     }}
                   >
@@ -428,7 +482,7 @@ export default function SiteConfig() {
                     display: 'block',
                     marginBottom: '8px',
                     fontSize: '0.85rem',
-                    color: 'rgba(255,255,255,0.5)',
+                    color: TEXT_MUTED_COLOR,
                     fontWeight: '600',
                     textTransform: 'uppercase',
                     letterSpacing: '0.5px',
@@ -703,7 +757,7 @@ function ThemeCard({ active, onClick, icon, title, color, loading }: Readonly<Th
       </div>
       <h4
         style={{
-          color: active ? '#fff' : 'rgba(255,255,255,0.5)',
+          color: active ? '#fff' : TEXT_MUTED_COLOR,
           margin: 0,
           fontSize: '0.9rem',
           fontWeight: '700',

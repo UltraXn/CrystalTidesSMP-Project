@@ -1,6 +1,6 @@
 import { useState, useEffect, type ReactNode } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { isStaff } from '../utils/roleUtils';
 import {
   Shield,
@@ -190,45 +190,31 @@ interface AdminTabContentProps {
   hasSecureAccess: boolean;
 }
 
+type TabRenderer = (user: AdminUser, hasSecureAccess: boolean) => React.ReactNode;
+
+const TAB_COMPONENTS: Record<string, TabRenderer> = {
+  [ADMIN_TABS.OVERVIEW]: () => <DashboardOverview />,
+  [ADMIN_TABS.TICKETS]: () => <TicketsManager />,
+  [ADMIN_TABS.USERS]: () => <UsersManager />,
+  [ADMIN_TABS.SUGGESTIONS]: () => <SuggestionsManager />,
+  [ADMIN_TABS.POLLS]: () => <PollsManager />,
+  [ADMIN_TABS.EVENTS]: () => <EventsManager />,
+  [ADMIN_TABS.NEWS]: (user) => <AdminNews user={user} />,
+  [ADMIN_TABS.DONATIONS]: () => <DonationsManager />,
+  [ADMIN_TABS.GAMIFICATION]: () => <GamificationManager />,
+  [ADMIN_TABS.ROADMAP]: () => <RoadmapAdminManager />,
+  [ADMIN_TABS.TEAM]: (_u, hasSecureAccess) => (hasSecureAccess ? <StaffCardsManager /> : null),
+  [ADMIN_TABS.STAFF_HUB]: () => <StaffWorkspace />,
+  [ADMIN_TABS.WIKI]: () => <WikiManager />,
+  [ADMIN_TABS.LOCATIONS]: () => <LocationsManager />,
+  [ADMIN_TABS.LOGS]: () => <AuditLog />,
+  [ADMIN_TABS.SETTINGS]: (_u, hasSecureAccess) => (hasSecureAccess ? <SiteConfig /> : null),
+  [ADMIN_TABS.DOCS]: () => <AdminDocs />,
+};
+
 function AdminTabContent({ activeTab, user, hasSecureAccess }: Readonly<AdminTabContentProps>) {
-  switch (activeTab) {
-    case ADMIN_TABS.OVERVIEW:
-      return <DashboardOverview />;
-    case ADMIN_TABS.TICKETS:
-      return <TicketsManager />;
-    case ADMIN_TABS.USERS:
-      return <UsersManager />;
-    case ADMIN_TABS.SUGGESTIONS:
-      return <SuggestionsManager />;
-    case ADMIN_TABS.POLLS:
-      return <PollsManager />;
-    case ADMIN_TABS.EVENTS:
-      return <EventsManager />;
-    case ADMIN_TABS.NEWS:
-      return <AdminNews user={user} />;
-    case ADMIN_TABS.DONATIONS:
-      return <DonationsManager />;
-    case ADMIN_TABS.GAMIFICATION:
-      return <GamificationManager />;
-    case ADMIN_TABS.ROADMAP:
-      return <RoadmapAdminManager />;
-    case ADMIN_TABS.TEAM:
-      return hasSecureAccess ? <StaffCardsManager /> : null;
-    case ADMIN_TABS.STAFF_HUB:
-      return <StaffWorkspace />;
-    case ADMIN_TABS.WIKI:
-      return <WikiManager />;
-    case ADMIN_TABS.LOCATIONS:
-      return <LocationsManager />;
-    case ADMIN_TABS.LOGS:
-      return <AuditLog />;
-    case ADMIN_TABS.SETTINGS:
-      return hasSecureAccess ? <SiteConfig /> : null;
-    case ADMIN_TABS.DOCS:
-      return <AdminDocs />;
-    default:
-      return null;
-  }
+  const renderTab = TAB_COMPONENTS[activeTab];
+  return renderTab ? <>{renderTab(user, hasSecureAccess)}</> : null;
 }
 
 interface AdminSidebarProps {

@@ -179,12 +179,29 @@ export default function StaffNotes() {
 
       {/* Create Note Modal */}
       {showCreateModal && (
-        <div className="modal-overlay" role="presentation">
+        <dialog
+          open
+          aria-labelledby="create-note-modal-title"
+          className="modal-overlay"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.8)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            border: 'none',
+            margin: 0,
+            padding: 0,
+            width: '100vw',
+            height: '100vh',
+            maxWidth: 'none',
+            maxHeight: 'none',
+            zIndex: 1000,
+          }}
+        >
           <div
             className="modal-content"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="create-note-modal-title"
             style={{
               width: '400px',
               maxWidth: '90%',
@@ -273,7 +290,7 @@ export default function StaffNotes() {
               </div>
             </div>
           </div>
-        </div>
+        </dialog>
       )}
 
       <ConfirmationModal

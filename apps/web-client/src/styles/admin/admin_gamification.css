@@ -3,8 +3,6 @@
 .gamification-container {
   display: flex;
   flex-direction: column;
-  gap: 2.5rem;
-  padding: 1.5rem;
   width: 100%;
   max-width: 1400px;
   margin: 0 auto;
@@ -16,16 +14,13 @@
 .gamification-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
   background: rgba(15, 15, 20, 0.4);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  padding: 1.25rem 2rem;
   border-radius: 24px;
   border: 1px solid rgba(255, 255, 255, 0.06);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   flex-wrap: wrap;
-  gap: 1.5rem;
   flex-direction: column;
   align-items: stretch;
   padding: 1.25rem;
@@ -104,9 +99,7 @@
 
 /* --- Medals Grid --- */
 .medals-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); /* Slightly wider for the layout */
-  gap: 2rem;
+  display: grid; /* Slightly wider for the layout */
   grid-template-columns: 1fr;
   gap: 1.5rem;
 }
@@ -131,10 +124,7 @@
 
 /* Card Header Layout - Grid for alignment */
 .medal-editor-card .card-header {
-  display: grid;
   grid-template-columns: auto 1fr auto; /* Image | Controls | Delete */
-  gap: 1.5rem;
-  align-items: flex-start;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -144,7 +134,6 @@
 /* Column 1: Image Uploader Wrapper overrides */
 .medal-editor-card .image-uploader {
   /* Ensure the uploader fits well */
-  width: fit-content;
   width: 100%;
   display: flex;
   justify-content: center;
@@ -153,9 +142,7 @@
 /* Column 2: Controls (Icon Selector + Color Picker) */
 .icon-selector-group {
   display: flex;
-  flex-direction: column;
   gap: 0.8rem;
-  align-items: flex-start;
   width: 100%;
   align-items: center;
   flex-direction: row;
@@ -172,7 +159,6 @@
   padding: 0.5rem 1rem;
   border-radius: 9999px; /* Pill shape */
   border: 1px solid rgba(255, 255, 255, 0.1);
-  min-width: 140px;
   transition: border-color 0.2s;
   flex: 1;
   min-width: 120px;
@@ -373,12 +359,10 @@
 
 .achievement-editor-row {
   display: flex;
-  align-items: flex-start;
   gap: 1.5rem;
   background: rgba(20, 20, 25, 0.4);
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 20px;
-  padding: 1.5rem;
   transition: all 0.2s;
   flex-direction: column;
   align-items: stretch;
@@ -424,7 +408,6 @@
 
 .achievement-details .row {
   display: flex;
-  gap: 1rem;
   flex-direction: column;
   gap: 0.75rem;
 }

@@ -1,583 +1,131 @@
-import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
+import React from 'react';
 import KanbanColumn from './KanbanColumn';
-import { KanbanTask, KANBAN_COLUMNS, TaskPriority } from '@crystaltides/shared';
+import { KanbanTask, KANBAN_COLUMNS } from '@crystaltides/shared';
 import CalendarView, { GoogleEvent } from './CalendarView';
-import { Plus, X, Layers, Tag, User, Calendar, List, Target, Clock } from 'lucide-react';
-
-const GoogleIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width={16} height={16} fill="currentColor" viewBox="0 0 16 16">
-        <path d="M15.545 6.558a9.42 9.42 0 0 1 .139 1.626c0 2.434-.87 4.492-2.384 5.885h.002C11.978 15.292 10.158 16 8 16A8 8 0 1 1 8 0a7.689 7.689 0 0 1 5.352 2.082l-2.284 2.284A4.347 4.347 0 0 0 8 3.166c-2.087 0-3.86 1.408-4.492 3.304a4.792 4.792 0 0 0 0 3.063h.003c.635 1.893 2.405 3.301 4.492 3.301 1.078 0 2.004-.276 2.722-.764h-.003a3.702 3.702 0 0 0 1.599-2.431H8v-3.08h7.545z"/>
-    </svg>
-);
 import Loader from '../../UI/Loader';
 import ConfirmationModal from '../../UI/ConfirmationModal';
-import { supabase } from '../../../services/supabaseClient';
-import { getAuthHeaders } from '../../../services/adminAuth';
-
-const API_URL = import.meta.env.VITE_API_URL;
+import { useKanbanBoard } from './useKanbanBoard';
+import { KanbanHeader } from './KanbanHeader';
+import { KanbanTaskModal } from './KanbanTaskModal';
 
 const COLUMNS = KANBAN_COLUMNS;
 
 interface KanbanBoardProps {
-    mockTasks?: KanbanTask[];
-    mockGoogleEvents?: GoogleEvent[];
-    mockNotionTasks?: Record<string, unknown>[];
+  mockTasks?: KanbanTask[];
+  mockGoogleEvents?: GoogleEvent[];
+  mockNotionTasks?: Record<string, unknown>[];
 }
 
-const subscribeToCalendar = async () => {
-    try {
-        const { data: { session } } = await supabase.auth.getSession();
-        const response = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/staff/tasks/calendar/subscribe`, {
-            headers: getAuthHeaders(session?.access_token || null)
-        });
-        if (!response.ok) throw new Error('Failed to get subscribe link');
-        const { url } = await response.json();
-        window.open(url, '_blank', 'noopener,noreferrer');
-    } catch (err) {
-        console.error("Subscription Error:", err);
-    }
-};
-
 const onDragStart = (e: React.DragEvent, cardId: number) => {
-    e.dataTransfer.setData("cardId", cardId.toString());
+  e.dataTransfer.setData('cardId', cardId.toString());
 };
 
-export default function KanbanBoard({ mockTasks, mockGoogleEvents, mockNotionTasks }: KanbanBoardProps = {}) {
+export default function KanbanBoard({
+  mockTasks,
+  mockGoogleEvents,
+  mockNotionTasks,
+}: KanbanBoardProps = {}) {
+  const {
+    t,
+    tasks,
+    loading,
+    viewMode,
+    setViewMode,
+    googleEvents,
+    notionTasks,
+    syncing,
+    notionSyncing,
+    fetchGoogleEvents,
+    fetchNotionTasks,
+    subscribeToCalendar,
+    showCreateModal,
+    editingTask,
+    newTask,
+    setNewTask,
+    dateError,
+    setDateError,
+    deleteConfirm,
+    setDeleteConfirm,
+    handleCreateTask,
+    handleSaveTask,
+    handleEditTask,
+    confirmDelete,
+    onDrop,
+    handleUpdateTaskDate,
+    handleUpdateTaskDuration,
+    openNewTaskModal,
+    closeTaskModal,
+  } = useKanbanBoard({ mockTasks, mockGoogleEvents, mockNotionTasks });
 
-
-    const { t } = useTranslation();
-    const [tasks, setTasks] = useState<KanbanTask[]>(() => (mockTasks || []).map(t => ({...t, columnId: t.column_id || 'idea'})));
-    const [loading, setLoading] = useState(!mockTasks);
-    const [viewMode, setViewMode] = useState<'board' | 'calendar'>('board');
-    const [googleEvents, setGoogleEvents] = useState<GoogleEvent[]>(mockGoogleEvents || []);
-    const [notionTasks, setNotionTasks] = useState<Record<string, unknown>[]>(mockNotionTasks || []);
-    const [syncing, setSyncing] = useState(false);
-    const [notionSyncing, setNotionSyncing] = useState(false);
-
-    // --- Google Calendar Integration ---
-    const fetchGoogleEvents = async () => {
-        setSyncing(true);
-        try {
-            const { data: { session } } = await supabase.auth.getSession();
-            const response = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/staff/tasks/calendar`, {
-                headers: getAuthHeaders(session?.access_token || null)
-            });
-            if (!response.ok) throw new Error('Failed to fetch calendar');
-            const events = await response.json();
-            setGoogleEvents(events);
-        } catch (err) {
-            console.error("Calendar Sync Error:", err);
-            // Optionally show toast error
-        } finally {
-            setSyncing(false);
-        }
-    };
-
-    const fetchNotionTasks = async () => {
-        setNotionSyncing(true);
-        try {
-            const { data: { session } } = await supabase.auth.getSession();
-            const response = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/staff/tasks/notion`, {
-                headers: getAuthHeaders(session?.access_token || null)
-            });
-            if (!response.ok) throw new Error('Failed to fetch Notion tasks');
-            const tasks = await response.json();
-            setNotionTasks(tasks);
-        } catch (err) {
-            console.error("Notion Sync Error:", err);
-        } finally {
-            setNotionSyncing(false);
-        }
-    };
-
-    useEffect(() => {
-        if (notionTasks.length > 0) {
-            console.log("Synced Notion Tasks:", notionTasks);
-        }
-    }, [notionTasks]);
-
-    // Create Modal State
-    const [showCreateModal, setShowCreateModal] = useState(false);
-    const [editingTask, setEditingTask] = useState<KanbanTask | null>(null);
-    const [newTask, setNewTask] = useState({
-        title: '',
-        priority: 'Medium',
-        type: 'General',
-        assignee: '',
-        due_date: '',
-        end_date: ''
-    });
-    const [dateError, setDateError] = useState<string | null>(null);
-
-    // Delete Modal State
-    const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
-
-    useEffect(() => {
-        let ignore = false;
-        const fetchTasks = async () => {
-            if (mockTasks) return;
-            try {
-                const { data: { session } } = await supabase.auth.getSession();
-                const res = await fetch(`${API_URL}/staff/tasks`, {
-                   headers: getAuthHeaders(session?.access_token || null)
-                });
-                if (res.ok) {
-                    const data = await res.json() as KanbanTask[];
-                    const mappedData = data.map((task: KanbanTask) => ({
-                        ...task,
-                        columnId: task.column_id || 'idea'
-                    }));
-                    if (!ignore) setTasks(mappedData);
-                }
-            } catch (error) {
-                console.error("Error fetching tasks:", error);
-            } finally {
-                if (!ignore) setLoading(false);
-            }
-        };
-
-        fetchTasks();
-        return () => { ignore = true; }
-    }, [mockTasks]);
-
-    const handleCreateTask = async (e?: React.FormEvent) => {
-        if (e) e.preventDefault();
-        if (!newTask.title.trim()) return;
-
-        if (newTask.due_date && newTask.end_date && new Date(newTask.end_date) < new Date(newTask.due_date)) {
-            setDateError(t('admin.staff_hub.kanban.create_modal.date_error', 'La fecha de fin no puede ser anterior a la de inicio'));
-            return;
-        }
-        setDateError(null);
-
-        const taskPayload = {
-            ...newTask,
-            assignee: newTask.assignee || 'Unassigned',
-            column_id: 'idea',
-            date: newTask.due_date ? new Date(newTask.due_date).toLocaleDateString() : new Date().toLocaleDateString(),
-            due_date: newTask.due_date || null,
-            end_date: newTask.end_date || null
-        };
-
-        try {
-            const { data: { session } } = await supabase.auth.getSession();
-            const res = await fetch(`${API_URL}/staff/tasks`, {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    ...getAuthHeaders(session?.access_token || null)
-                },
-                body: JSON.stringify(taskPayload)
-            });
-
-            if (res.ok) {
-                const savedTask = await res.json();
-                setTasks(prev => [{ ...savedTask, columnId: savedTask.column_id || 'idea' }, ...prev]);
-                setShowCreateModal(false);
-                setNewTask({ title: '', priority: 'Medium', type: 'General', assignee: '', due_date: '', end_date: '' });
-            }
-        } catch (error) {
-            console.error("Error creating task:", error);
-        }
-    };
-
-    const handleUpdateTaskDate = async (id: number | string, newDate: Date) => {
-        try {
-            const { data: { session } } = await supabase.auth.getSession();
-            const res = await fetch(`${API_URL}/staff/tasks/${id}`, {
-                method: 'PUT',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    ...getAuthHeaders(session?.access_token || null)
-                },
-                body: JSON.stringify({ 
-                    due_date: newDate.toISOString(),
-                    date: newDate.toLocaleDateString()
-                })
-            });
-
-            if (res.ok) {
-                const updatedTask = await res.json();
-                setTasks(prev => prev.map(t => t.id === id ? { ...updatedTask, columnId: updatedTask.column_id || 'idea' } : t));
-            }
-        } catch (error) {
-            console.error("Error updating task date:", error);
-        }
-    };
-
-    const handleUpdateTaskDuration = async (id: number | string, start: Date, end: Date) => {
-        try {
-            const { data: { session } } = await supabase.auth.getSession();
-            const res = await fetch(`${API_URL}/staff/tasks/${id}`, {
-                method: 'PUT',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    ...getAuthHeaders(session?.access_token || null)
-                },
-                body: JSON.stringify({ 
-                    due_date: start.toISOString(),
-                    end_date: end.toISOString(),
-                    date: start.toLocaleDateString()
-                })
-            });
-
-            if (res.ok) {
-                const updatedTask = await res.json();
-                setTasks(prev => prev.map(t => t.id === id ? { ...updatedTask, columnId: updatedTask.column_id || 'idea' } : t));
-            }
-        } catch (error) {
-            console.error("Error updating task duration:", error);
-        }
-    };
-
-    const handleEditTask = (task: KanbanTask) => {
-        setEditingTask(task);
-        setNewTask({
-            title: task.title,
-            priority: task.priority || 'Medium',
-            type: task.type || 'General',
-            assignee: task.assignee || '',
-            due_date: task.due_date ? new Date(task.due_date).toISOString().slice(0, 16) : '',
-            end_date: task.end_date ? new Date(task.end_date).toISOString().slice(0, 16) : ''
-        });
-        setShowCreateModal(true);
-    };
-
-    const handleSaveTask = async () => {
-        if (!editingTask) return;
-
-        if (newTask.due_date && newTask.end_date && new Date(newTask.end_date) < new Date(newTask.due_date)) {
-            setDateError(t('admin.staff_hub.kanban.create_modal.date_error', 'La fecha de fin no puede ser anterior a la de inicio'));
-            return;
-        }
-        setDateError(null);
-        
-        const taskPayload = {
-            ...newTask,
-            due_date: newTask.due_date || null,
-            end_date: newTask.end_date || null,
-            date: newTask.due_date ? new Date(newTask.due_date).toLocaleDateString() : new Date().toLocaleDateString()
-        };
-
-        try {
-            const { data: { session } } = await supabase.auth.getSession();
-            const res = await fetch(`${API_URL}/staff/tasks/${editingTask.id}`, {
-                method: 'PUT',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    ...getAuthHeaders(session?.access_token || null)
-                },
-                body: JSON.stringify(taskPayload)
-            });
-
-            if (res.ok) {
-                const updatedTask = await res.json();
-                setTasks(prev => prev.map(t => t.id === editingTask.id ? { ...updatedTask, columnId: updatedTask.column_id || 'idea' } : t));
-                setShowCreateModal(false);
-                setEditingTask(null);
-                setNewTask({ title: '', priority: 'Medium', type: 'General', assignee: '', due_date: '', end_date: '' });
-            }
-        } catch (error) {
-            console.error("Error saving task:", error);
-        }
-    };
-
-    const confirmDelete = async () => {
-        if (!deleteConfirm) return;
-        const id = deleteConfirm;
-
-        const previousTasks = [...tasks];
-        setTasks(prev => prev.filter(t => t.id !== id));
-
-        try {
-            const { data: { session } } = await supabase.auth.getSession();
-            await fetch(`${API_URL}/staff/tasks/${id}`, { 
-                method: 'DELETE',
-                headers: getAuthHeaders(session?.access_token || null)
-             });
-        } catch (error) {
-            console.error("Error deleting task:", error);
-            setTasks(previousTasks);
-        } finally {
-            setDeleteConfirm(null);
-        }
-    };
-
-    const onDrop = async (e: React.DragEvent, columnId: string) => {
-        const cardId = e.dataTransfer.getData("cardId");
-        
-        const taskToUpdate = tasks.find(t => t.id === Number(cardId));
-        if (!taskToUpdate || taskToUpdate.columnId === columnId) return;
-
-        const previousTasks = [...tasks];
-        setTasks(prev => prev.map(task => {
-            if (task.id === Number(cardId)) {
-                return { ...task, columnId };
-            }
-            return task;
-        }));
-
-        try {
-            const { data: { session } } = await supabase.auth.getSession();
-            await fetch(`${API_URL}/staff/tasks/${cardId}`, {
-                method: 'PUT',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    ...getAuthHeaders(session?.access_token || null)
-                },
-                body: JSON.stringify({ column_id: columnId })
-            });
-        } catch (error) {
-            console.error("Error updating task:", error);
-            setTasks(previousTasks);
-        }
-    };
-
-    if (loading) return (
-        <div style={{ padding: '2rem', display: 'flex', justifyContent: 'center' }}>
-            <Loader style={{ minHeight: '100px' }} />
-        </div>
-    );
-
+  if (loading) {
     return (
-        <div className="kanban-board-container">
-            <div className="kanban-header">
-                <h3>{t('admin.staff_hub.kanban.title', 'Tablero')}</h3>
-                <div className="kanban-controls">
-                    <div className="view-mode-toggle">
-                        <button type="button" 
-                            onClick={() => setViewMode('board')}
-                            className={viewMode === 'board' ? 'active' : ''}
-                        >
-                            <List /> {t('admin.staff_hub.kanban.view_board', 'Board')}
-                        </button>
-                        <button type="button" 
-                            onClick={() => setViewMode('calendar')}
-                            className={viewMode === 'calendar' ? 'active' : ''}
-                        >
-                            <Calendar /> {t('admin.staff_hub.kanban.view_calendar', 'Calendar')}
-                        </button>
-                    </div>
-
-                    {viewMode === 'calendar' && (
-                        <>
-                            <button type="button" 
-                                onClick={fetchGoogleEvents}
-                                disabled={syncing}
-                                className="sync-btn google"
-                            >
-                                <GoogleIcon /> {syncing ? t('admin.staff_hub.kanban.syncing', 'Syncing...') : t('admin.staff_hub.kanban.sync_calendar', 'Sync Calendar')}
-                            </button>
-                            <button type="button" 
-                                onClick={subscribeToCalendar}
-                                className="sync-btn secondary"
-                                title="Add CrystalTides Calendar to your Google Calendar"
-                            >
-                                <Plus /> {t('admin.staff_hub.kanban.add_to_calendar', 'Add to My Calendar')}
-                            </button>
-                            <button type="button" 
-                                onClick={fetchNotionTasks}
-                                disabled={notionSyncing}
-                                className="sync-btn notion"
-                            >
-                                 <Target /> {notionSyncing ? t('admin.staff_hub.kanban.syncing', 'Syncing...') : t('admin.staff_hub.kanban.sync_notion', 'Sync Notion')}
-                            </button>
-                        </>
-                    )}
-
-                    <button type="button" 
-                        onClick={() => setShowCreateModal(true)}
-                        className="new-task-btn"
-                    >
-                        <Plus /> {t('admin.staff_hub.kanban.new_task_btn', 'Nueva Tarea')}
-                    </button>
-                </div>
-            </div>
-
-            {viewMode === 'board' ? (
-                <div className="kanban-grid">
-                    {COLUMNS.map(col => (
-                        <KanbanColumn 
-                            key={col.id} 
-                            column={col} 
-                            cards={tasks.filter(t => t.columnId === col.id)}
-                            onDragStart={onDragStart}
-                            onDrop={onDrop}
-                            onDelete={(id) => setDeleteConfirm(id)}
-                            onEdit={handleEditTask}
-                        />
-                    ))}
-                </div>
-            ) : (
-                <CalendarView
-                    tasks={tasks}
-                    googleEvents={googleEvents}
-                    notionTasks={notionTasks}
-                    onEditTask={handleEditTask}
-                    onUpdateEventDate={handleUpdateTaskDate}
-                    onUpdateEventDuration={handleUpdateTaskDuration}
-                />
-            )}
-
-            {/* Create Modal */}
-            {showCreateModal && (
-                <div className="premium-modal-overlay" role="presentation">
-                    <div className="premium-modal-content" role="dialog" aria-modal="true" aria-labelledby="kanban-modal-title">
-                        <div className="modal-accent-line" />
-                        
-                        <div className="modal-header-premium">
-                            <div>
-                                <h2 id="kanban-modal-title" style={{ margin: 0, fontSize: '1.75rem', fontWeight: '950', color: '#fff', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                    {editingTask ? <Target color="var(--accent)" aria-hidden="true" /> : <Plus color="var(--accent)" aria-hidden="true" />}
-                                    {editingTask ? t('admin.staff_hub.kanban.create_modal.title_edit', 'Editar Tarea') : t('admin.staff_hub.kanban.create_modal.title_new', 'Nueva Tarea')}
-                                </h2>
-                                <p style={{ margin: '0.5rem 0 0', color: 'rgba(255,255,255,0.4)', fontSize: '0.9rem', fontWeight: 500 }}>
-                                    {editingTask ? t('admin.staff_hub.kanban.create_modal.subtitle_edit', 'Actualiza los detalles de tu tarea') : t('admin.staff_hub.kanban.create_modal.subtitle_new', 'Planifica una nueva actividad para el equipo')}
-                                </p>
-                            </div>
-                            <button 
-                                aria-label={t('common.close', 'Cerrar ventana')} 
-                                type="button" 
-                                onClick={() => { setShowCreateModal(false); setEditingTask(null); }}
-                                className="btn-close-premium"
-                            >
-                                <X aria-hidden="true" />
-                            </button>
-                        </div>
-
-                        <div className="modal-body-premium">
-                            <div className="form-group">
-                                <label htmlFor="kanban-task-title" className="admin-label-premium"><Target size={12} /> {t('admin.staff_hub.kanban.create_modal.task_title', 'TÍTULO DE LA TAREA')}</label>
-                                <input id="kanban-task-title" 
-                                    className="admin-input-premium" 
-                                    placeholder={t('admin.staff_hub.kanban.create_modal.task_placeholder', '¿En qué vamos a trabajar?')}
-                                    value={newTask.title}
-                                    onChange={e => { setNewTask({...newTask, title: e.target.value}); setDateError(null); }}
-                                />
-                            </div>
-
-                            {dateError && (
-                                <div style={{ 
-                                    background: 'rgba(255, 68, 68, 0.1)', 
-                                    color: '#ff4444', 
-                                    padding: '12px 16px', 
-                                    borderRadius: '14px', 
-                                    fontSize: '0.85rem', 
-                                    fontWeight: '700',
-                                    border: '1px solid rgba(255, 68, 68, 0.2)',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '10px'
-                                }}>
-                                    <X /> {dateError}
-                                </div>
-                            )}
-
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-                                <div className="form-group">
-                                    <label htmlFor="kanban-task-priority" className="admin-label-premium"><Tag size={12} /> {t('admin.staff_hub.kanban.create_modal.priority', 'Prioridad')}</label>
-                                    <select id="kanban-task-priority" 
-                                        className="admin-select-premium"
-                                        value={newTask.priority}
-                                        onChange={e => setNewTask({...newTask, priority: e.target.value as TaskPriority})}
-                                    >
-                                        <option value="Low">{t('admin.staff_hub.kanban.priorities.low', 'Baja')}</option>
-                                        <option value="Medium">{t('admin.staff_hub.kanban.priorities.medium', 'Media')}</option>
-                                        <option value="High">{t('admin.staff_hub.kanban.priorities.high', 'Alta')}</option>
-                                    </select>
-                                </div>
-                                <div className="form-group">
-                                    <label htmlFor="kanban-task-type" className="admin-label-premium"><Layers size={12} /> {t('admin.staff_hub.kanban.create_modal.type', 'Tipo')}</label>
-                                    <select id="kanban-task-type" 
-                                        className="admin-select-premium"
-                                        value={newTask.type}
-                                        onChange={e => setNewTask({...newTask, type: e.target.value})}
-                                    >
-                                        <option value="General">{t('admin.staff_hub.kanban.types.general', 'General')}</option>
-                                        <option value="Bug">{t('admin.staff_hub.kanban.types.bug', 'Bug')}</option>
-                                        <option value="Feature">{t('admin.staff_hub.kanban.types.feature', 'Feature')}</option>
-                                        <option value="Maintenance">{t('admin.staff_hub.kanban.types.maintenance', 'Mantenimiento')}</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', position: 'relative' }}>
-                                {(!editingTask || editingTask.columnId === 'idea') && (
-                                    <div style={{ 
-                                        position: 'absolute', 
-                                        top: '-22px', 
-                                        right: '0', 
-                                        fontSize: '0.65rem', 
-                                        color: 'var(--accent)', 
-                                        opacity: 0.8,
-                                        fontWeight: '900',
-                                        letterSpacing: '0.5px',
-                                        textTransform: 'uppercase'
-                                    }}>
-                                       {t('admin.staff_hub.kanban.create_modal.optional_dates', 'Fechas opcionales para backlog')}
-                                    </div>
-                                )}
-                                <div className="form-group">
-                                    <label htmlFor="kanban-task-start" className="admin-label-premium"><Calendar size={12} /> {t('admin.staff_hub.kanban.create_modal.start_date', 'Inicio')}</label>
-                                    <input id="kanban-task-start" 
-                                        type="datetime-local"
-                                        className="admin-input-premium" 
-                                        value={newTask.due_date}
-                                        onChange={e => { setNewTask({...newTask, due_date: e.target.value}); setDateError(null); }}
-                                    />
-                                </div>
-                                <div className="form-group">
-                                    <label htmlFor="kanban-task-end" className="admin-label-premium"><Clock size={12} /> {t('admin.staff_hub.kanban.create_modal.end_date', 'Fin')}</label>
-                                    <input id="kanban-task-end" 
-                                        type="datetime-local"
-                                        className="admin-input-premium" 
-                                        value={newTask.end_date}
-                                        min={newTask.due_date}
-                                        onChange={e => { setNewTask({...newTask, end_date: e.target.value}); setDateError(null); }}
-                                        style={dateError ? { borderColor: 'rgba(255, 68, 68, 0.5)' } : {}}
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="form-group">
-                                <label htmlFor="kanban-task-assignee" className="admin-label-premium"><User size={12} /> {t('admin.staff_hub.kanban.create_modal.assignee', 'Asignado a')}</label>
-                                <input id="kanban-task-assignee" 
-                                    className="admin-input-premium" 
-                                    placeholder={t('admin.staff_hub.kanban.create_modal.assignee_placeholder', 'Nombre del staff...')}
-                                    value={newTask.assignee}
-                                    onChange={e => setNewTask({...newTask, assignee: e.target.value})}
-                                />
-                            </div>
-                        </div>
-
-                        <div className="modal-footer-premium">
-                            <button type="button" 
-                                className="modal-btn-secondary"
-                                onClick={() => { setShowCreateModal(false); setEditingTask(null); }}
-                            >
-                                {t('admin.staff_hub.kanban.create_modal.cancel', 'CANCELAR')}
-                            </button>
-                            <button type="button" 
-                                className="modal-btn-primary"
-                                onClick={editingTask ? handleSaveTask : handleCreateTask}
-                            >
-                                {editingTask ? t('admin.staff_hub.kanban.create_modal.save', 'GUARDAR CAMBIOS') : t('admin.staff_hub.kanban.create_modal.create', 'CREAR TAREA')}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            <ConfirmationModal 
-                isOpen={!!deleteConfirm}
-                onClose={() => setDeleteConfirm(null)}
-                onConfirm={confirmDelete}
-                title={t('admin.staff_hub.kanban.delete_modal.title', 'Eliminar Tarea')}
-                message={t('admin.staff_hub.kanban.delete_modal.msg', '¿Estás seguro de que quieres eliminar esta tarea permanentemente?')}
-                confirmText={t('admin.staff_hub.kanban.delete_modal.confirm', 'Eliminar')}
-                isDanger={true}
-            />
-        </div>
+      <div style={{ padding: '2rem', display: 'flex', justifyContent: 'center' }}>
+        <Loader style={{ minHeight: '100px' }} />
+      </div>
     );
+  }
+
+  return (
+    <div className="kanban-board-container">
+      <KanbanHeader
+        viewMode={viewMode}
+        setViewMode={setViewMode}
+        syncing={syncing}
+        notionSyncing={notionSyncing}
+        onFetchGoogleEvents={fetchGoogleEvents}
+        onSubscribeToCalendar={subscribeToCalendar}
+        onFetchNotionTasks={fetchNotionTasks}
+        onOpenNewTaskModal={openNewTaskModal}
+      />
+
+      {viewMode === 'board' ? (
+        <div className="kanban-grid">
+          {COLUMNS.map((col) => (
+            <KanbanColumn
+              key={col.id}
+              column={col}
+              cards={tasks.filter((t) => t.columnId === col.id)}
+              onDragStart={onDragStart}
+              onDrop={onDrop}
+              onDelete={(id) => setDeleteConfirm(id)}
+              onEdit={handleEditTask}
+            />
+          ))}
+        </div>
+      ) : (
+        <CalendarView
+          tasks={tasks}
+          googleEvents={googleEvents}
+          notionTasks={notionTasks}
+          onEditTask={handleEditTask}
+          onUpdateEventDate={handleUpdateTaskDate}
+          onUpdateEventDuration={handleUpdateTaskDuration}
+        />
+      )}
+
+      <KanbanTaskModal
+        isOpen={showCreateModal}
+        editingTask={editingTask}
+        newTask={newTask}
+        setNewTask={setNewTask}
+        dateError={dateError}
+        setDateError={setDateError}
+        onClose={closeTaskModal}
+        onSave={editingTask ? handleSaveTask : handleCreateTask}
+      />
+
+      <ConfirmationModal
+        isOpen={!!deleteConfirm}
+        onClose={() => setDeleteConfirm(null)}
+        onConfirm={confirmDelete}
+        title={t('admin.staff_hub.kanban.delete_modal.title', 'Eliminar Tarea')}
+        message={t(
+          'admin.staff_hub.kanban.delete_modal.msg',
+          '¿Estás seguro de que quieres eliminar esta tarea permanentemente?',
+        )}
+        confirmText={t('admin.staff_hub.kanban.delete_modal.confirm', 'Eliminar')}
+        isDanger={true}
+      />
+    </div>
+  );
 }

@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Loader2, Send, Lock } from 'lucide-react';
+import { X } from 'lucide-react';
 
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../../../services/supabaseClient';
@@ -8,6 +8,9 @@ import { getAuthHeaders } from '../../../services/adminAuth';
 import { Ticket, Message, AlertData, ConfirmData } from './types';
 import { PriorityBadge, StatusBadge, CustomAlert, CustomConfirm } from './Shared';
 import BanUserModal from './BanUserModal';
+import { useTicketChat } from './useTicketChat';
+import { TicketChatBody } from './TicketChatBody';
+import { TicketFooterActions } from './TicketFooterActions';
 
 interface TicketDetailModalProps {
   ticket: Ticket;
@@ -25,128 +28,14 @@ export default function TicketDetailModal({
   user,
 }: Readonly<TicketDetailModalProps>) {
   const { t } = useTranslation();
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [newMessage, setNewMessage] = useState('');
-  const [sending, setSending] = useState(false);
   const [showBanModal, setShowBanModal] = useState(false);
   const [alert, setAlert] = useState<AlertData | null>(null);
   const [confirmAction, setConfirmAction] = useState<ConfirmData | null>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const API_URL = import.meta.env.VITE_API_URL;
 
-  // Scroll timer tracked so it can be cleared on unmount
-  const scheduleScroll = useCallback(() => {
-    if (scrollTimerRef.current) clearTimeout(scrollTimerRef.current);
-    scrollTimerRef.current = setTimeout(() => {
-      if (scrollRef.current) scrollRef.current.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
-  }, []);
-
-  const fetchMessages = useCallback(async () => {
-    if (mockMessages) {
-      setMessages(mockMessages);
-      scheduleScroll();
-      return;
-    }
-    try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      const headers: HeadersInit = getAuthHeaders(session?.access_token || null);
-
-      const res = await fetch(`${API_URL}/tickets/${ticket.id}/messages`, { headers });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.success && Array.isArray(data.data)) {
-          setMessages(data.data);
-        } else if (Array.isArray(data)) {
-          setMessages(data);
-        } else {
-          setMessages([]);
-        }
-        scheduleScroll();
-      }
-    } catch (error) {
-      console.error('Error fetching messages:', error);
-    }
-  }, [ticket.id, mockMessages, API_URL, scheduleScroll]);
-
-  const handleNewMessagePayload = useCallback(
-    (payload: { new: Message }) => {
-      setMessages((prev) =>
-        prev.some((m) => m.id === payload.new.id) ? prev : [...prev, payload.new as Message],
-      );
-      scheduleScroll();
-    },
-    [scheduleScroll],
-  );
-
-  useEffect(() => {
-    if (ticket) {
-      fetchMessages();
-
-      // Real-time Subscription
-      const channel = supabase
-        .channel(`ticket_chat_admin_${ticket.id}`)
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'ticket_messages',
-            filter: `ticket_id=eq.${ticket.id}`,
-          },
-          handleNewMessagePayload,
-        )
-        .subscribe();
-
-      return () => {
-        if (scrollTimerRef.current) clearTimeout(scrollTimerRef.current);
-        channel.unsubscribe();
-        supabase.removeChannel(channel);
-      };
-    }
-  }, [ticket, fetchMessages, handleNewMessagePayload]);
-
-  const sendingRef = useRef(false);
-
-  const handleSendMessage = async (e: React.SyntheticEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!newMessage.trim() || !user || sendingRef.current) return;
-
-    sendingRef.current = true;
-    setSending(true);
-    try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      const headers = {
-        'Content-Type': 'application/json',
-        ...getAuthHeaders(session?.access_token || null),
-      };
-
-      const res = await fetch(`${API_URL}/tickets/${ticket.id}/messages`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          user_id: user.id,
-          message: newMessage,
-          is_staff: true,
-        }),
-      });
-      if (res.ok) {
-        setNewMessage('');
-        fetchMessages();
-      }
-    } catch (error) {
-      console.error('Error sending message:', error);
-    } finally {
-      sendingRef.current = false;
-      setSending(false);
-    }
-  };
+  const { messages, newMessage, setNewMessage, sending, scrollRef, handleSendMessage } =
+    useTicketChat(ticket, user, mockMessages);
 
   const handleAction = async (action: string) => {
     if (action === 'ban') {
@@ -208,7 +97,28 @@ export default function TicketDetailModal({
   };
 
   return createPortal(
-    <div className="modal-overlay">
+    <dialog
+      open
+      aria-labelledby="ticket-modal-title"
+      className="modal-overlay"
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 1000,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        border: 'none',
+        margin: 0,
+        padding: 0,
+        width: '100vw',
+        height: '100vh',
+        maxWidth: 'none',
+        maxHeight: 'none',
+        background: 'rgba(0,0,0,0.7)',
+        backdropFilter: 'blur(10px)',
+      }}
+    >
       {showBanModal && (
         <BanUserModal
           ticket={ticket}
@@ -225,13 +135,7 @@ export default function TicketDetailModal({
       )}
 
       {!showBanModal && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="ticket-modal-title"
-          className="modal-content"
-          style={{ maxHeight: '85vh', height: '85vh' }}
-        >
+        <div className="modal-content" style={{ maxHeight: '85vh', height: '85vh' }}>
           {/* Header Modal */}
           <div
             style={{
@@ -279,167 +183,17 @@ export default function TicketDetailModal({
           </div>
 
           {/* Chat Body (Scrollable) */}
-          <div
-            style={{
-              flex: 1,
-              overflowY: 'auto',
-              padding: '1.5rem',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '1rem',
-              background: '#181818',
-            }}
-          >
-            {/* Mensaje original del usuario (Descripción) */}
-            <div className="msg-bubble user">
-              <div className="msg-header">
-                {t('admin.tickets.detail.original_desc', 'Descripción Original')}
-              </div>
-              <div style={{ whiteSpace: 'pre-wrap' }}>
-                {ticket.description || t('admin.tickets.detail.no_desc', 'Sin descripción')}
-              </div>
-            </div>
-
-            <div style={{ height: '1px', background: '#333', margin: '1rem 0' }}></div>
-
-            {messages.length === 0 && (
-              <div style={{ textAlign: 'center', color: '#555', padding: '2rem' }}>
-                {t('admin.tickets.detail.no_history', 'No hay historial de chat')}
-              </div>
-            )}
-
-            {messages.map((msg) => (
-              <div key={msg.id} className={`msg-bubble ${msg.is_staff ? 'staff' : 'user'}`}>
-                <div className="msg-header">
-                  {msg.is_staff
-                    ? t('admin.tickets.staff_label', 'STAFF')
-                    : t('admin.tickets.table.user', 'USUARIO').toUpperCase()}{' '}
-                  •{' '}
-                  {new Date(msg.created_at).toLocaleTimeString([], {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
-                </div>
-                <div>{msg.message}</div>
-              </div>
-            ))}
-
-            {/* Referencia invisible para el scroll */}
-            <div ref={scrollRef}></div>
-          </div>
+          <TicketChatBody ticket={ticket} messages={messages} scrollRef={scrollRef} />
 
           {/* Footer Actions & Reply */}
-          <div
-            style={{
-              padding: '1.5rem',
-              borderTop: '1px solid #333',
-              background: '#222',
-              borderBottomLeftRadius: 'var(--radius)',
-              borderBottomRightRadius: 'var(--radius)',
-            }}
-          >
-            {ticket.status !== 'closed' ? (
-              <form
-                onSubmit={handleSendMessage}
-                style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}
-              >
-                <input
-                  aria-label={t(
-                    'admin.tickets.detail.reply_placeholder',
-                    'Escribe una respuesta...',
-                  )}
-                  className="admin-input"
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  placeholder={t(
-                    'admin.tickets.detail.reply_placeholder',
-                    'Escribe una respuesta...',
-                  )}
-                  style={{ flex: 1, marginBottom: 0 }}
-                />
-                <button
-                  aria-label={t('admin.tickets.detail.send_reply', 'Enviar respuesta')}
-                  aria-busy={sending}
-                  type="submit"
-                  className="btn-primary"
-                  disabled={sending}
-                  style={{ padding: '0 1.5rem' }}
-                >
-                  {sending ? (
-                    <Loader2 className="animate-spin" aria-hidden="true" />
-                  ) : (
-                    <Send aria-hidden="true" />
-                  )}
-                </button>
-              </form>
-            ) : (
-              <div
-                style={{
-                  padding: '1rem',
-                  background: '#2a1a1a',
-                  color: '#888',
-                  textAlign: 'center',
-                  borderRadius: '8px',
-                  marginBottom: '1.5rem',
-                  border: '1px solid #442222',
-                }}
-              >
-                <Lock style={{ marginRight: '0.5rem', width: '0.8rem' }} />{' '}
-                {t(
-                  'admin.tickets.detail.closed_msg',
-                  'Este ticket ha sido cerrado y no se pueden enviar más mensajes.',
-                )}
-              </div>
-            )}
-
-            <div
-              style={{
-                display: 'flex',
-                gap: '0.8rem',
-                justifyContent: 'flex-end',
-                flexWrap: 'wrap',
-              }}
-            >
-              <button type="button" onClick={() => handleAction('ban')} className="btn-action ban">
-                {t('admin.tickets.actions.ban', 'Banear')}
-              </button>
-              {ticket.status !== 'resolved' && ticket.status !== 'closed' && (
-                <button
-                  type="button"
-                  onClick={() => handleAction('resolve')}
-                  className="btn-action resolve"
-                >
-                  {t('admin.tickets.actions.resolve', 'Resolver')}
-                </button>
-              )}
-              {ticket.status !== 'closed' ? (
-                <button
-                  type="button"
-                  onClick={() => handleAction('close')}
-                  className="btn-action close"
-                >
-                  {t('admin.tickets.actions.close', 'Cerrar')}
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => handleAction('open')}
-                  className="btn-action"
-                  style={{ background: '#555' }}
-                >
-                  {t('admin.tickets.actions.reopen', 'Reabrir')}
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={() => handleAction('delete')}
-                className="btn-action delete"
-                style={{ marginLeft: 'auto' }}
-              >
-                {t('admin.tickets.actions.delete', 'Eliminar')}
-              </button>
-            </div>
-          </div>
+          <TicketFooterActions
+            ticket={ticket}
+            newMessage={newMessage}
+            setNewMessage={setNewMessage}
+            sending={sending}
+            onSendMessage={handleSendMessage}
+            onAction={handleAction}
+          />
         </div>
       )}
       {alert && (
@@ -455,7 +209,7 @@ export default function TicketDetailModal({
           onCancel={() => setConfirmAction(null)}
         />
       )}
-    </div>,
+    </dialog>,
     document.body,
   );
 }

@@ -1,0 +1,229 @@
+import React from 'react';
+import { Clock } from 'lucide-react';
+import MinecraftAvatar from '../../UI/MinecraftAvatar';
+import type { StaffMember } from './StaffActivity';
+
+interface StaffMemberRowProps {
+  staff: StaffMember;
+  now: number | null;
+}
+
+const DiscordIcon = ({ size = 16, color = 'currentColor' }: { size?: number; color?: string }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    fill={color}
+    viewBox="0 0 16 16"
+  >
+    <path d="M13.545 2.907a13.227 13.227 0 0 0-3.257-1.011.05.05 0 0 0-.052.025c-.141.25-.297.577-.406.833a12.19 12.19 0 0 0-3.653 0 2.039 2.039 0 0 0-.417-.833.051.051 0 0 0-.052-.025c-1.125.194-2.209.534-3.257 1.011a.041.041 0 0 0-.021.018C.356 6.024-.213 9.047.066 12.032c.001.014.01.028.021.037a13.276 13.276 0 0 0 3.995 2.02.05.05 0 0 0 .056-.019c.308-.42.582-.863.818-1.329a.05.05 0 0 0-.01-.059.051.051 0 0 0-.018-.011 8.875 8.875 0 0 1-1.248-.595.05.05 0 0 1-.02-.066.051.051 0 0 1 .015-.019c.084-.063.168-.129.248-.195a.05.05 0 0 1 .051-.007c2.619 1.196 5.454 1.196 8.041 0a.052.052 0 0 1 .053.007c.08.066.164.132.248.195a.051.051 0 0 1-.004.085 8.254 8.254 0 0 1-1.249.594.05.05 0 0 0-.03.03.05.05 0 0 0 .003.041c.24.465.515.909.817 1.329a.05.05 0 0 0 .056.019 13.235 13.235 0 0 0 4.001-2.02.049.049 0 0 0 .021-.037c.334-3.451-.559-6.449-2.366-9.106a.034.034 0 0 0-.02-.019Zm-8.198 7.307c-.789 0-1.438-.724-1.438-1.612 0-.889.637-1.613 1.438-1.613.807 0 1.45.73 1.438 1.613 0 .888-.637 1.612-1.438 1.612Zm5.316 0c-.788 0-1.438-.724-1.438-1.612 0-.889.637-1.613 1.438-1.613.807 0 1.451.73 1.438 1.613 0 .888-.631 1.612-1.438 1.612Z" />
+  </svg>
+);
+
+const getRoleImage = (role: string) => {
+  const r = role.toLowerCase();
+  if (r.includes('developer')) return '/ranks/developer.png';
+  if (r.includes('killuwu')) return '/ranks/rank-killu.png';
+  if (r.includes('neroferno')) return '/ranks/rank-neroferno.png';
+  if (r.includes('founder') || r.includes('fundador')) return '/ranks/rank-fundador.png';
+  if (r.includes('admin')) return '/ranks/admin.png';
+  if (r.includes('mod')) return '/ranks/moderator.png';
+  if (r.includes('helper')) return '/ranks/helper.png';
+  if (r.includes('staff')) return '/ranks/staff.png';
+  return null;
+};
+
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case 'online':
+      return '#22c55e';
+    case 'dnd':
+      return '#ef4444';
+    case 'idle':
+      return '#eab308';
+    default:
+      return '#52525b';
+  }
+};
+
+export const StaffMemberRow: React.FC<Readonly<StaffMemberRowProps>> = ({ staff, now }) => {
+  const discordColor = getStatusColor(staff.discord_status);
+
+  return (
+    <div
+      className="hover-lift"
+      style={{
+        display: 'grid',
+        gridTemplateColumns: 'auto 1fr auto',
+        gap: '1rem',
+        background: 'rgba(255,255,255,0.02)',
+        padding: '0.8rem',
+        borderRadius: '16px',
+        border: '1px solid rgba(255,255,255,0.03)',
+        transition: 'color 0.2s, background-color 0.2s, border-color 0.2s, opacity 0.2s',
+        alignItems: 'center',
+        cursor: 'default',
+      }}
+    >
+      <div style={{ position: 'relative' }}>
+        <MinecraftAvatar
+          src={staff.avatar}
+          alt={staff.username}
+          size={64}
+          style={{
+            width: '40px',
+            height: '40px',
+            borderRadius: '12px',
+            boxShadow: '0 4px 10px rgba(0,0,0,0.3)',
+            display: 'block',
+          }}
+        />
+
+        {/* Status stack logic */}
+        <div
+          style={{
+            position: 'absolute',
+            bottom: -4,
+            right: -4,
+            display: 'flex',
+            flexDirection: 'column-reverse',
+            gap: '2px',
+            zIndex: 10,
+          }}
+        >
+          {staff.mc_status === 'online' && (
+            <div
+              title="Jugando en Minecraft"
+              style={{
+                width: '16px',
+                height: '16px',
+                borderRadius: '50%',
+                background: '#18181b',
+                border: '2px solid #18181b',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 2px 5px rgba(0,0,0,0.5)',
+              }}
+            >
+              <img
+                src="/images/ui/minecraft_logo_icon_168974.png"
+                alt="MC"
+                style={{ width: '10px', height: '10px' }}
+              />
+            </div>
+          )}
+
+          <div
+            title={`Discord: ${staff.discord_status}`}
+            style={{
+              width: '16px',
+              height: '16px',
+              borderRadius: '50%',
+              background: '#18181b',
+              border: `2px solid ${discordColor}`,
+              boxShadow: '0 2px 5px rgba(0,0,0,0.5)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <DiscordIcon size={8} color="#fff" />
+          </div>
+        </div>
+      </div>
+      <div style={{ minWidth: 0 }}>
+        <div
+          style={{
+            fontWeight: '800',
+            fontSize: '0.9rem',
+            color: '#fff',
+            letterSpacing: '0.3px',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}
+        >
+          {staff.username}
+        </div>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            marginTop: '4px',
+          }}
+        >
+          {getRoleImage(staff.role) || staff.role_image ? (
+            <img
+              src={getRoleImage(staff.role) || staff.role_image}
+              alt={staff.role}
+              style={{
+                height: '14px',
+                width: 'auto',
+                maxWidth: '100%',
+                filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))',
+              }}
+            />
+          ) : (
+            <span
+              style={{
+                fontSize: '0.65rem',
+                background: 'rgba(255,255,255,0.08)',
+                padding: '2px 6px',
+                borderRadius: '4px',
+                color: 'rgba(255,255,255,0.7)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px',
+                fontWeight: '700',
+              }}
+            >
+              {staff.role}
+            </span>
+          )}
+        </div>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+        <div
+          style={{
+            fontSize: '0.75rem',
+            color: discordColor,
+            textAlign: 'right',
+            fontWeight: 800,
+            textShadow: `0 0 10px ${discordColor}40`,
+          }}
+        >
+          {staff.mc_status !== 'online' ? (
+            <small>
+              {staff.discord_status === 'dnd' ? 'NO MOLESTAR' : staff.discord_status.toUpperCase()}
+            </small>
+          ) : (
+            <small style={{ color: '#4ade80' }}>JUGANDO</small>
+          )}
+        </div>
+        {staff.login_time && staff.mc_status === 'online' && (
+          <div
+            style={{
+              fontSize: '0.7rem',
+              color: 'rgba(255,255,255,0.3)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              marginTop: '2px',
+            }}
+          >
+            <Clock size={10} />
+            {now !== null &&
+              (() => {
+                const loginTime = new Date(staff.login_time).getTime();
+                const diff = Math.max(0, now - loginTime);
+                const hours = Math.floor(diff / 3600000);
+                const mins = Math.floor((diff % 3600000) / 60000);
+                return `${hours}h ${mins}m`;
+              })()}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};

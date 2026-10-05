@@ -1,10 +1,7 @@
 import { Calendar, dateFnsLocalizer, View, ToolbarProps } from 'react-big-calendar';
 import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
-import format from 'date-fns/format';
-import parse from 'date-fns/parse';
-import startOfWeek from 'date-fns/startOfWeek';
-import getDay from 'date-fns/getDay';
+import { format, parse, startOfWeek, getDay } from 'date-fns';
 import { enUS, es } from 'date-fns/locale';
 import { KanbanTask } from '@crystaltides/shared';
 import 'react-big-calendar/lib/css/react-big-calendar.css';

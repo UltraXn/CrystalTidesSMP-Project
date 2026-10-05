@@ -9,9 +9,15 @@ interface CustomAlertProps {
 
 const colors: Record<string, string> = { error: '#ef4444', success: '#10b981', warning: '#facc15' };
 
-export function CustomAlert({ message, type = 'error', onClose }: CustomAlertProps) {
+const ICONS = {
+  error: AlertCircle,
+  success: CheckCircle,
+  warning: AlertTriangle,
+} as const;
+
+export function CustomAlert({ message, type = 'error', onClose }: Readonly<CustomAlertProps>) {
   const { t } = useTranslation();
-  const Icon = type === 'error' ? AlertCircle : type === 'success' ? CheckCircle : AlertTriangle;
+  const Icon = ICONS[type] ?? AlertTriangle;
 
   const titles: Record<string, string> = {
     error: t('admin.alerts.error_title', 'Error'),
@@ -122,7 +128,7 @@ const PRIORITY_COLORS: Record<string, string> = {
   urgent: '#ef4444',
 };
 
-export function PriorityBadge({ priority }: { priority: string }) {
+export function PriorityBadge({ priority }: Readonly<{ priority: string }>) {
   const { t } = useTranslation();
   const labels: Record<string, string> = {
     low: t('admin.tickets.priority.low', 'Baja'),
@@ -144,7 +150,7 @@ export function PriorityBadge({ priority }: { priority: string }) {
   );
 }
 
-export function StatusBadge({ status }: { status: string }) {
+export function StatusBadge({ status }: Readonly<{ status: string }>) {
   const { t } = useTranslation();
   let color = '#aaa';
   if (status === 'open') color = '#3b82f6';
