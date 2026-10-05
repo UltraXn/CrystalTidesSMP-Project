@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { WikiArticle } from '../../services/wikiService';
 

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router';
 import {
   Search,
   ChevronDown,
@@ -152,7 +152,7 @@ export default function WikiTreeSidebar({
       {/* Wiki Header in Sidebar */}
       <div className="flex items-center justify-between border-b border-neutral-800 pb-3">
         <Link to="/wiki" className="group flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-neutral-700 bg-neutral-800 text-neutral-300 transition-colors group-hover:border-neutral-500 group-hover:text-white">
+          <div className="flex size-8 items-center justify-center rounded-lg border border-neutral-700 bg-neutral-800 text-neutral-300 transition-colors group-hover:border-neutral-500 group-hover:text-white">
             <BookOpen size={16} aria-hidden="true" />
           </div>
           <div>
@@ -219,7 +219,7 @@ export default function WikiTreeSidebar({
                     <span className="text-[11px] uppercase tracking-wider">{group.title}</span>
                   </div>
                   <div className="flex items-center gap-1.5 text-neutral-500">
-                    <span className="py-0.2 rounded bg-neutral-900 px-1.5 font-mono text-[10px] font-semibold tabular-nums">
+                    <span className="py-0.2 rounded-sm bg-neutral-900 px-1.5 font-mono text-[10px] font-semibold tabular-nums">
                       {group.articles.length}
                     </span>
                     {isCollapsed ? (
@@ -277,7 +277,7 @@ export default function WikiTreeSidebar({
 
                           {is3D && (
                             <span
-                              className={`py-0.2 ml-1.5 flex shrink-0 items-center gap-1 rounded border px-1.5 font-mono text-[9px] font-bold ${
+                              className={`py-0.2 ml-1.5 flex shrink-0 items-center gap-1 rounded-sm border px-1.5 font-mono text-[9px] font-bold ${
                                 isActive
                                   ? activeTagClasses
                                   : 'border-neutral-800 bg-neutral-950/60 text-neutral-500 group-hover:text-neutral-300'
