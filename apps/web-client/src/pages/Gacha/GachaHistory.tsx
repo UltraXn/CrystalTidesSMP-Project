@@ -45,6 +45,76 @@ export const GachaHistory: React.FC<Readonly<GachaHistoryProps>> = ({
 }) => {
   const { t } = useTranslation();
 
+  const renderHistoryContent = () => {
+    if (loading) {
+      return (
+        <output aria-live="polite" className="history-loader block">
+          <div className="spinner" style={{ borderTopColor: tierColor }}></div>
+          <p>Cargando historial...</p>
+        </output>
+      );
+    }
+
+    if (history.length === 0) {
+      return (
+        <output aria-live="polite" className="history-empty block">
+          <Trash2 size={48} opacity={0.2} aria-hidden="true" />
+          <p>No tienes premios registrados aún.</p>
+          <span>¡Prueba suerte en la máquina!</span>
+        </output>
+      );
+    }
+
+    return (
+      <div className="history-list custom-scrollbar">
+        {history.map((item) => {
+          const Icon = RARITY_ICONS[item.rarity] || Star;
+          const color = RARITY_COLORS[item.rarity] || '#fff';
+          const activeImg = item.image_url || getFailsafeImg(item.reward_name);
+
+          return (
+            <div
+              key={item.id}
+              className="history-card"
+              style={
+                {
+                  '--rarity-indicator-color': color,
+                } as React.CSSProperties
+              }
+            >
+              <div className="card-rarity-indicator"></div>
+              <div className="card-icon">
+                {activeImg ? (
+                  <img
+                    src={activeImg}
+                    alt={item.reward_name}
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      objectFit: 'contain',
+                      imageRendering: 'pixelated',
+                    }}
+                  />
+                ) : (
+                  <Icon size={24} style={{ color }} />
+                )}
+              </div>
+              <div className="card-info">
+                <span className="reward-name">{item.reward_name}</span>
+                <div className="reward-meta">
+                  <span className="rarity-tag" style={{ color }}>
+                    {item.rarity?.toUpperCase()}
+                  </span>
+                  <span className="time-tag">{formatTime(item.created_at || item.roll_time)}</span>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
   return (
     <div
       className={`gacha-history-overlay ${isOpen ? 'active' : ''}`}
@@ -70,8 +140,7 @@ export const GachaHistory: React.FC<Readonly<GachaHistoryProps>> = ({
         />
       )}
       <div
-        role="dialog"
-        aria-modal="true"
+        role="region"
         aria-label={t('gacha.history_title', 'Historial de Premios')}
         className="gacha-history-drawer"
       >
@@ -112,72 +181,7 @@ export const GachaHistory: React.FC<Readonly<GachaHistoryProps>> = ({
           </button>
         </div>
 
-        <div className="history-content">
-          {loading ? (
-            <output aria-live="polite" className="history-loader block">
-              <div className="spinner" style={{ borderTopColor: tierColor }}></div>
-              <p>Cargando historial...</p>
-            </output>
-          ) : history.length === 0 ? (
-            <output aria-live="polite" className="history-empty block">
-              <Trash2 size={48} opacity={0.2} aria-hidden="true" />
-              <p>No tienes premios registrados aún.</p>
-              <span>¡Prueba suerte en la máquina!</span>
-            </output>
-          ) : (
-            <div className="history-list custom-scrollbar">
-              {history.map((item) => {
-                const Icon = RARITY_ICONS[item.rarity] || Star;
-                const color = RARITY_COLORS[item.rarity] || '#fff';
-
-                // item.image_url comes if we mapped it in the results,
-                // but history usually comes from raw DB so we use failsafe
-                const activeImg = item.image_url || getFailsafeImg(item.reward_name);
-
-                return (
-                  <div
-                    key={item.id}
-                    className="history-card"
-                    style={
-                      {
-                        '--rarity-indicator-color': color,
-                      } as React.CSSProperties
-                    }
-                  >
-                    <div className="card-rarity-indicator"></div>
-                    <div className="card-icon">
-                      {activeImg ? (
-                        <img
-                          src={activeImg}
-                          alt={item.reward_name}
-                          style={{
-                            width: '32px',
-                            height: '32px',
-                            objectFit: 'contain',
-                            imageRendering: 'pixelated',
-                          }}
-                        />
-                      ) : (
-                        <Icon size={24} style={{ color }} />
-                      )}
-                    </div>
-                    <div className="card-info">
-                      <span className="reward-name">{item.reward_name}</span>
-                      <div className="reward-meta">
-                        <span className="rarity-tag" style={{ color }}>
-                          {item.rarity?.toUpperCase()}
-                        </span>
-                        <span className="time-tag">
-                          {formatTime(item.created_at || item.roll_time)}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+        <div className="history-content">{renderHistoryContent()}</div>
 
         <div className="history-footer">
           <p>Se muestran los últimos 20 premios</p>

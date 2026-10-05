@@ -1,6 +1,12 @@
 import React from 'react';
 import { Star } from 'lucide-react';
-import { GachaReward, MappedGachaResult, GachaTier } from './types';
+import {
+  GachaReward,
+  MappedGachaResult,
+  GachaTier,
+  TIER_CLASS_MAP,
+  RARITY_CLASS_MAP,
+} from './types';
 import { isLossReward, resolveRewardImage } from './gachaDisplayUtils';
 
 interface GachaMachineProps {
@@ -21,12 +27,13 @@ export const GachaMachine: React.FC<Readonly<GachaMachineProps>> = ({
   RARITY_ICONS,
   selectedTier,
 }) => {
+  const tierClass = TIER_CLASS_MAP[selectedTier.id] || 'tier-1';
+
   return (
-    <div
+    <section
       id="gacha_machine_card"
-      role="region"
       aria-label={`Máquina tragamonedas ${selectedTier.name}`}
-      className={`slot-machine-wrapper ${isOpening ? 'is-opening' : ''} tier-${selectedTier.id}`}
+      className={`slot-machine-wrapper ${isOpening ? 'is-opening' : ''} ${tierClass}`}
       style={{ '--tier-color': selectedTier.color } as React.CSSProperties}
     >
       <div className="slot-machine-frame">
@@ -56,10 +63,13 @@ export const GachaMachine: React.FC<Readonly<GachaMachineProps>> = ({
                           resolveRewardImage(item.name, item.image_url) ||
                           (loss ? '/images/items/Barrier_(held)_JE2_BE2.png' : null);
                         const Icon = RARITY_ICONS[item.rarity] || Star;
+                        const rarityClass = RARITY_CLASS_MAP[item.rarity] || 'rarity-common';
                         return (
                           <div
                             key={item.id}
-                            className={`slot-item rarity-${item.rarity}${loss ? 'is-loss' : ''}`}
+                            className={['slot-item', rarityClass, loss ? 'is-loss' : '']
+                              .filter(Boolean)
+                              .join(' ')}
                           >
                             <div
                               className="item-icon-wrapper"
@@ -95,6 +105,6 @@ export const GachaMachine: React.FC<Readonly<GachaMachineProps>> = ({
           ))}
         </div>
       </div>
-    </div>
+    </section>
   );
 };

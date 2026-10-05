@@ -9,6 +9,9 @@ export type GachaCabinetTier =
   | 'iridium'
   | 'ultra';
 
+const RAINBOW_BELT = 'rainbow-belt';
+const MARQUEE_UNDERLINE = 'marquee-underline';
+
 interface CabinetPalette {
   body: string;
   bodyDark: string;
@@ -102,10 +105,7 @@ const PALETTES: Record<GachaCabinetTier, CabinetPalette> = {
   },
 };
 
-const mat = (
-  color: string,
-  opts: Partial<THREE.MeshStandardMaterialParameters> = {}
-) =>
+const mat = (color: string, opts: Partial<THREE.MeshStandardMaterialParameters> = {}) =>
   new THREE.MeshStandardMaterial({
     color,
     roughness: 0.7,
@@ -122,7 +122,7 @@ const box = (
   x = 0,
   y = 0,
   z = 0,
-  name?: string
+  name?: string,
 ) => {
   const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material);
   mesh.position.set(x, y, z);
@@ -149,7 +149,14 @@ function metalBand(palette: CabinetPalette, vertical = false): THREE.MeshStandar
   return mat('#ffffff', { map, metalness: 0.45, roughness: 0.35 });
 }
 
-function addCoinBadge(root: THREE.Group, palette: CabinetPalette, x: number, y: number, z: number, size = 0.55) {
+function addCoinBadge(
+  root: THREE.Group,
+  palette: CabinetPalette,
+  x: number,
+  y: number,
+  z: number,
+  size = 0.55,
+) {
   const loader = new THREE.TextureLoader();
   const placeholder = mat(palette.accent, {
     emissive: palette.accent,
@@ -174,7 +181,7 @@ function addCoinBadge(root: THREE.Group, palette: CabinetPalette, x: number, y: 
     undefined,
     () => {
       /* keep placeholder */
-    }
+    },
   );
 }
 
@@ -186,7 +193,7 @@ function addShadow(root: THREE.Group, radius = 1.4) {
       transparent: true,
       opacity: 0.35,
       depthWrite: false,
-    })
+    }),
   );
   shadow.rotation.x = -Math.PI / 2;
   shadow.position.y = 0.02;
@@ -198,7 +205,7 @@ function addControls(
   palette: CabinetPalette,
   y: number,
   z: number,
-  opts: { joyX?: number; wide?: boolean } = {}
+  opts: { joyX?: number; wide?: boolean } = {},
 ) {
   const joyX = opts.joyX ?? -0.55;
   const btnMat = mat(palette.button, {
@@ -228,7 +235,7 @@ function buildBronze(p: CabinetPalette): THREE.Group {
 
   root.add(box(2.2, 0.2, 1.5, dark, 0, 0.1, 0));
   root.add(box(2.0, 1.6, 1.35, body, 0, 1.0, 0));
-  root.add(box(2.05, 0.18, 1.4, trim, 0, 1.85, 0, 'rainbow-belt'));
+  root.add(box(2.05, 0.18, 1.4, trim, 0, 1.85, 0, RAINBOW_BELT));
   root.add(box(0.55, 0.45, 0.08, panel, 0, 0.9, 0.7));
   root.add(box(0.18, 0.08, 0.05, frame, 0, 1.0, 0.76, 'coin-slot'));
 
@@ -245,7 +252,7 @@ function buildBronze(p: CabinetPalette): THREE.Group {
 
   root.add(box(2.15, 0.55, 0.7, dark, 0, 4.15, 0.1));
   root.add(box(1.9, 0.35, 0.1, panel, 0, 4.18, 0.45, 'marquee'));
-  root.add(box(1.7, 0.08, 0.08, trim, 0, 3.95, 0.48, 'marquee-underline'));
+  root.add(box(1.7, 0.08, 0.08, trim, 0, 3.95, 0.48, MARQUEE_UNDERLINE));
   addCoinBadge(root, p, 0, 4.18, 0.52, 0.5);
   addShadow(root);
   root.position.set(0, -2.15, 0);
@@ -298,13 +305,24 @@ function buildGold(p: CabinetPalette): THREE.Group {
   // Wider stubby body
   root.add(box(2.8, 0.22, 1.7, dark, 0, 0.11, 0));
   root.add(box(2.6, 1.35, 1.5, body, 0, 0.9, 0));
-  root.add(box(2.7, 0.16, 1.55, trim, 0, 1.6, 0, 'rainbow-belt'));
+  root.add(box(2.7, 0.16, 1.55, trim, 0, 1.6, 0, RAINBOW_BELT));
   root.add(box(0.7, 0.5, 0.08, panel, 0, 0.85, 0.78));
 
   // Big control shelf
   root.add(box(2.7, 0.18, 1.2, panel, 0, 1.85, 0.55));
   addControls(root, p, 2.05, 0.9, { joyX: -0.85, wide: true });
-  root.add(box(0.18, 0.1, 0.18, mat(p.button, { emissive: p.accent, emissiveIntensity: 0.3 }), 0.75, 2.05, 0.9, 'btn-3'));
+  root.add(
+    box(
+      0.18,
+      0.1,
+      0.18,
+      mat(p.button, { emissive: p.accent, emissiveIntensity: 0.3 }),
+      0.75,
+      2.05,
+      0.9,
+      'btn-3',
+    ),
+  );
 
   // Screen housing sits further back
   root.add(box(2.4, 1.9, 1.0, body, 0, 3.0, -0.35));
@@ -316,7 +334,7 @@ function buildGold(p: CabinetPalette): THREE.Group {
   // Big marquee
   root.add(box(2.7, 0.65, 0.8, dark, 0, 4.15, -0.15));
   root.add(box(2.4, 0.4, 0.1, panel, 0, 4.2, 0.28, 'marquee'));
-  root.add(box(2.2, 0.1, 0.08, trim, 0, 3.92, 0.3, 'marquee-underline'));
+  root.add(box(2.2, 0.1, 0.08, trim, 0, 3.92, 0.3, MARQUEE_UNDERLINE));
   addCoinBadge(root, p, 0, 4.2, 0.38, 0.62);
   addShadow(root, 1.6);
   root.position.set(0, -2.15, 0);
@@ -338,7 +356,7 @@ function buildEmerald(p: CabinetPalette): THREE.Group {
   root.add(box(0.12, 2.2, 0.12, trim, -0.95, 1.4, 0.45, 'led-left'));
   root.add(box(0.12, 2.2, 0.12, trim, 0.95, 1.4, 0.45, 'led-right'));
   // Hazard stripes strip
-  root.add(box(1.75, 0.2, 1.25, trim, 0, 2.0, 0, 'rainbow-belt'));
+  root.add(box(1.75, 0.2, 1.25, trim, 0, 2.0, 0, RAINBOW_BELT));
 
   const deck = box(1.8, 0.14, 0.9, panel, 0, 2.65, 0.5);
   deck.rotation.x = -0.4;
@@ -391,7 +409,7 @@ function buildDiamond(p: CabinetPalette): THREE.Group {
 
   root.add(box(2.15, 0.5, 0.7, dark, 0, 4.05, -0.15));
   root.add(box(1.85, 0.28, 0.1, panel, 0, 4.08, 0.25, 'marquee'));
-  root.add(box(1.7, 0.08, 0.08, trim, 0, 3.88, 0.28, 'marquee-underline'));
+  root.add(box(1.7, 0.08, 0.08, trim, 0, 3.88, 0.28, MARQUEE_UNDERLINE));
   addCoinBadge(root, p, 0, 4.08, 0.35, 0.5);
   addShadow(root, 1.45);
   root.position.set(0, -2.15, 0);
@@ -412,7 +430,7 @@ function buildIridium(p: CabinetPalette): THREE.Group {
   root.add(box(1.85, 1.5, 1.25, body, 0, 0.95, 0));
   // Neon outline rings
   root.add(box(1.95, 0.1, 1.35, neon, 0, 0.35, 0));
-  root.add(box(1.95, 0.1, 1.35, neon, 0, 1.55, 0, 'rainbow-belt'));
+  root.add(box(1.95, 0.1, 1.35, neon, 0, 1.55, 0, RAINBOW_BELT));
   root.add(box(0.1, 1.3, 0.1, neon, -0.98, 0.95, 0.55, 'led-left'));
   root.add(box(0.1, 1.3, 0.1, neon, 0.98, 0.95, 0.55, 'led-right'));
 
@@ -431,7 +449,7 @@ function buildIridium(p: CabinetPalette): THREE.Group {
 
   root.add(box(2.05, 0.55, 0.65, dark, 0, 4.2, 0.05));
   root.add(box(1.75, 0.32, 0.1, panel, 0, 4.22, 0.4, 'marquee'));
-  root.add(box(1.6, 0.08, 0.08, trim, 0, 3.98, 0.42, 'marquee-underline'));
+  root.add(box(1.6, 0.08, 0.08, trim, 0, 3.98, 0.42, MARQUEE_UNDERLINE));
   addCoinBadge(root, p, 0, 4.22, 0.5, 0.52);
   addShadow(root, 1.25);
   root.position.set(0, -2.2, 0);
@@ -452,13 +470,23 @@ function buildUltra(p: CabinetPalette): THREE.Group {
   root.add(box(2.6, 0.2, 1.7, dark, 0, 0.1, 0));
   root.add(box(2.3, 0.7, 1.5, body, 0, 0.55, 0));
   root.add(box(2.0, 0.9, 1.35, body, 0, 1.35, 0));
-  root.add(box(2.35, 0.14, 1.55, trim, 0, 0.95, 0, 'rainbow-belt'));
+  root.add(box(2.35, 0.14, 1.55, trim, 0, 0.95, 0, RAINBOW_BELT));
 
   const deck = box(2.2, 0.16, 1.1, panel, 0, 2.0, 0.55);
   deck.rotation.x = -0.32;
   root.add(deck);
   addControls(root, p, 2.2, 0.9, { joyX: -0.75, wide: true });
-  root.add(box(0.18, 0.1, 0.18, mat(p.button, { emissive: p.accent, emissiveIntensity: 0.4 }), 0.75, 2.2, 0.9));
+  root.add(
+    box(
+      0.18,
+      0.1,
+      0.18,
+      mat(p.button, { emissive: p.accent, emissiveIntensity: 0.4 }),
+      0.75,
+      2.2,
+      0.9,
+    ),
+  );
 
   // Twin screen look
   root.add(box(2.1, 1.75, 1.1, body, 0, 3.15, -0.05));
@@ -469,7 +497,7 @@ function buildUltra(p: CabinetPalette): THREE.Group {
 
   root.add(box(2.4, 0.7, 0.75, dark, 0, 4.25, 0.05));
   root.add(box(2.1, 0.4, 0.12, panel, 0, 4.3, 0.42, 'marquee'));
-  root.add(box(1.9, 0.1, 0.1, trim, 0, 4.0, 0.45, 'marquee-underline'));
+  root.add(box(1.9, 0.1, 0.1, trim, 0, 4.0, 0.45, MARQUEE_UNDERLINE));
   addCoinBadge(root, p, 0, 4.3, 0.52, 0.58);
   addShadow(root, 1.55);
   root.position.set(0, -2.25, 0);

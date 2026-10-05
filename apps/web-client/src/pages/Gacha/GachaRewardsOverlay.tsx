@@ -1,7 +1,7 @@
 import React from 'react';
 import { Star, Check, Trophy, Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { GachaReward, MappedGachaResult, GachaTier } from './types';
+import { GachaReward, MappedGachaResult, GachaTier, RARITY_CLASS_MAP } from './types';
 import { isLossReward, resolveRewardImage, getGachaFailsafeImage } from './gachaDisplayUtils';
 
 interface GachaRewardsOverlayProps {
@@ -28,16 +28,17 @@ export const GachaRewardsOverlay: React.FC<Readonly<GachaRewardsOverlayProps>> =
     const item = bulkRewards[0];
 
     return (
-      <div
-        role="dialog"
-        aria-modal="true"
+      <dialog
+        open
         aria-labelledby="gacha-reward-title"
         aria-live="polite"
         className="reward-overlay"
       >
         <div className="reward-card">
-          <span className={`reward-rarity rarity-${item.rarity}`}>{item.rarity.toUpperCase()}</span>
-          <div className={`reward-icon rarity-${item.rarity}`}>
+          <span className={`reward-rarity ${RARITY_CLASS_MAP[item.rarity] || 'rarity-common'}`}>
+            {item.rarity.toUpperCase()}
+          </span>
+          <div className={`reward-icon ${RARITY_CLASS_MAP[item.rarity] || 'rarity-common'}`}>
             {(() => {
               const loss = isLossReward(item);
               const activeImg = loss
@@ -84,18 +85,12 @@ export const GachaRewardsOverlay: React.FC<Readonly<GachaRewardsOverlayProps>> =
             <span>ACEPTAR</span>
           </button>
         </div>
-      </div>
+      </dialog>
     );
   }
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="gacha-reward-title"
-      aria-live="polite"
-      className="reward-overlay"
-    >
+    <dialog open aria-labelledby="gacha-reward-title" aria-live="polite" className="reward-overlay">
       <div className="reward-card bulk-reward-card">
         <div className="reward-glow" style={{ background: selectedTier.color }}></div>
         <div className="reward-header">
@@ -121,7 +116,7 @@ export const GachaRewardsOverlay: React.FC<Readonly<GachaRewardsOverlayProps>> =
                   r.id ||
                   `reward-${r.name}-${r.rarity}-${'amount' in r && r.amount ? r.amount : ''}`
                 }
-                className={`bulk-item-row rarity-${r.rarity}`}
+                className={`bulk-item-row ${RARITY_CLASS_MAP[r.rarity] || 'rarity-common'}`}
                 style={{ '--delay': `${index * 0.05}s` } as React.CSSProperties}
               >
                 <div className="bulk-item-icon">
@@ -186,6 +181,6 @@ export const GachaRewardsOverlay: React.FC<Readonly<GachaRewardsOverlayProps>> =
           </button>
         </div>
       </div>
-    </div>
+    </dialog>
   );
 };

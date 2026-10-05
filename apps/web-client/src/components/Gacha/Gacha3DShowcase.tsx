@@ -406,14 +406,14 @@ function extractSampleMaterials(current: THREE.Group): Array<Record<string, unkn
   current.traverse((c) => {
     if (!(c instanceof THREE.Mesh) || sample.length >= 6) return;
     const m = Array.isArray(c.material) ? c.material[0] : c.material;
-    if (!(m instanceof THREE.MeshStandardMaterial)) return;
+    const img = m.map?.image as { width?: number; height?: number } | undefined;
     sample.push({
       mesh: c.name,
       metalness: m.metalness,
       roughness: m.roughness,
       map: Boolean(m.map),
-      mapW: m.map?.image?.width ?? null,
-      mapH: m.map?.image?.height ?? null,
+      mapW: img?.width ?? null,
+      mapH: img?.height ?? null,
       color: `#${m.color.getHexString()}`,
     });
   });
