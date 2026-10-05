@@ -24,6 +24,77 @@ export const NewsPage: React.FC = () => {
     load();
   }, []);
 
+  const renderNewsList = () => {
+    if (isLoading) {
+      return (
+        <>
+          <SkeletonLoader height={120} />
+          <SkeletonLoader height={120} />
+          <SkeletonLoader height={120} />
+        </>
+      );
+    }
+
+    if (posts.length === 0) {
+      return (
+        <output
+          aria-live="polite"
+          style={{
+            display: 'block',
+            textAlign: 'center',
+            color: 'rgba(255,255,255,0.5)',
+            fontSize: 14,
+          }}
+        >
+          No hay noticias disponibles por el momento.
+        </output>
+      );
+    }
+
+    return posts.map((post) => (
+      <CrystalCard key={post.id} style={{ padding: 20 }} enableHoverEffect>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: 12,
+          }}
+        >
+          <span
+            style={{
+              padding: '3px 10px',
+              borderRadius: 6,
+              backgroundColor: 'rgba(94, 234, 212, 0.08)',
+              border: '1px solid var(--border-low)',
+              color: 'var(--accent)',
+              fontSize: 11,
+              fontWeight: 600,
+            }}
+          >
+            {post.category}
+          </span>
+          <span style={{ color: 'rgba(255,255,255,0.45)', fontSize: 12 }}>
+            {formatDate(post.createdAt)}
+          </span>
+        </div>
+        <h3 style={{ margin: '0 0 6px 0', fontSize: 18, fontWeight: 'bold', color: '#FFFFFF' }}>
+          {post.title}
+        </h3>
+        <p
+          style={{
+            margin: 0,
+            color: 'rgba(255,255,255,0.75)',
+            lineHeight: 1.5,
+            fontSize: 14,
+          }}
+        >
+          {post.content}
+        </p>
+      </CrystalCard>
+    ));
+  };
+
   return (
     <div
       style={{
@@ -68,70 +139,7 @@ export const NewsPage: React.FC = () => {
           gap: 16,
         }}
       >
-        {isLoading ? (
-          <>
-            <SkeletonLoader height={120} />
-            <SkeletonLoader height={120} />
-            <SkeletonLoader height={120} />
-          </>
-        ) : posts.length === 0 ? (
-          <output
-            aria-live="polite"
-            style={{
-              display: 'block',
-              textAlign: 'center',
-              color: 'rgba(255,255,255,0.5)',
-              fontSize: 14,
-            }}
-          >
-            No hay noticias disponibles por el momento.
-          </output>
-        ) : (
-          posts.map((post) => (
-            <CrystalCard key={post.id} style={{ padding: 20 }} enableHoverEffect>
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  marginBottom: 12,
-                }}
-              >
-                <span
-                  style={{
-                    padding: '3px 10px',
-                    borderRadius: 6,
-                    backgroundColor: 'rgba(94, 234, 212, 0.08)',
-                    border: '1px solid var(--border-low)',
-                    color: 'var(--accent)',
-                    fontSize: 11,
-                    fontWeight: 600,
-                  }}
-                >
-                  {post.category}
-                </span>
-                <span style={{ color: 'rgba(255,255,255,0.45)', fontSize: 12 }}>
-                  {formatDate(post.createdAt)}
-                </span>
-              </div>
-              <h3
-                style={{ margin: '0 0 6px 0', fontSize: 18, fontWeight: 'bold', color: '#FFFFFF' }}
-              >
-                {post.title}
-              </h3>
-              <p
-                style={{
-                  margin: 0,
-                  color: 'rgba(255,255,255,0.75)',
-                  lineHeight: 1.5,
-                  fontSize: 14,
-                }}
-              >
-                {post.content}
-              </p>
-            </CrystalCard>
-          ))
-        )}
+        {renderNewsList()}
       </div>
     </div>
   );

@@ -368,7 +368,7 @@ const createOfflineFallbackDays = (): RoadmapDay[] => {
   });
 };
 
-function PrestigeBadge({ prestigeLevel }: { prestigeLevel: number }) {
+function PrestigeBadge({ prestigeLevel }: Readonly<{ prestigeLevel: number }>) {
   if (prestigeLevel <= 0) return null;
   const p = getPrestigeInfo(prestigeLevel);
   return (
@@ -392,7 +392,7 @@ function PrestigeBadge({ prestigeLevel }: { prestigeLevel: number }) {
   );
 }
 
-function StreakShieldBadge({ shields }: { shields: number }) {
+function StreakShieldBadge({ shields }: Readonly<{ shields: number }>) {
   const hasShields = shields > 0;
   return (
     <div
@@ -422,7 +422,7 @@ function StreakShieldBadge({ shields }: { shields: number }) {
   );
 }
 
-function StreakFlameBadge({ streak }: { streak: number }) {
+function StreakFlameBadge({ streak }: Readonly<{ streak: number }>) {
   return (
     <div
       style={{
@@ -643,10 +643,10 @@ function WeekTabs({ activeTab, onSelectTab }: Readonly<WeekTabsProps>) {
 function RewardStatusBadge({
   isCompleted,
   isCurrent,
-}: {
+}: Readonly<{
   isCompleted: boolean;
   isCurrent: boolean;
-}) {
+}>) {
   if (isCompleted) {
     return (
       <div

@@ -162,291 +162,121 @@ const DEFAULT_FALLBACK_STATS: Omit<PlayerStatsData, 'username'> = {
   member_since: '14 de Febrero, 2026',
 };
 
+const SPACE_BETWEEN = 'space-between';
+
+const PRESTIGE_TIER_BASE: Record<
+  number,
+  {
+    level: string;
+    tag: string;
+    bonus: string;
+    color: string;
+    border: string;
+    bg: string;
+  }
+> = {
+  1: {
+    level: '⭐ Prestigio I',
+    tag: '[P1]',
+    bonus: '+5% KC Diarios',
+    color: '#F59E0B',
+    border: 'rgba(245,158,11,0.3)',
+    bg: 'rgba(245,158,11,0.1)',
+  },
+  2: {
+    level: '⭐⭐ Prestigio II',
+    tag: '[P2]',
+    bonus: '+10% KC Diarios',
+    color: '#CBD5E1',
+    border: 'rgba(203,213,225,0.3)',
+    bg: 'rgba(203,213,225,0.1)',
+  },
+  3: {
+    level: '⭐⭐⭐ Prestigio III',
+    tag: '[P3]',
+    bonus: '+15% KC',
+    color: '#FACC15',
+    border: 'rgba(250,204,21,0.3)',
+    bg: 'rgba(250,204,21,0.1)',
+  },
+  4: {
+    level: '⭐⭐⭐⭐ Prestigio IV',
+    tag: '[P4]',
+    bonus: '+20% KC',
+    color: '#22D3EE',
+    border: 'rgba(34,211,238,0.3)',
+    bg: 'rgba(34,211,238,0.1)',
+  },
+  5: {
+    level: '💎 Prestigio V',
+    tag: '[P5]',
+    bonus: '+25% KC',
+    color: '#E879F9',
+    border: 'rgba(232,121,249,0.4)',
+    bg: 'rgba(232,121,249,0.15)',
+  },
+};
+
+function createPrestigeMockup(
+  levelNum: 1 | 2 | 3 | 4 | 5,
+  rankName: string,
+  item: string,
+  customBonus?: string,
+): PrestigeMockup {
+  const base = PRESTIGE_TIER_BASE[levelNum];
+  return {
+    levelNum,
+    level: base.level,
+    rankName,
+    bonus: customBonus ?? base.bonus,
+    tag: base.tag,
+    color: base.color,
+    border: base.border,
+    bg: base.bg,
+    item,
+  };
+}
+
 const ARCHETYPE_MOCKUPS: Record<ArchetypeKey, PrestigeMockup[]> = {
   constructor: [
-    {
-      levelNum: 1,
-      level: '⭐ Prestigio I',
-      rankName: 'Iniciado de Piedra',
-      bonus: '+5% KC Diarios',
-      tag: '[P1]',
-      color: '#F59E0B',
-      border: 'rgba(245,158,11,0.3)',
-      bg: 'rgba(245,158,11,0.1)',
-      item: getMcItemUrl('Cobblestone.png'),
-    },
-    {
-      levelNum: 2,
-      level: '⭐⭐ Prestigio II',
-      rankName: 'Constructor Consagrado',
-      bonus: '+10% KC Diarios',
-      tag: '[P2]',
-      color: '#CBD5E1',
-      border: 'rgba(203,213,225,0.3)',
-      bg: 'rgba(203,213,225,0.1)',
-      item: getMcItemUrl('Iron_Pickaxe.png'),
-    },
-    {
-      levelNum: 3,
-      level: '⭐⭐⭐ Prestigio III',
-      rankName: 'Gran Arquitecto',
-      bonus: '+15% KC',
-      tag: '[P3]',
-      color: '#FACC15',
-      border: 'rgba(250,204,21,0.3)',
-      bg: 'rgba(250,204,21,0.1)',
-      item: getMcItemUrl('Golden_Pickaxe.png'),
-    },
-    {
-      levelNum: 4,
-      level: '⭐⭐⭐⭐ Prestigio IV',
-      rankName: 'Maestro Constructor',
-      bonus: '+20% KC',
-      tag: '[P4]',
-      color: '#22D3EE',
-      border: 'rgba(34,211,238,0.3)',
-      bg: 'rgba(34,211,238,0.1)',
-      item: getMcItemUrl('Diamond_Pickaxe.png'),
-    },
-    {
-      levelNum: 5,
-      level: '💎 Prestigio V',
-      rankName: 'Arquitecto Mítico',
-      bonus: '+25% KC + Title',
-      tag: '[P5]',
-      color: '#E879F9',
-      border: 'rgba(232,121,249,0.4)',
-      bg: 'rgba(232,121,249,0.15)',
-      item: getMcItemUrl('Beacon.png'),
-    },
+    createPrestigeMockup(1, 'Iniciado de Piedra', getMcItemUrl('Cobblestone.png')),
+    createPrestigeMockup(2, 'Constructor Consagrado', getMcItemUrl('Iron_Pickaxe.png')),
+    createPrestigeMockup(3, 'Gran Arquitecto', getMcItemUrl('Golden_Pickaxe.png')),
+    createPrestigeMockup(4, 'Maestro Constructor', getMcItemUrl('Diamond_Pickaxe.png')),
+    createPrestigeMockup(5, 'Arquitecto Mítico', getMcItemUrl('Beacon.png'), '+25% KC + Title'),
   ],
   luchador: [
-    {
-      levelNum: 1,
-      level: '⭐ Prestigio I',
-      rankName: 'Guerrero de Bronce',
-      bonus: '+5% KC Diarios',
-      tag: '[P1]',
-      color: '#F59E0B',
-      border: 'rgba(245,158,11,0.3)',
-      bg: 'rgba(245,158,11,0.1)',
-      item: getMcItemUrl('Wooden_Sword.png'),
-    },
-    {
-      levelNum: 2,
-      level: '⭐⭐ Prestigio II',
-      rankName: 'Campeón de Batalla',
-      bonus: '+10% KC Diarios',
-      tag: '[P2]',
-      color: '#CBD5E1',
-      border: 'rgba(203,213,225,0.3)',
-      bg: 'rgba(203,213,225,0.1)',
-      item: getMcItemUrl('Iron_Sword.png'),
-    },
-    {
-      levelNum: 3,
-      level: '⭐⭐⭐ Prestigio III',
-      rankName: 'Señor de Guerra',
-      bonus: '+15% KC',
-      tag: '[P3]',
-      color: '#FACC15',
-      border: 'rgba(250,204,21,0.3)',
-      bg: 'rgba(250,204,21,0.1)',
-      item: getMcItemUrl('Golden_Sword.png'),
-    },
-    {
-      levelNum: 4,
-      level: '⭐⭐⭐⭐ Prestigio IV',
-      rankName: 'Maestro de Armas',
-      bonus: '+20% KC',
-      tag: '[P4]',
-      color: '#22D3EE',
-      border: 'rgba(34,211,238,0.3)',
-      bg: 'rgba(34,211,238,0.1)',
-      item: getMcItemUrl('Diamond_Sword.png'),
-    },
-    {
-      levelNum: 5,
-      level: '💎 Prestigio V',
-      rankName: 'Gladiador Supremo',
-      bonus: '+25% KC + Espadas',
-      tag: '[P5]',
-      color: '#E879F9',
-      border: 'rgba(232,121,249,0.4)',
-      bg: 'rgba(232,121,249,0.15)',
-      item: getMcItemUrl('Mace.png'),
-    },
+    createPrestigeMockup(1, 'Guerrero de Bronce', getMcItemUrl('Wooden_Sword.png')),
+    createPrestigeMockup(2, 'Campeón de Batalla', getMcItemUrl('Iron_Sword.png')),
+    createPrestigeMockup(3, 'Señor de Guerra', getMcItemUrl('Golden_Sword.png')),
+    createPrestigeMockup(4, 'Maestro de Armas', getMcItemUrl('Diamond_Sword.png')),
+    createPrestigeMockup(5, 'Gladiador Supremo', getMcItemUrl('Mace.png'), '+25% KC + Espadas'),
   ],
   mercader: [
-    {
-      levelNum: 1,
-      level: '⭐ Prestigio I',
-      rankName: 'Mercader Próspero',
-      bonus: '+5% KC Diarios',
-      tag: '[P1]',
-      color: '#F59E0B',
-      border: 'rgba(245,158,11,0.3)',
-      bg: 'rgba(245,158,11,0.1)',
-      item: '/images/killucoins/coin_cobre.webp',
-    },
-    {
-      levelNum: 2,
-      level: '⭐⭐ Prestigio II',
-      rankName: 'Comerciante de Élite',
-      bonus: '+10% KC Diarios',
-      tag: '[P2]',
-      color: '#CBD5E1',
-      border: 'rgba(203,213,225,0.3)',
-      bg: 'rgba(203,213,225,0.1)',
-      item: '/images/killucoins/coin_plata.webp',
-    },
-    {
-      levelNum: 3,
-      level: '⭐⭐⭐ Prestigio III',
-      rankName: 'Barón Financiero',
-      bonus: '+15% KC',
-      tag: '[P3]',
-      color: '#FACC15',
-      border: 'rgba(250,204,21,0.3)',
-      bg: 'rgba(250,204,21,0.1)',
-      item: '/images/killucoins/coin_oro.webp',
-    },
-    {
-      levelNum: 4,
-      level: '⭐⭐⭐⭐ Prestigio IV',
-      rankName: 'Gran Maestro Gremial',
-      bonus: '+20% KC',
-      tag: '[P4]',
-      color: '#22D3EE',
-      border: 'rgba(34,211,238,0.3)',
-      bg: 'rgba(34,211,238,0.1)',
-      item: '/images/killucoins/coin_diamante.webp',
-    },
-    {
-      levelNum: 5,
-      level: '💎 Prestigio V',
-      rankName: 'Magnate Legendario',
-      bonus: '+25% KC + Rain',
-      tag: '[P5]',
-      color: '#E879F9',
-      border: 'rgba(232,121,249,0.4)',
-      bg: 'rgba(232,121,249,0.15)',
-      item: '/images/killucoins/coin_iridium.webp',
-    },
+    createPrestigeMockup(1, 'Mercader Próspero', '/images/killucoins/coin_cobre.webp'),
+    createPrestigeMockup(2, 'Comerciante de Élite', '/images/killucoins/coin_plata.webp'),
+    createPrestigeMockup(3, 'Barón Financiero', '/images/killucoins/coin_oro.webp'),
+    createPrestigeMockup(4, 'Gran Maestro Gremial', '/images/killucoins/coin_diamante.webp'),
+    createPrestigeMockup(5, 'Magnate Legendario', '/images/killucoins/coin_iridium.webp'),
   ],
   constancia: [
-    {
-      levelNum: 1,
-      level: '⭐ Prestigio I',
-      rankName: 'Devoto del Servidor',
-      bonus: '+5% KC Diarios',
-      tag: '[P1]',
-      color: '#F59E0B',
-      border: 'rgba(245,158,11,0.3)',
-      bg: 'rgba(245,158,11,0.1)',
-      item: getMcItemUrl('Clock.png'),
-    },
-    {
-      levelNum: 2,
-      level: '⭐⭐ Prestigio II',
-      rankName: 'Pilar Inquebrantable',
-      bonus: '+10% KC Diarios',
-      tag: '[P2]',
-      color: '#CBD5E1',
-      border: 'rgba(203,213,225,0.3)',
-      bg: 'rgba(203,213,225,0.1)',
-      item: getMcItemUrl('Compass.png'),
-    },
-    {
-      levelNum: 3,
-      level: '⭐⭐⭐ Prestigio III',
-      rankName: 'Guardián de Racha',
-      bonus: '+15% KC',
-      tag: '[P3]',
-      color: '#FACC15',
-      border: 'rgba(250,204,21,0.3)',
-      bg: 'rgba(250,204,21,0.1)',
-      item: getMcItemUrl('Bottle_o%27_Enchanting.png'),
-    },
-    {
-      levelNum: 4,
-      level: '⭐⭐⭐⭐ Prestigio IV',
-      rankName: 'Leyenda Inquebrantable',
-      bonus: '+20% KC',
-      tag: '[P4]',
-      color: '#22D3EE',
-      border: 'rgba(34,211,238,0.3)',
-      bg: 'rgba(34,211,238,0.1)',
-      item: getMcItemUrl('Totem_of_Undying.png'),
-    },
-    {
-      levelNum: 5,
-      level: '💎 Prestigio V',
-      rankName: 'Titán Eterno',
-      bonus: '+25% KC + Totem',
-      tag: '[P5]',
-      color: '#E879F9',
-      border: 'rgba(232,121,249,0.4)',
-      bg: 'rgba(232,121,249,0.15)',
-      item: getMcItemUrl('Nether_Star.png'),
-    },
+    createPrestigeMockup(1, 'Devoto del Servidor', getMcItemUrl('Clock.png')),
+    createPrestigeMockup(2, 'Pilar Inquebrantable', getMcItemUrl('Compass.png')),
+    createPrestigeMockup(3, 'Guardián de Racha', getMcItemUrl('Bottle_o%27_Enchanting.png')),
+    createPrestigeMockup(4, 'Leyenda Inquebrantable', getMcItemUrl('Totem_of_Undying.png')),
+    createPrestigeMockup(5, 'Titán Eterno', getMcItemUrl('Nether_Star.png'), '+25% KC + Totem'),
   ],
   explorador: [
-    {
-      levelNum: 1,
-      level: '⭐ Prestigio I',
-      rankName: 'Navegante de Reinos',
-      bonus: '+5% KC Diarios',
-      tag: '[P1]',
-      color: '#F59E0B',
-      border: 'rgba(245,158,11,0.3)',
-      bg: 'rgba(245,158,11,0.1)',
-      item: getMcItemUrl('Leather_Boots_(item)_JE2.png'),
-    },
-    {
-      levelNum: 2,
-      level: '⭐⭐ Prestigio II',
-      rankName: 'Mapeador Ancestral',
-      bonus: '+10% KC Diarios',
-      tag: '[P2]',
-      color: '#CBD5E1',
-      border: 'rgba(203,213,225,0.3)',
-      bg: 'rgba(203,213,225,0.1)',
-      item: getMcItemUrl('Spyglass.png'),
-    },
-    {
-      levelNum: 3,
-      level: '⭐⭐⭐ Prestigio III',
-      rankName: 'Pionero del Horizonte',
-      bonus: '+15% KC',
-      tag: '[P3]',
-      color: '#FACC15',
-      border: 'rgba(250,204,21,0.3)',
-      bg: 'rgba(250,204,21,0.1)',
-      item: getMcItemUrl('Empty_Map.png'),
-    },
-    {
-      levelNum: 4,
-      level: '⭐⭐⭐⭐ Prestigio IV',
-      rankName: 'Explorador Experto',
-      bonus: '+20% KC',
-      tag: '[P4]',
-      color: '#22D3EE',
-      border: 'rgba(34,211,238,0.3)',
-      bg: 'rgba(34,211,238,0.1)',
-      item: getMcItemUrl('Elytra.png'),
-    },
-    {
-      levelNum: 5,
-      level: '💎 Prestigio V',
-      rankName: 'Conquistador de Mundos',
-      bonus: '+25% KC + Trail',
-      tag: '[P5]',
-      color: '#E879F9',
-      border: 'rgba(232,121,249,0.4)',
-      bg: 'rgba(232,121,249,0.15)',
-      item: getMcItemUrl('Recovery_Compass.png'),
-    },
+    createPrestigeMockup(1, 'Navegante de Reinos', getMcItemUrl('Leather_Boots_(item)_JE2.png')),
+    createPrestigeMockup(2, 'Mapeador Ancestral', getMcItemUrl('Spyglass.png')),
+    createPrestigeMockup(3, 'Pionero del Horizonte', getMcItemUrl('Empty_Map.png')),
+    createPrestigeMockup(4, 'Explorador Experto', getMcItemUrl('Elytra.png')),
+    createPrestigeMockup(
+      5,
+      'Conquistador de Mundos',
+      getMcItemUrl('Recovery_Compass.png'),
+      '+25% KC + Trail',
+    ),
   ],
 };
 
@@ -745,13 +575,13 @@ function getActiveTierIndex(track: CareerTrack): number {
   return 0;
 }
 
-function ProfileHeader({ username, rank }: { username: string; rank?: string }) {
+function ProfileHeader({ username, rank }: Readonly<{ username: string; rank?: string }>) {
   return (
     <div
       style={{
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'space-between',
+        justifyContent: SPACE_BETWEEN,
         padding: '14px 18px',
         borderRadius: 16,
         background: UI_COLORS.CARD_BG,
@@ -792,7 +622,7 @@ function ProfileHeader({ username, rank }: { username: string; rank?: string }) 
   );
 }
 
-function RadarGridLevels({ axes }: { axes: PentagonAxis[] }) {
+function RadarGridLevels({ axes }: Readonly<{ axes: PentagonAxis[] }>) {
   return (
     <>
       {[0.2, 0.4, 0.6, 0.8, 1.0].map((scale) => {
@@ -831,7 +661,7 @@ function RadarGridLevels({ axes }: { axes: PentagonAxis[] }) {
   );
 }
 
-function RadarChartSvg({ axes }: { axes: PentagonAxis[] }) {
+function RadarChartSvg({ axes }: Readonly<{ axes: PentagonAxis[] }>) {
   const polygonPoints = axes
     .map((axis, i) => {
       const pt = getRadarCoordinates(i, axis.score);
@@ -895,7 +725,7 @@ function RadarChartSvg({ axes }: { axes: PentagonAxis[] }) {
   );
 }
 
-function RadarValuesGrid({ axes }: { axes: PentagonAxis[] }) {
+function RadarValuesGrid({ axes }: Readonly<{ axes: PentagonAxis[] }>) {
   return (
     <div
       style={{
@@ -957,7 +787,7 @@ function RadarValuesGrid({ axes }: { axes: PentagonAxis[] }) {
   );
 }
 
-function RadarStatsCard({ axes }: { axes: PentagonAxis[] }) {
+function RadarStatsCard({ axes }: Readonly<{ axes: PentagonAxis[] }>) {
   return (
     <div
       style={{
@@ -1090,7 +920,7 @@ function getPillVisuals(isCurrent: boolean, isTop1Tier: boolean | undefined, col
   };
 }
 
-function CareerTrackRow({ track }: { track: CareerTrack }) {
+function CareerTrackRow({ track }: Readonly<{ track: CareerTrack }>) {
   const currentTierIndex = getActiveTierIndex(track);
 
   return (
@@ -1105,7 +935,7 @@ function CareerTrackRow({ track }: { track: CareerTrack }) {
         gap: 10,
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: SPACE_BETWEEN }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <img
             src={track.icon}
@@ -1175,7 +1005,7 @@ function CareerTrackRow({ track }: { track: CareerTrack }) {
   );
 }
 
-function CareerTracksCard({ tracks }: { tracks: CareerTrack[] }) {
+function CareerTracksCard({ tracks }: Readonly<{ tracks: CareerTrack[] }>) {
   return (
     <div
       style={{
@@ -1294,11 +1124,11 @@ function PrestigeTierCard({
   item,
   currentPrestigeLevel,
   isTop1,
-}: {
+}: Readonly<{
   item: PrestigeMockup;
   currentPrestigeLevel: number;
   isTop1: boolean;
-}) {
+}>) {
   const isUnlocked = item.levelNum <= currentPrestigeLevel;
   const isNextTarget = isTop1 && item.levelNum === currentPrestigeLevel + 1;
   const isLocked = !isUnlocked && !isNextTarget;
@@ -1381,11 +1211,11 @@ function PrestigeStatusBanner({
   isTop1,
   currentLevel,
   tabName,
-}: {
+}: Readonly<{
   isTop1: boolean;
   currentLevel: number;
   tabName: string;
-}) {
+}>) {
   const upperTab = tabName.toUpperCase();
   if (!isTop1) {
     return (
@@ -1425,11 +1255,11 @@ function AscendTriggerButton({
   isTop1,
   currentLevel,
   onOpenModal,
-}: {
+}: Readonly<{
   isTop1: boolean;
   currentLevel: number;
   onOpenModal: () => void;
-}) {
+}>) {
   const isDisabled = !isTop1 || currentLevel >= 5;
 
   const buttonStyle = {
@@ -1489,17 +1319,16 @@ function AscendConfirmModal({
   isAscending,
   onClose,
   onConfirm,
-}: {
+}: Readonly<{
   prestigeTab: ArchetypeKey;
   currentLevel: number;
   isAscending: boolean;
   onClose: () => void;
   onConfirm: () => void;
-}) {
+}>) {
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
+    <dialog
+      open
       aria-labelledby="ascend-modal-title"
       style={{
         position: 'fixed',
@@ -1511,6 +1340,12 @@ function AscendConfirmModal({
         alignItems: 'center',
         justifyContent: 'center',
         padding: 16,
+        border: 'none',
+        margin: 0,
+        width: '100vw',
+        height: '100vh',
+        maxWidth: 'none',
+        maxHeight: 'none',
       }}
     >
       <div
@@ -1531,7 +1366,7 @@ function AscendConfirmModal({
           style={{
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
+            justifyContent: SPACE_BETWEEN,
             borderBottom: UI_COLORS.PURPLE_BORDER_FADED,
             paddingBottom: 10,
           }}
@@ -1599,7 +1434,7 @@ function AscendConfirmModal({
           </button>
         </div>
       </div>
-    </div>
+    </dialog>
   );
 }
 
@@ -1709,7 +1544,7 @@ export function PlayerStatsWidget({ username }: Readonly<PlayerStatsWidgetProps>
           style={{
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
+            justifyContent: SPACE_BETWEEN,
             borderBottom: UI_COLORS.PURPLE_BORDER_FADED,
             paddingBottom: 12,
             flexWrap: 'wrap',
@@ -1793,7 +1628,7 @@ export function PlayerStatsWidget({ username }: Readonly<PlayerStatsWidgetProps>
           style={{
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
+            justifyContent: SPACE_BETWEEN,
             paddingTop: 10,
             borderTop: UI_COLORS.PURPLE_BORDER_FADED,
             fontSize: 11,

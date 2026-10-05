@@ -1,22 +1,23 @@
-import { describe, it, expect } from "vitest";
-import { renderWithProviders } from "@/utils/test-utils";
-import { AmbientBubbles } from "@/components/Launcher/AmbientBubbles";
+/* eslint-disable security/detect-unsafe-regex */
+import { describe, it, expect } from 'vitest';
+import { renderWithProviders } from '@/utils/test-utils';
+import { AmbientBubbles } from '@/components/Launcher/AmbientBubbles';
 
-describe("AmbientBubbles Component", () => {
-  it("renders container with 22 animated ambient bubble elements", () => {
+describe('AmbientBubbles Component', () => {
+  it('renders container with 22 animated ambient bubble elements', () => {
     const { container } = renderWithProviders(<AmbientBubbles />);
 
-    const bubbleContainer = container.querySelector(".ambient-bubbles-container");
+    const bubbleContainer = container.querySelector('.ambient-bubbles-container');
     expect(bubbleContainer).toBeInTheDocument();
 
-    const bubbles = container.querySelectorAll(".ambient-bubble");
+    const bubbles = container.querySelectorAll('.ambient-bubble');
     expect(bubbles.length).toBe(22);
   });
 
-  it("applies dynamic styles (width, height, left, duration, delay) to bubbles", () => {
+  it('applies dynamic styles (width, height, left, duration, delay) to bubbles', () => {
     const { container } = renderWithProviders(<AmbientBubbles />);
 
-    const bubbles = container.querySelectorAll(".ambient-bubble");
+    const bubbles = container.querySelectorAll('.ambient-bubble');
     const firstBubble = bubbles[0] as HTMLElement;
 
     expect(firstBubble.style.width).toMatch(/\d+(\.\d+)?px/);

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { CrystalCard } from './CrystalCard';
 import { CrystalPageHeader } from './CrystalPageHeader';
+import { formatTime } from '../../utils/date';
 import { getLogs, clearLogs, getLogText, type LogEntry } from './mockLauncherState';
 
 const levelColor = (level: string): string => {
@@ -142,7 +143,7 @@ export const LogsPage: React.FC = () => {
                     fontVariantNumeric: 'tabular-nums',
                   }}
                 >
-                  {new Date(entry.timestamp).toLocaleTimeString()}
+                  {formatTime(entry.timestamp)}
                 </span>
                 <span style={{ color: levelColor(entry.level), minWidth: 50, fontWeight: 'bold' }}>
                   {entry.level.toUpperCase()}

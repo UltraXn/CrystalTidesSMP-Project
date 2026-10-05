@@ -71,7 +71,7 @@ export const SkinViewer: React.FC<Readonly<SkinViewerProps>> = ({
 
         // Initial cape load if present
         if (capeUrl) {
-          updateCape(skinViewer, capeUrl);
+          void updateCape(skinViewer, capeUrl);
         }
       } catch (err) {
         console.error('Failed to initialize skinview3d:', err);
@@ -117,8 +117,7 @@ export const SkinViewer: React.FC<Readonly<SkinViewerProps>> = ({
       }
       viewerRef.current = null;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [username, uuid]);
+  }, [username, uuid, capeUrl]);
 
   // 2. Load / Update Cape dynamically when capeUrl changes (no re-creation of viewer)
   useEffect(() => {

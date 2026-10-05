@@ -87,19 +87,7 @@
 
 /* ── Tab Navigation (Modrinth / Linear Style Segmented Controls) ── */
 .tab-btn {
-  flex: none;
-  background: transparent;
-  border: 1px solid transparent;
-  color: rgba(255, 255, 255, 0.75);
   font-family: inherit;
-  font-size: 12.5px;
-  font-weight: 600;
-  padding: 7px 16px;
-  cursor: pointer;
-  border-radius: 8px;
-  transition: all 0.15s ease;
-  text-align: center;
-  position: relative;
   flex: none;
   background: transparent;
   border: 1px solid transparent;
@@ -119,17 +107,12 @@
 }
 
 .tab-btn:hover {
-  color: #ffffff;
-  background-color: rgba(255, 255, 255, 0.04);
   color: rgba(255, 255, 255, 0.85);
   background-color: rgba(255, 255, 255, 0.02);
 }
 
 .tab-btn.active {
-  color: #ffffff;
-  background-color: rgba(255, 255, 255, 0.08);
   border-color: rgba(255, 255, 255, 0.12);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
   color: #2dd4bf !important;
   background-color: rgba(45, 212, 191, 0.06) !important;
   border-bottom-color: #2dd4bf !important;

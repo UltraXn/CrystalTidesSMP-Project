@@ -15,6 +15,19 @@ interface CrystalButtonProps {
   style?: React.CSSProperties;
 }
 
+const VARIANT_CLASS_MAP: Record<CrystalButtonVariant, string> = {
+  primary: 'btn-primary',
+  secondary: 'btn-secondary',
+  ghost: 'btn-ghost',
+  danger: 'btn-danger',
+};
+
+const SIZE_CLASS_MAP: Record<CrystalButtonSize, string> = {
+  sm: 'btn-sm',
+  md: 'btn-md',
+  lg: 'btn-lg',
+};
+
 export const CrystalButton: React.FC<Readonly<CrystalButtonProps>> = ({
   text,
   onPressed,
@@ -36,7 +49,7 @@ export const CrystalButton: React.FC<Readonly<CrystalButtonProps>> = ({
       }}
       disabled={isButtonDisabled}
       aria-busy={isLoading}
-      className={`btn btn-${variant} btn-${size} ${className}`}
+      className={`btn ${VARIANT_CLASS_MAP[variant]} ${SIZE_CLASS_MAP[size]} ${className}`}
       style={{
         opacity: isButtonDisabled ? 0.5 : 1,
         cursor: isButtonDisabled ? 'not-allowed' : 'pointer',

@@ -1,14 +1,20 @@
 /* eslint-disable react-refresh/only-export-components, @typescript-eslint/no-explicit-any */
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
 /* Bump this version when mock defaults change to clear stale localStorage */
-const MOCK_DATA_VERSION = "v5-clean-registry-icons";
-const MOCK_VERSION_KEY = "crystaltides_mock_version_v1";
+const MOCK_DATA_VERSION = 'v5-clean-registry-icons';
+const MOCK_VERSION_KEY = 'crystaltides_mock_version_v1';
 (() => {
-  if (typeof window === "undefined") return;
+  if (typeof window === 'undefined') return;
   if (localStorage.getItem(MOCK_VERSION_KEY) !== MOCK_DATA_VERSION) {
-    ["crystaltides_settings", "crystaltides_profiles", "crystaltides_active_profile_id",
-     "crystaltides_logs", "crystaltides_mock_accounts", "crystaltides_mods_registry"].forEach(k => localStorage.removeItem(k));
+    [
+      'crystaltides_settings',
+      'crystaltides_profiles',
+      'crystaltides_active_profile_id',
+      'crystaltides_logs',
+      'crystaltides_mock_accounts',
+      'crystaltides_mods_registry',
+    ].forEach((k) => localStorage.removeItem(k));
     localStorage.setItem(MOCK_VERSION_KEY, MOCK_DATA_VERSION);
   }
 })();
@@ -17,7 +23,7 @@ const MOCK_VERSION_KEY = "crystaltides_mock_version_v1";
    1. TYPES & INTERFACES
    ========================================================================== */
 
-export type AuthType = "guest" | "microsoft" | "crystal" | "none";
+export type AuthType = 'guest' | 'microsoft' | 'crystal' | 'none';
 
 export interface UserSession {
   id: string;
@@ -29,6 +35,8 @@ export interface UserSession {
   refreshToken?: string;
   role?: string;
 }
+
+export type LauncherSession = UserSession;
 
 export interface CrystalWebSession {
   username: string;
@@ -63,7 +71,7 @@ export interface MicrosoftAuthResult {
 
 export interface MinecraftCape {
   id: string;
-  state: "ACTIVE" | "INACTIVE";
+  state: 'ACTIVE' | 'INACTIVE';
   url: string | null;
   alias?: string;
 }
@@ -78,7 +86,7 @@ export interface Profile {
   id: string;
   name: string;
   mcVersion: string;
-  loaderType: "vanilla" | "neoforge" | "fabric" | "forge" | "";
+  loaderType: 'vanilla' | 'neoforge' | 'fabric' | 'forge' | '';
   loaderVersion: string;
   iconPath: string;
   gameDir?: string;
@@ -108,7 +116,7 @@ export interface LauncherSettings {
   serverHost: string;
   serverPort: number;
   selectedProfileId?: string;
-  avatarPreference?: "web" | "minecraft";
+  avatarPreference?: 'web' | 'minecraft';
 }
 
 export interface ServerStatus {
@@ -136,7 +144,7 @@ export interface InstalledMod {
 export interface ModRegistryEntry {
   title?: string;
   iconUrl?: string;
-  source?: "modrinth" | "curseforge";
+  source?: 'modrinth' | 'curseforge';
   projectId?: string;
 }
 
@@ -162,7 +170,7 @@ export interface SearchModResult {
   icon_url?: string;
   author: string;
   downloads: number;
-  source: "modrinth" | "curseforge";
+  source: 'modrinth' | 'curseforge';
   categories?: string[];
   date_modified?: string;
 }
@@ -195,7 +203,7 @@ export interface LaunchParams {
   javaPath?: string;
 }
 
-export type LogLevel = "info" | "warn" | "error" | "debug";
+export type LogLevel = 'info' | 'warn' | 'error' | 'debug';
 
 export interface LogEntry {
   timestamp: string;
@@ -225,61 +233,66 @@ interface AuthContextType {
 
 const DEFAULT_SAVED_ACCOUNTS: SavedAccount[] = [
   {
-    id: "account_invitado",
-    username: "Invitado",
-    type: "microsoft",
-    uuid: "069a79f4-44e9-4726-a5be-fef90e38aaf5",
-    skinUrl: "https://mc-heads.net/body/Invitado/100",
+    id: 'account_invitado',
+    username: 'Invitado',
+    type: 'microsoft',
+    uuid: '069a79f4-44e9-4726-a5be-fef90e38aaf5',
+    skinUrl: 'https://mc-heads.net/body/Invitado/100',
     lastUsed: new Date().toISOString(),
   },
   {
-    id: "account_killuwu",
-    username: "Killuwu",
-    type: "microsoft",
-    uuid: "98765432-1234-4321-8765-123456789abc",
-    skinUrl: "https://mc-heads.net/body/Killuwu/100",
+    id: 'account_killuwu',
+    username: 'Killuwu',
+    type: 'microsoft',
+    uuid: '98765432-1234-4321-8765-123456789abc',
+    skinUrl: 'https://mc-heads.net/body/Killuwu/100',
     lastUsed: new Date(Date.now() - 86400000).toISOString(),
   },
 ];
 
 const DEFAULT_USER_SESSION: UserSession = {
-  id: "account_invitado",
-  username: "Invitado",
-  type: "microsoft",
-  uuid: "069a79f4-44e9-4726-a5be-fef90e38aaf5",
-  skinUrl: "https://mc-heads.net/body/Invitado/100",
-  role: "INVITADO",
+  id: 'account_invitado',
+  username: 'Invitado',
+  type: 'microsoft',
+  uuid: '069a79f4-44e9-4726-a5be-fef90e38aaf5',
+  skinUrl: 'https://mc-heads.net/body/Invitado/100',
+  role: 'INVITADO',
 };
 
 const DEFAULT_CRYSTAL_SESSION: CrystalWebSession = {
-  username: "Invitado",
-  email: "invitado@crystaltides.net",
-  avatarUrl: "https://mc-heads.net/avatar/Invitado/36",
-  role: "INVITADO",
+  username: 'Invitado',
+  email: 'invitado@crystaltides.net',
+  avatarUrl: 'https://mc-heads.net/avatar/Invitado/36',
+  role: 'INVITADO',
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) throw new Error("useAuth must be used within an AuthProvider");
+  if (!context) throw new Error('useAuth must be used within an AuthProvider');
   return context;
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentSession, setCurrentSession] = useState<UserSession | null>(DEFAULT_USER_SESSION);
-  const [crystalSession, setCrystalSession] = useState<CrystalWebSession | null>(DEFAULT_CRYSTAL_SESSION);
+  const [crystalSession, setCrystalSession] = useState<CrystalWebSession | null>(
+    DEFAULT_CRYSTAL_SESSION,
+  );
   const [savedAccounts, setSavedAccounts] = useState<SavedAccount[]>(DEFAULT_SAVED_ACCOUNTS);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [msDeviceCode] = useState<MicrosoftDeviceCode | null>(null);
 
   useEffect(() => {
     try {
-      const stored = localStorage.getItem("crystaltides_mock_accounts_v1");
+      const stored = localStorage.getItem('crystaltides_mock_accounts_v1');
       if (stored) {
         setSavedAccounts(JSON.parse(stored));
       } else {
-        localStorage.setItem("crystaltides_mock_accounts_v1", JSON.stringify(DEFAULT_SAVED_ACCOUNTS));
+        localStorage.setItem(
+          'crystaltides_mock_accounts_v1',
+          JSON.stringify(DEFAULT_SAVED_ACCOUNTS),
+        );
       }
     } catch {
       setSavedAccounts(DEFAULT_SAVED_ACCOUNTS);
@@ -289,46 +302,49 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const saveAccountsList = (list: SavedAccount[]) => {
     setSavedAccounts(list);
     try {
-      localStorage.setItem("crystaltides_mock_accounts_v1", JSON.stringify(list));
+      localStorage.setItem('crystaltides_mock_accounts_v1', JSON.stringify(list));
     } catch {
       // ignore
     }
   };
 
-  const loginGuest = React.useCallback(async (username: string) => {
-    setIsLoading(true);
-    const accountId = `guest_${username.toLowerCase()}`;
-    const newAccount: SavedAccount = {
-      id: accountId,
-      username,
-      type: "guest",
-      uuid: `00000000-0000-0000-0000-${Date.now()}`,
-      skinUrl: `https://mc-heads.net/body/${username}/100`,
-      lastUsed: new Date().toISOString(),
-    };
+  const loginGuest = React.useCallback(
+    async (username: string) => {
+      setIsLoading(true);
+      const accountId = `guest_${username.toLowerCase()}`;
+      const newAccount: SavedAccount = {
+        id: accountId,
+        username,
+        type: 'guest',
+        uuid: `00000000-0000-0000-0000-${Date.now()}`,
+        skinUrl: `https://mc-heads.net/body/${username}/100`,
+        lastUsed: new Date().toISOString(),
+      };
 
-    const updated = [newAccount, ...savedAccounts.filter((a) => a.id !== accountId)];
-    saveAccountsList(updated);
+      const updated = [newAccount, ...savedAccounts.filter((a) => a.id !== accountId)];
+      saveAccountsList(updated);
 
-    setCurrentSession({
-      id: newAccount.id,
-      username: newAccount.username,
-      type: "guest",
-      uuid: newAccount.uuid,
-      skinUrl: newAccount.skinUrl,
-      role: "Aventurero",
-    });
-    setIsLoading(false);
-  }, [savedAccounts]);
+      setCurrentSession({
+        id: newAccount.id,
+        username: newAccount.username,
+        type: 'guest',
+        uuid: newAccount.uuid,
+        skinUrl: newAccount.skinUrl,
+        role: 'Aventurero',
+      });
+      setIsLoading(false);
+    },
+    [savedAccounts],
+  );
 
   const loginCrystal = React.useCallback(async (email: string, _password?: string) => {
     setIsLoading(true);
-    const username = email.split("@")[0] || "CrystalUser";
+    const username = email.split('@')[0] || 'CrystalUser';
     const session: CrystalWebSession = {
       username,
       email,
       avatarUrl: `https://mc-heads.net/avatar/${username}/36`,
-      role: "Miembro Oficial",
+      role: 'Miembro Oficial',
     };
     setCrystalSession(session);
     setIsLoading(false);
@@ -341,11 +357,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const loginMicrosoft = React.useCallback(async () => {
     setIsLoading(true);
     const mockMsAccount: SavedAccount = {
-      id: "account_invitado",
-      username: "Invitado",
-      type: "microsoft",
-      uuid: "069a79f4-44e9-4726-a5be-fef90e38aaf5",
-      skinUrl: "https://mc-heads.net/body/Invitado/100",
+      id: 'account_invitado',
+      username: 'Invitado',
+      type: 'microsoft',
+      uuid: '069a79f4-44e9-4726-a5be-fef90e38aaf5',
+      skinUrl: 'https://mc-heads.net/body/Invitado/100',
       lastUsed: new Date().toISOString(),
     };
     saveAccountsList([mockMsAccount, ...savedAccounts.filter((a) => a.id !== mockMsAccount.id)]);
@@ -353,104 +369,107 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(false);
   }, [savedAccounts]);
 
-  const selectAccount = React.useCallback(async (accountId: string) => {
-    const account = savedAccounts.find((a) => a.id === accountId);
-    if (!account) return;
+  const selectAccount = React.useCallback(
+    async (accountId: string) => {
+      const account = savedAccounts.find((a) => a.id === accountId);
+      if (!account) return;
 
-    setCurrentSession({
-      id: account.id,
-      username: account.username,
-      type: account.type,
-      uuid: account.uuid,
-      skinUrl: account.skinUrl || `https://mc-heads.net/body/${account.username}/100`,
-      role: account.username === "Invitado" ? "INVITADO" : "Aventurero",
-    });
+      setCurrentSession({
+        id: account.id,
+        username: account.username,
+        type: account.type,
+        uuid: account.uuid,
+        skinUrl: account.skinUrl || `https://mc-heads.net/body/${account.username}/100`,
+        role: account.username === 'Invitado' ? 'INVITADO' : 'Aventurero',
+      });
 
-    const updated = savedAccounts.map((a) =>
-      a.id === accountId ? { ...a, lastUsed: new Date().toISOString() } : a
-    );
-    saveAccountsList(updated);
-  }, [savedAccounts]);
+      const updated = savedAccounts.map((a) =>
+        a.id === accountId ? { ...a, lastUsed: new Date().toISOString() } : a,
+      );
+      saveAccountsList(updated);
+    },
+    [savedAccounts],
+  );
 
-  const removeAccount = React.useCallback(async (accountId: string) => {
-    const updated = savedAccounts.filter((a) => a.id !== accountId);
-    saveAccountsList(updated);
-    if (currentSession?.id === accountId) {
-      if (updated.length > 0) {
-        selectAccount(updated[0].id);
-      } else {
-        setCurrentSession(null);
+  const removeAccount = React.useCallback(
+    async (accountId: string) => {
+      const updated = savedAccounts.filter((a) => a.id !== accountId);
+      saveAccountsList(updated);
+      if (currentSession?.id === accountId) {
+        if (updated.length > 0) {
+          selectAccount(updated[0].id);
+        } else {
+          setCurrentSession(null);
+        }
       }
-    }
-  }, [savedAccounts, currentSession?.id, selectAccount]);
+    },
+    [savedAccounts, currentSession?.id, selectAccount],
+  );
 
   const logout = React.useCallback(async () => {
     setCurrentSession(null);
   }, []);
 
-  const authContextValue = React.useMemo(() => ({
-    currentSession,
-    crystalSession,
-    savedAccounts,
-    isLoading,
-    msDeviceCode,
-    loginGuest,
-    loginCrystal,
-    logoutCrystal,
-    loginMicrosoft,
-    selectAccount,
-    removeAccount,
-    logout,
-  }), [
-    currentSession,
-    crystalSession,
-    savedAccounts,
-    isLoading,
-    msDeviceCode,
-    loginGuest,
-    loginCrystal,
-    logoutCrystal,
-    loginMicrosoft,
-    selectAccount,
-    removeAccount,
-    logout,
-  ]);
-
-  return (
-    <AuthContext.Provider
-      value={authContextValue}
-    >
-      {children}
-    </AuthContext.Provider>
+  const authContextValue = React.useMemo(
+    () => ({
+      currentSession,
+      crystalSession,
+      savedAccounts,
+      isLoading,
+      msDeviceCode,
+      loginGuest,
+      loginCrystal,
+      logoutCrystal,
+      loginMicrosoft,
+      selectAccount,
+      removeAccount,
+      logout,
+    }),
+    [
+      currentSession,
+      crystalSession,
+      savedAccounts,
+      isLoading,
+      msDeviceCode,
+      loginGuest,
+      loginCrystal,
+      logoutCrystal,
+      loginMicrosoft,
+      selectAccount,
+      removeAccount,
+      logout,
+    ],
   );
+
+  return <AuthContext.Provider value={authContextValue}>{children}</AuthContext.Provider>;
 };
 
 /* ==========================================================================
    3. PROFILES MOCK STATE
    ========================================================================== */
 
-const PROFILES_STORAGE_KEY = "crystaltides_profiles_v1";
-const ACTIVE_PROFILE_KEY = "crystaltides_active_profile_id_v1";
+const PROFILES_STORAGE_KEY = 'crystaltides_profiles_v1';
+const ACTIVE_PROFILE_KEY = 'crystaltides_active_profile_id_v1';
 
 const DEFAULT_PROFILES: Profile[] = [
   {
-    id: "default",
-    name: "Default",
-    mcVersion: "1.21.1",
-    loaderType: "neoforge",
-    loaderVersion: "21.1.65",
-    iconPath: "/logo.png",
+    id: 'default',
+    name: 'Default',
+    mcVersion: '1.21.1',
+    loaderType: 'neoforge',
+    loaderVersion: '21.1.65',
+    iconPath: '/logo.png',
     isolateSaves: false,
     useOptimization: true,
     created: new Date().toISOString(),
   },
   {
-    id: "vanilla-1-20-4",
-    name: "Vanilla Oficial 1.20.4",
-    mcVersion: "1.20.4",
-    loaderType: "vanilla",
-    loaderVersion: "",
-    iconPath: "🧱",
+    id: 'vanilla-1-20-4',
+    name: 'Vanilla Oficial 1.20.4',
+    mcVersion: '1.20.4',
+    loaderType: 'vanilla',
+    loaderVersion: '',
+    iconPath: '🧱',
     isolateSaves: true,
     useOptimization: false,
     created: new Date().toISOString(),
@@ -480,11 +499,11 @@ export const createProfile = (profileData: Partial<Profile>, _extra?: any): Prof
   const profiles = getProfiles();
   const newProfile: Profile = {
     id: profileData.id || `profile-${Date.now()}`,
-    name: profileData.name || "Nuevo Perfil",
-    mcVersion: profileData.mcVersion || "1.21.1",
-    loaderType: profileData.loaderType || "neoforge",
-    loaderVersion: profileData.loaderVersion || "21.1.65",
-    iconPath: profileData.iconPath || "🎮",
+    name: profileData.name || 'Nuevo Perfil',
+    mcVersion: profileData.mcVersion || '1.21.1',
+    loaderType: profileData.loaderType || 'neoforge',
+    loaderVersion: profileData.loaderVersion || '21.1.65',
+    iconPath: profileData.iconPath || '🎮',
     isolateSaves: profileData.isolateSaves || false,
     useOptimization: profileData.useOptimization !== false,
     created: new Date().toISOString(),
@@ -495,7 +514,11 @@ export const createProfile = (profileData: Partial<Profile>, _extra?: any): Prof
   return newProfile;
 };
 
-export const updateProfile = (id: string, profileData: Partial<Profile>, _extra?: any): Profile | undefined => {
+export const updateProfile = (
+  id: string,
+  profileData: Partial<Profile>,
+  _extra?: any,
+): Profile | undefined => {
   const profiles = getProfiles();
   const index = profiles.findIndex((p) => p.id === id);
   if (index === -1) return undefined;
@@ -551,7 +574,7 @@ export const getActiveProfile = (): Profile => {
 
 export const resolveProfileGameDir = (profile?: Profile | null, _homeDir?: string): string => {
   if (profile?.gameDir) return profile.gameDir;
-  return "~/.crystaltides";
+  return '~/.crystaltides';
 };
 
 /* ==========================================================================
@@ -559,26 +582,26 @@ export const resolveProfileGameDir = (profile?: Profile | null, _homeDir?: strin
    ========================================================================== */
 
 const DEFAULT_SETTINGS: LauncherSettings = {
-  mcVersion: "1.21.1",
-  loaderType: "neoforge",
-  loaderVersion: "21.1.65",
+  mcVersion: '1.21.1',
+  loaderType: 'neoforge',
+  loaderVersion: '21.1.65',
   minRam: 2048,
   maxRam: 4096,
   useOptimization: true,
-  javaPath: "",
+  javaPath: '',
   width: 1280,
   height: 720,
   fullscreen: false,
-  gameDir: "~/.crystaltides",
+  gameDir: '~/.crystaltides',
   autoConnect: true,
-  serverHost: "mc.crystaltidesSMP.net",
+  serverHost: 'mc.crystaltidesSMP.net',
   serverPort: 25565,
-  selectedProfileId: "default",
-  avatarPreference: "web",
+  selectedProfileId: 'default',
+  avatarPreference: 'web',
 };
 
 export const getSettings = (): LauncherSettings => {
-  const data = localStorage.getItem("crystaltides_settings_v1");
+  const data = localStorage.getItem('crystaltides_settings_v1');
   if (!data) return DEFAULT_SETTINGS;
   try {
     return { ...DEFAULT_SETTINGS, ...JSON.parse(data) };
@@ -590,7 +613,7 @@ export const getSettings = (): LauncherSettings => {
 export const saveSettings = (settings: Partial<LauncherSettings>): LauncherSettings => {
   const current = getSettings();
   const updated = { ...current, ...settings };
-  localStorage.setItem("crystaltides_settings_v1", JSON.stringify(updated));
+  localStorage.setItem('crystaltides_settings_v1', JSON.stringify(updated));
   return updated;
 };
 
@@ -598,10 +621,7 @@ export const saveSettings = (settings: Partial<LauncherSettings>): LauncherSetti
    5. SERVER STATUS MOCK
    ========================================================================== */
 
-export const fetchServerStatus = async (
-  _host?: string,
-  _port = 25565
-): Promise<ServerStatus> => {
+export const fetchServerStatus = async (_host?: string, _port = 25565): Promise<ServerStatus> => {
   return {
     online: true,
     playersOnline: 100,
@@ -615,27 +635,33 @@ export const fetchServerStatus = async (
 
 const MOCK_NEWS: NewsPost[] = [
   {
-    id: "1",
-    title: "¡Lanzamiento Oficial de la Temporada 4: Mareas de Sangre!",
-    content: "Explora la nueva dimensión submarina, adquiere cristales inestables y compite en las nuevas maestrías.",
-    category: "Anuncio",
-    imageUrl: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80",
+    id: '1',
+    title: '¡Lanzamiento Oficial de la Temporada 4: Mareas de Sangre!',
+    content:
+      'Explora la nueva dimensión submarina, adquiere cristales inestables y compite en las nuevas maestrías.',
+    category: 'Anuncio',
+    imageUrl:
+      'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80',
     createdAt: new Date().toISOString(),
   },
   {
-    id: "2",
-    title: "Actualización del Cliente Nivel 2.4.0 (Tauri 64-bit)",
-    content: "Sincronización instantánea de modpacks, rendimiento +140% FPS y consumo reducido a 38.4 MB de RAM.",
-    category: "Actualización",
-    imageUrl: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1200&q=80",
+    id: '2',
+    title: 'Actualización del Cliente Nivel 2.4.0 (Tauri 64-bit)',
+    content:
+      'Sincronización instantánea de modpacks, rendimiento +140% FPS y consumo reducido a 38.4 MB de RAM.',
+    category: 'Actualización',
+    imageUrl:
+      'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1200&q=80',
     createdAt: new Date(Date.now() - 86400000).toISOString(),
   },
   {
-    id: "3",
-    title: "Torneo de Maestrías y Rangos de Gremio",
-    content: "Este fin de semana competiremos en la arena PvP. ¡Los primeros clasificados obtendrán el rango Donador y 5,000 KC!",
-    category: "Evento",
-    imageUrl: "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80",
+    id: '3',
+    title: 'Torneo de Maestrías y Rangos de Gremio',
+    content:
+      'Este fin de semana competiremos en la arena PvP. ¡Los primeros clasificados obtendrán el rango Donador y 5,000 KC!',
+    category: 'Evento',
+    imageUrl:
+      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80',
     createdAt: new Date(Date.now() - 86400000 * 3).toISOString(),
   },
 ];
@@ -649,75 +675,83 @@ export const fetchNews = async (_limit = 20): Promise<NewsPost[]> => {
    ========================================================================== */
 
 const MOCK_INSTALLED_MODS: InstalledMod[] = [
-  { filename: "sodium-fabric-0.5.8.jar", sizeBytes: 1420000, enabled: true, official: true },
-  { filename: "iris-1.6.14.jar", sizeBytes: 2850000, enabled: true, official: true },
-  { filename: "voicechat-fabric-1.20.4-2.4.32.jar", sizeBytes: 4120000, enabled: true, official: true },
-  { filename: "lithium-fabric-0.12.1.jar", sizeBytes: 980000, enabled: true, official: true },
-  { filename: "ferritecore-6.0.1.jar", sizeBytes: 320000, enabled: true, official: true },
-  { filename: "crystaltides-core-mod.jar", sizeBytes: 1850000, enabled: true, official: true },
-  { filename: "appleskin-fabric-2.5.1.jar", sizeBytes: 240000, enabled: true, official: false },
-  { filename: "rei-fabric-14.0.688.jar", sizeBytes: 3600000, enabled: true, official: false },
+  { filename: 'sodium-fabric-0.5.8.jar', sizeBytes: 1420000, enabled: true, official: true },
+  { filename: 'iris-1.6.14.jar', sizeBytes: 2850000, enabled: true, official: true },
+  {
+    filename: 'voicechat-fabric-1.20.4-2.4.32.jar',
+    sizeBytes: 4120000,
+    enabled: true,
+    official: true,
+  },
+  { filename: 'lithium-fabric-0.12.1.jar', sizeBytes: 980000, enabled: true, official: true },
+  { filename: 'ferritecore-6.0.1.jar', sizeBytes: 320000, enabled: true, official: true },
+  { filename: 'crystaltides-core-mod.jar', sizeBytes: 1850000, enabled: true, official: true },
+  { filename: 'appleskin-fabric-2.5.1.jar', sizeBytes: 240000, enabled: true, official: false },
+  { filename: 'rei-fabric-14.0.688.jar', sizeBytes: 3600000, enabled: true, official: false },
 ];
 
 export const MOCK_SEARCH_MODS: SearchModResult[] = [
   {
-    id: "sodium",
-    title: "Sodium",
-    description: "A high-performance rendering engine replacement for Minecraft, which greatly improves frame rates and reduces micro-stutter.",
-    iconUrl: "https://raw.githubusercontent.com/CaffeineMC/sodium-fabric/1.20.x/dev/logo.png",
-    icon_url: "https://raw.githubusercontent.com/CaffeineMC/sodium-fabric/1.20.x/dev/logo.png",
-    author: "jellysquid3",
+    id: 'sodium',
+    title: 'Sodium',
+    description:
+      'A high-performance rendering engine replacement for Minecraft, which greatly improves frame rates and reduces micro-stutter.',
+    iconUrl: 'https://raw.githubusercontent.com/CaffeineMC/sodium-fabric/1.20.x/dev/logo.png',
+    icon_url: 'https://raw.githubusercontent.com/CaffeineMC/sodium-fabric/1.20.x/dev/logo.png',
+    author: 'jellysquid3',
     downloads: 190800000,
-    source: "modrinth",
-    categories: ["optimization", "neoforge", "fabric"],
+    source: 'modrinth',
+    categories: ['optimization', 'neoforge', 'fabric'],
     date_modified: new Date().toISOString(),
   },
   {
-    id: "iris",
-    title: "Iris Shaders",
-    description: "A modern shader pack loader for Minecraft intended to be compatible with existing OptiFine shader packs.",
-    iconUrl: "https://raw.githubusercontent.com/IrisShaders/Iris/main/logo.png",
-    icon_url: "https://raw.githubusercontent.com/IrisShaders/Iris/main/logo.png",
-    author: "coderbot",
+    id: 'iris',
+    title: 'Iris Shaders',
+    description:
+      'A modern shader pack loader for Minecraft intended to be compatible with existing OptiFine shader packs.',
+    iconUrl: 'https://raw.githubusercontent.com/IrisShaders/Iris/main/logo.png',
+    icon_url: 'https://raw.githubusercontent.com/IrisShaders/Iris/main/logo.png',
+    author: 'coderbot',
     downloads: 148600000,
-    source: "modrinth",
-    categories: ["shaders", "neoforge", "decoration"],
+    source: 'modrinth',
+    categories: ['shaders', 'neoforge', 'decoration'],
     date_modified: new Date().toISOString(),
   },
   {
-    id: "voicechat",
-    title: "Simple Voice Chat",
-    description: "A proximity voice chat mod for Minecraft with high audio quality and spatial 3D audio.",
-    iconUrl: "https://raw.githubusercontent.com/henkelmax/simple-voice-chat/main/logo.png",
-    icon_url: "https://raw.githubusercontent.com/henkelmax/simple-voice-chat/main/logo.png",
-    author: "henkelmax",
+    id: 'voicechat',
+    title: 'Simple Voice Chat',
+    description:
+      'A proximity voice chat mod for Minecraft with high audio quality and spatial 3D audio.',
+    iconUrl: 'https://raw.githubusercontent.com/henkelmax/simple-voice-chat/main/logo.png',
+    icon_url: 'https://raw.githubusercontent.com/henkelmax/simple-voice-chat/main/logo.png',
+    author: 'henkelmax',
     downloads: 143700000,
-    source: "modrinth",
-    categories: ["audio", "neoforge", "utility"],
+    source: 'modrinth',
+    categories: ['audio', 'neoforge', 'utility'],
     date_modified: new Date().toISOString(),
   },
   {
-    id: "ferritecore",
-    title: "FerriteCore",
-    description: "Memory usage optimizations for Minecraft.",
-    iconUrl: "https://raw.githubusercontent.com/malte0811/FerriteCore/1.20/logo.png",
-    icon_url: "https://raw.githubusercontent.com/malte0811/FerriteCore/1.20/logo.png",
-    author: "malte0811",
+    id: 'ferritecore',
+    title: 'FerriteCore',
+    description: 'Memory usage optimizations for Minecraft.',
+    iconUrl: 'https://raw.githubusercontent.com/malte0811/FerriteCore/1.20/logo.png',
+    icon_url: 'https://raw.githubusercontent.com/malte0811/FerriteCore/1.20/logo.png',
+    author: 'malte0811',
     downloads: 138800000,
-    source: "modrinth",
-    categories: ["optimization", "neoforge"],
+    source: 'modrinth',
+    categories: ['optimization', 'neoforge'],
     date_modified: new Date().toISOString(),
   },
   {
-    id: "rei",
-    title: "Roughly Enough Items (REI)",
-    description: "Clean and customizable recipe viewer mod for Minecraft.",
-    iconUrl: "https://raw.githubusercontent.com/shedaniel/RoughlyEnoughItems/main/icon.png",
-    icon_url: "https://raw.githubusercontent.com/shedaniel/RoughlyEnoughItems/main/icon.png",
-    author: "shedaniel",
+    id: 'rei',
+    title: 'Roughly Enough Items (REI)',
+    description: 'Clean and customizable recipe viewer mod for Minecraft.',
+    iconUrl: 'https://raw.githubusercontent.com/shedaniel/RoughlyEnoughItems/main/icon.png',
+    icon_url: 'https://raw.githubusercontent.com/shedaniel/RoughlyEnoughItems/main/icon.png',
+    author: 'shedaniel',
     downloads: 122100000,
-    source: "modrinth",
-    categories: ["item-viewing", "neoforge", "utility"],
+    source: 'modrinth',
+    categories: ['item-viewing', 'neoforge', 'utility'],
     date_modified: new Date().toISOString(),
   },
 ];
@@ -729,7 +763,7 @@ export const listInstalledMods = async (_gameDir?: string): Promise<InstalledMod
 export const setModEnabled = async (
   _gameDir: string,
   filename: string,
-  enabled: boolean
+  enabled: boolean,
 ): Promise<void> => {
   const mod = MOCK_INSTALLED_MODS.find((m) => m.filename === filename);
   if (mod) {
@@ -748,29 +782,31 @@ export const deleteModFile = async (_gameDir?: string, filename?: string): Promi
 export const deleteInstalledMod = deleteModFile;
 
 const MOCK_REGISTRY: Record<string, ModRegistryEntry> = {
-  "sodium-fabric-0.5.8.jar": {
-    title: "Sodium",
-    source: "modrinth",
-    iconUrl: "https://raw.githubusercontent.com/CaffeineMC/sodium-fabric/1.20.x/dev/logo.png",
+  'sodium-fabric-0.5.8.jar': {
+    title: 'Sodium',
+    source: 'modrinth',
+    iconUrl: 'https://raw.githubusercontent.com/CaffeineMC/sodium-fabric/1.20.x/dev/logo.png',
   },
-  "iris-1.6.14.jar": {
-    title: "Iris Shaders",
-    source: "modrinth",
-    iconUrl: "https://raw.githubusercontent.com/IrisShaders/Iris/main/logo.png",
+  'iris-1.6.14.jar': {
+    title: 'Iris Shaders',
+    source: 'modrinth',
+    iconUrl: 'https://raw.githubusercontent.com/IrisShaders/Iris/main/logo.png',
   },
-  "voicechat-fabric-1.20.4-2.4.32.jar": {
-    title: "Simple Voice Chat",
-    source: "modrinth",
-    iconUrl: "https://raw.githubusercontent.com/henkelmax/simple-voice-chat/main/logo.png",
+  'voicechat-fabric-1.20.4-2.4.32.jar': {
+    title: 'Simple Voice Chat',
+    source: 'modrinth',
+    iconUrl: 'https://raw.githubusercontent.com/henkelmax/simple-voice-chat/main/logo.png',
   },
-  "ferritecore-6.0.1.jar": {
-    title: "FerriteCore",
-    source: "modrinth",
-    iconUrl: "https://raw.githubusercontent.com/malte0811/FerriteCore/1.20/logo.png",
+  'ferritecore-6.0.1.jar': {
+    title: 'FerriteCore',
+    source: 'modrinth',
+    iconUrl: 'https://raw.githubusercontent.com/malte0811/FerriteCore/1.20/logo.png',
   },
 };
 
-export const getModRegistry = async (_gameDir?: string): Promise<Record<string, ModRegistryEntry>> => {
+export const getModRegistry = async (
+  _gameDir?: string,
+): Promise<Record<string, ModRegistryEntry>> => {
   return { ...MOCK_REGISTRY };
 };
 
@@ -779,7 +815,7 @@ export const getModsRegistry = getModRegistry;
 export const recordModInRegistry = async (
   _gameDir?: string,
   filename?: string,
-  entry?: ModRegistryEntry
+  entry?: ModRegistryEntry,
 ): Promise<void> => {
   if (filename && entry) {
     MOCK_REGISTRY[filename] = entry;
@@ -788,13 +824,19 @@ export const recordModInRegistry = async (
 
 export const registerInstalledMod = recordModInRegistry;
 
-export const removeModFromRegistry = async (_gameDir?: string, _filename?: string): Promise<void> => {};
+export const removeModFromRegistry = async (
+  _gameDir?: string,
+  _filename?: string,
+): Promise<void> => {};
 
 export const unregisterMod = removeModFromRegistry;
 
 export const prettyModName = (filename: string): string => {
-  const base = filename.replace(/\.jar(\.disabled)?$/, "");
-  return base.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+  const base = filename.replace(/\.jar(\.disabled)?$/, '');
+  return base
+    .split('-')
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
 };
 
 export const formatModSize = (bytes: number): string => {
@@ -805,38 +847,76 @@ export const formatModSize = (bytes: number): string => {
 
 export const fetchOfficialModsList = async (_gameDir?: string): Promise<ServerModItem[]> => {
   return [
-    { name: "sodium-fabric-0.5.8.jar", download_url: "", sha1: "abc1", category: "Rendimiento", description: "Motor de renderizado optimizado." },
-    { name: "iris-1.6.14.jar", download_url: "", sha1: "abc2", category: "Gráficos", description: "Soporte nativo de shaders." },
-    { name: "voicechat-fabric-1.20.4-2.4.32.jar", download_url: "", sha1: "abc3", category: "Audio", description: "Chat de voz por proximidad." },
-    { name: "lithium-fabric-0.12.1.jar", download_url: "", sha1: "abc4", category: "Rendimiento", description: "Optimización de física y tics." },
-    { name: "ferritecore-6.0.1.jar", download_url: "", sha1: "abc5", category: "Memoria", description: "Reducción de consumo de RAM." },
-    { name: "crystaltides-core-mod.jar", download_url: "", sha1: "abc6", category: "Servidor", description: "Modpack exclusivo CrystalTides." },
+    {
+      name: 'sodium-fabric-0.5.8.jar',
+      download_url: '',
+      sha1: 'abc1',
+      category: 'Rendimiento',
+      description: 'Motor de renderizado optimizado.',
+    },
+    {
+      name: 'iris-1.6.14.jar',
+      download_url: '',
+      sha1: 'abc2',
+      category: 'Gráficos',
+      description: 'Soporte nativo de shaders.',
+    },
+    {
+      name: 'voicechat-fabric-1.20.4-2.4.32.jar',
+      download_url: '',
+      sha1: 'abc3',
+      category: 'Audio',
+      description: 'Chat de voz por proximidad.',
+    },
+    {
+      name: 'lithium-fabric-0.12.1.jar',
+      download_url: '',
+      sha1: 'abc4',
+      category: 'Rendimiento',
+      description: 'Optimización de física y tics.',
+    },
+    {
+      name: 'ferritecore-6.0.1.jar',
+      download_url: '',
+      sha1: 'abc5',
+      category: 'Memoria',
+      description: 'Reducción de consumo de RAM.',
+    },
+    {
+      name: 'crystaltides-core-mod.jar',
+      download_url: '',
+      sha1: 'abc6',
+      category: 'Servidor',
+      description: 'Modpack exclusivo CrystalTides.',
+    },
   ];
 };
 
 export const syncOfficialMods = async (
   _gameDir: string,
-  onProgress?: (status: string, progress: number) => void
+  onProgress?: (status: string, progress: number) => void,
 ): Promise<void> => {
-  onProgress?.("Obteniendo lista de mods oficiales...", 0.1);
+  onProgress?.('Obteniendo lista de mods oficiales...', 0.1);
   await new Promise((r) => setTimeout(r, 150));
-  onProgress?.("Verificando firmas SHA-1...", 0.6);
+  onProgress?.('Verificando firmas SHA-1...', 0.6);
   await new Promise((r) => setTimeout(r, 150));
-  onProgress?.("¡Mods oficiales sincronizados!", 1.0);
+  onProgress?.('¡Mods oficiales sincronizados!', 1.0);
 };
 
 export const searchModrinthMods = async (
-  query = "",
+  query = '',
   _mcVersion?: string,
   _loader?: string,
   _offset?: number,
   _limit?: number,
   _extra1?: any,
-  _extra2?: any
+  _extra2?: any,
 ): Promise<ModrinthSearchResult> => {
   const filtered = query
     ? MOCK_SEARCH_MODS.filter(
-        (m) => m.title.toLowerCase().includes(query.toLowerCase()) || m.description.toLowerCase().includes(query.toLowerCase())
+        (m) =>
+          m.title.toLowerCase().includes(query.toLowerCase()) ||
+          m.description.toLowerCase().includes(query.toLowerCase()),
       )
     : MOCK_SEARCH_MODS;
 
@@ -852,20 +932,19 @@ export const installModFromModrinth = async (
   _gameDir?: string,
   modId?: string,
   versionId?: string,
-  _extra1?: any
+  _extra1?: any,
 ): Promise<string> => {
-  return `${modId || "mod"}-${versionId || "1.0.0"}.jar`;
+  return `${modId || 'mod'}-${versionId || '1.0.0'}.jar`;
 };
 
-
 export const searchCurseForgeMods = async (
-  query = "",
+  query = '',
   _mcVersion?: string,
   _loader?: string,
   _offset?: number,
   _limit?: number,
   _extra1?: any,
-  _extra2?: any
+  _extra2?: any,
 ): Promise<ModrinthSearchResult> => {
   return searchModrinthMods(query, _mcVersion, _loader, _offset, _limit, _extra1, _extra2);
 };
@@ -876,12 +955,10 @@ export const installModFromCurseForge = async (
   _gameDir?: string,
   modId?: string,
   fileId?: string | number,
-  _extra1?: any
+  _extra1?: any,
 ): Promise<string> => {
-  return `${modId || "mod"}-${fileId || 100}.jar`;
+  return `${modId || 'mod'}-${fileId || 100}.jar`;
 };
-
-
 
 /* ==========================================================================
    8. LAUNCHER EXECUTION & JAVA MOCK
@@ -889,57 +966,70 @@ export const installModFromCurseForge = async (
 
 export const launchGame = async (
   params: LaunchParams,
-  onProgress?: (status: string, progress: number) => void
+  onProgress?: (status: string, progress: number) => void,
 ): Promise<void> => {
-  onProgress?.("Comprobando entorno de Java...", 0.1);
+  onProgress?.('Comprobando entorno de Java...', 0.1);
   await new Promise((resolve) => setTimeout(resolve, 200));
 
-  onProgress?.(`Cargando versión ${params.mcVersion} (${params.loaderType || "Vanilla"})...`, 0.35);
+  onProgress?.(`Cargando versión ${params.mcVersion} (${params.loaderType || 'Vanilla'})...`, 0.35);
   await new Promise((resolve) => setTimeout(resolve, 200));
 
-  onProgress?.("Sincronizando mods oficiales de CrystalTides...", 0.7);
+  onProgress?.('Sincronizando mods oficiales de CrystalTides...', 0.7);
   await new Promise((resolve) => setTimeout(resolve, 250));
 
-  onProgress?.("¡Lanzando Minecraft en segundo plano!", 1.0);
+  onProgress?.('¡Lanzando Minecraft en segundo plano!', 1.0);
   await new Promise((resolve) => setTimeout(resolve, 150));
 };
-
-
 
 /* ==========================================================================
    9. MINECRAFT METADATA MOCK
    ========================================================================== */
 
 export const fetchVanillaVersions = async (): Promise<string[]> => {
-  return ["1.20.4", "1.20.2", "1.20.1", "1.19.4", "1.18.2", "1.16.5"];
+  return ['1.20.4', '1.20.2', '1.20.1', '1.19.4', '1.18.2', '1.16.5'];
 };
 
 export const fetchFabricLoaderVersions = async (): Promise<string[]> => {
-  return ["0.15.11", "0.15.10", "0.15.7"];
+  return ['0.15.11', '0.15.10', '0.15.7'];
 };
 
 export const fetchNeoForgeVersions = async (mcVersion: string): Promise<string[]> => {
-  if (mcVersion === "1.20.1") return ["47.1.3", "47.1.0"];
-  if (mcVersion.startsWith("1.21")) return ["21.1.65", "21.0.8"];
-  return ["20.4.80"];
+  if (mcVersion === '1.20.1') return ['47.1.3', '47.1.0'];
+  if (mcVersion.startsWith('1.21')) return ['21.1.65', '21.0.8'];
+  return ['20.4.80'];
 };
 
 export const fetchForgeVersions = async (mcVersion: string): Promise<string[]> => {
-  if (mcVersion === "1.20.1") return ["47.2.0", "47.1.3"];
-  return ["47.2.0"];
+  if (mcVersion === '1.20.1') return ['47.2.0', '47.1.3'];
+  return ['47.2.0'];
 };
 
 /* ==========================================================================
    10. LOGGING MOCK
    ========================================================================== */
 
-const LOG_KEY = "crystaltides_logs_v1";
+const LOG_KEY = 'crystaltides_logs_v1';
 const MAX_LOG_LINES = 500;
 
 const DEFAULT_INITIAL_LOGS: LogEntry[] = [
-  { timestamp: new Date(Date.now() - 3600000).toISOString(), level: "info", category: "System", message: "CrystalTides Launcher v2.4.0 (Tauri 64-bit Web Preview) inicializado." },
-  { timestamp: new Date(Date.now() - 3500000).toISOString(), level: "info", category: "Auth", message: "Sesión restaurada para el usuario 'Invitado'." },
-  { timestamp: new Date(Date.now() - 3400000).toISOString(), level: "info", category: "Modpack", message: "24 mods oficiales verificados (SHA-1 100% Sync)." },
+  {
+    timestamp: new Date(Date.now() - 3600000).toISOString(),
+    level: 'info',
+    category: 'System',
+    message: 'CrystalTides Launcher v2.4.0 (Tauri 64-bit Web Preview) inicializado.',
+  },
+  {
+    timestamp: new Date(Date.now() - 3500000).toISOString(),
+    level: 'info',
+    category: 'Auth',
+    message: "Sesión restaurada para el usuario 'Invitado'.",
+  },
+  {
+    timestamp: new Date(Date.now() - 3400000).toISOString(),
+    level: 'info',
+    category: 'Modpack',
+    message: '24 mods oficiales verificados (SHA-1 100% Sync).',
+  },
 ];
 
 const getStoredLogs = (): LogEntry[] => {
@@ -960,13 +1050,10 @@ const saveLogs = (logs: LogEntry[]) => {
   localStorage.setItem(LOG_KEY, JSON.stringify(trimmed));
 };
 
-export const log = (
-  message: string,
-  opts?: { level?: LogLevel; category?: string }
-) => {
+export const log = (message: string, opts?: { level?: LogLevel; category?: string }) => {
   const entry: LogEntry = {
     timestamp: new Date().toISOString(),
-    level: opts?.level || "info",
+    level: opts?.level || 'info',
     category: opts?.category,
     message,
   };
@@ -975,15 +1062,15 @@ export const log = (
   logs.push(entry);
   saveLogs(logs);
 
-  const prefix = entry.category ? `[${entry.category}] ` : "";
+  const prefix = entry.category ? `[${entry.category}] ` : '';
   switch (entry.level) {
-    case "error":
+    case 'error':
       console.error(`${prefix}${message}`);
       break;
-    case "warn":
+    case 'warn':
       console.warn(`${prefix}${message}`);
       break;
-    case "debug":
+    case 'debug':
       console.debug(`${prefix}${message}`);
       break;
     default:
@@ -1000,41 +1087,34 @@ export const clearLogs = () => {
 export const getLogText = (): string => {
   return getStoredLogs()
     .map((e) => {
-      const cat = e.category ? `[${e.category}] ` : "";
+      const cat = e.category ? `[${e.category}] ` : '';
       return `[${e.timestamp}] [${e.level.toUpperCase()}] ${cat}${e.message}`;
     })
-    .join("\n");
+    .join('\n');
 };
 
 /* ==========================================================================
    11. MICROSOFT AUTH STUBS
    ========================================================================== */
 
-
-
-
-
 export const fetchMinecraftProfile = async (
-  _accessToken: string
+  _accessToken: string,
 ): Promise<MinecraftProfileData | null> => {
   return {
-    id: "069a79f4-44e9-4726-a5be-fef90e38aaf5",
-    name: "Invitado",
+    id: '069a79f4-44e9-4726-a5be-fef90e38aaf5',
+    name: 'Invitado',
     capes: [
       {
-        id: "cape_founder",
-        state: "ACTIVE",
-        url: "https://textures.minecraft.net/texture/234057235235",
-        alias: "Capa Oficial Fundador",
+        id: 'cape_founder',
+        state: 'ACTIVE',
+        url: 'https://textures.minecraft.net/texture/234057235235',
+        alias: 'Capa Oficial Fundador',
       },
     ],
   };
 };
 
-export const setActiveCape = async (
-  _accessToken: string,
-  _capeId: string
-): Promise<boolean> => {
+export const setActiveCape = async (_accessToken: string, _capeId: string): Promise<boolean> => {
   return true;
 };
 
@@ -1045,5 +1125,3 @@ export const hideCape = async (_accessToken: string): Promise<boolean> => {
 /* ==========================================================================
    12. SUPABASE MOCK STUB
    ========================================================================== */
-
-

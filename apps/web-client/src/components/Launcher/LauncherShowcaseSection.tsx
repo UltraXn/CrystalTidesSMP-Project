@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { m as motion, AnimatePresence } from 'framer-motion';
 import {
   Download,
@@ -113,16 +113,16 @@ const detectOperatingSystem = (): SupportedOs => {
 const LauncherHeader: React.FC = () => (
   <div className="relative z-10 mx-auto max-w-4xl space-y-4 text-center">
     <div className="inline-flex items-center gap-2 border border-slate-800 bg-slate-900/90 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-teal-400">
-      <Sparkles className="h-3.5 w-3.5 text-teal-400" />
+      <Sparkles className="size-3.5 text-teal-400" />
       <span>CLIENTE OFICIAL TAURI 2.0 • RUST + REACT</span>
     </div>
 
-    <h2 className="text-3xl font-black leading-tight tracking-tight text-white sm:text-4xl md:text-5xl">
+    <h2 className="text-3xl/tight font-black tracking-tight text-white sm:text-4xl md:text-5xl">
       Si corre en tu navegador... <br />
       <span className="font-extrabold text-teal-400">¡imagina cómo vuela en tu PC!</span>
     </h2>
 
-    <p className="mx-auto max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base md:text-lg">
+    <p className="mx-auto max-w-2xl text-sm/relaxed text-slate-300 sm:text-base md:text-lg">
       El Launcher de <strong className="font-semibold text-white">CrystalTides</strong> está
       construido sobre arquitectura nativa ultraligera. Pruébalo en vivo ahora mismo en este
       sandbox: explora perfiles, mods, estadísticas y configuración sin instalar nada.
@@ -130,25 +130,25 @@ const LauncherHeader: React.FC = () => (
 
     <div className="flex flex-wrap items-center justify-center gap-2.5 pt-2 text-xs text-slate-300">
       <div className="flex items-center gap-1.5 border border-slate-800 bg-slate-900/80 px-3 py-1.5">
-        <HardDrive className="h-3.5 w-3.5 text-teal-400" />
+        <HardDrive className="size-3.5 text-teal-400" />
         <span>
           RAM Nativa: <strong className="text-white">&lt;40 MB</strong>
         </span>
       </div>
       <div className="flex items-center gap-1.5 border border-slate-800 bg-slate-900/80 px-3 py-1.5">
-        <Activity className="h-3.5 w-3.5 text-teal-400" />
+        <Activity className="size-3.5 text-teal-400" />
         <span>
           Arranque: <strong className="text-white">0.6s</strong>
         </span>
       </div>
       <div className="flex items-center gap-1.5 border border-slate-800 bg-slate-900/80 px-3 py-1.5">
-        <Cpu className="h-3.5 w-3.5 text-teal-400" />
+        <Cpu className="size-3.5 text-teal-400" />
         <span>
           Rendimiento: <strong className="text-white">+140% FPS</strong>
         </span>
       </div>
       <div className="flex items-center gap-1.5 border border-slate-800 bg-slate-900/80 px-3 py-1.5">
-        <Layers className="h-3.5 w-3.5 text-teal-400" />
+        <Layers className="size-3.5 text-teal-400" />
         <span>
           Sincronización: <strong className="text-white">SHA-256 Instantánea</strong>
         </span>
@@ -172,7 +172,7 @@ const LauncherSandbox: React.FC<Readonly<SandboxProps>> = ({
   onToggleFullscreen,
 }) => (
   <div
-    className={`relative z-20 w-full transition-all duration-300 ease-out ${
+    className={`relative z-20 w-full transition-colors duration-300 ease-out ${
       isFullscreen
         ? 'fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/95 p-2 sm:p-4'
         : 'mx-auto max-w-6xl'
@@ -191,7 +191,7 @@ const LauncherSandbox: React.FC<Readonly<SandboxProps>> = ({
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-800/80 bg-[#0D111A] px-4 py-2.5 text-xs text-slate-400">
         <div className="flex items-center gap-2">
           <span className="flex items-center gap-1.5 border border-slate-700 bg-slate-800 px-2 py-0.5 font-mono text-[11px] font-medium text-teal-300">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-teal-400" />
+            <span className="size-1.5 animate-pulse rounded-full bg-teal-400" />
             <span>SIMULADOR EN VIVO</span>
           </span>
           <span className="hidden sm:inline">Navega por Mods, Perfiles, Ajustes y Logs.</span>
@@ -204,7 +204,7 @@ const LauncherSandbox: React.FC<Readonly<SandboxProps>> = ({
             title="Reiniciar datos de prueba"
             className="flex cursor-pointer items-center gap-1.5 border border-slate-700/50 bg-slate-800/80 px-2.5 py-1 text-xs text-slate-300 transition-colors hover:bg-slate-700 hover:text-white"
           >
-            <RefreshCw className="h-3 w-3" />
+            <RefreshCw className="size-3" />
             <span>Reiniciar</span>
           </button>
           <button
@@ -213,7 +213,7 @@ const LauncherSandbox: React.FC<Readonly<SandboxProps>> = ({
             title={isFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa'}
             className="flex cursor-pointer items-center gap-1.5 border border-slate-700/50 bg-slate-800/80 px-2.5 py-1 text-xs text-slate-300 transition-colors hover:bg-slate-700 hover:text-white"
           >
-            {isFullscreen ? <Minimize2 className="h-3 w-3" /> : <Maximize2 className="h-3 w-3" />}
+            {isFullscreen ? <Minimize2 className="size-3" /> : <Maximize2 className="size-3" />}
             <span>{isFullscreen ? 'Reducir' : 'Pantalla Completa'}</span>
           </button>
           <a
@@ -249,7 +249,7 @@ const LauncherBenchmark: React.FC<Readonly<BenchmarkProps>> = ({ metric, onSelec
       <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
         <div className="space-y-1">
           <span className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-teal-400">
-            <Activity className="h-3.5 w-3.5" /> Comparativa de Rendimiento
+            <Activity className="size-3.5" /> Comparativa de Rendimiento
           </span>
           <h3 className="text-xl font-bold tracking-tight text-white sm:text-2xl">
             Consumo Real de Recursos
@@ -292,7 +292,7 @@ const LauncherBenchmark: React.FC<Readonly<BenchmarkProps>> = ({ metric, onSelec
           </div>
           <div className="h-3 w-full border border-slate-800 bg-slate-900 p-0.5">
             <div
-              className="h-full bg-teal-500 transition-all duration-500"
+              className="h-full bg-teal-500 transition-[width] duration-500"
               style={{ width: currentData.crystal.width }}
             />
           </div>
@@ -305,7 +305,7 @@ const LauncherBenchmark: React.FC<Readonly<BenchmarkProps>> = ({ metric, onSelec
           </div>
           <div className="h-3 w-full border border-slate-800 bg-slate-900 p-0.5">
             <div
-              className="h-full bg-slate-700 transition-all duration-500"
+              className="h-full bg-slate-700 transition-[width] duration-500"
               style={{ width: currentData.mojang.width }}
             />
           </div>
@@ -318,7 +318,7 @@ const LauncherBenchmark: React.FC<Readonly<BenchmarkProps>> = ({ metric, onSelec
           </div>
           <div className="h-3 w-full border border-slate-800 bg-slate-900 p-0.5">
             <div
-              className="h-full bg-slate-800 transition-all duration-500"
+              className="h-full bg-slate-800 transition-[width] duration-500"
               style={{ width: currentData.thirdParty.width }}
             />
           </div>
@@ -328,10 +328,10 @@ const LauncherBenchmark: React.FC<Readonly<BenchmarkProps>> = ({ metric, onSelec
       <div className="grid grid-cols-1 gap-4 border-t border-slate-800 pt-4 md:grid-cols-3">
         <div className="space-y-1.5 border border-slate-800/80 bg-slate-900/60 p-4">
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-teal-400">
-            <Cpu className="h-4 w-4 text-teal-400" />
+            <Cpu className="size-4 text-teal-400" />
             <span>Sin Chromium Embebido</span>
           </div>
-          <p className="text-xs leading-relaxed text-slate-300">
+          <p className="text-xs/relaxed text-slate-300">
             Al aprovechar el motor web nativo del sistema operativo a través de Rust, se eliminan
             cientos de megabytes innecesarios de memoria.
           </p>
@@ -339,10 +339,10 @@ const LauncherBenchmark: React.FC<Readonly<BenchmarkProps>> = ({ metric, onSelec
 
         <div className="space-y-1.5 border border-slate-800/80 bg-slate-900/60 p-4">
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-teal-400">
-            <Terminal className="h-4 w-4 text-teal-400" />
+            <Terminal className="size-4 text-teal-400" />
             <span>Delta Sync de Mods</span>
           </div>
-          <p className="text-xs leading-relaxed text-slate-300">
+          <p className="text-xs/relaxed text-slate-300">
             El cliente calcula hashes SHA-256 de tus carpetas de juego para descargar exclusivamente
             los archivos modificados o faltantes.
           </p>
@@ -350,10 +350,10 @@ const LauncherBenchmark: React.FC<Readonly<BenchmarkProps>> = ({ metric, onSelec
 
         <div className="space-y-1.5 border border-slate-800/80 bg-slate-900/60 p-4">
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-teal-400">
-            <ShieldCheck className="h-4 w-4 text-teal-400" />
+            <ShieldCheck className="size-4 text-teal-400" />
             <span>Microsoft OAuth 2.0 PKCE</span>
           </div>
-          <p className="text-xs leading-relaxed text-slate-300">
+          <p className="text-xs/relaxed text-slate-300">
             Autenticación criptográfica oficial directa con Microsoft sin almacenar credenciales en
             servidores de terceros.
           </p>
@@ -414,7 +414,7 @@ const LauncherDownloadSection: React.FC<Readonly<DownloadSectionProps>> = ({
           onClick={() => onSelectOs(OS_NAMES.windows)}
           className={getOsTabClass(OS_NAMES.windows)}
         >
-          <Monitor className="h-3.5 w-3.5" />
+          <Monitor className="size-3.5" />
           <span>Windows (10 / 11)</span>
         </button>
 
@@ -445,7 +445,7 @@ const LauncherDownloadSection: React.FC<Readonly<DownloadSectionProps>> = ({
           href={downloadInfo.filePath}
           className="flex w-full shrink-0 cursor-pointer items-center justify-center gap-2 bg-teal-500 px-6 py-2.5 text-xs font-bold uppercase tracking-wide text-slate-950 transition-colors hover:bg-teal-400 sm:w-auto"
         >
-          <Download className="h-4 w-4" /> DESCARGAR
+          <Download className="size-4" /> DESCARGAR
         </a>
       </div>
 
@@ -474,9 +474,9 @@ const LauncherDownloadSection: React.FC<Readonly<DownloadSectionProps>> = ({
                   className="flex cursor-pointer items-center gap-1 text-xs text-teal-300 hover:text-white"
                 >
                   {copiedHash ? (
-                    <Check className="h-3.5 w-3.5 text-teal-400" />
+                    <Check className="size-3.5 text-teal-400" />
                   ) : (
-                    <Copy className="h-3.5 w-3.5" />
+                    <Copy className="size-3.5" />
                   )}
                   <span>{copiedHash ? 'Copiado' : 'Copiar'}</span>
                 </button>
@@ -489,7 +489,7 @@ const LauncherDownloadSection: React.FC<Readonly<DownloadSectionProps>> = ({
         </AnimatePresence>
 
         <div className="flex items-center justify-center gap-1.5 pt-1 text-xs font-medium text-slate-400">
-          <ShieldCheck className="h-4 w-4 text-teal-400" />
+          <ShieldCheck className="size-4 text-teal-400" />
           <span>Firmado digitalmente • Sin publicidad ni telemetría invasiva</span>
         </div>
       </div>
@@ -499,15 +499,11 @@ const LauncherDownloadSection: React.FC<Readonly<DownloadSectionProps>> = ({
 
 export const LauncherShowcaseSection: React.FC = () => {
   const [benchmarkMetric, setBenchmarkMetric] = useState<BenchmarkMetric>(METRICS.RAM);
-  const [activeOs, setActiveOs] = useState<SupportedOs>(OS_NAMES.windows);
+  const [activeOs, setActiveOs] = useState<SupportedOs>(detectOperatingSystem);
   const [showChecksum, setShowChecksum] = useState(false);
   const [copiedHash, setCopiedHash] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [simKey, setSimKey] = useState(0);
-
-  useEffect(() => {
-    setActiveOs(detectOperatingSystem());
-  }, []);
 
   const copyToClipboard = (text: string) => {
     if (typeof navigator !== 'undefined' && navigator.clipboard) {

@@ -5,7 +5,7 @@ import { ScreenShowcaseSection } from '../components/Launcher/ScreenShowcaseSect
 import { ArchitectureInfographic } from '../components/Launcher/ArchitectureInfographic';
 import { useSEO } from '../hooks/useSEO';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import {
   ChevronDown,
   Sparkles,
@@ -57,7 +57,7 @@ const PLATFORM_DOWNLOADS: readonly PlatformDownloadInfo[] = [
     borderHoverClass: 'hover:border-teal-500/40',
     checkIconClass: 'text-teal-400',
     buttonClass:
-      'bg-linear-to-r flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl from-teal-400 to-teal-500 px-4 py-3 text-xs font-black uppercase tracking-wider text-slate-950 shadow-lg shadow-teal-500/20 transition-all hover:from-teal-300 hover:to-teal-400',
+      'bg-linear-to-r flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl from-teal-400 to-teal-500 px-4 py-3 text-xs font-black uppercase tracking-wider text-slate-950 shadow-lg shadow-teal-500/20 transition-colors hover:from-teal-300 hover:to-teal-400',
   },
   {
     id: 'mac',
@@ -71,7 +71,7 @@ const PLATFORM_DOWNLOADS: readonly PlatformDownloadInfo[] = [
     borderHoverClass: 'hover:border-purple-500/40',
     checkIconClass: 'text-purple-400',
     buttonClass:
-      'flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/10 px-4 py-3 text-xs font-bold uppercase tracking-wider text-white transition-all hover:bg-white/15',
+      'flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/10 px-4 py-3 text-xs font-bold uppercase tracking-wider text-white transition-colors hover:bg-white/15',
   },
   {
     id: 'linux',
@@ -85,7 +85,7 @@ const PLATFORM_DOWNLOADS: readonly PlatformDownloadInfo[] = [
     borderHoverClass: 'hover:border-amber-500/40',
     checkIconClass: 'text-amber-400',
     buttonClass:
-      'flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/10 px-4 py-3 text-xs font-bold uppercase tracking-wider text-white transition-all hover:bg-white/15',
+      'flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/10 px-4 py-3 text-xs font-bold uppercase tracking-wider text-white transition-colors hover:bg-white/15',
   },
 ];
 
@@ -123,7 +123,7 @@ const FAQS: readonly FaqItem[] = [
   },
 ];
 
-function DiscordIcon({ className }: { className?: string }) {
+function DiscordIcon({ className }: Readonly<{ className?: string }>) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
       <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128c.125-.094.249-.192.37-.291a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.37.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z" />
@@ -139,7 +139,7 @@ function NavigationBreadcrumb() {
           to="/"
           className="inline-flex items-center gap-2 rounded-lg border border-white/5 bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-400 transition-colors hover:border-teal-500/30 hover:text-teal-400"
         >
-          <ArrowLeft className="h-3.5 w-3.5" />
+          <ArrowLeft className="size-3.5" />
           <span>Volver a CrystalTides Home</span>
         </Link>
 
@@ -148,14 +148,14 @@ function NavigationBreadcrumb() {
             href={CONSTANTS.DISCORD_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-lg border border-[#5865F2]/30 bg-[#5865F2]/10 px-3 py-1.5 text-xs font-bold text-[#5865F2] transition-all hover:border-[#5865F2] hover:bg-[#5865F2] hover:text-white"
+            className="inline-flex items-center gap-2 rounded-lg border border-[#5865F2]/30 bg-[#5865F2]/10 px-3 py-1.5 text-xs font-bold text-[#5865F2] transition-colors hover:border-[#5865F2] hover:bg-[#5865F2] hover:text-white"
           >
-            <DiscordIcon className="h-3.5 w-3.5" />
+            <DiscordIcon className="size-3.5" />
             <span>Comunidad Discord</span>
           </a>
 
           <div className="hidden items-center gap-2 text-xs text-slate-400 sm:flex">
-            <span className="h-2 w-2 animate-ping rounded-full bg-emerald-400" />
+            <span className="size-2 animate-ping rounded-full bg-emerald-400" />
             <span className="font-mono font-medium text-slate-300">v2.4.0 Estable</span>
           </div>
         </div>
@@ -168,25 +168,25 @@ function HeroMetrics() {
   return (
     <div className="flex flex-wrap items-center justify-center gap-3 pt-2 font-mono text-xs">
       <div className="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/80 px-3.5 py-2 text-slate-300">
-        <HardDrive className="h-3.5 w-3.5 text-teal-400" />
+        <HardDrive className="size-3.5 text-teal-400" />
         <span>
           RAM: <strong className="font-bold text-white">&lt; 38.4 MB</strong>
         </span>
       </div>
       <div className="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/80 px-3.5 py-2 text-slate-300">
-        <Activity className="h-3.5 w-3.5 text-teal-400" />
+        <Activity className="size-3.5 text-teal-400" />
         <span>
           Inicio: <strong className="font-bold text-white">0.6s</strong>
         </span>
       </div>
       <div className="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/80 px-3.5 py-2 text-slate-300">
-        <Cpu className="h-3.5 w-3.5 text-teal-400" />
+        <Cpu className="size-3.5 text-teal-400" />
         <span>
           FPS Boost: <strong className="font-bold text-white">+140% FPS</strong>
         </span>
       </div>
       <div className="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/80 px-3.5 py-2 text-slate-300">
-        <Layers className="h-3.5 w-3.5 text-teal-400" />
+        <Layers className="size-3.5 text-teal-400" />
         <span>
           Sync: <strong className="font-bold text-white">SHA-256 Delta</strong>
         </span>
@@ -199,18 +199,18 @@ function HeroSection() {
   return (
     <header className="relative z-10 mx-auto max-w-6xl space-y-6 px-4 pb-14 pt-8 text-center sm:px-6 lg:px-8">
       <div className="inline-flex items-center gap-2 rounded-full border border-teal-500/30 bg-slate-900/90 px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider text-teal-300 shadow-lg shadow-teal-500/10">
-        <Sparkles className="h-3.5 w-3.5 text-teal-400" />
+        <Sparkles className="size-3.5 text-teal-400" />
         <span>CLIENTE OFICIAL TAURI 2.0 • RUST CORE</span>
       </div>
 
-      <h1 className="mx-auto max-w-4xl text-4xl font-black leading-tight tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl">
+      <h1 className="mx-auto max-w-4xl text-4xl/tight font-black tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl">
         El Launcher Definitivo para <br />
         <span className="bg-linear-to-r from-teal-400 via-purple-300 to-teal-300 bg-clip-text text-transparent">
           Minecraft Modded
         </span>
       </h1>
 
-      <p className="mx-auto max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base md:text-lg">
+      <p className="mx-auto max-w-2xl text-sm/relaxed text-slate-300 sm:text-base md:text-lg">
         Arranque instantáneo en <strong className="font-bold text-white">0.6 segundos</strong>,
         consumo menor a <strong className="font-bold text-white">40MB de RAM</strong> y
         sincronización delta de mods en tiempo real.
@@ -221,14 +221,14 @@ function HeroSection() {
       <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
         <a
           href="#downloads"
-          className="bg-linear-to-r flex cursor-pointer items-center gap-2.5 rounded-xl from-teal-400 to-teal-500 px-8 py-3.5 text-sm font-black tracking-wide text-slate-950 shadow-xl shadow-teal-500/25 transition-all hover:scale-105 hover:from-teal-300 hover:to-teal-400"
+          className="bg-linear-to-r flex cursor-pointer items-center gap-2.5 rounded-xl from-teal-400 to-teal-500 px-8 py-3.5 text-sm font-black tracking-wide text-slate-950 shadow-xl shadow-teal-500/25 transition-colors hover:scale-105 hover:from-teal-300 hover:to-teal-400"
         >
-          <Download className="h-4 w-4" />
+          <Download className="size-4" />
           <span>DESCARGAR PARA TU PC</span>
         </a>
         <a
           href="#sandbox"
-          className="flex cursor-pointer items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-6 py-3.5 text-sm font-bold text-white transition-all hover:bg-white/10"
+          className="flex cursor-pointer items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-6 py-3.5 text-sm font-bold text-white transition-colors hover:bg-white/10"
         >
           <span>Explorar Simulador Web &darr;</span>
         </a>
@@ -242,14 +242,14 @@ function SystemRequirementsSection() {
     <section className="relative z-10 mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
       <div className="rounded-3xl border border-white/10 bg-[#09050d] p-6 shadow-2xl sm:p-8">
         <div className="mb-6 flex items-center gap-3">
-          <Monitor className="h-5 w-5 text-teal-400" />
+          <Monitor className="size-5 text-teal-400" />
           <h3 className="text-xl font-bold text-white">Requisitos del Sistema</h3>
         </div>
 
         <div className="grid grid-cols-1 gap-4 text-xs sm:grid-cols-3 sm:text-sm">
           <div className="bg-white/2 space-y-2 rounded-xl border border-white/5 p-4">
             <div className="flex items-center gap-2 font-bold text-white">
-              <span className="h-2 w-2 rounded-full bg-teal-400" />
+              <span className="size-2 rounded-full bg-teal-400" />
               <span>Windows</span>
             </div>
             <div className="space-y-1 text-slate-400">
@@ -261,7 +261,7 @@ function SystemRequirementsSection() {
 
           <div className="bg-white/2 space-y-2 rounded-xl border border-white/5 p-4">
             <div className="flex items-center gap-2 font-bold text-white">
-              <span className="h-2 w-2 rounded-full bg-purple-400" />
+              <span className="size-2 rounded-full bg-purple-400" />
               <span>macOS</span>
             </div>
             <div className="space-y-1 text-slate-400">
@@ -273,7 +273,7 @@ function SystemRequirementsSection() {
 
           <div className="bg-white/2 space-y-2 rounded-xl border border-white/5 p-4">
             <div className="flex items-center gap-2 font-bold text-white">
-              <span className="h-2 w-2 rounded-full bg-amber-400" />
+              <span className="size-2 rounded-full bg-amber-400" />
               <span>Linux</span>
             </div>
             <div className="space-y-1 text-slate-400">
@@ -297,12 +297,12 @@ interface PlatformCardProps {
 function PlatformCard({ platform, isCopied, onCopyHash }: Readonly<PlatformCardProps>) {
   return (
     <div
-      className={`flex flex-col justify-between space-y-4 rounded-2xl border border-white/10 bg-[#0c0714] p-6 shadow-xl transition-all ${platform.borderHoverClass}`}
+      className={`flex flex-col justify-between space-y-4 rounded-2xl border border-white/10 bg-[#0c0714] p-6 shadow-xl transition-colors ${platform.borderHoverClass}`}
     >
       <div className="space-y-2">
         <div className="flex items-center justify-between text-sm font-bold text-white">
           <span>{platform.title}</span>
-          <span className={`rounded px-2 py-0.5 font-mono text-[10px] ${platform.badgeClass}`}>
+          <span className={`rounded-sm px-2 py-0.5 font-mono text-[10px] ${platform.badgeClass}`}>
             {platform.badge}
           </span>
         </div>
@@ -317,14 +317,14 @@ function PlatformCard({ platform, isCopied, onCopyHash }: Readonly<PlatformCardP
         >
           <span className="truncate">SHA-256: {platform.hash.slice(0, 16)}...</span>
           {isCopied ? (
-            <Check className={`h-3.5 w-3.5 ${platform.checkIconClass}`} />
+            <Check className={`size-3.5 ${platform.checkIconClass}`} />
           ) : (
-            <Copy className="h-3.5 w-3.5 text-slate-500" />
+            <Copy className="size-3.5 text-slate-500" />
           )}
         </button>
 
         <button type="button" className={platform.buttonClass}>
-          <Download className="h-3.5 w-3.5" />
+          <Download className="size-3.5" />
           <span>{platform.downloadLabel}</span>
         </button>
       </div>
@@ -345,7 +345,7 @@ function DownloadSection({ copiedHash, onCopyHash }: Readonly<DownloadSectionPro
     >
       <div className="mx-auto max-w-2xl space-y-2 text-center">
         <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-teal-400">
-          <Download className="h-4 w-4" /> DESCARGA DIRECTA MULTI-PLATAFORMA
+          <Download className="size-4" /> DESCARGA DIRECTA MULTI-PLATAFORMA
         </div>
         <h2 className="text-3xl font-black text-white sm:text-4xl">Descarga Oficial Verificada</h2>
         <p className="text-xs text-slate-400 sm:text-sm">
@@ -383,13 +383,13 @@ function FaqAccordionItem({ faq, isOpen, onToggle }: Readonly<FaqAccordionItemPr
       >
         <span className="text-sm font-bold text-white sm:text-base">{faq.q}</span>
         <ChevronDown
-          className={`h-4 w-4 shrink-0 text-slate-400 transition-transform duration-200 ${
+          className={`size-4 shrink-0 text-slate-400 transition-transform duration-200 ${
             isOpen ? 'rotate-180 text-teal-400' : ''
           }`}
         />
       </button>
       {isOpen && (
-        <div className="border-t border-white/5 px-4 pb-5 pt-3 text-xs leading-relaxed text-slate-300 sm:px-5 sm:text-sm">
+        <div className="border-t border-white/5 px-4 pb-5 pt-3 text-xs/relaxed text-slate-300 sm:px-5 sm:text-sm">
           {faq.a}
         </div>
       )}
@@ -400,15 +400,15 @@ function FaqAccordionItem({ faq, isOpen, onToggle }: Readonly<FaqAccordionItemPr
 function FaqSection({
   openFaq,
   onToggleFaq,
-}: {
+}: Readonly<{
   openFaq: number | null;
   onToggleFaq: (idx: number) => void;
-}) {
+}>) {
   return (
     <section className="relative z-10 mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8">
       <div className="mx-auto mb-10 max-w-2xl space-y-2 text-center">
         <div className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-teal-400">
-          <HelpCircle className="h-4 w-4" /> Preguntas Frecuentes
+          <HelpCircle className="size-4" /> Preguntas Frecuentes
         </div>
         <h2 className="text-2xl font-black text-white sm:text-3xl">
           ¿Tienes dudas sobre el cliente?
@@ -443,7 +443,7 @@ function FinalBannerCta() {
         <div className="flex flex-wrap items-center justify-center gap-4">
           <a
             href="#downloads"
-            className="bg-linear-to-r cursor-pointer rounded-xl from-teal-400 to-teal-500 px-8 py-3.5 text-sm font-black tracking-wide text-slate-950 shadow-lg shadow-teal-500/20 transition-all hover:scale-105 hover:from-teal-300 hover:to-teal-400"
+            className="bg-linear-to-r cursor-pointer rounded-xl from-teal-400 to-teal-500 px-8 py-3.5 text-sm font-black tracking-wide text-slate-950 shadow-lg shadow-teal-500/20 transition-colors hover:scale-105 hover:from-teal-300 hover:to-teal-400"
           >
             DESCARGAR AHORA
           </a>
@@ -457,9 +457,9 @@ function FinalBannerCta() {
             href={CONSTANTS.DISCORD_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex cursor-pointer items-center gap-2.5 rounded-xl border border-[#5865F2]/40 bg-[#5865F2]/15 px-6 py-3.5 text-sm font-bold text-white shadow-lg transition-all hover:border-[#5865F2] hover:bg-[#5865F2] hover:shadow-[#5865F2]/25"
+            className="inline-flex cursor-pointer items-center gap-2.5 rounded-xl border border-[#5865F2]/40 bg-[#5865F2]/15 px-6 py-3.5 text-sm font-bold text-white shadow-lg transition-colors hover:border-[#5865F2] hover:bg-[#5865F2] hover:shadow-[#5865F2]/25"
           >
-            <DiscordIcon className="h-4 w-4" />
+            <DiscordIcon className="size-4" />
             <span>Comunidad Discord</span>
           </a>
         </div>
@@ -495,8 +495,8 @@ export default function LauncherPage() {
       {/* Top Glow & Ambient Accents */}
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
         <div className="w-200 h-125 bg-linear-to-b absolute -top-40 left-1/2 -translate-x-1/2 rounded-full from-teal-500/10 via-purple-600/5 to-transparent blur-[140px]" />
-        <div className="w-112.5 h-112.5 absolute -left-40 top-1/3 rounded-full bg-purple-900/10 blur-[120px]" />
-        <div className="w-125 h-125 absolute -right-40 bottom-10 rounded-full bg-teal-600/10 blur-[140px]" />
+        <div className="size-112.5 absolute -left-40 top-1/3 rounded-full bg-purple-900/10 blur-[120px]" />
+        <div className="size-125 absolute -right-40 bottom-10 rounded-full bg-teal-600/10 blur-[140px]" />
       </div>
 
       {/* Top Navigation Breadcrumb */}
