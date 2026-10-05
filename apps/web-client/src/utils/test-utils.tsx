@@ -1,10 +1,11 @@
-import React, { ReactNode } from "react";
-import { render, renderHook, RenderOptions } from "@testing-library/react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { MemoryRouter, type MemoryRouterProps } from "react-router-dom";
-import { vi } from "vitest";
-import { AuthContext, AuthContextType } from "../context/AuthContext";
-import { SidebarProvider } from "../context/SidebarContext";
+/* eslint-disable react-refresh/only-export-components */
+import React, { ReactNode } from 'react';
+import { render, renderHook, RenderOptions } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { MemoryRouter, type MemoryRouterProps } from 'react-router';
+import { vi } from 'vitest';
+import { AuthContext, AuthContextType } from '../context/AuthContext';
+import { SidebarProvider } from '../context/SidebarContext';
 
 const createTestQueryClient = () =>
   new QueryClient({
@@ -25,12 +26,15 @@ export const defaultMockAuth: AuthContextType = {
   updateUser: vi.fn(),
 };
 
-interface ExtendedRenderOptions extends Omit<RenderOptions, "queries"> {
+interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
   auth?: Partial<AuthContextType>;
-  initialEntries?: MemoryRouterProps["initialEntries"];
+  initialEntries?: MemoryRouterProps['initialEntries'];
 }
 
-function MockAuthProvider({ auth, children }: { auth?: Partial<AuthContextType>; children: ReactNode }) {
+function MockAuthProvider({
+  auth,
+  children,
+}: Readonly<{ auth?: Partial<AuthContextType>; children: ReactNode }>) {
   const authValue = React.useMemo<AuthContextType>(
     () => ({
       ...defaultMockAuth,
@@ -41,10 +45,7 @@ function MockAuthProvider({ auth, children }: { auth?: Partial<AuthContextType>;
   return <AuthContext.Provider value={authValue}>{children}</AuthContext.Provider>;
 }
 
-export function renderWithProviders(
-  ui: React.ReactElement,
-  options?: ExtendedRenderOptions,
-) {
+export function renderWithProviders(ui: React.ReactElement, options?: ExtendedRenderOptions) {
   const testQueryClient = createTestQueryClient();
   const initialEntries = options?.initialEntries;
   const renderOptions = options ? { ...options } : undefined;
@@ -69,7 +70,7 @@ export function renderHookWithProviders<Result, Props>(
   renderCallback: (props: Props) => Result,
   options?: {
     auth?: Partial<AuthContextType>;
-    initialEntries?: MemoryRouterProps["initialEntries"];
+    initialEntries?: MemoryRouterProps['initialEntries'];
   },
 ) {
   const testQueryClient = createTestQueryClient();
@@ -78,9 +79,7 @@ export function renderHookWithProviders<Result, Props>(
     <QueryClientProvider client={testQueryClient}>
       <MockAuthProvider auth={options?.auth}>
         <SidebarProvider>
-          <MemoryRouter initialEntries={options?.initialEntries}>
-            {children}
-          </MemoryRouter>
+          <MemoryRouter initialEntries={options?.initialEntries}>{children}</MemoryRouter>
         </SidebarProvider>
       </MockAuthProvider>
     </QueryClientProvider>

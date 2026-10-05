@@ -1,6 +1,6 @@
 import type { User } from '@supabase/supabase-js';
 import NotificationCenter from '../../components/UI/NotificationCenter';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router';
 import { useAuth } from '../../context/AuthContext';
 import { isAdmin as checkAdmin } from '../../utils/roleUtils';
 import {
@@ -78,7 +78,7 @@ export default function Navbar() {
 
   return (
     <header
-      className={`z-100 fixed left-0 right-0 top-0 box-border transition-colors duration-500 ${scrolled ? 'py-2' : 'py-4'}`}
+      className={`z-100 fixed inset-x-0 top-0 box-border transition-colors duration-500 ${scrolled ? 'py-2' : 'py-4'}`}
     >
       <div
         className={`mx-auto transition-colors duration-500 ${scrolled ? 'max-w-screen-2xl px-4' : 'max-w-screen-2xl px-4 md:px-8'}`}
@@ -97,7 +97,7 @@ export default function Navbar() {
                 <motion.img
                   src="/images/ui/logo.webp"
                   alt="CrystalTides Logo"
-                  className="relative z-10 h-8 w-8 cursor-pointer object-contain md:h-9 md:w-9"
+                  className="relative z-10 size-8 cursor-pointer object-contain md:size-9"
                   whileHover={{ scale: 1.25, rotate: 12 }}
                   whileTap={{ scale: 0.95 }}
                   transition={{ type: 'spring', stiffness: 350, damping: 12 }}
@@ -283,8 +283,8 @@ function UserDropdownMenu({
         className="bg-(--accent) shadow-(--accent)/20 group flex cursor-pointer items-center gap-3 rounded-xl px-4 py-2 shadow-lg transition-colors hover:brightness-110 active:scale-95"
         onClick={() => setDropdownOpen((prev) => !prev)}
       >
-        <div className="h-6 w-6 overflow-hidden rounded-lg border border-black/10">
-          <img src={avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
+        <div className="size-6 overflow-hidden rounded-lg border border-black/10">
+          <img src={avatarUrl} alt="Avatar" className="size-full object-cover" />
         </div>
         <span className="max-w-30 truncate text-[11px] font-black uppercase tracking-widest text-black">
           {user.user_metadata?.minecraft_nick || user.user_metadata?.username || 'User'}
@@ -301,7 +301,7 @@ function UserDropdownMenu({
             exit={{ opacity: 0, scale: 0.9, y: 10 }}
             transition={{ type: 'spring', duration: 0.3, bounce: 0 }}
           >
-            <div className="mb-2 border-b border-white/5 px-4 py-4">
+            <div className="mb-2 border-b border-white/5 p-4">
               <p className="mb-1 text-[10px] font-black uppercase leading-none tracking-widest text-gray-500">
                 {t('navbar.logged_in_as', 'Conectado como')}
               </p>

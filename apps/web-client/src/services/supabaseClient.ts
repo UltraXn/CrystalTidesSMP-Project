@@ -1,28 +1,34 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js';
 
-const getAnonKey = (): string => {
-    if (import.meta.env.VITE_SUPABASE_ANON_KEY) {
-        return import.meta.env.VITE_SUPABASE_ANON_KEY;
-    }
-    const h = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9';
-    const p = 'eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5b3FucXZxaHV4bGNicnZ0ZmlhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUyOTk0MTEsImV4cCI6MjA4MDg3NTQxMX0';
-    const s = 'eLU_-IrRfixx7dpR9jeiEoOT1u-exQMhIsxSXVINbRA';
-    return `${h}.${p}.${s}`;
-};
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://gyoqnqvqhuxlcbrvtfia.supabase.co';
-const supabaseKey = getAnonKey();
+if (!supabaseUrl || !supabaseAnonKey) {
+  const missing = [
+    !supabaseUrl && 'VITE_SUPABASE_URL',
+    !supabaseAnonKey && 'VITE_SUPABASE_ANON_KEY',
+  ]
+    .filter(Boolean)
+    .join(', ');
 
-export const supabase = createClient(supabaseUrl, supabaseKey, {
-    auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true,
-        storageKey: 'crystaltides-auth-token',
+  throw new Error(
+    `[SupabaseClient] Faltan variables de entorno obligatorias: ${missing}. Revisa el archivo .env en apps/web-client.`,
+  );
+}
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    flowType: 'pkce',
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+    storageKey: 'crystaltides-auth-token',
+  },
+  realtime: {
+    params: {
+      eventsPerSecond: 10,
     },
-    realtime: {
-        params: {
-            eventsPerSecond: 10,
-        },
-    },
-})
+  },
+});
+
+export type TypedSupabaseClient = typeof supabase;

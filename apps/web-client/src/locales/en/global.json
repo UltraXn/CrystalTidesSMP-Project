@@ -1,2221 +1,2222 @@
 {
-    "seo": {
-        "title": "CrystalTides SMP | Best English Minecraft Survival moded Server 1.21.1",
-        "description": "CrystalTides SMP: Best English Minecraft Survival moded Server 1.21.1 featuring custom mechanics, active international community, and unique survival experience.",
-        "keywords": "Best English Minecraft Survival moded Server 1.21.1, English Minecraft Server, Modded Survival SMP, Minecraft 1.21.1, CrystalTides"
-    },
-    "about": {
-        "features": {
-            "title": "Featured Features",
-            "subtitle": "Custom-built systems designed exclusively to deliver polished, immersive, and enduring gameplay.",
-            "proximity": {
-                "title": "Proximity Voice Chat",
-                "tag": "IMMERSION",
-                "desc": "Communicate with other players using integrated proximity voice chat. Hear whispers in city alleys, make secret deals, or shout warnings in intense battles."
-            },
-            "economy": {
-                "title": "Crystal Economy",
-                "tag": "TRADE",
-                "desc": "A dynamic financial ecosystem. Mine unstable crystals in the depths, refine them in refineries, and use them to acquire ships, trade at auctions, or pay city taxes."
-            },
-            "nations": {
-                "title": "Nations & Empires",
-                "tag": "POLITICS",
-                "desc": "Found your own town or join an existing nation. Enact laws, manage municipal treasuries, sign peace treaties, or declare territorial wars to expand your empire."
-            }
-        },
-        "roles": {
-            "badge": "Custom Mechanics System Built to Measure",
-            "title": "Choose Your Path in CrystalTides",
-            "subtitle": "The main goal of the server is to be fun and have a great time playing, whether relaxing (chill) with friends or tryharding to climb the rankings. Your progress unlocks cosmetic titles and prestige levels.",
-            "step1_title": "1. Play Your Way",
-            "step1_desc": "Build, fight, trade, or explore freely. No playstyle restrictions.",
-            "step2_title": "2. Progression Titles",
-            "step2_desc": "Accumulate blocks, kills, KilluCoins, or streak days to unlock progressive titles.",
-            "step3_title": "3. Prestige & Top #1",
-            "step3_desc": "Advance through 5 global Prestige tiers and compete for the supreme rank in your branch.",
-            "radar": {
-                "builder": "Builder",
-                "fighter": "Fighter",
-                "merchant": "Merchant",
-                "constancy": "Constancy",
-                "explorer": "Explorer"
-            },
-            "prestige_desc": "Prestige Tiers reward the dedication of players who max out their mastery statistics in CrystalTides.",
-            "prestige": {
-                "tier1": {
-                    "name": "Prestige I (Copper)",
-                    "badge": "⭐ PRESTIGE I",
-                    "req": "Initial streak or level 2 milestone"
-                },
-                "tier2": {
-                    "name": "Prestige II (Iron)",
-                    "badge": "⭐⭐ PRESTIGE II",
-                    "req": "Intermediate streak or level 3 milestone"
-                },
-                "tier3": {
-                    "name": "Prestige III (Gold)",
-                    "badge": "⭐⭐⭐ PRESTIGE III",
-                    "req": "14-day streak or level 4 milestone"
-                },
-                "tier4": {
-                    "name": "Prestige IV (Diamond)",
-                    "badge": "⭐⭐⭐⭐ PRESTIGE IV",
-                    "req": "30-day streak or Server Top 5"
-                },
-                "tier5": {
-                    "name": "Prestige V (Iridium)",
-                    "badge": "💎 PRESTIGE V",
-                    "req": "Undisputed Mastery #1"
-                }
-            },
-            "custom_branch": "Custom Progression Branch",
-            "metric_label": "Metric:",
-            "radar_view": "Radar View",
-            "loading_radar": "Loading radar...",
-            "titles_tab": "Titles (1-5)",
-            "prestige_tab": "Prestige",
-            "level": "LEVEL {{level}}",
-            "top": "⭐ TOP",
-            "track_progress": "Track Your Progress in Real-Time",
-            "track_desc": "Link your Minecraft account to update your badges.",
-            "view_status": "View My Status",
-            "rules": {
-                "header": "Mastery Regulations & Rules",
-                "sub": "Requirements to dispute the Top #1 spot",
-                "top_honor": "Top #1 Honor Title",
-                "specific_rules": "Specific Rules",
-                "max_rank_title": "Maximum Rank Rules",
-                "req_label": "Maximum Rank Requirement:",
-                "max_rank_req": "You must be the player with the highest points/stats in the category you excel in.",
-                "limit_label": "Limit of 1 Active Rank:",
-                "limit_active": "You can only hold 1 maximum title simultaneously at any given time.",
-                "transfer_label": "Direct Transfer:",
-                "transfer": "Transferred if another player surpasses your score. 1v1 Duel is exclusive to Warlord."
-            },
-            "branch": {
-                "constructor": {
-                    "title": "Builder & Colonizer",
-                    "subtitle": "Architectural Art & Kingdoms",
-                    "desc": "Master the art of architecture and found kingdoms. Design protected megastructures and connect the world through trade routes, ports, and cities.",
-                    "formula": "Blocks mined + placed. Each block milestone grants you a new building rank.",
-                    "metric": "Blocks Mined + Placed",
-                    "topTitle": "Supreme Master Builder",
-                    "topReq": "Highest combined sum of mined and placed blocks on the server",
-                    "rule": {
-                        "0": "Blocks must be placed and mined organically by playing in the survival world.",
-                        "1": "Artificial block looping (repeatedly breaking and placing the same block with scripts or macros) is strictly prohibited.",
-                        "2": "Megastructures in protected claims receive official validation on the interactive server map."
-                    },
-                    "rank": {
-                        "1": {
-                            "name": "Initiate",
-                            "req": "0 blocks"
-                        },
-                        "2": {
-                            "name": "Novice",
-                            "req": "1,000 blocks"
-                        },
-                        "3": {
-                            "name": "Skilled",
-                            "req": "10,000 blocks"
-                        },
-                        "4": {
-                            "name": "Architect",
-                            "req": "50,000 blocks"
-                        },
-                        "5": {
-                            "name": "Master Builder",
-                            "req": "Server Top #1"
-                        }
-                    }
-                },
-                "luchador": {
-                    "title": "Fighter & Gladiator",
-                    "subtitle": "PvP, Mobs & Dungeons",
-                    "desc": "Conquer the depths and dominate the arena. Defeat bosses in weekly dungeons, secure event control chests, and lead your clan to glory.",
-                    "formula": "15 pts per player PvP kill and 1 pt per hostile mob eliminated.",
-                    "metric": "PvP (x15 pts) + Mobs (x1 pt)",
-                    "topTitle": "Warlord",
-                    "topReq": "Highest combined score of PvP Kills and Dungeon boss defeats on the server",
-                    "rule": {
-                        "0": "PvP kills count only between distinct players without clan alliance.",
-                        "1": "Kill farming (repeatedly killing the same account or alts) results in a complete reset of combat stats.",
-                        "2": "Dungeons and control events award temporary score multipliers during weekly events."
-                    },
-                    "rank": {
-                        "1": {
-                            "name": "Recruit",
-                            "req": "0 pts"
-                        },
-                        "2": {
-                            "name": "Novice",
-                            "req": "50 pts"
-                        },
-                        "3": {
-                            "name": "Warrior",
-                            "req": "500 pts"
-                        },
-                        "4": {
-                            "name": "Master of Arms",
-                            "req": "2,500 pts"
-                        },
-                        "5": {
-                            "name": "Warlord",
-                            "req": "Server Top #1"
-                        }
-                    }
-                },
-                "mercader": {
-                    "title": "Merchant & Tycoon",
-                    "subtitle": "Economy & KilluCoins",
-                    "desc": "Control server markets. Trade with players, auction rare items, and accumulate KilluCoins to rule the financial leaderboards.",
-                    "formula": "Logarithmic scale (100 × log₁₀(KilluCoins)). The higher your capital, the higher your economic rank.",
-                    "metric": "100 × log₁₀(KilluCoins)",
-                    "topTitle": "Supreme Guildmaster",
-                    "topReq": "Highest accumulated fortune in KilluCoins (logarithmic scale)",
-                    "rule": {
-                        "0": "Financial balances are audited in real time via the server economic plugin.",
-                        "1": "Fictitious transfers or temporary KilluCoin loans between secondary accounts before ranking cutoff are prohibited.",
-                        "2": "Player shops and auction sales award commercial prestige bonuses."
-                    },
-                    "rank": {
-                        "1": {
-                            "name": "Peddler",
-                            "req": "0 KC"
-                        },
-                        "2": {
-                            "name": "Novice",
-                            "req": "1,000 KC"
-                        },
-                        "3": {
-                            "name": "Prosperous",
-                            "req": "10,000 KC"
-                        },
-                        "4": {
-                            "name": "Noble",
-                            "req": "50,000 KC"
-                        },
-                        "5": {
-                            "name": "Grand Guildmaster",
-                            "req": "Server Top #1"
-                        }
-                    }
-                },
-                "constancia": {
-                    "title": "Constancy & Loyalty",
-                    "subtitle": "Daily Streaks & Fidelity",
-                    "desc": "Loyalty has rewards. Maintain daily login streaks, participate actively in events, and strengthen the server community.",
-                    "formula": "Quadratic growth (Streak Days)². Rewards maximum fidelity without breaking daily logins.",
-                    "metric": "(Streak Days)²",
-                    "topTitle": "Unshakable Supreme",
-                    "topReq": "Longest uninterrupted daily login streak with highest quadratic score on the server",
-                    "rule": {
-                        "0": "Daily streaks reset if you fail to log in for at least 15 active minutes within a 24-hour window.",
-                        "1": "Excessive AFK with automated machines to inflate playtime without active gameplay is prohibited.",
-                        "2": "Active members receive daily reward multipliers and loyalty reward chests."
-                    },
-                    "rank": {
-                        "1": {
-                            "name": "Visitor",
-                            "req": "0 days"
-                        },
-                        "2": {
-                            "name": "Traveler",
-                            "req": "7 days"
-                        },
-                        "3": {
-                            "name": "Devoted",
-                            "req": "14 days"
-                        },
-                        "4": {
-                            "name": "Dedicated",
-                            "req": "30 days"
-                        },
-                        "5": {
-                            "name": "Unshakable",
-                            "req": "Server Top #1"
-                        }
-                    }
-                },
-                "explorador": {
-                    "title": "Explorer & Cartographer",
-                    "subtitle": "Journeys & Rare Biomes",
-                    "desc": "Traverse the far reaches of the survival world, discover legendary structures, claim treasure maps, and chart uncharted lands.",
-                    "formula": "10 pts per active playtime hour + 1 pt per km (1,000 blocks) traveled in Minecraft.",
-                    "metric": "Hours (x10) + Km",
-                    "topTitle": "Supreme Master Explorer",
-                    "topReq": "Highest combined score of active playtime hours and distance traveled",
-                    "rule": {
-                        "0": "Distance counts across all movement types (walking, riding, flying with elytra).",
-                        "1": "Automated elytra or boat looping scripts without manual navigation are monitored and penalized.",
-                        "2": "Discovering rare biomes and structures unlocks bonus exploration score."
-                    },
-                    "rank": {
-                        "1": {
-                            "name": "Novice",
-                            "req": "0 pts"
-                        },
-                        "2": {
-                            "name": "Curious",
-                            "req": "100 pts"
-                        },
-                        "3": {
-                            "name": "Mapper",
-                            "req": "500 pts"
-                        },
-                        "4": {
-                            "name": "Pioneer",
-                            "req": "2,000 pts"
-                        },
-                        "5": {
-                            "name": "Expert Explorer",
-                            "req": "Server Top #1"
-                        }
-                    }
-                }
-            }
-        }
-    },
-    "common": {
-        "back": "Back",
-        "back_home": "Back to Home",
-        "optional": "Optional",
-        "save_error": "Error saving",
-        "delete_error": "Error deleting",
-        "confirm_delete": "Confirm deletion",
-        "deleting": "Deleting...",
-        "accept": "Accept",
-        "cancel": "Cancel",
-        "loading": "Loading...",
-        "loading_content": "Loading content...",
-        "processing": "Processing...",
-        "copy": "Copy",
-        "copied": "Copied",
-        "anonymous": "Anonymous",
-        "back_forum": "Back to Forum"
-    },
-    "hero": {
-        "welcome": "WELCOME TO",
-        "title": "CRYSTALTIDES SMP",
-        "subtitle": "Immerse yourself in a world of adventure, community, and limitless creativity. Join us! We await you ✨",
-        "description": "Immerse yourself in a world of adventure, community, and limitless creativity. Join us! We await you ✨",
-        "edition": "JAVA EDITION",
-        "copy_ip": "COPY IP",
-        "copied": "COPIED!",
-        "players_online": "Players Online",
-        "kofi_text": "Support us on Ko-fi!",
-        "status": {
-            "offline": "OFFLINE",
-            "online": "ONLINE"
-        }
-    },
-    "nav": {
-        "kofi": "KO-FI",
-        "donators": "DONORS",
-        "donors": "DONORS"
-    },
-    "history_section": {
-        "title": "CrystalTides SMP History",
-        "desc": "Welcome to the history of CrystalTides SMP, where you can explore the project timeline and milestones.",
-        "stage1": {
-            "stageName": "STATION 01",
-            "title": "Killufishies' Fishbowl",
-            "subtitle": "Community Origins on Twitch",
-            "badge": "✦ THE ORIGINS",
-            "summary": "The birth of our story on Killu's Twitch streams: a dedicated space for art, illustration, and initial casual gaming nights.",
-            "f1_title": "Illustration Streams",
-            "f1_desc": "Active drawing & fanart community",
-            "f2_title": "Minigame Nights",
-            "f2_desc": "Early moments of chill & gaming"
-        },
-        "stage2": {
-            "stageName": "STATION 02",
-            "title": "Staff Creation",
-            "subtitle": "Formation of Dev, Art & QA Core Team",
-            "badge": "✦ STAFF CORE",
-            "banner_badge": "✦ OUR BRAND & SERVER ORIGIN ✦",
-            "banner_text": "What began as a great friendship gave birth to something wonderful. CrystalTidesSMP is not just a server; it is the reflection of our commitment to building a transparent digital home, crafted with empathy and by listening to our community.",
-            "summary": "The official team forms: Killu leading voice & community, Nero on tech & infrastructure, Churly on UI design, and Japa on game testing."
-        },
-        "members": {
-            "killu": {
-                "role": "Director & Community",
-                "desc": "Passionate, cheerful, and the protective soul of the Fishbowl. Creates a welcoming vibe, organizes events, and guides with human warmth.",
-                "tag1": "Charismatic",
-                "tag2": "Events",
-                "tag3": "Lead Voice"
-            },
-            "nero": {
-                "role": "Dev Lead & Infra",
-                "desc": "Logical mind injected with technical euphoria. Obsessed with server performance, custom patches, and clean bug-free code.",
-                "tag1": "Tech Euphoria",
-                "tag2": "Fullstack Infra",
-                "tag3": "Zero Bugs"
-            },
-            "churly": {
-                "role": "Design & Art Lead",
-                "desc": "Visual perfectionist, creative and aesthetic visionary. Designs interfaces, art concepts, and unique visual identities.",
-                "tag1": "Artistic Vision",
-                "tag2": "UI/UX Lead",
-                "tag3": "Polished Aesthetic"
-            },
-            "japa": {
-                "role": "QA & BetaTester",
-                "desc": "Curious, persistent, and relentless seeking to break mechanics to improve them. Killu's personal fault-proof agent of chaos.",
-                "tag1": "Chaos Agent",
-                "tag2": "QA Tester",
-                "tag3": "Solid Gameplay"
-            }
-        },
-        "stage3": {
-            "stageName": "STATION 03",
-            "title": "Evolution to CrystalTides SMP",
-            "subtitle": "RPG System, LIVE Economy & Nether Bosses",
-            "badge": "✦ EVOLUTION",
-            "summary": "The fishbowl evolved into CrystalTides SMP, a brand new server with fresh mechanics and epic bosses.",
-            "live_combat": "🔴 WATCH LIVE COMBAT RECORD",
-            "wither_boss": "Wither Terror Boss Fight",
-            "nether_raid": "NETHER RAID",
-            "nether_citadel": "Nether Citadel",
-            "community": "COMMUNITY",
-            "sakura_forest": "Sakura Forest",
-            "showdown": "SHOWDOWN",
-            "nether_battle": "Nether Battle",
-            "economy": "ECONOMY",
-            "grand_vault": "Grand Vault",
-            "f1_title": "mcMMO Skills",
-            "f1_desc": "Complete RPG system for mastery & combat",
-            "f2_title": "Killupesos Economy",
-            "f2_desc": "Origin of the 7-currency financial ecosystem",
-            "f3_title": "Forgotten Terror Boss",
-            "f3_desc": "Weekly dungeon and Nether battles",
-            "f4_title": "Waystones Network",
-            "f4_desc": "Teleportation and survival map landmarks"
-        },
-        "stage4": {
-            "stageName": "STATION 04",
-            "title": "Dedicated Era & Launcher",
-            "subtitle": "Dedicated Servers, Official Domain & Future",
-            "badge": "✦ DEDICATED ERA",
-            "summary": "Migration to enterprise Ubuntu Server infrastructure (MySQL, Redis, distributed nodes), official domain, and Launcher Beta.",
-            "new_hosting": "NEW HOSTING",
-            "ubuntu_tps": "Sustained 20 TPS Ubuntu",
-            "daily_rewards": "DAILY REWARDS",
-            "daily_loot": "Rewards & Loot for Joining",
-            "new_stats": "NEW STATISTICS",
-            "live_metrics": "Live Metrics & Kills",
-            "improved_economy": "IMPROVED ECONOMY",
-            "economy_system": "Upgraded Economy System",
-            "f1_title": "Dedicated Ubuntu Node",
-            "f1_desc": "Solid 20 TPS with distributed nodes",
-            "f2_title": "Mc.CrystalTidesSMP.net",
-            "f2_desc": "Official direct connection domain",
-            "f3_title": "Official Launcher Beta",
-            "f3_desc": "Optimized 1-Click game entry"
-        }
-    },
-    "forum_category": {
-        "back_link": "Back to Forum",
-        "new_thread": "New Thread",
-        "loading": "Loading threads...",
-        "no_threads": "No threads in this category yet.",
-        "be_first": "Be the first to create one!",
-        "replies": "Replies",
-        "views": "Views"
-    },
-    "wiki": {
-        "title": "Guide",
-        "search_placeholder": "Search the guide...",
-        "loading_article": "Opening tome...",
-        "welcome_title": "CrystalTides Library",
-        "welcome_desc": "Select an article from the left to start exploring the secrets of these lands."
-    },
-    "forum_thread": {
-        "back_link": "Back",
-        "back_forum": "Back to Forum",
-        "loading": "Loading content...",
-        "not_found": "Content not available",
-        "views": "Views",
-        "comments": "Comments",
-        "write_reply": "Write your reply...",
-        "publish": "Post Reply",
-        "login_to_reply": "Login to participate.",
-        "login": "Login",
-        "thread_error": "Content not found",
-        "comment_error": "Error posting comment",
-        "just_now": "Just now"
-    },
-    "create_thread": {
-        "title": "Create New Thread",
-        "form": {
-            "category": "Category",
-            "title": "Title",
-            "title_placeholder": "Thread title",
-            "content": "Content",
-            "content_placeholder": "Write here...",
-            "add_poll": "Add Poll",
-            "discord_poll": "Link existing Discord poll",
-            "discord_link_label": "Discord Message Link (\"Copy Message Link\" option)",
-            "discord_hint": "This will show a button to vote directly on Discord.",
-            "poll_question": "Poll Question",
-            "options": "Options",
-            "add_option": "Add Option",
-            "submit": "Post Thread",
-            "submitting": "Posting...",
-            "error_login": "You must be logged in",
-            "error_create": "Error creating thread",
-            "error_conn": "Connection error",
-            "attach_image": "Attach Image",
-            "image_attached": "Image Attached",
-            "upload_preview_hint": "Will be uploaded on post",
-            "remove_image": "Remove"
-        }
-    },
-    "navbar": {
-        "home": "Home",
-        "rules": "Rules",
-        "donors": "Donors",
-        "contests": "Contests",
-        "news": "News",
-        "stories": "Stories",
-        "suggestions": "Suggestions",
-        "map": "Map",
-        "forum": "Forum",
-        "account": "My Account",
-        "login": "Login",
-        "menu": "MENU",
-        "achievements": "Achievements",
-        "register": "Register",
-        "wiki": "Guide",
-        "support": "Support",
-        "gacha": "Gacha",
-        "logged_in_as": "Logged in as"
-    },
+  "seo": {
+    "title": "CrystalTides SMP | Best English Minecraft Survival moded Server 1.21.1",
+    "description": "CrystalTides SMP: Best English Minecraft Survival moded Server 1.21.1 featuring custom mechanics, active international community, and unique survival experience.",
+    "keywords": "Best English Minecraft Survival moded Server 1.21.1, English Minecraft Server, Modded Survival SMP, Minecraft 1.21.1, CrystalTides"
+  },
+  "about": {
     "features": {
-        "economy_title": "Dynamic Economy",
-        "economy_desc": "Participate in a player-driven market. Trade, auction, and build your business empire.",
-        "protection_title": "Mutual Respect",
-        "protection_desc": "Your effort is safe. Protect your builds with a protection block and sleep soundly knowing no one will touch what is yours.",
-        "events_title": "Unique Events",
-        "events_desc": "Participate in tournaments, build contests, and lore events where the server story evolves with you. Exclusive prizes await!"
+      "title": "Featured Features",
+      "subtitle": "Custom-built systems designed exclusively to deliver polished, immersive, and enduring gameplay.",
+      "proximity": {
+        "title": "Proximity Voice Chat",
+        "tag": "IMMERSION",
+        "desc": "Communicate with other players using integrated proximity voice chat. Hear whispers in city alleys, make secret deals, or shout warnings in intense battles."
+      },
+      "economy": {
+        "title": "Crystal Economy",
+        "tag": "TRADE",
+        "desc": "A dynamic financial ecosystem. Mine unstable crystals in the depths, refine them in refineries, and use them to acquire ships, trade at auctions, or pay city taxes."
+      },
+      "nations": {
+        "title": "Nations & Empires",
+        "tag": "POLITICS",
+        "desc": "Found your own town or join an existing nation. Enact laws, manage municipal treasuries, sign peace treaties, or declare territorial wars to expand your empire."
+      }
     },
-    "home": {
-        "title": "About the Server",
-        "description": "CrystalTides is a unique survival RPG universe where the forces of the tide, the abyss, the cosmos, and the earth collide. Choose your path, forge alliances in a living world, master the crystal economy, and write your own legend.",
-        "join_us_twitch": "If you want to see how a hyperactive aquatic creature spends her time, go check out Killubysmali on Twitch. She might draw a masterpiece, give you a English MASTER class, or play Repo as if her life depended on it.",
-        "join_us_discord": "Craving more madness? Join 'La Pecerita de killu' on Discord. But beware: the fearsome Killujaiba lurks in those deep waters, hymns to the Ocean Man are sung (take me by the hand, lead me to the land~ 🎵), and there is still collective trauma over Killu's Little Spoon (which she lost...).",
-        "stats": {
-            "discord": "Discord Members",
-            "registered": "Registered Players",
-            "years": "Years Online",
-            "staff": "Active Staff",
-            "year_suffix": " Year"
+    "roles": {
+      "badge": "Custom Mechanics System Built to Measure",
+      "title": "Choose Your Path in CrystalTides",
+      "subtitle": "The main goal of the server is to be fun and have a great time playing, whether relaxing (chill) with friends or tryharding to climb the rankings. Your progress unlocks cosmetic titles and prestige levels.",
+      "step1_title": "1. Play Your Way",
+      "step1_desc": "Build, fight, trade, or explore freely. No playstyle restrictions.",
+      "step2_title": "2. Progression Titles",
+      "step2_desc": "Accumulate blocks, kills, KilluCoins, or streak days to unlock progressive titles.",
+      "step3_title": "3. Prestige & Top #1",
+      "step3_desc": "Advance through 5 global Prestige tiers and compete for the supreme rank in your branch.",
+      "radar": {
+        "builder": "Builder",
+        "fighter": "Fighter",
+        "merchant": "Merchant",
+        "constancy": "Constancy",
+        "explorer": "Explorer"
+      },
+      "prestige_desc": "Prestige Tiers reward the dedication of players who max out their mastery statistics in CrystalTides.",
+      "prestige": {
+        "tier1": {
+          "name": "Prestige I (Copper)",
+          "badge": "⭐ PRESTIGE I",
+          "req": "Initial streak or level 2 milestone"
         },
-        "social": {
-            "discord_btn": "Join Killu's fishbowl!",
-            "twitch_btn": "Follow Killubysmali's streams!",
-            "twitter_btn": "Follow Killubysmali's tweets!"
+        "tier2": {
+          "name": "Prestige II (Iron)",
+          "badge": "⭐⭐ PRESTIGE II",
+          "req": "Intermediate streak or level 3 milestone"
+        },
+        "tier3": {
+          "name": "Prestige III (Gold)",
+          "badge": "⭐⭐⭐ PRESTIGE III",
+          "req": "14-day streak or level 4 milestone"
+        },
+        "tier4": {
+          "name": "Prestige IV (Diamond)",
+          "badge": "⭐⭐⭐⭐ PRESTIGE IV",
+          "req": "30-day streak or Server Top 5"
+        },
+        "tier5": {
+          "name": "Prestige V (Iridium)",
+          "badge": "💎 PRESTIGE V",
+          "req": "Undisputed Mastery #1"
         }
-    },
-    "footer": {
-        "server": "SERVER",
-        "community": "COMMUNITY",
-        "online_map": "Online Map",
-        "donate": "Donate",
-        "events": "Events",
-        "slogan": "The best option is fun at CrystalTides SMP!",
-        "rights": "All rights reserved.",
-        "rules": "Rules",
-        "suggestions": "Suggestions",
-        "news": "News",
-        "stories": "Stories",
-        "forum": "Forum",
-        "support": "Support",
-        "privacy": "Privacy Policy",
-        "tos": "Terms of Service"
-    },
-    "policies": {
-        "contact_support_msg": "Have questions about our policies?",
-        "contact_support_btn": "Contact Support",
-        "not_found": "Policy not found",
-        "not_found_desc": "Sorry, the page you are looking for does not exist or has been moved.",
-        "last_update": "Last updated"
-    },
-    "login": {
-        "title": "Login",
-        "welcome": "Welcome back, adventurer",
-        "email_label": "Email",
-        "email_placeholder": "email@example.com",
-        "password_label": "Password",
-        "password_placeholder": "••••••••",
-        "submit": "Enter",
-        "sign_in_verb": "Sign In",
-        "loading": "Signing in...",
-        "forgot_password": "Forgot your password?",
-        "or_continue": "Or continue with",
-        "or_sign_in_with": "Or sign in with",
-        "no_account": "Don't have an account?",
-        "register": "Register",
-        "back_home": "Back to home",
-        "error_invalid_credentials": "Invalid credentials. Please check your email and password.",
-        "error_generic": "Error signing in"
-    },
-    "register": {
-        "title": "Create Account",
-        "subtitle": "Join the adventure today",
-        "username_label": "Username",
-        "username_placeholder": "Your web username",
-        "email_label": "Email",
-        "email_placeholder": "email@example.com",
-        "password_label": "Password",
-        "confirm_password_label": "Confirm Password",
-        "submit": "Sign Up",
-        "loading": "Creating account...",
-        "or_register_with": "Or register with",
-        "already_have_account": "Already have an account?",
-        "sign_in": "Sign In",
-        "back_home": "Back to home",
-        "passwords_do_not_match": "Passwords do not match",
-        "error_generic": "Error",
-        "success_title": "You have registered!",
-        "success_msg": "Welcome to CrystalTides SMP. We have sent a confirmation link to your email.",
-        "go_to_login": "Go to Login"
-    },
-    "forum_page": {
-        "title": "Community Forum",
-        "subtitle": "Connect with other players, share ideas and keep up to date with CrystalTides.",
-        "hot_topic": "Trending Poll",
-        "active": "ACTIVE",
-        "official_poll": "Official Poll",
-        "hot_label": "HOT TOPIC",
-        "stats": {
-            "topics": "Topics",
-            "posts": "Posts"
-        },
-        "categories": {
-            "announcements": {
-                "title": "Announcements & News",
-                "desc": "Official updates, patch notes and important events."
-            },
-            "general": {
-                "title": "General Discussion",
-                "desc": "Talk about anything related to CrystalTides SMP."
-            },
-            "support": {
-                "title": "Support & Help",
-                "desc": "Having trouble? Ask the community or staff for help."
-            },
-            "offtopic": {
-                "title": "Off-Topic",
-                "desc": "Free zone to talk about other games or various topics."
-            }
-        },
-        "official_poll_section": "Official Poll",
-        "active_voting": "Active Voting",
-        "hot": "Hot",
-        "view_full": "View full",
-        "no_active_poll": "No active polls at the moment.",
-        "news_section": "News & Announcements",
-        "new_badge": "NEW",
-        "loading_news": "Loading news...",
-        "view_all_news": "View all"
-    },
-    "rules": {
-        "title": "Server Rules",
-        "search_placeholder": "Search rules... (e.g. pvp, chat, claims)",
-        "delete_confirm": "Are you sure you want to delete this rule?",
-        "delete_error": "Error deleting rule",
-        "save_error": "Error saving rule",
-        "view_more": "View details ↓",
-        "view_less": "View less ↑",
-        "allowed": "ALLOWED",
-        "forbidden": "FORBIDDEN / PUNISHABLE",
-        "useful_commands": "USEFUL COMMANDS",
-        "copied": "Copied to clipboard:",
-        "severity": {
-            "mild": "Mild",
-            "serious": "Serious",
-            "critical": "Critical"
-        },
-        "categories": {
-            "general": "General",
-            "comportamiento": "Behavior",
-            "chat": "Chat",
-            "pvp": "PvP",
-            "construcción": "Building",
-            "modificaciones": "Modifications",
-            "staff": "Staff",
-            "seguridad": "Security",
-            "contenido": "Content",
-            "economía": "Economy",
-            "mundo": "World",
-            "cuenta": "Account",
-            "discord": "Discord",
-            "estética": "Aesthetics",
-            "comunidad": "Community"
-        },
-        "intro": "To maintain a healthy and fun community, it is essential to respect these coexistence rules. Failure to comply can lead to severe sanctions.",
-        "loading": "Loading rules...",
-        "all": "All",
-        "new_rule": "New Rule",
-        "editing": "Editing Rule",
-        "new_norm": "New Rule",
-        "close": "Close",
-        "category": "Category",
-        "sort_order": "Sort Order",
-        "title_es": "Title (Spanish)",
-        "translate_to_en": "Translate to EN",
-        "title_en": "Title (English)",
-        "translate_to_es": "Translate to ES",
-        "content_es": "Content (Spanish)",
-        "content_en": "Content (English)",
-        "update_btn": "UPDATE RULE",
-        "publish_btn": "PUBLISH RULE",
-        "no_results": "No rules found in this category.",
-        "cat_placeholder": "Ex: PvP, Chat, Building...",
-        "title_placeholder_es": "Spanish title",
-        "title_placeholder_en": "English title",
-        "content_placeholder_es": "Spanish content...",
-        "content_placeholder_en": "English content...",
-        "items": {
+      },
+      "custom_branch": "Custom Progression Branch",
+      "metric_label": "Metric:",
+      "radar_view": "Radar View",
+      "loading_radar": "Loading radar...",
+      "titles_tab": "Titles (1-5)",
+      "prestige_tab": "Prestige",
+      "level": "LEVEL {{level}}",
+      "top": "⭐ TOP",
+      "track_progress": "Track Your Progress in Real-Time",
+      "track_desc": "Link your Minecraft account to update your badges.",
+      "view_status": "View My Status",
+      "rules": {
+        "header": "Mastery Regulations & Rules",
+        "sub": "Requirements to dispute the Top #1 spot",
+        "top_honor": "Top #1 Honor Title",
+        "specific_rules": "Specific Rules",
+        "max_rank_title": "Maximum Rank Rules",
+        "req_label": "Maximum Rank Requirement:",
+        "max_rank_req": "You must be the player with the highest points/stats in the category you excel in.",
+        "limit_label": "Limit of 1 Active Rank:",
+        "limit_active": "You can only hold 1 maximum title simultaneously at any given time.",
+        "transfer_label": "Direct Transfer:",
+        "transfer": "Transferred if another player surpasses your score. 1v1 Duel is exclusive to Warlord."
+      },
+      "branch": {
+        "constructor": {
+          "title": "Builder & Colonizer",
+          "subtitle": "Architectural Art & Kingdoms",
+          "desc": "Master the art of architecture and found kingdoms. Design protected megastructures and connect the world through trade routes, ports, and cities.",
+          "formula": "Blocks mined + placed. Each block milestone grants you a new building rank.",
+          "metric": "Blocks Mined + Placed",
+          "topTitle": "Supreme Master Builder",
+          "topReq": "Highest combined sum of mined and placed blocks on the server",
+          "rule": {
+            "0": "Blocks must be placed and mined organically by playing in the survival world.",
+            "1": "Artificial block looping (repeatedly breaking and placing the same block with scripts or macros) is strictly prohibited.",
+            "2": "Megastructures in protected claims receive official validation on the interactive server map."
+          },
+          "rank": {
             "1": {
-                "title": "PVP With Consent",
-                "desc": "PVP is allowed as long as it is agreed upon between 2 or more players. Do not abuse a player who does not want PVP."
+              "name": "Initiate",
+              "req": "0 blocks"
             },
             "2": {
-                "title": "No Stealing or Griefing",
-                "desc": "Stealing is prohibited. You can trade or help, but not loot. Destroying property or killing pets will be punished with a permaban. We use Core Protect."
+              "name": "Novice",
+              "req": "1,000 blocks"
             },
             "3": {
-                "title": "Village Bases",
-                "desc": "If you live in a village, leave a VISIBLE sign or wall so others know it is occupied and do not loot it or harm the villagers."
+              "name": "Skilled",
+              "req": "10,000 blocks"
             },
             "4": {
-                "title": "Automated Farms",
-                "desc": "100% automatic constructions and villager/iron farms are prohibited. Exception: Semi-automatic farms with manual activation."
+              "name": "Architect",
+              "req": "50,000 blocks"
             },
             "5": {
-                "title": "No Mega Builds",
-                "desc": "Giant castles spanning too many CHUNKS are not allowed. Build large villages, but avoid massive individual structures."
-            },
-            "6": {
-                "title": "Biome Cleanup",
-                "desc": "You must undo temporary constructions that mar the landscape (dirt pillars, cobble bridges, etc)."
-            },
-            "7": {
-                "title": "Aesthetics",
-                "desc": "Constructions must be aesthetically pleasing. Avoid doing things 'halfway' or without effort."
-            },
-            "8": {
-                "title": "Streaming and Community",
-                "desc": "Free to stream giving credit to Killu and Neroferno. Invite friends as long as they respect the rules and join Discord."
-            },
-            "9": {
-                "title": "Reports and Safety",
-                "desc": "Use /co inspect to check for thefts. Contact Killu for claims. Do not take justice into your own hands."
+              "name": "Master Builder",
+              "req": "Server Top #1"
             }
-        }
-    },
-    "donors": {
-        "title": "Donors Hall",
-        "intro": "Maintaining a quality server requires passion, time, and resources. The people listed below have decided to go a step further to ensure the stability and future of CrystalTides. 100% of these contributions go to host maintenance, plugin development, and infrastructure improvements. Thank you for believing in us! 💜.",
-        "latest_title": "Latest Donations",
-        "profiles": {
-            "killu": "Creator and main administrator.",
-            "neroferno": "Co-founder and developer. (Truly very 'ultroso')",
-            "law": "A particular creature part of this wonderful community.",
-            "pixie": "Beloved for his varied opinions and constant support 💜.",
-            "zeta": "A truly perseverant user in the face of adversity!",
-            "sendples": "The Paideidad. The Goat. The DONATOR",
-            "zen": "A Tryhard. LEAVE THE BOSSES ALONE! (thanks for supporting the community✨)",
-            "churly": "Boop Bip Boop! 🤖",
-            "nana": "She is just a girl~~~! 💕"
+          }
         },
-        "loading_donations": "Loading donations...",
-        "no_donations": "There are no recent donations yet. Be the first to support!",
-        "ranks": {
-            "donador": "Donator",
-            "fundador": "Founder",
-            "killu": "Killu Rank",
-            "neroferno": "Neroferno Rank",
-            "developer": "Developer",
-            "admin": "Admin",
-            "mod": "Moderator",
-            "helper": "Helper",
-            "staff": "Staff"
-        }
-    },
-    "contests": {
-        "title": "Contests and Events",
-        "intro": "Participate in our regular events to win exclusive prizes, temporary ranks, and unique items. Competition is part of our essence!",
-        "status": {
-            "active": "Ongoing",
-            "soon": "Coming Soon",
-            "finished": "Finished"
-        },
-        "view_podium": "View Podium 🏆",
-        "items": {
+        "luchador": {
+          "title": "Fighter & Gladiator",
+          "subtitle": "PvP, Mobs & Dungeons",
+          "desc": "Conquer the depths and dominate the arena. Defeat bosses in weekly dungeons, secure event control chests, and lead your clan to glory.",
+          "formula": "15 pts per player PvP kill and 1 pt per hostile mob eliminated.",
+          "metric": "PvP (x15 pts) + Mobs (x1 pt)",
+          "topTitle": "Warlord",
+          "topReq": "Highest combined score of PvP Kills and Dungeon boss defeats on the server",
+          "rule": {
+            "0": "PvP kills count only between distinct players without clan alliance.",
+            "1": "Kill farming (repeatedly killing the same account or alts) results in a complete reset of combat stats.",
+            "2": "Dungeons and control events award temporary score multipliers during weekly events."
+          },
+          "rank": {
             "1": {
-                "title": "Master Builder",
-                "desc": "Show off your creativity by building under a surprise theme. The best architects will be immortalized in the Hall!"
+              "name": "Recruit",
+              "req": "0 pts"
             },
             "2": {
-                "title": "PvP Tournament",
-                "desc": "Gear up and prepare for glory. An elimination tournament where only the strongest will survive in the arena."
+              "name": "Novice",
+              "req": "50 pts"
             },
             "3": {
-                "title": "Treasure Hunt",
-                "desc": "Clues hidden all over the map. Can you decipher Killu's riddles before anyone else?"
+              "name": "Warrior",
+              "req": "500 pts"
             },
             "4": {
-                "title": "Parkour Challenge",
-                "desc": "Impossible jumps and timers to the limit. Complete the hellish circuit created by Neroferno."
+              "name": "Master of Arms",
+              "req": "2,500 pts"
+            },
+            "5": {
+              "name": "Warlord",
+              "req": "Server Top #1"
             }
+          }
         },
-        "register_btn": "Register",
-        "registered_btn": "Registered",
-        "login_required": "You must be logged in to register. Go to login?",
-        "already_registered": "You are already registered for this event!",
-        "registration_error": "Error during registration",
-        "no_events": "No active events at the moment."
-    },
-    "blog": {
-        "title": "News and Announcements",
-        "loading": "Loading news...",
-        "view_all": "View news and announcements",
-        "read_more": "Read more",
-        "empty": "No description",
-        "no_news": "No recent announcements",
-        "stay_tuned": "Stay tuned for further updates."
-    },
-    "stories": {
-        "title": "Places and Lore",
-        "intro": "Discover the points of interest of our world. Click on the cards to see details.",
-        "roles": {
-            "architect": "Architect",
-            "co_founder": "Co-Founder",
-            "staff": "Staff",
-            "team": "Team"
-        },
-        "items": {
+        "mercader": {
+          "title": "Merchant & Tycoon",
+          "subtitle": "Economy & KilluCoins",
+          "desc": "Control server markets. Trade with players, auction rare items, and accumulate KilluCoins to rule the financial leaderboards.",
+          "formula": "Logarithmic scale (100 × log₁₀(KilluCoins)). The higher your capital, the higher your economic rank.",
+          "metric": "100 × log₁₀(KilluCoins)",
+          "topTitle": "Supreme Guildmaster",
+          "topReq": "Highest accumulated fortune in KilluCoins (logarithmic scale)",
+          "rule": {
+            "0": "Financial balances are audited in real time via the server economic plugin.",
+            "1": "Fictitious transfers or temporary KilluCoin loans between secondary accounts before ranking cutoff are prohibited.",
+            "2": "Player shops and auction sales award commercial prestige bonuses."
+          },
+          "rank": {
             "1": {
-                "title": "Spawn Sanctuary",
-                "desc": "Our welcome point. A floating island illuminated by lanterns.",
-                "longDesc": "The Spawn Sanctuary was the first construction of the server. Designed to welcome new players with an atmosphere of peace and mystery. It features teleport portals hidden behind waterfalls and a protected villager trading zone. The cherry trees were planted by hand one by one."
+              "name": "Peddler",
+              "req": "0 KC"
             },
             "2": {
-                "title": "Future Project!",
-                "desc": "A new zone is being built in secret.",
-                "longDesc": "Zone restricted by staff. Rumor has it that it will be a new procedural dungeon."
+              "name": "Novice",
+              "req": "1,000 KC"
             },
             "3": {
-                "title": "Expansion Coming Soon!",
-                "desc": "We are preparing the ground for something big.",
-                "longDesc": "World border expansion scheduled for version 1.22."
+              "name": "Prosperous",
+              "req": "10,000 KC"
+            },
+            "4": {
+              "name": "Noble",
+              "req": "50,000 KC"
+            },
+            "5": {
+              "name": "Grand Guildmaster",
+              "req": "Server Top #1"
             }
+          }
+        },
+        "constancia": {
+          "title": "Constancy & Loyalty",
+          "subtitle": "Daily Streaks & Fidelity",
+          "desc": "Loyalty has rewards. Maintain daily login streaks, participate actively in events, and strengthen the server community.",
+          "formula": "Quadratic growth (Streak Days)². Rewards maximum fidelity without breaking daily logins.",
+          "metric": "(Streak Days)²",
+          "topTitle": "Unshakable Supreme",
+          "topReq": "Longest uninterrupted daily login streak with highest quadratic score on the server",
+          "rule": {
+            "0": "Daily streaks reset if you fail to log in for at least 15 active minutes within a 24-hour window.",
+            "1": "Excessive AFK with automated machines to inflate playtime without active gameplay is prohibited.",
+            "2": "Active members receive daily reward multipliers and loyalty reward chests."
+          },
+          "rank": {
+            "1": {
+              "name": "Visitor",
+              "req": "0 days"
+            },
+            "2": {
+              "name": "Traveler",
+              "req": "7 days"
+            },
+            "3": {
+              "name": "Devoted",
+              "req": "14 days"
+            },
+            "4": {
+              "name": "Dedicated",
+              "req": "30 days"
+            },
+            "5": {
+              "name": "Unshakable",
+              "req": "Server Top #1"
+            }
+          }
+        },
+        "explorador": {
+          "title": "Explorer & Cartographer",
+          "subtitle": "Journeys & Rare Biomes",
+          "desc": "Traverse the far reaches of the survival world, discover legendary structures, claim treasure maps, and chart uncharted lands.",
+          "formula": "10 pts per active playtime hour + 1 pt per km (1,000 blocks) traveled in Minecraft.",
+          "metric": "Hours (x10) + Km",
+          "topTitle": "Supreme Master Explorer",
+          "topReq": "Highest combined score of active playtime hours and distance traveled",
+          "rule": {
+            "0": "Distance counts across all movement types (walking, riding, flying with elytra).",
+            "1": "Automated elytra or boat looping scripts without manual navigation are monitored and penalized.",
+            "2": "Discovering rare biomes and structures unlocks bonus exploration score."
+          },
+          "rank": {
+            "1": {
+              "name": "Novice",
+              "req": "0 pts"
+            },
+            "2": {
+              "name": "Curious",
+              "req": "100 pts"
+            },
+            "3": {
+              "name": "Mapper",
+              "req": "500 pts"
+            },
+            "4": {
+              "name": "Pioneer",
+              "req": "2,000 pts"
+            },
+            "5": {
+              "name": "Expert Explorer",
+              "req": "Server Top #1"
+            }
+          }
         }
+      }
+    }
+  },
+  "common": {
+    "back": "Back",
+    "back_home": "Back to Home",
+    "optional": "Optional",
+    "save_error": "Error saving",
+    "delete_error": "Error deleting",
+    "confirm_delete": "Confirm deletion",
+    "deleting": "Deleting...",
+    "accept": "Accept",
+    "cancel": "Cancel",
+    "loading": "Loading...",
+    "loading_content": "Loading content...",
+    "please_wait": "Please wait...",
+    "processing": "Processing...",
+    "copy": "Copy",
+    "copied": "Copied",
+    "anonymous": "Anonymous",
+    "back_forum": "Back to Forum"
+  },
+  "hero": {
+    "welcome": "WELCOME TO",
+    "title": "CRYSTALTIDES SMP",
+    "subtitle": "Immerse yourself in a world of adventure, community, and limitless creativity. Join us! We await you ✨",
+    "description": "Immerse yourself in a world of adventure, community, and limitless creativity. Join us! We await you ✨",
+    "edition": "JAVA EDITION",
+    "copy_ip": "COPY IP",
+    "copied": "COPIED!",
+    "players_online": "Players Online",
+    "kofi_text": "Support us on Ko-fi!",
+    "status": {
+      "offline": "OFFLINE",
+      "online": "ONLINE"
+    }
+  },
+  "nav": {
+    "kofi": "KO-FI",
+    "donators": "DONORS",
+    "donors": "DONORS"
+  },
+  "history_section": {
+    "title": "CrystalTides SMP History",
+    "desc": "Welcome to the history of CrystalTides SMP, where you can explore the project timeline and milestones.",
+    "stage1": {
+      "stageName": "STATION 01",
+      "title": "Killufishies' Fishbowl",
+      "subtitle": "Community Origins on Twitch",
+      "badge": "✦ THE ORIGINS",
+      "summary": "The birth of our story on Killu's Twitch streams: a dedicated space for art, illustration, and initial casual gaming nights.",
+      "f1_title": "Illustration Streams",
+      "f1_desc": "Active drawing & fanart community",
+      "f2_title": "Minigame Nights",
+      "f2_desc": "Early moments of chill & gaming"
     },
-    "suggestions": {
-        "title": "Suggestions and Polls",
-        "form_title": "Send your Proposal",
-        "poll_title": "Active Poll",
-        "no_active_poll": "No active polls at the moment.",
-        "total_votes": "Total votes",
-        "loading_poll": "Loading poll...",
-        "thanks_vote": "Thanks for your vote!",
-        "form": {
-            "nick": "Your Nick / Email",
-            "nick_placeholder": "Ex: Steve or steve@mail.com",
-            "type": "Type",
-            "options": {
-                "general": "General",
-                "bug": "Bug Report",
-                "mod": "Mod/Plugin",
-                "complaint": "Complaint",
-                "poll": "Poll Suggestion"
-            },
-            "msg": "Message",
-            "msg_placeholder": "Describe your idea...",
-            "submit": "Send Proposal",
-            "sending": "Sending...",
-            "received": "Received!",
-            "success_msg": "Your suggestion has been sent to the staff and our Discord.",
-            "send_another": "Send another",
-            "error_msg": "Error sending suggestion."
+    "stage2": {
+      "stageName": "STATION 02",
+      "title": "Staff Creation",
+      "subtitle": "Formation of Dev, Art & QA Core Team",
+      "badge": "✦ STAFF CORE",
+      "banner_badge": "✦ OUR BRAND & SERVER ORIGIN ✦",
+      "banner_text": "What began as a great friendship gave birth to something wonderful. CrystalTidesSMP is not just a server; it is the reflection of our commitment to building a transparent digital home, crafted with empathy and by listening to our community.",
+      "summary": "The official team forms: Killu leading voice & community, Nero on tech & infrastructure, Churly on UI design, and Japa on game testing."
+    },
+    "members": {
+      "killu": {
+        "role": "Director & Community",
+        "desc": "Passionate, cheerful, and the protective soul of the Fishbowl. Creates a welcoming vibe, organizes events, and guides with human warmth.",
+        "tag1": "Charismatic",
+        "tag2": "Events",
+        "tag3": "Lead Voice"
+      },
+      "nero": {
+        "role": "Dev Lead & Infra",
+        "desc": "Logical mind injected with technical euphoria. Obsessed with server performance, custom patches, and clean bug-free code.",
+        "tag1": "Tech Euphoria",
+        "tag2": "Fullstack Infra",
+        "tag3": "Zero Bugs"
+      },
+      "churly": {
+        "role": "Design & Art Lead",
+        "desc": "Visual perfectionist, creative and aesthetic visionary. Designs interfaces, art concepts, and unique visual identities.",
+        "tag1": "Artistic Vision",
+        "tag2": "UI/UX Lead",
+        "tag3": "Polished Aesthetic"
+      },
+      "japa": {
+        "role": "QA & BetaTester",
+        "desc": "Curious, persistent, and relentless seeking to break mechanics to improve them. Killu's personal fault-proof agent of chaos.",
+        "tag1": "Chaos Agent",
+        "tag2": "QA Tester",
+        "tag3": "Solid Gameplay"
+      }
+    },
+    "stage3": {
+      "stageName": "STATION 03",
+      "title": "Evolution to CrystalTides SMP",
+      "subtitle": "RPG System, LIVE Economy & Nether Bosses",
+      "badge": "✦ EVOLUTION",
+      "summary": "The fishbowl evolved into CrystalTides SMP, a brand new server with fresh mechanics and epic bosses.",
+      "live_combat": "🔴 WATCH LIVE COMBAT RECORD",
+      "wither_boss": "Wither Terror Boss Fight",
+      "nether_raid": "NETHER RAID",
+      "nether_citadel": "Nether Citadel",
+      "community": "COMMUNITY",
+      "sakura_forest": "Sakura Forest",
+      "showdown": "SHOWDOWN",
+      "nether_battle": "Nether Battle",
+      "economy": "ECONOMY",
+      "grand_vault": "Grand Vault",
+      "f1_title": "mcMMO Skills",
+      "f1_desc": "Complete RPG system for mastery & combat",
+      "f2_title": "Killupesos Economy",
+      "f2_desc": "Origin of the 7-currency financial ecosystem",
+      "f3_title": "Forgotten Terror Boss",
+      "f3_desc": "Weekly dungeon and Nether battles",
+      "f4_title": "Waystones Network",
+      "f4_desc": "Teleportation and survival map landmarks"
+    },
+    "stage4": {
+      "stageName": "STATION 04",
+      "title": "Dedicated Era & Launcher",
+      "subtitle": "Dedicated Servers, Official Domain & Future",
+      "badge": "✦ DEDICATED ERA",
+      "summary": "Migration to enterprise Ubuntu Server infrastructure (MySQL, Redis, distributed nodes), official domain, and Launcher Beta.",
+      "new_hosting": "NEW HOSTING",
+      "ubuntu_tps": "Sustained 20 TPS Ubuntu",
+      "daily_rewards": "DAILY REWARDS",
+      "daily_loot": "Rewards & Loot for Joining",
+      "new_stats": "NEW STATISTICS",
+      "live_metrics": "Live Metrics & Kills",
+      "improved_economy": "IMPROVED ECONOMY",
+      "economy_system": "Upgraded Economy System",
+      "f1_title": "Dedicated Ubuntu Node",
+      "f1_desc": "Solid 20 TPS with distributed nodes",
+      "f2_title": "Mc.CrystalTidesSMP.net",
+      "f2_desc": "Official direct connection domain",
+      "f3_title": "Official Launcher Beta",
+      "f3_desc": "Optimized 1-Click game entry"
+    }
+  },
+  "forum_category": {
+    "back_link": "Back to Forum",
+    "new_thread": "New Thread",
+    "loading": "Loading threads...",
+    "no_threads": "No threads in this category yet.",
+    "be_first": "Be the first to create one!",
+    "replies": "Replies",
+    "views": "Views"
+  },
+  "wiki": {
+    "title": "Guide",
+    "search_placeholder": "Search the guide...",
+    "loading_article": "Opening tome...",
+    "welcome_title": "CrystalTides Library",
+    "welcome_desc": "Select an article from the left to start exploring the secrets of these lands."
+  },
+  "forum_thread": {
+    "back_link": "Back",
+    "back_forum": "Back to Forum",
+    "loading": "Loading content...",
+    "not_found": "Content not available",
+    "views": "Views",
+    "comments": "Comments",
+    "write_reply": "Write your reply...",
+    "publish": "Post Reply",
+    "login_to_reply": "Login to participate.",
+    "login": "Login",
+    "thread_error": "Content not found",
+    "comment_error": "Error posting comment",
+    "just_now": "Just now"
+  },
+  "create_thread": {
+    "title": "Create New Thread",
+    "form": {
+      "category": "Category",
+      "title": "Title",
+      "title_placeholder": "Thread title",
+      "content": "Content",
+      "content_placeholder": "Write here...",
+      "add_poll": "Add Poll",
+      "discord_poll": "Link existing Discord poll",
+      "discord_link_label": "Discord Message Link (\"Copy Message Link\" option)",
+      "discord_hint": "This will show a button to vote directly on Discord.",
+      "poll_question": "Poll Question",
+      "options": "Options",
+      "add_option": "Add Option",
+      "submit": "Post Thread",
+      "submitting": "Posting...",
+      "error_login": "You must be logged in",
+      "error_create": "Error creating thread",
+      "error_conn": "Connection error",
+      "attach_image": "Attach Image",
+      "image_attached": "Image Attached",
+      "upload_preview_hint": "Will be uploaded on post",
+      "remove_image": "Remove"
+    }
+  },
+  "navbar": {
+    "home": "Home",
+    "rules": "Rules",
+    "donors": "Donors",
+    "contests": "Contests",
+    "news": "News",
+    "stories": "Stories",
+    "suggestions": "Suggestions",
+    "map": "Map",
+    "forum": "Forum",
+    "account": "My Account",
+    "login": "Login",
+    "menu": "MENU",
+    "achievements": "Achievements",
+    "register": "Register",
+    "wiki": "Guide",
+    "support": "Support",
+    "gacha": "Gacha",
+    "logged_in_as": "Logged in as"
+  },
+  "features": {
+    "economy_title": "Dynamic Economy",
+    "economy_desc": "Participate in a player-driven market. Trade, auction, and build your business empire.",
+    "protection_title": "Mutual Respect",
+    "protection_desc": "Your effort is safe. Protect your builds with a protection block and sleep soundly knowing no one will touch what is yours.",
+    "events_title": "Unique Events",
+    "events_desc": "Participate in tournaments, build contests, and lore events where the server story evolves with you. Exclusive prizes await!"
+  },
+  "home": {
+    "title": "About the Server",
+    "description": "CrystalTides is a unique survival RPG universe where the forces of the tide, the abyss, the cosmos, and the earth collide. Choose your path, forge alliances in a living world, master the crystal economy, and write your own legend.",
+    "join_us_twitch": "If you want to see how a hyperactive aquatic creature spends her time, go check out Killubysmali on Twitch. She might draw a masterpiece, give you a English MASTER class, or play Repo as if her life depended on it.",
+    "join_us_discord": "Craving more madness? Join 'La Pecerita de killu' on Discord. But beware: the fearsome Killujaiba lurks in those deep waters, hymns to the Ocean Man are sung (take me by the hand, lead me to the land~ 🎵), and there is still collective trauma over Killu's Little Spoon (which she lost...).",
+    "stats": {
+      "discord": "Discord Members",
+      "registered": "Registered Players",
+      "years": "Years Online",
+      "staff": "Active Staff",
+      "year_suffix": " Year"
+    },
+    "social": {
+      "discord_btn": "Join Killu's fishbowl!",
+      "twitch_btn": "Follow Killubysmali's streams!",
+      "twitter_btn": "Follow Killubysmali's tweets!"
+    }
+  },
+  "footer": {
+    "server": "SERVER",
+    "community": "COMMUNITY",
+    "online_map": "Online Map",
+    "donate": "Donate",
+    "events": "Events",
+    "slogan": "The best option is fun at CrystalTides SMP!",
+    "rights": "All rights reserved.",
+    "rules": "Rules",
+    "suggestions": "Suggestions",
+    "news": "News",
+    "stories": "Stories",
+    "forum": "Forum",
+    "support": "Support",
+    "privacy": "Privacy Policy",
+    "tos": "Terms of Service"
+  },
+  "policies": {
+    "contact_support_msg": "Have questions about our policies?",
+    "contact_support_btn": "Contact Support",
+    "not_found": "Policy not found",
+    "not_found_desc": "Sorry, the page you are looking for does not exist or has been moved.",
+    "last_update": "Last updated"
+  },
+  "login": {
+    "title": "Login",
+    "welcome": "Welcome back, adventurer",
+    "email_label": "Email",
+    "email_placeholder": "email@example.com",
+    "password_label": "Password",
+    "password_placeholder": "••••••••",
+    "submit": "Enter",
+    "sign_in_verb": "Sign In",
+    "loading": "Signing in...",
+    "forgot_password": "Forgot your password?",
+    "or_continue": "Or continue with",
+    "or_sign_in_with": "Or sign in with",
+    "no_account": "Don't have an account?",
+    "register": "Register",
+    "back_home": "Back to home",
+    "error_invalid_credentials": "Invalid credentials. Please check your email and password.",
+    "error_generic": "Error signing in"
+  },
+  "register": {
+    "title": "Create Account",
+    "subtitle": "Join the adventure today",
+    "username_label": "Username",
+    "username_placeholder": "Your web username",
+    "email_label": "Email",
+    "email_placeholder": "email@example.com",
+    "password_label": "Password",
+    "confirm_password_label": "Confirm Password",
+    "submit": "Sign Up",
+    "loading": "Creating account...",
+    "or_register_with": "Or register with",
+    "already_have_account": "Already have an account?",
+    "sign_in": "Sign In",
+    "back_home": "Back to home",
+    "passwords_do_not_match": "Passwords do not match",
+    "error_generic": "Error",
+    "success_title": "You have registered!",
+    "success_msg": "Welcome to CrystalTides SMP. We have sent a confirmation link to your email.",
+    "go_to_login": "Go to Login"
+  },
+  "forum_page": {
+    "title": "Community Forum",
+    "subtitle": "Connect with other players, share ideas and keep up to date with CrystalTides.",
+    "hot_topic": "Trending Poll",
+    "active": "ACTIVE",
+    "official_poll": "Official Poll",
+    "hot_label": "HOT TOPIC",
+    "stats": {
+      "topics": "Topics",
+      "posts": "Posts"
+    },
+    "categories": {
+      "announcements": {
+        "title": "Announcements & News",
+        "desc": "Official updates, patch notes and important events."
+      },
+      "general": {
+        "title": "General Discussion",
+        "desc": "Talk about anything related to CrystalTides SMP."
+      },
+      "support": {
+        "title": "Support & Help",
+        "desc": "Having trouble? Ask the community or staff for help."
+      },
+      "offtopic": {
+        "title": "Off-Topic",
+        "desc": "Free zone to talk about other games or various topics."
+      }
+    },
+    "official_poll_section": "Official Poll",
+    "active_voting": "Active Voting",
+    "hot": "Hot",
+    "view_full": "View full",
+    "no_active_poll": "No active polls at the moment.",
+    "news_section": "News & Announcements",
+    "new_badge": "NEW",
+    "loading_news": "Loading news...",
+    "view_all_news": "View all"
+  },
+  "rules": {
+    "title": "Server Rules",
+    "search_placeholder": "Search rules... (e.g. pvp, chat, claims)",
+    "delete_confirm": "Are you sure you want to delete this rule?",
+    "delete_error": "Error deleting rule",
+    "save_error": "Error saving rule",
+    "view_more": "View details ↓",
+    "view_less": "View less ↑",
+    "allowed": "ALLOWED",
+    "forbidden": "FORBIDDEN / PUNISHABLE",
+    "useful_commands": "USEFUL COMMANDS",
+    "copied": "Copied to clipboard:",
+    "severity": {
+      "mild": "Mild",
+      "serious": "Serious",
+      "critical": "Critical"
+    },
+    "categories": {
+      "general": "General",
+      "comportamiento": "Behavior",
+      "chat": "Chat",
+      "pvp": "PvP",
+      "construcción": "Building",
+      "modificaciones": "Modifications",
+      "staff": "Staff",
+      "seguridad": "Security",
+      "contenido": "Content",
+      "economía": "Economy",
+      "mundo": "World",
+      "cuenta": "Account",
+      "discord": "Discord",
+      "estética": "Aesthetics",
+      "comunidad": "Community"
+    },
+    "intro": "To maintain a healthy and fun community, it is essential to respect these coexistence rules. Failure to comply can lead to severe sanctions.",
+    "loading": "Loading rules...",
+    "all": "All",
+    "new_rule": "New Rule",
+    "editing": "Editing Rule",
+    "new_norm": "New Rule",
+    "close": "Close",
+    "category": "Category",
+    "sort_order": "Sort Order",
+    "title_es": "Title (Spanish)",
+    "translate_to_en": "Translate to EN",
+    "title_en": "Title (English)",
+    "translate_to_es": "Translate to ES",
+    "content_es": "Content (Spanish)",
+    "content_en": "Content (English)",
+    "update_btn": "UPDATE RULE",
+    "publish_btn": "PUBLISH RULE",
+    "no_results": "No rules found in this category.",
+    "cat_placeholder": "Ex: PvP, Chat, Building...",
+    "title_placeholder_es": "Spanish title",
+    "title_placeholder_en": "English title",
+    "content_placeholder_es": "Spanish content...",
+    "content_placeholder_en": "English content...",
+    "items": {
+      "1": {
+        "title": "PVP With Consent",
+        "desc": "PVP is allowed as long as it is agreed upon between 2 or more players. Do not abuse a player who does not want PVP."
+      },
+      "2": {
+        "title": "No Stealing or Griefing",
+        "desc": "Stealing is prohibited. You can trade or help, but not loot. Destroying property or killing pets will be punished with a permaban. We use Core Protect."
+      },
+      "3": {
+        "title": "Village Bases",
+        "desc": "If you live in a village, leave a VISIBLE sign or wall so others know it is occupied and do not loot it or harm the villagers."
+      },
+      "4": {
+        "title": "Automated Farms",
+        "desc": "100% automatic constructions and villager/iron farms are prohibited. Exception: Semi-automatic farms with manual activation."
+      },
+      "5": {
+        "title": "No Mega Builds",
+        "desc": "Giant castles spanning too many CHUNKS are not allowed. Build large villages, but avoid massive individual structures."
+      },
+      "6": {
+        "title": "Biome Cleanup",
+        "desc": "You must undo temporary constructions that mar the landscape (dirt pillars, cobble bridges, etc)."
+      },
+      "7": {
+        "title": "Aesthetics",
+        "desc": "Constructions must be aesthetically pleasing. Avoid doing things 'halfway' or without effort."
+      },
+      "8": {
+        "title": "Streaming and Community",
+        "desc": "Free to stream giving credit to Killu and Neroferno. Invite friends as long as they respect the rules and join Discord."
+      },
+      "9": {
+        "title": "Reports and Safety",
+        "desc": "Use /co inspect to check for thefts. Contact Killu for claims. Do not take justice into your own hands."
+      }
+    }
+  },
+  "donors": {
+    "title": "Donors Hall",
+    "intro": "Maintaining a quality server requires passion, time, and resources. The people listed below have decided to go a step further to ensure the stability and future of CrystalTides. 100% of these contributions go to host maintenance, plugin development, and infrastructure improvements. Thank you for believing in us! 💜.",
+    "latest_title": "Latest Donations",
+    "profiles": {
+      "killu": "Creator and main administrator.",
+      "neroferno": "Co-founder and developer. (Truly very 'ultroso')",
+      "law": "A particular creature part of this wonderful community.",
+      "pixie": "Beloved for his varied opinions and constant support 💜.",
+      "zeta": "A truly perseverant user in the face of adversity!",
+      "sendples": "The Paideidad. The Goat. The DONATOR",
+      "zen": "A Tryhard. LEAVE THE BOSSES ALONE! (thanks for supporting the community✨)",
+      "churly": "Boop Bip Boop! 🤖",
+      "nana": "She is just a girl~~~! 💕"
+    },
+    "loading_donations": "Loading donations...",
+    "no_donations": "There are no recent donations yet. Be the first to support!",
+    "ranks": {
+      "donador": "Donator",
+      "fundador": "Founder",
+      "killu": "Killu Rank",
+      "neroferno": "Neroferno Rank",
+      "developer": "Developer",
+      "admin": "Admin",
+      "mod": "Moderator",
+      "helper": "Helper",
+      "staff": "Staff"
+    }
+  },
+  "contests": {
+    "title": "Contests and Events",
+    "intro": "Participate in our regular events to win exclusive prizes, temporary ranks, and unique items. Competition is part of our essence!",
+    "status": {
+      "active": "Ongoing",
+      "soon": "Coming Soon",
+      "finished": "Finished"
+    },
+    "view_podium": "View Podium 🏆",
+    "items": {
+      "1": {
+        "title": "Master Builder",
+        "desc": "Show off your creativity by building under a surprise theme. The best architects will be immortalized in the Hall!"
+      },
+      "2": {
+        "title": "PvP Tournament",
+        "desc": "Gear up and prepare for glory. An elimination tournament where only the strongest will survive in the arena."
+      },
+      "3": {
+        "title": "Treasure Hunt",
+        "desc": "Clues hidden all over the map. Can you decipher Killu's riddles before anyone else?"
+      },
+      "4": {
+        "title": "Parkour Challenge",
+        "desc": "Impossible jumps and timers to the limit. Complete the hellish circuit created by Neroferno."
+      }
+    },
+    "register_btn": "Register",
+    "registered_btn": "Registered",
+    "login_required": "You must be logged in to register. Go to login?",
+    "already_registered": "You are already registered for this event!",
+    "registration_error": "Error during registration",
+    "no_events": "No active events at the moment."
+  },
+  "blog": {
+    "title": "News and Announcements",
+    "loading": "Loading news...",
+    "view_all": "View news and announcements",
+    "read_more": "Read more",
+    "empty": "No description",
+    "no_news": "No recent announcements",
+    "stay_tuned": "Stay tuned for further updates."
+  },
+  "stories": {
+    "title": "Places and Lore",
+    "intro": "Discover the points of interest of our world. Click on the cards to see details.",
+    "roles": {
+      "architect": "Architect",
+      "co_founder": "Co-Founder",
+      "staff": "Staff",
+      "team": "Team"
+    },
+    "items": {
+      "1": {
+        "title": "Spawn Sanctuary",
+        "desc": "Our welcome point. A floating island illuminated by lanterns.",
+        "longDesc": "The Spawn Sanctuary was the first construction of the server. Designed to welcome new players with an atmosphere of peace and mystery. It features teleport portals hidden behind waterfalls and a protected villager trading zone. The cherry trees were planted by hand one by one."
+      },
+      "2": {
+        "title": "Future Project!",
+        "desc": "A new zone is being built in secret.",
+        "longDesc": "Zone restricted by staff. Rumor has it that it will be a new procedural dungeon."
+      },
+      "3": {
+        "title": "Expansion Coming Soon!",
+        "desc": "We are preparing the ground for something big.",
+        "longDesc": "World border expansion scheduled for version 1.22."
+      }
+    }
+  },
+  "suggestions": {
+    "title": "Suggestions and Polls",
+    "form_title": "Send your Proposal",
+    "poll_title": "Active Poll",
+    "no_active_poll": "No active polls at the moment.",
+    "total_votes": "Total votes",
+    "loading_poll": "Loading poll...",
+    "thanks_vote": "Thanks for your vote!",
+    "form": {
+      "nick": "Your Nick / Email",
+      "nick_placeholder": "Ex: Steve or steve@mail.com",
+      "type": "Type",
+      "options": {
+        "general": "General",
+        "bug": "Bug Report",
+        "mod": "Mod/Plugin",
+        "complaint": "Complaint",
+        "poll": "Poll Suggestion"
+      },
+      "msg": "Message",
+      "msg_placeholder": "Describe your idea...",
+      "submit": "Send Proposal",
+      "sending": "Sending...",
+      "received": "Received!",
+      "success_msg": "Your suggestion has been sent to the staff and our Discord.",
+      "send_another": "Send another",
+      "error_msg": "Error sending suggestion."
+    }
+  },
+  "account": {
+    "avatar": {
+      "error_select": "You must select an image to upload.",
+      "error_update": "Error updating avatar: ",
+      "change_photo": "Change photo"
+    },
+    "name": {
+      "error_update": "Error updating name"
+    },
+    "avatar_preference": {
+      "title": "Avatar Preference",
+      "minecraft": "Minecraft Head",
+      "social": "Social / Web",
+      "hint": "* Choose which image you prefer to see on your public profile and navigation bar."
+    },
+    "roles": {
+      "admin": "Administrator",
+      "user": "Adventurer",
+      "founder": "Founder",
+      "helper": "Helper",
+      "donor": "Donor",
+      "neroferno": "Neroferno",
+      "killu": "Killu",
+      "developer": "Developer"
+    },
+    "nav": {
+      "profile": "View Profile",
+      "overview": "Overview",
+      "posts": "My Posts",
+      "achievements": "Achievements",
+      "medals": "Medals",
+      "minecraft": "Minecraft Account",
+      "connections": "Connections",
+      "settings": "Settings",
+      "logout": "Logout"
+    },
+    "overview": {
+      "stats_title": "Global Statistics",
+      "rank": "Rank",
+      "coins": "KilluCoins",
+      "playtime": "Playtime",
+      "news_title": "Latest News",
+      "no_news": "There are no recent notifications for you.",
+      "not_linked_title": "Link your account!",
+      "not_linked_msg": "To see your real-time stats (money, playtime, kills), you need to verify that you own the Minecraft account.",
+      "verify_btn": "Verify Now",
+      "formula_header": "How is each Score calculated?",
+      "playstyle": {
+        "title": "Playstyle",
+        "metrics_title": "Playstyle Metrics",
+        "style": "Style",
+        "goal": "Goal (100%)",
+        "constructor": "Builder",
+        "fighter": "Fighter",
+        "explorer": "Explorer",
+        "merchant": "Merchant",
+        "social": "Social",
+        "blocks": "blocks",
+        "pts_kill": "pts (Kill x10)",
+        "hours": "hours",
+        "pts_formula": "pts (H x0.2 + Rank)",
+        "social_note": "* Social: +30 pts for Donor, Founder, Killu, Neroferno, Developer or Staff rank.",
+        "blocks_formula": "Mined + Placed Blocks",
+        "pvp_formula": "PvP (x15) + Mobs (x1)",
+        "merchant_formula": "100 × log₁₀(KilluCoins)",
+        "constancy_formula": "(Streak Days)²",
+        "explorer_formula": "Hours (x10) + Km"
+      },
+      "prestige": {
+        "title": "Sistema de Prestigios de Estilo de Juego",
+        "level1": "⭐ Prestige I",
+        "level2": "⭐⭐ Prestige II",
+        "level3": "⭐⭐⭐ Prestige III",
+        "level4": "⭐⭐⭐⭐ Prestige IV",
+        "level5": "💎 Prestige V",
+        "bonus1": "+5% KC Diarios",
+        "bonus2": "+10% KC Diarios",
+        "bonus3_discount": "+15% KC + Descuento",
+        "bonus3_aura": "+15% KC + Aura",
+        "bonus5_swords": "+25% KC + Espadas",
+        "tag_neon": "[P5] Neon",
+        "active": "Activo",
+        "locked": "Bloqueado",
+        "max_reached": "¡Felicidades! Has alcanzado el Nivel Máximo V de Prestigio en {{branch}}.",
+        "req_met": "¡Requisito Cumplido! Eres el #1 del servidor en {{branch}}. Puedes ascender al Nivel {{level}}.",
+        "locked_msg": "Bloqueado: Debes ser el jugador #1 con Rango Máximo en {{branch}} para ascender.",
+        "btn_req": "🔒 Requisito: Alcanzar Rango Máximo",
+        "btn_max": "👑 Prestigio Máximo Alcanzado",
+        "btn_ascend": "⭐ Ascender a Prestigio {{level}}",
+        "arch": {
+          "constructor": {
+            "p1": "Iniciado de Piedra",
+            "p2": "Constructor Consagrado",
+            "p3": "Gran Arquitecto",
+            "p4": "Maestro Constructor",
+            "p5": "Arquitecto Mítico"
+          },
+          "luchador": {
+            "p1": "Guerrero de Bronce",
+            "p2": "Campeón de Batalla",
+            "p3": "Señor de Guerra",
+            "p4": "Maestro de Armas",
+            "p5": "Gladiador Supremo"
+          },
+          "mercader": {
+            "p1": "Mercader Próspero",
+            "p2": "Comerciante de Élite",
+            "p3": "Barón Financiero",
+            "p4": "Gran Maestro Gremial",
+            "p5": "Magnate Legendario"
+          },
+          "constancia": {
+            "p1": "Devoto del Servidor",
+            "p2": "Pilar Inquebrantable",
+            "p3": "Guardián de Racha",
+            "p4": "Leyenda Inquebrantable",
+            "p5": "Titán Eterno"
+          },
+          "explorador": {
+            "p1": "Navegante de Reinos",
+            "p2": "Mapeador Ancestral",
+            "p3": "Pionero del Horizonte",
+            "p4": "Explorador Experto",
+            "p5": "Conquistador de Mundos"
+          }
         }
+      }
     },
-    "account": {
-        "avatar": {
-            "error_select": "You must select an image to upload.",
-            "error_update": "Error updating avatar: ",
-            "change_photo": "Change photo"
-        },
-        "name": {
-            "error_update": "Error updating name"
-        },
-        "avatar_preference": {
-            "title": "Avatar Preference",
-            "minecraft": "Minecraft Head",
-            "social": "Social / Web",
-            "hint": "* Choose which image you prefer to see on your public profile and navigation bar."
-        },
-        "roles": {
-            "admin": "Administrator",
-            "user": "Adventurer",
-            "founder": "Founder",
-            "helper": "Helper",
-            "donor": "Donor",
-            "neroferno": "Neroferno",
-            "killu": "Killu",
-            "developer": "Developer"
-        },
-        "nav": {
-            "profile": "View Profile",
-            "overview": "Overview",
-            "posts": "My Posts",
-            "achievements": "Achievements",
-            "medals": "Medals",
-            "minecraft": "Minecraft Account",
-            "connections": "Connections",
-            "settings": "Settings",
-            "logout": "Logout"
-        },
-        "overview": {
-            "stats_title": "Global Statistics",
-            "rank": "Rank",
-            "coins": "KilluCoins",
-            "playtime": "Playtime",
-            "news_title": "Latest News",
-            "no_news": "There are no recent notifications for you.",
-            "not_linked_title": "Link your account!",
-            "not_linked_msg": "To see your real-time stats (money, playtime, kills), you need to verify that you own the Minecraft account.",
-            "verify_btn": "Verify Now",
-            "formula_header": "How is each Score calculated?",
-            "playstyle": {
-                "title": "Playstyle",
-                "metrics_title": "Playstyle Metrics",
-                "style": "Style",
-                "goal": "Goal (100%)",
-                "constructor": "Builder",
-                "fighter": "Fighter",
-                "explorer": "Explorer",
-                "merchant": "Merchant",
-                "social": "Social",
-                "blocks": "blocks",
-                "pts_kill": "pts (Kill x10)",
-                "hours": "hours",
-                "pts_formula": "pts (H x0.2 + Rank)",
-                "social_note": "* Social: +30 pts for Donor, Founder, Killu, Neroferno, Developer or Staff rank.",
-                "blocks_formula": "Mined + Placed Blocks",
-                "pvp_formula": "PvP (x15) + Mobs (x1)",
-                "merchant_formula": "100 × log₁₀(KilluCoins)",
-                "constancy_formula": "(Streak Days)²",
-                "explorer_formula": "Hours (x10) + Km"
-            },
-            "prestige": {
-                "title": "Sistema de Prestigios de Estilo de Juego",
-                "level1": "⭐ Prestige I",
-                "level2": "⭐⭐ Prestige II",
-                "level3": "⭐⭐⭐ Prestige III",
-                "level4": "⭐⭐⭐⭐ Prestige IV",
-                "level5": "💎 Prestige V",
-                "bonus1": "+5% KC Diarios",
-                "bonus2": "+10% KC Diarios",
-                "bonus3_discount": "+15% KC + Descuento",
-                "bonus3_aura": "+15% KC + Aura",
-                "bonus5_swords": "+25% KC + Espadas",
-                "tag_neon": "[P5] Neon",
-                "active": "Activo",
-                "locked": "Bloqueado",
-                "max_reached": "¡Felicidades! Has alcanzado el Nivel Máximo V de Prestigio en {{branch}}.",
-                "req_met": "¡Requisito Cumplido! Eres el #1 del servidor en {{branch}}. Puedes ascender al Nivel {{level}}.",
-                "locked_msg": "Bloqueado: Debes ser el jugador #1 con Rango Máximo en {{branch}} para ascender.",
-                "btn_req": "🔒 Requisito: Alcanzar Rango Máximo",
-                "btn_max": "👑 Prestigio Máximo Alcanzado",
-                "btn_ascend": "⭐ Ascender a Prestigio {{level}}",
-                "arch": {
-                    "constructor": {
-                        "p1": "Iniciado de Piedra",
-                        "p2": "Constructor Consagrado",
-                        "p3": "Gran Arquitecto",
-                        "p4": "Maestro Constructor",
-                        "p5": "Arquitecto Mítico"
-                    },
-                    "luchador": {
-                        "p1": "Guerrero de Bronce",
-                        "p2": "Campeón de Batalla",
-                        "p3": "Señor de Guerra",
-                        "p4": "Maestro de Armas",
-                        "p5": "Gladiador Supremo"
-                    },
-                    "mercader": {
-                        "p1": "Mercader Próspero",
-                        "p2": "Comerciante de Élite",
-                        "p3": "Barón Financiero",
-                        "p4": "Gran Maestro Gremial",
-                        "p5": "Magnate Legendario"
-                    },
-                    "constancia": {
-                        "p1": "Devoto del Servidor",
-                        "p2": "Pilar Inquebrantable",
-                        "p3": "Guardián de Racha",
-                        "p4": "Leyenda Inquebrantable",
-                        "p5": "Titán Eterno"
-                    },
-                    "explorador": {
-                        "p1": "Navegante de Reinos",
-                        "p2": "Mapeador Ancestral",
-                        "p3": "Pionero del Horizonte",
-                        "p4": "Explorador Experto",
-                        "p5": "Conquistador de Mundos"
-                    }
-                }
-            }
-        },
-        "medals_title": "My Medals",
-        "no_medals": "You don't have any special medals yet.",
-        "unlink_confirm_title": "Unlink Account",
-        "unlink_confirm_msg": "Are you sure? You might lose access to certain features.",
-        "stats": {
-            "title": "Statistics",
-            "loading": "Loading data...",
-            "error": "Could not load statistics.",
-            "kills": "Kills",
-            "deaths": "Deaths",
-            "kdr": "K/D Ratio",
-            "health": "Current Health",
-            "job": "Job",
-            "mined": "Blocks Mined",
-            "placed": "Blocks Placed",
-            "mob_kills": "Mobs Killed",
-            "member_since": "Member Since"
-        },
-        "posts": {
-            "title": "My Posts",
-            "loading": "Loading posts...",
-            "empty": "You haven't posted anything yet.",
-            "create_topic": "Create Topic",
-            "go_to_forum": "Go to Forum",
-            "views": "views",
-            "replies": "replies"
-        },
-        "journey_title": "📅 Your Journey in CrystalTides",
-        "journey_arrival": "Arrival",
-        "journey_promotion": "Promotion",
-        "journey_today": "Total Playtime",
-        "journey_played": "played",
-        "achievements": {
-            "title": "Medals and Achievements",
-            "items": {
-                "dweller": "Tide Dweller",
-                "dweller_desc": "Link your Discord account and join the fishbowl.",
-                "dweller_criteria": "Discord account linked",
-                "magnate": "Crystal Magnate",
-                "magnate_desc": "Fortune smiles upon the bold.",
-                "magnate_criteria": "+5,000 KilluCoins",
-                "architect": "Terrestrial Architect",
-                "architect_desc": "Build the future block by block.",
-                "architect_criteria": "+1,000 Blocks Placed",
-                "deep_miner": "Deep Miner",
-                "deep_miner_desc": "Extract riches from the depths.",
-                "deep_miner_criteria": "+1,000 Blocks Mined",
-                "guardian": "Abyss Guardian",
-                "guardian_desc": "Show your strength in combat.",
-                "guardian_criteria": "+10 Kills",
-                "time_traveler": "Time Traveler",
-                "time_traveler_desc": "Your consistency transcends time.",
-                "time_traveler_criteria": "+50 Hours Played",
-                "patron": "Patron of the Tides",
-                "patron_desc": "Support the realm's sustainability.",
-                "patron_criteria": "Donor or Founder Rank"
-            }
-        },
-        "minecraft": {
-            "title": "Link Minecraft",
-            "not_linked": "Not linked",
-            "current_user": "Current user: ",
-            "link_button": "Link Account",
-            "instruction_1": "Use ",
-            "instruction_2": " on the server to link."
-        },
-        "connections": {
-            "title": "Linked Accounts",
-            "success_link": "Account linked successfully!",
-            "link_discord": "Link Discord",
-            "link_twitch": "Link Twitch",
-            "linked": "Linked",
-            "not_linked": "Not linked",
-            "connected": "Connected",
-            "disconnected": "Disconnected",
-            "connect": "Connect",
-            "disconnect": "Disconnect",
-            "link_desc": "Link your account to sync rank and stats.",
-            "get_code": "Get Code",
-            "generating": "Generating...",
-            "type_in_server": "Type in server:",
-            "waiting": "Syncing...",
-            "unlink": "Unlink",
-            "connect_discord": "Connect Discord",
-            "connect_twitch": "Connect Twitch",
-            "or_use_link": "OR USE /LINK",
-            "discord_code_placeholder": "DISCORD CODE",
-            "unlink_confirm_title": "Unlink account?",
-            "unlink_confirm_message": "Are you sure you want to unlink this account? You will have to reconnect it to use it in the future.",
-            "confirm_unlink": "Yes, unlink",
-            "cancel": "Cancel"
-        },
-        "admin_panel": "Admin Panel",
-        "settings": {
-            "title": "Settings",
-            "language": "Language / Idioma",
-            "security": "Security",
-            "privacy": "Privacy",
-            "profile_info": "Profile Information",
-            "banner": "Profile Banner",
-            "no_banner": "No Banner",
-            "banner_placeholder": "Image URL (e.g. https://imgur.com/...)",
-            "new_password": "New Password",
-            "confirm_password": "Confirm Password",
-            "update_password": "Update Password",
-            "public_stats": "Show stats publicly",
-            "public_stats_desc": "Allow other users to see your gameplay stats.",
-            "success_password": "Password updated successfully!",
-            "success_privacy": "Privacy settings saved.",
-            "avatar_pref": "Avatar Preference",
-            "mc_head": "Minecraft Head",
-            "social_web": "Social / Web",
-            "avatar_hint": "* Select which image you prefer to see on your public profile and navigation bar.",
-            "bio_label": "Biography (Optional Markdown)",
-            "bio_ph": "Tell us a bit about yourself...",
-            "max_chars": "MAX 500 CHARS",
-            "social_links": "Social Links",
-            "username_ph": "username",
-            "twitter_ph": "Twitter (e.g., @myuser)",
-            "twitch_ph": "Twitch Channel",
-            "kofi_ph": "Ko-Fi URL",
-            "save_profile": "Update Profile",
-            "pass_mismatch": "Passwords do not match",
-            "pass_min_chars": "Minimum 6 characters",
-            "success_profile": "Profile updated successfully",
-            "community_pref": "Community Preferences",
-            "status_msg": "Status Message (Short)",
-            "notifications": "Notifications",
-            "notify_events": "Global Events",
-            "notify_mentions": "Mentions / Replies",
-            "status_placeholder": "Ex: Exploring the End..."
-        },
-        "security": {
-            "2fa_title": "Two-Factor Authentication",
-            "2fa_active": "Your account is protected with 2FA.",
-            "2fa_inactive": "Add an extra layer of security to your account.",
-            "setup_2fa": "Setup 2FA",
-            "activate": "Activate",
-            "disable_2fa": "Disable 2FA",
-            "2fa_enabled": "2FA Enabled Successfully!",
-            "2fa_disabled": "2FA Disabled",
-            "2fa_disable_confirm": "Are you sure you want to disable 2FA?",
-            "cant_scan": "Can't scan the QR code?",
-            "copied": "Copied!",
-            "enter_code": "Enter Code",
-            "scan_qr": "Scan QR Code",
-            "invalid_code": "Invalid code",
-            "verify_failed": "Verification failed",
-            "setup_failed": "Failed to start setup",
-            "secret_error": "Error generating secret",
-            "disable_failed": "Failed to disable"
-        }
+    "medals_title": "My Medals",
+    "no_medals": "You don't have any special medals yet.",
+    "unlink_confirm_title": "Unlink Account",
+    "unlink_confirm_msg": "Are you sure? You might lose access to certain features.",
+    "stats": {
+      "title": "Statistics",
+      "loading": "Loading data...",
+      "error": "Could not load statistics.",
+      "kills": "Kills",
+      "deaths": "Deaths",
+      "kdr": "K/D Ratio",
+      "health": "Current Health",
+      "job": "Job",
+      "mined": "Blocks Mined",
+      "placed": "Blocks Placed",
+      "mob_kills": "Mobs Killed",
+      "member_since": "Member Since"
     },
-    "profile": {
-        "not_found": "User not found",
-        "not_found_title": "Where did they go?",
-        "not_found_desc": "We couldn't find any user with that name. Maybe they got lost at sea or never existed.",
-        "member_since": "Member since",
-        "about_me": "About Me",
-        "socials": "Socials",
-        "medals": "Medals",
-        "no_medals": "This user has no medals yet.",
-        "stats": "Statistics",
-        "loading_stats": "Loading statistics...",
-        "error_stats": "Could not fetch gameplay statistics.",
-        "time": "Time",
-        "deaths": "Deaths",
-        "killucoins": "KilluCoins",
-        "mined": "Mined",
-        "placed": "Placed",
-        "private_stats": "This player's statistics are private.",
-        "skin": "Skin",
-        "playstyle_title": "Playstyle Chart",
-        "wall": {
-            "title": "Comments Wall",
-            "placeholder": "Write something on this wall...",
-            "post": "Post",
-            "login_required": "Log in to leave a comment.",
-            "empty": "No messages yet. Be the first!",
-            "comment_posted": "Comment posted!",
-            "comment_deleted": "Comment deleted",
-            "error_posting": "Error posting comment",
-            "error_deleting": "Error deleting comment"
-        },
-        "karma_success": "Karma delivered!",
-        "karma_error": "Error giving karma",
-        "karma_conn_error": "Connection error",
-        "no_bio": "This adventurer hasn't written their story yet.",
-        "skin_title": "Character Skin",
-        "stats_title": "Gameplay Statistics",
-        "give_karma": "Give Karma"
+    "posts": {
+      "title": "My Posts",
+      "loading": "Loading posts...",
+      "empty": "You haven't posted anything yet.",
+      "create_topic": "Create Topic",
+      "go_to_forum": "Go to Forum",
+      "views": "views",
+      "replies": "replies"
     },
-    "admin": {
-        "close": "Close",
-        "loading_panel": "Loading panel...",
-        "sidebar": {
-            "general": "General",
-            "community": "Community",
-            "staff_management": "Staff & Management"
-        },
-        "back_home": "Back to Home",
-        "access_denied": {
-            "title": "ACCESS DENIED 🛑",
-            "msg": "You do not have the necessary permissions to be here.",
-            "back_home": "Back to Home"
-        },
-        "panel_subtitle": "Administrative Control Panel",
-        "tabs": {
-            "general": "General",
-            "tickets": "Tickets",
-            "users": "Users",
-            "suggestions": "Suggestions",
-            "polls": "Polls",
-            "events": "Events",
-            "news": "News",
-            "logs": "Logs",
-            "settings": "Config",
-            "gamification": "Gamification",
-            "team": "Team",
-            "staff_hub": "Staff Hub",
-            "docs": "Documentation",
-            "donations": "Donations",
-            "wiki": "Wiki / Gamepedia",
-            "locations": "Places & Lore",
-            "refresh_btn": "Refresh Status",
-            "copy_ip_btn": "Copy IP",
-            "platform_val": "Java Edition",
-            "mode_val": "Survival / SMP"
-        },
-        "headers": {
-            "general": "General Dashboard",
-            "tickets": "Ticket Center",
-            "users": "User Management",
-            "suggestions": "Suggestion Box",
-            "polls": "Poll Manager",
-            "events": "Event Manager",
-            "news": "News Editor",
-            "logs": "Audit Log",
-            "settings": "Site Configuration",
-            "gamification": "Gamification System",
-            "team": "Team Management",
-            "staff_hub": "Staff Workspace",
-            "docs": "Internal Documentation",
-            "donations": "Donation Management",
-            "wiki": "Wiki / Gamepedia Editor",
-            "locations": "Places & Lore Manager"
-        },
-        "polls": {
-            "title": "Poll Manager",
-            "active_title": "Active Poll",
-            "create_title": "New Poll",
-            "status_active": "IN PROGRESS",
-            "ends_in": "Ends in: ",
-            "votes": "votes",
-            "total_votes": "Total: {{count}} votes",
-            "close_btn": "End Poll",
-            "no_active": "No active poll.",
-            "no_active_desc": "No active polls at this time. Create one to interact with the community!",
-            "create_now_btn": "Create a poll now",
-            "history_title": "Poll History",
-            "loading_history": "Loading history...",
-            "new_btn": "NEW POLL",
-            "edit_btn": "Edit",
-            "delete_tooltip": "Delete Poll",
-            "delete_confirm_title": "Delete Poll?",
-            "delete_confirm_desc": "This action cannot be undone and all accumulated votes will be permanently lost.",
-            "delete_btn": "Delete",
-            "pagination": "Page {{page}} of {{total}}",
-            "tabs": {
-                "active": "Active",
-                "history": "History"
-            },
-            "table": {
-                "title": "Title",
-                "date": "Date",
-                "votes": "Votes",
-                "status": "Status"
-            },
-            "status_chip": {
-                "active": "ACTIVE",
-                "closed": "CLOSED"
-            },
-            "no_history": "No history found",
-            "form": {
-                "title": "Title",
-                "title_ph": "Ex: Weekly Vote",
-                "question": "Question",
-                "question_ph": "Which gamemode do you prefer?",
-                "options": "Options",
-                "option_ph": "Option ",
-                "add_option": "Add Option",
-                "duration": "Duration (Days)",
-                "days": "days",
-                "warning_active": "⚠️ When creating a new poll, the current one will be automatically closed.",
-                "submit": "Launch Poll",
-                "success": "Poll launched!",
-                "error_options": "You need at least 2 options",
-                "error_create": "Error creating poll"
-            },
-            "form_extras": {
-                "title_es": "Title (Spanish)",
-                "title_en": "Title (English)",
-                "question_es": "Question (Spanish)",
-                "question_en": "Question (English)",
-                "option_es": "Option (ES)",
-                "option_en": "Option (EN)",
-                "translate": "Translate with AI",
-                "delete_option": "Delete option",
-                "cancel": "Cancel"
-            },
-            "confirm_close": "Are you sure you want to end the active poll?"
-        },
-        "docs": {
-            "titles": {
-                "intro": "Introduction",
-                "staff_hub": "Staff Hub",
-                "moderation": "Moderation & Users",
-                "users_manage": "User Management",
-                "console": "Console & Commands",
-                "console_bridge": "Remote Console (Secure Bridge)",
-                "content": "Content Management",
-                "content_web": "Web Content",
-                "gamification": "Gamification",
-                "security": "Security (2FA)",
-                "discord": "Discord Integration",
-                "audit": "Audit Logs"
-            },
-            "content": {
-                "intro_msg": "Welcome to the control center. From here you can manage almost all aspects of the server and community.",
-                "warning_title": "Warning",
-                "warning_msg": "Actions performed here have a direct impact on the game and the live database. Use them responsibly.",
-                "staff_intro": "Tools for internal team organization.",
-                "kanban_desc": "A simple project management board.",
-                "kanban_todo": "To Do",
-                "kanban_progress": "In Progress",
-                "kanban_done": "Done",
-                "notes_title": "Staff Notes",
-                "notes_desc": "A shared sticky note wall. Use it for quick reminders.",
-                "users_desc": "Complete list of registered users.",
-                "users_roles": "Assign web roles (Admin, Mod).",
-                "users_ban": "Block web access.",
-                "tickets_desc": "Support center. Prioritize and respond to user tickets.",
-                "console_desc": "Execute commands on the Minecraft server securely.",
-                "common_cmds": "Common Commands",
-                "cmd_kick": "Kick player.",
-                "cmd_ban": "Ban player.",
-                "cmd_broadcast": "Global announcement.",
-                "news": "News",
-                "news_desc": "Blog-style post editor with Markdown.",
-                "broadcast_desc": "Controls the top alert of the website.",
-                "polls": "Polls",
-                "polls_desc": "Create polls for the community.",
-                "gacha_config": "Gacha Configuration",
-                "gacha_cooldown": "24 hours per user.",
-                "prizes": "Prizes",
-                "gacha_prizes": "Automatic in-game delivery.",
-                "security_desc": "Admin panel access protection.",
-                "security_2fa": "The panel requires Two-Factor Authentication (TOTP) to access critical functions.",
-                "security_tokens": "A temporary Admin Token is issued after valid verification.",
-                "discord_desc": "Sync between the web and Discord community.",
-                "discord_linking": "Account linking via /link.",
-                "discord_announcements": "Automatic Discord announcements when news are published.",
-                "audit_desc": "Historical record of all administrative actions in the web and game."
-            },
-            "index": "Index",
-            "edit_section": "Edit Section",
-            "reset": "Reset",
-            "saving": "Saving...",
-            "placeholder": "Write the documentation using Markdown...",
-            "save_error": "Error saving documentation",
-            "reset_confirm": "Are you sure you want to reset this section to the default values?",
-            "loading": "Loading documentation..."
-        },
-        "staff_hub": {
-            "title": "Staff Hub",
-            "kanban": {
-                "title": "Board",
-                "new_task_btn": "New Task",
-                "view_board": "Board",
-                "view_calendar": "Calendar",
-                "sync_calendar": "Sync Calendar",
-                "add_to_calendar": "Add to my Calendar",
-                "sync_notion": "Sync Notion",
-                "syncing": "Syncing...",
-                "create_modal": {
-                    "title_new": "New Task",
-                    "title_edit": "Edit Task",
-                    "subtitle_new": "Plan a new activity for the team",
-                    "subtitle_edit": "Update your task details",
-                    "task_title": "TASK TITLE",
-                    "task_placeholder": "What are we working on?",
-                    "priority": "Priority",
-                    "type": "Type",
-                    "assignee": "Assignee",
-                    "assignee_placeholder": "Staff name...",
-                    "start_date": "Start",
-                    "end_date": "End",
-                    "optional_dates": "Optional dates for backlog",
-                    "cancel": "CANCEL",
-                    "create": "CREATE TASK",
-                    "save": "SAVE CHANGES",
-                    "date_error": "End date cannot be before start date"
-                },
-                "delete_modal": {
-                    "title": "Delete Task",
-                    "msg": "Are you sure you want to delete this task permanently?",
-                    "confirm": "Delete",
-                    "cancel": "Cancel"
-                },
-                "priorities": {
-                    "low": "Low",
-                    "medium": "Medium",
-                    "high": "High"
-                },
-                "types": {
-                    "general": "General",
-                    "bug": "Bug",
-                    "feature": "Feature",
-                    "maintenance": "Maintenance"
-                },
-                "empty": "Empty",
-                "card": {
-                    "backlog": "TBD",
-                    "unassigned": "Unassigned"
-                },
-                "calendar_views": {
-                    "month": "Month",
-                    "week": "Week",
-                    "day": "Day",
-                    "agenda": "Agenda",
-                    "next": "Next",
-                    "prev": "Back",
-                    "today": "Today",
-                    "date": "Date",
-                    "time": "Time",
-                    "event": "Event",
-                    "all_day": "All Day",
-                    "no_events": "No tasks in this range"
-                }
-            },
-            "notes": {
-                "title": "Quick Notes",
-                "new_note_btn": "New Note",
-                "create_modal": {
-                    "title": "New Note",
-                    "placeholder": "Write your note here...",
-                    "cancel": "Cancel",
-                    "save": "Save Note"
-                },
-                "delete_modal": {
-                    "title": "Delete Note?",
-                    "msg": "This action cannot be undone.",
-                    "confirm": "Yes, Delete"
-                }
-            }
-        },
-        "dashboard": {
-            "stats": {
-                "server_status": "Server Status",
-                "server_online": "ONLINE",
-                "server_offline": "OFFLINE",
-                "server_error": "ERROR",
-                "status_starting": "STARTING",
-                "status_stopping": "STOPPING",
-                "running_smooth": "All systems go ✨",
-                "check_console": "Check console ⚠️",
-                "players": "Concurrent Players",
-                "capacity": "Capacity",
-                "pending_tickets": "Pending Tickets",
-                "high_priority": "High Priority",
-                "revenue": "Monthly Revenue",
-                "vs_prev_month": "vs prev. month",
-                "total_players": "Total Players",
-                "new_players": "New (24h)",
-                "total_playtime": "Total Playtime",
-                "all_time": "All Time",
-                "last_24h": "Last 24 Hours",
-                "accumulated": "Accumulated Hours"
-            },
-            "resources": {
-                "title": "System Resources",
-                "updated_now": "Updated just now",
-                "cpu": "CPU Load",
-                "ram": "RAM Usage"
-            },
-            "staff": {
-                "title": "Staff Online",
-                "offline_msg": "Server Offline - No activity",
-                "no_staff": "No staff online",
-                "active_badge": "Active",
-                "online_status": "Online"
-            }
-        },
-        "tickets": {
-            "search_placeholder": "Search tickets...",
-            "new_ticket": "New Ticket",
-            "loading": "Loading tickets...",
-            "empty": "No tickets registered yet.",
-            "table": {
-                "id": "ID",
-                "user": "User",
-                "subject": "Subject",
-                "priority": "Priority",
-                "status": "Status",
-                "date": "Date",
-                "action": "Action"
-            },
-            "priority": {
-                "low": "Low",
-                "medium": "Medium",
-                "high": "High",
-                "urgent": "Urgent"
-            },
-            "status": {
-                "open": "Open",
-                "pending": "Pending",
-                "resolved": "Resolved",
-                "closed": "Closed"
-            },
-            "create_modal": {
-                "title": "Create New Ticket",
-                "subject": "Subject",
-                "description": "Description",
-                "desc_placeholder": "Describe the issue in detail...",
-                "submit": "Create Ticket",
-                "cancel": "Cancel",
-                "saving": "Saving...",
-                "error_subject": "Subject is required",
-                "error_create": "Error creating ticket"
-            },
-            "detail": {
-                "original_desc": "ORIGINAL DESCRIPTION",
-                "no_desc": "No detailed description.",
-                "no_history": "No messages in history.",
-                "reply_placeholder": "Write a reply to the user...",
-                "closed_msg": "This ticket is closed. Reopen it to reply.",
-                "delete_confirm": "Are you sure you want to delete this ticket? This cannot be undone."
-            },
-            "view_details_tooltip": "View Details",
-            "subject_ph": "Ex: Cannot join server",
-            "staff_label": "STAFF",
-            "actions": {
-                "ban": "Ban User",
-                "resolve": "Mark Resolved",
-                "close": "Close Ticket",
-                "reopen": "Reopen Ticket",
-                "delete": "Delete"
-            },
-            "delete_selected": "Delete Selected",
-            "searching": "Searching...",
-            "bulk_delete_confirm": "Are you sure you want to delete the selected tickets?",
-            "bulk_delete_success": "Tickets deleted successfully",
-            "ban_modal": {
-                "title": "Sanction User",
-                "nick_ph": "Ex: Steve",
-                "nickname": "Minecraft Nickname",
-                "nick_hint": "Confirm the exact player name on the server.",
-                "type": "Sanction Type",
-                "temp": "Temporary",
-                "perm": "Permanent",
-                "amount": "Amout",
-                "unit": "Unit",
-                "reason": "Reason",
-                "reason_ph": "Ex: Hacking (KillAura)",
-                "submit": "Apply Sanction",
-                "error_nick": "Enter player nickname",
-                "success": "User banned successfully"
-            },
-            "units": {
-                "m": "Minutes",
-                "h": "Hours",
-                "d": "Days",
-                "mo": "Months"
-            }
-        },
-        "wiki": {
-            "manager_title": "Wiki Manager",
-            "search_placeholder": "Search articles...",
-            "create_btn": "Create Article",
-            "loading": "Loading library...",
-            "no_articles": "No articles found.",
-            "public": "Public",
-            "char_count": "characters",
-            "edit_title": "Edit Article",
-            "new_title": "New Wiki Article",
-            "title_label": "Article Title",
-            "title_placeholder": "e.g. Enchantment Guide",
-            "slug_label": "URL Slug (Unique)",
-            "slug_placeholder": "enchantment-guide",
-            "category_label": "Category",
-            "content_label": "Content (Markdown)",
-            "content_placeholder": "# Main Title\n\nContent here...",
-            "img_label": "Cover Image (Optional)",
-            "update_btn": "Update",
-            "publish_btn": "Publish",
-            "cancel": "Cancel",
-            "delete_confirm": "Are you sure you want to delete this article?",
-            "categories": {
-                "general": "General",
-                "mechanics": "Mechanics",
-                "economy": "Economy",
-                "commands": "Commands",
-                "ranks": "Ranks"
-            }
-        },
-        "2fa": {
-            "title": "Security Verification",
-            "desc": "Enter your 2FA code to access the Admin Panel.",
-            "verify": "Verify Access"
-        },
-        "donations": {
-            "title": "Donations Management",
-            "manager_desc": "View and manage the community contribution history.",
-            "search_ph": "Search by name or description...",
-            "new_btn": "Add Donation",
-            "edit_title": "Edit Donation",
-            "empty": "No donations registered yet.",
-            "anonymous": "Anonymous",
-            "no_msg": "No message",
-            "public": "Public",
-            "private": "Private",
-            "stats": {
-                "total": "Total Raised",
-                "count": "Total Donations",
-                "avg": "Average"
-            },
-            "form": {
-                "donor_name": "Donor Name",
-                "name_ph": "Ex: John Doe",
-                "email_label": "Email (Private)",
-                "amount": "Amount",
-                "currency": "Currency",
-                "message": "Message",
-                "is_public": "Make public in carousel",
-                "cancel": "Cancel",
-                "save": "Save Changes"
-            },
-            "delete_confirm": {
-                "title": "Confirm Deletion",
-                "msg": "Are you sure you want to delete this donation? This action cannot be undone.",
-                "btn": "Yes, Delete"
-            },
-            "simulate": "Test Alert",
-            "alert_sent": "Alert sent to Discord!",
-            "error_alert": "Error sending alert",
-            "confirm_simulate": "Send test alert to Discord?",
-            "error_delete": "Error deleting donation",
-            "error_save": "Error saving donation",
-            "error_conn": "Connection error"
-        },
-        "suggestions": {
-            "title": "Suggestions Box",
-            "subtitle": "Manage community feedback",
-            "filter_by_type": "Type:",
-            "filter_all": "All",
-            "filter_by_status": "Status:",
-            "types": {
-                "general": "General",
-                "bug": "Bugs",
-                "mod": "Mods",
-                "complaint": "Complaints",
-                "poll": "Polls"
-            },
-            "status": {
-                "all": "All",
-                "pending": "Pending",
-                "approved": "Approved",
-                "rejected": "Rejected"
-            },
-            "read_more": "Read more",
-            "show_less": "Show less",
-            "empty": "No suggestions",
-            "empty_desc": "No suggestions match current filters.",
-            "delete_modal": {
-                "title": "Delete suggestion?",
-                "desc": "Are you sure you want to delete this suggestion permanently? This action cannot be undone.",
-                "cancel": "Cancel",
-                "confirm": "Delete"
-            }
-        },
-        "donors": {
-            "manager_title": "Donors Manager",
-            "manager_desc": "Manage the honor list and customize each donor's profile.",
-            "add_btn": "Add Donor",
-            "empty_msg": "The list is empty. Default donors will be used on the public page.",
-            "import_btn": "Import Original Donors",
-            "new_title": "New Donor",
-            "edit_title": "Edit Donor",
-            "delete_btn": "Delete",
-            "form": {
-                "nick": "Nickname (Minecraft)",
-                "nick_ph": "Ex: Notch",
-                "is_premium": "Is Premium User (Auto Skin)",
-                "skin_url": "Skin URL",
-                "skin_ph": "/skins/myskin.png or https://...",
-                "skin_hint": "If you uploaded the skin manually to /skins/, write the relative path.",
-                "desc": "Phrase / Description",
-                "desc_ph": "Custom message...",
-                "desc_en": "Phrase / Description (English)",
-                "desc_en_ph": "Custom message in English...",
-                "translate_en": "Translate to English",
-                "translate_es": "Translate to Spanish",
-                "ranks": "Selected Ranks",
-                "cancel": "Cancel",
-                "save": "Save Changes"
-            },
-            "delete_confirm": {
-                "title": "Delete Donor?",
-                "msg": "This action will permanently remove the donor from the list and cannot be undone.",
-                "btn": "Yes, Delete"
-            },
-            "import_confirm": {
-                "title": "Import Defaults?",
-                "msg": "Are you sure? This will replace your current list with the server's original donors.",
-                "btn": "Import Now"
-            },
-            "validation": {
-                "name_req": "Name is required",
-                "skin_req": "Skin URL is required for non-premium",
-                "desc_req": "Description is required",
-                "save_error": "Error saving changes",
-                "translate_error": "Error translating",
-                "success_save": "Donor list updated successfully"
-            },
-            "profiles": {
-                "killu": "Administrator, Builder, and Interface Designer.",
-                "neroferno": "Owner, Programmer, and Content Creator.",
-                "law": "Founder and Community Administrator.",
-                "pixie": "Founder and Expert Builder.",
-                "zeta": "Founder and Veteran Moderator.",
-                "sendples": "Founder and Technical Support.",
-                "zen": "Featured Donor and Active Member.",
-                "churly": "Full Stack Developer and Contributor.",
-                "nana": "Donor and VIP Member."
-            }
-        },
-        "news": {
-            "upload_error_bucket": "Bucket not found",
-            "upload_error_unknown": "Unknown error uploading image",
-            "error_delete": "Error deleting news",
-            "error_save": "Error saving news",
-            "edit_title": "Edit News",
-            "create_title": "Write News",
-            "cancel": "Cancel",
-            "form": {
-                "title": "Title",
-                "category": "Category",
-                "status": "Status",
-                "draft": "Draft",
-                "published": "Published",
-                "image": "Cover Image",
-                "content": "Content (Markdown)",
-                "publish": "Publish",
-                "save": "Save Changes"
-            },
-            "translate_to_en_title": "Translate Title to English",
-            "translate_to_es_title": "Translate Title to Spanish",
-            "translate_to_en_content": "Translate Content to English",
-            "translate_to_es_content": "Translate Content to Spanish",
-            "english_suffix": "(English)",
-            "english_placeholder": "Title in English...",
-            "uploading": "Uploading...",
-            "insert_image": "Insert Image",
-            "search_ph": "Search news...",
-            "write_btn": "Write News",
-            "no_news": "No news found.",
-            "table": {
-                "title": "Title",
-                "category": "Category",
-                "status": "Status",
-                "date": "Date",
-                "actions": "Actions"
-            },
-            "delete_tooltip": "Delete",
-            "delete_modal": {
-                "title": "Delete News?",
-                "desc": "This action cannot be undone. The news post will be permanently deleted.",
-                "cancel": "Cancel",
-                "confirm": "Yes, Delete"
-            }
-        },
-        "alerts": {
-            "error_title": "Oops! Something went wrong",
-            "success_title": "Success!",
-            "warning_title": "Attention",
-            "confirm_title": "Are you sure?",
-            "accept": "OK"
-        },
-        "users": {
-            "title": "User Management",
-            "search_placeholder": "Search user by email (e.g. steve@mail.com)",
-            "search_btn": "Search",
-            "table": {
-                "user": "User/Email",
-                "id": "ID",
-                "role": "Current Role",
-                "change_role": "Change Role"
-            },
-            "registered": "Registered",
-            "no_results": "No users found with that email.",
-            "initial_msg": "Use the search bar to find users.",
-            "searching": "Searching...",
-            "confirm_role": "Change role to ",
-            "error_role": "Error updating role",
-            "gamification": "Gamification",
-            "medals": "Medals",
-            "medals_of": "Medals of",
-            "no_medals": "No medals created in the system.",
-            "save_medals": "Save Changes",
-            "saving": "Saving...",
-            "error_medals": "Error saving medals",
-            "role_modal": {
-                "title": "Confirm Role Change?",
-                "desc": "You are about to change the user's role",
-                "to": "to",
-                "confirm": "Confirm Change",
-                "cancel": "Cancel"
-            }
-        },
-        "staff": {
-            "manager_title": "Staff Manager",
-            "sync_btn": "Sync from Server",
-            "syncing": "Syncing...",
-            "add_member": "Add Member",
-            "add_manual": "Add Manual Member",
-            "empty": "No staff cards found.",
-            "no_desc": "No description.",
-            "edit_btn": "Edit",
-            "delete_tooltip": "Delete Card",
-            "drag_tooltip": "Drag to reorder",
-            "linked_account": "Linked Account",
-            "no_socials": "No socials",
-            "form": {
-                "new_title": "New Staff Member",
-                "edit_title": "Edit Staff Member",
-                "preview_name": "Name",
-                "preview_role": "Role",
-                "name_label": "Name (Username)",
-                "name_ph": "Minecraft Username",
-                "role_label": "Role",
-                "custom_role_ph": "Custom Role Name...",
-                "color_label": "Role Color",
-                "avatar_label": "Avatar URL",
-                "avatar_ph": "Leave empty for default skin",
-                "bio_label": "Description / Bio",
-                "bio_ph": "Short description...",
-                "save_changes": "Save Changes",
-                "cancel": "Cancel"
-            },
-            "confirm_modal": {
-                "title": "Confirm Sync",
-                "detected_msg": "Detected <strong>{{count}} users</strong> with staff rank.",
-                "warning": "This will overwrite your current list! Changes like custom colors or descriptions for existing users will be preserved, but manual entries might be lost if they don't match.",
-                "cancel": "Cancel",
-                "save": "Confirm & Sync"
-            },
-            "save_error": "Error saving staff cards",
-            "sync_error": "Error syncing: ",
-            "sync_no_users": "No staff users found in sync.",
-            "sync_success": "Sync complete",
-            "default_desc": "Staff Member",
-            "confirm_delete_profile": "Delete this profile?",
-            "roles": {
-                "neroferno": "Neroferno",
-                "killuwu": "Killuwu",
-                "developer": "Developer",
-                "admin": "Admin",
-                "moderator": "Moderator",
-                "helper": "Helper",
-                "user": "User",
-                "custom": "Custom"
-            }
-        },
-        "gamification": {
-            "medals": {
-                "title": "Medals Management",
-                "new_medal_default": "New Medal",
-                "desc_default": "Medal description...",
-                "delete_confirm": "Delete this medal?",
-                "saving": "Saving...",
-                "save": "Save Changes",
-                "name_placeholder": "Medal Name",
-                "desc_placeholder": "Description...",
-                "create_btn": "Create New Medal"
-            }
-        },
-        "settings": {
-            "loading": "Loading settings...",
-            "error_save": "Error saving settings",
-            "saving": "Saving...",
-            "theme": {
-                "title": "Global Site Settings",
-                "desc": "Customize CrystalTides appearance. This will affect all visitors!",
-                "default": "Original Crystal",
-                "halloween": "Halloween Mode",
-                "christmas": "Christmas Mode"
-            },
-            "announcement": {
-                "title": "Global Announcement (Annobar)",
-                "placeholder": "Ex: Scheduled maintenance today at 20:00 GMT-3",
-                "save": "Save",
-                "desc": "Leave empty to disable the announcement bar."
-            },
-            "danger": {
-                "title": "Danger Zone",
-                "maintenance_title": "Maintenance Mode",
-                "maintenance_desc": "If enabled, only admins can access the site. Users will see an 'Under Construction' screen."
-            },
-            "maintenance_modal": {
-                "title_on": "⚠️ ENABLE Maintenance",
-                "title_off": "Disable Maintenance",
-                "msg_on": "If enabled, only admins can access the site. Are you sure?",
-                "msg_off": "The site will be public for everyone again.",
-                "confirm_on": "Yes, close site",
-                "confirm_off": "Open site",
-                "cancel": "Oops... better not"
-            },
-            "sections": {
-                "general": "General Configuration",
-                "broadcast": "Broadcast & Alerts",
-                "hero": "Main Banner (Home)",
-                "rules": "Rules Editor",
-                "donors": "Donors Manager (Carousel)",
-                "donations": "Donation History",
-                "console": "Secure Console (RCON)"
-            },
-            "maintenance_label": "MAINTENANCE",
-            "recruitment": {
-                "title": "Recruitment",
-                "status_open": "OPEN",
-                "status_closed": "CLOSED",
-                "status_label": "Application Status",
-                "link_label": "Form Link",
-                "link_ph": "https://forms.google.com/..."
-            },
-            "broadcast": {
-                "title": "Global Alerts",
-                "status_label": "Alert Status",
-                "active": "Visible",
-                "inactive": "Hidden",
-                "message_label": "Message",
-                "placeholder": "Ex: Scheduled maintenance",
-                "type_label": "Alert Type",
-                "preview": "Preview",
-                "empty_msg": "(Empty message)",
-                "disabled_msg": "(Disabled)",
-                "save_btn": "Save Config"
-            },
-            "hero": {
-                "title": "Home Banners",
-                "edit_slide": "Edit Slide",
-                "new_slide": "New Slide",
-                "image_url": "Image URL",
-                "title_label": "Title",
-                "subtitle_label": "Subtitle",
-                "btn_text": "Button Text",
-                "btn_link": "Button Link",
-                "save_btn": "Save Changes",
-                "cancel_btn": "Cancel",
-                "no_slides": "No active banners.",
-                "delete_confirm": "Delete slide?"
-            },
-            "rules": {
-                "title": "Server Rules",
-                "export_tooltip": "Export Rules (JSON)",
-                "save_btn": "Save Changes",
-                "saving": "Saving...",
-                "title_ph": "Title",
-                "desc_ph": "Description...",
-                "add_btn": "Add New Rule",
-                "delete_title": "Delete Rule?",
-                "delete_msg": "This will permanently delete the rule.",
-                "delete_confirm": "Yes, Delete"
-            },
-            "console": {
-                "title": "Secure Command Bridge",
-                "desc": "Send commands safely to the Minecraft server via CrystalBridge Plugin. Executed with console privileges.",
-                "logs_ph": "Command logs will appear here...",
-                "cmd_ph": "say Hello world (or any command without /)",
-                "send_btn": "Send"
-            }
-        },
-        "logs": {
-            "search_placeholder": "Search user, command...",
-            "filter_source": "SOURCE:",
-            "filter_all": "ALL",
-            "filter_web": "WEB",
-            "filter_game": "GAME"
-        },
-        "audit": {
-            "title": "Audit Log",
-            "subtitle": "Detailed history of all administrative actions and system events.",
-            "search_placeholder": "Search by user, action or details...",
-            "source_all": "ALL",
-            "source_web": "WEB",
-            "source_game": "GAME",
-            "source_security": "Alert",
-            "source_security-auditor": "Security",
-            "showing": "Showing {{count}} of {{total}} events",
-            "no_logs_found": "No logs found",
-            "try_adjust_filters": "Try adjusting the filters or search term.",
-            "table_date": "DATE",
-            "table_user": "USER",
-            "table_source": "SOURCE",
-            "table_action": "ACTION",
-            "table_details": "DETAILS"
-        },
-        "events": {
-            "title": "Events & Contests Management",
-            "loading": "Loading events...",
-            "create_title": "New Event",
-            "edit_title": "Edit Event",
-            "cancel": "Cancel",
-            "form": {
-                "title": "Title",
-                "desc": "Description",
-                "type": "Type (Icon)",
-                "status": "Status",
-                "save": "Save Changes",
-                "create": "Create Event",
-                "types": {
-                    "hammer": "Construction 🔨",
-                    "dice": "Roleplay / RNG 🎲",
-                    "map": "Exploration 🗺️",
-                    "running": "Race / Parkour 🏃"
-                },
-                "statuses": {
-                    "active": "Active (In Progress)",
-                    "soon": "Coming Soon",
-                    "finished": "Finished"
-                }
-            },
-            "table": {
-                "icon": "Icon",
-                "event": "Event",
-                "status": "Status",
-                "actions": "Actions"
-            },
-            "no_events": "No events created.",
-            "delete_modal": {
-                "title": "Delete Event?",
-                "desc": "This action cannot be undone. The event will be permanently deleted.",
-                "confirm": "Yes, Delete",
-                "cancel": "Cancel"
-            },
-            "error_save": "Error saving event",
-            "error_delete": "Error deleting",
-            "delete_tooltip": "Delete",
-            "registrations": {
-                "title": "Registrations",
-                "empty": "No registrations yet.",
-                "loading": "Loading...",
-                "unknown_user": "Unknown User",
-                "view_tooltip": "View Registrations"
-            },
-            "form_extras": {
-                "title_es": "Title (Spanish)",
-                "title_en": "Title (English)",
-                "desc_es": "Description (Spanish)",
-                "desc_en": "Description (English)",
-                "translate_btn": "Translate"
-            }
-        }
+    "journey_title": "📅 Your Journey in CrystalTides",
+    "journey_arrival": "Arrival",
+    "journey_promotion": "Promotion",
+    "journey_today": "Total Playtime",
+    "journey_played": "played",
+    "achievements": {
+      "title": "Medals and Achievements",
+      "items": {
+        "dweller": "Tide Dweller",
+        "dweller_desc": "Link your Discord account and join the fishbowl.",
+        "dweller_criteria": "Discord account linked",
+        "magnate": "Crystal Magnate",
+        "magnate_desc": "Fortune smiles upon the bold.",
+        "magnate_criteria": "+5,000 KilluCoins",
+        "architect": "Terrestrial Architect",
+        "architect_desc": "Build the future block by block.",
+        "architect_criteria": "+1,000 Blocks Placed",
+        "deep_miner": "Deep Miner",
+        "deep_miner_desc": "Extract riches from the depths.",
+        "deep_miner_criteria": "+1,000 Blocks Mined",
+        "guardian": "Abyss Guardian",
+        "guardian_desc": "Show your strength in combat.",
+        "guardian_criteria": "+10 Kills",
+        "time_traveler": "Time Traveler",
+        "time_traveler_desc": "Your consistency transcends time.",
+        "time_traveler_criteria": "+50 Hours Played",
+        "patron": "Patron of the Tides",
+        "patron_desc": "Support the realm's sustainability.",
+        "patron_criteria": "Donor or Founder Rank"
+      }
     },
-    "support": {
-        "title": "Support Center",
-        "subtitle": "Having issues? Open a ticket and we will help you.",
-        "create_ticket": "New Ticket",
-        "discord_btn": "Support on Discord",
-        "no_tickets": "You have no open tickets",
-        "create_first": "Create a new one to contact the Staff.",
-        "create_first_btn": "Open my first ticket",
-        "new_ticket_title": "Open New Ticket",
-        "category": "Category",
-        "priority": "Priority",
-        "login_required": "Login Required",
-        "login_hint": "Please log in to view your tickets or create a new one.",
-        "subject": "Subject",
-        "subject_placeholder": "Ex: Rank issue...",
-        "message": "Message",
-        "message_placeholder": "Describe your issue in detail...",
-        "type_message": "Type a message...",
-        "ticket_closed": "This ticket is closed.",
-        "your_tickets": "Your Tickets",
-        "total": "total",
-        "categories": {
-            "general": "General",
-            "bug": "🐛 Bug Report",
-            "player": "🚫 Player Report",
-            "billing": "💰 Billing/Store",
-            "unban": "🔓 Unban Request",
-            "wiki": "Wiki Related"
+    "minecraft": {
+      "title": "Link Minecraft",
+      "not_linked": "Not linked",
+      "current_user": "Current user: ",
+      "link_button": "Link Account",
+      "instruction_1": "Use ",
+      "instruction_2": " on the server to link."
+    },
+    "connections": {
+      "title": "Linked Accounts",
+      "success_link": "Account linked successfully!",
+      "link_discord": "Link Discord",
+      "link_twitch": "Link Twitch",
+      "linked": "Linked",
+      "not_linked": "Not linked",
+      "connected": "Connected",
+      "disconnected": "Disconnected",
+      "connect": "Connect",
+      "disconnect": "Disconnect",
+      "link_desc": "Link your account to sync rank and stats.",
+      "get_code": "Get Code",
+      "generating": "Generating...",
+      "type_in_server": "Type in server:",
+      "waiting": "Syncing...",
+      "unlink": "Unlink",
+      "connect_discord": "Connect Discord",
+      "connect_twitch": "Connect Twitch",
+      "or_use_link": "OR USE /LINK",
+      "discord_code_placeholder": "DISCORD CODE",
+      "unlink_confirm_title": "Unlink account?",
+      "unlink_confirm_message": "Are you sure you want to unlink this account? You will have to reconnect it to use it in the future.",
+      "confirm_unlink": "Yes, unlink",
+      "cancel": "Cancel"
+    },
+    "admin_panel": "Admin Panel",
+    "settings": {
+      "title": "Settings",
+      "language": "Language / Idioma",
+      "security": "Security",
+      "privacy": "Privacy",
+      "profile_info": "Profile Information",
+      "banner": "Profile Banner",
+      "no_banner": "No Banner",
+      "banner_placeholder": "Image URL (e.g. https://imgur.com/...)",
+      "new_password": "New Password",
+      "confirm_password": "Confirm Password",
+      "update_password": "Update Password",
+      "public_stats": "Show stats publicly",
+      "public_stats_desc": "Allow other users to see your gameplay stats.",
+      "success_password": "Password updated successfully!",
+      "success_privacy": "Privacy settings saved.",
+      "avatar_pref": "Avatar Preference",
+      "mc_head": "Minecraft Head",
+      "social_web": "Social / Web",
+      "avatar_hint": "* Select which image you prefer to see on your public profile and navigation bar.",
+      "bio_label": "Biography (Optional Markdown)",
+      "bio_ph": "Tell us a bit about yourself...",
+      "max_chars": "MAX 500 CHARS",
+      "social_links": "Social Links",
+      "username_ph": "username",
+      "twitter_ph": "Twitter (e.g., @myuser)",
+      "twitch_ph": "Twitch Channel",
+      "kofi_ph": "Ko-Fi URL",
+      "save_profile": "Update Profile",
+      "pass_mismatch": "Passwords do not match",
+      "pass_min_chars": "Minimum 6 characters",
+      "success_profile": "Profile updated successfully",
+      "community_pref": "Community Preferences",
+      "status_msg": "Status Message (Short)",
+      "notifications": "Notifications",
+      "notify_events": "Global Events",
+      "notify_mentions": "Mentions / Replies",
+      "status_placeholder": "Ex: Exploring the End..."
+    },
+    "security": {
+      "2fa_title": "Two-Factor Authentication",
+      "2fa_active": "Your account is protected with 2FA.",
+      "2fa_inactive": "Add an extra layer of security to your account.",
+      "setup_2fa": "Setup 2FA",
+      "activate": "Activate",
+      "disable_2fa": "Disable 2FA",
+      "2fa_enabled": "2FA Enabled Successfully!",
+      "2fa_disabled": "2FA Disabled",
+      "2fa_disable_confirm": "Are you sure you want to disable 2FA?",
+      "cant_scan": "Can't scan the QR code?",
+      "copied": "Copied!",
+      "enter_code": "Enter Code",
+      "scan_qr": "Scan QR Code",
+      "invalid_code": "Invalid code",
+      "verify_failed": "Verification failed",
+      "setup_failed": "Failed to start setup",
+      "secret_error": "Error generating secret",
+      "disable_failed": "Failed to disable"
+    }
+  },
+  "profile": {
+    "not_found": "User not found",
+    "not_found_title": "Where did they go?",
+    "not_found_desc": "We couldn't find any user with that name. Maybe they got lost at sea or never existed.",
+    "member_since": "Member since",
+    "about_me": "About Me",
+    "socials": "Socials",
+    "medals": "Medals",
+    "no_medals": "This user has no medals yet.",
+    "stats": "Statistics",
+    "loading_stats": "Loading statistics...",
+    "error_stats": "Could not fetch gameplay statistics.",
+    "time": "Time",
+    "deaths": "Deaths",
+    "killucoins": "KilluCoins",
+    "mined": "Mined",
+    "placed": "Placed",
+    "private_stats": "This player's statistics are private.",
+    "skin": "Skin",
+    "playstyle_title": "Playstyle Chart",
+    "wall": {
+      "title": "Comments Wall",
+      "placeholder": "Write something on this wall...",
+      "post": "Post",
+      "login_required": "Log in to leave a comment.",
+      "empty": "No messages yet. Be the first!",
+      "comment_posted": "Comment posted!",
+      "comment_deleted": "Comment deleted",
+      "error_posting": "Error posting comment",
+      "error_deleting": "Error deleting comment"
+    },
+    "karma_success": "Karma delivered!",
+    "karma_error": "Error giving karma",
+    "karma_conn_error": "Connection error",
+    "no_bio": "This adventurer hasn't written their story yet.",
+    "skin_title": "Character Skin",
+    "stats_title": "Gameplay Statistics",
+    "give_karma": "Give Karma"
+  },
+  "admin": {
+    "close": "Close",
+    "loading_panel": "Loading panel...",
+    "sidebar": {
+      "general": "General",
+      "community": "Community",
+      "staff_management": "Staff & Management"
+    },
+    "back_home": "Back to Home",
+    "access_denied": {
+      "title": "ACCESS DENIED 🛑",
+      "msg": "You do not have the necessary permissions to be here.",
+      "back_home": "Back to Home"
+    },
+    "panel_subtitle": "Administrative Control Panel",
+    "tabs": {
+      "general": "General",
+      "tickets": "Tickets",
+      "users": "Users",
+      "suggestions": "Suggestions",
+      "polls": "Polls",
+      "events": "Events",
+      "news": "News",
+      "logs": "Logs",
+      "settings": "Config",
+      "gamification": "Gamification",
+      "team": "Team",
+      "staff_hub": "Staff Hub",
+      "docs": "Documentation",
+      "donations": "Donations",
+      "wiki": "Wiki / Gamepedia",
+      "locations": "Places & Lore",
+      "refresh_btn": "Refresh Status",
+      "copy_ip_btn": "Copy IP",
+      "platform_val": "Java Edition",
+      "mode_val": "Survival / SMP"
+    },
+    "headers": {
+      "general": "General Dashboard",
+      "tickets": "Ticket Center",
+      "users": "User Management",
+      "suggestions": "Suggestion Box",
+      "polls": "Poll Manager",
+      "events": "Event Manager",
+      "news": "News Editor",
+      "logs": "Audit Log",
+      "settings": "Site Configuration",
+      "gamification": "Gamification System",
+      "team": "Team Management",
+      "staff_hub": "Staff Workspace",
+      "docs": "Internal Documentation",
+      "donations": "Donation Management",
+      "wiki": "Wiki / Gamepedia Editor",
+      "locations": "Places & Lore Manager"
+    },
+    "polls": {
+      "title": "Poll Manager",
+      "active_title": "Active Poll",
+      "create_title": "New Poll",
+      "status_active": "IN PROGRESS",
+      "ends_in": "Ends in: ",
+      "votes": "votes",
+      "total_votes": "Total: {{count}} votes",
+      "close_btn": "End Poll",
+      "no_active": "No active poll.",
+      "no_active_desc": "No active polls at this time. Create one to interact with the community!",
+      "create_now_btn": "Create a poll now",
+      "history_title": "Poll History",
+      "loading_history": "Loading history...",
+      "new_btn": "NEW POLL",
+      "edit_btn": "Edit",
+      "delete_tooltip": "Delete Poll",
+      "delete_confirm_title": "Delete Poll?",
+      "delete_confirm_desc": "This action cannot be undone and all accumulated votes will be permanently lost.",
+      "delete_btn": "Delete",
+      "pagination": "Page {{page}} of {{total}}",
+      "tabs": {
+        "active": "Active",
+        "history": "History"
+      },
+      "table": {
+        "title": "Title",
+        "date": "Date",
+        "votes": "Votes",
+        "status": "Status"
+      },
+      "status_chip": {
+        "active": "ACTIVE",
+        "closed": "CLOSED"
+      },
+      "no_history": "No history found",
+      "form": {
+        "title": "Title",
+        "title_ph": "Ex: Weekly Vote",
+        "question": "Question",
+        "question_ph": "Which gamemode do you prefer?",
+        "options": "Options",
+        "option_ph": "Option ",
+        "add_option": "Add Option",
+        "duration": "Duration (Days)",
+        "days": "days",
+        "warning_active": "⚠️ When creating a new poll, the current one will be automatically closed.",
+        "submit": "Launch Poll",
+        "success": "Poll launched!",
+        "error_options": "You need at least 2 options",
+        "error_create": "Error creating poll"
+      },
+      "form_extras": {
+        "title_es": "Title (Spanish)",
+        "title_en": "Title (English)",
+        "question_es": "Question (Spanish)",
+        "question_en": "Question (English)",
+        "option_es": "Option (ES)",
+        "option_en": "Option (EN)",
+        "translate": "Translate with AI",
+        "delete_option": "Delete option",
+        "cancel": "Cancel"
+      },
+      "confirm_close": "Are you sure you want to end the active poll?"
+    },
+    "docs": {
+      "titles": {
+        "intro": "Introduction",
+        "staff_hub": "Staff Hub",
+        "moderation": "Moderation & Users",
+        "users_manage": "User Management",
+        "console": "Console & Commands",
+        "console_bridge": "Remote Console (Secure Bridge)",
+        "content": "Content Management",
+        "content_web": "Web Content",
+        "gamification": "Gamification",
+        "security": "Security (2FA)",
+        "discord": "Discord Integration",
+        "audit": "Audit Logs"
+      },
+      "content": {
+        "intro_msg": "Welcome to the control center. From here you can manage almost all aspects of the server and community.",
+        "warning_title": "Warning",
+        "warning_msg": "Actions performed here have a direct impact on the game and the live database. Use them responsibly.",
+        "staff_intro": "Tools for internal team organization.",
+        "kanban_desc": "A simple project management board.",
+        "kanban_todo": "To Do",
+        "kanban_progress": "In Progress",
+        "kanban_done": "Done",
+        "notes_title": "Staff Notes",
+        "notes_desc": "A shared sticky note wall. Use it for quick reminders.",
+        "users_desc": "Complete list of registered users.",
+        "users_roles": "Assign web roles (Admin, Mod).",
+        "users_ban": "Block web access.",
+        "tickets_desc": "Support center. Prioritize and respond to user tickets.",
+        "console_desc": "Execute commands on the Minecraft server securely.",
+        "common_cmds": "Common Commands",
+        "cmd_kick": "Kick player.",
+        "cmd_ban": "Ban player.",
+        "cmd_broadcast": "Global announcement.",
+        "news": "News",
+        "news_desc": "Blog-style post editor with Markdown.",
+        "broadcast_desc": "Controls the top alert of the website.",
+        "polls": "Polls",
+        "polls_desc": "Create polls for the community.",
+        "gacha_config": "Gacha Configuration",
+        "gacha_cooldown": "24 hours per user.",
+        "prizes": "Prizes",
+        "gacha_prizes": "Automatic in-game delivery.",
+        "security_desc": "Admin panel access protection.",
+        "security_2fa": "The panel requires Two-Factor Authentication (TOTP) to access critical functions.",
+        "security_tokens": "A temporary Admin Token is issued after valid verification.",
+        "discord_desc": "Sync between the web and Discord community.",
+        "discord_linking": "Account linking via /link.",
+        "discord_announcements": "Automatic Discord announcements when news are published.",
+        "audit_desc": "Historical record of all administrative actions in the web and game."
+      },
+      "index": "Index",
+      "edit_section": "Edit Section",
+      "reset": "Reset",
+      "saving": "Saving...",
+      "placeholder": "Write the documentation using Markdown...",
+      "save_error": "Error saving documentation",
+      "reset_confirm": "Are you sure you want to reset this section to the default values?",
+      "loading": "Loading documentation..."
+    },
+    "staff_hub": {
+      "title": "Staff Hub",
+      "kanban": {
+        "title": "Board",
+        "new_task_btn": "New Task",
+        "view_board": "Board",
+        "view_calendar": "Calendar",
+        "sync_calendar": "Sync Calendar",
+        "add_to_calendar": "Add to my Calendar",
+        "sync_notion": "Sync Notion",
+        "syncing": "Syncing...",
+        "create_modal": {
+          "title_new": "New Task",
+          "title_edit": "Edit Task",
+          "subtitle_new": "Plan a new activity for the team",
+          "subtitle_edit": "Update your task details",
+          "task_title": "TASK TITLE",
+          "task_placeholder": "What are we working on?",
+          "priority": "Priority",
+          "type": "Type",
+          "assignee": "Assignee",
+          "assignee_placeholder": "Staff name...",
+          "start_date": "Start",
+          "end_date": "End",
+          "optional_dates": "Optional dates for backlog",
+          "cancel": "CANCEL",
+          "create": "CREATE TASK",
+          "save": "SAVE CHANGES",
+          "date_error": "End date cannot be before start date"
+        },
+        "delete_modal": {
+          "title": "Delete Task",
+          "msg": "Are you sure you want to delete this task permanently?",
+          "confirm": "Delete",
+          "cancel": "Cancel"
         },
         "priorities": {
-            "low": "Low",
-            "normal": "Normal",
-            "high": "High",
-            "urgent": "Urgent"
+          "low": "Low",
+          "medium": "Medium",
+          "high": "High"
         },
-        "error_create": "Error creating ticket. Please try again."
+        "types": {
+          "general": "General",
+          "bug": "Bug",
+          "feature": "Feature",
+          "maintenance": "Maintenance"
+        },
+        "empty": "Empty",
+        "card": {
+          "backlog": "TBD",
+          "unassigned": "Unassigned"
+        },
+        "calendar_views": {
+          "month": "Month",
+          "week": "Week",
+          "day": "Day",
+          "agenda": "Agenda",
+          "next": "Next",
+          "prev": "Back",
+          "today": "Today",
+          "date": "Date",
+          "time": "Time",
+          "event": "Event",
+          "all_day": "All Day",
+          "no_events": "No tasks in this range"
+        }
+      },
+      "notes": {
+        "title": "Quick Notes",
+        "new_note_btn": "New Note",
+        "create_modal": {
+          "title": "New Note",
+          "placeholder": "Write your note here...",
+          "cancel": "Cancel",
+          "save": "Save Note"
+        },
+        "delete_modal": {
+          "title": "Delete Note?",
+          "msg": "This action cannot be undone.",
+          "confirm": "Yes, Delete"
+        }
+      }
     },
-    "tutorial": {
-        "step1_title": "Welcome to CrystalTides!",
-        "step1_content": "Discover the new web experience of your favorite server. We have revamped everything for you.",
-        "step1_action": "Start Tour",
-        "step2_title": "Quick Navigation",
-        "step2_content": "Use our new Command Palette by pressing Ctrl + K (or Cmd + K) to go anywhere instantly.",
-        "step2_action": "Next",
-        "step3_title": "Your Achievements",
-        "step3_content": "Visit your profile to see your stats, skins, and medals earned while playing.",
-        "step3_action": "Next",
-        "step4_title": "Stay Informed",
-        "step4_content": "The new Notification Center will alert you of events, rewards, and important news.",
-        "step4_action": "Got it",
-        "step5_title": "All Set!",
-        "step5_content": "Explore the web, join the server, and have fun. See you in CrystalTides!",
-        "step5_action": "Finish",
-        "back": "Back"
+    "dashboard": {
+      "stats": {
+        "server_status": "Server Status",
+        "server_online": "ONLINE",
+        "server_offline": "OFFLINE",
+        "server_error": "ERROR",
+        "status_starting": "STARTING",
+        "status_stopping": "STOPPING",
+        "running_smooth": "All systems go ✨",
+        "check_console": "Check console ⚠️",
+        "players": "Concurrent Players",
+        "capacity": "Capacity",
+        "pending_tickets": "Pending Tickets",
+        "high_priority": "High Priority",
+        "revenue": "Monthly Revenue",
+        "vs_prev_month": "vs prev. month",
+        "total_players": "Total Players",
+        "new_players": "New (24h)",
+        "total_playtime": "Total Playtime",
+        "all_time": "All Time",
+        "last_24h": "Last 24 Hours",
+        "accumulated": "Accumulated Hours"
+      },
+      "resources": {
+        "title": "System Resources",
+        "updated_now": "Updated just now",
+        "cpu": "CPU Load",
+        "ram": "RAM Usage"
+      },
+      "staff": {
+        "title": "Staff Online",
+        "offline_msg": "Server Offline - No activity",
+        "no_staff": "No staff online",
+        "active_badge": "Active",
+        "online_status": "Online"
+      }
+    },
+    "tickets": {
+      "search_placeholder": "Search tickets...",
+      "new_ticket": "New Ticket",
+      "loading": "Loading tickets...",
+      "empty": "No tickets registered yet.",
+      "table": {
+        "id": "ID",
+        "user": "User",
+        "subject": "Subject",
+        "priority": "Priority",
+        "status": "Status",
+        "date": "Date",
+        "action": "Action"
+      },
+      "priority": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High",
+        "urgent": "Urgent"
+      },
+      "status": {
+        "open": "Open",
+        "pending": "Pending",
+        "resolved": "Resolved",
+        "closed": "Closed"
+      },
+      "create_modal": {
+        "title": "Create New Ticket",
+        "subject": "Subject",
+        "description": "Description",
+        "desc_placeholder": "Describe the issue in detail...",
+        "submit": "Create Ticket",
+        "cancel": "Cancel",
+        "saving": "Saving...",
+        "error_subject": "Subject is required",
+        "error_create": "Error creating ticket"
+      },
+      "detail": {
+        "original_desc": "ORIGINAL DESCRIPTION",
+        "no_desc": "No detailed description.",
+        "no_history": "No messages in history.",
+        "reply_placeholder": "Write a reply to the user...",
+        "closed_msg": "This ticket is closed. Reopen it to reply.",
+        "delete_confirm": "Are you sure you want to delete this ticket? This cannot be undone."
+      },
+      "view_details_tooltip": "View Details",
+      "subject_ph": "Ex: Cannot join server",
+      "staff_label": "STAFF",
+      "actions": {
+        "ban": "Ban User",
+        "resolve": "Mark Resolved",
+        "close": "Close Ticket",
+        "reopen": "Reopen Ticket",
+        "delete": "Delete"
+      },
+      "delete_selected": "Delete Selected",
+      "searching": "Searching...",
+      "bulk_delete_confirm": "Are you sure you want to delete the selected tickets?",
+      "bulk_delete_success": "Tickets deleted successfully",
+      "ban_modal": {
+        "title": "Sanction User",
+        "nick_ph": "Ex: Steve",
+        "nickname": "Minecraft Nickname",
+        "nick_hint": "Confirm the exact player name on the server.",
+        "type": "Sanction Type",
+        "temp": "Temporary",
+        "perm": "Permanent",
+        "amount": "Amout",
+        "unit": "Unit",
+        "reason": "Reason",
+        "reason_ph": "Ex: Hacking (KillAura)",
+        "submit": "Apply Sanction",
+        "error_nick": "Enter player nickname",
+        "success": "User banned successfully"
+      },
+      "units": {
+        "m": "Minutes",
+        "h": "Hours",
+        "d": "Days",
+        "mo": "Months"
+      }
+    },
+    "wiki": {
+      "manager_title": "Wiki Manager",
+      "search_placeholder": "Search articles...",
+      "create_btn": "Create Article",
+      "loading": "Loading library...",
+      "no_articles": "No articles found.",
+      "public": "Public",
+      "char_count": "characters",
+      "edit_title": "Edit Article",
+      "new_title": "New Wiki Article",
+      "title_label": "Article Title",
+      "title_placeholder": "e.g. Enchantment Guide",
+      "slug_label": "URL Slug (Unique)",
+      "slug_placeholder": "enchantment-guide",
+      "category_label": "Category",
+      "content_label": "Content (Markdown)",
+      "content_placeholder": "# Main Title\n\nContent here...",
+      "img_label": "Cover Image (Optional)",
+      "update_btn": "Update",
+      "publish_btn": "Publish",
+      "cancel": "Cancel",
+      "delete_confirm": "Are you sure you want to delete this article?",
+      "categories": {
+        "general": "General",
+        "mechanics": "Mechanics",
+        "economy": "Economy",
+        "commands": "Commands",
+        "ranks": "Ranks"
+      }
+    },
+    "2fa": {
+      "title": "Security Verification",
+      "desc": "Enter your 2FA code to access the Admin Panel.",
+      "verify": "Verify Access"
+    },
+    "donations": {
+      "title": "Donations Management",
+      "manager_desc": "View and manage the community contribution history.",
+      "search_ph": "Search by name or description...",
+      "new_btn": "Add Donation",
+      "edit_title": "Edit Donation",
+      "empty": "No donations registered yet.",
+      "anonymous": "Anonymous",
+      "no_msg": "No message",
+      "public": "Public",
+      "private": "Private",
+      "stats": {
+        "total": "Total Raised",
+        "count": "Total Donations",
+        "avg": "Average"
+      },
+      "form": {
+        "donor_name": "Donor Name",
+        "name_ph": "Ex: John Doe",
+        "email_label": "Email (Private)",
+        "amount": "Amount",
+        "currency": "Currency",
+        "message": "Message",
+        "is_public": "Make public in carousel",
+        "cancel": "Cancel",
+        "save": "Save Changes"
+      },
+      "delete_confirm": {
+        "title": "Confirm Deletion",
+        "msg": "Are you sure you want to delete this donation? This action cannot be undone.",
+        "btn": "Yes, Delete"
+      },
+      "simulate": "Test Alert",
+      "alert_sent": "Alert sent to Discord!",
+      "error_alert": "Error sending alert",
+      "confirm_simulate": "Send test alert to Discord?",
+      "error_delete": "Error deleting donation",
+      "error_save": "Error saving donation",
+      "error_conn": "Connection error"
+    },
+    "suggestions": {
+      "title": "Suggestions Box",
+      "subtitle": "Manage community feedback",
+      "filter_by_type": "Type:",
+      "filter_all": "All",
+      "filter_by_status": "Status:",
+      "types": {
+        "general": "General",
+        "bug": "Bugs",
+        "mod": "Mods",
+        "complaint": "Complaints",
+        "poll": "Polls"
+      },
+      "status": {
+        "all": "All",
+        "pending": "Pending",
+        "approved": "Approved",
+        "rejected": "Rejected"
+      },
+      "read_more": "Read more",
+      "show_less": "Show less",
+      "empty": "No suggestions",
+      "empty_desc": "No suggestions match current filters.",
+      "delete_modal": {
+        "title": "Delete suggestion?",
+        "desc": "Are you sure you want to delete this suggestion permanently? This action cannot be undone.",
+        "cancel": "Cancel",
+        "confirm": "Delete"
+      }
+    },
+    "donors": {
+      "manager_title": "Donors Manager",
+      "manager_desc": "Manage the honor list and customize each donor's profile.",
+      "add_btn": "Add Donor",
+      "empty_msg": "The list is empty. Default donors will be used on the public page.",
+      "import_btn": "Import Original Donors",
+      "new_title": "New Donor",
+      "edit_title": "Edit Donor",
+      "delete_btn": "Delete",
+      "form": {
+        "nick": "Nickname (Minecraft)",
+        "nick_ph": "Ex: Notch",
+        "is_premium": "Is Premium User (Auto Skin)",
+        "skin_url": "Skin URL",
+        "skin_ph": "/skins/myskin.png or https://...",
+        "skin_hint": "If you uploaded the skin manually to /skins/, write the relative path.",
+        "desc": "Phrase / Description",
+        "desc_ph": "Custom message...",
+        "desc_en": "Phrase / Description (English)",
+        "desc_en_ph": "Custom message in English...",
+        "translate_en": "Translate to English",
+        "translate_es": "Translate to Spanish",
+        "ranks": "Selected Ranks",
+        "cancel": "Cancel",
+        "save": "Save Changes"
+      },
+      "delete_confirm": {
+        "title": "Delete Donor?",
+        "msg": "This action will permanently remove the donor from the list and cannot be undone.",
+        "btn": "Yes, Delete"
+      },
+      "import_confirm": {
+        "title": "Import Defaults?",
+        "msg": "Are you sure? This will replace your current list with the server's original donors.",
+        "btn": "Import Now"
+      },
+      "validation": {
+        "name_req": "Name is required",
+        "skin_req": "Skin URL is required for non-premium",
+        "desc_req": "Description is required",
+        "save_error": "Error saving changes",
+        "translate_error": "Error translating",
+        "success_save": "Donor list updated successfully"
+      },
+      "profiles": {
+        "killu": "Administrator, Builder, and Interface Designer.",
+        "neroferno": "Owner, Programmer, and Content Creator.",
+        "law": "Founder and Community Administrator.",
+        "pixie": "Founder and Expert Builder.",
+        "zeta": "Founder and Veteran Moderator.",
+        "sendples": "Founder and Technical Support.",
+        "zen": "Featured Donor and Active Member.",
+        "churly": "Full Stack Developer and Contributor.",
+        "nana": "Donor and VIP Member."
+      }
+    },
+    "news": {
+      "upload_error_bucket": "Bucket not found",
+      "upload_error_unknown": "Unknown error uploading image",
+      "error_delete": "Error deleting news",
+      "error_save": "Error saving news",
+      "edit_title": "Edit News",
+      "create_title": "Write News",
+      "cancel": "Cancel",
+      "form": {
+        "title": "Title",
+        "category": "Category",
+        "status": "Status",
+        "draft": "Draft",
+        "published": "Published",
+        "image": "Cover Image",
+        "content": "Content (Markdown)",
+        "publish": "Publish",
+        "save": "Save Changes"
+      },
+      "translate_to_en_title": "Translate Title to English",
+      "translate_to_es_title": "Translate Title to Spanish",
+      "translate_to_en_content": "Translate Content to English",
+      "translate_to_es_content": "Translate Content to Spanish",
+      "english_suffix": "(English)",
+      "english_placeholder": "Title in English...",
+      "uploading": "Uploading...",
+      "insert_image": "Insert Image",
+      "search_ph": "Search news...",
+      "write_btn": "Write News",
+      "no_news": "No news found.",
+      "table": {
+        "title": "Title",
+        "category": "Category",
+        "status": "Status",
+        "date": "Date",
+        "actions": "Actions"
+      },
+      "delete_tooltip": "Delete",
+      "delete_modal": {
+        "title": "Delete News?",
+        "desc": "This action cannot be undone. The news post will be permanently deleted.",
+        "cancel": "Cancel",
+        "confirm": "Yes, Delete"
+      }
+    },
+    "alerts": {
+      "error_title": "Oops! Something went wrong",
+      "success_title": "Success!",
+      "warning_title": "Attention",
+      "confirm_title": "Are you sure?",
+      "accept": "OK"
+    },
+    "users": {
+      "title": "User Management",
+      "search_placeholder": "Search user by email (e.g. steve@mail.com)",
+      "search_btn": "Search",
+      "table": {
+        "user": "User/Email",
+        "id": "ID",
+        "role": "Current Role",
+        "change_role": "Change Role"
+      },
+      "registered": "Registered",
+      "no_results": "No users found with that email.",
+      "initial_msg": "Use the search bar to find users.",
+      "searching": "Searching...",
+      "confirm_role": "Change role to ",
+      "error_role": "Error updating role",
+      "gamification": "Gamification",
+      "medals": "Medals",
+      "medals_of": "Medals of",
+      "no_medals": "No medals created in the system.",
+      "save_medals": "Save Changes",
+      "saving": "Saving...",
+      "error_medals": "Error saving medals",
+      "role_modal": {
+        "title": "Confirm Role Change?",
+        "desc": "You are about to change the user's role",
+        "to": "to",
+        "confirm": "Confirm Change",
+        "cancel": "Cancel"
+      }
     },
     "staff": {
-        "title": "Our Team",
-        "subtitle": "A team of 4 people united by passion, code, art, and controlled chaos: Killu's voice & community, Nero's euphoric infrastructure, Churly's clean aesthetic, and Japa's relentless testing.",
-        "hiring_title": "We're hiring!",
-        "hiring_action": "Apply here",
-        "loading": "Loading team..."
+      "manager_title": "Staff Manager",
+      "sync_btn": "Sync from Server",
+      "syncing": "Syncing...",
+      "add_member": "Add Member",
+      "add_manual": "Add Manual Member",
+      "empty": "No staff cards found.",
+      "no_desc": "No description.",
+      "edit_btn": "Edit",
+      "delete_tooltip": "Delete Card",
+      "drag_tooltip": "Drag to reorder",
+      "linked_account": "Linked Account",
+      "no_socials": "No socials",
+      "form": {
+        "new_title": "New Staff Member",
+        "edit_title": "Edit Staff Member",
+        "preview_name": "Name",
+        "preview_role": "Role",
+        "name_label": "Name (Username)",
+        "name_ph": "Minecraft Username",
+        "role_label": "Role",
+        "custom_role_ph": "Custom Role Name...",
+        "color_label": "Role Color",
+        "avatar_label": "Avatar URL",
+        "avatar_ph": "Leave empty for default skin",
+        "bio_label": "Description / Bio",
+        "bio_ph": "Short description...",
+        "save_changes": "Save Changes",
+        "cancel": "Cancel"
+      },
+      "confirm_modal": {
+        "title": "Confirm Sync",
+        "detected_msg": "Detected <strong>{{count}} users</strong> with staff rank.",
+        "warning": "This will overwrite your current list! Changes like custom colors or descriptions for existing users will be preserved, but manual entries might be lost if they don't match.",
+        "cancel": "Cancel",
+        "save": "Confirm & Sync"
+      },
+      "save_error": "Error saving staff cards",
+      "sync_error": "Error syncing: ",
+      "sync_no_users": "No staff users found in sync.",
+      "sync_success": "Sync complete",
+      "default_desc": "Staff Member",
+      "confirm_delete_profile": "Delete this profile?",
+      "roles": {
+        "neroferno": "Neroferno",
+        "killuwu": "Killuwu",
+        "developer": "Developer",
+        "admin": "Admin",
+        "moderator": "Moderator",
+        "helper": "Helper",
+        "user": "User",
+        "custom": "Custom"
+      }
     },
-    "not_found_page": {
-        "title": "404 You fell into the void!",
-        "description": "It seems this chunk failed to generate properly or you teleported to invalid coordinates.",
-        "button": "RESPAWN AT SPAWN"
+    "gamification": {
+      "medals": {
+        "title": "Medals Management",
+        "new_medal_default": "New Medal",
+        "desc_default": "Medal description...",
+        "delete_confirm": "Delete this medal?",
+        "saving": "Saving...",
+        "save": "Save Changes",
+        "name_placeholder": "Medal Name",
+        "desc_placeholder": "Description...",
+        "create_btn": "Create New Medal"
+      }
     },
-    "status": {
-        "title": "Server Status",
-        "subtitle": "Check availability, players, and performance of CrystalTides live.",
-        "version": "Version",
-        "players": "Players",
-        "online": "ONLINE",
-        "offline": "OFFLINE",
-        "online_players": "Connected Players",
-        "tech_info": "Technical Information",
-        "more": "more",
-        "no_players": "No players online.",
-        "list_unavailable": "Player list unavailable.",
-        "latency": "Estimated Latency",
-        "mode": "Mode",
-        "platform": "Platform",
-        "offline_title": "Server Unavailable",
-        "offline_desc": "The server appears to be offline or under maintenance. Please check our Discord for more information."
+    "settings": {
+      "loading": "Loading settings...",
+      "error_save": "Error saving settings",
+      "saving": "Saving...",
+      "theme": {
+        "title": "Global Site Settings",
+        "desc": "Customize CrystalTides appearance. This will affect all visitors!",
+        "default": "Original Crystal",
+        "halloween": "Halloween Mode",
+        "christmas": "Christmas Mode"
+      },
+      "announcement": {
+        "title": "Global Announcement (Annobar)",
+        "placeholder": "Ex: Scheduled maintenance today at 20:00 GMT-3",
+        "save": "Save",
+        "desc": "Leave empty to disable the announcement bar."
+      },
+      "danger": {
+        "title": "Danger Zone",
+        "maintenance_title": "Maintenance Mode",
+        "maintenance_desc": "If enabled, only admins can access the site. Users will see an 'Under Construction' screen."
+      },
+      "maintenance_modal": {
+        "title_on": "⚠️ ENABLE Maintenance",
+        "title_off": "Disable Maintenance",
+        "msg_on": "If enabled, only admins can access the site. Are you sure?",
+        "msg_off": "The site will be public for everyone again.",
+        "confirm_on": "Yes, close site",
+        "confirm_off": "Open site",
+        "cancel": "Oops... better not"
+      },
+      "sections": {
+        "general": "General Configuration",
+        "broadcast": "Broadcast & Alerts",
+        "hero": "Main Banner (Home)",
+        "rules": "Rules Editor",
+        "donors": "Donors Manager (Carousel)",
+        "donations": "Donation History",
+        "console": "Secure Console (RCON)"
+      },
+      "maintenance_label": "MAINTENANCE",
+      "recruitment": {
+        "title": "Recruitment",
+        "status_open": "OPEN",
+        "status_closed": "CLOSED",
+        "status_label": "Application Status",
+        "link_label": "Form Link",
+        "link_ph": "https://forms.google.com/..."
+      },
+      "broadcast": {
+        "title": "Global Alerts",
+        "status_label": "Alert Status",
+        "active": "Visible",
+        "inactive": "Hidden",
+        "message_label": "Message",
+        "placeholder": "Ex: Scheduled maintenance",
+        "type_label": "Alert Type",
+        "preview": "Preview",
+        "empty_msg": "(Empty message)",
+        "disabled_msg": "(Disabled)",
+        "save_btn": "Save Config"
+      },
+      "hero": {
+        "title": "Home Banners",
+        "edit_slide": "Edit Slide",
+        "new_slide": "New Slide",
+        "image_url": "Image URL",
+        "title_label": "Title",
+        "subtitle_label": "Subtitle",
+        "btn_text": "Button Text",
+        "btn_link": "Button Link",
+        "save_btn": "Save Changes",
+        "cancel_btn": "Cancel",
+        "no_slides": "No active banners.",
+        "delete_confirm": "Delete slide?"
+      },
+      "rules": {
+        "title": "Server Rules",
+        "export_tooltip": "Export Rules (JSON)",
+        "save_btn": "Save Changes",
+        "saving": "Saving...",
+        "title_ph": "Title",
+        "desc_ph": "Description...",
+        "add_btn": "Add New Rule",
+        "delete_title": "Delete Rule?",
+        "delete_msg": "This will permanently delete the rule.",
+        "delete_confirm": "Yes, Delete"
+      },
+      "console": {
+        "title": "Secure Command Bridge",
+        "desc": "Send commands safely to the Minecraft server via CrystalBridge Plugin. Executed with console privileges.",
+        "logs_ph": "Command logs will appear here...",
+        "cmd_ph": "say Hello world (or any command without /)",
+        "send_btn": "Send"
+      }
     },
-    "roulette": {
-        "title": "Daily Roulette",
-        "hero_title": "Roulette of Fate",
-        "hero_subtitle": "Test your luck for free every 24 hours and claim exclusive treasures for your adventure!",
-        "unauthorized_title": "RESTRICTED ACCESS",
-        "unauthorized_desc": "This section of the nexus is reserved for authorized CrystalTides personnel and proper rank holders.",
-        "btn_roll": "Spin Roulette",
-        "btn_cooldown": "On Cooldown",
-        "history_btn": "History",
-        "possible_rewards": "Possible Rewards",
-        "last_rewards": "Latest Winners",
-        "no_history": "You haven't claimed any prizes yet.",
-        "opening": "Spinning the roulette...",
-        "claim_success": "The prize has been sent to your server queue!",
-        "reward_delivered": "The item has been teleported to your inventory!",
-        "claim_btn": "Claim Prize",
-        "save_later_btn": "Save for later",
-        "vuelve_mañana": "Come back tomorrow",
-        "already_claimed": "You have already spun the roulette today!",
-        "roll_error": "Roll error",
-        "conn_error": "Connection error",
-        "loading": "Syncing Roulette...",
-        "account_not_linked": "Account not linked",
-        "link_instruction": "You must link your Minecraft account in the settings to receive prizes on the server.",
-        "link_button": "Link now"
+    "logs": {
+      "search_placeholder": "Search user, command...",
+      "filter_source": "SOURCE:",
+      "filter_all": "ALL",
+      "filter_web": "WEB",
+      "filter_game": "GAME"
     },
-    "calendar": {
-        "month": "Month",
-        "week": "Week",
-        "day": "Day",
-        "agenda": "Agenda"
+    "audit": {
+      "title": "Audit Log",
+      "subtitle": "Detailed history of all administrative actions and system events.",
+      "search_placeholder": "Search by user, action or details...",
+      "source_all": "ALL",
+      "source_web": "WEB",
+      "source_game": "GAME",
+      "source_security": "Alert",
+      "source_security-auditor": "Security",
+      "showing": "Showing {{count}} of {{total}} events",
+      "no_logs_found": "No logs found",
+      "try_adjust_filters": "Try adjusting the filters or search term.",
+      "table_date": "DATE",
+      "table_user": "USER",
+      "table_source": "SOURCE",
+      "table_action": "ACTION",
+      "table_details": "DETAILS"
     },
-    "locations_manager": {
-        "title": "Places & Lore Manager",
-        "subtitle": "Manage world points of interest and history.",
-        "loading": "Syncing Lore...",
-        "create_btn": "New Place",
-        "edit_title": "Edit Record",
-        "create_title": "New Record",
-        "form": {
-            "title": "Location Title",
-            "title_ph": "Ex: Great Crystal Library",
-            "coords": "Coordinates",
-            "coords_ph": "0, 64, 0",
-            "image": "Image URL",
-            "order": "Order",
-            "desc": "Short Description",
-            "lore": "Detailed Lore / History",
-            "authors": "Authors / Architects",
-            "author_nick": "Author Nick",
-            "secret": "Secret?",
-            "error_fields": "Please complete basic fields",
-            "error_save": "Error saving"
-        }
-    },
-    "gacha": {
-        "hero_title": "Crystal Slot",
-        "hero_subtitle": "Spin the machine and get cosmetics, pets, and legendary items",
-        "probability_rates": "Obtain Probabilities",
-        "history_title": "Reward History",
-        "view_all": "View All",
-        "tiers": {
-            "bronze": "BRONZE",
-            "silver": "SILVER",
-            "gold": "GOLD",
-            "emerald": "EMERALD",
-            "diamond": "DIAMOND",
-            "netherite": "NETHERITE",
-            "ultra": "ULTRA"
+    "events": {
+      "title": "Events & Contests Management",
+      "loading": "Loading events...",
+      "create_title": "New Event",
+      "edit_title": "Edit Event",
+      "cancel": "Cancel",
+      "form": {
+        "title": "Title",
+        "desc": "Description",
+        "type": "Type (Icon)",
+        "status": "Status",
+        "save": "Save Changes",
+        "create": "Create Event",
+        "types": {
+          "hammer": "Construction 🔨",
+          "dice": "Roleplay / RNG 🎲",
+          "map": "Exploration 🗺️",
+          "running": "Race / Parkour 🏃"
         },
-        "cost": "COST",
-        "quantity": "QUANTITY",
-        "balance": "BALANCE",
-        "spin": "SPIN",
-        "spinning": "SPINNING...",
-        "tier_locked": "LOCKED",
-        "free_roll": "FREE SPIN!",
-        "event_only": "EVENT",
-        "results_title": "REWARDS",
-        "accept": "ACCEPT",
-        "no_rewards": "No rewards were obtained this time.",
-        "admin": {
-            "enable": "ENABLE ADMIN MODE",
-            "disable": "DISABLE ADMIN MODE",
-            "forced_result": "FORCED RESULT",
-            "real_consumption": "REAL CONSUMPTION",
-            "test_machine": "TEST MACHINE",
-            "add_funds": "Admin: +1M KC (Local)"
-        },
-        "unauthorized": {
-            "title": "RESTRICTED ACCESS",
-            "desc": "This reward terminal is reserved for authorized personnel and linked adventurers.",
-            "status": "SYSTEM STATUS",
-            "back": "BACK TO PORTAL"
+        "statuses": {
+          "active": "Active (In Progress)",
+          "soon": "Coming Soon",
+          "finished": "Finished"
         }
+      },
+      "table": {
+        "icon": "Icon",
+        "event": "Event",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "no_events": "No events created.",
+      "delete_modal": {
+        "title": "Delete Event?",
+        "desc": "This action cannot be undone. The event will be permanently deleted.",
+        "confirm": "Yes, Delete",
+        "cancel": "Cancel"
+      },
+      "error_save": "Error saving event",
+      "error_delete": "Error deleting",
+      "delete_tooltip": "Delete",
+      "registrations": {
+        "title": "Registrations",
+        "empty": "No registrations yet.",
+        "loading": "Loading...",
+        "unknown_user": "Unknown User",
+        "view_tooltip": "View Registrations"
+      },
+      "form_extras": {
+        "title_es": "Title (Spanish)",
+        "title_en": "Title (English)",
+        "desc_es": "Description (Spanish)",
+        "desc_en": "Description (English)",
+        "translate_btn": "Translate"
+      }
     }
+  },
+  "support": {
+    "title": "Support Center",
+    "subtitle": "Having issues? Open a ticket and we will help you.",
+    "create_ticket": "New Ticket",
+    "discord_btn": "Support on Discord",
+    "no_tickets": "You have no open tickets",
+    "create_first": "Create a new one to contact the Staff.",
+    "create_first_btn": "Open my first ticket",
+    "new_ticket_title": "Open New Ticket",
+    "category": "Category",
+    "priority": "Priority",
+    "login_required": "Login Required",
+    "login_hint": "Please log in to view your tickets or create a new one.",
+    "subject": "Subject",
+    "subject_placeholder": "Ex: Rank issue...",
+    "message": "Message",
+    "message_placeholder": "Describe your issue in detail...",
+    "type_message": "Type a message...",
+    "ticket_closed": "This ticket is closed.",
+    "your_tickets": "Your Tickets",
+    "total": "total",
+    "categories": {
+      "general": "General",
+      "bug": "🐛 Bug Report",
+      "player": "🚫 Player Report",
+      "billing": "💰 Billing/Store",
+      "unban": "🔓 Unban Request",
+      "wiki": "Wiki Related"
+    },
+    "priorities": {
+      "low": "Low",
+      "normal": "Normal",
+      "high": "High",
+      "urgent": "Urgent"
+    },
+    "error_create": "Error creating ticket. Please try again."
+  },
+  "tutorial": {
+    "step1_title": "Welcome to CrystalTides!",
+    "step1_content": "Discover the new web experience of your favorite server. We have revamped everything for you.",
+    "step1_action": "Start Tour",
+    "step2_title": "Quick Navigation",
+    "step2_content": "Use our new Command Palette by pressing Ctrl + K (or Cmd + K) to go anywhere instantly.",
+    "step2_action": "Next",
+    "step3_title": "Your Achievements",
+    "step3_content": "Visit your profile to see your stats, skins, and medals earned while playing.",
+    "step3_action": "Next",
+    "step4_title": "Stay Informed",
+    "step4_content": "The new Notification Center will alert you of events, rewards, and important news.",
+    "step4_action": "Got it",
+    "step5_title": "All Set!",
+    "step5_content": "Explore the web, join the server, and have fun. See you in CrystalTides!",
+    "step5_action": "Finish",
+    "back": "Back"
+  },
+  "staff": {
+    "title": "Our Team",
+    "subtitle": "A team of 4 people united by passion, code, art, and controlled chaos: Killu's voice & community, Nero's euphoric infrastructure, Churly's clean aesthetic, and Japa's relentless testing.",
+    "hiring_title": "We're hiring!",
+    "hiring_action": "Apply here",
+    "loading": "Loading team..."
+  },
+  "not_found_page": {
+    "title": "404 You fell into the void!",
+    "description": "It seems this chunk failed to generate properly or you teleported to invalid coordinates.",
+    "button": "RESPAWN AT SPAWN"
+  },
+  "status": {
+    "title": "Server Status",
+    "subtitle": "Check availability, players, and performance of CrystalTides live.",
+    "version": "Version",
+    "players": "Players",
+    "online": "ONLINE",
+    "offline": "OFFLINE",
+    "online_players": "Connected Players",
+    "tech_info": "Technical Information",
+    "more": "more",
+    "no_players": "No players online.",
+    "list_unavailable": "Player list unavailable.",
+    "latency": "Estimated Latency",
+    "mode": "Mode",
+    "platform": "Platform",
+    "offline_title": "Server Unavailable",
+    "offline_desc": "The server appears to be offline or under maintenance. Please check our Discord for more information."
+  },
+  "roulette": {
+    "title": "Daily Roulette",
+    "hero_title": "Roulette of Fate",
+    "hero_subtitle": "Test your luck for free every 24 hours and claim exclusive treasures for your adventure!",
+    "unauthorized_title": "RESTRICTED ACCESS",
+    "unauthorized_desc": "This section of the nexus is reserved for authorized CrystalTides personnel and proper rank holders.",
+    "btn_roll": "Spin Roulette",
+    "btn_cooldown": "On Cooldown",
+    "history_btn": "History",
+    "possible_rewards": "Possible Rewards",
+    "last_rewards": "Latest Winners",
+    "no_history": "You haven't claimed any prizes yet.",
+    "opening": "Spinning the roulette...",
+    "claim_success": "The prize has been sent to your server queue!",
+    "reward_delivered": "The item has been teleported to your inventory!",
+    "claim_btn": "Claim Prize",
+    "save_later_btn": "Save for later",
+    "vuelve_mañana": "Come back tomorrow",
+    "already_claimed": "You have already spun the roulette today!",
+    "roll_error": "Roll error",
+    "conn_error": "Connection error",
+    "loading": "Syncing Roulette...",
+    "account_not_linked": "Account not linked",
+    "link_instruction": "You must link your Minecraft account in the settings to receive prizes on the server.",
+    "link_button": "Link now"
+  },
+  "calendar": {
+    "month": "Month",
+    "week": "Week",
+    "day": "Day",
+    "agenda": "Agenda"
+  },
+  "locations_manager": {
+    "title": "Places & Lore Manager",
+    "subtitle": "Manage world points of interest and history.",
+    "loading": "Syncing Lore...",
+    "create_btn": "New Place",
+    "edit_title": "Edit Record",
+    "create_title": "New Record",
+    "form": {
+      "title": "Location Title",
+      "title_ph": "Ex: Great Crystal Library",
+      "coords": "Coordinates",
+      "coords_ph": "0, 64, 0",
+      "image": "Image URL",
+      "order": "Order",
+      "desc": "Short Description",
+      "lore": "Detailed Lore / History",
+      "authors": "Authors / Architects",
+      "author_nick": "Author Nick",
+      "secret": "Secret?",
+      "error_fields": "Please complete basic fields",
+      "error_save": "Error saving"
+    }
+  },
+  "gacha": {
+    "hero_title": "Crystal Slot",
+    "hero_subtitle": "Spin the machine and get cosmetics, pets, and legendary items",
+    "probability_rates": "Obtain Probabilities",
+    "history_title": "Reward History",
+    "view_all": "View All",
+    "tiers": {
+      "bronze": "BRONZE",
+      "silver": "SILVER",
+      "gold": "GOLD",
+      "emerald": "EMERALD",
+      "diamond": "DIAMOND",
+      "netherite": "NETHERITE",
+      "ultra": "ULTRA"
+    },
+    "cost": "COST",
+    "quantity": "QUANTITY",
+    "balance": "BALANCE",
+    "spin": "SPIN",
+    "spinning": "SPINNING...",
+    "tier_locked": "LOCKED",
+    "free_roll": "FREE SPIN!",
+    "event_only": "EVENT",
+    "results_title": "REWARDS",
+    "accept": "ACCEPT",
+    "no_rewards": "No rewards were obtained this time.",
+    "admin": {
+      "enable": "ENABLE ADMIN MODE",
+      "disable": "DISABLE ADMIN MODE",
+      "forced_result": "FORCED RESULT",
+      "real_consumption": "REAL CONSUMPTION",
+      "test_machine": "TEST MACHINE",
+      "add_funds": "Admin: +1M KC (Local)"
+    },
+    "unauthorized": {
+      "title": "RESTRICTED ACCESS",
+      "desc": "This reward terminal is reserved for authorized personnel and linked adventurers.",
+      "status": "SYSTEM STATUS",
+      "back": "BACK TO PORTAL"
+    }
+  }
 }

@@ -65,10 +65,10 @@ describe('deploy.yml - deploy-backend job (PR changes)', () => {
   it('should inline the backend image URI directly in the docker build and push commands', () => {
     // PR simplified to inline image tag instead of using IMAGE_NAME variable
     expect(workflowContent).toContain(
-      'docker build -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/backend:latest'
+      'docker build -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/backend:latest',
     );
     expect(workflowContent).toContain(
-      'docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/backend:latest'
+      'docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/backend:latest',
     );
   });
 
@@ -101,6 +101,7 @@ describe('deploy.yml - deploy-frontend job', () => {
 
 describe('deploy.yml - deploy-bot job', () => {
   it('should deploy the bot to the OCI VM IP address', () => {
+    // eslint-disable-next-line sonarjs/no-hardcoded-ip -- Expected OCI VM IP in CI test assertion
     expect(workflowContent).toContain('150.136.151.234');
   });
 

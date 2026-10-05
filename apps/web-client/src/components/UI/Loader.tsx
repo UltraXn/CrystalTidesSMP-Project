@@ -68,7 +68,7 @@ export default function Loader({ text, style, minimal, fullScreen, size }: Reado
       {displayText && (
         <div className="loader-text-wrapper">
           <div className="loader-text-premium">{displayText}</div>
-          <div className="loader-subtitle">{t('common.please_wait', 'Please wait...')}</div>
+          <div className="loader-subtitle">{t('common.please_wait', 'Por favor espera...')}</div>
         </div>
       )}
     </div>

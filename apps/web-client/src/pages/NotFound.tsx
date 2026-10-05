@@ -1,7 +1,7 @@
-import { useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
-import { gsap } from "gsap";
-import { useTranslation } from "react-i18next";
+import { useEffect, useRef } from 'react';
+import { Link } from 'react-router';
+import { gsap } from 'gsap';
+import { useTranslation } from 'react-i18next';
 
 export default function NotFound() {
   const { t } = useTranslation();
@@ -17,7 +17,7 @@ export default function NotFound() {
       duration: 2,
       repeat: -1,
       yoyo: true,
-      ease: "sine.inOut",
+      ease: 'sine.inOut',
     });
 
     // Pop in button with elastic ease
@@ -28,7 +28,7 @@ export default function NotFound() {
         scale: 1,
         opacity: 1,
         duration: 1.2,
-        ease: "elastic.out(1, 0.75)",
+        ease: 'elastic.out(1, 0.75)',
         delay: 0.5,
       },
     );
@@ -40,7 +40,7 @@ export default function NotFound() {
     logoAnimRef.current = gsap.to(logoRef.current, {
       y: -10,
       duration: 0.2,
-      ease: "power2.out",
+      ease: 'power2.out',
       yoyo: true,
       repeat: 3,
     });
@@ -49,23 +49,23 @@ export default function NotFound() {
   return (
     <div
       style={{
-        height: "80vh",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        textAlign: "center",
-        padding: "2rem",
-        paddingTop: "6rem",
+        height: '80vh',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        textAlign: 'center',
+        padding: '2rem',
+        paddingTop: '6rem',
       }}
     >
       <div
         ref={titleRef}
         style={{
-          marginBottom: "2rem",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
+          marginBottom: '2rem',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
         }}
       >
         <button
@@ -75,10 +75,10 @@ export default function NotFound() {
           onFocus={handleLogoHover}
           aria-label="CrystalTides Logo"
           style={{
-            background: "none",
-            border: "none",
+            background: 'none',
+            border: 'none',
             padding: 0,
-            cursor: "pointer",
+            cursor: 'pointer',
           }}
         >
           <img
@@ -87,42 +87,40 @@ export default function NotFound() {
             alt=""
             className="not-found-logo"
             style={{
-              width: "120px",
-              height: "auto",
-              marginBottom: "1rem",
-              filter: "drop-shadow(0 0 10px rgba(15, 150, 156, 0.5))",
+              width: '120px',
+              height: 'auto',
+              marginBottom: '1rem',
+              filter: 'drop-shadow(0 0 10px rgba(15, 150, 156, 0.5))',
             }}
           />
         </button>
         <h1
           style={{
-            fontSize: "4rem",
-            fontWeight: "800",
+            fontSize: '4rem',
+            fontWeight: '800',
             lineHeight: 1,
-            marginBottom: "0.5rem",
+            marginBottom: '0.5rem',
           }}
         >
           404
         </h1>
-        <h2 style={{ fontSize: "2rem", color: "var(--muted)" }}>
-          {t("not_found_page.title")}
-        </h2>
+        <h2 style={{ fontSize: '2rem', color: 'var(--muted)' }}>{t('not_found_page.title')}</h2>
       </div>
 
       <p
         style={{
-          maxWidth: "500px",
-          color: "var(--muted)",
-          marginBottom: "3rem",
-          fontSize: "1.1rem",
+          maxWidth: '500px',
+          color: 'var(--muted)',
+          marginBottom: '3rem',
+          fontSize: '1.1rem',
         }}
       >
-        {t("not_found_page.description")}
+        {t('not_found_page.description')}
       </p>
 
       <div ref={buttonRef} style={{ opacity: 0 }}>
         <Link to="/" className="btn-donate-hero">
-          {t("not_found_page.button")}
+          {t('not_found_page.button')}
         </Link>
       </div>
     </div>

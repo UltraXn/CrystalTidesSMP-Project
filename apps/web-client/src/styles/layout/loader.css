@@ -20,6 +20,17 @@
   perspective: 1000px;
 }
 
+.premium-loader-container.loader-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: radial-gradient(circle at center, #1a1a2e 0%, #0a0a0f 100%);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  padding: 0;
+  margin: 0;
+}
+
 .loader-visual-wrapper {
   position: relative;
   width: 200px;
@@ -60,7 +71,7 @@
 }
 
 .prism-glass::before {
-  content: "";
+  content: '';
   position: absolute;
   inset: 0;
   background: linear-gradient(
@@ -185,7 +196,7 @@
 
 /* --- Typography --- */
 .loader-text-premium {
-  font-family: "Outfit", sans-serif;
+  font-family: 'Outfit', sans-serif;
   font-size: 0.9rem;
   font-weight: 800;
   color: rgba(255, 255, 255, 0.7);
@@ -295,16 +306,9 @@
 }
 
 /* --- Accessibility: Motion Reduction --- */
+/* Kept fluid for gaming visual identity, minimal spinner slowed down gently */
 @media (prefers-reduced-motion: reduce) {
-  .prism-container,
-  .prism-glass::before,
-  .loader-logo-wrapper,
-  .ray,
-  .particle {
-    animation: none !important;
-    transform: none !important;
-  }
   .loader-minimal .spinner {
-    animation-duration: 2s !important;
+    animation-duration: 2s;
   }
 }

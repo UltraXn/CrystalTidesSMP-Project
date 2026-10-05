@@ -1,11 +1,12 @@
 import { CSSProperties, ReactElement } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import ReactMarkdown, { Components } from 'react-markdown';
 import { Shield, FileText, Clock, Headset, ArrowLeft } from 'lucide-react';
 import Section from '../components/Layout/Section';
 import Loader from '../components/UI/Loader';
+import { formatDate } from '../utils/date';
 import { getPolicy, Policy } from '../services/policyService';
 import '../styles/pages/policy_page.css';
 
@@ -372,7 +373,7 @@ function PolicyHeader({
         <Clock size={12} color={COLOR_ACCENT} />
         <span style={{ fontWeight: 500, letterSpacing: '0.5px' }}>
           {t('policies.last_update', 'Última actualización')}:{' '}
-          <span style={{ color: '#fff' }}>{new Date(updatedAt).toLocaleDateString()}</span>
+          <span style={{ color: '#fff' }}>{formatDate(updatedAt)}</span>
         </span>
       </div>
     </header>

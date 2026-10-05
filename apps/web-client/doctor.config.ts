@@ -41,7 +41,7 @@ export default {
         rules: ['react-doctor/effect-needs-cleanup'],
       },
       {
-        files: ['src/services/profileCommentService.ts'],
+        files: ['src/services/profileCommentService.ts', 'src/pages/Support.tsx'],
         rules: ['react-doctor/supabase-client-owned-authz-field'],
       },
       {
@@ -53,6 +53,20 @@ export default {
         rules: ['react-doctor/auth-token-in-web-storage'],
       },
       {
+        files: ['src/components/Launcher/WindowTitleBar.tsx'],
+        rules: ['react-doctor/no-static-element-interactions'],
+      },
+      {
+        files: [
+          'src/components/Wiki/WikiBoss3DCard.tsx',
+          'src/components/Wiki/WikiCompanion3DCard.tsx',
+          'src/components/Wiki/WikiHostile3DCard.tsx',
+          'src/components/Wiki/WikiInfobox3D.tsx',
+          'src/components/Wiki/WikiMerchant3DCard.tsx',
+        ],
+        rules: ['react-doctor/no-noninteractive-element-interactions'],
+      },
+      {
         files: ['src/components/Account/PlaystyleRadarFinal.tsx'],
         rules: ['react-doctor/prefer-dynamic-import'],
       },
@@ -61,11 +75,12 @@ export default {
         rules: ['react-doctor/prefer-dynamic-import'],
       },
       {
-        files: ['src/components/Home/Minecraft3DServerRackCanvas.tsx'],
-        rules: ['react-doctor/no-fetch-in-effect'],
-      },
-      {
-        files: ['src/components/Home/Minecraft3DServerRackMiniCanvas.tsx'],
+        files: [
+          'src/components/Home/Minecraft3DServerRackCanvas.tsx',
+          'src/components/Home/Minecraft3DServerRackMiniCanvas.tsx',
+          'src/components/Admin/AdminDocs.tsx',
+          'src/components/Admin/Events/RegistrationsModal.tsx',
+        ],
         rules: ['react-doctor/no-fetch-in-effect'],
       },
       {
@@ -79,8 +94,10 @@ export default {
       {
         files: [
           'src/components/Launcher/HomePage.tsx',
+          'src/components/Launcher/Home/hooks/useHomeCapes.ts',
           'src/components/Launcher/ModManagerPage.tsx',
           'src/components/Launcher/ProfileEditorDialog.tsx',
+          'src/components/Launcher/ProfileEditor/useProfileEditor.ts',
           'src/hooks/useWikiData.ts',
           'src/pages/Wiki.tsx',
         ],

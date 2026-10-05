@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @layer base {
   :root {
@@ -24,9 +24,9 @@
     --error: #ef4444;
 
     /* Launcher Tokens */
-    --background: #06070B;
-    --background-alt: #0B2C29;
-    --primary: #0F766E;
+    --background: #06070b;
+    --background-alt: #0b2c29;
+    --primary: #0f766e;
     --primary-glow: rgba(15, 118, 110, 0.3);
     --accent-glow: rgba(45, 212, 191, 0.2);
     --text-muted: rgba(243, 244, 246, 0.6);
@@ -40,17 +40,25 @@
   html {
     scroll-behavior: smooth;
     scroll-padding-top: 80px;
+    overflow-x: hidden;
   }
 
   body {
     background-color: var(--bg);
     color: var(--text);
-    font-family: "Inter", system-ui, sans-serif;
+    font-family: 'Inter', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     cursor: url('/images/ui/cursor.webp'), auto;
+    overflow-x: hidden;
   }
 
-  a, button, [role="button"], input[type="button"], input[type="submit"], select, .cursor-pointer {
+  a,
+  button,
+  [role='button'],
+  input[type='button'],
+  input[type='submit'],
+  select,
+  .cursor-pointer {
     cursor: url('/images/ui/cursor.webp'), pointer !important;
   }
 }
@@ -88,4 +96,3 @@
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: var(--accent, #0ea5e9);
 }
-

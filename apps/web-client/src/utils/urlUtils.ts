@@ -1,8 +1,17 @@
 /**
  * Regular expressions for sanitizing and validating URLs.
  */
-// eslint-disable-next-line no-control-regex -- intentionally stripping control characters and whitespace
-const CONTROL_AND_WHITESPACE_REGEX = /[\u0000-\u0020\u007F]+/g;
+
+const stripControlAndWhitespace = (str: string): string => {
+  let res = '';
+  for (let i = 0; i < str.length; i++) {
+    const code = str.charCodeAt(i);
+    if (code > 32 && code !== 127) {
+      res += str[i];
+    }
+  }
+  return res;
+};
 const HTTP_PROTOCOL_REGEX = /^https?:\/\//i;
 
 export type QueryParamScalar = string | number | boolean;
@@ -14,10 +23,10 @@ export type QueryParams = Record<string, QueryParamValue | QueryParamValue[]>;
  * Explicitly disallows protocol-relative URLs (e.g., '//malicious.com') and backslash quirks.
  */
 const isSafeRelativeUrl = (url: string): boolean => {
-    if (url.startsWith('#')) {
-        return true;
-    }
-    return url.startsWith('/') && !url.startsWith('//') && !url.startsWith('/\\');
+  if (url.startsWith('#')) {
+    return true;
+  }
+  return url.startsWith('/') && !url.startsWith('//') && !url.startsWith('/\\');
 };
 
 /**
@@ -30,25 +39,25 @@ const isSafeAbsoluteUrl = (url: string): boolean => HTTP_PROTOCOL_REGEX.test(url
  * Strips whitespace and ASCII/Unicode control characters to prevent bypasses like 'java\tscript:'.
  */
 export const sanitizeUrl = (rawUrl: string | null | undefined): string | null => {
-    if (!rawUrl || typeof rawUrl !== 'string') {
-        return null;
-    }
-
-    const cleaned = rawUrl.replace(CONTROL_AND_WHITESPACE_REGEX, '');
-
-    if (isSafeRelativeUrl(cleaned) || isSafeAbsoluteUrl(cleaned)) {
-        return cleaned;
-    }
-
-    // Everything else (javascript:, data:, vbscript:, protocol-relative, etc.) is rejected
+  if (!rawUrl || typeof rawUrl !== 'string') {
     return null;
+  }
+
+  const cleaned = stripControlAndWhitespace(rawUrl);
+
+  if (isSafeRelativeUrl(cleaned) || isSafeAbsoluteUrl(cleaned)) {
+    return cleaned;
+  }
+
+  // Everything else (javascript:, data:, vbscript:, protocol-relative, etc.) is rejected
+  return null;
 };
 
 /**
  * Checks whether a given target URL is safe for redirects.
  */
 export const isSafeRedirectUrl = (url: string | null | undefined): boolean => {
-    return sanitizeUrl(url) !== null;
+  return sanitizeUrl(url) !== null;
 };
 
 /**
@@ -56,24 +65,24 @@ export const isSafeRedirectUrl = (url: string | null | undefined): boolean => {
  * Safely omits undefined and null values and handles array values by repeating keys.
  */
 export const serializeQueryParams = (params: QueryParams): string => {
-    const searchParams = new URLSearchParams();
+  const searchParams = new URLSearchParams();
 
-    for (const [key, value] of Object.entries(params)) {
-        if (value === null || value === undefined) {
-            continue;
-        }
-
-        if (Array.isArray(value)) {
-            for (const item of value) {
-                if (item !== null && item !== undefined) {
-                    searchParams.append(key, String(item));
-                }
-            }
-            continue;
-        }
-
-        searchParams.append(key, String(value));
+  for (const [key, value] of Object.entries(params)) {
+    if (value === null || value === undefined) {
+      continue;
     }
 
-    return searchParams.toString();
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        if (item !== null && item !== undefined) {
+          searchParams.append(key, String(item));
+        }
+      }
+      continue;
+    }
+
+    searchParams.append(key, String(value));
+  }
+
+  return searchParams.toString();
 };

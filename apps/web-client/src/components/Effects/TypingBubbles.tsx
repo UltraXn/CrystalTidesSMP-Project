@@ -9,7 +9,10 @@ interface Bubble {
   size: number;
 }
 
-function BubbleItem({ bubble, onExpire }: { bubble: Bubble; onExpire: (id: number) => void }) {
+function BubbleItem({
+  bubble,
+  onExpire,
+}: Readonly<{ bubble: Bubble; onExpire: (id: number) => void }>) {
   useEffect(() => {
     const timer = setTimeout(() => {
       onExpire(bubble.id);

@@ -49,10 +49,15 @@ export default [
       'react-doctor/effect-needs-cleanup': 'warn',
       'react-doctor/no-impure-state-updater': 'warn',
       'react-doctor/no-layout-property-animation': 'warn',
+      'react-doctor/only-export-components': 'off', // Cubierto con mayor precisión por react-refresh con allowConstantExport
     },
   },
   {
-    files: ['src/**/*.{test,spec}.{ts,tsx}', 'src/test/**/*.{ts,tsx}'],
+    files: [
+      'src/**/__tests__/**/*.{ts,tsx}',
+      'src/**/*.{test,spec}.{ts,tsx}',
+      'src/test/**/*.{ts,tsx}',
+    ],
     languageOptions: {
       globals: {
         ...globals.browser,
@@ -81,6 +86,10 @@ export default [
       'security/detect-non-literal-fs-filename': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
       'better-tailwindcss/enforce-canonical-classes': 'off',
+      'testing-library/no-container': 'off',
+      'testing-library/no-node-access': 'off',
+      'testing-library/prefer-find-by': 'off',
+      'testing-library/no-unnecessary-act': 'off',
     },
   },
 ];

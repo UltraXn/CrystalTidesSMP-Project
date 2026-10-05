@@ -13,11 +13,52 @@ export default defineConfig(async () => {
     const tailwindcss = (await import('@tailwindcss/vite')).default;
     plugins.push(tailwindcss());
   }
-  plugins.push(boneyardPlugin());
+  if (process.env.BONEYARD === 'true') {
+    plugins.push(boneyardPlugin({ skipInitial: true }));
+  }
 
   return {
-    envDir: '../../',
     plugins,
+    optimizeDeps: {
+      entries: ['index.html', 'src/main.tsx', 'src/App.tsx'],
+      include: [
+        'react',
+        'react-dom',
+        'react-dom/client',
+        'react-router',
+        'framer-motion',
+        'gsap',
+        'lucide-react',
+        '@hello-pangea/dnd',
+        'three',
+        'three/examples/jsm/loaders/GLTFLoader.js',
+        'skinview3d',
+        'react-skinview3d',
+        'recharts',
+        'date-fns',
+        'zod',
+        'i18next',
+        'react-i18next',
+        'i18next-browser-languagedetector',
+        'canvas-confetti',
+        'react-hook-form',
+        '@hookform/resolvers/zod',
+        'react-markdown',
+        '@tanstack/react-query',
+        '@supabase/supabase-js',
+        'boneyard-js/react',
+        'embla-carousel-react',
+        'embla-carousel-autoplay',
+        'embla-carousel-fade',
+        'html2canvas',
+        'react-big-calendar',
+        'react-is',
+        '@tauri-apps/api',
+        '@tauri-apps/api/window',
+        '@tauri-apps/plugin-opener',
+      ],
+      exclude: ['@crystaltides/shared', 'msw'],
+    },
     esbuild: {
       drop: (process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : []) as (
         | 'console'
@@ -34,7 +75,7 @@ export default defineConfig(async () => {
       rollupOptions: {
         output: {
           manualChunks: {
-            'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+            'react-vendor': ['react', 'react-dom', 'react-router'],
             'motion-vendor': ['framer-motion', 'gsap'],
             'icons-vendor': ['lucide-react'],
             'dnd-vendor': ['@hello-pangea/dnd'],
@@ -55,6 +96,9 @@ export default defineConfig(async () => {
     },
     server: {
       allowedHosts: ['crystaltidessmp.net', 'crystaltides.net'],
+      watch: {
+        ignored: ['**/storybook-static/**', '**/.stryker-tmp/**', '**/dist/**', '**/cypress/**'],
+      },
       proxy: {
         '/api': {
           target: process.env.VITE_PROXY_TARGET || 'http://localhost:3001',

@@ -1,5 +1,11 @@
 import '@testing-library/jest-dom';
 import { vi, beforeAll, afterEach, afterAll } from 'vitest';
+
+declare const process: { env: Record<string, string | undefined> };
+
+process.env.VITE_SUPABASE_URL ??= 'https://example.supabase.co';
+process.env.VITE_SUPABASE_ANON_KEY ??= 'mock-anon-key';
+
 import { server } from '../mocks/server';
 
 // MSW mock server lifecycle
@@ -8,7 +14,7 @@ afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
 // Global mocks if needed
-global.console.warn = vi.fn();
+(globalThis as unknown as { console: Console }).console.warn = vi.fn();
 
 if (typeof window !== 'undefined' && !window.IntersectionObserver) {
   class MockIntersectionObserver {
@@ -18,7 +24,9 @@ if (typeof window !== 'undefined' && !window.IntersectionObserver) {
     takeRecords = vi.fn(() => []);
   }
   window.IntersectionObserver = MockIntersectionObserver as unknown as typeof IntersectionObserver;
-  global.IntersectionObserver = MockIntersectionObserver as unknown as typeof IntersectionObserver;
+  (
+    globalThis as unknown as { IntersectionObserver: typeof MockIntersectionObserver }
+  ).IntersectionObserver = MockIntersectionObserver;
 }
 
 if (typeof window !== 'undefined' && !window.matchMedia) {
@@ -44,7 +52,8 @@ if (typeof window !== 'undefined' && !window.ResizeObserver) {
     disconnect = vi.fn();
   }
   window.ResizeObserver = MockResizeObserver as unknown as typeof ResizeObserver;
-  global.ResizeObserver = MockResizeObserver as unknown as typeof ResizeObserver;
+  (globalThis as unknown as { ResizeObserver: typeof MockResizeObserver }).ResizeObserver =
+    MockResizeObserver;
 }
 
 if (typeof window !== 'undefined') {
@@ -55,4 +64,3 @@ if (typeof window !== 'undefined') {
     window.HTMLElement.prototype.scrollIntoView = vi.fn();
   }
 }
-

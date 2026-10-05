@@ -1,4 +1,4 @@
-import React, { useCallback, Suspense, lazy, useState, useRef } from 'react';
+import React, { useCallback, Suspense, lazy, useState, useRef, useMemo } from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
 import createAutoplay from 'embla-carousel-autoplay';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -71,8 +71,19 @@ const TiltCard = ({ children, className }: { children: React.ReactNode; classNam
 
 const EmblaCarousel = (props: Readonly<EmblaCarouselProps>) => {
   const { slides, options } = props;
+
+  // Duplicate slides if fewer than 10 so Embla has enough slides to loop on wide viewports (5 cards/row)
+  const effectiveSlides = useMemo(() => {
+    if (!slides || slides.length === 0) return [];
+    const source = slides.length < 10 ? [...slides, ...slides] : slides;
+    return source.map((donor, repeatIndex) => ({
+      ...donor,
+      stableId: `donor-${donor.name.replace(/\s+/g, '-').toLowerCase()}-${repeatIndex}`,
+    }));
+  }, [slides]);
+
   const [emblaRef, emblaApi] = useEmblaCarousel({ align: 'start', loop: true, ...options }, [
-    createAutoplay({ delay: 6000 }),
+    createAutoplay({ delay: 6000, stopOnInteraction: false }),
   ]);
 
   const scrollPrev = useCallback(() => {
@@ -87,10 +98,10 @@ const EmblaCarousel = (props: Readonly<EmblaCarouselProps>) => {
     <div className="group/carousel relative px-4 md:px-12">
       <div className="cursor-grab overflow-hidden active:cursor-grabbing" ref={emblaRef}>
         <div className="-mx-3 flex md:-mx-5">
-          {slides.map((donor: Slide) => (
+          {effectiveSlides.map((donor) => (
             <div
               className="min-w-0 flex-[0_0_100%] px-3 py-6 sm:flex-[0_0_50%] md:px-5 lg:flex-[0_0_33.333%] xl:flex-[0_0_20%]"
-              key={donor.name}
+              key={donor.stableId}
             >
               <TiltCard className="hover:border-[--accent]/60 group relative flex h-full flex-col overflow-hidden rounded-3xl border border-white/10 bg-[#0a0a0a]/80 backdrop-blur-md transition-[border-color,box-shadow] duration-300 hover:shadow-[0_0_40px_rgba(var(--accent-rgb),0.1)]">
                 {/* Image Section - Full Bleed */}
@@ -102,12 +113,12 @@ const EmblaCarousel = (props: Readonly<EmblaCarouselProps>) => {
                   <img
                     src="/images/ui/card-bg.webp"
                     alt="Background"
-                    className="absolute inset-0 h-full w-full object-cover opacity-20 grayscale transition-[transform,opacity,filter] duration-700 group-hover:scale-105 group-hover:opacity-40 group-hover:grayscale-0"
+                    className="absolute inset-0 size-full object-cover opacity-20 grayscale transition-[transform,opacity,filter] duration-700 group-hover:scale-105 group-hover:opacity-40 group-hover:grayscale-0"
                   />
                   <div className="bg-linear-to-t absolute inset-0 from-[#0a0a0a] to-transparent" />
 
                   {/* Skin Viewer */}
-                  <div className="relative z-10 flex h-full w-full items-end justify-center pb-4">
+                  <div className="relative z-10 flex size-full items-end justify-center pb-4">
                     <Suspense
                       fallback={
                         <div className="mb-10 animate-pulse text-xs font-bold text-white/30">
@@ -128,7 +139,7 @@ const EmblaCarousel = (props: Readonly<EmblaCarouselProps>) => {
                   style={{ transform: 'translateZ(20px)' }}
                 >
                   <div className="w-full text-center">
-                    <h3 className="wrap-break-word mb-2 text-center text-sm font-black uppercase leading-tight tracking-tight text-white transition-colors group-hover:text-[--accent] sm:text-base xl:text-lg">
+                    <h3 className="wrap-break-word mb-2 text-center text-sm/tight font-black uppercase tracking-tight text-white transition-colors group-hover:text-[--accent] sm:text-base xl:text-lg">
                       {donor.name}
                     </h3>
                     <div className="flex flex-wrap justify-center gap-1.5 opacity-90">
@@ -139,7 +150,7 @@ const EmblaCarousel = (props: Readonly<EmblaCarouselProps>) => {
                   {/* Divider */}
                   <div className="my-1 h-1 w-8 rounded-full bg-white/10 transition-[background-color,width] duration-500 group-hover:w-16 group-hover:bg-[--accent]"></div>
 
-                  <p className="line-clamp-3 text-center text-xs font-medium italic leading-relaxed text-gray-400 sm:text-sm">
+                  <p className="line-clamp-3 text-center text-xs/relaxed font-medium italic text-gray-400 sm:text-sm">
                     "{donor.description}"
                   </p>
                 </div>
@@ -151,7 +162,7 @@ const EmblaCarousel = (props: Readonly<EmblaCarouselProps>) => {
 
       <button
         type="button"
-        className="hover:bg-(--accent) hover:border-(--accent) absolute left-0 top-1/2 z-30 -ml-2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-black/50 text-white shadow-2xl backdrop-blur-xl transition-colors hover:scale-110 hover:text-black md:-ml-6 md:h-16 md:w-16"
+        className="hover:bg-(--accent) hover:border-(--accent) absolute left-0 top-1/2 z-30 -ml-2 flex size-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-black/50 text-white shadow-2xl backdrop-blur-xl transition-colors hover:scale-110 hover:text-black md:-ml-6 md:size-16"
         onClick={scrollPrev}
         aria-label="Diapositiva anterior"
       >
@@ -159,7 +170,7 @@ const EmblaCarousel = (props: Readonly<EmblaCarouselProps>) => {
       </button>
       <button
         type="button"
-        className="hover:bg-(--accent) hover:border-(--accent) absolute right-0 top-1/2 z-30 -mr-2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-black/50 text-white shadow-2xl backdrop-blur-xl transition-colors hover:scale-110 hover:text-black md:-mr-6 md:h-16 md:w-16"
+        className="hover:bg-(--accent) hover:border-(--accent) absolute right-0 top-1/2 z-30 -mr-2 flex size-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-black/50 text-white shadow-2xl backdrop-blur-xl transition-colors hover:scale-110 hover:text-black md:-mr-6 md:size-16"
         onClick={scrollNext}
         aria-label="Diapositiva siguiente"
       >

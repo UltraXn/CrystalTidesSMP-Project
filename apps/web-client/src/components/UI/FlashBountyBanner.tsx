@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { m as motion } from 'framer-motion';
 import { Flame, ShieldAlert, Timer, Sparkles, ChevronRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 interface BountyData {
   id: string;
@@ -73,22 +73,22 @@ export const FlashBountyBanner: React.FC = () => {
       className="bg-linear-to-r relative my-6 overflow-hidden rounded-2xl border border-amber-500/40 from-red-950/80 via-amber-950/70 to-slate-950/90 p-4 shadow-[0_0_30px_rgba(245,158,11,0.25)] backdrop-blur-md"
     >
       {/* Background Animated Pulse Glow */}
-      <div className="pointer-events-none absolute -left-10 -top-10 h-40 w-40 animate-pulse rounded-full bg-amber-500/20 blur-3xl" />
+      <div className="pointer-events-none absolute -left-10 -top-10 size-40 animate-pulse rounded-full bg-amber-500/20 blur-3xl" />
 
       <div className="relative z-10 flex flex-col items-center justify-between gap-4 md:flex-row">
         {/* Left Side: Title & Info */}
         <div className="flex items-center gap-3">
           <div className="animate-bounce rounded-xl border border-amber-500/50 bg-amber-500/20 p-3 text-amber-400">
-            <Flame className="h-6 w-6" />
+            <Flame className="size-6" />
           </div>
 
           <div>
             <div className="flex items-center gap-2">
               <span className="flex items-center gap-1 rounded-full bg-amber-500 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-slate-950">
-                <Sparkles className="h-3 w-3" /> Flash Bounty Activa
+                <Sparkles className="size-3" /> Flash Bounty Activa
               </span>
               <span className="flex items-center gap-1 font-mono text-xs text-amber-300/80">
-                <ShieldAlert className="h-3.5 w-3.5" /> {bounty.location}
+                <ShieldAlert className="size-3.5" /> {bounty.location}
               </span>
             </div>
 
@@ -118,15 +118,15 @@ export const FlashBountyBanner: React.FC = () => {
         {/* Right Side: Countdown Timer & CTA */}
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5 rounded-xl border border-amber-500/30 bg-slate-950/80 px-3 py-2 font-mono text-lg font-bold text-amber-400">
-            <Timer className="animate-spin-slow h-5 w-5 text-amber-400" />
+            <Timer className="animate-spin-slow size-5 text-amber-400" />
             <span>{formattedTime}</span>
           </div>
 
           <Link
             to="/wiki/ignis"
-            className="bg-linear-to-r flex items-center gap-1 rounded-xl from-amber-500 to-amber-600 px-4 py-2.5 text-sm font-bold text-slate-950 shadow-lg transition-all hover:from-amber-400 hover:to-amber-500 hover:shadow-amber-500/30"
+            className="bg-linear-to-r flex items-center gap-1 rounded-xl from-amber-500 to-amber-600 px-4 py-2.5 text-sm font-bold text-slate-950 shadow-lg transition-colors hover:from-amber-400 hover:to-amber-500 hover:shadow-amber-500/30"
           >
-            Ir a Cazar <ChevronRight className="h-4 w-4" />
+            Ir a Cazar <ChevronRight className="size-4" />
           </Link>
         </div>
       </div>
