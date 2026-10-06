@@ -629,9 +629,7 @@ const Gacha3DShowcase: React.FC<Readonly<Gacha3DShowcaseProps>> = ({
     const mount = mountRef.current;
     if (!mount) return;
 
-    if (!clockRef.current) {
-      clockRef.current = new THREE.Clock();
-    }
+    clockRef.current ??= new THREE.Clock();
 
     const width = mount.clientWidth || 280;
     const height = mount.clientHeight || 420;
@@ -722,7 +720,7 @@ const Gacha3DShowcase: React.FC<Readonly<Gacha3DShowcaseProps>> = ({
 
     const animate = () => {
       frameId = requestAnimationFrame(animate);
-      if (!clockRef.current) clockRef.current = new THREE.Clock();
+      clockRef.current ??= new THREE.Clock();
       const dt = clockRef.current.getDelta();
       if (mixerRef.current) mixerRef.current.update(dt);
       screenReelsRef.current?.update(dt);
