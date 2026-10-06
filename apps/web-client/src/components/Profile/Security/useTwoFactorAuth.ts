@@ -43,9 +43,8 @@ export function useTwoFactorAuth({
   const [success, setSuccess] = useState('');
 
   const isActuallyEnabled = statusData?.enabled ?? false;
-  const enabled = mockEnabled !== undefined ? mockEnabled : isActuallyEnabled;
-  const loading =
-    mockLoading !== undefined ? mockLoading : loadingStatus || isSettingUp || isDisabling;
+  const enabled = mockEnabled ?? isActuallyEnabled;
+  const loading = mockLoading ?? (loadingStatus || isSettingUp || isDisabling);
   const confirming = isVerifying;
 
   const handleSetup = async () => {

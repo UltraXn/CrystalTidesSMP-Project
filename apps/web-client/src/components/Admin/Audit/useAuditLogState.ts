@@ -46,7 +46,7 @@ export function useAuditLogState({
   }, [search]);
 
   const logs = mockLogs || fetchLogsData?.data || [];
-  const totalCount = mockTotal !== undefined ? mockTotal : fetchLogsData?.total || 0;
+  const totalCount = mockTotal ?? fetchLogsData?.total ?? 0;
   const totalPages = Math.ceil(totalCount / limit) || 1;
 
   const handleFilterChange = (source: string) => {
