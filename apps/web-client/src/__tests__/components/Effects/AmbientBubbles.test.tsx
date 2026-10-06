@@ -11,6 +11,6 @@ describe("AmbientBubbles", () => {
     expect(container).toHaveAttribute("aria-hidden", "true");
 
     const bubbles = document.body.querySelectorAll(".ambient-bubble");
-    expect(bubbles.length).toBe(20);
+    expect(bubbles).toHaveLength(20);
   });
 });

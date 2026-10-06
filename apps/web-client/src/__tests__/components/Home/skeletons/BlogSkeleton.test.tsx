@@ -10,6 +10,6 @@ describe('BlogSkeleton', () => {
         expect(pulseWrapper).toBeInTheDocument();
 
         const cards = container.querySelectorAll('.grid > div');
-        expect(cards.length).toBe(3);
+        expect(cards).toHaveLength(3);
     });
 });

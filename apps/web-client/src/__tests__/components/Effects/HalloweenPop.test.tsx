@@ -18,16 +18,16 @@ describe("HalloweenPop", () => {
     const container = document.body.querySelector(".halloween-pop-container");
     expect(container).toBeInTheDocument();
 
-    expect(document.body.querySelectorAll(".pumpkin-pop").length).toBe(0);
+    expect(document.body.querySelectorAll(".pumpkin-pop")).toHaveLength(0);
 
     act(() => {
       vi.advanceTimersByTime(2600);
     });
-    expect(document.body.querySelectorAll(".pumpkin-pop").length).toBe(1);
+    expect(document.body.querySelectorAll(".pumpkin-pop")).toHaveLength(1);
 
     act(() => {
       vi.advanceTimersByTime(2600);
     });
-    expect(document.body.querySelectorAll(".pumpkin-pop").length).toBe(2);
+    expect(document.body.querySelectorAll(".pumpkin-pop")).toHaveLength(2);
   });
 });

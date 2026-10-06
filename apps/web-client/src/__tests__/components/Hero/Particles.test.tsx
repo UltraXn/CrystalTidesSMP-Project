@@ -38,7 +38,7 @@ describe('HeroParticles', () => {
         vi.advanceTimersByTime(1500);
 
         const particles = container.querySelectorAll('.particle');
-        expect(particles.length).toBe(20);
+        expect(particles).toHaveLength(20);
         expect(gsap.to).toHaveBeenCalledTimes(20);
 
         // Restore
@@ -53,7 +53,7 @@ describe('HeroParticles', () => {
         const { container, unmount } = renderWithProviders(<HeroParticles />);
         vi.advanceTimersByTime(1500);
 
-        expect(container.querySelectorAll('.particle').length).toBe(20);
+        expect(container.querySelectorAll('.particle')).toHaveLength(20);
 
         unmount();
 

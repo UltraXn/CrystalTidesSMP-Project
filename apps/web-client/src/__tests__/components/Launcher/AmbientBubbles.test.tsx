@@ -11,7 +11,7 @@ describe('AmbientBubbles Component', () => {
     expect(bubbleContainer).toBeInTheDocument();
 
     const bubbles = container.querySelectorAll('.ambient-bubble');
-    expect(bubbles.length).toBe(22);
+    expect(bubbles).toHaveLength(22);
   });
 
   it('applies dynamic styles (width, height, left, duration, delay) to bubbles', () => {

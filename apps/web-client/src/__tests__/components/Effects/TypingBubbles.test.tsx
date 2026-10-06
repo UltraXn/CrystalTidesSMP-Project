@@ -18,16 +18,16 @@ describe('TypingBubbles', () => {
         const container = document.body.querySelector('.typing-bubbles-container');
         expect(container).toBeInTheDocument();
 
-        expect(document.body.querySelectorAll('.typing-bubble').length).toBe(0);
+        expect(document.body.querySelectorAll('.typing-bubble')).toHaveLength(0);
 
         act(() => {
             fireEvent.keyDown(window, { key: 'a' });
         });
-        expect(document.body.querySelectorAll('.typing-bubble').length).toBe(1);
+        expect(document.body.querySelectorAll('.typing-bubble')).toHaveLength(1);
 
         act(() => {
             vi.advanceTimersByTime(2500);
         });
-        expect(document.body.querySelectorAll('.typing-bubble').length).toBe(0);
+        expect(document.body.querySelectorAll('.typing-bubble')).toHaveLength(0);
     });
 });

@@ -10,6 +10,6 @@ describe('ContestsSkeleton', () => {
         expect(pulseWrapper).toBeInTheDocument();
 
         const contestCards = container.querySelectorAll('.grid > div');
-        expect(contestCards.length).toBe(3);
+        expect(contestCards).toHaveLength(3);
     });
 });

@@ -12,6 +12,6 @@ describe('Snowfall', () => {
         expect(container).toHaveAttribute('aria-hidden', 'true');
 
         const flakes = document.body.querySelectorAll('.snowflake');
-        expect(flakes.length).toBe(50);
+        expect(flakes).toHaveLength(50);
     });
 });
