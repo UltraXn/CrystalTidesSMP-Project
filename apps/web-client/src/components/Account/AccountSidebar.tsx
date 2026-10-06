@@ -162,17 +162,11 @@ const AccountSidebar: React.FC<Readonly<AccountSidebarProps>> = ({
       <div className="flex h-full flex-col p-8">
         {/* User Header */}
         <div className="mb-8 flex flex-col items-center text-center">
-          <div
-            className="group/avatar relative mb-5 cursor-pointer"
+          <button
+            type="button"
+            className="group/avatar focus-visible:ring-(--accent) relative mb-5 cursor-pointer border-0 bg-transparent p-0 text-left focus:outline-none focus-visible:ring-2"
             onClick={handleAvatarClick}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                handleAvatarClick();
-              }
-            }}
+            aria-label={t('account.upload_avatar', 'Subir avatar')}
           >
             <div className="bg-linear-to-tr from-(--accent)/40 ring-(--accent)/30 group-hover/avatar:ring-(--accent)/70 relative size-24 overflow-hidden rounded-full via-white/10 to-white/5 p-1 shadow-2xl ring-2 transition-colors duration-300">
               {uploading ? (
@@ -191,7 +185,7 @@ const AccountSidebar: React.FC<Readonly<AccountSidebarProps>> = ({
               </div>
             </div>
             <div className="group-hover/avatar:border-(--accent)/40 animate-spin-slow pointer-events-none absolute -inset-2 rounded-full border border-dashed border-white/10 transition-colors"></div>
-          </div>
+          </button>
 
           <input
             aria-label={t('account.upload_avatar', 'Subir avatar')}
@@ -260,11 +254,7 @@ const AccountSidebar: React.FC<Readonly<AccountSidebarProps>> = ({
                 <span>KilluCoins</span>
               </span>
               <span className="font-mono text-xs font-black text-amber-300">
-                {(
-                  (authoritativeBalance !== undefined && authoritativeBalance !== null
-                    ? authoritativeBalance
-                    : user?.user_metadata?.gacha_balance) ?? 0
-                ).toLocaleString()}{' '}
+                {(authoritativeBalance ?? user?.user_metadata?.gacha_balance ?? 0).toLocaleString()}{' '}
                 KC
               </span>
             </div>
