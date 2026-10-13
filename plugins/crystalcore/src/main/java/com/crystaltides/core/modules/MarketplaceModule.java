@@ -68,7 +68,6 @@ public class MarketplaceModule extends CrystalModule {
     }
 
     private final Map<String, MarketItem> marketCatalog = new ConcurrentHashMap<>();
-    private DatabaseModule databaseModule;
 
     public MarketplaceModule(CrystalCore plugin) {
         super(plugin, "Marketplace");
@@ -77,7 +76,6 @@ public class MarketplaceModule extends CrystalModule {
     @Override
     public void onEnable() {
         super.onEnable();
-        this.databaseModule = plugin.getModuleManager().getModule(DatabaseModule.class);
 
         initializeCatalog();
         initDatabaseTable();
@@ -115,6 +113,7 @@ public class MarketplaceModule extends CrystalModule {
 
     private void initDatabaseTable() {
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            DatabaseModule databaseModule = plugin.getModuleManager().getModule(DatabaseModule.class);
             if (databaseModule == null) return;
             try (Connection conn = databaseModule.getConnection();
                  PreparedStatement stmt = conn.prepareStatement(
@@ -137,6 +136,7 @@ public class MarketplaceModule extends CrystalModule {
         // Sincronizar cotizaciones con MySQL cada 5 minutos
         long interval = 20L * 60 * 5;
         Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, () -> {
+            DatabaseModule databaseModule = plugin.getModuleManager().getModule(DatabaseModule.class);
             if (databaseModule == null) return;
             try (Connection conn = databaseModule.getConnection()) {
                 String sql = "INSERT INTO market_prices (item_id, display_name, current_price, total_sold, total_bought) " +

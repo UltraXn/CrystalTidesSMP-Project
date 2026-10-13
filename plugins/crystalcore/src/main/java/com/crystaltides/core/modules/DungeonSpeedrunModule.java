@@ -164,10 +164,11 @@ public class DungeonSpeedrunModule extends CrystalModule {
             try (PreparedStatement check = conn.prepareStatement(
                     "SELECT MIN(duration_ms) FROM dungeon_leaderboards WHERE dungeon_id = ?")) {
                 check.setString(1, dungeonId);
-                ResultSet rs = check.executeQuery();
-                if (rs.next()) {
-                    long val = rs.getLong(1);
-                    if (!rs.wasNull()) bestPrevious = val;
+                try (ResultSet rs = check.executeQuery()) {
+                    if (rs.next()) {
+                        long val = rs.getLong(1);
+                        if (!rs.wasNull()) bestPrevious = val;
+                    }
                 }
             }
 

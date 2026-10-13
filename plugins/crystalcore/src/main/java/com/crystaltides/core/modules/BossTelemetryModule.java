@@ -133,7 +133,7 @@ public class BossTelemetryModule extends CrystalModule {
         // Climax Trigger: Vida del boss <= 20%
         if (!session.isClimaxTriggered() && currentHp > 0 && (currentHp / maxHp) <= 0.20) {
             session.setClimaxTriggered(true);
-            triggerClimaxAlert(attacker, victim, session, currentHp, maxHp);
+            triggerClimaxAlert(attacker, session, currentHp, maxHp);
         }
     }
 
@@ -161,7 +161,7 @@ public class BossTelemetryModule extends CrystalModule {
         }
     }
 
-    private void triggerClimaxAlert(Player player, LivingEntity boss, BossCombatSession session, double currentHp, double maxHp) {
+    private void triggerClimaxAlert(Player player, BossCombatSession session, double currentHp, double maxHp) {
         String bossName = session.getBossDisplayName();
 
         Component alertMsg = Component.text("🩸 ¡CLÍMAX DE COMBATE! ", NamedTextColor.DARK_RED, TextDecoration.BOLD)

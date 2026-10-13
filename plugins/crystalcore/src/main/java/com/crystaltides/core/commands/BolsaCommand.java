@@ -28,74 +28,63 @@ public class BolsaCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!(sender instanceof Player)) {
+        if (!(sender instanceof Player player)) {
             sender.sendMessage("§cSolo los jugadores pueden acceder a la bolsa de valores.");
             return true;
         }
 
-        Player player = (Player) sender;
         MarketplaceModule market = plugin.getModuleManager().getModule(MarketplaceModule.class);
-
         if (market == null || !market.isEnabled()) {
             player.sendMessage(Component.text("❌ El mercado dinámico no está disponible actualmente.", NamedTextColor.RED));
             return true;
         }
 
-        if (args.length == 0 || args[0].equalsIgnoreCase("ver") || args[0].equalsIgnoreCase("list")) {
+        if (args.length == 0 || "ver".equalsIgnoreCase(args[0]) || "list".equalsIgnoreCase(args[0])) {
             displayMarketOverview(player, market);
             return true;
         }
 
         String sub = args[0].toLowerCase(Locale.ROOT);
-
-        if (sub.equals("sell") || sub.equals("vender")) {
-            if (args.length < 2) {
-                player.sendMessage(Component.text("Uso: /bolsa sell <recurso> [cantidad]", NamedTextColor.RED));
-                return true;
-            }
-            MarketItem item = market.getItem(args[1]);
-            if (item == null) {
-                player.sendMessage(Component.text("❌ Recurso no válido. Usa /bolsa para ver el catálogo.", NamedTextColor.RED));
-                return true;
-            }
-            int amount = 1;
-            if (args.length >= 3) {
-                try {
-                    amount = Integer.parseInt(args[2]);
-                } catch (NumberFormatException e) {
-                    player.sendMessage(Component.text("❌ Cantidad inválida.", NamedTextColor.RED));
-                    return true;
-                }
-            }
-            market.sellItem(player, item, amount);
-            return true;
+        switch (sub) {
+            case "sell", "vender" -> handleTrade(player, market, "sell", args, false);
+            case "buy", "comprar" -> handleTrade(player, market, "buy", args, true);
+            default -> player.sendMessage(Component.text("Uso: /bolsa [ver|sell|buy] [recurso] [cantidad]", NamedTextColor.YELLOW));
         }
 
-        if (sub.equals("buy") || sub.equals("comprar")) {
-            if (args.length < 2) {
-                player.sendMessage(Component.text("Uso: /bolsa buy <recurso> [cantidad]", NamedTextColor.RED));
-                return true;
-            }
-            MarketItem item = market.getItem(args[1]);
-            if (item == null) {
-                player.sendMessage(Component.text("❌ Recurso no válido. Usa /bolsa para ver el catálogo.", NamedTextColor.RED));
-                return true;
-            }
-            int amount = 1;
-            if (args.length >= 3) {
-                try {
-                    amount = Integer.parseInt(args[2]);
-                } catch (NumberFormatException e) {
-                    player.sendMessage(Component.text("❌ Cantidad inválida.", NamedTextColor.RED));
-                    return true;
-                }
-            }
-            market.buyItem(player, item, amount);
-            return true;
-        }
-
-        player.sendMessage(Component.text("Uso: /bolsa [ver|sell|buy] [recurso] [cantidad]", NamedTextColor.YELLOW));
         return true;
+    }
+
+    private void handleTrade(Player player, MarketplaceModule market, String action, String[] args, boolean isBuy) {
+        if (args.length < 2) {
+            player.sendMessage(Component.text("Uso: /bolsa " + action + " <recurso> [cantidad]", NamedTextColor.RED));
+            return;
+        }
+        MarketItem item = market.getItem(args[1]);
+        if (item == null) {
+            player.sendMessage(Component.text("❌ Recurso no válido. Usa /bolsa para ver el catálogo.", NamedTextColor.RED));
+            return;
+        }
+        int amount = parseAmount(player, args);
+        if (amount <= 0) {
+            return;
+        }
+        if (isBuy) {
+            market.buyItem(player, item, amount);
+        } else {
+            market.sellItem(player, item, amount);
+        }
+    }
+
+    private int parseAmount(Player player, String[] args) {
+        if (args.length < 3) {
+            return 1;
+        }
+        try {
+            return Integer.parseInt(args[2]);
+        } catch (NumberFormatException e) {
+            player.sendMessage(Component.text("❌ Cantidad inválida.", NamedTextColor.RED));
+            return -1;
+        }
     }
 
     private void displayMarketOverview(Player player, MarketplaceModule market) {
@@ -129,7 +118,7 @@ public class BolsaCommand implements CommandExecutor, TabCompleter {
             suggestions.add("ver");
             suggestions.add("sell");
             suggestions.add("buy");
-        } else if (args.length == 2 && (args[0].equalsIgnoreCase("sell") || args[0].equalsIgnoreCase("buy"))) {
+        } else if (args.length == 2 && ("sell".equalsIgnoreCase(args[0]) || "buy".equalsIgnoreCase(args[0]))) {
             if (market != null) {
                 suggestions.addAll(market.getCatalog().keySet());
             }
