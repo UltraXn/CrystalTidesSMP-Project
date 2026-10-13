@@ -1,0 +1,18 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.crystaltides.boost.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "ThreadQosMixin",
+    "WorkerPriorityMixin",
+    "SaveSkipMixin",
+    "LazyNarratorMixin",
+    "AnimatedTextureCullingMixin",
+    "ChestOcclusionMixin"
+  ],
+  "client": [],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

@@ -1,0 +1,10 @@
+plugins {
+    id 'java'
+}
+
+dependencies {
+    implementation project(':common')
+    compileOnly "net.fabricmc:fabric-loader:${project.fabric_loader_version}"
+    compileOnly "org.spongepowered:mixin:${project.mixin_version}"
+    compileOnly "org.slf4j:slf4j-api:2.0.12"
+}
