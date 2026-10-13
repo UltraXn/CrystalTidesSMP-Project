@@ -8,10 +8,11 @@ export interface PelicanServerStatus {
 }
 
 export class PelicanService {
-  private static externalUrl = process.env.PELICAN_URL || 'https://panel.crystaltidessmp.net';
-  private static internalUrl = process.env.PELICAN_INTERNAL_URL || 'http://panel';
-  private static apiKey = process.env.PELICAN_API_KEY;
-  private static serverId = process.env.PELICAN_SERVER_ID;
+  private static readonly externalUrl =
+    process.env.PELICAN_URL ?? 'https://panel.crystaltidessmp.net';
+  private static readonly internalUrl = process.env.PELICAN_INTERNAL_URL ?? 'https://panel';
+  private static readonly apiKey = process.env.PELICAN_API_KEY;
+  private static readonly serverId = process.env.PELICAN_SERVER_ID;
 
   private static get headers() {
     return {

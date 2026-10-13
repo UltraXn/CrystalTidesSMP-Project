@@ -1,7 +1,15 @@
 export class WOLService {
-  private static MAC_ADDRESS = process.env.TARGET_MAC_ADDRESS || 'a0:48:1c:dd:38:91';
-  private static SPY_URL = process.env.LOCAL_SPY_URL;
-  private static BOT_API_KEY = process.env.BOT_API_KEY;
+  private static get MAC_ADDRESS(): string {
+    return process.env.TARGET_MAC_ADDRESS ?? 'a0:48:1c:dd:38:91';
+  }
+
+  private static get SPY_URL(): string | undefined {
+    return process.env.LOCAL_SPY_URL;
+  }
+
+  private static get BOT_API_KEY(): string | undefined {
+    return process.env.BOT_API_KEY;
+  }
 
   /**
    * Sends a request to the Local Spy to wake the PC.

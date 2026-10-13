@@ -48,7 +48,7 @@ function processAuthUsers(
     if (discordIdentity && mcUuid) {
       maps.idMap.set(discordIdentity.id, mcUuid);
       const tag =
-        discordIdentity.identity_data?.full_name ||
+        discordIdentity.identity_data?.full_name ??
         discordIdentity.identity_data?.custom_claims?.global_name;
       if (typeof tag === 'string') {
         maps.tagMap.set(tag.toLowerCase(), mcUuid);

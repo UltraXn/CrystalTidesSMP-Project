@@ -1,9 +1,8 @@
 import { WebhookClient, EmbedBuilder, Colors } from 'discord.js';
 
-const WEBHOOK_URL =
-  'https://discord.com/api/webhooks/1455655329860813055/GGRJHVqz-vwvV7PMkGUkLhwAddubklV8iNYeAC-lj3fGd7czmFsr6bmiGccI8ZYakzQ_';
+const WEBHOOK_URL = process.env.DISCORD_LOG_WEBHOOK_URL ?? process.env.DISCORD_WEBHOOK_URL ?? '';
 
-const webhookClient = new WebhookClient({ url: WEBHOOK_URL });
+const webhookClient = WEBHOOK_URL ? new WebhookClient({ url: WEBHOOK_URL }) : null;
 
 type LogLevel = 'info' | 'warn' | 'error' | 'success' | 'action';
 
@@ -33,6 +32,10 @@ export const Logger = {
         break;
       default:
         embed.setColor(Colors.Grey);
+    }
+
+    if (!webhookClient) {
+      return;
     }
 
     try {

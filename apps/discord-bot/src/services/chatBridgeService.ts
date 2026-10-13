@@ -62,8 +62,8 @@ export class ChatBridgeService {
       }
 
       const text = message.content.split('"').join('\\"');
-      const webServerUrl = process.env.WEB_SERVER_URL || 'http://localhost:3001';
-      const apiKey = process.env.BOT_API_KEY || 'crystaltides_bot_secret_key';
+      const webServerUrl = process.env.WEB_SERVER_URL ?? 'http://localhost:3001';
+      const apiKey = process.env.BOT_API_KEY ?? 'crystaltides_bot_secret_key';
 
       // Forward message as /tellraw using verified Minecraft username
       const tellrawJson = JSON.stringify([
