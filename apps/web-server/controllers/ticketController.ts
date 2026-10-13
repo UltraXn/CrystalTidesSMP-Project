@@ -45,7 +45,7 @@ const LOG_SOURCE = 'web';
 
 const getLogUsername = (req: Request) => {
   const user = (req as AuthenticatedRequest).user;
-  return user?.username || user?.email || 'Unknown';
+  return user?.username ?? user?.email ?? 'Unknown';
 };
 
 const getErrorMessage = (error: unknown): string => {
@@ -225,7 +225,7 @@ export const banUser = async (req: Request, res: Response) => {
 
       return sendSuccess(res, { command: cmd }, `User ${username} banned successfully`);
     } else {
-      return sendError(res, result.error || 'Bridge Error', ERROR_CODES.BRIDGE_FAILED);
+      return sendError(res, result.error ?? 'Bridge Error', ERROR_CODES.BRIDGE_FAILED);
     }
   } catch (error) {
     return sendError(res, getErrorMessage(error));

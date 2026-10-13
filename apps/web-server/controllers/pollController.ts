@@ -191,7 +191,7 @@ export const vote = async (req: Request, res: Response) => {
     }
 
     const cookieKey = getVoteCookieKey(pollId);
-    const hasVotedDevice = Boolean(req.signedCookies && req.signedCookies[cookieKey]);
+    const hasVotedDevice = Boolean(req.signedCookies?.[cookieKey]);
     if (hasVotedDevice) {
       return sendError(
         res,

@@ -125,7 +125,7 @@ const parseNumericId = (rawId: unknown): number => {
 };
 
 const getRequestorUsername = (req: Request, fallback = EVENT_CONSTANTS.DEFAULT_ADMIN): string => {
-  return req.user?.username || fallback;
+  return req.user?.username ?? fallback;
 };
 
 const dispatchEventAuditLog = (params: EventAuditParams): void => {
@@ -217,7 +217,7 @@ export const registerForEvent = async (req: Request, res: Response): Promise<voi
 
     dispatchEventAuditLog({
       userId: user.id,
-      username: user.username || EVENT_CONSTANTS.DEFAULT_USER,
+      username: user.username ?? EVENT_CONSTANTS.DEFAULT_USER,
       action: EVENT_CONSTANTS.ACTIONS.EVENT_REGISTER,
       details: `Registered for event ${ensureString(req.params.id)}`,
     });

@@ -69,12 +69,12 @@ const getSkinFromDb = async (username: string) => {
 export const getSkinUrl = async (username: string) => {
   // 1. Check DB
   const dbSkin = await getSkinFromDb(username);
-  if (dbSkin && dbSkin.texture) {
+  if (dbSkin?.texture) {
     try {
       // Decode Base64
       const jsonStr = Buffer.from(dbSkin.texture, 'base64').toString('utf-8');
       const data = JSON.parse(jsonStr);
-      if (data.textures && data.textures.SKIN && data.textures.SKIN.url) {
+      if (data.textures?.SKIN?.url) {
         return { url: data.textures.SKIN.url, source: 'restorer' };
       }
     } catch (e) {

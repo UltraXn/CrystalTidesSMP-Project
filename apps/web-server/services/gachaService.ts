@@ -264,12 +264,10 @@ export const rollGacha = async (
   }
 
   let newBalance = currentBalance;
-  let deducted = false;
 
   try {
     if (!skipAllConsumption && totalCost > 0) {
       newBalance = await deductGachaBalance(userId, totalCost);
-      deducted = true;
     }
 
     const { allResults, historyRows, commands } = executeRolls(
@@ -290,7 +288,7 @@ export const rollGacha = async (
       newBalance: skipAllConsumption ? currentBalance : newBalance,
     };
   } catch (error) {
-    if (deducted && !skipAllConsumption && totalCost > 0) {
+    if (newBalance !== currentBalance && !skipAllConsumption && totalCost > 0) {
       await refundSafely(userId, totalCost);
     }
     throw error;

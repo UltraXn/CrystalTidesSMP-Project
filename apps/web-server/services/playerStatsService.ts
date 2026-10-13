@@ -270,7 +270,7 @@ export const getPlayerStats = async (usernameFragment: string): Promise<PlayerSt
   ]);
 
   const rankData = processRank(lpGroups);
-  const playtimeMs = sessionStats.playtime || 0;
+  const playtimeMs = sessionStats.playtime ?? 0;
 
   return {
     username: resolvedName,
@@ -278,8 +278,8 @@ export const getPlayerStats = async (usernameFragment: string): Promise<PlayerSt
     rank_image: rankData.image,
     playtime: formatPlaytime(playtimeMs),
     kills: killStats,
-    mob_kills: sessionStats.mobs || 0,
-    deaths: sessionStats.deaths || 0,
+    mob_kills: sessionStats.mobs ?? 0,
+    deaths: sessionStats.deaths ?? 0,
     money: formatMoneyCompact(moneyStats),
     blocks_mined: CONSTANTS.ZERO_STAT,
     blocks_placed: CONSTANTS.ZERO_STAT,

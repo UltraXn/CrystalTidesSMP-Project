@@ -25,13 +25,13 @@ const CONSTANTS = {
 } as const;
 
 const supabaseUrl =
-  process.env.SUPABASE_URL ||
+  process.env.SUPABASE_URL ??
   (process.env.NODE_ENV === 'test' ? 'https://placeholder-supabase-url.supabase.co' : '');
 const supabaseServiceKey =
-  process.env.SUPABASE_SERVICE_ROLE_KEY ||
+  process.env.SUPABASE_SERVICE_ROLE_KEY ??
   (process.env.NODE_ENV === 'test' ? 'placeholder-key-value-for-testing' : '');
-const geminiApiKey = process.env.GEMINI_API_KEY || '';
-const cohereApiKey = process.env.COHERE_API_KEY || '';
+const geminiApiKey = process.env.GEMINI_API_KEY ?? '';
+const cohereApiKey = process.env.COHERE_API_KEY ?? '';
 
 export const supabase: SupabaseClient = createClient(supabaseUrl, supabaseServiceKey, {
   auth: {

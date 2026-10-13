@@ -30,7 +30,12 @@ const SUCCESS_MESSAGES = {
 
 // --- Typed Payment Webhook Payloads & Records ---
 
-export type PaymentEventType = 'Donation' | 'Subscription' | 'Commission' | 'Shop Order' | string;
+export type PaymentEventType =
+  | 'Donation'
+  | 'Subscription'
+  | 'Commission'
+  | 'Shop Order'
+  | (string & { _brand?: never });
 
 export interface DonationDbRecord {
   message_id: string;
@@ -95,9 +100,9 @@ export const verifyKofiToken = (providedTokenRaw: unknown, expectedToken: string
  */
 export const buildDonationRecord = (payload: KofiWebhookPayload): DonationDbRecord => ({
   message_id: payload.message_id,
-  created_at: payload.timestamp || new Date().toISOString(),
+  created_at: payload.timestamp ?? new Date().toISOString(),
   type: payload.type,
-  from_name: payload.from_name || DEFAULT_DONOR_NAME,
+  from_name: payload.from_name ?? DEFAULT_DONOR_NAME,
   message: payload.message,
   amount: payload.amount,
   currency: payload.currency,
@@ -120,7 +125,7 @@ export const dispatchDiscordAlert = async (payload: KofiWebhookPayload): Promise
   try {
     const { sendDonationAlert } = await import('../services/discordService.js');
     await sendDonationAlert({
-      from_name: payload.from_name || DEFAULT_DONOR_NAME,
+      from_name: payload.from_name ?? DEFAULT_DONOR_NAME,
       amount: String(payload.amount),
       currency: payload.currency,
       message: payload.message,
@@ -152,7 +157,7 @@ export const EVENT_ROUTING_DICTIONARY: Record<string, WebhookEventHandler> = {
  * Routes payment webhook payload through the event routing dictionary.
  */
 export const routeWebhookEvent = async (payload: KofiWebhookPayload): Promise<void> => {
-  const eventType = payload.type || EVENT_TYPES.DONATION;
+  const eventType = payload.type ?? EVENT_TYPES.DONATION;
   const handler =
     EVENT_ROUTING_DICTIONARY[eventType] ?? EVENT_ROUTING_DICTIONARY[EVENT_TYPES.DONATION];
   await handler(payload);
@@ -213,7 +218,7 @@ export const handleKofiWebhook = async (req: Request, res: Response): Promise<Re
     // 3. Validate payload schema before processing
     const parseResult = kofiWebhookSchema.safeParse(rawPayload);
     if (!parseResult.success) {
-      console.warn('Invalid Ko-Fi payload schema:', parseResult.error.flatten());
+      console.warn('Invalid Ko-Fi payload schema:', parseResult.error.issues);
       return res.status(400).send(ERROR_MESSAGES.INVALID_PAYLOAD);
     }
 

@@ -98,7 +98,7 @@ export const updateUserRole = async (req: Request, res: Response) => {
     }
 
     const updatedUser = await userService.updateUserRole(id, role);
-    const requestorUsername = req.user?.username || CONSTANTS.ADMIN_DEFAULT;
+    const requestorUsername = req.user?.username ?? CONSTANTS.ADMIN_DEFAULT;
 
     logService
       .createLog({
@@ -129,7 +129,7 @@ export const updateUserMetadata = async (req: Request, res: Response) => {
       );
 
     const updatedUser = await userService.updateUserMetadata(id, metadata);
-    const requestorUsername = req.user?.username || CONSTANTS.ADMIN_DEFAULT;
+    const requestorUsername = req.user?.username ?? CONSTANTS.ADMIN_DEFAULT;
 
     logService
       .createLog({
@@ -180,7 +180,7 @@ export const getFullProfile = async (req: Request, res: Response) => {
         ERRORS.USER_NOT_FOUND.status,
       );
 
-    const requesterRole = (req.user?.role || '').toLowerCase();
+    const requesterRole = (req.user?.role ?? '').toLowerCase();
     const isOwner = req.user?.id === profile.id;
     const isStaff = STAFF_ROLES.includes(requesterRole);
     const canSeeWallet = isOwner || isStaff;

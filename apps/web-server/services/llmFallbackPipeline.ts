@@ -97,7 +97,7 @@ async function requestGeminiModel(
  * Nivel 1: Google Gemini API (gemini-2.0-flash con fallback a gemini-1.5-flash)
  */
 async function callGemini(options: LLMOptions): Promise<LLMResult | null> {
-  const apiKey = process.env.GEMINI_API_KEY || '';
+  const apiKey = process.env.GEMINI_API_KEY ?? '';
   if (!apiKey) return null;
 
   for (const model of GEMINI_MODELS) {
@@ -146,7 +146,7 @@ async function postChatCompletion(
  * Nivel 2: Groq API (llama-3.1-8b-instant)
  */
 async function callGroq(options: LLMOptions): Promise<LLMResult | null> {
-  const apiKey = process.env.GROQ_API_KEY || '';
+  const apiKey = process.env.GROQ_API_KEY ?? '';
   if (!apiKey) return null;
 
   try {
@@ -169,7 +169,7 @@ async function callGroq(options: LLMOptions): Promise<LLMResult | null> {
  * Nivel 3: OpenRouter API (Free models)
  */
 async function callOpenRouter(options: LLMOptions): Promise<LLMResult | null> {
-  const apiKey = process.env.OPENROUTER_API_KEY || '';
+  const apiKey = process.env.OPENROUTER_API_KEY ?? '';
   if (!apiKey) return null;
 
   try {

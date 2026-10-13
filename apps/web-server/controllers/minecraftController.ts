@@ -15,8 +15,8 @@ import { ensureString } from '../utils/typeUtils.js';
  */
 // eslint-disable-next-line
 const XBOX_AUTH_RELYING_PARTY = 'http://auth.xboxlive.com'; // NOSONAR
-const CLIENT_ID_AZURE = process.env.MICROSOFT_CLIENT_ID || '';
-const CLIENT_ID_LIVE = process.env.MICROSOFT_LIVE_CLIENT_ID || '';
+const CLIENT_ID_AZURE = process.env.MICROSOFT_CLIENT_ID ?? '';
+const CLIENT_ID_LIVE = process.env.MICROSOFT_LIVE_CLIENT_ID ?? '';
 const XBOX_SCOPE = 'XboxLive.SignIn XboxLive.offline_access';
 
 const SOURCES = {
@@ -92,7 +92,7 @@ try {
 }
 
 // --- SUPABASE CLIENT SETUP ---
-const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+const supabaseUrl = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 let supabase: SupabaseClient | null = null;
 if (supabaseUrl && supabaseKey) {
@@ -236,8 +236,8 @@ async function clearSupabaseMetadata(
   token: string | undefined,
   metadataToClear: Record<string, null>,
 ): Promise<void> {
-  const sbUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-  const sbAnonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+  const sbUrl = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL;
+  const sbAnonKey = process.env.SUPABASE_ANON_KEY ?? process.env.VITE_SUPABASE_ANON_KEY;
 
   if (token && sbUrl && sbAnonKey) {
     const userSupabase = createClient(sbUrl, sbAnonKey, {
@@ -345,7 +345,7 @@ async function authenticateMinecraftWithToken(accessToken: string): Promise<Mine
   };
 
   if (!profileRes.ok || profile.error) {
-    return { error: profile.errorMessage || 'No se pudo obtener el perfil de Minecraft' };
+    return { error: profile.errorMessage ?? 'No se pudo obtener el perfil de Minecraft' };
   }
 
   return { profile };
@@ -412,8 +412,8 @@ async function handleDiscordAutoSync(
 
 export const getStatus = async (req: Request, res: Response) => {
   try {
-    const host = process.env.MC_SERVER_HOST || 'localhost';
-    const port = Number.parseInt(process.env.MC_SERVER_PORT || '25565', 10);
+    const host = process.env.MC_SERVER_HOST ?? 'localhost';
+    const port = Number.parseInt(process.env.MC_SERVER_PORT ?? '25565', 10);
 
     const status = await minecraftService.getServerStatus(host, port);
     res.json(status);
@@ -458,7 +458,7 @@ export const verifyLinkCode = async (req: Request, res: Response) => {
     const isStaff = Boolean(
       userRole && ['admin', 'owner', 'developer', 'moderator', 'staff'].includes(userRole),
     );
-    const targetUserId = authUserId || (isStaff ? req.body.userId : undefined);
+    const targetUserId = authUserId ?? (isStaff ? req.body.userId : undefined);
 
     if (!code || !targetUserId) {
       return res.status(400).json({ error: 'Code and Authentication required' });
@@ -720,9 +720,9 @@ export const requestMsDeviceCode = async (_req: Request, res: Response) => {
         return res.json({
           user_code: dataLive.user_code,
           device_code: dataLive.device_code,
-          verification_uri: dataLive.verification_uri || 'https://www.microsoft.com/link',
-          interval: dataLive.interval || 5,
-          expires_in: dataLive.expires_in || 900,
+          verification_uri: dataLive.verification_uri ?? 'https://www.microsoft.com/link',
+          interval: dataLive.interval ?? 5,
+          expires_in: dataLive.expires_in ?? 900,
           isLive: true,
         });
       }
@@ -751,10 +751,10 @@ export const requestMsDeviceCode = async (_req: Request, res: Response) => {
 
     return res.status(400).json({
       error:
-        dataLive.error_description ||
-        dataLive.error ||
-        dataAzure.error_description ||
-        dataAzure.error ||
+        dataLive.error_description ??
+        dataLive.error ??
+        dataAzure.error_description ??
+        dataAzure.error ??
         'Error al solicitar código de Microsoft',
     });
   } catch (err: unknown) {
@@ -798,7 +798,7 @@ async function queryDeviceToken(
   };
 
   return {
-    accessToken: data.access_token || null,
+    accessToken: data.access_token ?? null,
     authError: data.error ? data : null,
   };
 }
@@ -820,7 +820,7 @@ export const pollMsDeviceToken = async (req: Request, res: Response) => {
       return res.json({ success: true, profile: authResult.profile });
     }
 
-    return res.json(authError || { error: ERRORS.AUTH_PENDING });
+    return res.json(authError ?? { error: ERRORS.AUTH_PENDING });
   } catch (err: unknown) {
     console.error('pollMsDeviceToken error:', err);
     res.status(500).json({ error: 'Error al verificar la autorización con Microsoft.' });
@@ -884,8 +884,8 @@ export const exchangeMsAuthCode = async (req: Request, res: Response) => {
     if (!rMs.ok || !msData.access_token) {
       return res.status(400).json({
         error:
-          msData.error_description ||
-          msData.error ||
+          msData.error_description ??
+          msData.error ??
           'Error al canjear el código de autorización de Microsoft',
       });
     }

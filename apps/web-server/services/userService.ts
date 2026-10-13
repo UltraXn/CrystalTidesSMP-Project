@@ -74,9 +74,9 @@ const resolveDiscordIdentity = (user: User): ConnectedIdentity | null => {
 
   const data = identity.identity_data;
   const username =
-    (data?.full_name as string | undefined) ||
-    (data?.name as string | undefined) ||
-    (data?.custom_claims?.global_name as string | undefined) ||
+    (data?.full_name as string | undefined) ??
+    (data?.name as string | undefined) ??
+    (data?.custom_claims?.global_name as string | undefined) ??
     '';
 
   return { id: identity.id, username };
@@ -91,9 +91,9 @@ const resolveTwitchIdentity = (user: User): ConnectedIdentity | null => {
 
   const data = identity.identity_data;
   const username =
-    (data?.full_name as string | undefined) ||
-    (data?.name as string | undefined) ||
-    (data?.preferred_username as string | undefined) ||
+    (data?.full_name as string | undefined) ??
+    (data?.name as string | undefined) ??
+    (data?.preferred_username as string | undefined) ??
     '';
 
   return { id: identity.id, username };
@@ -103,18 +103,18 @@ const resolveTwitchIdentity = (user: User): ConnectedIdentity | null => {
  * Maps a Supabase user into the API's WebUser representation.
  */
 const mapUserToWebUser = (u: User): WebUser => {
-  const meta = u.user_metadata || {};
+  const meta = u.user_metadata ?? {};
   const username =
-    (meta.username as string | undefined) ||
-    (meta.full_name as string | undefined) ||
+    (meta.username as string | undefined) ??
+    (meta.full_name as string | undefined) ??
     CONSTANTS.FALLBACK_NICKNAME;
 
   return {
     id: u.id,
     email: u.email,
     username,
-    role: (meta.role as string | undefined) || CONSTANTS.DEFAULT_ROLE,
-    medals: (meta.medals as unknown[] | undefined) || [],
+    role: (meta.role as string | undefined) ?? CONSTANTS.DEFAULT_ROLE,
+    medals: (meta.medals as unknown[] | undefined) ?? [],
     avatar_url: meta.avatar_url as string | undefined,
     discord: resolveDiscordIdentity(u),
     twitch: resolveTwitchIdentity(u),
@@ -172,11 +172,11 @@ const userMatchesIdentifier = (user: User, variants: IdentifierVariants): boolea
  * Builds the public profile representation from a Supabase auth user.
  */
 const buildPublicProfile = (target: User): PublicProfile => {
-  const meta = target.user_metadata || {};
+  const meta = target.user_metadata ?? {};
   const displayName =
-    (meta.minecraft_nick as string | undefined) ||
-    (meta.username as string | undefined) ||
-    (meta.full_name as string | undefined) ||
+    (meta.minecraft_nick as string | undefined) ??
+    (meta.username as string | undefined) ??
+    (meta.full_name as string | undefined) ??
     CONSTANTS.DEFAULT_DISPLAY_NAME;
 
   return {
@@ -185,24 +185,24 @@ const buildPublicProfile = (target: User): PublicProfile => {
     minecraft_nick: meta.minecraft_nick as string | undefined,
     original_username: meta.username as string | undefined,
     full_name: meta.full_name as string | undefined,
-    role: (meta.role as string | undefined) || CONSTANTS.DEFAULT_ROLE,
-    medals: (meta.medals as unknown[] | undefined) || [],
+    role: (meta.role as string | undefined) ?? CONSTANTS.DEFAULT_ROLE,
+    medals: (meta.medals as unknown[] | undefined) ?? [],
     avatar_url: meta.avatar_url as string | undefined,
     profile_banner_url: meta.profile_banner_url as string | undefined,
     created_at: target.created_at,
-    public_stats: (meta.public_stats as boolean | undefined) || false,
+    public_stats: (meta.public_stats as boolean | undefined) ?? false,
     bio: meta.bio as string | undefined,
-    reputation: (meta.reputation as number | undefined) || 0,
+    reputation: (meta.reputation as number | undefined) ?? 0,
     social_discord:
-      (meta.social_discord as string | undefined) || (meta.discord as string | undefined),
+      (meta.social_discord as string | undefined) ?? (meta.discord as string | undefined),
     social_twitter: meta.social_twitter as string | undefined,
     social_twitch: meta.social_twitch as string | undefined,
     social_youtube: meta.social_youtube as string | undefined,
     minecraft_uuid: meta.minecraft_uuid as string | undefined,
     social_avatar_url:
-      (meta.picture as string | undefined) || (meta.avatar_url as string | undefined),
+      (meta.picture as string | undefined) ?? (meta.avatar_url as string | undefined),
     avatar_preference:
-      (meta.avatar_preference as string | undefined) || CONSTANTS.DEFAULT_AVATAR_PREF,
+      (meta.avatar_preference as string | undefined) ?? CONSTANTS.DEFAULT_AVATAR_PREF,
   };
 };
 

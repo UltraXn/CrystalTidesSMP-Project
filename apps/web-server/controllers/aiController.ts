@@ -62,7 +62,7 @@ export async function getNewspaperArchive(req: Request, res: Response): Promise<
       return;
     }
 
-    res.json({ editions: data || [], total: count || 0, page, limit });
+    res.json({ editions: data ?? [], total: count ?? 0, page, limit });
   } catch (err: unknown) {
     sendErrorResponse(res, err);
   }
@@ -159,7 +159,7 @@ export async function triggerQuestsGeneration(req: Request, res: Response): Prom
 
 /**
  * POST /api/ai/trigger-pipeline (Admin)
- * Ejecuta manualmente todo el pipeline diario (Noticiero + Quests)
+ * Ejecuta manualmente el pipeline diario completo (Noticiero + Quests)
  */
 export async function triggerFullPipeline(req: Request, res: Response): Promise<void> {
   try {

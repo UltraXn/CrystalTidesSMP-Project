@@ -9,11 +9,11 @@ import { supabase, generateEmbedding, reconcileOrphanMods } from '../services/ra
 export const TABLE_PROCESSED_MANIFEST = 'processed_mods_manifest';
 export const TABLE_MOD_KNOWLEDGE = 'mod_knowledge_base';
 export const MANIFEST_FILE_LATEST = 'kubejs_push_latest';
-export const ENTITY_TYPE_BOSS = 'boss' as const;
-export const ENTITY_TYPE_MOB = 'mob' as const;
+export const ENTITY_TYPE_BOSS = 'boss';
+export const ENTITY_TYPE_MOB = 'mob';
 export const DEFAULT_MOD_PREFIX = 'custom';
-export const STATUS_SKIPPED = 'skipped' as const;
-export const STATUS_SUCCESS = 'success' as const;
+export const STATUS_SKIPPED = 'skipped';
+export const STATUS_SUCCESS = 'success';
 
 const HASH_ALGORITHM = 'sha256';
 const HASH_ENCODING = 'hex';
@@ -32,7 +32,7 @@ const INGEST_MESSAGES = {
 } as const;
 
 const RAG_INGEST_SECRET =
-  process.env.RAG_INGEST_SECRET ||
+  process.env.RAG_INGEST_SECRET ??
   (process.env.NODE_ENV === 'test' ? 'CrystalRAGSecretKey2026' : undefined);
 
 let memoryChecksumCache: string | null = null;
@@ -135,8 +135,8 @@ type AuthValidationResult =
  * Genera el texto semántico optimizado para generar embeddings de entidades
  */
 export function buildEntityEmbeddingText(entity: RagEntityInput): string {
-  const namePart = entity.name || '';
-  const modPart = entity.mod || '';
+  const namePart = entity.name ?? '';
+  const modPart = entity.mod ?? '';
   return `${entity.id} ${namePart} ${modPart}`.trim();
 }
 
@@ -144,8 +144,8 @@ export function buildEntityEmbeddingText(entity: RagEntityInput): string {
  * Genera el texto semántico optimizado para generar embeddings de ítems
  */
 export function buildItemEmbeddingText(item: RagItemInput): string {
-  const namePart = item.name || '';
-  const modPart = item.mod || '';
+  const namePart = item.name ?? '';
+  const modPart = item.mod ?? '';
   return `${item.id} ${namePart} ${modPart}`.trim();
 }
 
@@ -176,7 +176,7 @@ export function buildKnowledgeRecord(
 ): ModKnowledgeInsertRow {
   const modId = resolveModId(entity);
   const entityType: EntityType = entity.is_boss ? ENTITY_TYPE_BOSS : ENTITY_TYPE_MOB;
-  const entityName = entity.name || entity.id;
+  const entityName = entity.name ?? entity.id;
 
   return {
     mod_id: modId,

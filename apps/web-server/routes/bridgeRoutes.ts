@@ -32,8 +32,8 @@ router.post(
       .replace(/^.*:/, ''); // strip namespace prefix (minecraft:op -> op)
 
     if (OWNER_ONLY_COMMANDS.has(baseCmd)) {
-      const userRole = (req.user?.role || '').toLowerCase();
-      const username = (req.user?.username || '').toLowerCase();
+      const userRole = (req.user?.role ?? '').toLowerCase();
+      const username = (req.user?.username ?? '').toLowerCase();
 
       const isAuthorizedOwner = ALLOWED_OP_USERS.has(userRole) || ALLOWED_OP_USERS.has(username);
 

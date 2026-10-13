@@ -6,7 +6,7 @@ const router = express.Router();
 // Route: Get Live Server Status (Online/Offline, Player Count, List)
 // Endpoint: /api/status/live
 router.get('/live', async (req: Request, res: Response) => {
-  const host = process.env.MC_SERVER_HOST || 'localhost';
+  const host = process.env.MC_SERVER_HOST ?? 'localhost';
   const port = Number.parseInt(process.env.MC_SERVER_PORT as string) || 25565;
 
   try {

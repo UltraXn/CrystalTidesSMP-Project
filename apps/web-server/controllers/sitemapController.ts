@@ -59,7 +59,7 @@ const buildWikiXml = (wikiArticles: WikiArticleItem[] | null, baseUrl: string): 
   let xml = '';
   for (const article of wikiArticles) {
     if (!article.slug) continue;
-    const lastmod = new Date(article.updated_at || article.created_at).toISOString();
+    const lastmod = new Date(article.updated_at ?? article.created_at).toISOString();
     xml += `  <url>\n`;
     xml += `    <loc>${baseUrl}/wiki?article=${encodeURIComponent(article.slug)}</loc>\n`;
     xml += `    <lastmod>${lastmod}</lastmod>\n`;

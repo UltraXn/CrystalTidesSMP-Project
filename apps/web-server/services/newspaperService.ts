@@ -21,7 +21,7 @@ const CONSTANTS = {
 } as const;
 
 const DISCORD_NEWS_WEBHOOK_URL =
-  process.env.DISCORD_NEWS_WEBHOOK_URL || process.env.DISCORD_WEBHOOK_URL || '';
+  process.env.DISCORD_NEWS_WEBHOOK_URL ?? process.env.DISCORD_WEBHOOK_URL ?? '';
 
 export interface GeneratedNewspaperEdition {
   id?: number;
@@ -145,7 +145,7 @@ async function fetchInGameEventsContext(): Promise<string> {
   return rows
     .map(
       (e) =>
-        `[${e.event_type}] Jugador: ${e.player_uuid || 'Desconocido'} | Detalle: ${JSON.stringify(e.details)}`,
+        `[${e.event_type}] Jugador: ${e.player_uuid ?? 'Desconocido'} | Detalle: ${JSON.stringify(e.details)}`,
     )
     .join('\n');
 }

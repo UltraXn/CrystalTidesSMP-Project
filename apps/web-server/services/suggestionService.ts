@@ -33,11 +33,11 @@ export const createSuggestion = async (data: SuggestionData) => {
     .from('suggestions')
     .insert([
       {
-        nickname: data.nickname || 'Anónimo',
-        type: data.type || 'General',
+        nickname: data.nickname ?? 'Anónimo',
+        type: data.type ?? 'General',
         message: data.message,
         message_en: messageEn,
-        user_id: data.user_id || null,
+        user_id: data.user_id ?? null,
         status: 'pending',
         auto_validated: true,
         kc_awarded: 100,
@@ -117,7 +117,7 @@ async function queueInGameBroadcast(authorNick: string): Promise<void> {
 
 async function notifyDiscordWebhook(authorNick: string, message: string): Promise<void> {
   const discordWebhook =
-    process.env.DISCORD_SUGGESTIONS_WEBHOOK_URL || process.env.DISCORD_WEBHOOK_URL;
+    process.env.DISCORD_SUGGESTIONS_WEBHOOK_URL ?? process.env.DISCORD_WEBHOOK_URL;
   if (!discordWebhook) return;
 
   try {

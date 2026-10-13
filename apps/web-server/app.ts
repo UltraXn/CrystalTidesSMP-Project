@@ -103,8 +103,8 @@ app.use(
   }),
 );
 const cookieSecret =
-  process.env.COOKIE_SECRET ||
-  process.env.JWT_SECRET ||
+  process.env.COOKIE_SECRET ??
+  process.env.JWT_SECRET ??
   'crystaltides_cookie_signature_secret_key_2026';
 app.use(cookieParser(cookieSecret));
 import { ensureDeviceId } from './middleware/deviceIdMiddleware.js';

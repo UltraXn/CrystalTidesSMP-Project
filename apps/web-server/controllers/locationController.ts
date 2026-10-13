@@ -71,8 +71,8 @@ const logLocationAudit = (req: Request, action: string, details: string): void =
   const editor = (req as AuthenticatedRequest).user;
   logService
     .createLog({
-      user_id: editor?.id || undefined,
-      username: editor?.username || DEFAULT_EDITOR_USERNAME,
+      user_id: editor?.id ?? undefined,
+      username: editor?.username ?? DEFAULT_EDITOR_USERNAME,
       action,
       details,
       source: AUDIT_LOG_SOURCE,

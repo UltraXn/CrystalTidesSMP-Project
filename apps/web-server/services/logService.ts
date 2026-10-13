@@ -29,8 +29,8 @@ export const createLog = async ({
     .from('system_logs')
     .insert([
       {
-        user_id: user_id || null,
-        username: username || 'System',
+        user_id: user_id ?? null,
+        username: username ?? 'System',
         action,
         details: detailsText,
         source,

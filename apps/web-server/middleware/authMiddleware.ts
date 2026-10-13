@@ -66,7 +66,7 @@ function extractBearerToken(req: Request): string | null {
 }
 
 function isBotApiKey(token: string): boolean {
-  const botApiKey = process.env.BOT_API_KEY || process.env.SERVER_API_KEY;
+  const botApiKey = process.env.BOT_API_KEY ?? process.env.SERVER_API_KEY;
   if (!botApiKey || !token) {
     return false;
   }
@@ -120,17 +120,17 @@ async function fetchProfile(userId: string): Promise<ProfileRecord | null> {
 
 function buildCachedUser(user: SupabaseAuthUser, profile: ProfileRecord | null): CachedUser {
   const username =
-    profile?.username ||
-    user.user_metadata?.full_name ||
-    user.email?.split('@')[0] ||
+    profile?.username ??
+    user.user_metadata?.full_name ??
+    user.email?.split('@')[0] ??
     AUTH_CONSTANTS.DEFAULT_USERNAME;
 
   return {
     id: user.id,
     email: user.email,
     username,
-    role: profile?.role || AUTH_CONSTANTS.DEFAULT_ROLE,
-    avatar_url: profile?.avatar_url || '',
+    role: profile?.role ?? AUTH_CONSTANTS.DEFAULT_ROLE,
+    avatar_url: profile?.avatar_url ?? '',
     app_metadata: user.app_metadata,
   };
 }

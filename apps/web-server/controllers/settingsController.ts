@@ -79,7 +79,7 @@ interface PostgrestErrorLike {
   message?: string;
 }
 
-type SettingTransformer = (value: unknown) => Promise<unknown> | unknown;
+type SettingTransformer = (value: unknown) => unknown;
 
 /**
  * Determines whether the user possesses administrative privileges.

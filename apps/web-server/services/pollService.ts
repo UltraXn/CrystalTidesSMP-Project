@@ -99,10 +99,10 @@ interface AggregatedPollOptions {
 }
 
 const aggregateOptionVotes = (options: PollOption[]): AggregatedPollOptions => {
-  const totalVotes = options.reduce((sum: number, opt: PollOption) => sum + (opt.votes || 0), 0);
+  const totalVotes = options.reduce((sum: number, opt: PollOption) => sum + (opt.votes ?? 0), 0);
   const optionsWithPercent: OptionWithPercent[] = options.map((opt: PollOption) => ({
     ...opt,
-    percent: totalVotes === 0 ? 0 : Math.round(((opt.votes || 0) / totalVotes) * 100),
+    percent: totalVotes === 0 ? 0 : Math.round(((opt.votes ?? 0) / totalVotes) * 100),
   }));
 
   return { totalVotes, optionsWithPercent };
@@ -154,7 +154,7 @@ const computePollTotalVotes = (
 ): number => {
   return options
     .filter((opt) => opt.poll_id === pollId)
-    .reduce((acc: number, curr) => acc + (curr.votes || 0), 0);
+    .reduce((acc: number, curr) => acc + (curr.votes ?? 0), 0);
 };
 
 // --- Helper Functions: Vote Validations & Operations ---
@@ -387,8 +387,8 @@ export const createPoll = async ({
         question_en: finalQuestionEn,
         is_active: true,
         closes_at,
-        thread_id: thread_id || null,
-        discord_link: discord_link || null,
+        thread_id: thread_id ?? null,
+        discord_link: discord_link ?? null,
       },
     ])
     .select()
@@ -441,7 +441,10 @@ export const updatePoll = async (
 };
 
 export const closePoll = async (id: number) => {
-  const { error } = await supabase.from(TABLES.POLLS).update({ is_active: false }).eq(COLUMNS.ID, id);
+  const { error } = await supabase
+    .from(TABLES.POLLS)
+    .update({ is_active: false })
+    .eq(COLUMNS.ID, id);
 
   if (error) throw error;
   return { success: true };
@@ -494,6 +497,6 @@ export const getPolls = async ({ page = 1, limit = 10 }: PaginatedPollsQuery) =>
     data: enrichedPolls,
     total: count,
     page,
-    totalPages: Math.ceil((count || 0) / limit),
+    totalPages: Math.ceil((count ?? 0) / limit),
   };
 };

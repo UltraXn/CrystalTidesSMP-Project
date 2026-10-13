@@ -10,9 +10,9 @@ export const DISCORD_ROLES = {
 } as const;
 
 // Configuration & Endpoint constants
-const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN || '';
+const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN ?? '';
 const ANNOUNCEMENTS_CHANNEL_ID =
-  process.env.DISCORD_ANNOUNCEMENTS_CHANNEL_ID || '1297052480676560906';
+  process.env.DISCORD_ANNOUNCEMENTS_CHANNEL_ID ?? '1297052480676560906';
 const DISCORD_API_BASE_URL = 'https://discord.com/api/v10';
 const DISCORD_CDN_AVATAR_BASE_URL = 'https://cdn.discordapp.com/avatars';
 const ANNOUNCEMENTS_LIMIT = 5;
@@ -89,7 +89,7 @@ const resolveAuthorUsername = (author?: DiscordAuthor): string => {
   if (!author) {
     return DISCORD_ROLES.STAFF;
   }
-  return author.global_name || author.username || DISCORD_ROLES.STAFF;
+  return author.global_name ?? author.username ?? DISCORD_ROLES.STAFF;
 };
 
 /**

@@ -7,7 +7,7 @@ import vault from 'node-vault';
 export async function initVault(): Promise<boolean> {
   const vaultAddr = process.env.VAULT_ADDR;
   const vaultToken = process.env.VAULT_TOKEN;
-  const secretPath = process.env.VAULT_SECRET_PATH || 'secret/data/crystaltides';
+  const secretPath = process.env.VAULT_SECRET_PATH ?? 'secret/data/crystaltides';
 
   if (!vaultAddr || !vaultToken) {
     console.log('🔑 [Vault] VAULT_ADDR or VAULT_TOKEN not set. Using local .env fallback.');
@@ -58,7 +58,9 @@ export async function initVault(): Promise<boolean> {
     console.log(`✅ [Vault] Loaded ${Object.keys(secrets).length} secrets into environment.`);
     return true;
   } catch (error) {
-    console.error(`❌ [Vault] Failed to initialize Vault: ${error instanceof Error ? error.message : error}`);
+    console.error(
+      `❌ [Vault] Failed to initialize Vault: ${error instanceof Error ? error.message : error}`,
+    );
     return false;
   }
 }

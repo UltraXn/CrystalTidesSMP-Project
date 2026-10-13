@@ -24,8 +24,8 @@ RUN pnpm install --frozen-lockfile
 # Copy full pruned source and build
 COPY --from=pruner /app/out/full/ .
 ENV NODE_OPTIONS=--max-old-space-size=8192
-RUN pnpm turbo run build --filter=@crystaltides/server...
-RUN pnpm prune --prod
+RUN pnpm turbo run build --filter=@crystaltides/server... \
+  && pnpm prune --prod
 
 FROM node:24-alpine AS runner
 WORKDIR /app
@@ -46,6 +46,6 @@ USER app
 EXPOSE 3001
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=25s --retries=3 \
-  CMD curl -fsS "http://127.0.0.1:${PORT}/api/system/health" || exit 1
+  CMD ["curl", "-fsS", "http://127.0.0.1:3001/api/system/health"]
 
 CMD ["node", "apps/web-server/dist/index.js"]

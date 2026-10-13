@@ -91,8 +91,8 @@ export const createThread = async (req: Request, res: Response) => {
       poll_data,
       user_data: {
         id: req.user.id,
-        name: req.user.username || FORUM_CONSTANTS.UNKNOWN_USER,
-        avatar: req.user.avatar_url || '',
+        name: req.user.username ?? FORUM_CONSTANTS.UNKNOWN_USER,
+        avatar: req.user.avatar_url ?? '',
         role: req.user.role,
       },
     });
@@ -120,8 +120,8 @@ export const createPost = async (req: Request, res: Response) => {
       content: req.body.content,
       user_data: {
         id: req.user.id,
-        name: req.user.username || FORUM_CONSTANTS.UNKNOWN_USER,
-        avatar: req.user.avatar_url || '',
+        name: req.user.username ?? FORUM_CONSTANTS.UNKNOWN_USER,
+        avatar: req.user.avatar_url ?? '',
         role: req.user.role,
       },
     });

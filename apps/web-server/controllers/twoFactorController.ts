@@ -84,7 +84,7 @@ export const setup2FA = async (req: Request, res: Response) => {
       return sendError(res, TWO_FACTOR_ERRORS.UNAUTHORIZED, ERROR_CODES.UNAUTHORIZED, 401);
     }
 
-    const email = user.email || 'user';
+    const email = user.email ?? 'user';
     const { otpauth_url, base32 } = twoFactorService.generateSecret(email);
 
     if (!otpauth_url) {

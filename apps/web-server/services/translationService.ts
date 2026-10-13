@@ -21,7 +21,7 @@ export const translateText = async (text: string, targetLang: string = 'en'): Pr
         forceBatch: false,
         rejectOnPartialFail: false,
       });
-      const translatedText = res.text as string;
+      const translatedText = res.text;
 
       // Apply replacements
       return translatedText.replace(PROTECTION_REGEX, (match) => {

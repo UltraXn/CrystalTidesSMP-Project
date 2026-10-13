@@ -129,12 +129,12 @@ const ERRORS = {
   FORBIDDEN_POST: 'Forbidden: You do not own this post',
 } as const;
 
-const THREAD_POST_COUNT_SELECT = '*, forum_posts(count)' as const;
-const AUTHOR_ACTIVITY_SELECT = 'author_name, created_at' as const;
+const THREAD_POST_COUNT_SELECT = '*, forum_posts(count)';
+const AUTHOR_ACTIVITY_SELECT = 'author_name, created_at';
 const EXACT_COUNT_CONFIG = { count: 'exact', head: true } as const;
 
 const BASE_PROFILE_FIELDS =
-  'username, full_name, avatar_url, role, status_message, avatar_preference, community_pref, minecraft_uuid, minecraft_nick, social_discord, social_avatar_url' as const;
+  'username, full_name, avatar_url, role, status_message, avatar_preference, community_pref, minecraft_uuid, minecraft_nick, social_discord, social_avatar_url';
 const PROFILE_SELECT_FIELDS = `id, ${BASE_PROFILE_FIELDS}` as const;
 
 const slugify = (text: string): string => {
@@ -255,8 +255,8 @@ const attachPollToThread = async (
   const poll = await pollService.createPoll({
     thread_id: threadId,
     title: `${title} - Encuesta`,
-    question: pollData.question || 'Encuesta externa',
-    options: pollData.options || [],
+    question: pollData.question ?? 'Encuesta externa',
+    options: pollData.options ?? [],
     closes_at: pollData.closes_at,
     discord_link: pollData.discord_link,
   });

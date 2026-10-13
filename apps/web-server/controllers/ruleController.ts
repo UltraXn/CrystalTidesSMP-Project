@@ -84,8 +84,8 @@ const recordAuditLog = (req: Request, action: string, details: string): void => 
   const editor = (req as AuthenticatedRequest).user;
   logService
     .createLog({
-      user_id: editor?.id || undefined,
-      username: editor?.username || DEFAULT_AUDIT_USER,
+      user_id: editor?.id ?? undefined,
+      username: editor?.username ?? DEFAULT_AUDIT_USER,
       action,
       details,
       source: AUDIT_SOURCE,
@@ -114,8 +114,8 @@ const resolveTranslations = async ({
   }
 
   return {
-    finalTitleEn: resolvedTitleEn || title,
-    finalContentEn: resolvedContentEn || content,
+    finalTitleEn: resolvedTitleEn ?? title,
+    finalContentEn: resolvedContentEn ?? content,
   };
 };
 
@@ -155,7 +155,7 @@ export const createRule = async (req: Request, res: Response) => {
       title_en: finalTitleEn,
       content,
       content_en: finalContentEn,
-      sort_order: sort_order || 0,
+      sort_order: sort_order ?? 0,
     });
 
     recordAuditLog(req, ACTIONS.CREATE_RULE, `Created rule: ${title} (${category})`);

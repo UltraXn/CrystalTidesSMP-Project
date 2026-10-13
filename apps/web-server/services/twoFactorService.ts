@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 import supabase from '../config/supabaseClient.js';
 
 const ADMIN_JWT_SECRET =
-  process.env.ADMIN_JWT_SECRET ||
+  process.env.ADMIN_JWT_SECRET ??
   (process.env.NODE_ENV === 'test' ? 'test-admin-jwt-secret' : undefined);
 if (!ADMIN_JWT_SECRET) {
   throw new Error('ADMIN_JWT_SECRET environment variable is required');
@@ -18,7 +18,7 @@ export const generateSecret = (email: string) => {
   // Authy/authenticator logo support (non-standard but widely supported)
   // Ideally this should be an absolute URL to the hosted logo
   const logoUrl =
-    process.env.TWO_FACTOR_LOGO_URL ||
+    process.env.TWO_FACTOR_LOGO_URL ??
     'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/master-ball.png';
   const otpauth_url = secret.otpauth_url
     ? `${secret.otpauth_url}&image=${encodeURIComponent(logoUrl)}`

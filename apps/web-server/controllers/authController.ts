@@ -85,13 +85,13 @@ export const createPasswordFieldSchema = () =>
     .max(AUTH_PASSWORD_RULES.MAX_LENGTH);
 
 export const RegisterUserSchema = z.object({
-  email: z.string().email(AUTH_MESSAGES.INVALID_EMAIL),
+  email: z.email(),
   password: createPasswordFieldSchema(),
   username: z
     .string()
-    .min(3, AUTH_MESSAGES.USERNAME_MIN_LENGTH)
+    .min(3, { message: AUTH_MESSAGES.USERNAME_MIN_LENGTH })
     .max(30)
-    .regex(/^\w+$/, AUTH_MESSAGES.USERNAME_INVALID_CHARS),
+    .regex(/^\w+$/, { message: AUTH_MESSAGES.USERNAME_INVALID_CHARS }),
   website: z.string().optional(),
   turnstileToken: z.string().optional(),
 });
