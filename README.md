@@ -19,13 +19,13 @@
 
 ## ✨ Features Highlights
 
-| | |
-| :--- | :--- |
+|                              |                                                                                                        |
+| :--------------------------- | :----------------------------------------------------------------------------------------------------- |
 | 🌐 **Modern Web Experience** | React 19 + Vite 6 + Tailwind 4. Premium UI with Glassmorphism, 3D skin previews, and micro-animations. |
-| 🌉 **CrystalBridge V2** | Real-time command execution (<50ms) using a hybrid WebSocket/SQL queue architecture. No RCON required. |
-| 🎰 **Secure Gacha System** | Advanced visual gacha with server-side validation and secure roll logic. |
-| 🛡️ **Staff Master Hub** | Interactive Kanban boards, task synchronization, and staff management tools. |
-| 🦋 **Native Launcher** | Cross-platform desktop client built with Tauri v2 (React + Rust) with custom installer & uninstaller. |
+| 🌉 **CrystalBridge V2**      | Real-time command execution (<50ms) using a hybrid WebSocket/SQL queue architecture. No RCON required. |
+| 🎰 **Secure Gacha System**   | Advanced visual gacha with server-side validation and secure roll logic.                               |
+| 🛡️ **Staff Master Hub**      | Interactive Kanban boards, task synchronization, and staff management tools.                           |
+| 🦋 **Native Launcher**       | Cross-platform desktop client built with Tauri v2 (React + Rust) with custom installer & uninstaller.  |
 
 ## 🛠️ Tech Stack
 
@@ -77,6 +77,7 @@ flowchart TB
   - **`uninstaller/`**: CTLauncher Uninstaller — clean removal tool.
 - **`apps/game-bridge/`**: Native Rust bridge for real-time game integration.
 - **`plugins/crystalcore`**: Java plugin for the Minecraft core.
+- **`mods/crystaltides-boost`**: Multiloader low-level client optimization mod (ThreadQoS, SaveSkip, Occlusion).
 - **`packages/shared`**: Shared types and utilities across the monorepo.
 
 ## 🚀 Getting Started
@@ -105,6 +106,7 @@ flowchart TB
 ---
 
 ## 🗺️ Roadmap 2026
+
 - [x] **CrystalBridge V2** (WebSocket + SQL)
 - [x] **KilluCoin Gacha** (Secure Backend)
 - [/] **Live Activity Feed** ("The Pulse")

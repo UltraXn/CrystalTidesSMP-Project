@@ -5,6 +5,10 @@
     "cweijan.vscode-database-client2",
     "oxc.oxc-vscode",
     "dbaeumer.vscode-eslint",
-    "ms-vscode.cmake-tools"
+    "ms-vscode.cmake-tools",
+    "redhat.java",
+    "vscjava.vscode-java-pack",
+    "shengchen.vscode-checkstyle",
+    "SonarSource.sonarlint-vscode"
   ]
 }

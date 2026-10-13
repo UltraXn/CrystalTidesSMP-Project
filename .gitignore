@@ -24,6 +24,8 @@ dist-ssr
 *.sln
 minecraft-plugin/
 .turbo/
+.gradle/
+**/.gradle/
 .env*
 !.env.example
 
@@ -60,6 +62,7 @@ build/
 target/
 **/target/
 **/src-tauri/target/
+*.class
 .trunk/
 bun.lock
 windows/
@@ -118,6 +121,7 @@ rd_report.txt
 vite.config.d.ts
 .wrangler/
 **/.wrangler/
+.scannerwork
 
 # Temporary Directories
 tmp/
