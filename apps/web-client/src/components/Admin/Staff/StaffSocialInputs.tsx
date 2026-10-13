@@ -54,7 +54,7 @@ interface StaffSocialInputsProps {
   onChange: (network: string, value: string) => void;
 }
 
-export function StaffSocialInputs({ socials, onChange }: StaffSocialInputsProps) {
+export function StaffSocialInputs({ socials, onChange }: Readonly<StaffSocialInputsProps>) {
   return (
     <>
       <div>
@@ -64,7 +64,7 @@ export function StaffSocialInputs({ socials, onChange }: StaffSocialInputsProps)
         <input
           id="staff-discord"
           className="admin-input-premium"
-          value={socials?.discord || ''}
+          value={socials?.discord ?? ''}
           onChange={(e) => onChange('discord', e.target.value)}
           placeholder="Usuario o IDs"
         />
@@ -76,7 +76,7 @@ export function StaffSocialInputs({ socials, onChange }: StaffSocialInputsProps)
         <input
           id="staff-twitch"
           className="admin-input-premium"
-          value={socials?.twitch || ''}
+          value={socials?.twitch ?? ''}
           onChange={(e) => onChange('twitch', e.target.value)}
           placeholder="twitch.tv/..."
         />
@@ -88,7 +88,7 @@ export function StaffSocialInputs({ socials, onChange }: StaffSocialInputsProps)
         <input
           id="staff-twitter"
           className="admin-input-premium"
-          value={socials?.twitter || ''}
+          value={socials?.twitter ?? ''}
           onChange={(e) => onChange('twitter', e.target.value)}
           placeholder="https://x.com/..."
         />
@@ -100,7 +100,7 @@ export function StaffSocialInputs({ socials, onChange }: StaffSocialInputsProps)
         <input
           id="staff-youtube"
           className="admin-input-premium"
-          value={socials?.youtube || ''}
+          value={socials?.youtube ?? ''}
           onChange={(e) => onChange('youtube', e.target.value)}
           placeholder="https://youtube.com/..."
         />

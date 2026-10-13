@@ -135,9 +135,8 @@ const CustomToolbar = (props: ToolbarProps<CalendarEvent, object>) => {
       </div>
 
       <div className="toolbar-right">
-        <div
-          className="view-switcher-pill"
-          role="group"
+        <fieldset
+          className="view-switcher-pill m-0 min-w-0"
           aria-label={t(
             'admin.staff_hub.calendar.view_selector',
             'Seleccionar vista del calendario',
@@ -157,7 +156,7 @@ const CustomToolbar = (props: ToolbarProps<CalendarEvent, object>) => {
               )}
             </button>
           ))}
-        </div>
+        </fieldset>
       </div>
     </div>
   );
@@ -183,7 +182,7 @@ const CustomEvent = ({ event }: { event: CalendarEvent }) => {
 
 const eventStyleGetter = (event: CalendarEvent) => {
   return {
-    className: `calendar-event-${event.type || 'default'}`,
+    className: `calendar-event-${event.type ?? 'default'}`,
     style: {
       backgroundColor: 'transparent',
       border: 'none',
@@ -210,7 +209,7 @@ export default function CalendarView({
       tasks.reduce<CalendarEvent[]>((acc, task) => {
         if (task.columnId === 'idea') return acc; // Exclude Backlog tasks from calendar
 
-        const startDate = new Date(task.due_date || task.created_at);
+        const startDate = new Date(task.due_date ?? task.created_at);
         let endDate;
         if (task.end_date) {
           endDate = new Date(task.end_date);
@@ -242,8 +241,8 @@ export default function CalendarView({
       (googleEvents || []).map((event) => ({
         id: event.id,
         title: event.summary,
-        start: new Date(event.start.dateTime || event.start.date || ''),
-        end: new Date(event.end.dateTime || event.end.date || ''),
+        start: new Date(event.start.dateTime ?? event.start.date ?? ''),
+        end: new Date(event.end.dateTime ?? event.end.date ?? ''),
         resource: { id: -1, title: event.summary, columnId: 'google', url: event.htmlLink },
         hexColor: '#1e3a8a', // Deeper Google Blue
         isDraggable: false,

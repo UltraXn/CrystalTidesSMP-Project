@@ -38,7 +38,7 @@ interface PlaystyleRadarProps {
 // El 100% (borde máximo del pentágono) se reserva para el Top 1 del servidor en esa categoría
 const getTopRelativeScore = (val: number, top1Val?: number, isTop1?: boolean) => {
   if (isTop1) return 100;
-  const benchmark = Math.max(top1Val || 100000, 100);
+  const benchmark = Math.max(top1Val ?? 100000, 100);
   return Math.min(99, Math.max(10, Math.round((val / benchmark) * 100)));
 };
 
@@ -49,7 +49,7 @@ const PlaystyleRadarFinal: React.FC<Readonly<PlaystyleRadarProps>> = ({ stats })
   const blocksTotal = (stats.blocksPlaced || 0) + (stats.blocksMined || 0);
   const scoreConstructor = getTopRelativeScore(
     blocksTotal,
-    stats.top1ConstructorScore || 100000,
+    stats.top1ConstructorScore ?? 100000,
     stats.isTop1Constructor,
   );
 
@@ -57,7 +57,7 @@ const PlaystyleRadarFinal: React.FC<Readonly<PlaystyleRadarProps>> = ({ stats })
   const combatPoints = (stats.kills || 0) * 15 + (stats.mobKills || 0);
   const scoreLuchador = getTopRelativeScore(
     combatPoints,
-    stats.top1LuchadorScore || 5000,
+    stats.top1LuchadorScore ?? 5000,
     stats.isTop1Luchador,
   );
 
@@ -66,25 +66,25 @@ const PlaystyleRadarFinal: React.FC<Readonly<PlaystyleRadarProps>> = ({ stats })
   const merchantLogPoints = Math.round(100 * Math.log10(moneyVal));
   const scoreMercader = getTopRelativeScore(
     merchantLogPoints,
-    stats.top1MercaderScore || 500,
+    stats.top1MercaderScore ?? 500,
     stats.isTop1Mercader,
   );
 
   // 4. Constancia: Exponencial (Días de Racha)^2
-  const streakDays = Math.max(1, stats.streakDays || 1);
+  const streakDays = Math.max(1, stats.streakDays ?? 1);
   const streakPoints = Math.pow(streakDays, 2);
   const scoreConstancia = getTopRelativeScore(
     streakPoints,
-    stats.top1ConstanciaScore || 900,
+    stats.top1ConstanciaScore ?? 900,
     stats.isTop1Constancia,
   );
 
   // 5. Explorador: (Horas * 10) + (Km Recorridos)
-  const kmTraveled = stats.distanceKm || stats.playtimeHours * 35;
+  const kmTraveled = stats.distanceKm ?? stats.playtimeHours * 35;
   const explorerPoints = stats.playtimeHours * 10 + kmTraveled;
   const scoreExplorador = getTopRelativeScore(
     explorerPoints,
-    stats.top1ExploradorScore || 3000,
+    stats.top1ExploradorScore ?? 3000,
     stats.isTop1Explorador,
   );
 

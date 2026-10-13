@@ -40,7 +40,7 @@ const MinecraftAvatar: React.FC<Readonly<MinecraftAvatarProps>> = ({
   }, [src]);
 
   // Si no hay src o es un nickname corto, usamos mc-heads (fallback interno)
-  const finalSrc = src || 'MHF_Steve';
+  const finalSrc = src ?? 'MHF_Steve';
 
   // Si es un Nickname (no una URL o ruta de archivo local)
   const isUrl = finalSrc.startsWith('http') || finalSrc.startsWith('/') || finalSrc.includes('/');
@@ -97,7 +97,6 @@ const MinecraftAvatar: React.FC<Readonly<MinecraftAvatarProps>> = ({
    */
   return (
     <div
-      role="img"
       className={`mc-head-crop ${className}`}
       style={{
         width: '100%',
@@ -112,8 +111,15 @@ const MinecraftAvatar: React.FC<Readonly<MinecraftAvatarProps>> = ({
         flexShrink: 0,
         ...style,
       }}
-      aria-label={alt}
     >
+      <img
+        src={finalSrc}
+        alt={alt}
+        className="sr-only"
+        onError={(e) => {
+          e.currentTarget.src = fallback;
+        }}
+      />
       {/* Capa de Accesorio (Hat/Helmet) */}
       <div
         style={{

@@ -43,21 +43,25 @@ export default function KanbanColumn({
   };
 
   return (
-    <div
+    <section
+      aria-label={column.title}
       className={`kanban-column ${!isExpanded ? 'collapsed' : ''}`}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
     >
-      <div
+      <button
+        type="button"
         className="column-header-premium"
         onClick={() => setIsExpanded(!isExpanded)}
-        role="button"
-        tabIndex={0}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            setIsExpanded(!isExpanded);
-          }
+        aria-expanded={isExpanded}
+        style={{
+          width: '100%',
+          background: 'none',
+          border: 'none',
+          borderBottom: isExpanded ? '1px solid rgba(255, 255, 255, 0.05)' : 'none',
+          color: 'inherit',
+          font: 'inherit',
+          textAlign: 'inherit',
         }}
       >
         <span className="column-count-premium">{cards.length}</span>
@@ -73,7 +77,7 @@ export default function KanbanColumn({
         <div className="toggle-icon-premium">
           {isExpanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
         </div>
-      </div>
+      </button>
 
       {isExpanded && (
         <div className="kanban-cards-container">
@@ -94,6 +98,6 @@ export default function KanbanColumn({
           )}
         </div>
       )}
-    </div>
+    </section>
   );
 }

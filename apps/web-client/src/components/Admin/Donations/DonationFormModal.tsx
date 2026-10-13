@@ -51,7 +51,7 @@ export default function DonationFormModal({
 
   if (!isOpen) return null;
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
@@ -132,7 +132,7 @@ export default function DonationFormModal({
                 <input
                   id="donation-email"
                   className="admin-input-premium"
-                  value={formData.buyer_email || ''}
+                  value={formData.buyer_email ?? ''}
                   onChange={(e) => setFormData({ ...formData, buyer_email: e.target.value })}
                   placeholder="email@ejemplo.com"
                 />
@@ -189,22 +189,16 @@ export default function DonationFormModal({
               </div>
 
               <div className="form-group">
-                <div
-                  className={`custom-checkbox-premium ${formData.is_public ? 'checked' : ''}`}
-                  onClick={() => setFormData({ ...formData, is_public: !formData.is_public })}
-                  role="checkbox"
-                  aria-checked={formData.is_public}
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      setFormData({ ...formData, is_public: !formData.is_public });
-                    }
-                  }}
-                >
+                <label className={`custom-checkbox-premium ${formData.is_public ? 'checked' : ''}`}>
+                  <input
+                    type="checkbox"
+                    className="sr-only"
+                    checked={formData.is_public}
+                    onChange={(e) => setFormData({ ...formData, is_public: e.target.checked })}
+                  />
                   <div className="checkbox-visual">{formData.is_public && <CheckCircle />}</div>
                   <div className="checkbox-label-text">{t('admin.donations.form.is_public')}</div>
-                </div>
+                </label>
               </div>
 
               <div className="form-group">

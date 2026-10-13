@@ -82,7 +82,7 @@ function useSiteConfigManager(user: User | null, t: (key: string) => string) {
 
   const handleUpdate = useCallback(
     async (key: string, value: string | boolean) => {
-      const username = user?.user_metadata?.full_name || user?.email || 'Admin';
+      const username = user?.user_metadata?.full_name ?? user?.email ?? 'Admin';
 
       updateSettingMutation.mutate(
         {
@@ -494,7 +494,7 @@ export default function SiteConfig() {
                   <input
                     id="recruitment-link"
                     className="admin-input-premium"
-                    value={settings.recruitment_link || ''}
+                    value={settings.recruitment_link ?? ''}
                     onChange={(e) =>
                       setLocalSettings((prev) => ({ ...prev, recruitment_link: e.target.value }))
                     }
@@ -513,7 +513,7 @@ export default function SiteConfig() {
                       updateSettingMutation.variables?.key === 'recruitment_link'
                     }
                     onClick={() =>
-                      handleUpdate('recruitment_link', settings.recruitment_link || '')
+                      handleUpdate('recruitment_link', settings.recruitment_link ?? '')
                     }
                     style={{
                       width: '48px',
@@ -605,7 +605,12 @@ interface ConfigSectionProps {
   defaultOpen?: boolean;
 }
 
-function ConfigSection({ title, icon, children, defaultOpen = false }: ConfigSectionProps) {
+function ConfigSection({
+  title,
+  icon,
+  children,
+  defaultOpen = false,
+}: Readonly<ConfigSectionProps>) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
@@ -694,16 +699,11 @@ interface ThemeCardProps {
 
 function ThemeCard({ active, onClick, icon, title, color, loading }: Readonly<ThemeCardProps>) {
   return (
-    <div
+    <button
+      type="button"
       onClick={onClick}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onClick();
-        }
-      }}
+      disabled={loading}
+      aria-pressed={active}
       style={{
         background: active
           ? `linear-gradient(135deg, ${color}22, transparent)`
@@ -713,6 +713,9 @@ function ThemeCard({ active, onClick, icon, title, color, loading }: Readonly<Th
         padding: '1.5rem 1rem',
         textAlign: 'center',
         cursor: 'pointer',
+        font: 'inherit',
+        color: 'inherit',
+        width: '100%',
         transition:
           'color 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         opacity: loading && !active ? 0.5 : 1,
@@ -766,6 +769,6 @@ function ThemeCard({ active, onClick, icon, title, color, loading }: Readonly<Th
       >
         {title}
       </h4>
-    </div>
+    </button>
   );
 }

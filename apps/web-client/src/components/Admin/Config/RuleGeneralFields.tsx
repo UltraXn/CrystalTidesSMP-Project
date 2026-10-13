@@ -69,7 +69,7 @@ export function RuleGeneralFields({ formData, setFormData }: Readonly<RuleGenera
           <input
             id="rule-color-picker"
             type="color"
-            value={formData.color || '#6366f1'}
+            value={formData.color ?? '#6366f1'}
             onChange={(e) => setFormData({ ...formData, color: e.target.value })}
             style={{
               width: '48px',
@@ -85,7 +85,7 @@ export function RuleGeneralFields({ formData, setFormData }: Readonly<RuleGenera
             aria-label={t('admin.settings.rules.color_hex', 'Código hexadecimal del color')}
             type="text"
             className="admin-input-premium"
-            value={formData.color || '#6366f1'}
+            value={formData.color ?? '#6366f1'}
             onChange={(e) => setFormData({ ...formData, color: e.target.value })}
             placeholder="#HEX"
             style={{ flex: 1, fontFamily: 'monospace' }}

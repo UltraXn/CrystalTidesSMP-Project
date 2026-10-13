@@ -18,7 +18,8 @@ export const VersionCard: React.FC<Readonly<VersionCardProps>> = ({
   onClose,
 }) => {
   return (
-    <div
+    <article
+      className="version-card"
       style={{
         position: 'relative',
         borderRadius: 16,
@@ -32,14 +33,6 @@ export const VersionCard: React.FC<Readonly<VersionCardProps>> = ({
         overflow: 'hidden',
         boxShadow: '0 10px 24px rgba(0, 0, 0, 0.5)',
         transition: 'transform 200ms ease, border-color 200ms ease',
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.transform = 'translateY(-3px)';
-        e.currentTarget.style.borderColor = 'rgba(45, 212, 191, 0.5)';
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = 'translateY(0)';
-        e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
       }}
     >
       {/* Top Row */}
@@ -165,6 +158,6 @@ export const VersionCard: React.FC<Readonly<VersionCardProps>> = ({
           <Settings2 size={15} aria-hidden="true" />
         </button>
       </div>
-    </div>
+    </article>
   );
 };

@@ -31,10 +31,10 @@ export function mergeArticleList(
       merged[matchIndex] = {
         ...merged[matchIndex],
         ...remote,
-        model_3d_url: remote.model_3d_url || merged[matchIndex].model_3d_url,
+        model_3d_url: remote.model_3d_url ?? merged[matchIndex].model_3d_url,
         model_3d_url_phase_2:
-          remote.model_3d_url_phase_2 || merged[matchIndex].model_3d_url_phase_2,
-        texture_url: remote.texture_url || merged[matchIndex].texture_url,
+          remote.model_3d_url_phase_2 ?? merged[matchIndex].model_3d_url_phase_2,
+        texture_url: remote.texture_url ?? merged[matchIndex].texture_url,
         boss_phases: remote.boss_phases || merged[matchIndex].boss_phases,
         boss_phase_1_attacks:
           remote.boss_phase_1_attacks || merged[matchIndex].boss_phase_1_attacks,
@@ -59,9 +59,9 @@ export function mergeArticleDetail(
   return {
     ...localMatch,
     ...remote,
-    model_3d_url: remote.model_3d_url || localMatch?.model_3d_url,
-    model_3d_url_phase_2: remote.model_3d_url_phase_2 || localMatch?.model_3d_url_phase_2,
-    texture_url: remote.texture_url || localMatch?.texture_url,
+    model_3d_url: remote.model_3d_url ?? localMatch?.model_3d_url,
+    model_3d_url_phase_2: remote.model_3d_url_phase_2 ?? localMatch?.model_3d_url_phase_2,
+    texture_url: remote.texture_url ?? localMatch?.texture_url,
     boss_phases: remote.boss_phases || localMatch?.boss_phases,
     boss_phase_1_attacks: remote.boss_phase_1_attacks || localMatch?.boss_phase_1_attacks,
     boss_phase_2_attacks: remote.boss_phase_2_attacks || localMatch?.boss_phase_2_attacks,
@@ -167,8 +167,8 @@ export function useWikiData(slug?: string) {
       (a) =>
         a.title.toLowerCase().includes(q) ||
         a.category.toLowerCase().includes(q) ||
-        (a.boss_mod_name || '').toLowerCase().includes(q) ||
-        (a.content || '').toLowerCase().includes(q),
+        (a.boss_mod_name ?? '').toLowerCase().includes(q) ||
+        (a.content ?? '').toLowerCase().includes(q),
     );
   }, [articles, portalSearch]);
 

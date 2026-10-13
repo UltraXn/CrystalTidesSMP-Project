@@ -1,7 +1,7 @@
 import { Loader2, Film } from 'lucide-react';
 import { WikiArticle } from '../../../../services/wikiService';
 
-const BOX_BORDER_BOX = 'border-box' as const;
+const BOX_BORDER_BOX: React.CSSProperties['boxSizing'] = 'border-box';
 const DARK_BG = 'rgba(0,0,0,0.4)';
 const WHITE_BORDER_10 = '1px solid rgba(255,255,255,0.1)';
 
@@ -29,7 +29,7 @@ export function BossPhaseConfig({
   onUpdatePhaseField,
   onRemovePhase,
   onAssignClip,
-}: BossPhaseConfigProps) {
+}: Readonly<BossPhaseConfigProps>) {
   return (
     <div
       style={{

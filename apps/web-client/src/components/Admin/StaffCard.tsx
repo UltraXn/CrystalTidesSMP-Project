@@ -102,7 +102,7 @@ const StaffCard: React.FC<Readonly<StaffCardProps>> = ({
         <div className="staff-avatar-ring" style={{ boxShadow: `0 0 20px ${data.color}20` }}>
           <div className="staff-avatar-content">
             <MinecraftAvatar
-              src={data.image || data.mc_nickname || data.name}
+              src={data.image ?? data.mc_nickname ?? data.name}
               alt={data.name}
               size={128}
             />

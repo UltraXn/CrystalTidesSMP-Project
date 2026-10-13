@@ -101,7 +101,7 @@ export const RuleCard: React.FC<Readonly<RuleCardProps>> = ({
   t,
 }) => {
   const categoryName = rule.category || DEFAULT_CATEGORY;
-  const accent = rule.color || getCategoryColor(categoryName);
+  const accent = rule.color ?? getCategoryColor(categoryName);
   const severity = getRuleSeverity(categoryName, rule.title, t);
   const examples = getRuleExamples(categoryName, rule.title, language);
   const commands = getRuleCommands(categoryName);

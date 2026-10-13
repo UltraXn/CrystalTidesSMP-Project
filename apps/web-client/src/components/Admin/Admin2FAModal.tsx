@@ -25,7 +25,7 @@ export default function Admin2FAModal({
 
   if (!isOpen) return null;
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (code.length < 6) return;
 

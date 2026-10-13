@@ -25,28 +25,47 @@ interface WikiArticlePreviewProps {
   formData: Partial<WikiArticle>;
 }
 
+const DEFAULT_BOSS_PREVIEW = {
+  modelPath: '/models/toro_wither.gltf',
+  modelPathPhase2: '/models/toro_wither_terror.gltf',
+  bossName: 'Nombre del Jefe',
+  subtitle: 'Jefe de Mazmorra In-Game',
+  hp: '600 HP',
+  hpPhase2: '800 HP (DarkenSky Activo)',
+  damage: '35 Daño',
+  damagePhase2: '50 Daño Crítico (NoDamageTicks: 1)',
+  armor: '1.0 Resistencia al Empuje',
+  speed: 'MovementSpeed 0.2 Velocidad de Vuelo (Rango 64)',
+  location: 'Nether / Mazmorra Olvidada',
+  spawnMethod: 'Invocado con el Cráneo de Tormenta Olvidada en el Altar Ancestral',
+  drops: ['Recompensa Mítica'] as string[],
+  kcReward: 4500,
+};
+
+function resolveBossDrops(drops?: string[]): string[] {
+  if (drops && drops.length > 0) {
+    return drops;
+  }
+  return DEFAULT_BOSS_PREVIEW.drops;
+}
+
 function getBossPreviewProps(formData: Partial<WikiArticle>) {
   return {
-    modelPath: formData.model_3d_url || '/models/toro_wither.gltf',
-    modelPathPhase2: formData.model_3d_url_phase_2 || '/models/toro_wither_terror.gltf',
-    bossName: formData.title || 'Nombre del Jefe',
-    subtitle: formData.boss_subtitle || formData.description || 'Jefe de Mazmorra In-Game',
-    hp: formData.boss_hp || '600 HP',
-    hpPhase2: formData.boss_hp_phase_2 || '800 HP (DarkenSky Activo)',
-    damage: formData.boss_damage || '35 Daño',
-    damagePhase2: formData.boss_damage_phase_2 || '50 Daño Crítico (NoDamageTicks: 1)',
-    armor: formData.boss_armor || '1.0 Resistencia al Empuje',
-    speed: formData.boss_speed || 'MovementSpeed 0.2 Velocidad de Vuelo (Rango 64)',
-    location: formData.boss_location || 'Nether / Mazmorra Olvidada',
-    spawnMethod:
-      formData.boss_spawn_method ||
-      'Invocado con el Cráneo de Tormenta Olvidada en el Altar Ancestral',
-    description: formData.content || formData.description,
-    drops:
-      formData.boss_drops && formData.boss_drops.length > 0
-        ? formData.boss_drops
-        : ['Recompensa Mítica'],
-    kcReward: formData.boss_kc_reward || 4500,
+    modelPath: formData.model_3d_url ?? DEFAULT_BOSS_PREVIEW.modelPath,
+    modelPathPhase2: formData.model_3d_url_phase_2 ?? DEFAULT_BOSS_PREVIEW.modelPathPhase2,
+    bossName: formData.title ?? DEFAULT_BOSS_PREVIEW.bossName,
+    subtitle: formData.boss_subtitle ?? formData.description ?? DEFAULT_BOSS_PREVIEW.subtitle,
+    hp: formData.boss_hp ?? DEFAULT_BOSS_PREVIEW.hp,
+    hpPhase2: formData.boss_hp_phase_2 ?? DEFAULT_BOSS_PREVIEW.hpPhase2,
+    damage: formData.boss_damage ?? DEFAULT_BOSS_PREVIEW.damage,
+    damagePhase2: formData.boss_damage_phase_2 ?? DEFAULT_BOSS_PREVIEW.damagePhase2,
+    armor: formData.boss_armor ?? DEFAULT_BOSS_PREVIEW.armor,
+    speed: formData.boss_speed ?? DEFAULT_BOSS_PREVIEW.speed,
+    location: formData.boss_location ?? DEFAULT_BOSS_PREVIEW.location,
+    spawnMethod: formData.boss_spawn_method ?? DEFAULT_BOSS_PREVIEW.spawnMethod,
+    description: formData.content ?? formData.description,
+    drops: resolveBossDrops(formData.boss_drops),
+    kcReward: formData.boss_kc_reward ?? DEFAULT_BOSS_PREVIEW.kcReward,
     phases: formData.boss_phases,
     phase1Attacks: formData.boss_phase_1_attacks,
     phase2Attacks: formData.boss_phase_2_attacks,
@@ -54,7 +73,7 @@ function getBossPreviewProps(formData: Partial<WikiArticle>) {
 }
 
 function WikiArticlePreview({ formData }: Readonly<WikiArticlePreviewProps>) {
-  const show3D = Boolean(formData.model_3d_url || formData.category === 'Bestiario / Jefes 3D');
+  const show3D = Boolean(formData.model_3d_url ?? formData.category === 'Bestiario / Jefes 3D');
   const previewProps = getBossPreviewProps(formData);
 
   return (
@@ -78,12 +97,12 @@ function WikiArticlePreview({ formData }: Readonly<WikiArticlePreviewProps>) {
         Categoría: <span style={{ color: '#fff' }}>{formData.category}</span>
       </div>
       <h1 style={{ fontSize: '2rem', fontWeight: '900', color: '#fff', marginBottom: '1.5rem' }}>
-        {formData.title || 'Título de Ejemplo'}
+        {formData.title ?? 'Título de Ejemplo'}
       </h1>
 
       <div style={{ color: '#ddd', fontSize: '0.95rem', lineHeight: '1.7', marginBottom: '2rem' }}>
         <ReactMarkdown>
-          {formData.content || '_Escribe contenido en el editor para previsualizarlo..._'}
+          {formData.content ?? '_Escribe contenido en el editor para previsualizarlo..._'}
         </ReactMarkdown>
       </div>
 
@@ -268,7 +287,7 @@ function WikiArticleEditorFields({
               'guias_generales',
               'guias_items',
               'comandos',
-            ].includes(formData.category || '') && (
+            ].includes(formData.category ?? '') && (
               <option value={formData.category}>✨ Personalizada: {formData.category}</option>
             )}
           </select>
@@ -509,9 +528,8 @@ export default function WikiArticleFormModal({
             padding: '2rem',
           }}
         >
-          <motion.div
-            role="dialog"
-            aria-modal="true"
+          <motion.dialog
+            open
             aria-labelledby="wiki-article-modal-title"
             initial={{ scale: 0.9, y: 20 }}
             animate={{ scale: 1, y: 0 }}
@@ -561,7 +579,7 @@ export default function WikiArticleFormModal({
               saving={saving}
               t={t}
             />
-          </motion.div>
+          </motion.dialog>
         </motion.div>
       )}
     </AnimatePresence>

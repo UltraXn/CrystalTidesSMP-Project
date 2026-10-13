@@ -65,6 +65,60 @@ function parseBossPhases(parsed: Record<string, unknown>, fallback: unknown) {
   return fallback;
 }
 
+function generateSlugFromTitle(title?: string, fallback?: string): string | undefined {
+  if (!title) return fallback;
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
+}
+
+function resolveBossContent(parsed: Record<string, unknown>, prev: Partial<WikiArticle>): string {
+  if (typeof parsed.content === 'string' && parsed.content) {
+    return parsed.content;
+  }
+  if (prev.content) {
+    return prev.content;
+  }
+  const title = (parsed.title as string) ?? 'Jefe Supremo';
+  const desc = (parsed.description as string) ?? 'Entidad 3D de CrystalTides SMP.';
+  return `# ${title}\n\n${desc}`;
+}
+
+const BOSS_IMPORT_FIELDS: (keyof WikiArticle)[] = [
+  'model_3d_url',
+  'model_3d_url_phase_2',
+  'boss_subtitle',
+  'boss_entity_type',
+  'boss_mod_name',
+  'boss_tier',
+  'boss_hp',
+  'boss_hp_phase_2',
+  'boss_damage',
+  'boss_damage_phase_2',
+  'boss_armor',
+  'boss_speed',
+  'boss_location',
+  'boss_spawn_method',
+  'boss_spawn_command',
+  'boss_kc_reward',
+];
+
+function overlayBossFields(
+  target: Partial<WikiArticle>,
+  source: Record<string, unknown>,
+  prev: Partial<WikiArticle>,
+): void {
+  for (const field of BOSS_IMPORT_FIELDS) {
+    const val = source[field];
+    if (val !== undefined && val !== null) {
+      (target as Record<string, unknown>)[field] = val;
+    } else {
+      (target as Record<string, unknown>)[field] = prev[field];
+    }
+  }
+}
+
 function parseBossImportData(
   aiJsonInput: string,
   prev: Partial<WikiArticle>,
@@ -74,41 +128,25 @@ function parseBossImportData(
     throw new Error('Formato JSON inválido.');
   }
 
-  return {
+  const p = parsed as Record<string, unknown>;
+  const title = (p.title as string) ?? prev.title;
+  const slug = (p.slug as string) ?? generateSlugFromTitle(p.title as string, prev.slug);
+  const category = (p.category as string) ?? 'Bestiario / Jefes 3D';
+  const description = (p.description as string) ?? prev.description;
+  const content = resolveBossContent(p, prev);
+
+  const result: Partial<WikiArticle> = {
     ...prev,
-    title: parsed.title || prev.title,
-    slug:
-      parsed.slug ||
-      (parsed.title
-        ? parsed.title
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/(^-|-$)/g, '')
-        : prev.slug),
-    category: parsed.category || 'Bestiario / Jefes 3D',
-    description: parsed.description || prev.description,
-    content:
-      parsed.content ||
-      prev.content ||
-      `# ${parsed.title || 'Jefe Supremo'}\n\n${parsed.description || 'Entidad 3D de CrystalTides SMP.'}`,
-    model_3d_url: parsed.model_3d_url || prev.model_3d_url,
-    model_3d_url_phase_2: parsed.model_3d_url_phase_2 || prev.model_3d_url_phase_2,
-    boss_subtitle: parsed.boss_subtitle || prev.boss_subtitle,
-    boss_entity_type: parsed.boss_entity_type || prev.boss_entity_type,
-    boss_mod_name: parsed.boss_mod_name || prev.boss_mod_name,
-    boss_tier: parsed.boss_tier || prev.boss_tier,
-    boss_hp: parsed.boss_hp || prev.boss_hp,
-    boss_hp_phase_2: parsed.boss_hp_phase_2 || prev.boss_hp_phase_2,
-    boss_damage: parsed.boss_damage || prev.boss_damage,
-    boss_damage_phase_2: parsed.boss_damage_phase_2 || prev.boss_damage_phase_2,
-    boss_armor: parsed.boss_armor || prev.boss_armor,
-    boss_speed: parsed.boss_speed || prev.boss_speed,
-    boss_location: parsed.boss_location || prev.boss_location,
-    boss_spawn_method: parsed.boss_spawn_method || prev.boss_spawn_method,
-    boss_spawn_command: parsed.boss_spawn_command || prev.boss_spawn_command,
-    boss_kc_reward: parsed.boss_kc_reward || prev.boss_kc_reward,
-    boss_phases: parseBossPhases(parsed, prev.boss_phases) as WikiArticle['boss_phases'],
+    title,
+    slug,
+    category,
+    description,
+    content,
+    boss_phases: parseBossPhases(p, prev.boss_phases) as WikiArticle['boss_phases'],
   };
+
+  overlayBossFields(result, p, prev);
+  return result;
 }
 
 function BossAiJsonModal({
@@ -399,6 +437,41 @@ function BossActiveTabRenderer({
   }
 }
 
+const DEFAULT_BOSS_EXPORT: Record<string, unknown> = {
+  title: '',
+  category: 'Bestiario / Jefes 3D',
+  boss_subtitle: '',
+  boss_tier: 'Jefe Supremo de Mazmorra',
+  boss_entity_type: 'MythicMobs Plugin',
+  boss_mod_name: '',
+  model_3d_url: '',
+  model_3d_url_phase_2: '',
+  boss_hp: '',
+  boss_hp_phase_2: '',
+  boss_damage: '',
+  boss_damage_phase_2: '',
+  boss_armor: '',
+  boss_speed: '',
+  boss_location: '',
+  boss_spawn_method: '',
+  boss_spawn_command: '',
+  boss_kc_reward: 4500,
+  boss_drops: [],
+  boss_immunities: [],
+  boss_phases: [],
+};
+
+function buildBossExportData(formData: Partial<WikiArticle>) {
+  const result: Record<string, unknown> = { ...DEFAULT_BOSS_EXPORT };
+  for (const key of Object.keys(DEFAULT_BOSS_EXPORT)) {
+    const val = (formData as Record<string, unknown>)[key];
+    if (val !== undefined && val !== null) {
+      result[key] = val;
+    }
+  }
+  return result;
+}
+
 export function BossMetadataFields({ formData, setFormData }: Readonly<BossMetadataFieldsProps>) {
   const [activeTab, setActiveTab] = useState<BossTabType>('models');
   const [uploadingField, setUploadingField] = useState<string | null>(null);
@@ -406,29 +479,7 @@ export function BossMetadataFields({ formData, setFormData }: Readonly<BossMetad
   const [copiedJson, setCopiedJson] = useState(false);
 
   const handleCopyCurrentJson = () => {
-    const exportData = {
-      title: formData.title || '',
-      category: formData.category || 'Bestiario / Jefes 3D',
-      boss_subtitle: formData.boss_subtitle || '',
-      boss_tier: formData.boss_tier || 'Jefe Supremo de Mazmorra',
-      boss_entity_type: formData.boss_entity_type || 'MythicMobs Plugin',
-      boss_mod_name: formData.boss_mod_name || '',
-      model_3d_url: formData.model_3d_url || '',
-      model_3d_url_phase_2: formData.model_3d_url_phase_2 || '',
-      boss_hp: formData.boss_hp || '',
-      boss_hp_phase_2: formData.boss_hp_phase_2 || '',
-      boss_damage: formData.boss_damage || '',
-      boss_damage_phase_2: formData.boss_damage_phase_2 || '',
-      boss_armor: formData.boss_armor || '',
-      boss_speed: formData.boss_speed || '',
-      boss_location: formData.boss_location || '',
-      boss_spawn_method: formData.boss_spawn_method || '',
-      boss_spawn_command: formData.boss_spawn_command || '',
-      boss_kc_reward: formData.boss_kc_reward || 4500,
-      boss_drops: formData.boss_drops || [],
-      boss_immunities: formData.boss_immunities || [],
-      boss_phases: formData.boss_phases || [],
-    };
+    const exportData = buildBossExportData(formData);
     navigator.clipboard.writeText(JSON.stringify(exportData, null, 2));
     setCopiedJson(true);
     setTimeout(() => setCopiedJson(false), 2000);

@@ -54,7 +54,7 @@ export function UserGamificationCell({
           }}
           className="hover-lift"
         >
-          <Medal size={14} /> {u.medals?.length || 0} {t('admin.users.medals', 'Medallas')}
+          <Medal size={14} /> {u.medals?.length ?? 0} {t('admin.users.medals', 'Medallas')}
         </button>
         <button
           type="button"
@@ -80,7 +80,7 @@ export function UserGamificationCell({
           }}
           className="hover-lift"
         >
-          <Trophy size={14} /> {u.achievements?.length || 0}{' '}
+          <Trophy size={14} /> {u.achievements?.length ?? 0}{' '}
           {t('admin.users.achievements', 'Logros')}
         </button>
       </div>

@@ -30,9 +30,6 @@
   min-width: 300px;
 }
 
-@media (max-width: 1400px) {
-}
-
 /* --- Kanban Header --- */
 .kanban-header {
   /* Added margin to separate from the board further */

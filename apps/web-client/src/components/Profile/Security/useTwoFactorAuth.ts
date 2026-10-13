@@ -53,7 +53,7 @@ export function useTwoFactorAuth({
       try {
         const res = await onSetup();
         if (res.success && res.data) setSetupData(res.data);
-        else setError(res.error || 'Failed');
+        else setError(res.error ?? 'Failed');
       } catch {
         setError('Error');
       }
@@ -76,7 +76,7 @@ export function useTwoFactorAuth({
         if (res.success) {
           setSetupData(null);
           setSuccess(t('account.security.2fa_enabled', '2FA Enabled Successfully!'));
-        } else setError(res.error || 'Invalid code');
+        } else setError(res.error ?? 'Invalid code');
       } catch {
         setError('Error');
       }
@@ -108,7 +108,7 @@ export function useTwoFactorAuth({
         const res = await onDisable();
         if (res.success) {
           setSuccess(t('account.security.2fa_disabled', '2FA Disabled'));
-        } else setError(res.error || 'Failed');
+        } else setError(res.error ?? 'Failed');
       } catch {
         setError('Error');
       }

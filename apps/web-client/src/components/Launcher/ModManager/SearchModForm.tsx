@@ -18,7 +18,7 @@ interface SearchModFormProps {
   setPageSize: (val: number) => void;
   isSearching: boolean;
   hasResults: boolean;
-  onSubmit: (e: React.FormEvent) => void;
+  onSubmit: (e: React.SyntheticEvent) => void;
 }
 
 export const SearchModForm: React.FC<Readonly<SearchModFormProps>> = ({

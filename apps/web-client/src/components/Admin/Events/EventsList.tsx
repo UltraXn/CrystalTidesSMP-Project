@@ -99,7 +99,7 @@ export default function EventsList({
           <div className="event-card-footer">
             <div className="event-stats">
               <Users size={18} style={{ color: 'var(--accent)' }} />
-              <span>{event.registrations?.length || 0} Registrados</span>
+              <span>{event.registrations?.length ?? 0} Registrados</span>
             </div>
             <div className="event-actions">
               <button

@@ -257,7 +257,7 @@ function NewsCard({ news }: Readonly<NewsCardProps>) {
   const contentText = stripHtml(
     getLocalizedText(i18n.language, news.content || '', news.content_en),
   );
-  const targetUrl = `/forum/thread/news/${news.slug || news.id}`;
+  const targetUrl = `/forum/thread/news/${news.slug ?? news.id}`;
   const backgroundImageUrl = news.image || DEFAULT_PLACEHOLDER_IMAGE;
 
   return (

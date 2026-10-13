@@ -74,8 +74,8 @@ export default function StaffShowcase({
       const statusMap: Record<string, { mc: string; discord: string }> = {};
       data.forEach((u: { username: string; mc_status?: string; discord_status?: string }) => {
         statusMap[u.username.toLowerCase()] = {
-          mc: u.mc_status || 'offline',
-          discord: u.discord_status || 'offline',
+          mc: u.mc_status ?? 'offline',
+          discord: u.discord_status ?? 'offline',
         };
       });
       return statusMap;
@@ -136,7 +136,7 @@ export default function StaffShowcase({
       {/* Staff Cards Grid */}
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-4 sm:grid-cols-2 lg:grid-cols-4">
         {staff.map((member) => {
-          const status = onlineStaff[(member.mc_nickname || member.name).toLowerCase()] || {
+          const status = onlineStaff[(member.mc_nickname ?? member.name).toLowerCase()] ?? {
             mc: 'offline',
             discord: 'offline',
           };

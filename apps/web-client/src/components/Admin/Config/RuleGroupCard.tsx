@@ -62,13 +62,13 @@ export function RuleGroupCard({
                 >
                   <span
                     style={{
-                      background: `${rule.color || 'var(--accent)'}20`,
-                      color: rule.color || 'var(--accent)',
+                      background: `${rule.color ?? 'var(--accent)'}20`,
+                      color: rule.color ?? 'var(--accent)',
                       padding: '2px 8px',
                       borderRadius: '6px',
                       fontSize: '0.7rem',
                       fontWeight: 800,
-                      border: `1px solid ${rule.color || 'var(--accent)'}40`,
+                      border: `1px solid ${rule.color ?? 'var(--accent)'}40`,
                     }}
                   >
                     #{rule.sort_order}

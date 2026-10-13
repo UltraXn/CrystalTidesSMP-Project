@@ -73,8 +73,7 @@ export default function ImageUploader({
   bucketName = 'content',
   folderPath = 'uploads',
   className = '',
-}: ImageUploaderProps) {
-  // const { t } = useTranslation();
+}: Readonly<ImageUploaderProps>) {
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 

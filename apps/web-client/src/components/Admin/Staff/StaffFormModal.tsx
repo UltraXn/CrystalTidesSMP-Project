@@ -85,7 +85,7 @@ export default function StaffFormModal({
             <input
               id="staff-mc-nick"
               className="admin-input-premium"
-              value={formData.mc_nickname || ''}
+              value={formData.mc_nickname ?? ''}
               onChange={(e) => handleChange('mc_nickname', e.target.value)}
               placeholder="Ej: Neroferno (Dejar vacío si es igual al nombre)"
             />

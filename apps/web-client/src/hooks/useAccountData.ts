@@ -357,7 +357,7 @@ export const use2FAStatus = () => {
       });
       if (!res.ok) throw new Error('Failed to fetch 2FA status');
       const data = await res.json();
-      return data.data; // { enabled: boolean }
+      return data.data;
     },
   });
 };
@@ -376,7 +376,7 @@ export const useSetup2FA = () => {
         throw new Error(message);
       }
       const data = await res.json();
-      return data.data; // { secret, qrCode }
+      return data.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.TWO_FACTOR_STATUS] });

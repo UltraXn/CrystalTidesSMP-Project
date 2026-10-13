@@ -102,7 +102,9 @@ export const NewsBanner: React.FC<Readonly<NewsBannerProps>> = ({
         </button>
       </div>
 
-      <div
+      <section
+        aria-roledescription="carousel"
+        aria-label="Novedades del Launcher"
         className="hero-news-carousel"
         onMouseEnter={() => onHoverChange(true)}
         onMouseLeave={() => onHoverChange(false)}
@@ -147,7 +149,7 @@ export const NewsBanner: React.FC<Readonly<NewsBannerProps>> = ({
             }
           />
         )}
-      </div>
+      </section>
     </div>
   );
 };

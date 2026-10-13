@@ -53,10 +53,10 @@ export async function fetchThreadDetail(type: string, id: string | undefined, ap
           author_data_fresh?: unknown;
         }) => ({
           id: c.id,
-          user: (isTopic ? c.author_name : c.user_name) || 'Anónimo',
-          user_id: c.author_id || c.user_id || null,
-          avatar: (isTopic ? c.author_avatar : c.user_avatar) || null,
-          role: (isTopic ? c.author_role : c.user_role) || 'user',
+          user: (isTopic ? c.author_name : c.user_name) ?? 'Anónimo',
+          user_id: c.author_id ?? c.user_id ?? null,
+          avatar: (isTopic ? c.author_avatar : c.user_avatar) ?? null,
+          role: (isTopic ? c.author_role : c.user_role) ?? 'user',
           content: c.content,
           date: `${formatDate(c.created_at)} ${formatTime(c.created_at, {
             hour: '2-digit',
@@ -72,8 +72,8 @@ export async function fetchThreadDetail(type: string, id: string | undefined, ap
 
 export function useForumThread() {
   const params = useParams<{ type?: string; id?: string }>();
-  const type = params.id ? params.type || 'topic' : 'topic';
-  const id = params.id || params.type;
+  const type = params.id ? (params.type ?? 'topic') : 'topic';
+  const id = params.id ?? params.type;
   const { user } = useAuth();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
@@ -115,7 +115,7 @@ export function useForumThread() {
   const thread = threadQueryData?.thread ?? overrideThread;
   const comments =
     overrideComments.length > 0 ? overrideComments : (threadQueryData?.comments ?? []);
-  const error = threadError ? (threadError as Error).message : null;
+  const error = threadError ? threadError.message : null;
 
   const isAdmin = checkIsAdmin(user?.user_metadata);
   const isOwnerOrAdmin = (targetUserId: string | null) => isAdmin || user?.id === targetUserId;

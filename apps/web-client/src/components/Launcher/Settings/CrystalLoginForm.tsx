@@ -15,7 +15,7 @@ interface CrystalLoginFormProps {
   setPassword: (val: string) => void;
   isLinking: boolean;
   linkError: string | null;
-  onSubmit: (e?: React.FormEvent) => void;
+  onSubmit: (e?: React.SyntheticEvent) => void;
 }
 
 export function CrystalLoginForm({

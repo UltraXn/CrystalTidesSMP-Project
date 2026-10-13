@@ -82,23 +82,24 @@ function getCoverImage(edition: NewspaperEdition, index = 0): string {
   return DEFAULT_COVERS[Math.abs(index) % DEFAULT_COVERS.length];
 }
 
+function isLeadingNoise(codePoint: number, firstChar: string): boolean {
+  if (/\s/.test(firstChar)) return true;
+  if ((codePoint >= 48 && codePoint <= 57) || codePoint === 46) return true;
+  return (
+    (codePoint >= 0x1f300 && codePoint <= 0x1f9ff) || (codePoint >= 0x2600 && codePoint <= 0x26ff)
+  );
+}
+
 function cleanTitle(rawHeadline: string | undefined | null): string {
   if (!rawHeadline) return UI_STRINGS.DEFAULT_HEADLINE;
   let title = rawHeadline.replace(/^#+\s*/, '').trim();
   while (title.length > 0) {
     const codePoint = title.codePointAt(0);
-    if (!codePoint) break;
-    const isWhitespace = /\s/.test(title[0]);
-    const isDigitOrDot = (codePoint >= 48 && codePoint <= 57) || codePoint === 46;
-    const isEmoji =
-      (codePoint >= 0x1f300 && codePoint <= 0x1f9ff) ||
-      (codePoint >= 0x2600 && codePoint <= 0x26ff);
-    if (isWhitespace || isDigitOrDot || isEmoji) {
-      const charLen = codePoint > 0xffff ? 2 : 1;
-      title = title.slice(charLen);
-    } else {
+    if (!codePoint || !isLeadingNoise(codePoint, title[0])) {
       break;
     }
+    const charLen = codePoint > 0xffff ? 2 : 1;
+    title = title.slice(charLen);
   }
   return title.trim();
 }
@@ -118,7 +119,7 @@ async function fetchNewspaperArchive(): Promise<NewspaperEdition[]> {
     const res = await fetch(`${API_BASE_URL}/ai/newspaper/archive?limit=15`);
     if (!res.ok) return [];
     const data = await res.json();
-    return data.editions || [];
+    return data.editions ?? [];
   } catch {
     return [];
   }

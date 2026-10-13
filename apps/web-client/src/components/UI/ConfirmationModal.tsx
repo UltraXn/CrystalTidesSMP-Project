@@ -65,10 +65,9 @@ export default function ConfirmationModal({
         }}
         onClick={isLoading ? undefined : onClose}
       >
-        <m.div
+        <m.dialog
+          open
           data-testid="confirmation-modal-container"
-          role="dialog"
-          aria-modal="true"
           aria-labelledby="confirmation-modal-title"
           aria-describedby="confirmation-modal-message"
           initial={{ scale: 0.9, y: 20, opacity: 0 }}
@@ -192,7 +191,7 @@ export default function ConfirmationModal({
               {isLoading ? 'Procesando...' : confirmText}
             </button>
           </div>
-        </m.div>
+        </m.dialog>
       </m.div>
     </AnimatePresence>
   );

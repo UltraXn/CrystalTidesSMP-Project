@@ -17,6 +17,64 @@ interface Boss3DPreviewPaneProps {
   previewModelUrl?: string;
 }
 
+const DEFAULT_PREVIEW_VALUES = {
+  modelPath: '/models/toro_wither.gltf',
+  modelPathPhase2: '/models/toro_wither_terror.gltf',
+  bossName: 'Previsualizador 3D',
+  subtitle: 'Modo Inspección',
+  hp: '600 HP',
+  hpPhase2: '800 HP',
+  damage: '35 Daño',
+  damagePhase2: '50 Daño',
+  armor: '1.0 Empuje',
+  speed: '0.2 Vuelo',
+  location: 'Nether',
+  spawnMethod: 'Ritual',
+  kcReward: 4500,
+};
+
+function resolvePhaseAttacks(
+  selectedPhaseIdx: number,
+  activeAttacks: BossAttack[],
+  fallbackAttacks?: BossAttack[],
+  targetIdx = 0,
+): BossAttack[] | undefined {
+  if (selectedPhaseIdx === targetIdx) {
+    return activeAttacks;
+  }
+  return fallbackAttacks;
+}
+
+function getModelPaths(previewModelUrl?: string | null, phase2Url?: string | null) {
+  return {
+    modelPath: previewModelUrl ?? DEFAULT_PREVIEW_VALUES.modelPath,
+    modelPathPhase2: phase2Url ?? DEFAULT_PREVIEW_VALUES.modelPathPhase2,
+  };
+}
+
+function getBossCombatStats(
+  formData: Boss3DPreviewPaneProps['formData'],
+  activePhase?: Boss3DPreviewPaneProps['activePhase'],
+) {
+  return {
+    hp: activePhase?.hp ?? formData.boss_hp ?? DEFAULT_PREVIEW_VALUES.hp,
+    damage: activePhase?.damage ?? formData.boss_damage ?? DEFAULT_PREVIEW_VALUES.damage,
+    subtitle: activePhase?.phase_name ?? DEFAULT_PREVIEW_VALUES.subtitle,
+    hpPhase2: formData.boss_hp_phase_2 ?? DEFAULT_PREVIEW_VALUES.hpPhase2,
+    damagePhase2: formData.boss_damage_phase_2 ?? DEFAULT_PREVIEW_VALUES.damagePhase2,
+  };
+}
+
+function getBossAttributes(formData: Boss3DPreviewPaneProps['formData']) {
+  return {
+    armor: formData.boss_armor ?? DEFAULT_PREVIEW_VALUES.armor,
+    speed: formData.boss_speed ?? DEFAULT_PREVIEW_VALUES.speed,
+    location: formData.boss_location ?? DEFAULT_PREVIEW_VALUES.location,
+    spawnMethod: formData.boss_spawn_method ?? DEFAULT_PREVIEW_VALUES.spawnMethod,
+    kcReward: formData.boss_kc_reward ?? DEFAULT_PREVIEW_VALUES.kcReward,
+  };
+}
+
 function computePreviewProps({
   formData,
   activePhase,
@@ -26,27 +84,32 @@ function computePreviewProps({
   activeAttacks,
   previewModelUrl,
 }: Boss3DPreviewPaneProps): WikiBoss3DCardProps {
+  const models = getModelPaths(previewModelUrl, formData.model_3d_url_phase_2);
+  const combat = getBossCombatStats(formData, activePhase);
+  const attributes = getBossAttributes(formData);
+
   return {
     minimal3dOnly: true,
     activeClipOverride: previewClip ?? undefined,
-    modelPath: previewModelUrl ?? '/models/toro_wither.gltf',
-    modelPathPhase2: formData.model_3d_url_phase_2 ?? '/models/toro_wither_terror.gltf',
-    bossName: formData.title ?? 'Previsualizador 3D',
-    subtitle: activePhase?.phase_name ?? 'Modo Inspección',
-    hp: activePhase?.hp ?? formData.boss_hp ?? '600 HP',
-    hpPhase2: formData.boss_hp_phase_2 ?? '800 HP',
-    damage: activePhase?.damage ?? formData.boss_damage ?? '35 Daño',
-    damagePhase2: formData.boss_damage_phase_2 ?? '50 Daño',
-    armor: formData.boss_armor ?? '1.0 Empuje',
-    speed: formData.boss_speed ?? '0.2 Vuelo',
-    location: formData.boss_location ?? 'Nether',
-    spawnMethod: formData.boss_spawn_method ?? 'Ritual',
+    ...models,
+    bossName: formData.title ?? DEFAULT_PREVIEW_VALUES.bossName,
+    ...combat,
+    ...attributes,
     description: formData.content ?? formData.description,
     drops: formData.boss_drops ?? [],
-    kcReward: formData.boss_kc_reward ?? 4500,
     phases,
-    phase1Attacks: selectedPhaseIdx === 0 ? activeAttacks : formData.boss_phase_1_attacks,
-    phase2Attacks: selectedPhaseIdx === 1 ? activeAttacks : formData.boss_phase_2_attacks,
+    phase1Attacks: resolvePhaseAttacks(
+      selectedPhaseIdx,
+      activeAttacks,
+      formData.boss_phase_1_attacks,
+      0,
+    ),
+    phase2Attacks: resolvePhaseAttacks(
+      selectedPhaseIdx,
+      activeAttacks,
+      formData.boss_phase_2_attacks,
+      1,
+    ),
   };
 }
 
@@ -91,7 +154,7 @@ export function Boss3DPreviewPane(props: Readonly<Boss3DPreviewPaneProps>) {
           }}
         >
           <span>
-            🎮 Visor 3D en Vivo ({activePhase?.phase_name || `Fase ${selectedPhaseIdx + 1}`})
+            🎮 Visor 3D en Vivo ({activePhase?.phase_name ?? `Fase ${selectedPhaseIdx + 1}`})
           </span>
         </span>
         {previewClip && (

@@ -32,7 +32,7 @@ export function useWikiManager(mockArticles?: WikiArticle[]) {
   const [deleteArticleId, setDeleteArticleId] = useState<number | null>(null);
 
   // Extract unique Mods list from articles + saved custom mods
-  const savedCustomMods = JSON.parse(localStorage.getItem('crystaltides_custom_mods') || '[]');
+  const savedCustomMods = JSON.parse(localStorage.getItem('crystaltides_custom_mods') ?? '[]');
   const availableMods = Array.from(
     new Set([
       ...articles
@@ -50,8 +50,8 @@ export function useWikiManager(mockArticles?: WikiArticle[]) {
       title: formData.title,
       slug: formData.slug,
       content: formData.content,
-      category: formData.category || 'general',
-      description: formData.description || formData.content.substring(0, 100),
+      category: formData.category ?? 'general',
+      description: formData.description ?? formData.content.substring(0, 100),
     } as WikiArticle & { description: string };
 
     if (editingId) {
@@ -107,7 +107,7 @@ export function useWikiManager(mockArticles?: WikiArticle[]) {
     const matchesSearch =
       a.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       a.slug.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (a.boss_mod_name || '').toLowerCase().includes(searchTerm.toLowerCase());
+      (a.boss_mod_name ?? '').toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesMod = selectedMod === 'all' || a.boss_mod_name === selectedMod;
     const matchesCategory = selectedCategory === 'all' || a.category === selectedCategory;

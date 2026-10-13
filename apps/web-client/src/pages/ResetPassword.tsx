@@ -29,7 +29,7 @@ export default function ResetPassword() {
     });
   }, [t]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (password.length < 8) {
       setStatus('error');
@@ -65,7 +65,7 @@ export default function ResetPassword() {
       setStatus('error');
       const errObj = err as { message?: string };
       setMessage(
-        errObj.message || t('reset_password.generic_error', 'Error al restablecer la contraseña.'),
+        errObj.message ?? t('reset_password.generic_error', 'Error al restablecer la contraseña.'),
       );
     }
   };

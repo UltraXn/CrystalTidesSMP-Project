@@ -1,7 +1,6 @@
 import { Plus, FileOutput, FileInput } from 'lucide-react';
 import ConfirmationModal from '../../UI/ConfirmationModal';
 import { useTranslation } from 'react-i18next';
-import { Rule } from '../../../hooks/useAdminData';
 import { useRulesEditor } from './useRulesEditor';
 import { RuleFormModal } from './RuleFormModal';
 import { RuleGroupCard } from './RuleGroupCard';
@@ -41,7 +40,7 @@ export default function RulesEditor() {
     );
   }
 
-  const entries = Object.entries(groupedRules) as [string, Rule[]][];
+  const categories = Object.keys(groupedRules);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
@@ -141,7 +140,7 @@ export default function RulesEditor() {
 
       {/* Rules List grouped by category */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-        {entries.length === 0 ? (
+        {categories.length === 0 ? (
           <div
             className="admin-card"
             style={{
@@ -160,11 +159,11 @@ export default function RulesEditor() {
             </p>
           </div>
         ) : (
-          entries.map(([category, categoryRules]) => (
+          categories.map((category) => (
             <RuleGroupCard
               key={category}
               category={category}
-              categoryRules={categoryRules}
+              categoryRules={groupedRules[category] ?? []}
               onEdit={handleEdit}
               onDelete={handleDelete}
             />

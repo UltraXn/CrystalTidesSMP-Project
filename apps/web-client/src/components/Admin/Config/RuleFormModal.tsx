@@ -38,9 +38,7 @@ export function RuleFormModal({
       open
       aria-labelledby="rules-editor-dialog-title"
       className="z-1000 fixed inset-0 flex size-full items-center justify-center border-none bg-transparent p-4"
-      onKeyDown={(e) => {
-        if (e.key === 'Escape') onCancel();
-      }}
+      onClose={onCancel}
     >
       <button
         type="button"

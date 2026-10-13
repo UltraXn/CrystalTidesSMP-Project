@@ -18,8 +18,8 @@ export const useHomeCapes = (currentSession: UserSession | null) => {
       ) {
         try {
           const profile = await fetchMinecraftProfile(currentSession.accessToken);
-          if (!ignore && profile && profile.capes) {
-            const capes = profile.capes || [];
+          if (!ignore && profile?.capes) {
+            const capes = profile.capes ?? [];
             setUserCapes(capes);
 
             const activeIndex = capes.findIndex(
@@ -27,7 +27,7 @@ export const useHomeCapes = (currentSession: UserSession | null) => {
             );
             if (activeIndex !== -1) {
               setSelectedCapeIndex(activeIndex);
-              setActiveCapeUrl(capes[activeIndex].url || undefined);
+              setActiveCapeUrl(capes[activeIndex].url ?? undefined);
             } else {
               setSelectedCapeIndex(-1);
               setActiveCapeUrl(undefined);
@@ -53,14 +53,14 @@ export const useHomeCapes = (currentSession: UserSession | null) => {
     if (userCapes.length === 0) return;
     const nextIndex = selectedCapeIndex - 1 < -1 ? userCapes.length - 1 : selectedCapeIndex - 1;
     setSelectedCapeIndex(nextIndex);
-    setActiveCapeUrl(nextIndex === -1 ? undefined : userCapes[nextIndex]?.url || undefined);
+    setActiveCapeUrl(nextIndex === -1 ? undefined : (userCapes[nextIndex]?.url ?? undefined));
   }, [selectedCapeIndex, userCapes]);
 
   const handleNextCape = useCallback(() => {
     if (userCapes.length === 0) return;
     const nextIndex = selectedCapeIndex + 1 >= userCapes.length ? -1 : selectedCapeIndex + 1;
     setSelectedCapeIndex(nextIndex);
-    setActiveCapeUrl(nextIndex === -1 ? undefined : userCapes[nextIndex]?.url || undefined);
+    setActiveCapeUrl(nextIndex === -1 ? undefined : (userCapes[nextIndex]?.url ?? undefined));
   }, [selectedCapeIndex, userCapes]);
 
   const handleToggleCape = useCallback(async () => {
@@ -75,7 +75,7 @@ export const useHomeCapes = (currentSession: UserSession | null) => {
         return;
       }
       const targetCape = userCapes[selectedCapeIndex];
-      if (targetCape && targetCape.id) {
+      if (targetCape?.id) {
         await setActiveCape(currentSession.accessToken, targetCape.id);
         setUserCapes((prev) =>
           prev.map((c, idx) => ({

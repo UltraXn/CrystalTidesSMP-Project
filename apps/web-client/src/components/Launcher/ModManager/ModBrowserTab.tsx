@@ -37,7 +37,7 @@ interface ModBrowserTabProps {
   setSelectedCategory: (val: string | null) => void;
   versionsList: string[];
   activeProfile: ReturnType<typeof getActiveProfile>;
-  onSearchSubmit: (e: React.FormEvent) => void;
+  onSearchSubmit: (e: React.SyntheticEvent) => void;
   onPageChange: (newPage: number) => void;
   onInstallMod: (mod: SearchModResult) => void;
   onSaveCfApiKey: () => void;

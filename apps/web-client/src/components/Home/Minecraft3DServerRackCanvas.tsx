@@ -246,7 +246,8 @@ export const Minecraft3DServerRackCanvas: React.FC<Readonly<Minecraft3DServerRac
     window.addEventListener('mouseup', onMouseUp);
 
     // 5. Animation Loop with Gentle Floating & Fast LED Blinking (150ms per frame)
-    const clock = new THREE.Clock();
+    const startTime = performance.now();
+    let lastTime = startTime;
     let lastFrameTime = 0;
     let currentFrame = 0;
     const frameDuration = 0.15;
@@ -254,16 +255,26 @@ export const Minecraft3DServerRackCanvas: React.FC<Readonly<Minecraft3DServerRac
     renderer.setAnimationLoop((_time) => {
       if (!isSubscribed) return;
 
-      const delta = clock.getDelta();
-      const elapsedTime = clock.getElapsedTime();
+      const now = performance.now();
+      const delta = (now - lastTime) / 1000;
+      lastTime = now;
+      const elapsedTime = (now - startTime) / 1000;
 
       if (!isDragging) {
         targetRotationY += 0.24 * delta;
       }
 
       const lerpFactor = 1 - Math.exp(-5 * delta);
-      mainGroup.rotation.y += (targetRotationY - mainGroup.rotation.y) * lerpFactor;
-      mainGroup.rotation.x += (targetRotationX - mainGroup.rotation.x) * lerpFactor;
+      mainGroup.rotation.y = THREE.MathUtils.lerp(
+        mainGroup.rotation.y,
+        targetRotationY,
+        lerpFactor,
+      );
+      mainGroup.rotation.x = THREE.MathUtils.lerp(
+        mainGroup.rotation.x,
+        targetRotationX,
+        lerpFactor,
+      );
 
       // Gentle floating motion for centered server rack
       if (centerRack) {

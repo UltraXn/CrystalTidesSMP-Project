@@ -25,14 +25,11 @@ export function reelSlotImageUrl(item: {
   id?: string;
 }): string {
   const loss = isLossReward(item);
-  return (
-    resolveRewardImage(item.name, item.image_url) ||
-    (loss ? LOSS_FALLBACK : DEFAULT_FALLBACK)
-  );
+  return resolveRewardImage(item.name, item.image_url) ?? (loss ? LOSS_FALLBACK : DEFAULT_FALLBACK);
 }
 
 export function reelsToImageStrips(
-  reels: { name: string; image_url?: string | null; id?: string }[][]
+  reels: { name: string; image_url?: string | null; id?: string }[][],
 ): [string[], string[], string[]] {
   return reels.map((reel) => reel.map(reelSlotImageUrl)) as [string[], string[], string[]];
 }

@@ -50,7 +50,7 @@ function formatCategoryLabel(
   category: string | undefined,
   t: ReturnType<typeof useTranslation>['t'],
 ): string {
-  const rawCategory = category || 'General';
+  const rawCategory = category ?? 'General';
   const translationKey = rawCategory.toLowerCase().replace(' ', '_');
   const fallbackLabel = rawCategory.charAt(0).toUpperCase() + rawCategory.slice(1);
   return t(`support.categories.${translationKey}`, fallbackLabel);
@@ -344,14 +344,15 @@ function TicketCard({ ticket, index, onClick }: Readonly<TicketCardProps>) {
   const formattedCategory = formatCategoryLabel(ticket.category, t);
 
   return (
-    <motion.div
+    <motion.button
+      type="button"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05 }}
       className="ticket-card-premium"
-      role="button"
-      tabIndex={0}
       style={{
+        width: '100%',
+        textAlign: 'left',
         background: 'rgba(255,255,255,0.02)',
         padding: '2rem',
         borderRadius: '1.5rem',
@@ -365,12 +366,6 @@ function TicketCard({ ticket, index, onClick }: Readonly<TicketCardProps>) {
         boxShadow: '0 10px 20px rgba(0,0,0,0.1)',
       }}
       onClick={onClick}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onClick();
-        }
-      }}
       whileHover={{
         y: -5,
         background: 'rgba(255,255,255,0.04)',
@@ -468,7 +463,7 @@ function TicketCard({ ticket, index, onClick }: Readonly<TicketCardProps>) {
           <ChevronRight size={20} />
         </div>
       </div>
-    </motion.div>
+    </motion.button>
   );
 }
 
@@ -586,8 +581,6 @@ function CreateTicketModal({ isOpen, onClose, onSubmit }: Readonly<CreateTicketM
             justifyContent: 'center',
             padding: '1.5rem',
           }}
-          role="button"
-          tabIndex={0}
           onClick={(e) => {
             if (e.target === e.currentTarget) {
               onClose();

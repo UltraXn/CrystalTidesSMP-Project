@@ -190,11 +190,11 @@ const getPrestigeCategoryStatus = (
   };
 
   const levelMap: Record<PrestigeBranch, number> = {
-    constructor: statsData?.prestige_constructor || 0,
-    luchador: statsData?.prestige_luchador || 0,
-    mercader: statsData?.prestige_mercader || 0,
-    constancia: statsData?.prestige_constancia || 0,
-    explorador: statsData?.prestige_explorador || 0,
+    constructor: statsData?.prestige_constructor ?? 0,
+    luchador: statsData?.prestige_luchador ?? 0,
+    mercader: statsData?.prestige_mercader ?? 0,
+    constancia: statsData?.prestige_constancia ?? 0,
+    explorador: statsData?.prestige_explorador ?? 0,
   };
 
   return {
@@ -374,7 +374,7 @@ const getArchetypeMockups = (t: TranslationFunction): Record<PrestigeBranch, Arc
         defaultValue: spec.rankDefault,
       });
 
-      let bonus = spec.bonus || defaultBonuses[style.levelNum] || '';
+      let bonus = spec.bonus ?? defaultBonuses[style.levelNum] ?? '';
       if (spec.bonusKey) {
         bonus = t(`account.overview.prestige.${spec.bonusKey}`, {
           defaultValue: spec.bonusDefault,
@@ -409,11 +409,11 @@ const calculateUnlockStatus = (
 ): Record<string, boolean> => {
   const hoursPlayed = statsData?.raw_playtime ? Number(statsData.raw_playtime) / 3600000 : 0;
   const money = parseMoneyNumber(statsData?.money);
-  const blocksPlaced = Number(statsData?.raw_blocks_placed || 0);
-  const blocksMined = Number(statsData?.raw_blocks_mined || 0);
-  const kills = Number(statsData?.raw_kills || 0);
+  const blocksPlaced = Number(statsData?.raw_blocks_placed ?? 0);
+  const blocksMined = Number(statsData?.raw_blocks_mined ?? 0);
+  const kills = Number(statsData?.raw_kills ?? 0);
 
-  const rankLower = (statsData?.raw_rank || '').toLowerCase();
+  const rankLower = (statsData?.raw_rank ?? '').toLowerCase();
   const patronKeywords = ['donador', 'fundador', 'donor', 'founder', 'neroferno'];
   const isPatron = patronKeywords.some((keyword) => rankLower.includes(keyword));
 
@@ -501,13 +501,13 @@ function PlaystyleRadarSection({ statsData, t }: Readonly<RadarSectionProps>) {
       >
         <PlaystyleRadar
           stats={{
-            blocksPlaced: Number(statsData?.raw_blocks_placed || 0),
-            blocksMined: Number(statsData?.raw_blocks_mined || 0),
-            kills: Number(statsData?.raw_kills || 0),
-            mobKills: Number(statsData?.mob_kills || 0),
+            blocksPlaced: Number(statsData?.raw_blocks_placed ?? 0),
+            blocksMined: Number(statsData?.raw_blocks_mined ?? 0),
+            kills: Number(statsData?.raw_kills ?? 0),
+            mobKills: Number(statsData?.mob_kills ?? 0),
             playtimeHours: parsePlaytimeHours(statsData?.playtime),
             money: parseMoneyNumber(statsData?.money),
-            rank: statsData?.raw_rank || 'default',
+            rank: statsData?.raw_rank ?? 'default',
           }}
         />
       </Suspense>
@@ -1377,7 +1377,7 @@ function AchievementsTimeline({ statsData, t }: Readonly<AchievementsTimelinePro
             {t('account.journey_arrival', { defaultValue: 'Llegada' })}
           </span>
           <span className="mt-1 text-[10px] font-bold uppercase tracking-widest text-gray-500">
-            {statsData?.member_since || '???'}
+            {statsData?.member_since ?? '???'}
           </span>
         </div>
 
@@ -1456,10 +1456,6 @@ function PostsTabContent({ threads, isLoading, t }: Readonly<PostsTabProps>) {
               alignItems: 'center',
               transition: 'background 0.2s',
             }}
-            onMouseOver={(e) => (e.currentTarget.style.background = COLORS.WHITE_05)}
-            onMouseOut={(e) => (e.currentTarget.style.background = COLORS.WHITE_03)}
-            onFocus={(e) => (e.currentTarget.style.background = COLORS.WHITE_05)}
-            onBlur={(e) => (e.currentTarget.style.background = COLORS.WHITE_03)}
           >
             <div>
               <h4 style={{ color: '#fff', margin: '0 0 0.3rem 0' }}>{thread.title}</h4>
@@ -1905,8 +1901,8 @@ const AccountContentArea: React.FC<Readonly<AccountContentAreaProps>> = (props) 
           unlockStatus={props.unlockStatus}
           userAchievementsSet={props.userAchievementsSet}
           username={
-            props.statsData?.username ||
-            (props.user?.user_metadata?.full_name as string) ||
+            props.statsData?.username ??
+            (props.user?.user_metadata?.full_name as string) ??
             'Jugador'
           }
           t={props.t}
@@ -2010,7 +2006,7 @@ export default function Account() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Navigation State
-  const activeTab = searchParams.get('tab') || 'overview';
+  const activeTab = searchParams.get('tab') ?? 'overview';
   const [prestigeTab, setPrestigeTab] = useState<PrestigeBranch>('constructor');
   const [showAscendModal, setShowAscendModal] = useState(false);
 

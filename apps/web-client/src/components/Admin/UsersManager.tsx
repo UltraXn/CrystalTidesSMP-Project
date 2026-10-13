@@ -1,212 +1,281 @@
-import { useState } from 'react'
+import { useState } from 'react';
 
-import { useAuth } from "../../context/AuthContext"
-import { getUserRole } from "../../utils/roleUtils"
+import { useAuth } from '../../context/AuthContext';
+import { getUserRole } from '../../utils/roleUtils';
 
-import { useTranslation } from 'react-i18next'
-import { supabase } from '../../services/supabaseClient'
-import { sendDiscordLog } from '../../services/discordService'
+import { useTranslation } from 'react-i18next';
+import { supabase } from '../../services/supabaseClient';
+import { sendDiscordLog } from '../../services/discordService';
 
-import { Search } from 'lucide-react'
-import { 
-    useAdminSettings, 
-    useUsers,
-    useUpdateUserRole, 
-    useUpdateUserMetadata 
-} from '../../hooks/useAdminData'
+import { Search } from 'lucide-react';
+import {
+  useAdminSettings,
+  useUsers,
+  useUpdateUserRole,
+  useUpdateUserMetadata,
+} from '../../hooks/useAdminData';
 
-import UsersTable from './Users/UsersTable'
-import UserMedalsModal from './Users/UserMedalsModal'
-import UserAchievementsModal from './Users/UserAchievementsModal'
-import UserRoleModal from './Users/UserRoleModal'
-import { UserDefinition, MedalDefinition, AchievementDefinition } from './Users/types'
+import UsersTable from './Users/UsersTable';
+import UserMedalsModal from './Users/UserMedalsModal';
+import UserAchievementsModal from './Users/UserAchievementsModal';
+import UserRoleModal from './Users/UserRoleModal';
+import { UserDefinition, MedalDefinition, AchievementDefinition } from './Users/types';
 
 // --- Users Management ---
 
 export default function UsersManager() {
-    const { t } = useTranslation()
-    const [searchQuery, setSearchQuery] = useState('')
-    // Active search query
-    const [activeSearch, setActiveSearch] = useState('')
-    
-    const [editingUser, setEditingUser] = useState<UserDefinition | null>(null)
-    const [editingType, setEditingType] = useState<'medals' | 'achievements' | null>(null)
-    const [roleChangeModal, setRoleChangeModal] = useState<{ userId: string, newRole: string } | null>(null)
- 
-    // TanStack Query Hooks
-    const { data: adminSettings } = useAdminSettings();
-    const { data: fetchedUsers, isPending: isLoadingUsers } = useUsers(activeSearch);
-    const updateRoleMutation = useUpdateUserRole();
-    const updateMetadataMutation = useUpdateUserMetadata();
- 
-    const { user } = useAuth(); 
- 
-    const availableMedals = adminSettings?.medals || [];
-    const availableAchievements = adminSettings?.achievements || [];
- 
-    const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault()
-        setActiveSearch(searchQuery)
+  const { t } = useTranslation();
+  const [searchQuery, setSearchQuery] = useState('');
+  // Active search query
+  const [activeSearch, setActiveSearch] = useState('');
+
+  const [editingUser, setEditingUser] = useState<UserDefinition | null>(null);
+  const [editingType, setEditingType] = useState<'medals' | 'achievements' | null>(null);
+  const [roleChangeModal, setRoleChangeModal] = useState<{
+    userId: string;
+    newRole: string;
+  } | null>(null);
+
+  // TanStack Query Hooks
+  const { data: adminSettings } = useAdminSettings();
+  const { data: fetchedUsers, isPending: isLoadingUsers } = useUsers(activeSearch);
+  const updateRoleMutation = useUpdateUserRole();
+  const updateMetadataMutation = useUpdateUserMetadata();
+
+  const { user } = useAuth();
+
+  const availableMedals = adminSettings?.medals ?? [];
+  const availableAchievements = adminSettings?.achievements ?? [];
+
+  const handleSearch = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    setActiveSearch(searchQuery);
+  };
+
+  const handleRoleChange = (userId: string, newRole: string) => {
+    setRoleChangeModal({ userId, newRole });
+  };
+
+  const handleRoleChangeSuccess = async (targetUserId: string, targetNewRole: string) => {
+    const targetUser = (fetchedUsers ?? []).find((u) => u.id === targetUserId);
+    const targetName = targetUser?.username ?? targetUser?.email ?? targetUserId;
+    const adminName = user?.user_metadata?.username ?? user?.email ?? 'Unknown Admin';
+
+    sendDiscordLog(
+      'Admin Action: Role Change',
+      `**Admin:** ${adminName}\n**User:** ${targetName}\n**New Role:** ${targetNewRole.toUpperCase()}`,
+      'action',
+    );
+
+    if (user && user.id === targetUserId) {
+      await supabase.auth.refreshSession();
+      window.location.reload();
     }
- 
-    const handleRoleChange = (userId: string, newRole: string) => {
-        setRoleChangeModal({ userId, newRole });
+    setRoleChangeModal(null);
+  };
+
+  const confirmRoleChange = () => {
+    if (!roleChangeModal) return;
+    const { userId, newRole } = roleChangeModal;
+
+    updateRoleMutation.mutate(
+      { userId, role: newRole },
+      {
+        onSuccess: () => {
+          void handleRoleChangeSuccess(userId, newRole);
+        },
+        onError: () => {
+          alert(t('admin.users.error_role'));
+        },
+      },
+    );
+  };
+
+  const handleSaveMetadata = async () => {
+    if (!editingUser || !editingType) return;
+
+    const values = editingType === 'medals' ? editingUser.medals : editingUser.achievements;
+
+    updateMetadataMutation.mutate(
+      {
+        userId: editingUser.id,
+        type: editingType,
+        values: values || [],
+      },
+      {
+        onSuccess: () => {
+          setEditingUser(null);
+          setEditingType(null);
+        },
+        onError: () => {
+          alert(t('admin.users.error_update', 'Error al actualizar'));
+        },
+      },
+    );
+  };
+
+  const toggleMedal = (medalId: number) => {
+    if (!editingUser) return;
+    const hasMedal = editingUser.medals?.includes(medalId);
+    let newMedals = editingUser.medals || [];
+
+    if (hasMedal) {
+      newMedals = newMedals.filter((id) => id !== medalId);
+    } else {
+      newMedals = [...newMedals, medalId];
     }
+    setEditingUser({ ...editingUser, medals: newMedals });
+  };
 
-    const confirmRoleChange = async () => {
-        if (!roleChangeModal) return;
-        const { userId, newRole } = roleChangeModal;
+  const toggleAchievement = (achievementId: string | number) => {
+    if (!editingUser) return;
+    const hasAchievement = editingUser.achievements?.includes(achievementId);
+    let newAchievements = editingUser.achievements ?? [];
 
-        updateRoleMutation.mutate({ userId, role: newRole }, {
-            onSuccess: async () => {
-                // Determine target user name for log
-                const targetUser = (fetchedUsers || []).find(u => u.id === userId);
-                const targetName = targetUser?.username || targetUser?.email || userId;
-                const adminName = user?.user_metadata?.username || user?.email || 'Unknown Admin';
-
-                // Send Log to Discord
-                sendDiscordLog(
-                    'Admin Action: Role Change', 
-                    `**Admin:** ${adminName}\n**User:** ${targetName}\n**New Role:** ${newRole.toUpperCase()}`, 
-                    'action'
-                );
-
-                if (user && user.id === userId) {
-                    await supabase.auth.refreshSession();
-                    window.location.reload();
-                }
-                setRoleChangeModal(null);
-            },
-            onError: () => {
-                alert(t('admin.users.error_role'))
-            }
-        });
+    if (hasAchievement) {
+      newAchievements = newAchievements.filter((id) => id !== achievementId);
+    } else {
+      newAchievements = [...newAchievements, achievementId];
     }
+    setEditingUser({ ...editingUser, achievements: newAchievements });
+  };
 
-    const handleSaveMetadata = async () => {
-        if (!editingUser || !editingType) return;
-        
-        const values = editingType === 'medals' 
-            ? editingUser.medals 
-            : editingUser.achievements;
+  const userRole = (user ? getUserRole(user) : null)?.toLowerCase() ?? '';
+  const canManageRoles = ['neroferno', 'killu', 'killuwu', 'developer'].includes(userRole);
 
-        updateMetadataMutation.mutate({ 
-            userId: editingUser.id, 
-            type: editingType, 
-            values: values || [] 
-        }, {
-            onSuccess: () => {
-                setEditingUser(null);
-                setEditingType(null);
-            },
-            onError: () => {
-                alert(t('admin.users.error_update', 'Error al actualizar'));
-            }
-        });
-    };
+  return (
+    <div
+      className="admin-card"
+      style={{
+        background: 'rgba(10, 10, 15, 0.6)',
+        backdropFilter: 'blur(20px)',
+        border: '1px solid rgba(255, 255, 255, 0.05)',
+        borderRadius: '24px',
+        padding: '1.5rem',
+      }}
+    >
+      <div style={{ marginBottom: '2rem' }}>
+        <h3
+          style={{
+            margin: 0,
+            fontSize: 'clamp(1.25rem, 4vw, 1.5rem)',
+            fontWeight: '900',
+            color: '#fff',
+            letterSpacing: '-0.5px',
+            wordBreak: 'break-word',
+          }}
+        >
+          {t('admin.users.title')}
+        </h3>
+        <p
+          style={{
+            margin: '0.5rem 0 0',
+            color: 'rgba(255,255,255,0.4)',
+            fontSize: 'clamp(0.8rem, 2vw, 0.9rem)',
+          }}
+        >
+          Gestiona los permisos y medallas de la comunidad
+        </p>
+      </div>
 
-    const toggleMedal = (medalId: number) => {
-        if (!editingUser) return;
-        const hasMedal = editingUser.medals?.includes(medalId);
-        let newMedals = editingUser.medals || [];
-        
-        if (hasMedal) {
-            newMedals = newMedals.filter(id => id !== medalId);
-        } else {
-            newMedals = [...newMedals, medalId];
-        }
-        setEditingUser({ ...editingUser, medals: newMedals });
-    };
-
-    const toggleAchievement = (achievementId: string | number) => {
-        if (!editingUser) return;
-        const hasAchievement = editingUser.achievements?.includes(achievementId);
-        let newAchievements = editingUser.achievements || [];
-        
-        if (hasAchievement) {
-            newAchievements = newAchievements.filter(id => id !== achievementId);
-        } else {
-            newAchievements = [...newAchievements, achievementId];
-        }
-        setEditingUser({ ...editingUser, achievements: newAchievements });
-    };
-
-    const userRole = (user ? getUserRole(user) : null)?.toLowerCase() || '';
-    const canManageRoles = ['neroferno', 'killu', 'killuwu', 'developer'].includes(userRole);
-
-    return (
-        <div className="admin-card" style={{ background: 'rgba(10, 10, 15, 0.6)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255, 255, 255, 0.05)', borderRadius: '24px', padding: '1.5rem' }}>
-            <div style={{ marginBottom: '2rem' }}>
-                <h3 style={{ margin: 0, fontSize: 'clamp(1.25rem, 4vw, 1.5rem)', fontWeight: '900', color: '#fff', letterSpacing: '-0.5px', wordBreak: 'break-word' }}>{t('admin.users.title')}</h3>
-                <p style={{ margin: '0.5rem 0 0', color: 'rgba(255,255,255,0.4)', fontSize: 'clamp(0.8rem, 2vw, 0.9rem)' }}>Gestiona los permisos y medallas de la comunidad</p>
-            </div>
-            
-            {/* Search Bar */}
-            <form onSubmit={handleSearch} style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
-                <div style={{ flex: '1 1 100%', minWidth: '200px', position: 'relative' }}>
-                    <input 
-                        aria-label={t('admin.users.search_placeholder', 'Buscar usuarios')} 
-                        type="search" 
-                        placeholder={t('admin.users.search_placeholder')} 
-                        className="admin-input-premium" 
-                        style={{ paddingLeft: '3rem', width: '100%' }}
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                    <Search style={{ position: 'absolute', left: '1.2rem', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.3)' }} aria-hidden="true" />
-                </div>
-                <button type="submit" disabled={isLoadingUsers} aria-busy={isLoadingUsers} className="modal-btn-primary" style={{ flex: '1 1 auto', minWidth: '140px', height: '52px', borderRadius: '16px', padding: '0 2rem' }}>
-                    {isLoadingUsers ? t('common.searching', 'Buscando...') : t('admin.users.search_btn')}
-                </button>
-            </form>
-
-            <UsersTable 
-                users={fetchedUsers || []} 
-                loading={isLoadingUsers} 
-                hasSearched={true} 
-                canManageRoles={canManageRoles} 
-                onEditMedals={(u) => { setEditingUser(u); setEditingType('medals'); }}
-                onEditAchievements={(u) => { 
-                    setEditingUser(u); 
-                    setEditingType('achievements'); 
-                }}
-                onRoleChange={handleRoleChange} 
-            />
-
-            {/* Medals Modal */}
-            {editingUser && editingType === 'medals' && (
-                <UserMedalsModal 
-                    user={editingUser} 
-                    availableMedals={availableMedals as MedalDefinition[]} 
-                    onClose={() => { setEditingUser(null); setEditingType(null); }} 
-                    onSave={handleSaveMetadata} 
-                    saving={updateMetadataMutation.isPending} 
-                    onToggleMedal={toggleMedal} 
-                />
-            )}
-
-            {/* Achievements Modal */}
-            {editingUser && editingType === 'achievements' && (
-                <UserAchievementsModal 
-                    user={editingUser} 
-                    availableAchievements={availableAchievements as AchievementDefinition[]} 
-                    onClose={() => { setEditingUser(null); setEditingType(null); }} 
-                    onSave={handleSaveMetadata} 
-                    saving={updateMetadataMutation.isPending} 
-                    onToggleAchievement={toggleAchievement} 
-                />
-            )}
-
-            {/* Role Change Confirmation Modal */}
-            {roleChangeModal && roleChangeModal.userId && (
-                <UserRoleModal 
-                    user={(fetchedUsers || []).find(u => u.id === roleChangeModal.userId)!} 
-                    newRole={roleChangeModal.newRole} 
-                    onClose={() => setRoleChangeModal(null)} 
-                    onConfirm={confirmRoleChange} 
-                />
-            )}
-
+      {/* Search Bar */}
+      <form
+        onSubmit={handleSearch}
+        style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}
+      >
+        <div style={{ flex: '1 1 100%', minWidth: '200px', position: 'relative' }}>
+          <input
+            aria-label={t('admin.users.search_placeholder', 'Buscar usuarios')}
+            type="search"
+            placeholder={t('admin.users.search_placeholder')}
+            className="admin-input-premium"
+            style={{ paddingLeft: '3rem', width: '100%' }}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          <Search
+            style={{
+              position: 'absolute',
+              left: '1.2rem',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              color: 'rgba(255,255,255,0.3)',
+            }}
+            aria-hidden="true"
+          />
         </div>
-    )
+        <button
+          type="submit"
+          disabled={isLoadingUsers}
+          aria-busy={isLoadingUsers}
+          className="modal-btn-primary"
+          style={{
+            flex: '1 1 auto',
+            minWidth: '140px',
+            height: '52px',
+            borderRadius: '16px',
+            padding: '0 2rem',
+          }}
+        >
+          {isLoadingUsers ? t('common.searching', 'Buscando...') : t('admin.users.search_btn')}
+        </button>
+      </form>
+
+      <UsersTable
+        users={fetchedUsers || []}
+        loading={isLoadingUsers}
+        hasSearched={true}
+        canManageRoles={canManageRoles}
+        onEditMedals={(u) => {
+          setEditingUser(u);
+          setEditingType('medals');
+        }}
+        onEditAchievements={(u) => {
+          setEditingUser(u);
+          setEditingType('achievements');
+        }}
+        onRoleChange={handleRoleChange}
+      />
+
+      {/* Medals Modal */}
+      {editingUser && editingType === 'medals' && (
+        <UserMedalsModal
+          user={editingUser}
+          availableMedals={availableMedals as MedalDefinition[]}
+          onClose={() => {
+            setEditingUser(null);
+            setEditingType(null);
+          }}
+          onSave={handleSaveMetadata}
+          saving={updateMetadataMutation.isPending}
+          onToggleMedal={toggleMedal}
+        />
+      )}
+
+      {/* Achievements Modal */}
+      {editingUser && editingType === 'achievements' && (
+        <UserAchievementsModal
+          user={editingUser}
+          availableAchievements={availableAchievements as AchievementDefinition[]}
+          onClose={() => {
+            setEditingUser(null);
+            setEditingType(null);
+          }}
+          onSave={handleSaveMetadata}
+          saving={updateMetadataMutation.isPending}
+          onToggleAchievement={toggleAchievement}
+        />
+      )}
+
+      {/* Role Change Confirmation Modal */}
+      {roleChangeModal?.userId && (
+        <UserRoleModal
+          user={(fetchedUsers ?? []).find((u) => u.id === roleChangeModal.userId)!}
+          newRole={roleChangeModal.newRole}
+          onClose={() => setRoleChangeModal(null)}
+          onConfirm={confirmRoleChange}
+        />
+      )}
+    </div>
+  );
 }

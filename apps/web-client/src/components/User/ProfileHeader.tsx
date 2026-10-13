@@ -47,12 +47,12 @@ export default function ProfileHeader({
   // 2. If viewing others, rely on profile data
   // 3. Logic: If preference is Social and full_name exists, use it. Else Username.
   const displayName = (() => {
-    const pref = profile.avatar_preference || 'minecraft';
+    const pref = profile.avatar_preference ?? 'minecraft';
     const useMinecraft = pref === 'minecraft';
-    const mcNick = profile.minecraft_nick || profile.username;
+    const mcNick = profile.minecraft_nick ?? profile.username;
 
     if (useMinecraft) return mcNick;
-    return profile.full_name || profile.username;
+    return profile.full_name ?? profile.username;
   })();
 
   return (
@@ -68,9 +68,9 @@ export default function ProfileHeader({
           <img
             src={
               profile.avatar_preference === 'social'
-                ? profile.social_avatar_url ||
-                  profile.avatar_url ||
-                  `https://ui-avatars.com/api/?name=${displayName}`
+                ? (profile.social_avatar_url ??
+                  profile.avatar_url ??
+                  `https://ui-avatars.com/api/?name=${displayName}`)
                 : `https://mc-heads.net/avatar/${profile.username}/180`
             }
             alt={profile.username}
@@ -95,7 +95,7 @@ export default function ProfileHeader({
                 }}
               >
                 <Heart style={{ color: '#ff4444' }} size={16} />
-                <span style={{ fontWeight: 800 }}>{profile.reputation || 0}</span>
+                <span style={{ fontWeight: 800 }}>{profile.reputation ?? 0}</span>
                 {currentUser && currentUser.id !== profile.id && (
                   <button
                     aria-label="Action"
@@ -123,7 +123,7 @@ export default function ProfileHeader({
               // Status Message Logic
               const statusMsg =
                 currentUser?.id === profile.id
-                  ? currentUser.user_metadata?.status_message || profile.status_message
+                  ? (currentUser.user_metadata?.status_message ?? profile.status_message)
                   : profile.status_message;
 
               if (!statusMsg) return null;

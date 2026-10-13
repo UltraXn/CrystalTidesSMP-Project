@@ -53,7 +53,7 @@ export function StageFeatures({ features }: Readonly<{ features: FeatureItem[] }
   return (
     <div className="relative z-10 flex flex-wrap justify-center gap-5 border-t border-white/10 pt-4">
       {features.map((f) => {
-        const brandColor = f.brandColor || '#00e5ff';
+        const brandColor = f.brandColor ?? '#00e5ff';
 
         return (
           <div

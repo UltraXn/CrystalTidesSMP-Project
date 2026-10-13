@@ -246,7 +246,7 @@ export const SyncOfficialModsTab: React.FC<Readonly<SyncOfficialModsTabProps>> =
                         fontWeight: 600,
                       }}
                     >
-                      {mod.category || 'General'}
+                      {mod.category ?? 'General'}
                     </span>
                   </div>
                   {mod.description && (

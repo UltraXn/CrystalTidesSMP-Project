@@ -18,7 +18,11 @@ interface AuditPaginationProps {
   onPageChange: (page: number) => void;
 }
 
-export function AuditPagination({ page, totalPages, onPageChange }: AuditPaginationProps) {
+export function AuditPagination({
+  page,
+  totalPages,
+  onPageChange,
+}: Readonly<AuditPaginationProps>) {
   const { t } = useTranslation();
 
   if (totalPages <= 1) return null;

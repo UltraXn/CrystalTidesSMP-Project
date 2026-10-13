@@ -55,9 +55,9 @@ function resolveAccountAvatarUrl(
     return metadata.avatar_url;
   }
   if (isLinked) {
-    return `https://mc-heads.net/avatar/${username || 'steve'}/128`;
+    return `https://mc-heads.net/avatar/${username ?? 'steve'}/128`;
   }
-  const fullName = metadata?.full_name || 'User';
+  const fullName = metadata?.full_name ?? 'User';
   return `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}`;
 }
 
@@ -175,7 +175,7 @@ const AccountSidebar: React.FC<Readonly<AccountSidebarProps>> = ({
                 </div>
               ) : (
                 <img
-                  src={resolveAccountAvatarUrl(user, isLinked, statsData?.username || mcUsername)}
+                  src={resolveAccountAvatarUrl(user, isLinked, statsData?.username ?? mcUsername)}
                   alt="Avatar"
                   className="size-full rounded-full object-cover transition-transform duration-500 group-hover/avatar:scale-105"
                 />

@@ -20,7 +20,7 @@ export function useKanbanBoard({
 }: UseKanbanBoardParams) {
   const { t } = useTranslation();
   const [tasks, setTasks] = useState<KanbanTask[]>(() =>
-    (mockTasks || []).map((task) => ({ ...task, columnId: task.column_id || 'idea' })),
+    (mockTasks ?? []).map((task) => ({ ...task, columnId: task.column_id ?? 'idea' })),
   );
   const [loading, setLoading] = useState(!mockTasks);
   const [viewMode, setViewMode] = useState<'board' | 'calendar'>('board');
@@ -55,7 +55,7 @@ export function useKanbanBoard({
       const response = await fetch(
         `${import.meta.env.VITE_API_URL || '/api'}/staff/tasks/calendar`,
         {
-          headers: getAuthHeaders(session?.access_token || null),
+          headers: getAuthHeaders(session?.access_token ?? null),
         },
       );
       if (!response.ok) throw new Error('Failed to fetch calendar');
@@ -75,7 +75,7 @@ export function useKanbanBoard({
         data: { session },
       } = await supabase.auth.getSession();
       const response = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/staff/tasks/notion`, {
-        headers: getAuthHeaders(session?.access_token || null),
+        headers: getAuthHeaders(session?.access_token ?? null),
       });
       if (!response.ok) throw new Error('Failed to fetch Notion tasks');
       const fetchedTasks = await response.json();
@@ -95,7 +95,7 @@ export function useKanbanBoard({
       const response = await fetch(
         `${import.meta.env.VITE_API_URL || '/api'}/staff/tasks/calendar/subscribe`,
         {
-          headers: getAuthHeaders(session?.access_token || null),
+          headers: getAuthHeaders(session?.access_token ?? null),
         },
       );
       if (!response.ok) throw new Error('Failed to get subscribe link');
@@ -115,13 +115,13 @@ export function useKanbanBoard({
           data: { session },
         } = await supabase.auth.getSession();
         const res = await fetch(`${API_URL}/staff/tasks`, {
-          headers: getAuthHeaders(session?.access_token || null),
+          headers: getAuthHeaders(session?.access_token ?? null),
         });
         if (res.ok) {
           const data = (await res.json()) as KanbanTask[];
           const mappedData = data.map((task: KanbanTask) => ({
             ...task,
-            columnId: task.column_id || 'idea',
+            columnId: task.column_id ?? 'idea',
           }));
           if (!ignore) setTasks(mappedData);
         }
@@ -138,7 +138,7 @@ export function useKanbanBoard({
     };
   }, [mockTasks]);
 
-  const handleCreateTask = async (e?: React.FormEvent) => {
+  const handleCreateTask = async (e?: React.SyntheticEvent) => {
     if (e) e.preventDefault();
     if (!newTask.title.trim()) return;
 
@@ -176,7 +176,7 @@ export function useKanbanBoard({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...getAuthHeaders(session?.access_token || null),
+          ...getAuthHeaders(session?.access_token ?? null),
         },
         body: JSON.stringify(taskPayload),
       });
@@ -208,7 +208,7 @@ export function useKanbanBoard({
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          ...getAuthHeaders(session?.access_token || null),
+          ...getAuthHeaders(session?.access_token ?? null),
         },
         body: JSON.stringify({
           due_date: newDate.toISOString(),
@@ -238,7 +238,7 @@ export function useKanbanBoard({
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          ...getAuthHeaders(session?.access_token || null),
+          ...getAuthHeaders(session?.access_token ?? null),
         },
         body: JSON.stringify({
           due_date: start.toISOString(),
@@ -264,9 +264,9 @@ export function useKanbanBoard({
     setEditingTask(task);
     setNewTask({
       title: task.title,
-      priority: task.priority || 'Medium',
-      type: task.type || 'General',
-      assignee: task.assignee || '',
+      priority: task.priority ?? 'Medium',
+      type: task.type ?? 'General',
+      assignee: task.assignee ?? '',
       due_date: task.due_date ? new Date(task.due_date).toISOString().slice(0, 16) : '',
       end_date: task.end_date ? new Date(task.end_date).toISOString().slice(0, 16) : '',
     });
@@ -308,7 +308,7 @@ export function useKanbanBoard({
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          ...getAuthHeaders(session?.access_token || null),
+          ...getAuthHeaders(session?.access_token ?? null),
         },
         body: JSON.stringify(taskPayload),
       });
@@ -351,7 +351,7 @@ export function useKanbanBoard({
       } = await supabase.auth.getSession();
       await fetch(`${API_URL}/staff/tasks/${id}`, {
         method: 'DELETE',
-        headers: getAuthHeaders(session?.access_token || null),
+        headers: getAuthHeaders(session?.access_token ?? null),
       });
     } catch (error) {
       console.error('Error deleting task:', error);
@@ -385,7 +385,7 @@ export function useKanbanBoard({
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          ...getAuthHeaders(session?.access_token || null),
+          ...getAuthHeaders(session?.access_token ?? null),
         },
         body: JSON.stringify({ column_id: columnId }),
       });

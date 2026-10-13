@@ -31,7 +31,7 @@ export default function CreateTicketModal({
 
   const API_URL = import.meta.env.VITE_API_URL;
 
-  const handleCreateTicket = async (e: React.FormEvent) => {
+  const handleCreateTicket = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (!newTicket.subject) {
       setAlert({
@@ -50,7 +50,7 @@ export default function CreateTicketModal({
       } = await supabase.auth.getSession();
       const headers = {
         'Content-Type': 'application/json',
-        ...getAuthHeaders(session?.access_token || null),
+        ...getAuthHeaders(session?.access_token ?? null),
       };
 
       const res = await fetch(`${API_URL}/tickets`, {

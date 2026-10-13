@@ -46,7 +46,9 @@ export default function TicketDetailModal({
     if (action === 'delete') {
       setConfirmAction({
         message: t('admin.tickets.detail.delete_confirm', '¿Estás seguro de eliminar este ticket?'),
-        onConfirm: () => handleAction('force_delete'),
+        onConfirm: () => {
+          void handleAction('force_delete');
+        },
       });
       return;
     }
@@ -70,7 +72,7 @@ export default function TicketDetailModal({
       } = await supabase.auth.getSession();
       const headers = {
         'Content-Type': 'application/json',
-        ...getAuthHeaders(session?.access_token || null),
+        ...getAuthHeaders(session?.access_token ?? null),
       };
 
       const res = await fetch(url, {

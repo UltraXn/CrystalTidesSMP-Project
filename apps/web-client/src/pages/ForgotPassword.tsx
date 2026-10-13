@@ -8,7 +8,7 @@ export default function ForgotPassword() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     setStatus('loading');
     setMessage('');
@@ -26,7 +26,7 @@ export default function ForgotPassword() {
       console.error(err);
       setStatus('error');
       const errObj = err as { message?: string };
-      setMessage(errObj.message || 'Ocurrió un error al intentar enviar el correo.');
+      setMessage(errObj.message ?? 'Ocurrió un error al intentar enviar el correo.');
     }
   };
 

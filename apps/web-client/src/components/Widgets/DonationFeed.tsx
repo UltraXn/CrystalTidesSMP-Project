@@ -22,7 +22,22 @@ interface DonationFeedProps {
   mockDonations?: Donation[];
 }
 
-export default function DonationFeed({ mockDonations }: DonationFeedProps = {}) {
+function scheduleDonationHighlightExpiry(
+  id: string,
+  setNewDonationIds: React.Dispatch<React.SetStateAction<Set<string>>>,
+  checkCancelled: () => boolean,
+): void {
+  setTimeout(() => {
+    if (checkCancelled()) return;
+    setNewDonationIds((prev) => {
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
+  }, 3000);
+}
+
+export default function DonationFeed({ mockDonations }: Readonly<DonationFeedProps> = {}) {
   const [donations, setDonations] = useState<Donation[]>(mockDonations || []);
   const [loading, setLoading] = useState(!mockDonations);
   const [newDonationIds, setNewDonationIds] = useState<Set<string>>(new Set());
@@ -61,7 +76,7 @@ export default function DonationFeed({ mockDonations }: DonationFeedProps = {}) 
         (payload: { new: Donation }) => {
           if (ignore) return;
           const donation = payload.new;
-          const id = donation.id || donation.message_id || `new-${Date.now()}`;
+          const id = donation.id ?? donation.message_id ?? `new-${Date.now()}`;
 
           // Marcar como "nueva" temporalmente para la animación
           setNewDonationIds((prev) => new Set(prev).add(id));
@@ -69,14 +84,7 @@ export default function DonationFeed({ mockDonations }: DonationFeedProps = {}) 
           setDonations((prev) => [donation, ...prev.slice(0, 19)]);
 
           // Quitar el estado "nuevo" después de que pase la animación (600ms en CSS, damos un margen)
-          setTimeout(() => {
-            if (ignore) return;
-            setNewDonationIds((prev) => {
-              const next = new Set(prev);
-              next.delete(id);
-              return next;
-            });
-          }, 3000);
+          scheduleDonationHighlightExpiry(id, setNewDonationIds, () => ignore);
         },
       )
       .subscribe();
@@ -89,7 +97,7 @@ export default function DonationFeed({ mockDonations }: DonationFeedProps = {}) 
 
   const renderDonationCard = (donation: Donation, keyPrefix: string) => {
     const baseId =
-      donation.id || donation.message_id || `card-${donation.from_name}-${donation.created_at}`;
+      donation.id ?? donation.message_id ?? `card-${donation.from_name}-${donation.created_at}`;
     const id = `${keyPrefix}-${baseId}`;
     const isNew = newDonationIds.has(baseId);
     const amount = Number(donation.amount);

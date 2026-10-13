@@ -13,15 +13,15 @@ export function AuditFilters({
   onFilterChange,
   totalCount,
   currentCount,
-}: AuditFiltersProps) {
+}: Readonly<AuditFiltersProps>) {
   const { t } = useTranslation();
 
   return (
     <div className="audit-filters-bar">
-      <div
+      <fieldset
         className="filter-group"
-        role="group"
         aria-label={t('admin.audit.filter_by_source', 'Filtrar por origen')}
+        style={{ border: 'none', margin: 0, padding: 0 }}
       >
         <Filter size={16} aria-hidden="true" />
         <button
@@ -56,7 +56,7 @@ export function AuditFilters({
         >
           <Shield size={14} aria-hidden="true" /> {t('admin.audit.source_security-auditor')}
         </button>
-      </div>
+      </fieldset>
 
       <output className="pagination-summary" aria-live="polite">
         {t('admin.audit.showing', { count: currentCount, total: totalCount })}

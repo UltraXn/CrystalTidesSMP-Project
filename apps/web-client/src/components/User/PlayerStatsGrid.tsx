@@ -70,7 +70,7 @@ function renderRadarContent(loading: boolean, stats: PlayerStats | null, t: TFun
               mobKills: Number(stats.mob_kills || 0),
               playtimeHours: parsePlaytime(stats.playtime),
               money: parseMoney(stats.money),
-              rank: stats.rank || 'default',
+              rank: stats.rank ?? 'default',
             }}
           />
         </Suspense>

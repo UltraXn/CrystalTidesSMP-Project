@@ -442,9 +442,8 @@ function AdminHeader({
       </div>
 
       <div className="admin-header-right">
-        <div
-          className="admin-lang-toggle"
-          role="group"
+        <fieldset
+          className="admin-lang-toggle m-0 min-w-0"
           aria-label={t('common.language_selector', 'Seleccionar idioma')}
         >
           <button
@@ -465,7 +464,7 @@ function AdminHeader({
           >
             EN
           </button>
-        </div>
+        </fieldset>
 
         <div className="admin-user-info-box">
           <div className="username-text">

@@ -35,13 +35,13 @@ function getInitialProfileValues(profile?: Profile | null) {
     loaderType: profile.loaderType as LoaderType,
     loaderVersion: profile.loaderVersion || '',
     isolateSaves: profile.isolateSaves,
-    gameDir: profile.gameDir || '',
+    gameDir: profile.gameDir ?? '',
     useCustomRam: profile.minRam !== undefined || profile.maxRam !== undefined,
-    minRam: profile.minRam || 2048,
-    maxRam: profile.maxRam || 4096,
+    minRam: profile.minRam ?? 2048,
+    maxRam: profile.maxRam ?? 4096,
     useOptimization: profile.useOptimization,
-    javaArgs: profile.javaArgs || '',
-    javaPath: profile.javaPath || '',
+    javaArgs: profile.javaArgs ?? '',
+    javaPath: profile.javaPath ?? '',
   };
 }
 

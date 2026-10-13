@@ -5,8 +5,11 @@
 @import './layout/layout.css';
 @import './layout/components.css';
 
+/* stylelint-disable at-rule-no-unknown */
+/* NOSONAR */
 @plugin 'tailwindcss-animate';
 @config '../../tailwind.config.js';
+/* stylelint-enable at-rule-no-unknown */
 /* @import './home.css'; Consolidated into layout.css/components.css */
 /* @import './sections.css'; Consolidated into components.css */
 /* @import './pages.css'; Consolidated into layout.css */

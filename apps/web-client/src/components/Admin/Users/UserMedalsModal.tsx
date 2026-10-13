@@ -20,8 +20,8 @@ export default function UserMedalsModal({
   onToggleMedal,
 }: Readonly<UserMedalsModalProps>) {
   const { t } = useTranslation();
-  const activeSet = new Set(user.medals || []);
-  const displayName = user.username || (user.email ? user.email.split('@')[0] : 'Usuario');
+  const activeSet = new Set(user.medals ?? []);
+  const displayName = user.username ?? (user.email ? user.email.split('@')[0] : 'Usuario');
 
   return (
     <dialog open aria-labelledby="user-medals-modal-title" className="premium-modal-overlay">
@@ -65,9 +65,9 @@ export default function UserMedalsModal({
                 <button
                   type="button"
                   key={medal.id}
-                  aria-label={`${active ? 'Remover' : 'Asignar'} medalla ${medal.name || medal.id}`}
+                  aria-label={`${active ? 'Remover' : 'Asignar'} medalla ${medal.name ?? medal.id}`}
                   aria-pressed={active}
-                  onClick={() => onToggleMedal(medal.id as number)}
+                  onClick={() => onToggleMedal(medal.id)}
                   style={{
                     position: 'relative',
                     padding: '0.75rem',

@@ -105,7 +105,7 @@ export const RuleEditorForm: React.FC<Readonly<RuleEditorFormProps>> = ({
             <button
               type="button"
               className={UI_CLASSES.translateBtn}
-              onClick={() => onTranslate(formData.title || '', LANG_EN, FIELD_TITLE_EN)}
+              onClick={() => onTranslate(formData.title ?? '', LANG_EN, FIELD_TITLE_EN)}
               disabled={Boolean(translating) || !formData.title}
             >
               {translating === FIELD_TITLE_EN ? (
@@ -136,7 +136,7 @@ export const RuleEditorForm: React.FC<Readonly<RuleEditorFormProps>> = ({
             <button
               type="button"
               className={UI_CLASSES.translateBtn}
-              onClick={() => onTranslate(formData.title_en || '', LANG_ES, FIELD_TITLE)}
+              onClick={() => onTranslate(formData.title_en ?? '', LANG_ES, FIELD_TITLE)}
               disabled={Boolean(translating) || !formData.title_en}
             >
               {translating === FIELD_TITLE ? (
@@ -166,7 +166,7 @@ export const RuleEditorForm: React.FC<Readonly<RuleEditorFormProps>> = ({
             <button
               type="button"
               className={UI_CLASSES.translateBtn}
-              onClick={() => onTranslate(formData.content || '', LANG_EN, FIELD_CONTENT_EN)}
+              onClick={() => onTranslate(formData.content ?? '', LANG_EN, FIELD_CONTENT_EN)}
               disabled={Boolean(translating) || !formData.content}
             >
               {translating === FIELD_CONTENT_EN ? (
@@ -197,7 +197,7 @@ export const RuleEditorForm: React.FC<Readonly<RuleEditorFormProps>> = ({
             <button
               type="button"
               className={UI_CLASSES.translateBtn}
-              onClick={() => onTranslate(formData.content_en || '', LANG_ES, FIELD_CONTENT)}
+              onClick={() => onTranslate(formData.content_en ?? '', LANG_ES, FIELD_CONTENT)}
               disabled={Boolean(translating) || !formData.content_en}
             >
               {translating === FIELD_CONTENT ? (

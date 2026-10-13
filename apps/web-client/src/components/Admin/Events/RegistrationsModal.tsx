@@ -72,7 +72,7 @@ interface RegistrationRowProps {
 }
 
 function RegistrationRow({ registration, unknownUserLabel }: Readonly<RegistrationRowProps>) {
-  const username = registration.profiles?.username || unknownUserLabel;
+  const username = registration.profiles?.username ?? unknownUserLabel;
   const formattedDate = formatDate(registration.created_at);
 
   return (

@@ -90,7 +90,7 @@ function tokenizeMarkdown(content: string): string[] {
   let textStart = 0;
 
   while (i < content.length) {
-    const token = matchLinkOrImage(content, i) || matchBold(content, i) || matchItalic(content, i);
+    const token = matchLinkOrImage(content, i) ?? matchBold(content, i) ?? matchItalic(content, i);
     if (token) {
       if (textStart < i) parts.push(content.slice(textStart, i));
       parts.push(token);
@@ -117,7 +117,7 @@ const MarkdownRenderer: React.FC<Readonly<MarkdownRendererProps>> = ({ content }
   return (
     <>
       {parts.map((part) => {
-        const count = (seenCounts.get(part) || 0) + 1;
+        const count = (seenCounts.get(part) ?? 0) + 1;
         seenCounts.set(part, count);
         const partId = `md_${part.length}_${count}_${part.slice(0, 12)}`;
         return renderMarkdownPart(part, partId);

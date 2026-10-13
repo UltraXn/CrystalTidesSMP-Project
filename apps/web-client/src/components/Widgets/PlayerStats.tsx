@@ -3,6 +3,8 @@ import { Skull, Crosshair, Box, Layers, Trophy, Clock, Calendar, Ghost } from 'l
 import { useTranslation } from 'react-i18next';
 import Loader from '../UI/Loader';
 
+const MotionDiv = Motion.div;
+
 interface PlayerStatsData {
   rank?: string;
   rank_image?: string;
@@ -14,6 +16,46 @@ interface PlayerStatsData {
   deaths: string | number;
   blocks_mined: string | number;
   blocks_placed: string | number;
+}
+
+function getRankFallbackImage(rank: string): string | null {
+  const r = rank.toLowerCase();
+  if (r.includes('miembro') || r.includes('default')) return '/ranks/user.png';
+  if (r.includes('donador')) return '/ranks/rank-donador.png';
+  if (r.includes('fundador')) return '/ranks/rank-fundador.png';
+  if (r.includes('killuwu')) return '/ranks/rank-killu.png';
+  if (r.includes('neroferno')) return '/ranks/rank-neroferno.png';
+  if (r.includes('developer')) return '/ranks/developer.png';
+  return null;
+}
+
+function renderRankBadge(statsData: PlayerStatsData): React.ReactNode {
+  if (statsData.rank_image) {
+    return (
+      <img
+        src={`/ranks/${statsData.rank_image}`}
+        alt={statsData.rank ?? 'Rank'}
+        className="max-h-full w-auto object-contain [image-rendering:pixelated]"
+      />
+    );
+  }
+
+  const fallback = getRankFallbackImage(statsData.rank ?? '');
+  if (fallback) {
+    return (
+      <img
+        src={fallback}
+        alt={statsData.rank ?? 'Rank'}
+        className="max-h-full w-auto object-contain [image-rendering:pixelated]"
+      />
+    );
+  }
+
+  return (
+    <span className="text-sm font-black uppercase tracking-tighter text-white">
+      {statsData.rank}
+    </span>
+  );
 }
 
 interface PlayerStatsProps {
@@ -49,76 +91,7 @@ export default function PlayerStats({ statsData, loading, error }: Readonly<Play
         <StatItem
           icon={<Trophy />}
           label={t('account.overview.rank')}
-          value={(() => {
-            const r = statsData?.rank?.toLowerCase() || '';
-
-            // 1. Use Backend provided image
-            if (statsData.rank_image) {
-              return (
-                <img
-                  src={`/ranks/${statsData.rank_image}`}
-                  alt={statsData.rank}
-                  className="max-h-full w-auto object-contain [image-rendering:pixelated]"
-                />
-              );
-            }
-
-            // 2. Fallback Logic
-            if (r.includes('miembro') || r.includes('default'))
-              return (
-                <img
-                  src="/ranks/user.png"
-                  alt="Miembro"
-                  className="max-h-full w-auto object-contain [image-rendering:pixelated]"
-                />
-              );
-            if (r.includes('donador'))
-              return (
-                <img
-                  src="/ranks/rank-donador.png"
-                  alt="Donador"
-                  className="max-h-full w-auto object-contain [image-rendering:pixelated]"
-                />
-              );
-            if (r.includes('fundador'))
-              return (
-                <img
-                  src="/ranks/rank-fundador.png"
-                  alt="Fundador"
-                  className="max-h-full w-auto object-contain [image-rendering:pixelated]"
-                />
-              );
-            if (r.includes('killuwu'))
-              return (
-                <img
-                  src="/ranks/rank-killu.png"
-                  alt="Killuwu"
-                  className="max-h-full w-auto object-contain [image-rendering:pixelated]"
-                />
-              );
-            if (r.includes('neroferno'))
-              return (
-                <img
-                  src="/ranks/rank-neroferno.png"
-                  alt="Neroferno"
-                  className="max-h-full w-auto object-contain [image-rendering:pixelated]"
-                />
-              );
-            if (r.includes('developer'))
-              return (
-                <img
-                  src="/ranks/developer.png"
-                  alt="Developer"
-                  className="max-h-full w-auto object-contain [image-rendering:pixelated]"
-                />
-              );
-
-            return (
-              <span className="text-sm font-black uppercase tracking-tighter text-white">
-                {statsData.rank}
-              </span>
-            );
-          })()}
+          value={renderRankBadge(statsData)}
           color="#f1c40f"
         />
 
@@ -197,7 +170,7 @@ interface StatItemProps {
 
 function StatItem({ icon, label, value, color }: Readonly<StatItemProps>) {
   return (
-    <Motion.div
+    <MotionDiv
       className="rounded-4xl group relative flex flex-col items-center border border-white/5 bg-white/5 p-8 backdrop-blur-3xl transition-colors hover:-translate-y-1 hover:border-white/10 hover:bg-white/10"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -231,6 +204,6 @@ function StatItem({ icon, label, value, color }: Readonly<StatItemProps>) {
         className="absolute bottom-0 left-1/2 h-0.5 w-1/4 -translate-x-1/2 rounded-full opacity-0 transition-colors duration-500 group-hover:opacity-100"
         style={{ backgroundColor: color, boxShadow: `0 0 15px ${color}` }}
       />
-    </Motion.div>
+    </MotionDiv>
   );
 }

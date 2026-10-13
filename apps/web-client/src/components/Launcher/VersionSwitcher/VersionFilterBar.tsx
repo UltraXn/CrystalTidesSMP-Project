@@ -61,7 +61,10 @@ export const VersionFilterBar: React.FC<Readonly<VersionFilterBarProps>> = ({
       </div>
 
       {/* Loader Pills */}
-      <div role="group" aria-label="Filtrar por mod loader" style={{ display: 'flex', gap: 6 }}>
+      <fieldset
+        aria-label="Filtrar por mod loader"
+        style={{ display: 'flex', gap: 6, border: 'none', margin: 0, padding: 0 }}
+      >
         {LOADERS.map((loader) => (
           <button
             key={loader}
@@ -89,7 +92,7 @@ export const VersionFilterBar: React.FC<Readonly<VersionFilterBarProps>> = ({
             {loader === 'ALL' ? 'Todos' : loader}
           </button>
         ))}
-      </div>
+      </fieldset>
     </div>
   );
 };

@@ -40,12 +40,11 @@ export default function TicketForm({ onClose, onSubmit }: Readonly<TicketFormPro
   };
 
   return (
-    <m.div
+    <m.dialog
+      open
       initial={{ scale: 0.9, opacity: 0, y: 20 }}
       animate={{ scale: 1, opacity: 1, y: 0 }}
       exit={{ scale: 0.9, opacity: 0, y: 20 }}
-      role="dialog"
-      aria-modal="true"
       aria-labelledby="ticket-form-title"
       className="modal-content"
       style={{
@@ -56,6 +55,7 @@ export default function TicketForm({ onClose, onSubmit }: Readonly<TicketFormPro
         maxWidth: '600px',
         border: '1px solid rgba(255,255,255,0.1)',
         boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+        color: 'inherit',
       }}
       onClick={(e) => e.stopPropagation()}
     >
@@ -289,6 +289,6 @@ export default function TicketForm({ onClose, onSubmit }: Readonly<TicketFormPro
           </button>
         </div>
       </form>
-    </m.div>
+    </m.dialog>
   );
 }

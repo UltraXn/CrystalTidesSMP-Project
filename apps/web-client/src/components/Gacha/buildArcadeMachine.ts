@@ -119,11 +119,9 @@ const box = (
   h: number,
   d: number,
   material: THREE.Material,
-  x = 0,
-  y = 0,
-  z = 0,
-  name?: string,
+  ...args: [x?: number, y?: number, z?: number, name?: string]
 ) => {
+  const [x = 0, y = 0, z = 0, name] = args;
   const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material);
   mesh.position.set(x, y, z);
   if (name) mesh.name = name;

@@ -60,7 +60,7 @@ export const GachaMachine: React.FC<Readonly<GachaMachineProps>> = ({
                       {items.map((item) => {
                         const loss = isLossReward(item);
                         const activeImg =
-                          resolveRewardImage(item.name, item.image_url) ||
+                          resolveRewardImage(item.name, item.image_url) ??
                           (loss ? '/images/items/Barrier_(held)_JE2_BE2.png' : null);
                         const Icon = RARITY_ICONS[item.rarity] || Star;
                         const rarityClass = RARITY_CLASS_MAP[item.rarity] || 'rarity-common';

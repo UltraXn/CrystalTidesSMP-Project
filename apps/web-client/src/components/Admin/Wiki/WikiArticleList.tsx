@@ -54,7 +54,7 @@ export default function WikiArticleList({
         const categoryIcon = categoryObj ? categoryObj.icon : '🏷️';
 
         return (
-          <div
+          <article
             key={article.id}
             className="article-card"
             style={{
@@ -66,14 +66,6 @@ export default function WikiArticleList({
                 'background 0.2s ease-in-out, border-color 0.2s ease-in-out, transform 0.2s ease-in-out',
               position: 'relative',
               overflow: 'hidden',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = 'rgba(14, 165, 233, 0.4)';
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.07)';
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
             }}
           >
             {/* Header Badges & Actions */}
@@ -225,7 +217,7 @@ export default function WikiArticleList({
                 <Tag size={12} /> {article.content.length} {t('admin.wiki.char_count')}
               </span>
             </div>
-          </div>
+          </article>
         );
       })}
     </div>

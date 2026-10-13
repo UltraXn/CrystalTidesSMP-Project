@@ -31,7 +31,7 @@ export default function Loader({ text, style, minimal, fullScreen, size }: Reado
     );
   }
 
-  const displayText = text === '' ? null : text || t('common.loading_content');
+  const displayText = text === '' ? null : (text ?? t('common.loading_content'));
 
   return (
     <div

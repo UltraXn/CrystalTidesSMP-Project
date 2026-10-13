@@ -187,7 +187,7 @@ export const CrystalClientPreview: React.FC = () => {
     }, 250);
   };
 
-  const handleSendChatMessage = (e: React.FormEvent) => {
+  const handleSendChatMessage = (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (!chatInput.trim()) return;
     const now = new Date();

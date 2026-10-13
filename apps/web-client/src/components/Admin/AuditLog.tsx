@@ -11,7 +11,7 @@ interface HistoryProps extends React.SVGProps<SVGSVGElement> {
   size?: number | string;
 }
 
-function History({ size = 24, ...props }: HistoryProps) {
+function History({ size = 24, ...props }: Readonly<HistoryProps>) {
   return (
     <svg
       {...props}
@@ -32,7 +32,7 @@ function History({ size = 24, ...props }: HistoryProps) {
   );
 }
 
-export default function AuditLog(props: AuditLogProps = {}) {
+export default function AuditLog(props: Readonly<AuditLogProps> = {}) {
   const { t } = useTranslation();
   const {
     filterSource,

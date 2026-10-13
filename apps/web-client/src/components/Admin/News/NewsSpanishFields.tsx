@@ -22,7 +22,7 @@ export function NewsSpanishFields({
   onTranslateTitle,
   onTranslateContent,
   onContentImageUpload,
-}: NewsSpanishFieldsProps) {
+}: Readonly<NewsSpanishFieldsProps>) {
   const { t } = useTranslation();
   const {
     register,

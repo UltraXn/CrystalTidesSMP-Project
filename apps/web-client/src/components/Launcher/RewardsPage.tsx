@@ -844,7 +844,7 @@ export function RewardsPage() {
     let ignore = false;
     const fetchRoadmapData = async () => {
       try {
-        const userIdParam = currentSession?.id || '';
+        const userIdParam = currentSession?.id ?? '';
         const [resConfig, resStreak] = await Promise.all([
           fetch('https://api.crystaltidessmp.net/api/roadmap/config').then((r) => {
             if (!r.ok) throw new Error('Failed to fetch roadmap config');
@@ -889,7 +889,7 @@ export function RewardsPage() {
       const res = await fetch('https://api.crystaltidessmp.net/api/roadmap/claim', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: currentSession?.id || 'guest' }),
+        body: JSON.stringify({ userId: currentSession?.id ?? 'guest' }),
       });
 
       if (!res.ok) {
@@ -902,7 +902,7 @@ export function RewardsPage() {
         setClaimMsg(`🎉 ¡${data.data.message}! Nuevo Saldo: ${data.data.newBalance} KC`);
         setStreak((prev) => ({ ...prev, canClaim: false }));
       } else {
-        setClaimMsg(`⚠️ ${data.message || 'Error al reclamar recompensa'}`);
+        setClaimMsg(`⚠️ ${data.message ?? 'Error al reclamar recompensa'}`);
       }
     } catch {
       setClaimMsg(MESSAGES.NETWORK_ERROR);

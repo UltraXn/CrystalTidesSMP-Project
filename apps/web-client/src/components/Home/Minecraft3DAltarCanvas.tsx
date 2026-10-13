@@ -83,15 +83,15 @@ interface RenderContext {
   pointLight1: THREE.PointLight;
   particleMat: THREE.PointsMaterial;
   accentColor: string;
-  activeStaffColorRef: React.MutableRefObject<string | null>;
-  linkedMembersRef: React.MutableRefObject<string[]>;
-  dragActiveMemberRef: React.MutableRefObject<string | null>;
-  cursorPosRef: React.MutableRefObject<{ x: number; y: number } | null>;
-  flareTimerRef: React.MutableRefObject<number>;
-  flaringColorRef: React.MutableRefObject<string | null>;
-  hasExplodedRef: React.MutableRefObject<boolean>;
-  explosionTimerRef: React.MutableRefObject<number>;
-  explosionDelayTimerRef: React.MutableRefObject<number>;
+  activeStaffColorRef: React.RefObject<string | null>;
+  linkedMembersRef: React.RefObject<string[]>;
+  dragActiveMemberRef: React.RefObject<string | null>;
+  cursorPosRef: React.RefObject<{ x: number; y: number } | null>;
+  flareTimerRef: React.RefObject<number>;
+  flaringColorRef: React.RefObject<string | null>;
+  hasExplodedRef: React.RefObject<boolean>;
+  explosionTimerRef: React.RefObject<number>;
+  explosionDelayTimerRef: React.RefObject<number>;
 }
 
 function createSoftGlowParticleTexture(): THREE.CanvasTexture {
@@ -612,7 +612,7 @@ function setupAmbientParticles(
 function updateExplosionAnimation(
   beacon: BeaconStageElements,
   delta: number,
-  explosionTimerRef: React.MutableRefObject<number>,
+  explosionTimerRef: React.RefObject<number>,
 ): void {
   explosionTimerRef.current -= delta;
   const progress = (1.6 - explosionTimerRef.current) / 1.6;
@@ -993,7 +993,8 @@ export const Minecraft3DAltarCanvas: React.FC<Readonly<Minecraft3DAltarCanvasPro
       explosionDelayTimerRef,
     };
 
-    const clock = new THREE.Clock();
+    const startTime = performance.now();
+    let lastTime = startTime;
 
     const updateStageTwo = (delta: number, elapsedTime: number) => {
       if (!beaconElements) return;
@@ -1063,8 +1064,10 @@ export const Minecraft3DAltarCanvas: React.FC<Readonly<Minecraft3DAltarCanvasPro
     };
 
     renderer.setAnimationLoop((_time) => {
-      const delta = clock.getDelta();
-      const elapsedTime = clock.getElapsedTime();
+      const now = performance.now();
+      const delta = (now - lastTime) / 1000;
+      lastTime = now;
+      const elapsedTime = (now - startTime) / 1000;
 
       if (mixer) {
         mixer.update(delta);

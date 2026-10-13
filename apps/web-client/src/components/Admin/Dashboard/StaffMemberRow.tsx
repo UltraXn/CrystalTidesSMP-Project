@@ -156,7 +156,7 @@ export const StaffMemberRow: React.FC<Readonly<StaffMemberRowProps>> = ({ staff,
         >
           {getRoleImage(staff.role) || staff.role_image ? (
             <img
-              src={getRoleImage(staff.role) || staff.role_image}
+              src={getRoleImage(staff.role) ?? staff.role_image}
               alt={staff.role}
               style={{
                 height: '14px',

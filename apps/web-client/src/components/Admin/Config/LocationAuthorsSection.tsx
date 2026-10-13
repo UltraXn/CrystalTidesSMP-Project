@@ -18,7 +18,7 @@ export function LocationAuthorsSection({
   setNewAuthor,
   onAddAuthor,
   onRemoveAuthor,
-}: LocationAuthorsSectionProps) {
+}: Readonly<LocationAuthorsSectionProps>) {
   const { t } = useTranslation();
 
   return (
@@ -116,7 +116,7 @@ export function LocationAuthorsSection({
           onChange={(e) =>
             setNewAuthor({
               ...newAuthor,
-              role: e.target.value as LocationAuthor['role'],
+              role: e.target.value,
             })
           }
           style={{ width: '140px', padding: '0.8rem' }}

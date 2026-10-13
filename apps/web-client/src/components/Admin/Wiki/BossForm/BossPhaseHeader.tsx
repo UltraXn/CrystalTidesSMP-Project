@@ -14,7 +14,7 @@ export function BossPhaseHeader({
   selectedPhaseIdx,
   onSelectPhase,
   onAddPhase,
-}: BossPhaseHeaderProps) {
+}: Readonly<BossPhaseHeaderProps>) {
   return (
     <div
       style={{

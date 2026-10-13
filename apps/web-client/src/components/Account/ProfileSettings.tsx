@@ -6,14 +6,13 @@ import {
   User as UserIcon,
   Camera,
   Shield,
-  Twitter,
   Link,
   Lock,
   FileCode,
-  Youtube,
   Coffee,
   Globe,
 } from 'lucide-react';
+import { TwitterIcon, YoutubeIcon } from '../UI/BrandIcons';
 import { User, UserIdentity } from '@supabase/supabase-js';
 
 import Loader from '../UI/Loader';
@@ -65,13 +64,13 @@ const SOCIAL_ITEMS = [
   },
   {
     id: 'social_twitter' as const,
-    icon: Twitter,
+    icon: TwitterIcon,
     color: '#1da1f2',
     label: 'Twitter',
   },
   {
     id: 'social_youtube' as const,
-    icon: Youtube,
+    icon: YoutubeIcon,
     color: '#ff0000',
     label: 'YouTube',
   },
@@ -236,9 +235,9 @@ const AvatarPreferenceSection: React.FC<Readonly<AvatarPreferenceSectionProps>> 
       >
         <img
           src={
-            user?.user_metadata?.picture ||
-            user?.user_metadata?.avatar_url ||
-            'https://ui-avatars.com/api/?name=' + (user?.user_metadata?.full_name || 'User')
+            user?.user_metadata?.picture ??
+            user?.user_metadata?.avatar_url ??
+            'https://ui-avatars.com/api/?name=' + (user?.user_metadata?.full_name ?? 'User')
           }
           alt="Social"
           className="size-12 rounded-xl object-cover"
@@ -390,7 +389,7 @@ const ProfileSettings: React.FC<Readonly<ProfileSettingsProps>> = ({
             onSubmit={handleSubmit(handleSaveProfile)}
             className="grid grid-cols-1 gap-8 lg:grid-cols-2"
           >
-            <ProfileBioSection register={register} bioLength={bioValue?.length || 0} t={t} />
+            <ProfileBioSection register={register} bioLength={bioValue?.length ?? 0} t={t} />
 
             <ProfileSecuritySection
               passwords={passwords}

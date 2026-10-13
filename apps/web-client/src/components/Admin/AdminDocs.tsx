@@ -536,7 +536,7 @@ export default function AdminDocs({ mockDocs }: AdminDocsProps = {}) {
         const {
           data: { session },
         } = await supabase.auth.getSession();
-        const remote = await loadRemoteDocs(session?.access_token || null);
+        const remote = await loadRemoteDocs(session?.access_token ?? null);
         if (!ignore) {
           setDocs(remote ?? defaults);
         }
@@ -577,7 +577,7 @@ export default function AdminDocs({ mockDocs }: AdminDocsProps = {}) {
       } = await supabase.auth.getSession();
       const success = await saveRemoteDocs(
         updatedDocs,
-        session?.access_token || null,
+        session?.access_token ?? null,
         session?.user?.id,
         session?.user?.user_metadata?.username,
       );

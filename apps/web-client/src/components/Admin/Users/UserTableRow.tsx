@@ -6,7 +6,7 @@ import { UserRoleCell } from './UserRoleCell';
 const CELL_BORDER = '1px solid rgba(255,255,255,0.05)';
 
 function getUserInitial(user: { username?: string; email?: string }): string {
-  const name = user.username || user.email || '?';
+  const name = user.username ?? user.email ?? '?';
   return name[0]?.toUpperCase() ?? '?';
 }
 
@@ -36,7 +36,7 @@ export function UserTableRow({
     >
       <td
         className="user-cell-main"
-        aria-label={u.username || u.email}
+        aria-label={u.username ?? u.email}
         style={{
           border: CELL_BORDER,
           borderRight: 'none',
@@ -97,7 +97,7 @@ export function UserTableRow({
                 whiteSpace: 'nowrap',
               }}
             >
-              {u.username || u.email.split('@')[0]}
+              {u.username ?? u.email.split('@')[0]}
             </div>
             <div
               style={{
@@ -145,7 +145,7 @@ export function UserTableRow({
           minWidth: '120px',
         }}
       >
-        <UserRoleBadge role={u.role || 'user'} />
+        <UserRoleBadge role={u.role ?? 'user'} />
       </td>
       <UserGamificationCell
         user={u}

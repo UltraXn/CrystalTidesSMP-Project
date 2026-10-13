@@ -103,7 +103,7 @@ export function Stage2StaffGrid({
                   style={{ borderColor: accentColor }}
                 >
                   <MinecraftAvatar
-                    src={m.image || m.mc_nickname || m.avatar || m.name}
+                    src={m.image ?? m.mc_nickname ?? m.avatar ?? m.name}
                     alt={m.name}
                     size={48}
                     className="size-full object-cover"

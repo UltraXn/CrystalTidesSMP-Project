@@ -18,8 +18,8 @@ const buildGameLaunchOptions = (
   settings: ReturnType<typeof getSettings>,
 ) => ({
   username,
-  uuid: uuid || '00000000-0000-0000-0000-000000000000',
-  accessToken: accessToken || 'placeholder_token',
+  uuid: uuid ?? '00000000-0000-0000-0000-000000000000',
+  accessToken: accessToken ?? 'placeholder_token',
   mcVersion: profile.mcVersion,
   loaderType: profile.loaderType,
   loaderVersion: profile.loaderVersion,
@@ -27,7 +27,7 @@ const buildGameLaunchOptions = (
   maxRam: profile.maxRam ?? settings.maxRam,
   useOptimization: profile.useOptimization,
   javaArgs: profile.javaArgs,
-  javaPath: profile.javaPath || settings.javaPath || undefined,
+  javaPath: profile.javaPath ?? settings.javaPath ?? undefined,
   gameDir: resolvedGameDir,
 });
 

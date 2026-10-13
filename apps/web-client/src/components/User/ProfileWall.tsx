@@ -52,18 +52,20 @@ function resolveCommentAvatar(
   user: User | null,
   commentAuthor: ProfileComment['author'],
 ): string {
-  const pref = authorMetadata?.avatar_preference || 'minecraft';
-  const mcNick = authorMetadata?.minecraft_nick || '';
+  const pref = authorMetadata?.avatar_preference ?? 'minecraft';
+  const mcNick = authorMetadata?.minecraft_nick ?? '';
   if (pref === 'minecraft' && mcNick) {
     return `https://mc-heads.net/avatar/${mcNick}/128`;
   }
   if (isMe) {
-    return (user?.user_metadata?.picture ||
-      user?.user_metadata?.avatar_url ||
-      commentAuthor?.avatar_url ||
-      '') as string;
+    return (
+      user?.user_metadata?.picture ??
+      user?.user_metadata?.avatar_url ??
+      commentAuthor?.avatar_url ??
+      ''
+    );
   }
-  return (commentAuthor?.social_avatar_url || commentAuthor?.avatar_url || '') as string;
+  return commentAuthor?.social_avatar_url ?? commentAuthor?.avatar_url ?? '';
 }
 
 function resolveCommentRole(
@@ -74,7 +76,21 @@ function resolveCommentRole(
   if (isMe) {
     return String(user ? getUserRole(user) : 'user').toLowerCase();
   }
-  return String(commentAuthor?.role || 'user').toLowerCase();
+  return String(commentAuthor?.role ?? 'user').toLowerCase();
+}
+
+function resolveCommentDisplayName(
+  mcNick: string,
+  authorMetadata: AuthorMetadata | undefined,
+  commentAuthor: ProfileComment['author'],
+  fallback: string,
+): string {
+  if (mcNick && authorMetadata?.avatar_preference === 'minecraft') {
+    return mcNick;
+  }
+  return (
+    authorMetadata?.full_name ?? authorMetadata?.username ?? commentAuthor?.username ?? fallback
+  );
 }
 
 function renderWallContent(
@@ -157,7 +173,7 @@ export default function ProfileWall({
     };
   }, [profileId, mockComments]);
 
-  const handlePostComment = async (e: React.FormEvent) => {
+  const handlePostComment = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (!user || !newComment.trim() || sending) return;
 
@@ -259,13 +275,11 @@ export default function ProfileWall({
                 comment.author,
               );
 
-              const displayName = String(
-                mcNick && authorMetadata?.avatar_preference === 'minecraft'
-                  ? mcNick
-                  : authorMetadata?.full_name ||
-                      authorMetadata?.username ||
-                      comment.author?.username ||
-                      t('common.anonymous', 'Anónimo'),
+              const displayName = resolveCommentDisplayName(
+                mcNick,
+                authorMetadata,
+                comment.author,
+                t('common.anonymous', 'Anónimo'),
               );
 
               const role = resolveCommentRole(isMe, user, comment.author);

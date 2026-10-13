@@ -580,7 +580,7 @@ export default function Contests() {
         triggerConfetti();
         queryClient.setQueryData<Array<{ event_id: string }>>(
           ['myRegistrations', user?.id],
-          (prev) => [...(prev || []), { event_id: String(eventId) }],
+          (prev) => [...(prev ?? []), { event_id: String(eventId) }],
         );
       }
     } catch (error: unknown) {

@@ -36,6 +36,11 @@ const PumpkinIcon = ({ size }: { size: number }) => (
   </svg>
 );
 
+const markPumpkinExiting = (id: number) => (prev: Pumpkin[]) =>
+  prev.map((p) => (p.id === id ? { ...p, isExiting: true } : p));
+
+const removePumpkinById = (id: number) => (prev: Pumpkin[]) => prev.filter((p) => p.id !== id);
+
 const HalloweenPop = () => {
   const [pumpkins, setPumpkins] = useState<Pumpkin[]>([]);
 
@@ -54,12 +59,12 @@ const HalloweenPop = () => {
 
     // Start exit animation after 4 seconds
     setTimeout(() => {
-      setPumpkins((prev) => prev.map((p) => (p.id === id ? { ...p, isExiting: true } : p)));
+      setPumpkins(markPumpkinExiting(id));
     }, 4000);
 
     // Remove from DOM after exit animation
     setTimeout(() => {
-      setPumpkins((prev) => prev.filter((p) => p.id !== id));
+      setPumpkins(removePumpkinById(id));
     }, 4500);
   }, []);
 

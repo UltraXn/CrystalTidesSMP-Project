@@ -71,7 +71,7 @@ export default function ForumThread() {
           color: '#fff',
         }}
       >
-        <h2>{error || t('forum_thread.not_found')}</h2>
+        <h2>{error ?? t('forum_thread.not_found')}</h2>
         <Link to="/forum" className="btn-secondary" style={{ marginTop: '1rem' }}>
           {t('forum_thread.back_forum')}
         </Link>

@@ -15,7 +15,7 @@ export interface UsePollFormProps {
     option?: { idx: number; val: string };
   };
   onSubmit: (
-    e: React.FormEvent<HTMLFormElement>,
+    e: React.SyntheticEvent<HTMLFormElement>,
     data: {
       title: string;
       titleEn: string;
@@ -24,7 +24,7 @@ export interface UsePollFormProps {
       options: { label: string; labelEn: string }[];
       daysDuration: number;
     },
-  ) => void;
+  ) => void | Promise<void>;
 }
 
 function initOptions(poll?: Poll | null): PollOptionItem[] {
@@ -32,7 +32,7 @@ function initOptions(poll?: Poll | null): PollOptionItem[] {
     const mapped = poll.options.map((o, i) => ({
       id: `opt-${o.id ?? i}`,
       label: o.label,
-      labelEn: o.label_en || '',
+      labelEn: o.label_en ?? '',
     }));
     while (mapped.length < 2) {
       mapped.push({ id: `opt-init-${mapped.length}`, label: '', labelEn: '' });
@@ -103,20 +103,20 @@ function usePollOptions(poll?: Poll | null) {
 
 export function usePollForm({ poll, translatedValues, onSubmit }: UsePollFormProps) {
   const [prevPoll, setPrevPoll] = useState(poll);
-  const [title, setTitle] = useState(() => poll?.title || '');
-  const [titleEn, setTitleEn] = useState(() => poll?.title_en || '');
-  const [question, setQuestion] = useState(() => poll?.question || '');
-  const [questionEn, setQuestionEn] = useState(() => poll?.question_en || '');
+  const [title, setTitle] = useState(() => poll?.title ?? '');
+  const [titleEn, setTitleEn] = useState(() => poll?.title_en ?? '');
+  const [question, setQuestion] = useState(() => poll?.question ?? '');
+  const [questionEn, setQuestionEn] = useState(() => poll?.question_en ?? '');
   const [daysDuration, setDaysDuration] = useState(7);
   const { options, setOptions, updateOption, removeOption, addOption } = usePollOptions(poll);
 
   // Sync state if poll prop changes
   if (poll !== prevPoll) {
     setPrevPoll(poll);
-    setTitle(poll?.title || '');
-    setTitleEn(poll?.title_en || '');
-    setQuestion(poll?.question || '');
-    setQuestionEn(poll?.question_en || '');
+    setTitle(poll?.title ?? '');
+    setTitleEn(poll?.title_en ?? '');
+    setQuestion(poll?.question ?? '');
+    setQuestionEn(poll?.question_en ?? '');
     setOptions(initOptions(poll));
   }
 
@@ -124,9 +124,9 @@ export function usePollForm({ poll, translatedValues, onSubmit }: UsePollFormPro
   usePollTranslationSync(translatedValues, setTitleEn, setQuestionEn, setOptions);
 
   const handleSubmit = useCallback(
-    (e: React.FormEvent<HTMLFormElement>) => {
+    (e: React.SyntheticEvent<HTMLFormElement>) => {
       e.preventDefault();
-      onSubmit(e, {
+      const result = onSubmit(e, {
         title,
         titleEn,
         question,
@@ -134,6 +134,9 @@ export function usePollForm({ poll, translatedValues, onSubmit }: UsePollFormPro
         options: options.map(({ label, labelEn }) => ({ label, labelEn })),
         daysDuration,
       });
+      if (result instanceof Promise) {
+        result.catch(console.error);
+      }
     },
     [daysDuration, onSubmit, options, question, questionEn, title, titleEn],
   );

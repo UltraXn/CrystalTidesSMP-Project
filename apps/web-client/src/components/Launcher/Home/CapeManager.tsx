@@ -61,7 +61,9 @@ export const CapeManager: React.FC<Readonly<CapeManagerProps>> = ({
   const isNoCape = selectedIndex === -1;
   const isCurrentlyActive =
     !isNoCape && userCapes[selectedIndex]?.state === LAUNCHER_HOME_CONSTANTS.ACTIVE_STATE;
-  const capeDisplayName = isNoCape ? 'Sin Capa' : userCapes[selectedIndex]?.alias || 'Capa Oficial';
+  const capeDisplayName = isNoCape
+    ? 'Sin Capa'
+    : (userCapes[selectedIndex]?.alias ?? 'Capa Oficial');
   const buttonStyle = getCapeButtonStyles(isEquipping, isNoCape, isCurrentlyActive);
   const buttonLabel = getCapeButtonLabel(isEquipping, isNoCape, isCurrentlyActive);
 
@@ -155,7 +157,7 @@ export const CapeManager: React.FC<Readonly<CapeManagerProps>> = ({
         aria-label={
           isNoCape
             ? 'Ocultar capa equipada'
-            : `Equipar capa ${userCapes[selectedIndex]?.alias || 'Oficial'}`
+            : `Equipar capa ${userCapes[selectedIndex]?.alias ?? 'Oficial'}`
         }
         aria-busy={isEquipping}
         type="button"

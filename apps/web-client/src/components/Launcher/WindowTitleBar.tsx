@@ -19,24 +19,14 @@ const handleClose = async () => {
   }
 };
 
-const handleStartDrag = (e: React.MouseEvent) => {
-  if (e.button === 0) {
-    getCurrentWindow()
-      .startDragging()
-      .catch(() => {});
-  }
-};
-
 const TEXT_MUTED_60 = 'rgba(255, 255, 255, 0.6)';
 
 export const WindowTitleBar: React.FC = () => {
   return (
-    <div
-      role="region"
+    <header
       aria-label="Barra de título"
       className="titlebar-drag-region"
       data-tauri-drag-region
-      onMouseDown={handleStartDrag}
       style={{
         height: 32,
         display: 'flex',
@@ -152,6 +142,6 @@ export const WindowTitleBar: React.FC = () => {
           <span aria-hidden="true">✕</span>
         </button>
       </div>
-    </div>
+    </header>
   );
 };

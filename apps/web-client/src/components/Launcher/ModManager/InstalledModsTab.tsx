@@ -48,7 +48,7 @@ export const InstalledModsTab: React.FC<Readonly<InstalledModsTabProps>> = ({
     return installedMods.filter((m) => {
       const reg =
         modsRegistry[m.filename] || modsRegistry[m.filename.replace(/\.disabled$/, '')] || {};
-      const title = reg.title || prettyModName(m.filename);
+      const title = reg.title ?? prettyModName(m.filename);
       return (
         title.toLowerCase().includes(filter.toLowerCase()) ||
         m.filename.toLowerCase().includes(filter.toLowerCase())

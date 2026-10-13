@@ -52,7 +52,7 @@ export const CrystalSessionSection: React.FC<Readonly<CrystalSessionSectionProps
             src={
               avatarPref === 'minecraft' && currentSessionUsername
                 ? `https://mc-heads.net/avatar/${currentSessionUsername}/34`
-                : crystalSession.avatarUrl || '/logo.png'
+                : (crystalSession.avatarUrl ?? '/logo.png')
             }
             style={{ width: 34, height: 34, borderRadius: 8, objectFit: 'cover' }}
             alt="Avatar"

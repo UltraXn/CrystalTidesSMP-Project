@@ -680,7 +680,3 @@
     transform: translateY(0);
   }
 }
-
-/* --- Mobile Adjustments --- */
-@media (max-width: 1024px) {
-}

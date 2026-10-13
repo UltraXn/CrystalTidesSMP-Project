@@ -29,14 +29,14 @@ export function WikiFiltersBar({
   resetFilters,
   filteredCount,
   totalCount,
-}: WikiFiltersBarProps) {
+}: Readonly<WikiFiltersBarProps>) {
   const handleAddNewMod = () => {
     const newMod = prompt(
       "Escribe el nombre del nuevo Mod para registrar como filtro en el servidor (ej. Twilight Forest, Alex's Mobs, Create Mod):",
     );
     if (newMod?.trim()) {
       const modName = newMod.trim();
-      const saved = JSON.parse(localStorage.getItem('crystaltides_custom_mods') || '[]');
+      const saved = JSON.parse(localStorage.getItem('crystaltides_custom_mods') ?? '[]');
       if (!saved.includes(modName)) {
         const updated = [...saved, modName];
         localStorage.setItem('crystaltides_custom_mods', JSON.stringify(updated));
@@ -235,7 +235,7 @@ export function WikiFiltersBar({
               }}
             >
               Cat:{' '}
-              {WIKI_CATEGORIES.find((c) => c.id === selectedCategory)?.name || selectedCategory}
+              {WIKI_CATEGORIES.find((c) => c.id === selectedCategory)?.name ?? selectedCategory}
               <X
                 size={12}
                 style={{ cursor: 'pointer' }}

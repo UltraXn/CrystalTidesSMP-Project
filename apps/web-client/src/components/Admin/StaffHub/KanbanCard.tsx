@@ -21,7 +21,7 @@ export default function KanbanCard({
   const hasTime = card.due_date?.includes('T');
 
   return (
-    <div className="kanban-card-premium" draggable onDragStart={(e) => onDragStart(e, card.id)}>
+    <article className="kanban-card-premium" draggable onDragStart={(e) => onDragStart(e, card.id)}>
       <div className="card-header">
         <span className="card-title-premium">{card.title}</span>
         <div className="card-actions">
@@ -99,7 +99,7 @@ export default function KanbanCard({
         </div>
         {renderCardDateBadge(card.columnId, card.due_date, hasTime, card.date, t)}
       </div>
-    </div>
+    </article>
   );
 }
 

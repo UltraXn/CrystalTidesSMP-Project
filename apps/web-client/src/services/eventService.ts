@@ -10,7 +10,7 @@ export async function loadEventRegistrations(
     data: { session },
   } = await supabase.auth.getSession();
   const res = await fetch(`${apiUrl}/events/${eventId}/registrations`, {
-    headers: getAuthHeaders(session?.access_token || null),
+    headers: getAuthHeaders(session?.access_token ?? null),
   });
 
   if (!res.ok) {

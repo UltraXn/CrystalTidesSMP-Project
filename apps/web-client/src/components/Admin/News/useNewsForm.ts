@@ -6,36 +6,49 @@ import { supabase } from '../../../services/supabaseClient';
 import { uploadImage as uploadImageSecure } from '../../../services/uploadService';
 import { newsSchema, NewsFormValues } from '../../../schemas/news';
 
-const convertFileToWebP = (file: File): Promise<Blob> => {
+function canvasToWebpBlob(canvas: HTMLCanvasElement): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        if (blob) resolve(blob);
+        else reject(new Error('Conversion failed'));
+      },
+      'image/webp',
+      0.8,
+    );
+  });
+}
+
+function loadImageFromDataUrl(dataUrl: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = dataUrl;
+  });
+}
+
+function readFileAsDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = (e) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = img.width;
-        canvas.height = img.height;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          reject(new Error('No canvas context'));
-          return;
-        }
-        ctx.drawImage(img, 0, 0);
-        canvas.toBlob(
-          (blob) => {
-            if (blob) resolve(blob);
-            else reject(new Error('Conversion failed'));
-          },
-          'image/webp',
-          0.8,
-        );
-      };
-      img.onerror = reject;
-      img.src = e.target?.result as string;
-    };
+    reader.onload = (e) => resolve(e.target?.result as string);
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
+}
+
+const convertFileToWebP = async (file: File): Promise<Blob> => {
+  const dataUrl = await readFileAsDataUrl(file);
+  const img = await loadImageFromDataUrl(dataUrl);
+  const canvas = document.createElement('canvas');
+  canvas.width = img.width;
+  canvas.height = img.height;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    throw new Error('No canvas context');
+  }
+  ctx.drawImage(img, 0, 0);
+  return canvasToWebpBlob(canvas);
 };
 
 export function useNewsForm(initialData?: NewsFormValues) {

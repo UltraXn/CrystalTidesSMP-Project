@@ -104,8 +104,8 @@ export const checkIsAdmin = (
   userMetadata?: { role?: string; username?: string; name?: string } | null,
 ): boolean => {
   if (!userMetadata) return false;
-  const role = (userMetadata.role || '').toLowerCase();
-  const username = (userMetadata.username || userMetadata.name || '').toLowerCase();
+  const role = (userMetadata.role ?? '').toLowerCase();
+  const username = (userMetadata.username ?? userMetadata.name ?? '').toLowerCase();
   const privilegedRoles = [
     'admin',
     'staff',

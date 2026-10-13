@@ -90,8 +90,8 @@ export function useRulesEditor() {
   const handleEdit = (rule: Rule) => {
     setFormData({
       ...rule,
-      title_en: rule.title_en || '',
-      content_en: rule.content_en || '',
+      title_en: rule.title_en ?? '',
+      content_en: rule.content_en ?? '',
     });
     setEditingRule(rule);
     setIsCreating(true);

@@ -134,10 +134,10 @@ export default function PollActiveCard({
             poll.options.map((opt) => (
               <div key={opt.id ?? opt.label} className="poll-option-bar">
                 {/* Progress Fill */}
-                <div className="poll-option-fill" style={{ width: `${opt.percent || 0}%` }}></div>
+                <div className="poll-option-fill" style={{ width: `${opt.percent ?? 0}%` }}></div>
 
                 {/* Progress Line */}
-                <div className="poll-option-line" style={{ width: `${opt.percent || 0}%` }}></div>
+                <div className="poll-option-line" style={{ width: `${opt.percent ?? 0}%` }}></div>
 
                 {/* Content */}
                 <div className="poll-option-content">

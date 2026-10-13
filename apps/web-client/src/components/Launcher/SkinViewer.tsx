@@ -80,7 +80,7 @@ export const SkinViewer: React.FC<Readonly<SkinViewerProps>> = ({
 
     const updateCape = async (viewer: skinview3d.SkinViewer, url: string) => {
       let resolved: string | null = url;
-      if (url && url.startsWith('http')) {
+      if (url?.startsWith('http')) {
         try {
           resolved = await invoke<string>('fetch_image_base64', { url });
         } catch (err) {
@@ -128,7 +128,7 @@ export const SkinViewer: React.FC<Readonly<SkinViewerProps>> = ({
       if (!viewer) return;
 
       let resolvedCapeUrl: string | null | undefined = capeUrl;
-      if (capeUrl && capeUrl.startsWith('http')) {
+      if (capeUrl?.startsWith('http')) {
         try {
           resolvedCapeUrl =
             (await invoke<string>('fetch_image_base64', { url: capeUrl })) ?? undefined;
@@ -141,7 +141,7 @@ export const SkinViewer: React.FC<Readonly<SkinViewerProps>> = ({
       if (!isSubscribed) return;
 
       try {
-        console.log('Loading cape dynamically, length:', resolvedCapeUrl?.length || 0);
+        console.log('Loading cape dynamically, length:', resolvedCapeUrl?.length ?? 0);
         if (resolvedCapeUrl) {
           viewer.loadCape(resolvedCapeUrl);
         } else {

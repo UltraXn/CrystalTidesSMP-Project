@@ -24,7 +24,7 @@ function getDisplayAvatarSrc(
   if (mSession?.username) {
     return `https://mc-heads.net/avatar/${mSession.username}/36`;
   }
-  return cSession?.avatarUrl || null;
+  return cSession?.avatarUrl ?? null;
 }
 
 export const SidebarUserFooter: React.FC<Readonly<SidebarUserFooterProps>> = ({
@@ -36,12 +36,12 @@ export const SidebarUserFooter: React.FC<Readonly<SidebarUserFooterProps>> = ({
   const { currentSession, crystalSession, logout } = useAuth();
   const [showAccountMenu, setShowAccountMenu] = useState(false);
   const [avatarPref, setAvatarPref] = useState<'web' | 'minecraft'>(
-    () => getSettings().avatarPreference || 'web',
+    () => getSettings().avatarPreference ?? 'web',
   );
 
   useEffect(() => {
     const handleUpdate = () => {
-      setAvatarPref(getSettings().avatarPreference || 'web');
+      setAvatarPref(getSettings().avatarPreference ?? 'web');
     };
     window.addEventListener('crystaltides_settings_updated', handleUpdate);
     return () => window.removeEventListener('crystaltides_settings_updated', handleUpdate);

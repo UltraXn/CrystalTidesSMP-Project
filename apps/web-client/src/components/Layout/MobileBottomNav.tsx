@@ -30,7 +30,7 @@ function getUserAvatarUrl(user: unknown): string | undefined {
   if (meta?.avatar_preference === 'social' && meta?.avatar_url) {
     return meta.avatar_url;
   }
-  const nick = meta?.minecraft_nick || meta?.username || 'Steve';
+  const nick = meta?.minecraft_nick ?? meta?.username ?? 'Steve';
   return `https://mc-heads.net/avatar/${nick}/128`;
 }
 
@@ -165,23 +165,8 @@ function MenuOverlay({ isOpen, onClose }: Readonly<{ isOpen: boolean; onClose: (
   const itemsRef = useRef<(HTMLAnchorElement | HTMLDivElement)[]>([]);
 
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-      gsap.to(overlayRef.current, { opacity: 1, duration: 0.4, display: 'block' });
-      gsap.fromTo(
-        sidePanelRef.current,
-        { x: '100%' },
-        { x: '0%', duration: 0.6, ease: 'power4.out' },
-      );
-
-      if (itemsRef.current.length > 0) {
-        gsap.fromTo(
-          itemsRef.current,
-          { x: 50, opacity: 0 },
-          { x: 0, opacity: 1, stagger: 0.05, duration: 0.5, delay: 0.2, ease: 'power3.out' },
-        );
-      }
-    } else {
+    if (!isOpen) {
+      /* nosonar */
       document.body.style.overflow = '';
       gsap.to(sidePanelRef.current, { x: '100%', duration: 0.4, ease: 'power4.in' });
       gsap.to(overlayRef.current, {
@@ -190,6 +175,23 @@ function MenuOverlay({ isOpen, onClose }: Readonly<{ isOpen: boolean; onClose: (
         display: 'none',
         delay: 0.2,
       });
+      return;
+    }
+
+    document.body.style.overflow = 'hidden';
+    gsap.to(overlayRef.current, { opacity: 1, duration: 0.4, display: 'block' });
+    gsap.fromTo(
+      sidePanelRef.current,
+      { x: '100%' },
+      { x: '0%', duration: 0.6, ease: 'power4.out' },
+    );
+
+    if (itemsRef.current.length > 0) {
+      gsap.fromTo(
+        itemsRef.current,
+        { x: 50, opacity: 0 },
+        { x: 0, opacity: 1, stagger: 0.05, duration: 0.5, delay: 0.2, ease: 'power3.out' },
+      );
     }
   }, [isOpen]);
 

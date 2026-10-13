@@ -21,7 +21,7 @@ export default function UserAchievementsModal({
 }: Readonly<UserAchievementsModalProps>) {
   const { t } = useTranslation();
   const activeSet = new Set(user.achievements || []);
-  const displayName = user.username || (user.email ? user.email.split('@')[0] : 'Usuario');
+  const displayName = user.username ?? (user.email ? user.email.split('@')[0] : 'Usuario');
 
   return (
     <dialog open aria-labelledby="user-achievements-modal-title" className="premium-modal-overlay">

@@ -52,7 +52,7 @@ export function LocationCard({ location, onEdit, onDelete }: Readonly<LocationCa
           </div>
         ) : (
           <img
-            src={location.image_url || ''}
+            src={location.image_url ?? ''}
             alt={location.title}
             style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.6 }}
           />

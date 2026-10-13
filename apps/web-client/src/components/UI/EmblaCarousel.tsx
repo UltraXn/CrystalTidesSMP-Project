@@ -1,4 +1,4 @@
-import React, { useCallback, Suspense, lazy, useState, useRef, useMemo } from 'react';
+import React, { useCallback, Suspense, lazy, useState, useRef, useMemo, useEffect } from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
 import createAutoplay from 'embla-carousel-autoplay';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -23,32 +23,37 @@ const TiltCard = ({ children, className }: { children: React.ReactNode; classNam
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const cardRef = useRef<HTMLDivElement>(null);
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+  useEffect(() => {
     const card = cardRef.current;
     if (!card) return;
-    const rect = card.getBoundingClientRect();
-    const width = rect.width;
-    const height = rect.height;
-    const mouseX = e.clientX - rect.left - width / 2;
-    const mouseY = e.clientY - rect.top - height / 2;
 
-    // Max rotation angle in degrees
-    const maxRotation = 8;
-    const rX = -(mouseY / (height / 2)) * maxRotation;
-    const rY = (mouseX / (width / 2)) * maxRotation;
+    const onMove = (e: MouseEvent) => {
+      const rect = card.getBoundingClientRect();
+      const width = rect.width;
+      const height = rect.height;
+      const mouseX = e.clientX - rect.left - width / 2;
+      const mouseY = e.clientY - rect.top - height / 2;
+      const maxRotation = 8;
+      const rX = -(mouseY / (height / 2)) * maxRotation;
+      const rY = (mouseX / (width / 2)) * maxRotation;
+      setTilt({ x: rX, y: rY });
+    };
 
-    setTilt({ x: rX, y: rY });
-  };
+    const onLeave = () => {
+      setTilt({ x: 0, y: 0 });
+    };
 
-  const handleMouseLeave = () => {
-    setTilt({ x: 0, y: 0 });
-  };
+    card.addEventListener('mousemove', onMove);
+    card.addEventListener('mouseleave', onLeave);
+    return () => {
+      card.removeEventListener('mousemove', onMove);
+      card.removeEventListener('mouseleave', onLeave);
+    };
+  }, []);
 
   return (
     <div
       ref={cardRef}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
       style={{
         transform: `perspective(1000px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
         transition:

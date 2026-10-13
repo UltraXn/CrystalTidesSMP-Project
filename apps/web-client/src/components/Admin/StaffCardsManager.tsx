@@ -110,7 +110,7 @@ export default function StaffCardsManager({
         data: { session },
       } = await supabase.auth.getSession();
       const res = await fetch(`${API_URL}/users/staff`, {
-        headers: { Authorization: `Bearer ${session?.access_token || ''}` },
+        headers: { Authorization: `Bearer ${session?.access_token ?? ''}` },
       });
       if (!res.ok) throw new Error(`Error ${res.status}`);
       const json = await res.json();
@@ -129,17 +129,17 @@ export default function StaffCardsManager({
         const finalRole = roleConfig ? roleConfig.value : u.role;
 
         return {
-          id: u.uuid || u.web_id || Date.now(),
+          id: u.uuid ?? u.web_id ?? Date.now(),
           name: u.username,
           role: finalRole,
           description: existing?.description || t('admin.staff.default_desc'),
           image:
-            u.avatar_url || (existing?.image?.startsWith('http') ? existing.image : u.username),
-          color: roleConfig?.color || '#fff',
+            u.avatar_url ?? (existing?.image?.startsWith('http') ? existing.image : u.username),
+          color: roleConfig?.color ?? '#fff',
           socials: {
             twitter: existing?.socials?.twitter || '',
-            discord: u.discord?.username || existing?.socials?.discord || '',
-            twitch: u.twitch?.username || existing?.socials?.twitch || '',
+            discord: u.discord?.username ?? existing?.socials?.discord ?? '',
+            twitch: u.twitch?.username ?? existing?.socials?.twitch ?? '',
             youtube: existing?.socials?.youtube || '',
           },
           isNew: !existing,

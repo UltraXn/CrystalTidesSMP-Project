@@ -84,7 +84,7 @@ export default function StaffNotes() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...getAuthHeaders(session?.access_token || null),
+          ...getAuthHeaders(session?.access_token ?? null),
         },
         body: JSON.stringify(newNoteData),
       });
@@ -115,7 +115,7 @@ export default function StaffNotes() {
       } = await supabase.auth.getSession();
       const res = await fetch(`${API_URL}/staff/notes/${deleteConfirmId}`, {
         method: 'DELETE',
-        headers: getAuthHeaders(session?.access_token || null),
+        headers: getAuthHeaders(session?.access_token ?? null),
       });
       if (!res.ok) throw new Error('Failed to delete');
     } catch (error) {

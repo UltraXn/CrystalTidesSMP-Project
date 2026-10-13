@@ -379,7 +379,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         username: account.username,
         type: account.type,
         uuid: account.uuid,
-        skinUrl: account.skinUrl || `https://mc-heads.net/body/${account.username}/100`,
+        skinUrl: account.skinUrl ?? `https://mc-heads.net/body/${account.username}/100`,
         role: account.username === 'Invitado' ? 'INVITADO' : 'Aventurero',
       });
 
@@ -498,12 +498,12 @@ export const getProfile = (id: string): Profile | undefined => {
 export const createProfile = (profileData: Partial<Profile>, _extra?: any): Profile => {
   const profiles = getProfiles();
   const newProfile: Profile = {
-    id: profileData.id || `profile-${Date.now()}`,
-    name: profileData.name || 'Nuevo Perfil',
-    mcVersion: profileData.mcVersion || '1.21.1',
-    loaderType: profileData.loaderType || 'neoforge',
-    loaderVersion: profileData.loaderVersion || '21.1.65',
-    iconPath: profileData.iconPath || '🎮',
+    id: profileData.id ?? `profile-${Date.now()}`,
+    name: profileData.name ?? 'Nuevo Perfil',
+    mcVersion: profileData.mcVersion ?? '1.21.1',
+    loaderType: profileData.loaderType ?? 'neoforge',
+    loaderVersion: profileData.loaderVersion ?? '21.1.65',
+    iconPath: profileData.iconPath ?? '🎮',
     isolateSaves: profileData.isolateSaves || false,
     useOptimization: profileData.useOptimization !== false,
     created: new Date().toISOString(),
@@ -934,7 +934,7 @@ export const installModFromModrinth = async (
   versionId?: string,
   _extra1?: any,
 ): Promise<string> => {
-  return `${modId || 'mod'}-${versionId || '1.0.0'}.jar`;
+  return `${modId ?? 'mod'}-${versionId ?? '1.0.0'}.jar`;
 };
 
 export const searchCurseForgeMods = async (
@@ -957,7 +957,7 @@ export const installModFromCurseForge = async (
   fileId?: string | number,
   _extra1?: any,
 ): Promise<string> => {
-  return `${modId || 'mod'}-${fileId || 100}.jar`;
+  return `${modId ?? 'mod'}-${fileId ?? 100}.jar`;
 };
 
 /* ==========================================================================
@@ -1053,7 +1053,7 @@ const saveLogs = (logs: LogEntry[]) => {
 export const log = (message: string, opts?: { level?: LogLevel; category?: string }) => {
   const entry: LogEntry = {
     timestamp: new Date().toISOString(),
-    level: opts?.level || 'info',
+    level: opts?.level ?? 'info',
     category: opts?.category,
     message,
   };

@@ -38,6 +38,11 @@ const STATUS_COLOR_MAP: Record<string, string> = {
   [CONSTANTS.STATUS_CLOSED]: '#95a5a6',
 };
 
+function appendUniqueMessage(prev: TicketMessage[], incoming: TicketMessage): TicketMessage[] {
+  if (prev.some((m) => m.id === incoming.id)) return prev;
+  return [...prev, incoming];
+}
+
 function getStatusColor(status?: string): string {
   if (!status) return '#95a5a6';
   return STATUS_COLOR_MAP[status.toLowerCase()] ?? '#95a5a6';
@@ -339,10 +344,7 @@ export default function TicketDetail() {
             filter: `ticket_id=eq.${id}`,
           },
           (payload: { new: TicketMessage }) => {
-            setMessages((prev) => {
-              if (prev.some((m) => m.id === payload.new.id)) return prev;
-              return [...prev, payload.new];
-            });
+            setMessages((prev) => appendUniqueMessage(prev, payload.new));
           },
         )
         .subscribe();

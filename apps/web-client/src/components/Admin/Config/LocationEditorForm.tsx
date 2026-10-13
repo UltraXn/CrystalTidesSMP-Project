@@ -126,7 +126,7 @@ export function LocationEditorForm({
               <input
                 id="location-image"
                 className="admin-input-premium"
-                value={formData.image_url || ''}
+                value={formData.image_url ?? ''}
                 onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
                 placeholder="https://..."
                 style={{ width: '100%', padding: '1rem' }}

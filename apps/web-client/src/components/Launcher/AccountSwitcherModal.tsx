@@ -20,7 +20,7 @@ export const AccountSwitcherModal: React.FC<Readonly<AccountSwitcherModalProps>>
     useAuth();
 
   const [avatarPref, setAvatarPref] = useState<'web' | 'minecraft'>(
-    () => getSettings().avatarPreference || 'web',
+    () => getSettings().avatarPreference ?? 'web',
   );
 
   const handleToggleAvatarPref = (pref: 'web' | 'minecraft') => {
@@ -47,8 +47,7 @@ export const AccountSwitcherModal: React.FC<Readonly<AccountSwitcherModalProps>>
       />
 
       {/* Popover Menu */}
-      <div
-        role="region"
+      <section
         aria-labelledby="account-switcher-title"
         className="reveal-up"
         style={{
@@ -126,7 +125,7 @@ export const AccountSwitcherModal: React.FC<Readonly<AccountSwitcherModalProps>>
           onLogout={logout}
           onNavigateSettings={onNavigateSettings}
         />
-      </div>
+      </section>
     </>
   );
 };

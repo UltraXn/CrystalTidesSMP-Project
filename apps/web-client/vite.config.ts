@@ -8,7 +8,7 @@ import { fileURLToPath } from 'url';
 export default defineConfig(async () => {
   const dirname = path.dirname(fileURLToPath(import.meta.url));
 
-  const plugins: PluginOption[] = [react() as unknown as PluginOption];
+  const plugins: PluginOption[] = [react({ plugins: [] }) as unknown as PluginOption];
   if (!process.env.VITEST) {
     const tailwindcss = (await import('@tailwindcss/vite')).default;
     plugins.push(tailwindcss());
@@ -128,6 +128,11 @@ export default defineConfig(async () => {
       maxWorkers: 2,
       css: false,
       root: '.',
+      coverage: {
+        provider: 'v8' as const,
+        reporter: ['text', 'lcov'],
+        reportsDirectory: './coverage',
+      },
     },
   };
 });

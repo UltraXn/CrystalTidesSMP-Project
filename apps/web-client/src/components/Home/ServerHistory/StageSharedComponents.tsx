@@ -58,7 +58,7 @@ export function FloatingItem({ item, idx }: Readonly<{ item: StageFloatingItem; 
     iconContent = (
       <item.icon
         className="size-full drop-shadow-[0_0_15px_currentColor] filter"
-        style={{ color: item.color || '#00e5ff' }}
+        style={{ color: item.color ?? '#00e5ff' }}
       />
     );
   }

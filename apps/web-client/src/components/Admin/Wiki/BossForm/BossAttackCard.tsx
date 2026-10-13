@@ -1,4 +1,4 @@
-const BOX_BORDER_BOX = 'border-box' as const;
+const BOX_BORDER_BOX: React.CSSProperties['boxSizing'] = 'border-box';
 const DARK_BG = 'rgba(0,0,0,0.4)';
 const WHITE_BORDER_10 = '1px solid rgba(255,255,255,0.1)';
 
@@ -64,7 +64,7 @@ export function BossAttackCard({
   onUpdateAttack,
   onRemoveAttack,
   onPreviewClip,
-}: BossAttackCardProps) {
+}: Readonly<BossAttackCardProps>) {
   return (
     <div
       style={{
@@ -221,7 +221,7 @@ export function BossAttackCard({
         <button
           type="button"
           title="Probar esta animación en el visor 3D"
-          onClick={() => onPreviewClip(attack.animation_clip || 'idle')}
+          onClick={() => onPreviewClip(attack.animation_clip ?? 'idle')}
           style={{
             background: 'rgba(59, 130, 246, 0.3)',
             border: '1px solid rgba(59, 130, 246, 0.5)',

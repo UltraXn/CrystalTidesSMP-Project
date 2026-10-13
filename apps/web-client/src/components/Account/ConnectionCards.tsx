@@ -285,7 +285,7 @@ const MinecraftCard: React.FC<Readonly<MinecraftCardProps>> = ({
         <div className="relative">
           {isLinked ? (
             <img
-              src={`https://mc-heads.net/avatar/${statsDataUsername || mcUsername}`}
+              src={`https://mc-heads.net/avatar/${statsDataUsername ?? mcUsername}`}
               alt={mcUsername}
               className="size-16 rounded-2xl border-2 border-green-500/30 bg-black/40 object-contain shadow-2xl"
             />

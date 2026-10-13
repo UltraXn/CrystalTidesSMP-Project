@@ -143,7 +143,7 @@ export const InstalledModCard: React.FC<Readonly<InstalledModCardProps>> = ({
   onToggle,
   onDelete,
 }) => {
-  const title = registry?.title || prettyModName(mod.filename);
+  const title = registry?.title ?? prettyModName(mod.filename);
   const initials = getModInitials(title);
   const resolvedIconUrl = resolveModIcon(mod, title, registry);
 

@@ -20,17 +20,14 @@ export const ActiveProfileChip: React.FC<Readonly<ActiveProfileChipProps>> = ({
   onToggleOpen,
 }) => {
   return (
-    <div
+    <button
+      type="button"
+      aria-expanded={isOpen}
       onClick={onToggleOpen}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onToggleOpen();
-        }
-      }}
       style={{
+        textAlign: 'left',
+        color: 'inherit',
+        font: 'inherit',
         display: 'flex',
         alignItems: 'center',
         gap: 11,
@@ -78,7 +75,7 @@ export const ActiveProfileChip: React.FC<Readonly<ActiveProfileChipProps>> = ({
             style={{ width: 20, height: 20, objectFit: 'contain' }}
           />
         ) : (
-          activeProfile?.iconPath || '🌊'
+          (activeProfile?.iconPath ?? '🌊')
         )}
       </span>
       <div
@@ -100,10 +97,10 @@ export const ActiveProfileChip: React.FC<Readonly<ActiveProfileChipProps>> = ({
             maxWidth: 140,
           }}
         >
-          {activeProfile?.name || 'Cargando...'}
+          {activeProfile?.name ?? 'Cargando...'}
         </span>
         <span style={{ fontSize: 10.5, color: 'rgba(255, 255, 255, 0.5)', marginTop: 1 }}>
-          {activeProfile?.mcVersion} · {activeProfile?.loaderType || 'Vanilla'} ·{' '}
+          {activeProfile?.mcVersion} · {activeProfile?.loaderType ?? 'Vanilla'} ·{' '}
           {formatRamDisplay(activeProfile?.maxRam ?? getSettings().maxRam)}
         </span>
       </div>
@@ -126,6 +123,6 @@ export const ActiveProfileChip: React.FC<Readonly<ActiveProfileChipProps>> = ({
       >
         <polyline points="6 9 12 15 18 9" />
       </svg>
-    </div>
+    </button>
   );
 };

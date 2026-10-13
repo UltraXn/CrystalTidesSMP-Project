@@ -4,207 +4,261 @@ import { m, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 
 interface Notification {
-    id: number;
-    type: string;
-    title: string;
-    message: string;
-    time: string;
-    read: boolean;
+  id: number;
+  type: string;
+  title: string;
+  message: string;
+  time: string;
+  read: boolean;
 }
 
 const getIcon = (type: string) => {
-    switch(type) {
-        case 'success': return <CheckCircle2 role="img" aria-label="CheckCircle2" style={{ color: '#4CAF50' }} />;
-        case 'warning': return <AlertTriangle role="img" aria-label="AlertTriangle" style={{ color: '#FFC107' }} />;
-        default: return <Info role="img" aria-label="Info" style={{ color: '#2196F3' }} />;
-    }
+  switch (type) {
+    case 'success':
+      return <CheckCircle2 aria-hidden="true" style={{ color: '#4CAF50' }} />;
+    case 'warning':
+      return <AlertTriangle aria-hidden="true" style={{ color: '#FFC107' }} />;
+    default:
+      return <Info aria-hidden="true" style={{ color: '#2196F3' }} />;
+  }
 };
 
 interface NotificationCenterProps {
-    initialOpen?: boolean;
-    mockNotifications?: Notification[];
+  initialOpen?: boolean;
+  mockNotifications?: Notification[];
 }
 
-export default function NotificationCenter({ initialOpen = false, mockNotifications }: NotificationCenterProps) {
-    const { t } = useTranslation();
-    const [isOpen, setIsOpen] = useState(initialOpen);
-    const [notifications, setNotifications] = useState<Notification[]>(
-        mockNotifications || [
-            { id: 1, type: 'success', title: 'Rango Activado', message: 'Tu membresía Donador ha sido sincronizada.', time: 'Hace 5 min', read: false },
-            { id: 2, type: 'warning', title: 'Mantenimiento', message: 'Reinicio programado a las 04:00 UTC.', time: 'Hace 1 hora', read: false },
-            { id: 3, type: 'info', title: 'Nuevo Parche', message: 'Se han añadido 12 nuevos items a la Wiki.', time: 'Hace 3 horas', read: true }
-        ]
-    );
-    const containerRef = useRef<HTMLDivElement>(null);
+export default function NotificationCenter({
+  initialOpen = false,
+  mockNotifications,
+}: Readonly<NotificationCenterProps>) {
+  const { t } = useTranslation();
+  const [isOpen, setIsOpen] = useState(initialOpen);
+  const [notifications, setNotifications] = useState<Notification[]>(
+    mockNotifications || [
+      {
+        id: 1,
+        type: 'success',
+        title: 'Rango Activado',
+        message: 'Tu membresía Donador ha sido sincronizada.',
+        time: 'Hace 5 min',
+        read: false,
+      },
+      {
+        id: 2,
+        type: 'warning',
+        title: 'Mantenimiento',
+        message: 'Reinicio programado a las 04:00 UTC.',
+        time: 'Hace 1 hora',
+        read: false,
+      },
+      {
+        id: 3,
+        type: 'info',
+        title: 'Nuevo Parche',
+        message: 'Se han añadido 12 nuevos items a la Wiki.',
+        time: 'Hace 3 horas',
+        read: true,
+      },
+    ],
+  );
+  const containerRef = useRef<HTMLDivElement>(null);
 
-    // Close when clicking outside
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-                setIsOpen(false);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
-
-    const unreadCount = notifications.filter(n => !n.read).length;
-
-    const handleMarkAllRead = () => {
-        setNotifications(notifications.map(n => ({ ...n, read: true })));
+  // Close when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
     };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
-    const deleteNotification = (id: number, e: React.MouseEvent) => {
-        e.stopPropagation();
-        setNotifications(notifications.filter(n => n.id !== id));
-    };
+  const unreadCount = notifications.filter((n) => !n.read).length;
 
-    return (
-        <div className="notification-center" ref={containerRef} style={{ position: 'relative' }}>
-            <button type="button" 
-                onClick={() => setIsOpen(!isOpen)}
-                aria-label={t('admin.notifications.label', 'Notificaciones')}
-                style={{ 
-                    background: 'transparent', 
-                    border: 'none', 
-                    color: 'white', 
-                    fontSize: '1.2rem', 
-                    cursor: 'pointer',
-                    position: 'relative',
-                    padding: '0.5rem',
-                    transition: 'transform 0.2s'
-                }}
-                className={isOpen ? 'active' : ''}
+  const handleMarkAllRead = () => {
+    setNotifications(notifications.map((n) => ({ ...n, read: true })));
+  };
+
+  const deleteNotification = (id: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setNotifications(notifications.filter((n) => n.id !== id));
+  };
+
+  return (
+    <div className="notification-center" ref={containerRef} style={{ position: 'relative' }}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        aria-label={t('admin.notifications.label', 'Notificaciones')}
+        style={{
+          background: 'transparent',
+          border: 'none',
+          color: 'white',
+          fontSize: '1.2rem',
+          cursor: 'pointer',
+          position: 'relative',
+          padding: '0.5rem',
+          transition: 'transform 0.2s',
+        }}
+        className={isOpen ? 'active' : ''}
+      >
+        <Bell />
+        {unreadCount > 0 && (
+          <span
+            style={{
+              position: 'absolute',
+              top: 0,
+              right: 0,
+              background: 'var(--accent)',
+              color: 'black',
+              fontSize: '0.7rem',
+              fontWeight: 'bold',
+              width: '18px',
+              height: '18px',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 2px 5px rgba(0,0,0,0.5)',
+            }}
+          >
+            {unreadCount}
+          </span>
+        )}
+      </button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <m.div
+            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
+            style={{
+              position: 'absolute',
+              top: '100%',
+              right: '-50px',
+              width: '320px',
+              background: '#1a1a1a',
+              border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: '12px',
+              boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
+              zIndex: 1000,
+              marginTop: '10px',
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+          >
+            {/* Header */}
+            <div
+              style={{
+                padding: '1rem',
+                borderBottom: '1px solid rgba(255,255,255,0.1)',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                background: 'rgba(0,0,0,0.2)',
+              }}
             >
-                <Bell />
-                {unreadCount > 0 && (
-                    <span style={{
-                        position: 'absolute',
-                        top: 0,
-                        right: 0,
-                        background: 'var(--accent)',
-                        color: 'black',
-                        fontSize: '0.7rem',
-                        fontWeight: 'bold',
-                        width: '18px',
-                        height: '18px',
-                        borderRadius: '50%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        boxShadow: '0 2px 5px rgba(0,0,0,0.5)'
-                    }}>
-                        {unreadCount}
-                    </span>
-                )}
-            </button>
+              <h3 style={{ margin: 0, fontSize: '1rem' }}>
+                {t('admin.notifications.title', 'Notificaciones')}
+              </h3>
+              {unreadCount > 0 && (
+                <button
+                  type="button"
+                  onClick={handleMarkAllRead}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'var(--accent)',
+                    fontSize: '0.8rem',
+                    cursor: 'pointer',
+                    textDecoration: 'underline',
+                  }}
+                >
+                  {t('admin.notifications.mark_all_read', 'Marcar leídas')}
+                </button>
+              )}
+            </div>
 
-            <AnimatePresence>
-                {isOpen && (
-                    <m.div
-                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                        transition={{ duration: 0.2 }}
+            {/* List */}
+            <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+              {notifications.length === 0 ? (
+                <div
+                  style={{
+                    padding: '2rem',
+                    textAlign: 'center',
+                    color: '#666',
+                    fontStyle: 'italic',
+                  }}
+                >
+                  {t('admin.notifications.empty', 'No tienes notificaciones.')}
+                </div>
+              ) : (
+                notifications.map((n) => (
+                  <m.div
+                    key={n.id}
+                    layout
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    className="notification-item"
+                    style={{
+                      padding: '1rem',
+                      borderBottom: '1px solid rgba(255,255,255,0.05)',
+                      background: n.read ? 'transparent' : 'rgba(var(--accent-rgb), 0.05)',
+                      position: 'relative',
+                      display: 'flex',
+                      gap: '1rem',
+                    }}
+                  >
+                    <div style={{ fontSize: '1.2rem', marginTop: '3px' }}>{getIcon(n.type)}</div>
+                    <div style={{ flex: 1 }}>
+                      <h4
                         style={{
-                            position: 'absolute',
-                            top: '100%',
-                            right: '-50px',
-                            width: '320px',
-                            background: '#1a1a1a',
-                            border: '1px solid rgba(255,255,255,0.1)',
-                            borderRadius: '12px',
-                            boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
-                            zIndex: 1000,
-                            marginTop: '10px',
-                            overflow: 'hidden',
-                            display: 'flex',
-                            flexDirection: 'column'
+                          margin: '0 0 0.2rem 0',
+                          fontSize: '0.95rem',
+                          display: 'flex',
+                          justifyContent: 'space-between',
                         }}
+                      >
+                        {n.title}
+                        <span style={{ fontSize: '0.7rem', color: '#666', fontWeight: 'normal' }}>
+                          {n.time}
+                        </span>
+                      </h4>
+                      <p
+                        style={{ margin: 0, fontSize: '0.85rem', color: '#aaa', lineHeight: '1.4' }}
+                      >
+                        {n.message}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={(e) => deleteNotification(n.id, e)}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        color: '#666',
+                        cursor: 'pointer',
+                        padding: '2px',
+                        alignSelf: 'flex-start',
+                      }}
+                      aria-label={t('admin.notifications.dismiss', 'Descartar')}
+                      title={t('admin.notifications.dismiss', 'Descartar')}
                     >
-                        {/* Header */}
-                        <div style={{ 
-                            padding: '1rem', 
-                            borderBottom: '1px solid rgba(255,255,255,0.1)',
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            background: 'rgba(0,0,0,0.2)'
-                        }}>
-                            <h3 style={{ margin: 0, fontSize: '1rem' }}>{t('admin.notifications.title', 'Notificaciones')}</h3>
-                            {unreadCount > 0 && (
-                                <button type="button" 
-                                    onClick={handleMarkAllRead}
-                                    style={{ 
-                                        background: 'transparent', 
-                                        border: 'none', 
-                                        color: 'var(--accent)', 
-                                        fontSize: '0.8rem', 
-                                        cursor: 'pointer',
-                                        textDecoration: 'underline'
-                                    }}
-                                >
-                                    {t('admin.notifications.mark_all_read', 'Marcar leídas')}
-                                </button>
-                            )}
-                        </div>
-
-                        {/* List */}
-                        <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
-                            {notifications.length === 0 ? (
-                                <div style={{ padding: '2rem', textAlign: 'center', color: '#666', fontStyle: 'italic' }}>
-                                    {t('admin.notifications.empty', 'No tienes notificaciones.')}
-                                </div>
-                            ) : (
-                                notifications.map(n => (
-                                    <m.div
-                                        key={n.id}
-                                        layout
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        exit={{ opacity: 0, scale: 0.95 }}
-                                        className="notification-item"
-                                        style={{
-                                            padding: '1rem',
-                                            borderBottom: '1px solid rgba(255,255,255,0.05)',
-                                            background: n.read ? 'transparent' : 'rgba(var(--accent-rgb), 0.05)',
-                                            position: 'relative',
-                                            display: 'flex',
-                                            gap: '1rem'
-                                        }}
-                                    >
-                                        <div style={{ fontSize: '1.2rem', marginTop: '3px' }}>
-                                            {getIcon(n.type)}
-                                        </div>
-                                        <div style={{ flex: 1 }}>
-                                            <h4 style={{ margin: '0 0 0.2rem 0', fontSize: '0.95rem', display: 'flex', justifyContent: 'space-between' }}>
-                                                {n.title}
-                                                <span style={{ fontSize: '0.7rem', color: '#666', fontWeight: 'normal' }}>{n.time}</span>
-                                            </h4>
-                                            <p style={{ margin: 0, fontSize: '0.85rem', color: '#aaa', lineHeight: '1.4' }}>{n.message}</p>
-                                        </div>
-                                        <button type="button" 
-                                            onClick={(e) => deleteNotification(n.id, e)}
-                                            style={{
-                                                background: 'transparent',
-                                                border: 'none',
-                                                color: '#666',
-                                                cursor: 'pointer',
-                                                padding: '2px',
-                                                alignSelf: 'flex-start'
-                                            }}
-                                            aria-label={t('admin.notifications.dismiss', 'Descartar')}
-                                            title={t('admin.notifications.dismiss', 'Descartar')}
-                                        >
-                                            <X />
-                                        </button>
-                                    </m.div>
-                                ))
-                            )}
-                        </div>
-                    </m.div>
-                )}
-            </AnimatePresence>
-        </div>
-    );
+                      <X />
+                    </button>
+                  </m.div>
+                ))
+              )}
+            </div>
+          </m.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
 }

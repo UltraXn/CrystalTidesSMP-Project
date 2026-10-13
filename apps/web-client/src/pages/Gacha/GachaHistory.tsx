@@ -70,7 +70,7 @@ export const GachaHistory: React.FC<Readonly<GachaHistoryProps>> = ({
         {history.map((item) => {
           const Icon = RARITY_ICONS[item.rarity] || Star;
           const color = RARITY_COLORS[item.rarity] || '#fff';
-          const activeImg = item.image_url || getFailsafeImg(item.reward_name);
+          const activeImg = item.image_url ?? getFailsafeImg(item.reward_name);
 
           return (
             <div
@@ -139,8 +139,7 @@ export const GachaHistory: React.FC<Readonly<GachaHistoryProps>> = ({
           }}
         />
       )}
-      <div
-        role="region"
+      <section
         aria-label={t('gacha.history_title', 'Historial de Premios')}
         className="gacha-history-drawer"
       >
@@ -186,7 +185,7 @@ export const GachaHistory: React.FC<Readonly<GachaHistoryProps>> = ({
         <div className="history-footer">
           <p>Se muestran los últimos 20 premios</p>
         </div>
-      </div>
+      </section>
     </div>
   );
 };

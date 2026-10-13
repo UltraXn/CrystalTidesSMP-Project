@@ -171,7 +171,7 @@ export default function AdminNews({ user }: Readonly<AdminNewsProps>) {
           <div key={post.id} className="news-card-premium">
             <div className="news-card-image-wrapper">
               <img
-                src={post.image || '/images/ui/logo.webp'}
+                src={post.image ?? '/images/ui/logo.webp'}
                 className="news-card-image"
                 alt={post.title}
                 onError={(e) => {
@@ -203,7 +203,7 @@ export default function AdminNews({ user }: Readonly<AdminNewsProps>) {
               <div className="news-card-meta">
                 <span>{post.created_at ? formatDate(post.created_at) : '-'}</span>
                 <span>•</span>
-                <span>{post.username || 'Admin'}</span>
+                <span>{post.username ?? 'Admin'}</span>
               </div>
 
               <div className="news-card-footer">

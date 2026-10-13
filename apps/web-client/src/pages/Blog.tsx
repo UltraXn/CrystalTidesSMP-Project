@@ -80,11 +80,11 @@ function resolveArticleContent(article: Article, isEn: boolean, fallbackText: st
   if (isEn && article.content_en) {
     return article.content_en;
   }
-  return article.content || article.excerpt || fallbackText;
+  return article.content ?? article.excerpt ?? fallbackText;
 }
 
 function getArticleThreadUrl(article: Article): string {
-  return `/forum/thread/news/${article.slug || article.id}`;
+  return `/forum/thread/news/${article.slug ?? article.id}`;
 }
 
 function formatArticleDate(dateString: string): string {

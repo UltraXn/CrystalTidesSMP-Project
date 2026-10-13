@@ -67,7 +67,7 @@ export default function DonorFormModal({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...getAuthHeaders(session?.access_token || null),
+          ...getAuthHeaders(session?.access_token ?? null),
         },
         body: JSON.stringify({ text, targetLang: toLang }),
       });

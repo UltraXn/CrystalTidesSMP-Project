@@ -173,9 +173,8 @@ export default function FaqSection({ embedded = false }: Readonly<FaqSectionProp
               </div>
             </button>
 
-            <div
+            <section
               id={contentId}
-              role="region"
               aria-labelledby={headerId}
               className={`ease-[cubic-bezier(0.16,1,0.3,1)] grid overflow-hidden transition-[grid-template-rows,opacity] duration-300 ${
                 isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
@@ -186,7 +185,7 @@ export default function FaqSection({ embedded = false }: Readonly<FaqSectionProp
                   <p>{t(faq.answerKey, faq.defaultAnswer)}</p>
                 </div>
               </div>
-            </div>
+            </section>
           </div>
         );
       })}
@@ -328,9 +327,8 @@ export default function FaqSection({ embedded = false }: Readonly<FaqSectionProp
                   </div>
                 </button>
 
-                <div
+                <section
                   id={contentId}
-                  role="region"
                   aria-labelledby={headerId}
                   className={`ease-[cubic-bezier(0.16,1,0.3,1)] grid overflow-hidden transition-[grid-template-rows,opacity] duration-300 ${
                     isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
@@ -341,7 +339,7 @@ export default function FaqSection({ embedded = false }: Readonly<FaqSectionProp
                       <p>{t(faq.answerKey, faq.defaultAnswer)}</p>
                     </div>
                   </div>
-                </div>
+                </section>
               </div>
             );
           })}

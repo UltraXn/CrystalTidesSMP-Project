@@ -88,7 +88,7 @@ export const HomePage: React.FC<Readonly<HomePageProps>> = ({ onNavigate }) => {
     >
       {/* Hero Greeting & Server Status */}
       <HeroGreetingBar
-        username={crystalSession?.username || currentSession?.username || 'Invitado'}
+        username={crystalSession?.username ?? currentSession?.username ?? 'Invitado'}
         role={crystalSession?.role}
         sessionType={currentSession?.type}
         serverStatus={serverStatus}
@@ -110,7 +110,7 @@ export const HomePage: React.FC<Readonly<HomePageProps>> = ({ onNavigate }) => {
         />
 
         <PlayerSkinCard
-          username={currentSession?.username || 'Invitado'}
+          username={currentSession?.username ?? 'Invitado'}
           uuid={currentSession?.uuid}
           role={crystalSession?.role}
           sessionType={currentSession?.type}

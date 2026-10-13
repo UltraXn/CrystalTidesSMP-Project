@@ -7,6 +7,7 @@ import {
   GACHA_SPIN_DURATIONS,
   reelsToImageStrips,
   type GachaSpinSync,
+  type GachaSpinEase,
 } from '../../components/Gacha/gachaSpinSync';
 import type {
   GachaReward,
@@ -35,6 +36,37 @@ import {
   triggerCelebration,
   runSpinTimeline,
 } from './gachaGameUtils';
+
+interface SpinAnimationParams {
+  spinIdRef: React.RefObject<number>;
+  setSpinSync: React.Dispatch<React.SetStateAction<GachaSpinSync | null>>;
+  reelRefs: React.RefObject<HTMLDivElement | null>[];
+  durations: readonly [number, number, number];
+  nextReels: GachaReward[][];
+  isBulk: boolean;
+  ease: GachaSpinEase;
+  setIsCelebrating: (v: boolean) => void;
+  resolve: () => void;
+}
+
+function executeSpinStep(params: SpinAnimationParams): void {
+  params.spinIdRef.current += 1;
+  params.setSpinSync({
+    id: params.spinIdRef.current,
+    durations: params.durations,
+    strips: reelsToImageStrips(params.nextReels),
+    ease: params.ease,
+  });
+
+  const handleDone = () => triggerCelebration(params.setIsCelebrating, params.resolve);
+  runSpinTimeline(
+    params.reelRefs,
+    params.durations as unknown as number[],
+    params.isBulk,
+    params.ease,
+    handleDone,
+  );
+}
 
 export function useGachaGame() {
   const { user, loading: authLoading } = useAuth();
@@ -249,16 +281,16 @@ export function useGachaGame() {
         setReelItemsSet(nextReels);
 
         window.setTimeout(() => {
-          spinIdRef.current += 1;
-          setSpinSync({
-            id: spinIdRef.current,
-            durations: [...durations],
-            strips: reelsToImageStrips(nextReels),
+          executeSpinStep({
+            spinIdRef,
+            setSpinSync,
+            reelRefs,
+            durations,
+            nextReels,
+            isBulk,
             ease,
-          });
-
-          runSpinTimeline(reelRefs, durations, isBulk, ease, () => {
-            triggerCelebration(setIsCelebrating, resolve);
+            setIsCelebrating,
+            resolve,
           });
         }, 50);
       });
@@ -357,8 +389,9 @@ export function useGachaGame() {
 
       if (!isEligible || !activeUser) return;
 
-      setIsOpening(true);
-      const totalCost = calculateRollCost(selectedTier.cost, qty, hasFreeRollForTier);
+      const totalCost = calculateRollCost(selectedTier.cost, qty, {
+        hasFreeRoll: hasFreeRollForTier,
+      });
 
       if (activeUser.id.startsWith(CONSTANTS.MOCK_PREFIX)) {
         await handleMockRoll(qty, totalCost);

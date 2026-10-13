@@ -172,10 +172,7 @@ export default function TicketTable({
                 transition: 'background 0.2s',
               }}
             >
-              <td
-                onClick={(e) => e.stopPropagation()}
-                style={{ textAlign: 'center', padding: '1rem' }}
-              >
+              <td style={{ textAlign: 'center', padding: '1rem' }}>
                 <input
                   aria-label={t(
                     'admin.tickets.select_ticket',
@@ -184,6 +181,7 @@ export default function TicketTable({
                   type="checkbox"
                   checked={selectedSet.has(ticketItem.id)}
                   onChange={() => toggleSelectTicket(ticketItem.id)}
+                  onClick={(e) => e.stopPropagation()}
                   style={{ cursor: 'pointer', accentColor: 'var(--accent)' }}
                 />
               </td>
@@ -227,7 +225,7 @@ export default function TicketTable({
                     </div>
                   )}
                   <span style={{ fontWeight: '500' }}>
-                    {ticketItem.profiles?.username || ticketItem.user_id?.substring(0, 8) || 'Anon'}
+                    {ticketItem.profiles?.username ?? ticketItem.user_id?.substring(0, 8) ?? 'Anon'}
                   </span>
                 </div>
               </td>

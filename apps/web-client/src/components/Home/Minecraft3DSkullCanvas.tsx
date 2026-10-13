@@ -7,6 +7,32 @@ interface Minecraft3DSkullCanvasProps {
   size?: number;
 }
 
+function applyLambertPixelArtMaterial(child: THREE.Object3D): void {
+  if (!(child instanceof THREE.Mesh)) return;
+  const name = (child.name ?? '').toLowerCase();
+  if (name.includes('hitbox') || name.includes('collider') || name.includes('bounding')) {
+    child.visible = false;
+    return;
+  }
+
+  const oldMats = Array.isArray(child.material) ? child.material : [child.material];
+  const newMats = oldMats.map((mat) => {
+    const lambert = new THREE.MeshLambertMaterial({
+      map: mat.map ?? null,
+      side: THREE.DoubleSide,
+      transparent: true,
+      alphaTest: 0.1,
+    });
+    if (lambert.map) {
+      lambert.map.magFilter = THREE.NearestFilter;
+      lambert.map.minFilter = THREE.NearestFilter;
+      lambert.map.colorSpace = THREE.SRGBColorSpace;
+    }
+    return lambert;
+  });
+  child.material = newMats.length === 1 ? newMats[0] : newMats;
+}
+
 export const Minecraft3DSkullCanvas: React.FC<Readonly<Minecraft3DSkullCanvasProps>> = ({
   className = '',
   size = 44,
@@ -64,33 +90,7 @@ export const Minecraft3DSkullCanvas: React.FC<Readonly<Minecraft3DSkullCanvasPro
         const model = gltf.scene;
 
         // Hide hitboxes & apply pixel-art filtering with MeshLambertMaterial
-        // (pure diffuse shading: reacts to lights with zero metalness/specular artifacts)
-        model.traverse((child) => {
-          if (child instanceof THREE.Mesh) {
-            const name = (child.name || '').toLowerCase();
-            if (name.includes('hitbox') || name.includes('collider') || name.includes('bounding')) {
-              child.visible = false;
-              return;
-            }
-
-            const oldMats = Array.isArray(child.material) ? child.material : [child.material];
-            const newMats = oldMats.map((mat) => {
-              const lambert = new THREE.MeshLambertMaterial({
-                map: mat.map ?? null,
-                side: THREE.DoubleSide,
-                transparent: true,
-                alphaTest: 0.1,
-              });
-              if (lambert.map) {
-                lambert.map.magFilter = THREE.NearestFilter;
-                lambert.map.minFilter = THREE.NearestFilter;
-                lambert.map.colorSpace = THREE.SRGBColorSpace;
-              }
-              return lambert;
-            });
-            child.material = newMats.length === 1 ? newMats[0] : newMats;
-          }
-        });
+        model.traverse(applyLambertPixelArtMaterial);
 
         // Center & Scale GLTF Model
         const box = new THREE.Box3().setFromObject(model);
@@ -132,12 +132,15 @@ export const Minecraft3DSkullCanvas: React.FC<Readonly<Minecraft3DSkullCanvasPro
     );
 
     // 4. Animation Loop
-    const clock = new THREE.Clock();
+    const startTime = performance.now();
+    let lastTime = startTime;
 
     renderer.setAnimationLoop(() => {
       if (!isSubscribed) return;
-      const delta = clock.getDelta();
-      const elapsedTime = clock.getElapsedTime();
+      const now = performance.now();
+      const delta = (now - lastTime) / 1000;
+      lastTime = now;
+      const elapsedTime = (now - startTime) / 1000;
 
       if (mixer) {
         mixer.update(delta);

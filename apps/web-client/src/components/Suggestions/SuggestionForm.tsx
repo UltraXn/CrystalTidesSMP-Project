@@ -96,7 +96,7 @@ export default function SuggestionForm({ onSuggestionCreated }: Readonly<Suggest
         );
 
         const newSuggestion: SuggestionItem = {
-          id: json.id || nextTempSuggestionId(),
+          id: json.id ?? nextTempSuggestionId(),
           nickname: data.nickname || 'Anónimo',
           type: data.type,
           message: data.message,
@@ -109,7 +109,7 @@ export default function SuggestionForm({ onSuggestionCreated }: Readonly<Suggest
         reset();
       } else {
         setFormStatus('error');
-        setValidationError(json.error || 'No se pudo enviar la sugerencia.');
+        setValidationError(json.error ?? 'No se pudo enviar la sugerencia.');
       }
     } catch {
       setFormStatus('error');
@@ -241,7 +241,7 @@ export default function SuggestionForm({ onSuggestionCreated }: Readonly<Suggest
 
             {formStatus === 'error' && (
               <p className="mt-4 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-red-400">
-                {validationError || t('suggestions.form.error_msg')}
+                {validationError ?? t('suggestions.form.error_msg')}
               </p>
             )}
           </form>

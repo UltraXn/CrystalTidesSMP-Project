@@ -92,7 +92,7 @@ export default function PollDisplay({ poll, refreshPoll, onVote }: Readonly<Poll
             Esta encuesta se está llevando a cabo en nuestro servidor de Discord.
           </p>
           <a
-            href={sanitizeUrl(poll.discord_link) || '#'}
+            href={sanitizeUrl(poll.discord_link) ?? '#'}
             target="_blank"
             rel="noopener noreferrer"
             className="btn-primary"
@@ -155,22 +155,21 @@ export default function PollDisplay({ poll, refreshPoll, onVote }: Readonly<Poll
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
         {poll.options.map((opt) => (
-          <div
+          <button
+            type="button"
             key={opt.id}
+            disabled={voted}
             onClick={() => !voted && handleVote(opt.id)}
-            role="button"
             aria-pressed={voted}
-            aria-disabled={voted}
             aria-label={`${opt.label}, ${opt.percent}% de votos`}
-            tabIndex={voted ? -1 : 0}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                if (!voted) handleVote(opt.id);
-              }
-            }}
             style={{
               position: 'relative',
+              width: '100%',
+              border: 'none',
+              padding: 0,
+              textAlign: 'left',
+              font: 'inherit',
+              color: 'inherit',
               height: '40px',
               background: 'rgba(255,255,255,0.05)',
               borderRadius: '6px',
@@ -189,7 +188,7 @@ export default function PollDisplay({ poll, refreshPoll, onVote }: Readonly<Poll
                 left: 0,
                 transition: 'width 0.5s',
               }}
-            ></div>
+            />
 
             <div
               style={{
@@ -216,7 +215,7 @@ export default function PollDisplay({ poll, refreshPoll, onVote }: Readonly<Poll
                 {voted && <span style={{ fontSize: '0.8rem', color: '#888' }}>({opt.votes})</span>}
               </span>
             </div>
-          </div>
+          </button>
         ))}
       </div>
 

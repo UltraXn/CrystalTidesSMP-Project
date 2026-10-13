@@ -9,7 +9,7 @@ import { PollBasicFields } from './PollBasicFields';
 interface PollFormModalProps {
   onClose: () => void;
   onSubmit: (
-    e: React.FormEvent<HTMLFormElement>,
+    e: React.SyntheticEvent<HTMLFormElement>,
     data: {
       title: string;
       titleEn: string;

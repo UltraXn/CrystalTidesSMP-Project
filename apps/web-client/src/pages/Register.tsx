@@ -15,7 +15,7 @@ const STYLES = {
     'w-full px-4 py-3 bg-black/40 border border-white/10 rounded-2xl text-white placeholder-gray-500 text-sm focus:outline-none focus:border-(--accent) focus:ring-1 focus:ring-(--accent) transition-colors pr-12',
   label: 'flex items-center gap-2 text-xs font-bold text-gray-300 uppercase tracking-wider',
   errorText: 'text-rose-400 text-xs font-bold block pt-1',
-  passwordToggleBtn:
+  toggleVisibilityBtn:
     'absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white p-1 transition-colors cursor-pointer',
   socialBtn:
     'flex items-center justify-center gap-2 py-3 px-4 rounded-2xl text-white font-bold text-xs hover:scale-105 active:scale-95 transition-colors cursor-pointer disabled:opacity-50',
@@ -79,7 +79,7 @@ function PasswordField({ id, label, registration, error, disabled }: Readonly<Pa
           aria-label="Action"
           type="button"
           onClick={() => setShowPassword((prev) => !prev)}
-          className={STYLES.passwordToggleBtn}
+          className={STYLES.toggleVisibilityBtn}
         >
           {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
         </button>

@@ -8,7 +8,7 @@ export function useCrystalLink() {
   const [isLinking, setIsLinking] = useState(false);
   const [linkError, setLinkError] = useState<string | null>(null);
 
-  const handleLinkCrystal = async (e?: React.FormEvent) => {
+  const handleLinkCrystal = async (e?: React.SyntheticEvent) => {
     if (e) e.preventDefault();
     const cleanEmail = crystalEmail.trim();
     const cleanPassword = crystalPassword.trim();

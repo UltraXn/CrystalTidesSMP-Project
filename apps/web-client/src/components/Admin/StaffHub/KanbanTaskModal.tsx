@@ -38,7 +38,7 @@ export function KanbanTaskModal({
   setDateError,
   onClose,
   onSave,
-}: KanbanTaskModalProps) {
+}: Readonly<KanbanTaskModalProps>) {
   const { t } = useTranslation();
 
   if (!isOpen) return null;

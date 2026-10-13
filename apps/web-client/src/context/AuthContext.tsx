@@ -1,37 +1,23 @@
 /* eslint-disable react-refresh/only-export-components */
-import {
-  createContext,
-  useState,
-  useContext,
-  useEffect,
-  useMemo,
-  useCallback,
-} from "react";
-import { supabase } from "../services/supabaseClient";
-import {
-  User,
-  Provider,
-  AuthResponse,
-  OAuthResponse,
-} from "@supabase/supabase-js";
+import { createContext, useState, useContext, useEffect, useMemo, useCallback } from 'react';
+import { supabase } from '../services/supabaseClient';
+import { User, Provider, AuthResponse, OAuthResponse } from '@supabase/supabase-js';
 
 export interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string) => Promise<AuthResponse["data"]>;
-  loginWithProvider: (provider: Provider) => Promise<OAuthResponse["data"]>;
+  login: (email: string, password: string) => Promise<AuthResponse['data']>;
+  loginWithProvider: (provider: Provider) => Promise<OAuthResponse['data']>;
   logout: () => Promise<void>;
   register: (
     email: string,
     password: string,
     metadata?: Record<string, unknown>,
-  ) => Promise<AuthResponse["data"]>;
+  ) => Promise<AuthResponse['data']>;
   updateUser: (data: Record<string, unknown>) => Promise<User | undefined>;
   loading: boolean;
 }
 
-export const AuthContext = createContext<AuthContextType | undefined>(
-  undefined,
-);
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const useAuth = () => {
   return useContext(AuthContext) as AuthContextType;
@@ -51,7 +37,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         } = await supabase.auth.getUser();
         setUser(user ?? null);
       } catch (error) {
-        console.error("Error verificando sesión:", error);
+        console.error('Error verificando sesión:', error);
       } finally {
         setLoading(false);
       }
@@ -77,7 +63,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // Cuando el usuario vuelve a la pestaña, verificamos si sus permisos cambiaron en el servidor.
   useEffect(() => {
     const handleFocus = async () => {
-      if (document.visibilityState === "visible") {
+      if (document.visibilityState === 'visible') {
         const {
           data: { user: freshUser },
         } = await supabase.auth.getUser();
@@ -87,29 +73,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     };
 
-    window.addEventListener("visibilitychange", handleFocus);
-    window.addEventListener("focus", handleFocus);
+    window.addEventListener('visibilitychange', handleFocus);
+    window.addEventListener('focus', handleFocus);
     return () => {
-      window.removeEventListener("visibilitychange", handleFocus);
-      window.removeEventListener("focus", handleFocus);
+      window.removeEventListener('visibilitychange', handleFocus);
+      window.removeEventListener('focus', handleFocus);
     };
   }, []);
 
   // 4. Auto-Sync Discord Username logic removed to prevent overwriting user preferences.
   // The user should manually set their name if they want it to match Discord.
-  /*
-    useEffect(() => {
-        if (!user) return;
-        const syncDiscordProfile = async () => {
-             // ... logic removed ...
-        };
-        syncDiscordProfile();
-    }, [user]);
-    */
 
   // Función de Login
   const login = useCallback(
-    async (email: string, password: string): Promise<AuthResponse["data"]> => {
+    async (email: string, password: string): Promise<AuthResponse['data']> => {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -118,8 +95,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (error) {
         // Report Security Alert (Fire and forget)
         fetch(`${import.meta.env.VITE_API_URL}/logs/security/report`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             email,
             details: error.message,
@@ -139,7 +116,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
     } catch (error) {
-      console.error("Error signing out:", error);
+      console.error('Error signing out:', error);
     } finally {
       setUser(null);
     }
@@ -151,14 +128,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       email: string,
       password: string,
       metadata: Record<string, unknown> = {},
-    ): Promise<AuthResponse["data"]> => {
+    ): Promise<AuthResponse['data']> => {
       // Ensure we send the correct production URL if we are not on localhost (forcing HTTPS for prod)
-      const productionUrl = "https://crystaltidessmp.net/login";
-      const redirectUrl = window.location.hostname.includes("localhost")
-        ? window.location.origin + "/login"
+      const productionUrl = 'https://crystaltidessmp.net/login';
+      const redirectUrl = window.location.hostname.includes('localhost')
+        ? window.location.origin + '/login'
         : productionUrl;
 
-      console.log("Registering with Email Redirect:", redirectUrl);
+      console.log('Registering with Email Redirect:', redirectUrl);
 
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -175,11 +152,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   );
 
   const loginWithProvider = useCallback(
-    async (provider: Provider): Promise<OAuthResponse["data"]> => {
+    async (provider: Provider): Promise<OAuthResponse['data']> => {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: provider,
         options: {
-          redirectTo: window.location.origin + "/account",
+          redirectTo: window.location.origin + '/account',
         },
       });
       if (error) throw error;
@@ -219,9 +196,5 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     [user, loading, login, loginWithProvider, logout, register, updateUser],
   );
 
-  return (
-    <AuthContext.Provider value={value}>
-      {!loading && children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{!loading && children}</AuthContext.Provider>;
 };

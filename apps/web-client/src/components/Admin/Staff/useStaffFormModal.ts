@@ -80,10 +80,10 @@ export function useStaffFormModal(
   );
 
   const [lastSyncedId, setLastSyncedId] = useState<string | number | null>(
-    () => userData?.id || (isNew ? 'NEW' : null),
+    () => userData?.id ?? (isNew ? 'NEW' : null),
   );
 
-  const currentId = userData?.id || (isNew ? 'NEW' : null);
+  const currentId = userData?.id ?? (isNew ? 'NEW' : null);
 
   if (currentId !== lastSyncedId) {
     setLastSyncedId(currentId);
@@ -123,7 +123,7 @@ export function useStaffFormModal(
     return role?.badge;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.SyntheticEvent) => {
     e.preventDefault();
     onSave(formData);
   };

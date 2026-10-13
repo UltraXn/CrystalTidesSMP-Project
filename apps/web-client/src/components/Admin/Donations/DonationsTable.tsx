@@ -88,7 +88,7 @@ export default function DonationsTable({
                       <span className="donor-name-text">
                         {donation.from_name || t('admin.donations.anonymous')}
                       </span>
-                      <span className="donor-email-text">{donation.buyer_email || '---'}</span>
+                      <span className="donor-email-text">{donation.buyer_email ?? '---'}</span>
                     </div>
                   </div>
                 </td>

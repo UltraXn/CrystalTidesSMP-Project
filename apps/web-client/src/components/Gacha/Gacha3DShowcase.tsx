@@ -283,28 +283,29 @@ function createShowcaseRenderer(width: number, height: number): THREE.WebGLRende
   return renderer;
 }
 
-function computeNextIdleAngle(
-  currentAngle: number,
-  celebrating: boolean,
-  opening: boolean,
-): number {
-  if (celebrating) return currentAngle + 0.05;
-  if (opening) return currentAngle + 0.035;
+interface ShowcaseAnimState {
+  celebrating: boolean;
+  opening: boolean;
+}
+
+function computeNextIdleAngle(currentAngle: number, animState: ShowcaseAnimState): number {
+  if (animState.celebrating) return currentAngle + 0.05;
+  if (animState.opening) return currentAngle + 0.035;
   return currentAngle + 0.008;
 }
 
 function animateMachineTransform(
   model: THREE.Group,
   idleAngle: number,
-  celebrating: boolean,
-  opening: boolean,
+  animState: ShowcaseAnimState,
 ): void {
   const baseY = typeof model.userData.baseY === 'number' ? model.userData.baseY : 0;
-  model.rotation.y = Math.sin(idleAngle) * (celebrating || opening ? 0.08 : 0.14);
+  model.rotation.y =
+    Math.sin(idleAngle) * (animState.celebrating || animState.opening ? 0.08 : 0.14);
 
-  if (celebrating) {
+  if (animState.celebrating) {
     model.position.y = baseY + Math.sin(idleAngle * 3.2) * 0.05;
-  } else if (opening) {
+  } else if (animState.opening) {
     model.position.y = baseY + Math.sin(idleAngle * 2.4) * 0.04;
   } else {
     model.position.y = baseY;
@@ -320,15 +321,14 @@ function animateLights(
   accentLight: THREE.PointLight,
   coinLight: THREE.PointLight | null,
   idleAngle: number,
-  celebrating: boolean,
-  opening: boolean,
+  animState: ShowcaseAnimState,
 ): void {
-  if (celebrating) {
+  if (animState.celebrating) {
     accentLight.intensity = 1.35 + Math.sin(idleAngle * 10) * 0.55;
     if (coinLight) {
       coinLight.intensity = 0.75 + Math.sin(idleAngle * 14) * 0.45;
     }
-  } else if (opening) {
+  } else if (animState.opening) {
     accentLight.intensity = 0.85 + Math.sin(idleAngle * 4) * 0.3;
     if (coinLight) {
       coinLight.intensity = 0.45 + Math.sin(idleAngle * 6) * 0.2;
@@ -344,14 +344,13 @@ function animateLights(
 function animateEmissiveMaterials(
   materials: EmissiveMat[],
   idleAngle: number,
-  celebrating: boolean,
-  opening: boolean,
+  animState: ShowcaseAnimState,
 ): void {
   for (const mat of materials) {
     const base = mat.userData.baseEmissive ?? 0.3;
-    if (celebrating) {
+    if (animState.celebrating) {
       mat.emissiveIntensity = base * (2.2 + Math.sin(idleAngle * 12) * 1.4);
-    } else if (opening) {
+    } else if (animState.opening) {
       mat.emissiveIntensity = base * (1.2 + Math.sin(idleAngle * 5) * 0.45);
     } else {
       mat.emissiveIntensity = base;
@@ -362,14 +361,13 @@ function animateEmissiveMaterials(
 function animateCoinMaterials(
   materials: EmissiveMat[],
   idleAngle: number,
-  celebrating: boolean,
-  opening: boolean,
+  animState: ShowcaseAnimState,
 ): void {
   for (const mat of materials) {
     const base = mat.userData.baseEmissive ?? 0.35;
-    if (celebrating) {
+    if (animState.celebrating) {
       mat.emissiveIntensity = base * (3.2 + Math.sin(idleAngle * 14) * 2.2);
-    } else if (opening) {
+    } else if (animState.opening) {
       mat.emissiveIntensity = base * (1.8 + Math.sin(idleAngle * 7) * 0.9);
     } else {
       mat.emissiveIntensity = base * (1.15 + Math.sin(idleAngle * 2.2) * 0.45);
@@ -381,20 +379,21 @@ function animateWinVisuals(
   winLights: THREE.Object3D | null,
   coinBadge: THREE.Object3D | null,
   idleAngle: number,
-  celebrating: boolean,
-  hasWinAction: boolean,
+  options: { celebrating: boolean; hasWinAction: boolean },
 ): void {
-  if (hasWinAction) return;
+  if (options.hasWinAction) return;
 
   if (winLights) {
     winLights.children.forEach((child, i) => {
-      const pulse = celebrating ? 0.85 + Math.abs(Math.sin(idleAngle * 8 - i * 0.45)) * 0.7 : 0.85;
+      const pulse = options.celebrating
+        ? 0.85 + Math.abs(Math.sin(idleAngle * 8 - i * 0.45)) * 0.7
+        : 0.85;
       child.scale.setScalar(pulse);
     });
   }
 
   if (coinBadge) {
-    const pulse = celebrating
+    const pulse = options.celebrating
       ? 1 + Math.abs(Math.sin(idleAngle * 10)) * 0.22
       : 1 + Math.sin(idleAngle * 2.4) * 0.04;
     coinBadge.scale.setScalar(pulse);
@@ -576,7 +575,7 @@ const Gacha3DShowcase: React.FC<Readonly<Gacha3DShowcaseProps>> = ({
   const isCelebratingRef = useRef(isCelebrating);
   const prevTierRef = useRef(tierId);
   const stripsInitializedRef = useRef(false);
-  const clockRef = useRef<THREE.Clock | null>(null);
+  const lastTimeRef = useRef<number>(0);
   const fromGltfRef = useRef(false);
 
   useEffect(() => {
@@ -629,8 +628,6 @@ const Gacha3DShowcase: React.FC<Readonly<Gacha3DShowcaseProps>> = ({
     const mount = mountRef.current;
     if (!mount) return;
 
-    clockRef.current ??= new THREE.Clock();
-
     const width = mount.clientWidth || 280;
     const height = mount.clientHeight || 420;
 
@@ -652,7 +649,7 @@ const Gacha3DShowcase: React.FC<Readonly<Gacha3DShowcaseProps>> = ({
     let disposed = false;
     let frameId = 0;
     let idleAngle = 0;
-    clockRef.current = new THREE.Clock();
+    lastTimeRef.current = performance.now();
 
     const mountModel = (
       model: THREE.Group,
@@ -720,28 +717,27 @@ const Gacha3DShowcase: React.FC<Readonly<Gacha3DShowcaseProps>> = ({
 
     const animate = () => {
       frameId = requestAnimationFrame(animate);
-      clockRef.current ??= new THREE.Clock();
-      const dt = clockRef.current.getDelta();
+      const now = performance.now();
+      const dt = lastTimeRef.current > 0 ? (now - lastTimeRef.current) / 1000 : 0.016;
+      lastTimeRef.current = now;
       if (mixerRef.current) mixerRef.current.update(dt);
       screenReelsRef.current?.update(dt);
 
       const current = modelRef.current;
       const celebrating = isCelebratingRef.current;
       const opening = isOpeningRef.current;
+      const animState: ShowcaseAnimState = { celebrating, opening };
 
       if (current) {
-        idleAngle = computeNextIdleAngle(idleAngle, celebrating, opening);
-        animateMachineTransform(current, idleAngle, celebrating, opening);
-        animateLights(accentLight, coinLightRef.current, idleAngle, celebrating, opening);
-        animateEmissiveMaterials(emissiveMatsRef.current, idleAngle, celebrating, opening);
-        animateCoinMaterials(coinMatsRef.current, idleAngle, celebrating, opening);
-        animateWinVisuals(
-          winLightsRef.current,
-          coinBadgeRef.current,
-          idleAngle,
+        idleAngle = computeNextIdleAngle(idleAngle, animState);
+        animateMachineTransform(current, idleAngle, animState);
+        animateLights(accentLight, coinLightRef.current, idleAngle, animState);
+        animateEmissiveMaterials(emissiveMatsRef.current, idleAngle, animState);
+        animateCoinMaterials(coinMatsRef.current, idleAngle, animState);
+        animateWinVisuals(winLightsRef.current, coinBadgeRef.current, idleAngle, {
           celebrating,
-          Boolean(winActionRef.current),
-        );
+          hasWinAction: Boolean(winActionRef.current),
+        });
       }
       renderer.render(scene, camera);
     };

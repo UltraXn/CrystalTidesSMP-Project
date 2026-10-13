@@ -82,12 +82,12 @@ function mapNewsToThreadSummary(n: NewsResponse): ThreadSummary {
     id: n.id,
     title: n.title,
     author: 'Staff',
-    replies: n.replies || 0,
-    views: n.views || 0,
+    replies: n.replies ?? 0,
+    views: n.views ?? 0,
     lastActivity: formatDate(n.created_at),
     pinned: true,
     tag: 'NEWS',
-    slug: n.slug || `news-${n.id}`,
+    slug: n.slug ?? `news-${n.id}`,
   };
 }
 
@@ -95,9 +95,9 @@ function mapThreadToSummary(t: ThreadResponse): ThreadSummary {
   return {
     id: t.id,
     title: t.title,
-    author: t.author_name || 'Aventurero',
-    replies: t.reply_count || 0,
-    views: t.views || 0,
+    author: t.author_name ?? 'Aventurero',
+    replies: t.reply_count ?? 0,
+    views: t.views ?? 0,
     lastActivity: formatDate(t.created_at),
     pinned: t.pinned || false,
     tag: null,
@@ -207,7 +207,7 @@ interface ThreadRowProps {
 
 function ThreadRow({ thread, isNewsCategory }: Readonly<ThreadRowProps>) {
   const { t } = useTranslation();
-  const threadTargetId = thread.slug || thread.id;
+  const threadTargetId = thread.slug ?? thread.id;
   const threadUrl = isNewsCategory
     ? `/forum/thread/news/${threadTargetId}`
     : `/forum/thread/topic/${threadTargetId}`;

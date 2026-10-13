@@ -1,5 +1,5 @@
 import { useState, useId } from 'react';
-import type { ChangeEvent, FormEvent } from 'react';
+import type { ChangeEvent, SyntheticEvent } from 'react';
 import { useNavigate } from 'react-router';
 import { BarChart3, X, Plus, CheckCircle2, Image as ImageIcon } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -548,13 +548,6 @@ function PollManager({
 }: Readonly<PollManagerProps>) {
   const { t } = useTranslation();
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      onToggleShowPoll();
-    }
-  };
-
   return (
     <div
       style={{
@@ -565,17 +558,22 @@ function PollManager({
         border: showPoll ? `1px solid ${UI_COLORS.accent}` : '1px dashed #444',
       }}
     >
-      <div
+      <button
+        type="button"
         style={{
           display: 'flex',
+          width: '100%',
           alignItems: 'center',
           justifyContent: 'space-between',
           cursor: 'pointer',
+          background: 'none',
+          border: 'none',
+          padding: 0,
+          textAlign: 'inherit',
+          font: 'inherit',
+          color: 'inherit',
         }}
         onClick={onToggleShowPoll}
-        role="button"
-        tabIndex={0}
-        onKeyDown={handleKeyDown}
       >
         <h4
           style={{
@@ -600,7 +598,7 @@ function PollManager({
         >
           {showPoll && <CheckCircle2 size={14} color="#000" style={{ margin: '2px' }} />}
         </div>
-      </div>
+      </button>
 
       {showPoll && (
         <div
@@ -748,7 +746,7 @@ export default function CreateThread() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${session?.access_token || ''}`,
+        Authorization: `Bearer ${session?.access_token ?? ''}`,
       },
       body: JSON.stringify(body),
     });
@@ -761,7 +759,7 @@ export default function CreateThread() {
     }
   };
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = async (e: SyntheticEvent) => {
     e.preventDefault();
     if (!user) {
       alert(t('create_thread.form.error_login'));

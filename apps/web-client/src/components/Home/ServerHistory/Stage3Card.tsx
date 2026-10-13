@@ -54,17 +54,10 @@ export function Stage3Card({
       </div>
       <div className="sm:min-h-70 pointer-events-auto relative z-10 my-2 flex min-h-60 items-center justify-between px-2 sm:px-4">
         <div className="z-10 hidden w-52 flex-col gap-3.5 sm:w-60 md:flex">
-          <motion.div
+          <motion.button
+            type="button"
             whileHover={{ scale: 1.05 }}
             onClick={() => setSelectedPhotoModal('/images/memories/memory_1.jfif')}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                setSelectedPhotoModal('/images/memories/memory_1.jfif');
-              }
-            }}
             className="group flex cursor-pointer items-center gap-3 rounded-2xl border border-[#00e5ff]/40 bg-black/80 p-2.5 shadow-[0_0_20px_rgba(0,229,255,0.2)] backdrop-blur-xl transition-colors hover:border-[#00e5ff]"
           >
             <div className="relative h-11 w-14 shrink-0 overflow-hidden rounded-xl border border-[#00e5ff]/50 bg-slate-900 shadow-md">
@@ -82,18 +75,11 @@ export function Stage3Card({
                 {t('history_section.stage3.nether_citadel', 'Ciudadela Nether')}
               </h6>
             </div>
-          </motion.div>
-          <motion.div
+          </motion.button>
+          <motion.button
+            type="button"
             whileHover={{ scale: 1.05 }}
             onClick={() => setSelectedPhotoModal('/images/memories/memory_4.png')}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                setSelectedPhotoModal('/images/memories/memory_4.png');
-              }
-            }}
             className="group flex cursor-pointer items-center gap-3 rounded-2xl border border-[#a855f7]/40 bg-black/80 p-2.5 shadow-[0_0_20px_rgba(168,85,247,0.2)] backdrop-blur-xl transition-colors hover:border-[#a855f7]"
           >
             <div className="relative h-11 w-14 shrink-0 overflow-hidden rounded-xl border border-[#a855f7]/50 bg-slate-900 shadow-md">
@@ -111,21 +97,14 @@ export function Stage3Card({
                 {t('history_section.stage3.sakura_forest', 'Bosque Sakura')}
               </h6>
             </div>
-          </motion.div>
+          </motion.button>
         </div>
         <div className="pointer-events-none flex-1" />
         <div className="z-10 hidden w-52 flex-col gap-3.5 sm:w-60 md:flex">
-          <motion.div
+          <motion.button
+            type="button"
             whileHover={{ scale: 1.05 }}
             onClick={() => setSelectedPhotoModal('/images/memories/memory_2.jfif')}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                setSelectedPhotoModal('/images/memories/memory_2.jfif');
-              }
-            }}
             className="group flex cursor-pointer items-center gap-3 rounded-2xl border border-[#ef4444]/40 bg-black/80 p-2.5 shadow-[0_0_20px_rgba(239,68,68,0.2)] backdrop-blur-xl transition-colors hover:border-[#ef4444]"
           >
             <div className="relative h-11 w-14 shrink-0 overflow-hidden rounded-xl border border-[#ef4444]/50 bg-slate-900 shadow-md">
@@ -143,18 +122,11 @@ export function Stage3Card({
                 {t('history_section.stage3.nether_battle', 'Batalla Nether')}
               </h6>
             </div>
-          </motion.div>
-          <motion.div
+          </motion.button>
+          <motion.button
+            type="button"
             whileHover={{ scale: 1.05 }}
             onClick={() => setSelectedPhotoModal('/images/memories/memory_3.png')}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                setSelectedPhotoModal('/images/memories/memory_3.png');
-              }
-            }}
             className="group flex cursor-pointer items-center gap-3 rounded-2xl border border-[#10b981]/40 bg-black/80 p-2.5 shadow-[0_0_20px_rgba(168,85,247,0.2)] backdrop-blur-xl transition-colors hover:border-[#10b981]"
           >
             <div className="relative h-11 w-14 shrink-0 overflow-hidden rounded-xl border border-[#10b981]/50 bg-slate-900 shadow-md">
@@ -172,7 +144,7 @@ export function Stage3Card({
                 {t('history_section.stage3.grand_vault', 'Gran Bóveda')}
               </h6>
             </div>
-          </motion.div>
+          </motion.button>
         </div>
       </div>
       <p className="relative z-10 mx-auto max-w-4xl rounded-2xl border border-white/10 bg-black/60 p-5 text-sm/relaxed font-medium text-gray-200 shadow-2xl backdrop-blur-md sm:p-6 md:text-base">

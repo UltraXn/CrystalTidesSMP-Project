@@ -97,6 +97,7 @@ export default function ForumReplySection({
         )}
       </div>
       <div
+        className="focus-within:border-white/30"
         style={{
           flexGrow: 1,
           background: 'rgba(0,0,0,0.3)',
@@ -104,12 +105,6 @@ export default function ForumReplySection({
           borderRadius: '8px',
           overflow: 'hidden',
           transition: 'border-color 0.2s',
-        }}
-        onFocus={(e) => {
-          e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)';
-        }}
-        onBlur={(e) => {
-          e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)';
         }}
       >
         <textarea

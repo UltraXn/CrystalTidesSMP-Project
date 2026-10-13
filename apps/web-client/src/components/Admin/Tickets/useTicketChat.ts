@@ -34,7 +34,7 @@ export function useTicketChat(
       const {
         data: { session },
       } = await supabase.auth.getSession();
-      const headers: HeadersInit = getAuthHeaders(session?.access_token || null);
+      const headers: HeadersInit = getAuthHeaders(session?.access_token ?? null);
 
       const res = await fetch(`${API_URL}/tickets/${ticket.id}/messages`, { headers });
       if (res.ok) {
@@ -56,7 +56,7 @@ export function useTicketChat(
   const handleNewMessagePayload = useCallback(
     (payload: { new: Message }) => {
       setMessages((prev) =>
-        prev.some((m) => m.id === payload.new.id) ? prev : [...prev, payload.new as Message],
+        prev.some((m) => m.id === payload.new.id) ? prev : [...prev, payload.new],
       );
       scheduleScroll();
     },
@@ -101,7 +101,7 @@ export function useTicketChat(
       } = await supabase.auth.getSession();
       const headers = {
         'Content-Type': 'application/json',
-        ...getAuthHeaders(session?.access_token || null),
+        ...getAuthHeaders(session?.access_token ?? null),
       };
 
       const res = await fetch(`${API_URL}/tickets/${ticket.id}/messages`, {

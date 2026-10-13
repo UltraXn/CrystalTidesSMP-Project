@@ -67,7 +67,7 @@ export function DonorDescriptionFields({
           <button
             type="button"
             className="btn-premium-mini"
-            onClick={() => onTranslate(formData.description_en || '', 'es', 'description')}
+            onClick={() => onTranslate(formData.description_en ?? '', 'es', 'description')}
             disabled={translating || !formData.description_en}
           >
             {translating ? <Loader2 className="spin" size={14} /> : <Globe size={14} />}
@@ -77,7 +77,7 @@ export function DonorDescriptionFields({
         <textarea
           id="donor-desc-en"
           className="admin-textarea-premium"
-          value={formData.description_en || ''}
+          value={formData.description_en ?? ''}
           onChange={(e) => setFormData({ ...formData, description_en: e.target.value })}
           placeholder={t('admin.donors.form.desc_en_ph')}
           rows={3}

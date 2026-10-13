@@ -11,7 +11,7 @@ export const SettingsPage: React.FC = () => {
   const [settings, setSettings] = useState<LauncherSettings>(() => getSettings());
   const [formConfig, setFormConfig] = useState({
     tempMaxRam: settings.maxRam / 1024,
-    javaPath: settings.javaPath || '',
+    javaPath: settings.javaPath ?? '',
     width: settings.width || 1280,
     height: settings.height || 720,
     fullscreen: settings.fullscreen || false,

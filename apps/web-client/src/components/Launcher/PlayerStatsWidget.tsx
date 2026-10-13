@@ -127,7 +127,7 @@ const parseMoneyNum = (moneyStr: string): number => {
 
 const getTopRelativeScore = (val: number, top1Val?: number, isTop1?: boolean): number => {
   if (isTop1) return 100;
-  const benchmark = Math.max(top1Val || 100000, 100);
+  const benchmark = Math.max(top1Val ?? 100000, 100);
   return Math.min(99, Math.max(10, Math.round((val / benchmark) * 100)));
 };
 
@@ -292,7 +292,7 @@ function buildAxes(stats?: PlayerStatsData): PentagonAxis[] {
   const blocksVal = (stats?.blocks_mined ?? 0) + (stats?.blocks_placed ?? 0) || 63600;
   const scoreConstructor = getTopRelativeScore(
     blocksVal,
-    stats?.top1_constructor_score || 100000,
+    stats?.top1_constructor_score ?? 100000,
     stats?.is_top1_constructor,
   );
 
@@ -301,15 +301,15 @@ function buildAxes(stats?: PlayerStatsData): PentagonAxis[] {
   const totalCombatPoints = killsVal * 15 + mobKillsVal;
   const scoreLuchador = getTopRelativeScore(
     totalCombatPoints,
-    stats?.top1_luchador_score || 5000,
+    stats?.top1_luchador_score ?? 5000,
     stats?.is_top1_luchador,
   );
 
-  const moneyVal = parseMoneyNum(stats?.money || '') || 12450;
+  const moneyVal = parseMoneyNum(stats?.money ?? '') ?? 12450;
   const merchantLogPoints = Math.round(100 * Math.log10(Math.max(1, moneyVal)));
   const scoreMercader = getTopRelativeScore(
     merchantLogPoints,
-    stats?.top1_mercader_score || 500,
+    stats?.top1_mercader_score ?? 500,
     stats?.is_top1_mercader,
   );
 
@@ -317,16 +317,16 @@ function buildAxes(stats?: PlayerStatsData): PentagonAxis[] {
   const streakPoints = Math.pow(streakVal, 2);
   const scoreConstancia = getTopRelativeScore(
     streakPoints,
-    stats?.top1_constancia_score || 900,
+    stats?.top1_constancia_score ?? 900,
     stats?.is_top1_constancia,
   );
 
-  const playtimeHours = parsePlaytimeHours(stats?.playtime || '') || 14.2;
+  const playtimeHours = parsePlaytimeHours(stats?.playtime ?? '') ?? 14.2;
   const kmTraveled = playtimeHours * 35;
   const totalExploradorPts = playtimeHours * 10 + kmTraveled;
   const scoreExplorador = getTopRelativeScore(
     totalExploradorPts,
-    stats?.top1_explorador_score || 3000,
+    stats?.top1_explorador_score ?? 3000,
     stats?.is_top1_explorador,
   );
 
@@ -364,7 +364,7 @@ function buildAxes(stats?: PlayerStatsData): PentagonAxis[] {
     {
       key: 'mercader',
       label: 'Mercader',
-      value: stats?.money || '12.4k KC',
+      value: stats?.money ?? '12.4k KC',
       score: scoreMercader,
       rawPoints: merchantLogPoints,
       icon: (
@@ -414,9 +414,9 @@ function buildCareerTracks(stats?: PlayerStatsData): CareerTrack[] {
   const killsVal = stats?.kills ?? 0;
   const mobKillsVal = stats?.mob_kills ?? 0;
   const combatPoints = killsVal * 15 + mobKillsVal;
-  const moneyVal = parseMoneyNum(stats?.money || '') || 12450;
+  const moneyVal = parseMoneyNum(stats?.money ?? '') ?? 12450;
   const streakVal = stats?.streak_days ?? 14;
-  const playtimeHours = parsePlaytimeHours(stats?.playtime || '') || 14.2;
+  const playtimeHours = parsePlaytimeHours(stats?.playtime ?? '') ?? 14.2;
   const totalExploradorPts = playtimeHours * 10 + playtimeHours * 35;
 
   return [
@@ -614,7 +614,7 @@ function ProfileHeader({ username, rank }: Readonly<{ username: string; rank?: s
               marginTop: 2,
             }}
           >
-            <Shield size={12} color="#38BDF8" /> {rank || 'Aventurero'}
+            <Shield size={12} color="#38BDF8" /> {rank ?? 'Aventurero'}
           </div>
         </div>
       </div>
@@ -1457,7 +1457,7 @@ export function PlayerStatsWidget({ username }: Readonly<PlayerStatsWidgetProps>
     queryFn: async () => {
       try {
         const res = await fetch(
-          `https://api.crystaltidessmp.net/api/player-stats/${encodeURIComponent(username || '')}`,
+          `https://api.crystaltidessmp.net/api/player-stats/${encodeURIComponent(username ?? '')}`,
         );
         if (!res.ok) throw new Error('Failed to fetch player stats');
         const data = await res.json();
@@ -1465,7 +1465,7 @@ export function PlayerStatsWidget({ username }: Readonly<PlayerStatsWidgetProps>
         throw new Error('Invalid response format');
       } catch {
         return {
-          username: username || '',
+          username: username ?? '',
           ...DEFAULT_FALLBACK_STATS,
         };
       }

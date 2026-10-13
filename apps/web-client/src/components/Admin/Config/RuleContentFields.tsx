@@ -52,7 +52,7 @@ export function RuleContentFields({
               alignItems: 'center',
               gap: '0.3rem',
             }}
-            onClick={() => onTranslate(formData.title || '', 'en', 'title_en')}
+            onClick={() => onTranslate(formData.title ?? '', 'en', 'title_en')}
             disabled={!formData.title}
           >
             {translatingField === 'title_en' ? (
@@ -99,7 +99,7 @@ export function RuleContentFields({
               alignItems: 'center',
               gap: '0.3rem',
             }}
-            onClick={() => onTranslate(formData.title_en || '', 'es', 'title')}
+            onClick={() => onTranslate(formData.title_en ?? '', 'es', 'title')}
             disabled={!formData.title_en}
           >
             {translatingField === 'title' ? (
@@ -114,7 +114,7 @@ export function RuleContentFields({
           id="rule-title-en"
           type="text"
           className="admin-input-premium"
-          value={formData.title_en || ''}
+          value={formData.title_en ?? ''}
           onChange={(e) => setFormData({ ...formData, title_en: e.target.value })}
           placeholder="Ex: Consensual PVP"
         />
@@ -146,7 +146,7 @@ export function RuleContentFields({
               alignItems: 'center',
               gap: '0.3rem',
             }}
-            onClick={() => onTranslate(formData.content || '', 'en', 'content_en')}
+            onClick={() => onTranslate(formData.content ?? '', 'en', 'content_en')}
             disabled={!formData.content}
           >
             {translatingField === 'content_en' ? (
@@ -193,7 +193,7 @@ export function RuleContentFields({
               alignItems: 'center',
               gap: '0.3rem',
             }}
-            onClick={() => onTranslate(formData.content_en || '', 'es', 'content')}
+            onClick={() => onTranslate(formData.content_en ?? '', 'es', 'content')}
             disabled={!formData.content_en}
           >
             {translatingField === 'content' ? (
@@ -208,7 +208,7 @@ export function RuleContentFields({
           id="rule-content-en"
           className="admin-textarea-premium"
           rows={5}
-          value={formData.content_en || ''}
+          value={formData.content_en ?? ''}
           onChange={(e) => setFormData({ ...formData, content_en: e.target.value })}
           placeholder="Detailed description of the rule..."
         />

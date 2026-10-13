@@ -1,4 +1,4 @@
-import { Twitter, Twitch } from 'lucide-react';
+import { TwitterIcon, TwitchIcon } from '../UI/BrandIcons';
 
 export default function SocialSidebar() {
   return (
@@ -10,7 +10,7 @@ export default function SocialSidebar() {
         className="ease-[cubic-bezier(0.16,1,0.3,1)] group relative flex size-12 transform-gpu cursor-pointer items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-gray-400 shadow-lg backdrop-blur-md transition-[transform,color,background-color,border-color,box-shadow] duration-500 hover:-translate-y-1.5 hover:scale-[1.08] hover:border-white/30 hover:bg-white/15 hover:text-white hover:shadow-xl hover:shadow-cyan-500/15 active:scale-[0.96] active:duration-150"
         aria-label="Twitter"
       >
-        <Twitter size={20} aria-hidden="true" />
+        <TwitterIcon size={20} aria-hidden="true" />
         <span className="duration-400 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none absolute left-full ml-4 -translate-x-2 whitespace-nowrap rounded-lg bg-white px-3 py-1 text-[10px] font-black uppercase tracking-widest text-black opacity-0 shadow-xl transition-[opacity,transform] group-hover:translate-x-0 group-hover:opacity-100">
           Twitter
         </span>
@@ -47,7 +47,7 @@ export default function SocialSidebar() {
         className="ease-[cubic-bezier(0.16,1,0.3,1)] group relative flex size-12 transform-gpu cursor-pointer items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-gray-400 shadow-lg backdrop-blur-md transition-[transform,color,background-color,border-color,box-shadow] duration-500 hover:-translate-y-1.5 hover:scale-[1.08] hover:border-[#9146FF]/40 hover:bg-white/15 hover:text-[#9146FF] hover:shadow-xl hover:shadow-[#9146FF]/25 active:scale-[0.96] active:duration-150"
         aria-label="Twitch"
       >
-        <Twitch size={20} aria-hidden="true" />
+        <TwitchIcon size={20} aria-hidden="true" />
         <span className="duration-400 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none absolute left-full ml-4 -translate-x-2 whitespace-nowrap rounded-lg bg-white px-3 py-1 text-[10px] font-black uppercase tracking-widest text-black opacity-0 shadow-xl transition-[opacity,transform] group-hover:translate-x-0 group-hover:opacity-100">
           Twitch
         </span>

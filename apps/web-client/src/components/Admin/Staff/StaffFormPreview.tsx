@@ -13,7 +13,7 @@ export function StaffFormPreview({
   getRoleBadge,
   previewNameFallback,
   previewRoleFallback,
-}: StaffFormPreviewProps) {
+}: Readonly<StaffFormPreviewProps>) {
   const badge = getRoleBadge(formData.role);
 
   return (
@@ -24,7 +24,7 @@ export function StaffFormPreview({
       >
         <div className="staff-avatar-content">
           <MinecraftAvatar
-            src={formData.image || formData.mc_nickname || formData.name}
+            src={formData.image ?? formData.mc_nickname ?? formData.name}
             alt="Preview"
             size={120}
           />

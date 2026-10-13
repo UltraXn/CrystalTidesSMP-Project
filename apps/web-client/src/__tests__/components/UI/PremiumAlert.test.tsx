@@ -12,6 +12,9 @@ vi.mock('framer-motion', () => ({
     button: ({ children, ...p }: { children?: React.ReactNode } & Record<string, unknown>) => (
       <button {...(p as React.ButtonHTMLAttributes<HTMLButtonElement>)}>{children}</button>
     ),
+    dialog: ({ children, ...p }: { children?: React.ReactNode } & Record<string, unknown>) => (
+      <dialog {...(p as React.DialogHTMLAttributes<HTMLDialogElement>)}>{children}</dialog>
+    ),
   },
   m: {
     div: ({ children, ...p }: { children?: React.ReactNode } & Record<string, unknown>) => (
@@ -19,6 +22,9 @@ vi.mock('framer-motion', () => ({
     ),
     button: ({ children, ...p }: { children?: React.ReactNode } & Record<string, unknown>) => (
       <button {...(p as React.ButtonHTMLAttributes<HTMLButtonElement>)}>{children}</button>
+    ),
+    dialog: ({ children, ...p }: { children?: React.ReactNode } & Record<string, unknown>) => (
+      <dialog {...(p as React.DialogHTMLAttributes<HTMLDialogElement>)}>{children}</dialog>
     ),
   },
   AnimatePresence: ({ children }: { children?: React.ReactNode }) => <>{children}</>,

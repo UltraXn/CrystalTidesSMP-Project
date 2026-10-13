@@ -95,8 +95,8 @@ export default function NewsForm({ initialData, onSave, onCancel }: Readonly<New
             translating={translating}
             uploading={uploading}
             uploadError={uploadError}
-            onTranslateTitle={() => handleTranslate(titleEn || '', 'es', 'title')}
-            onTranslateContent={() => handleTranslate(contentEn || '', 'es', 'content')}
+            onTranslateTitle={() => handleTranslate(titleEn ?? '', 'es', 'title')}
+            onTranslateContent={() => handleTranslate(contentEn ?? '', 'es', 'content')}
             onImageUpload={handleImageUpload}
           />
 

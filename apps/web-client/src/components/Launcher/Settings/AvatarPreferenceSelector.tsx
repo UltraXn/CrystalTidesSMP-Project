@@ -10,7 +10,7 @@ export function AvatarPreferenceSelector({
   settings,
   setSettings,
 }: Readonly<AvatarPreferenceSelectorProps>) {
-  const currentPref = settings.avatarPreference || 'web';
+  const currentPref = settings.avatarPreference ?? 'web';
 
   const handleSelect = (pref: 'web' | 'minecraft') => {
     const updated = saveSettings({ avatarPreference: pref });

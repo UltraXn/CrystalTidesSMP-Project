@@ -53,7 +53,7 @@ export default function PollsManager({ mockActivePoll, mockHistoryPolls }: Polls
 
   const activePoll = mockActivePoll !== undefined ? mockActivePoll : fetchActiveData || null;
   const historyPolls = mockHistoryPolls || historyData?.data || [];
-  const totalPages = historyData?.totalPages || 1;
+  const totalPages = historyData?.totalPages ?? 1;
 
   // Handlers
   const handleEdit = (poll: Poll) => {
@@ -75,7 +75,7 @@ export default function PollsManager({ mockActivePoll, mockHistoryPolls }: Polls
     daysDuration: number;
   }
 
-  const handleFormSubmit = async (_e: React.FormEvent, data: PollFormData) => {
+  const handleFormSubmit = async (_e: React.SyntheticEvent, data: PollFormData) => {
     const validOptions = data.options.filter((o: { label: string }) => o.label.trim() !== '');
     if (validOptions.length < 2) {
       alert(t('admin.polls.form.error_options'));

@@ -20,6 +20,7 @@ export const ProfileItemRow: React.FC<Readonly<ProfileItemRowProps>> = ({
 }) => {
   return (
     <div
+      className="profile-item-row"
       style={{
         width: '100%',
         display: 'flex',
@@ -30,12 +31,6 @@ export const ProfileItemRow: React.FC<Readonly<ProfileItemRowProps>> = ({
         backgroundColor: isActive ? 'rgba(22, 140, 128, 0.12)' : 'transparent',
         border: 'none',
         transition: 'background-color 150ms ease',
-      }}
-      onMouseEnter={(e) => {
-        if (!isActive) e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.04)';
-      }}
-      onMouseLeave={(e) => {
-        if (!isActive) e.currentTarget.style.backgroundColor = 'transparent';
       }}
     >
       <button

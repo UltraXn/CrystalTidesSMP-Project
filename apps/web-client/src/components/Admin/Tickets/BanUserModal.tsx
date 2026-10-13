@@ -22,7 +22,7 @@ export default function BanUserModal({ onClose, onSuccess }: Readonly<BanUserMod
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState<AlertData | null>(null);
 
-  const handleBan = async (e: React.FormEvent) => {
+  const handleBan = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (!nickname) {
       setAlert({
@@ -39,7 +39,7 @@ export default function BanUserModal({ onClose, onSuccess }: Readonly<BanUserMod
       } = await supabase.auth.getSession();
       const headers = {
         'Content-Type': 'application/json',
-        ...getAuthHeaders(session?.access_token || null),
+        ...getAuthHeaders(session?.access_token ?? null),
       };
 
       await fetch(`${import.meta.env.VITE_API_URL}/tickets/ban`, {

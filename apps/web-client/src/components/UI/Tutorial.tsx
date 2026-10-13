@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
-import { m as Motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
+
+const MotionDiv = m.div;
 import { ArrowRight, ArrowLeft, X, Keyboard, User, Bell, Check, UserPlus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router';
 
-export default function Tutorial({ forceOpen = false }: { forceOpen?: boolean }) {
+export default function Tutorial({ forceOpen = false }: Readonly<{ forceOpen?: boolean }>) {
   const { t, i18n } = useTranslation();
   const { user, loading } = useAuth();
   const [isOpen, setIsOpen] = useState(forceOpen);
@@ -109,7 +111,7 @@ export default function Tutorial({ forceOpen = false }: { forceOpen?: boolean })
             backdropFilter: 'blur(8px)',
           }}
         >
-          <Motion.div
+          <MotionDiv
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
@@ -203,9 +205,9 @@ export default function Tutorial({ forceOpen = false }: { forceOpen?: boolean })
                 marginTop: '1rem',
               }}
             >
-              {STEPS.map((_, i) => (
+              {STEPS.map((stepItem, i) => (
                 <div
-                  key={`item-${i}`}
+                  key={stepItem.title}
                   style={{
                     width: '10px',
                     height: '10px',
@@ -219,7 +221,7 @@ export default function Tutorial({ forceOpen = false }: { forceOpen?: boolean })
 
             {/* Content */}
             <AnimatePresence mode="wait">
-              <Motion.div
+              <MotionDiv
                 key={step}
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -250,7 +252,7 @@ export default function Tutorial({ forceOpen = false }: { forceOpen?: boolean })
                 >
                   {STEPS[step].content}
                 </p>
-              </Motion.div>
+              </MotionDiv>
             </AnimatePresence>
 
             {/* Action Buttons */}
@@ -341,7 +343,7 @@ export default function Tutorial({ forceOpen = false }: { forceOpen?: boolean })
                 </button>
               )}
             </div>
-          </Motion.div>
+          </MotionDiv>
         </div>
       )}
     </AnimatePresence>

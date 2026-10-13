@@ -96,7 +96,7 @@ const HeroBackgroundCarousel = ({ slides = DEFAULT_SLIDES }: HeroBackgroundCarou
                   )}
                   {slide.buttonText && (
                     <a
-                      href={slide.link || '#'}
+                      href={slide.link ?? '#'}
                       className="bg-(--accent) inline-block rounded-2xl px-8 py-4 font-black uppercase tracking-widest text-black shadow-2xl transition-colors hover:scale-110 active:scale-95"
                     >
                       {slide.buttonText}

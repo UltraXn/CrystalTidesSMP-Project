@@ -7,7 +7,13 @@ export interface StatCardProps {
   color?: string;
   icon: React.ReactNode;
 }
-export function StatCard({ title, value, percent, color = 'var(--accent)', icon }: StatCardProps) {
+export function StatCard({
+  title,
+  value,
+  percent,
+  color = 'var(--accent)',
+  icon,
+}: Readonly<StatCardProps>) {
   const isHex = typeof color === 'string' && color.startsWith('#') && color.length === 7;
   const iconBg = isHex
     ? `rgba(${Number.parseInt(color.slice(1, 3), 16)}, ${Number.parseInt(color.slice(3, 5), 16)}, ${Number.parseInt(color.slice(5, 7), 16)}, 0.1)`

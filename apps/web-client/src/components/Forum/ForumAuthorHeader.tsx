@@ -9,7 +9,7 @@ interface ForumAuthorHeaderProps {
 
 function getAuthorAvatar(thread: Thread): string {
   const metadata = thread.author_data_fresh;
-  const pref = metadata?.avatar_preference || 'minecraft';
+  const pref = metadata?.avatar_preference ?? 'minecraft';
   const mcNick = metadata?.minecraft_nick;
   const useMinecraft = pref === 'minecraft' && Boolean(mcNick);
 
@@ -17,27 +17,27 @@ function getAuthorAvatar(thread: Thread): string {
     return `https://mc-heads.net/avatar/${mcNick}/128`;
   }
   return (
-    metadata?.social_avatar_url ||
-    metadata?.avatar_url ||
-    thread.author_avatar ||
+    metadata?.social_avatar_url ??
+    metadata?.avatar_url ??
+    thread.author_avatar ??
     `https://ui-avatars.com/api/?name=${thread.author}`
   );
 }
 
 function getAuthorDisplayName(thread: Thread): string {
   const metadata = thread.author_data_fresh;
-  const pref = metadata?.avatar_preference || 'minecraft';
+  const pref = metadata?.avatar_preference ?? 'minecraft';
   const mcNick = metadata?.minecraft_nick;
   const useMinecraft = pref === 'minecraft' && Boolean(mcNick);
 
   if (useMinecraft && mcNick) {
     return mcNick;
   }
-  return metadata?.full_name || metadata?.username || thread.author;
+  return metadata?.full_name ?? metadata?.username ?? thread.author;
 }
 
 function getAuthorRoleInfo(thread: Thread): { roleRaw: string; roleImage: string } {
-  const roleRaw = (thread.author_data_fresh?.role || thread.author_role || 'user').toLowerCase();
+  const roleRaw = (thread.author_data_fresh?.role ?? thread.author_role ?? 'user').toLowerCase();
   const roleImage =
     RANK_IMAGES[roleRaw] || (roleRaw.includes('donador') ? RANK_IMAGES.donador : RANK_IMAGES.user);
   return { roleRaw, roleImage };
@@ -46,7 +46,7 @@ function getAuthorRoleInfo(thread: Thread): { roleRaw: string; roleImage: string
 export default function ForumAuthorHeader({ thread }: Readonly<ForumAuthorHeaderProps>) {
   const metadata = thread.author_data_fresh;
   const mcNick = metadata?.minecraft_nick;
-  const discordTag = metadata?.social_discord || metadata?.discord_tag;
+  const discordTag = metadata?.social_discord ?? metadata?.discord_tag;
   const statusMessage = metadata?.status_message;
 
   const displayAvatar = getAuthorAvatar(thread);

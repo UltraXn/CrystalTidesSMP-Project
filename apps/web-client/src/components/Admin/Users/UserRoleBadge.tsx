@@ -37,7 +37,7 @@ export function UserRoleBadge({ role }: Readonly<{ role: string }>) {
   return (
     <span
       style={{
-        background: current.color || '#333',
+        background: current.color ?? '#333',
         color: '#fff',
         padding: '4px 10px',
         borderRadius: '6px',

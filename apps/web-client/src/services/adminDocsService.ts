@@ -33,7 +33,7 @@ export async function saveRemoteDocs(
     body: JSON.stringify({
       value: JSON.stringify(updatedDocs),
       userId,
-      username: username || 'Admin',
+      username: username ?? 'Admin',
     }),
   });
   return res.ok;

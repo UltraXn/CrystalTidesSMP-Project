@@ -277,7 +277,7 @@ export default function Donors() {
 
     return dynamicList.map((donor) => ({
       name: donor.name,
-      image: donor.skinUrl || `https://mc-heads.net/avatar/${donor.name}/128`,
+      image: donor.skinUrl ?? `https://mc-heads.net/avatar/${donor.name}/128`,
       description: resolveDonorDescription(donor, hardcodedDescriptions, i18n.language),
       rank: <RankBadgeGroup ranks={donor.ranks ?? []} t={t} />,
     }));

@@ -495,12 +495,6 @@
   }
 }
 
-@media (max-width: 900px) {
-}
-
-@media (max-width: 1200px) {
-}
-
 @keyframes crystal-float {
   0%,
   100% {
@@ -637,12 +631,6 @@
   grid-template-columns: repeat(2, 1fr);
   gap: 0.75rem;
   margin-bottom: 1.5rem;
-}
-
-@media (max-width: 1200px) {
-}
-
-@media (max-width: 768px) {
 }
 
 .tier-btn {

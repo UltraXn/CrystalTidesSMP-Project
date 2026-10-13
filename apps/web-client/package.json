@@ -16,6 +16,7 @@
     "doctor:staged": "react-doctor --staged --blocking warning",
     "doctor:changed": "react-doctor --verbose --scope changed",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
     "test:mutation": "stryker run",
     "test:mutation:pipeline": "tsx scripts/stryker-orchestrator.ts",

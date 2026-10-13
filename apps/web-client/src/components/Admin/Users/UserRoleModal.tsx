@@ -62,7 +62,7 @@ export default function UserRoleModal({
             {t('admin.users.role_modal.desc')}
             <br />
             <strong style={{ color: '#fff', fontSize: '1.1rem' }}>
-              {user.username || user.email}
+              {user.username ?? user.email}
             </strong>
             <br />
             {t('admin.users.role_modal.to')}{' '}

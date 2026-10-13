@@ -90,17 +90,17 @@ export function mapRawGachaResults(
       return {
         ...result,
         ...found,
-        name: result.reward_name || result.name || found.name,
-        image_url: found.image_url || result.image_url || '',
-        color: found.color || result.color || CONSTANTS.DEFAULT_COLOR,
+        name: result.reward_name ?? result.name ?? found.name,
+        image_url: found.image_url ?? result.image_url ?? '',
+        color: found.color ?? result.color ?? CONSTANTS.DEFAULT_COLOR,
       } as MappedGachaResult;
     }
 
     return {
       ...result,
-      name: result.reward_name || result.name || CONSTANTS.UNKNOWN_REWARD,
-      image_url: result.image_url || '',
-      color: result.color || CONSTANTS.DEFAULT_COLOR,
+      name: result.reward_name ?? result.name ?? CONSTANTS.UNKNOWN_REWARD,
+      image_url: result.image_url ?? '',
+      color: result.color ?? CONSTANTS.DEFAULT_COLOR,
     } as MappedGachaResult;
   });
 }
@@ -114,7 +114,7 @@ export function generateMockRollResults(tier: GachaTier, qty: number): MappedGac
       ...reward,
       reward_id: reward.id,
       reward_name: reward.name,
-      image_url: reward.image_url || '',
+      image_url: reward.image_url ?? '',
       created_at: new Date().toISOString(),
     } as unknown as MappedGachaResult);
   }
@@ -131,7 +131,7 @@ export function createMockHistorySeed(rewards: GachaReward[]): GachaHistoryEntry
       reward_name: randomReward.name,
       rarity: randomReward.rarity,
       created_at: new Date(Date.now() - i * 3_600_000).toISOString(),
-      image_url: randomReward.image_url || undefined,
+      image_url: randomReward.image_url ?? undefined,
     };
   });
 }
@@ -151,8 +151,12 @@ export function generateReelsForTier(tier: GachaTier): (GachaReward | MappedGach
   });
 }
 
-export function calculateRollCost(cost: number, qty: number, hasFreeRoll: boolean): number {
-  return hasFreeRoll ? cost * Math.max(0, qty - 1) : cost * qty;
+export interface RollCostOptions {
+  hasFreeRoll?: boolean;
+}
+
+export function calculateRollCost(cost: number, qty: number, options?: RollCostOptions): number {
+  return options?.hasFreeRoll ? cost * Math.max(0, qty - 1) : cost * qty;
 }
 
 export interface RollValidationParams {
@@ -187,7 +191,7 @@ export function canPerformRoll({
 
   if (isTierLocked) return false;
 
-  const totalCost = calculateRollCost(selectedTier.cost, qty, hasFreeRoll);
+  const totalCost = calculateRollCost(selectedTier.cost, qty, { hasFreeRoll });
   return !(killuBalance < totalCost && selectedTier.id !== CONSTANTS.TIER_ULTRA);
 }
 

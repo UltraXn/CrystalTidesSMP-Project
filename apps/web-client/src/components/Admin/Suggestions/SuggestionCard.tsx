@@ -20,7 +20,7 @@ export default function SuggestionCard({
 }: Readonly<SuggestionCardProps>) {
   const { t } = useTranslation();
   const typeStyle = getTypeColor(s.type);
-  const statusStyle = getStatusColor(s.status || 'pending');
+  const statusStyle = getStatusColor(s.status ?? 'pending');
 
   return (
     <div
@@ -163,7 +163,7 @@ export default function SuggestionCard({
             textTransform: 'uppercase',
           }}
         >
-          {t(`admin.suggestions.status.${s.status || 'pending'}`)}
+          {t(`admin.suggestions.status.${s.status ?? 'pending'}`)}
         </span>
       </div>
 

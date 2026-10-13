@@ -39,7 +39,7 @@ const ERR_NO_GAME_DIR = 'No se pudo resolver el directorio de juego.';
 
 const resolveGameDir = async (): Promise<string | null> => {
   const homeDir: string | null = await invoke('get_home_dir').catch(() => null);
-  return resolveProfileGameDir(getActiveProfile(), homeDir || undefined);
+  return resolveProfileGameDir(getActiveProfile(), homeDir ?? undefined);
 };
 
 function extractTotalCount(res: {
@@ -75,7 +75,7 @@ export function useModManager() {
   const [installStatus, setInstallStatus] = useState<Record<string, string>>({});
 
   const [cfApiKeyInput, setCfApiKeyInput] = useState(
-    () => localStorage.getItem(CONSTANTS.CF_API_KEY_STORAGE) || '',
+    () => localStorage.getItem(CONSTANTS.CF_API_KEY_STORAGE) ?? '',
   );
   const [hasCfApiKey, setHasCfApiKey] = useState(true);
 
@@ -139,7 +139,7 @@ export function useModManager() {
                 selectedLoader,
                 currentOffset,
                 size,
-                selectedCategory || undefined,
+                selectedCategory ?? undefined,
                 selectedSort,
               )
             : await searchModrinth(
@@ -148,7 +148,7 @@ export function useModManager() {
                 selectedLoader,
                 currentOffset,
                 size,
-                selectedCategory || undefined,
+                selectedCategory ?? undefined,
                 selectedSort,
               );
 
@@ -181,7 +181,7 @@ export function useModManager() {
     [pageSize, performSearch],
   );
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
+  const handleSearchSubmit = (e: React.SyntheticEvent) => {
     e.preventDefault();
     setCurrentPage(1);
     performSearch(1, pageSize);

@@ -21,7 +21,7 @@ export function useRulesManagement(user: User | null, t: TranslateFn) {
   const [translating, setTranslating] = useState<string | null>(null);
 
   const allowedRoles = useMemo(() => ['admin', 'developer', 'neroferno', 'killu', 'helper'], []);
-  const userRole = (user?.user_metadata?.role as string | undefined)?.toLowerCase() || '';
+  const userRole = (user?.user_metadata?.role as string | undefined)?.toLowerCase() ?? '';
   const isStaff = allowedRoles.includes(userRole);
 
   const fetchRules = useCallback(async () => {

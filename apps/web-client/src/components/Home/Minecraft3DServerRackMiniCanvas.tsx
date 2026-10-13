@@ -3,6 +3,71 @@ import * as THREE from 'three';
 
 import { loadRackModel, type ICubePrecise } from '../../services/serverRackModel';
 
+function applyFaceUvs(
+  uvAttr: THREE.BufferAttribute,
+  offset: number,
+  face: ICubePrecise['faces'][number],
+  u1: number,
+  v1: number,
+  u2: number,
+  v2: number,
+): void {
+  if (face.rotation === 90) {
+    uvAttr.setXY(offset + 0, u1, 1 - v2);
+    uvAttr.setXY(offset + 1, u2, 1 - v2);
+    uvAttr.setXY(offset + 2, u1, 1 - v1);
+    uvAttr.setXY(offset + 3, u2, 1 - v1);
+  } else if (face.mc_face === 'north') {
+    uvAttr.setXY(offset + 0, u2, 1 - v1);
+    uvAttr.setXY(offset + 1, u1, 1 - v1);
+    uvAttr.setXY(offset + 2, u2, 1 - v2);
+    uvAttr.setXY(offset + 3, u1, 1 - v2);
+  } else {
+    uvAttr.setXY(offset + 0, u1, 1 - v1);
+    uvAttr.setXY(offset + 1, u1, 1 - v2);
+    uvAttr.setXY(offset + 2, u2, 1 - v1);
+    uvAttr.setXY(offset + 3, u2, 1 - v2);
+  }
+}
+
+function buildCubeMesh(
+  cube: ICubePrecise,
+  matMap: Record<string, THREE.Material>,
+  invisibleMat: THREE.Material,
+): THREE.Mesh {
+  const [w, h, d] = cube.size;
+  const [px, py, pz] = cube.position;
+
+  const geo = new THREE.BoxGeometry(w, h, d);
+  const faceMaterials: THREE.Material[] = [
+    invisibleMat,
+    invisibleMat,
+    invisibleMat,
+    invisibleMat,
+    invisibleMat,
+    invisibleMat,
+  ];
+
+  const uvAttr = geo.attributes.uv as THREE.BufferAttribute;
+
+  for (const face of cube.faces) {
+    const idx = face.three_idx;
+    const texKey = face.texture;
+    faceMaterials[idx] = matMap[texKey] || invisibleMat;
+
+    if (texKey !== 'none') {
+      const [u1, v1, u2, v2] = face.uv;
+      const offset = idx * 4;
+      applyFaceUvs(uvAttr, offset, face, u1, v1, u2, v2);
+    }
+  }
+
+  uvAttr.needsUpdate = true;
+  const mesh = new THREE.Mesh(geo, faceMaterials);
+  mesh.position.set(px, py, pz);
+  return mesh;
+}
+
 export const Minecraft3DServerRackMiniCanvas: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -113,55 +178,7 @@ export const Minecraft3DServerRackMiniCanvas: React.FC = () => {
         const cubes: ICubePrecise[] = (data as { cubes?: ICubePrecise[] }).cubes || [];
 
         cubes.forEach((cube: ICubePrecise) => {
-          const [w, h, d] = cube.size;
-          const [px, py, pz] = cube.position;
-
-          const geo = new THREE.BoxGeometry(w, h, d);
-          const faceMaterials: THREE.Material[] = [
-            invisibleMat,
-            invisibleMat,
-            invisibleMat,
-            invisibleMat,
-            invisibleMat,
-            invisibleMat,
-          ];
-
-          const uvAttr = geo.attributes.uv;
-
-          cube.faces.forEach((face) => {
-            const idx = face.three_idx;
-            const texKey = face.texture;
-            const mat = matMap[texKey] || invisibleMat;
-            faceMaterials[idx] = mat;
-
-            if (texKey !== 'none') {
-              const [u1, v1, u2, v2] = face.uv;
-              const offset = idx * 4;
-
-              if (face.rotation === 90) {
-                uvAttr.setXY(offset + 0, u1, 1 - v2);
-                uvAttr.setXY(offset + 1, u2, 1 - v2);
-                uvAttr.setXY(offset + 2, u1, 1 - v1);
-                uvAttr.setXY(offset + 3, u2, 1 - v1);
-              } else if (face.mc_face === 'north') {
-                uvAttr.setXY(offset + 0, u2, 1 - v1);
-                uvAttr.setXY(offset + 1, u1, 1 - v1);
-                uvAttr.setXY(offset + 2, u2, 1 - v2);
-                uvAttr.setXY(offset + 3, u1, 1 - v2);
-              } else {
-                uvAttr.setXY(offset + 0, u1, 1 - v1);
-                uvAttr.setXY(offset + 1, u1, 1 - v2);
-                uvAttr.setXY(offset + 2, u2, 1 - v1);
-                uvAttr.setXY(offset + 3, u2, 1 - v2);
-              }
-            }
-          });
-
-          uvAttr.needsUpdate = true;
-
-          const mesh = new THREE.Mesh(geo, faceMaterials);
-          mesh.position.set(px, py, pz);
-          mainGroup.add(mesh);
+          mainGroup.add(buildCubeMesh(cube, matMap, invisibleMat));
         });
 
         mainGroup.scale.set(1.9, 1.9, 1.9);
@@ -171,14 +188,14 @@ export const Minecraft3DServerRackMiniCanvas: React.FC = () => {
       .catch(() => {});
 
     // 4. Animation Loop
-    const clock = new THREE.Clock();
+    const startTime = performance.now();
     let lastFrameTime = 0;
     let currentFrame = 0;
 
     renderer.setAnimationLoop(() => {
       if (!isSubscribed) return;
 
-      const elapsedTime = clock.getElapsedTime();
+      const elapsedTime = (performance.now() - startTime) / 1000;
 
       // Keep model still facing front (no rotation)
       // Shift texture V offset by 16/128 (1/8) for LED blinking animation

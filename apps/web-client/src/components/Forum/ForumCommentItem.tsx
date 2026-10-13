@@ -17,7 +17,7 @@ interface ForumCommentItemProps {
 
 function getCommentAuthorAvatar(comment: Comment): string {
   const metadata = comment.author_data_fresh;
-  const pref = metadata?.avatar_preference || 'minecraft';
+  const pref = metadata?.avatar_preference ?? 'minecraft';
   const mcNick = metadata?.minecraft_nick;
   const useMinecraft = pref === 'minecraft' && Boolean(mcNick);
 
@@ -25,27 +25,27 @@ function getCommentAuthorAvatar(comment: Comment): string {
     return `https://mc-heads.net/avatar/${mcNick}/128`;
   }
   return (
-    metadata?.social_avatar_url ||
-    metadata?.avatar_url ||
-    comment.avatar ||
+    metadata?.social_avatar_url ??
+    metadata?.avatar_url ??
+    comment.avatar ??
     `https://ui-avatars.com/api/?name=${comment.user}`
   );
 }
 
 function getCommentAuthorDisplayName(comment: Comment): string {
   const metadata = comment.author_data_fresh;
-  const pref = metadata?.avatar_preference || 'minecraft';
+  const pref = metadata?.avatar_preference ?? 'minecraft';
   const mcNick = metadata?.minecraft_nick;
   const useMinecraft = pref === 'minecraft' && Boolean(mcNick);
 
   if (useMinecraft && mcNick) {
     return mcNick;
   }
-  return metadata?.full_name || metadata?.username || comment.user;
+  return metadata?.full_name ?? metadata?.username ?? comment.user;
 }
 
 function getCommentAuthorRoleInfo(comment: Comment): { roleRaw: string; roleImage: string } {
-  const roleRaw = (comment.author_data_fresh?.role || comment.role || 'user').toLowerCase();
+  const roleRaw = (comment.author_data_fresh?.role ?? comment.role ?? 'user').toLowerCase();
   const roleImage =
     RANK_IMAGES[roleRaw] || (roleRaw.includes('donador') ? RANK_IMAGES.donador : RANK_IMAGES.user);
   return { roleRaw, roleImage };
@@ -65,7 +65,7 @@ export default function ForumCommentItem({
 }: Readonly<ForumCommentItemProps>) {
   const metadata = comment.author_data_fresh;
   const mcNick = metadata?.minecraft_nick;
-  const discordTag = metadata?.social_discord || metadata?.discord_tag;
+  const discordTag = metadata?.social_discord ?? metadata?.discord_tag;
   const statusMessage = metadata?.status_message;
 
   const displayAvatar = getCommentAuthorAvatar(comment);

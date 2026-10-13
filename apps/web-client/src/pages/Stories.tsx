@@ -142,7 +142,7 @@ function StoryCard({ place, onSelect, onCopyCoords }: Readonly<StoryCardProps>) 
               <Copy className="ml-1 size-3 opacity-40 group-hover/coords:opacity-100" />
             </button>
             <img
-              src={place.image_url || ''}
+              src={place.image_url ?? ''}
               alt={place.title}
               className="size-full object-cover transition-transform duration-700 group-hover:scale-110"
             />
@@ -209,7 +209,7 @@ function StoryModal({ place, onClose, onCopyCoords }: Readonly<StoryModalProps>)
             </div>
           ) : (
             <img
-              src={place.image_url || ''}
+              src={place.image_url ?? ''}
               alt={place.title}
               className="sepia-20 brightness-85 size-full object-cover filter transition-colors duration-700 hover:scale-105"
             />

@@ -7,17 +7,17 @@ function getDefaultPhases(formData: Partial<WikiArticle>) {
     {
       phase_number: 1,
       phase_name: 'Fase I',
-      model_3d_url: formData.model_3d_url || '/models/toro_wither.gltf',
-      hp: formData.boss_hp || '600 HP',
-      damage: formData.boss_damage || '35 Daño',
+      model_3d_url: formData.model_3d_url ?? '/models/toro_wither.gltf',
+      hp: formData.boss_hp ?? '600 HP',
+      damage: formData.boss_damage ?? '35 Daño',
       attacks: formData.boss_phase_1_attacks || [],
     },
     {
       phase_number: 2,
       phase_name: 'Fase II',
-      model_3d_url: formData.model_3d_url_phase_2 || '/models/toro_wither_terror.gltf',
-      hp: formData.boss_hp_phase_2 || '800 HP',
-      damage: formData.boss_damage_phase_2 || '50 Daño Crítico',
+      model_3d_url: formData.model_3d_url_phase_2 ?? '/models/toro_wither_terror.gltf',
+      hp: formData.boss_hp_phase_2 ?? '800 HP',
+      damage: formData.boss_damage_phase_2 ?? '50 Daño Crítico',
       attacks: formData.boss_phase_2_attacks || [],
     },
   ];
@@ -37,7 +37,7 @@ export function useBossSkills(
 
   const [clipsMap, setClipsMap] = useState<Record<string, string[]>>({});
 
-  const activeModelUrl = activePhase?.model_3d_url || formData.model_3d_url || '';
+  const activeModelUrl = activePhase?.model_3d_url ?? formData.model_3d_url ?? '';
   const loadingClips = Boolean(activeModelUrl && !(activeModelUrl in clipsMap));
 
   // Inspect GLTF model clips dynamically

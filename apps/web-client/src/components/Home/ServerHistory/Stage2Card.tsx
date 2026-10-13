@@ -118,9 +118,9 @@ export function Stage2Card({
 
   let activeStaffColor: string | null = null;
   if (dragActiveMember) {
-    activeStaffColor = memberConfig.find((m) => m.name === dragActiveMember)?.color || null;
+    activeStaffColor = memberConfig.find((m) => m.name === dragActiveMember)?.color ?? null;
   } else if (hoveredMember) {
-    activeStaffColor = memberConfig.find((m) => m.name === hoveredMember)?.color || null;
+    activeStaffColor = memberConfig.find((m) => m.name === hoveredMember)?.color ?? null;
   }
 
   return (

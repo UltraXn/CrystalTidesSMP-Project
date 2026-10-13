@@ -410,7 +410,7 @@ const MedalCardEdit = ({ medal, onSave, onCancel }: Readonly<MedalCardEditProps>
           <input
             aria-label={t('admin.gamification.name_en', 'Nombre de la medalla en inglés')}
             type="text"
-            value={formData.name_en || ''}
+            value={formData.name_en ?? ''}
             placeholder="Name (EN)"
             onChange={(e) => handleChange('name_en', e.target.value)}
             className={CONSTANTS.INPUT_PREMIUM}
@@ -418,7 +418,7 @@ const MedalCardEdit = ({ medal, onSave, onCancel }: Readonly<MedalCardEditProps>
           />
           <textarea
             aria-label={t('admin.gamification.desc_en', 'Descripción de la medalla en inglés')}
-            value={formData.description_en || ''}
+            value={formData.description_en ?? ''}
             placeholder="Description (EN)"
             onChange={(e) => handleChange('description_en', e.target.value)}
             className={CONSTANTS.TEXTAREA_PREMIUM}
@@ -430,7 +430,7 @@ const MedalCardEdit = ({ medal, onSave, onCancel }: Readonly<MedalCardEditProps>
           aria-label={t('admin.gamification.image_url', 'URL manual de imagen de la medalla')}
           type="text"
           placeholder="O URL manual imagen..."
-          value={formData.image_url || ''}
+          value={formData.image_url ?? ''}
           onChange={(e) => handleChange('image_url', e.target.value)}
           className="input-premium url-input-small"
         />
@@ -692,7 +692,7 @@ const AchievementCardEdit = ({
             <input
               aria-label={t('admin.gamification.achievement_name_en', 'Nombre del logro en inglés')}
               type="text"
-              value={formData.name_en || ''}
+              value={formData.name_en ?? ''}
               onChange={(e) => handleChange('name_en', e.target.value)}
               className={CONSTANTS.INPUT_PREMIUM}
               placeholder="Name (EN)"
@@ -701,7 +701,7 @@ const AchievementCardEdit = ({
             <input
               aria-label={t('admin.gamification.criteria_en', 'Criterio del logro en inglés')}
               type="text"
-              value={formData.criteria_en || ''}
+              value={formData.criteria_en ?? ''}
               onChange={(e) => handleChange('criteria_en', e.target.value)}
               className="input-premium criteria"
               placeholder="Criteria (EN)"
@@ -713,7 +713,7 @@ const AchievementCardEdit = ({
               'admin.gamification.achievement_desc_en',
               'Descripción del logro en inglés',
             )}
-            value={formData.description_en || ''}
+            value={formData.description_en ?? ''}
             onChange={(e) => handleChange('description_en', e.target.value)}
             className={CONSTANTS.TEXTAREA_PREMIUM}
             placeholder="Description (EN)"

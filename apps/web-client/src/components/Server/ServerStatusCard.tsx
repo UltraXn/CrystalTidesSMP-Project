@@ -65,18 +65,23 @@ function ServerProgressBar({
 }: Readonly<ServerProgressBarProps>) {
   return (
     <div
-      role="progressbar"
-      aria-valuenow={playerCount}
-      aria-valuemin={0}
-      aria-valuemax={maxPlayers}
-      aria-label={label}
       className="relative mb-2 h-3 w-full overflow-hidden rounded-full border"
       style={{
         background: theme.progressBg,
         borderColor: theme.progressBorder,
       }}
     >
+      <progress
+        value={playerCount}
+        max={maxPlayers}
+        aria-label={label}
+        aria-valuenow={playerCount}
+        aria-valuemin={0}
+        aria-valuemax={maxPlayers}
+        className="sr-only"
+      />
       <m.div
+        aria-hidden="true"
         initial={{ scaleX: 0 }}
         animate={{ scaleX: percentage / 100 }}
         transition={{ duration: 1.5, ease: [0.33, 1, 0.68, 1] }}

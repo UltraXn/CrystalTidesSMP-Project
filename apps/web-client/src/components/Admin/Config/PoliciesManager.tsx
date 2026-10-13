@@ -520,8 +520,8 @@ export default function PoliciesManager() {
       payload: {
         title: policy.title || '',
         content: policy.content || '',
-        titleEn: policy.title_en || '',
-        contentEn: policy.content_en || '',
+        titleEn: policy.title_en ?? '',
+        contentEn: policy.content_en ?? '',
       },
     });
   }, []);

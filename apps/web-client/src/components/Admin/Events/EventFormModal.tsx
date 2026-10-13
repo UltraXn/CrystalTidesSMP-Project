@@ -7,7 +7,7 @@ import { Event } from './types';
 
 interface EventFormModalProps {
   onClose: () => void;
-  onSave: (e: React.FormEvent) => Promise<void>;
+  onSave: (e: React.SyntheticEvent) => Promise<void>;
   currentEvent: Event;
   setCurrentEvent: React.Dispatch<React.SetStateAction<Event | null>>;
   API_URL: string;
@@ -36,7 +36,7 @@ export default function EventFormModal({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...getAuthHeaders(session?.access_token || null),
+          ...getAuthHeaders(session?.access_token ?? null),
         },
         body: JSON.stringify({ text, targetLang: 'en' }),
       });
@@ -129,7 +129,7 @@ export default function EventFormModal({
                 id="event-title-en"
                 type="text"
                 className="admin-input-premium"
-                value={currentEvent.title_en || ''}
+                value={currentEvent.title_en ?? ''}
                 onChange={(e) =>
                   setCurrentEvent((prev) => (prev ? { ...prev, title_en: e.target.value } : null))
                 }
@@ -239,7 +239,7 @@ export default function EventFormModal({
                 id="event-desc-en"
                 className="admin-textarea-premium"
                 rows={4}
-                value={currentEvent.description_en || ''}
+                value={currentEvent.description_en ?? ''}
                 onChange={(e) =>
                   setCurrentEvent((prev) =>
                     prev ? { ...prev, description_en: e.target.value } : null,

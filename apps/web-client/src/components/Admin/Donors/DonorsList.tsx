@@ -11,6 +11,69 @@ interface DonorsListProps {
   onImport: () => void;
 }
 
+interface DonorCardItemProps {
+  donor: Donor;
+  index: number;
+  onEdit: (donor: Donor) => void;
+  onDelete: (id: string) => void;
+}
+
+function handleAvatarError(e: React.SyntheticEvent<HTMLImageElement>) {
+  e.currentTarget.src = 'https://mc-heads.net/avatar/Steve/64';
+}
+
+function DonorCardItem({ donor, index, onEdit, onDelete }: Readonly<DonorCardItemProps>) {
+  const { t } = useTranslation();
+  const handleEdit = () => onEdit(donor);
+  const handleDelete = () => onDelete(donor.id);
+  const skinUrl = donor.skinUrl ?? `https://mc-heads.net/avatar/${donor.name}/64`;
+
+  return (
+    <Draggable draggableId={donor.id} index={index}>
+      {(provided) => (
+        <div className="donor-card-premium" ref={provided.innerRef} {...provided.draggableProps}>
+          <div className="donor-card-accent"></div>
+          <div {...provided.dragHandleProps} className="donor-drag-handle">
+            <GripVertical />
+          </div>
+
+          <div className="donor-card-header">
+            <div className="donor-avatar-wrapper">
+              <img
+                className="donor-avatar"
+                src={skinUrl}
+                alt={donor.name}
+                onError={handleAvatarError}
+              />
+            </div>
+            <div className="donor-info">
+              <h4 className="donor-name">{donor.name}</h4>
+              <div className="donor-ranks">
+                {donor.ranks.map((r) => (
+                  <span key={r} className="donor-rank-badge">
+                    {r}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <p className="donor-description">"{donor.description}"</p>
+
+          <div className="donor-card-actions">
+            <button type="button" onClick={handleEdit} className="donor-btn-action edit">
+              <Edit size={14} /> {t('admin.polls.edit_btn', 'Editar')}
+            </button>
+            <button type="button" onClick={handleDelete} className="donor-btn-action delete">
+              <Trash2 size={14} /> {t('admin.donors.delete_btn', 'Eliminar')}
+            </button>
+          </div>
+        </div>
+      )}
+    </Draggable>
+  );
+}
+
 export default function DonorsList({
   donors,
   onDragEnd,
@@ -50,62 +113,13 @@ export default function DonorsList({
             )}
 
             {donors.map((donor, index) => (
-              <Draggable key={donor.id} draggableId={donor.id} index={index}>
-                {(provided) => (
-                  <div
-                    className="donor-card-premium"
-                    ref={provided.innerRef}
-                    {...provided.draggableProps}
-                  >
-                    <div className="donor-card-accent"></div>
-                    <div {...provided.dragHandleProps} className="donor-drag-handle">
-                      <GripVertical />
-                    </div>
-
-                    <div className="donor-card-header">
-                      <div className="donor-avatar-wrapper">
-                        <img
-                          className="donor-avatar"
-                          src={donor.skinUrl || `https://mc-heads.net/avatar/${donor.name}/64`}
-                          alt={donor.name}
-                          onError={(e) =>
-                            (e.currentTarget.src = `https://mc-heads.net/avatar/Steve/64`)
-                          }
-                        />
-                      </div>
-                      <div className="donor-info">
-                        <h4 className="donor-name">{donor.name}</h4>
-                        <div className="donor-ranks">
-                          {donor.ranks.map((r) => (
-                            <span key={r} className="donor-rank-badge">
-                              {r}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-
-                    <p className="donor-description">"{donor.description}"</p>
-
-                    <div className="donor-card-actions">
-                      <button
-                        type="button"
-                        onClick={() => onEdit(donor)}
-                        className="donor-btn-action edit"
-                      >
-                        <Edit size={14} /> {t('admin.polls.edit_btn', 'Editar')}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => onDelete(donor.id)}
-                        className="donor-btn-action delete"
-                      >
-                        <Trash2 size={14} /> {t('admin.donors.delete_btn', 'Eliminar')}
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </Draggable>
+              <DonorCardItem
+                key={donor.id}
+                donor={donor}
+                index={index}
+                onEdit={onEdit}
+                onDelete={onDelete}
+              />
             ))}
             {provided.placeholder}
           </div>

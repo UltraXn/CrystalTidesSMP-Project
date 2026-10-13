@@ -43,7 +43,7 @@ export const GachaRewardsOverlay: React.FC<Readonly<GachaRewardsOverlayProps>> =
               const loss = isLossReward(item);
               const activeImg = loss
                 ? null
-                : resolveRewardImage(item.name, item.image_url) || getFailsafeImg(item.name);
+                : (resolveRewardImage(item.name, item.image_url) ?? getFailsafeImg(item.name));
               if (activeImg) {
                 return (
                   <img
@@ -113,10 +113,10 @@ export const GachaRewardsOverlay: React.FC<Readonly<GachaRewardsOverlayProps>> =
             bulkRewards.map((r, index) => (
               <div
                 key={
-                  r.id ||
-                  `reward-${r.name}-${r.rarity}-${'amount' in r && r.amount ? r.amount : ''}`
+                  r.id ??
+                  `reward-${r.name}-${r.rarity}-${'amount' in r && typeof r.amount === 'number' ? r.amount : ''}`
                 }
-                className={`bulk-item-row ${RARITY_CLASS_MAP[r.rarity] || 'rarity-common'}`}
+                className={`bulk-item-row ${RARITY_CLASS_MAP[r.rarity] ?? 'rarity-common'}`}
                 style={{ '--delay': `${index * 0.05}s` } as React.CSSProperties}
               >
                 <div className="bulk-item-icon">
@@ -124,7 +124,7 @@ export const GachaRewardsOverlay: React.FC<Readonly<GachaRewardsOverlayProps>> =
                     const loss = isLossReward(r);
                     const activeImg = loss
                       ? null
-                      : resolveRewardImage(r.name, r.image_url) || getFailsafeImg(r.name);
+                      : (resolveRewardImage(r.name, r.image_url) ?? getFailsafeImg(r.name));
 
                     if (activeImg) {
                       const isKillucoin =

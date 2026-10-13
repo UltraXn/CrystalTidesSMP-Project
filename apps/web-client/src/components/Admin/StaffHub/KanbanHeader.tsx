@@ -33,7 +33,7 @@ export function KanbanHeader({
   onSubscribeToCalendar,
   onFetchNotionTasks,
   onOpenNewTaskModal,
-}: KanbanHeaderProps) {
+}: Readonly<KanbanHeaderProps>) {
   const { t } = useTranslation();
 
   return (

@@ -31,9 +31,9 @@ export function BossSkillsTab({ formData, setFormData }: Readonly<BossSkillsTabP
 
   const activeAttacks = activePhase?.attacks || [];
   const previewModelUrl =
-    activePhase?.model_3d_url ||
+    activePhase?.model_3d_url ??
     (selectedPhaseIdx === 1
-      ? formData.model_3d_url_phase_2 || formData.model_3d_url
+      ? (formData.model_3d_url_phase_2 ?? formData.model_3d_url)
       : formData.model_3d_url);
 
   const handleAssignClip = (clipName: string) => {

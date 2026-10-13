@@ -19,7 +19,7 @@ interface AuditTableProps {
   logs: LogEntry[];
 }
 
-export function AuditTable({ logs }: AuditTableProps) {
+export function AuditTable({ logs }: Readonly<AuditTableProps>) {
   const { t } = useTranslation();
 
   return (

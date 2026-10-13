@@ -79,6 +79,10 @@ export default function Wiki() {
   const { slug } = useParams();
   const { t } = useTranslation();
 
+  const canonicalUrl = slug
+    ? `https://crystaltidessmp.net/wiki/${slug}`
+    : 'https://crystaltidessmp.net/wiki';
+
   useSEO({
     title: slug
       ? `Wiki - ${slug.replaceAll('-', ' ').toUpperCase()}`
@@ -87,7 +91,7 @@ export default function Wiki() {
       'Manual completo del jugador para CrystalTides SMP 1.21+. Tutoriales, Bestiario con Tarjetas 3D Interactivas, protecciones y economía.',
     keywords:
       'wiki minecraft, bestiario minecraft, comandos smp, guia minecraft, protecciones minecraft, economia minecraft',
-    canonical: `https://crystaltidessmp.net/wiki${slug ? `/${slug}` : ''}`,
+    canonical: canonicalUrl,
   });
 
   const {
