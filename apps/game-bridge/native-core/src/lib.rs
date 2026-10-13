@@ -1,6 +1,11 @@
 pub mod fsr;
+pub mod input_hook;
+pub mod instant_replay;
 pub mod interop;
+pub mod overlay_renderer;
+pub mod pacing_guard;
 pub mod thread_qos;
+pub mod ui;
 
 use jni::JNIEnv;
 use jni::objects::{JClass, JString};
@@ -17,8 +22,9 @@ pub extern "system" fn Java_com_crystaltides_agent_CrystalAgent_nativeInit(
         Err(_) => "default".to_string(),
     };
 
-    // Initialize FSR 3.1 runtime engine
+    // Initialize FSR 3.1 runtime engine and GPU Instant Replay buffer
     fsr::init_fsr_engine();
+    instant_replay::init_replay_system();
 
     let output = format!(
         "🦀 [Rust Core] Native Game Bridge v2.0 & FSR 3.1 Frame Gen Active! Signal: {}",
@@ -107,3 +113,45 @@ pub extern "system" fn Java_com_crystaltides_agent_CrystalAgent_nativeRecordFram
 ) {
     fsr::record_presented_frame();
 }
+
+/// Renders the in-game overlay over OpenGL
+#[no_mangle]
+pub extern "system" fn Java_com_crystaltides_agent_CrystalAgent_nativeRenderOverlay(
+    _env: JNIEnv,
+    _class: JClass,
+    width: jint,
+    height: jint,
+) {
+    overlay_renderer::present_overlay(width, height);
+}
+
+/// Checks if overlay is currently visible
+#[no_mangle]
+pub extern "system" fn Java_com_crystaltides_agent_CrystalAgent_nativeIsOverlayVisible(
+    _env: JNIEnv,
+    _class: JClass,
+) -> jboolean {
+    if input_hook::is_overlay_visible() { 1 } else { 0 }
+}
+
+/// Toggles overlay visibility
+#[no_mangle]
+pub extern "system" fn Java_com_crystaltides_agent_CrystalAgent_nativeToggleOverlay(
+    _env: JNIEnv,
+    _class: JClass,
+) -> jboolean {
+    if input_hook::toggle_overlay() { 1 } else { 0 }
+}
+
+/// Flushes the rolling 30s GPU replay buffer to disk and returns the saved file path
+#[no_mangle]
+pub extern "system" fn Java_com_crystaltides_agent_CrystalAgent_nativeSaveReplayClip(
+    env: JNIEnv,
+    _class: JClass,
+) -> jstring {
+    let result = instant_replay::save_current_replay().unwrap_or_else(|e| format!("Error: {}", e));
+    let response = env.new_string(result).expect("Couldn't create java string!");
+    response.into_raw()
+}
+
+
