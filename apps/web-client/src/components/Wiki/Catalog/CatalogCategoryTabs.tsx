@@ -10,7 +10,7 @@ export default function CatalogCategoryTabs({
   selectedTab,
   tabCounts,
   onSelectTab,
-}: CatalogCategoryTabsProps) {
+}: Readonly<CatalogCategoryTabsProps>) {
   return (
     <div
       role="tablist"

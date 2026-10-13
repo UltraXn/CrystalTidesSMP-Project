@@ -37,15 +37,7 @@ export const WikiMerchant3DCard: React.FC<Readonly<WikiMerchant3DCardProps>> = (
   description = 'Comerciante itinerante de la raza Ribbit que ofrece semillas exóticas y artefactos de pesca.',
   trades = DEFAULT_TRADES,
 }) => {
-  const {
-    containerRef,
-    isLoading,
-    resetView,
-    toggleFullscreen,
-    handleMouseDown,
-    handleMouseMove,
-    handleMouseUp,
-  } = useEntityCard3D({
+  const { containerRef, isLoading, resetView, toggleFullscreen } = useEntityCard3D({
     modelPath,
     dirLightColor: 0xf59e0b,
     dirLightIntensity: 2.0,
@@ -78,21 +70,7 @@ export const WikiMerchant3DCard: React.FC<Readonly<WikiMerchant3DCardProps>> = (
       <div className="relative overflow-hidden rounded-2xl border border-amber-500/20 bg-[#120e06]/90 shadow-xl backdrop-blur-xl">
         <div className="grid grid-cols-1 items-stretch gap-0 lg:grid-cols-12">
           {/* 3D Viewport Column */}
-          <div
-            role="application"
-            aria-label="Visualizador 3D Mercader"
-            tabIndex={0}
-            className="min-h-95 bg-radial relative flex size-full cursor-grab items-center justify-center overflow-hidden border-b border-amber-500/20 from-amber-950/30 via-black to-black outline-none focus:outline-none active:cursor-grabbing lg:col-span-5 lg:border-b-0 lg:border-r"
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseUp}
-            onKeyDown={(e) => {
-              if (e.key === 'r' || e.key === 'R' || e.key === 'Home') {
-                resetView();
-              }
-            }}
-          >
+          <div className="min-h-95 bg-radial relative flex size-full cursor-grab items-center justify-center overflow-hidden border-b border-amber-500/20 from-amber-950/30 via-black to-black outline-none focus:outline-none active:cursor-grabbing lg:col-span-5 lg:border-b-0 lg:border-r">
             {isLoading && (
               <div className="backdrop-blur-xs absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/80">
                 <div className="mb-2 size-6 animate-spin rounded-full border-2 border-amber-500/30 border-t-amber-500" />

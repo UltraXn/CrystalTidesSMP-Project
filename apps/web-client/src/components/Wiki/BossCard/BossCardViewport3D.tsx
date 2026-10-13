@@ -25,15 +25,7 @@ export function BossCardViewport3D({
   selectedAttack,
   activeClipOverride,
 }: Readonly<BossCardViewport3DProps>) {
-  const {
-    containerRef,
-    isLoading,
-    handleMouseDown,
-    handleMouseMove,
-    handleMouseUp,
-    resetView,
-    toggleFullscreen,
-  } = useBossCard3D({
+  const { containerRef, isLoading, resetView, toggleFullscreen } = useBossCard3D({
     activeModel,
     themeStyles,
     cardWrapperRef,
@@ -43,19 +35,7 @@ export function BossCardViewport3D({
 
   return (
     <div
-      role="application"
-      aria-label="Visualizador 3D interactivo"
-      tabIndex={0}
       className={`min-h-115 relative flex size-full cursor-grab items-center justify-center overflow-hidden border-b border-white/5 focus:outline-none active:cursor-grabbing lg:col-span-5 lg:border-b-0 lg:border-r ${themeStyles.viewportBg}`}
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
-      onKeyDown={(e) => {
-        if (e.key === 'r' || e.key === 'R' || e.key === 'Home') {
-          resetView();
-        }
-      }}
     >
       {isLoading && (
         <div className="backdrop-blur-xs absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/80">

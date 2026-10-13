@@ -27,7 +27,7 @@ export function BossCardDropsSection({
       <div className="space-y-1 rounded-xl border border-white/5 bg-neutral-950/70 p-3 text-xs">
         <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-neutral-300">
           <MapPin size={12} className={themeStyles.accentText} />{' '}
-          {locationLabel || 'Ubicación & Método de Aparición'}
+          {locationLabel ?? 'Ubicación & Método de Aparición'}
         </div>
         <p className="text-[11px] leading-normal text-neutral-400">
           <strong className="text-neutral-200">Hábitat:</strong> {location}
@@ -42,7 +42,7 @@ export function BossCardDropsSection({
       {drops && drops.length > 0 && (
         <div>
           <h4 className="mb-1 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-            <Award className="size-3.5 text-neutral-400" /> {dropsLabel || 'Botín & Drops'}
+            <Award className="size-3.5 text-neutral-400" /> {dropsLabel ?? 'Botín & Drops'}
           </h4>
           <div className="flex flex-wrap gap-1.5">
             {drops.map((drop) => (
@@ -62,7 +62,7 @@ export function BossCardDropsSection({
         <div className="flex items-center justify-between border-t border-white/5 pt-2.5">
           <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-neutral-400">
             <Coins size={14} className="text-amber-400" />
-            <span>{bountyLabel || 'Recompensa de Caza'}</span>
+            <span>{bountyLabel ?? 'Recompensa de Caza'}</span>
           </div>
           <span className="font-mono text-base font-bold text-amber-300">
             +{kcReward.toLocaleString()} KC

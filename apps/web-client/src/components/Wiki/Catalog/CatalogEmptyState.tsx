@@ -4,7 +4,7 @@ interface CatalogEmptyStateProps {
   onResetFilters: () => void;
 }
 
-export default function CatalogEmptyState({ onResetFilters }: CatalogEmptyStateProps) {
+export default function CatalogEmptyState({ onResetFilters }: Readonly<CatalogEmptyStateProps>) {
   return (
     <output
       aria-live="polite"

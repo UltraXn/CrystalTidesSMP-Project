@@ -35,7 +35,7 @@ export function BossCardStatsGrid({
   armor,
   speed,
 }: Readonly<BossCardStatsGridProps>) {
-  const badgeText = threatLabel || subtitle || category.toUpperCase() || 'ENTIDAD OFICIAL';
+  const badgeText = threatLabel ?? subtitle ?? category.toUpperCase() ?? 'ENTIDAD OFICIAL';
 
   return (
     <div>
@@ -59,14 +59,14 @@ export function BossCardStatsGrid({
       <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
         <div className="space-y-0.5 rounded-xl border border-white/5 bg-neutral-950/70 p-2.5">
           <div className="flex items-center gap-1 font-mono text-[9px] uppercase tracking-wider text-neutral-500">
-            <Heart size={11} className={themeStyles.accentText} /> {hpLabel || 'Salud'}
+            <Heart size={11} className={themeStyles.accentText} /> {hpLabel ?? 'Salud'}
           </div>
           <div className="font-mono text-xs font-bold text-white">{currentHp}</div>
         </div>
 
         <div className="space-y-0.5 rounded-xl border border-white/5 bg-neutral-950/70 p-2.5">
           <div className="flex items-center gap-1 font-mono text-[9px] uppercase tracking-wider text-neutral-500">
-            <Zap size={11} className={themeStyles.accentText} /> {damageLabel || 'Ataque'}
+            <Zap size={11} className={themeStyles.accentText} /> {damageLabel ?? 'Ataque'}
           </div>
           <div className="truncate text-xs font-bold text-white">{currentDamage}</div>
         </div>
@@ -80,7 +80,7 @@ export function BossCardStatsGrid({
 
         <div className="space-y-0.5 rounded-xl border border-white/5 bg-neutral-950/70 p-2.5">
           <div className="flex items-center gap-1 font-mono text-[9px] uppercase tracking-wider text-neutral-500">
-            <Compass size={11} className="text-neutral-400" /> {speedLabel || 'Velocidad'}
+            <Compass size={11} className="text-neutral-400" /> {speedLabel ?? 'Velocidad'}
           </div>
           <div className="font-mono text-xs font-bold text-white">{speed}</div>
         </div>

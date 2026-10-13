@@ -1,7 +1,20 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { resolveAssetUrl } from '../../utils/assetUtils';
+
+function configureInfoboxMaterials(child: THREE.Object3D): void {
+  if (!(child instanceof THREE.Mesh)) return;
+  const mats = Array.isArray(child.material) ? child.material : [child.material];
+  for (const mat of mats) {
+    if (mat.map) {
+      mat.map.magFilter = THREE.NearestFilter;
+      mat.map.minFilter = THREE.NearestFilter;
+      mat.map.needsUpdate = true;
+    }
+    mat.side = THREE.DoubleSide;
+  }
+}
 
 export function useWikiInfobox3D(modelPath: string | null | undefined) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -21,17 +34,17 @@ export function useWikiInfobox3D(modelPath: string | null | undefined) {
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const currentModelRef = useRef<THREE.Object3D | null>(null);
   const mixerRef = useRef<THREE.AnimationMixer | null>(null);
-  const clockRef = useRef<THREE.Clock | null>(null);
+  const lastTimeRef = useRef<number>(0);
   const isDraggingRef = useRef(false);
   const previousMousePositionRef = useRef({ x: 0, y: 0 });
 
-  const isLoadingModel = loadState.path !== (modelPath || null) || loadState.loading;
-  const modelError = loadState.path === (modelPath || null) ? loadState.error : null;
+  const isLoadingModel = loadState.path !== (modelPath ?? null) || loadState.loading;
+  const modelError = loadState.path === (modelPath ?? null) ? loadState.error : null;
 
   // Initialize Three.js Scene
   useEffect(() => {
     if (!canvasRef.current || !containerRef.current) return;
-    clockRef.current = new THREE.Clock();
+    lastTimeRef.current = performance.now();
 
     const container = containerRef.current;
     const width = container.clientWidth || 320;
@@ -85,7 +98,9 @@ export function useWikiInfobox3D(modelPath: string | null | undefined) {
     scene.add(gridHelper);
 
     renderer.setAnimationLoop(() => {
-      const delta = clockRef.current ? clockRef.current.getDelta() : 0;
+      const now = performance.now();
+      const delta = (now - lastTimeRef.current) / 1000;
+      lastTimeRef.current = now;
 
       if (mixerRef.current) {
         mixerRef.current.update(delta);
@@ -108,9 +123,40 @@ export function useWikiInfobox3D(modelPath: string | null | undefined) {
     };
     window.addEventListener('resize', handleResize);
 
+    const onMouseDown = (e: MouseEvent) => {
+      isDraggingRef.current = true;
+      previousMousePositionRef.current = { x: e.clientX, y: e.clientY };
+    };
+
+    const onMouseMove = (e: MouseEvent) => {
+      if (!isDraggingRef.current || !currentModelRef.current) return;
+      const deltaX = e.clientX - previousMousePositionRef.current.x;
+      const deltaY = e.clientY - previousMousePositionRef.current.y;
+
+      currentModelRef.current.rotation.y += deltaX * 0.01;
+      currentModelRef.current.rotation.x += deltaY * 0.01;
+      currentModelRef.current.rotation.x = Math.max(
+        -0.5,
+        Math.min(0.5, currentModelRef.current.rotation.x),
+      );
+
+      previousMousePositionRef.current = { x: e.clientX, y: e.clientY };
+    };
+
+    const onMouseUp = () => {
+      isDraggingRef.current = false;
+    };
+
+    container.addEventListener('mousedown', onMouseDown);
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+
     return () => {
       renderer.setAnimationLoop(null);
       window.removeEventListener('resize', handleResize);
+      container.removeEventListener('mousedown', onMouseDown);
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
       ringGeo.dispose?.();
       ringMat.dispose?.();
       renderer.dispose?.();
@@ -151,19 +197,7 @@ export function useWikiInfobox3D(modelPath: string | null | undefined) {
         model.position.y = -box.min.y * scale;
         model.position.z = -center.z * scale;
 
-        model.traverse((child) => {
-          if (child instanceof THREE.Mesh) {
-            const mats = Array.isArray(child.material) ? child.material : [child.material];
-            mats.forEach((mat) => {
-              if (mat.map) {
-                mat.map.magFilter = THREE.NearestFilter;
-                mat.map.minFilter = THREE.NearestFilter;
-                mat.map.needsUpdate = true;
-              }
-              mat.side = THREE.DoubleSide;
-            });
-          }
-        });
+        model.traverse(configureInfoboxMaterials);
 
         if (gltf.animations && gltf.animations.length > 0) {
           const mixer = new THREE.AnimationMixer(model);
@@ -184,31 +218,6 @@ export function useWikiInfobox3D(modelPath: string | null | undefined) {
     );
   }, [modelPath]);
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    isDraggingRef.current = true;
-    previousMousePositionRef.current = { x: e.clientX, y: e.clientY };
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDraggingRef.current || !currentModelRef.current) return;
-    const deltaX = e.clientX - previousMousePositionRef.current.x;
-    const deltaY = e.clientY - previousMousePositionRef.current.y;
-
-    currentModelRef.current.rotation.y += deltaX * 0.01;
-    currentModelRef.current.rotation.x += deltaY * 0.01;
-
-    currentModelRef.current.rotation.x = Math.max(
-      -0.5,
-      Math.min(0.5, currentModelRef.current.rotation.x),
-    );
-
-    previousMousePositionRef.current = { x: e.clientX, y: e.clientY };
-  };
-
-  const handleMouseUp = () => {
-    isDraggingRef.current = false;
-  };
-
   const resetRotation = () => {
     if (currentModelRef.current) {
       currentModelRef.current.rotation.set(0, 0, 0);
@@ -220,9 +229,6 @@ export function useWikiInfobox3D(modelPath: string | null | undefined) {
     containerRef,
     isLoadingModel,
     modelError,
-    handleMouseDown,
-    handleMouseMove,
-    handleMouseUp,
     resetRotation,
   };
 }

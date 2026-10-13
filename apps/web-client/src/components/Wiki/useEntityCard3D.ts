@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { resolveAssetUrl } from '../../utils/assetUtils';
@@ -76,7 +76,7 @@ export function useEntityCard3D(config: EntityCard3DConfig) {
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.shadowMap.type = THREE.PCFShadowMap;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     rendererRef.current = renderer;
 
@@ -156,10 +156,12 @@ export function useEntityCard3D(config: EntityCard3DConfig) {
       },
     );
 
-    const clock = new THREE.Clock();
+    let lastTime = performance.now();
 
     renderer.setAnimationLoop(() => {
-      const delta = clock.getDelta();
+      const now = performance.now();
+      const delta = (now - lastTime) / 1000;
+      lastTime = now;
 
       if (mixerRef.current) mixerRef.current.update(delta);
 
@@ -184,9 +186,40 @@ export function useEntityCard3D(config: EntityCard3DConfig) {
 
     window.addEventListener('resize', handleResize);
 
+    const container = containerRef.current;
+    const onMouseDown = (e: MouseEvent) => {
+      isDraggingRef.current = true;
+      previousMousePositionRef.current = { x: e.clientX, y: e.clientY };
+    };
+
+    const onMouseMove = (e: MouseEvent) => {
+      if (!isDraggingRef.current) return;
+      const deltaX = e.clientX - previousMousePositionRef.current.x;
+      const deltaY = e.clientY - previousMousePositionRef.current.y;
+
+      targetRotationRef.current.y += deltaX * 0.01;
+      targetRotationRef.current.x = Math.max(
+        -0.6,
+        Math.min(0.6, targetRotationRef.current.x + deltaY * 0.01),
+      );
+
+      previousMousePositionRef.current = { x: e.clientX, y: e.clientY };
+    };
+
+    const onMouseUp = () => {
+      isDraggingRef.current = false;
+    };
+
+    container.addEventListener('mousedown', onMouseDown);
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+
     return () => {
       renderer.setAnimationLoop(null);
       window.removeEventListener('resize', handleResize);
+      container.removeEventListener('mousedown', onMouseDown);
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
       renderer.dispose();
     };
   }, [
@@ -201,36 +234,10 @@ export function useEntityCard3D(config: EntityCard3DConfig) {
     metalness,
   ]);
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    isDraggingRef.current = true;
-    previousMousePositionRef.current = { x: e.clientX, y: e.clientY };
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDraggingRef.current) return;
-    const deltaX = e.clientX - previousMousePositionRef.current.x;
-    const deltaY = e.clientY - previousMousePositionRef.current.y;
-
-    targetRotationRef.current.y += deltaX * 0.01;
-    targetRotationRef.current.x = Math.max(
-      -0.6,
-      Math.min(0.6, targetRotationRef.current.x + deltaY * 0.01),
-    );
-
-    previousMousePositionRef.current = { x: e.clientX, y: e.clientY };
-  };
-
-  const handleMouseUp = () => {
-    isDraggingRef.current = false;
-  };
-
   return {
     containerRef,
     isLoading,
     resetView,
     toggleFullscreen,
-    handleMouseDown,
-    handleMouseMove,
-    handleMouseUp,
   };
 }

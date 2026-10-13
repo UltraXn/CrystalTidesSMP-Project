@@ -12,7 +12,7 @@ export default function CatalogHeroHeader({
   bossesCount,
   hostilesCount,
   peacefulCount,
-}: CatalogHeroHeaderProps) {
+}: Readonly<CatalogHeroHeaderProps>) {
   return (
     <div className="bg-linear-to-br relative overflow-hidden rounded-[2.5rem] border border-teal-500/30 from-slate-900/90 via-slate-950/95 to-[#05080c] p-8 shadow-[0_0_50px_rgba(20,184,166,0.1)] backdrop-blur-2xl sm:p-12">
       {/* Background Aura Glows */}

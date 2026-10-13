@@ -20,43 +20,24 @@ export function WikiInfobox3DViewport({
       ? article.model_3d_url_phase_2
       : article.model_3d_url;
 
-  const {
-    canvasRef,
-    containerRef,
-    isLoadingModel,
-    modelError,
-    handleMouseDown,
-    handleMouseMove,
-    handleMouseUp,
-    resetRotation,
-  } = useWikiInfobox3D(modelPath);
+  const { canvasRef, containerRef, isLoadingModel, modelError, resetRotation } =
+    useWikiInfobox3D(modelPath);
 
   if (!article.model_3d_url) return null;
 
   return (
     <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-black/60 shadow-inner">
       <div
-        role="application"
         ref={containerRef}
-        aria-label="Contenedor interactivo del modelo 3D"
-        tabIndex={0}
         className="h-65 relative flex w-full cursor-grab items-center justify-center focus:outline-none active:cursor-grabbing"
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
-        onKeyDown={(e) => {
-          if (e.key === 'r' || e.key === 'R' || e.key === 'Home') {
-            resetRotation();
-          }
-        }}
       >
         <canvas
           ref={canvasRef}
-          role="img"
           aria-label={`Modelo 3D interactivo de ${article.title}`}
           className="block size-full"
-        />
+        >
+          {article.title}
+        </canvas>
 
         {isLoadingModel && (
           <div className="text-(--accent) absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/75 backdrop-blur-sm">

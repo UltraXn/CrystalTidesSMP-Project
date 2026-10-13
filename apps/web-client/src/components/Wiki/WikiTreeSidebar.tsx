@@ -133,8 +133,8 @@ export default function WikiTreeSidebar({
         const matchedArticles = group.articles.filter(
           (a) =>
             a.title.toLowerCase().includes(term) ||
-            (a.boss_mod_name || '').toLowerCase().includes(term) ||
-            (a.content || '').toLowerCase().includes(term),
+            (a.boss_mod_name ?? '').toLowerCase().includes(term) ||
+            (a.content ?? '').toLowerCase().includes(term),
         );
         return {
           ...group,

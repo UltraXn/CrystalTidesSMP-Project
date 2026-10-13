@@ -9,7 +9,7 @@ interface CatalogItemCardProps {
   index: number;
 }
 
-export default function CatalogItemCard({ article, index }: CatalogItemCardProps) {
+export default function CatalogItemCard({ article, index }: Readonly<CatalogItemCardProps>) {
   const is3D = !!article.model_3d_url;
   const visuals = getCardVisuals(article);
   const TagIcon = visuals.icon;
@@ -68,7 +68,7 @@ export default function CatalogItemCard({ article, index }: CatalogItemCardProps
                   <Heart size={13} aria-hidden="true" className="text-red-400" /> Salud
                 </span>
                 <span className="font-mono font-black tabular-nums text-red-300">
-                  {article.boss_hp || '100 HP'}
+                  {article.boss_hp ?? '100 HP'}
                 </span>
               </div>
 

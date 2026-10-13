@@ -81,10 +81,10 @@ function computeActivePhases(params: {
           ? phase2Attacks || getEntityDefaultAttacks(bossName, category, 2)
           : phase1Attacks || getEntityDefaultAttacks(bossName, category, 1)),
       model_3d_url:
-        p.model_3d_url ||
+        p.model_3d_url ??
         (idx === 0
           ? modelPath || DEFAULT_MODEL_PATH
-          : modelPathPhase2 || modelPath || '/models/toro_wither_terror.gltf'),
+          : (modelPathPhase2 ?? modelPath ?? '/models/toro_wither_terror.gltf')),
     }));
   }
 
@@ -101,7 +101,7 @@ function computeActivePhases(params: {
       {
         phase_number: 2,
         phase_name: 'Fase II: Despertar',
-        model_3d_url: modelPathPhase2 || '/models/toro_wither_terror.gltf',
+        model_3d_url: modelPathPhase2 ?? '/models/toro_wither_terror.gltf',
         hp: hpPhase2,
         damage: damagePhase2,
         attacks: phase2Attacks || getEntityDefaultAttacks(bossName, category, 2),
@@ -188,7 +188,7 @@ export const WikiBoss3DCard: React.FC<Readonly<WikiBoss3DCardProps>> = ({
 
   const currentPhaseObj =
     activePhases.find((p) => p.phase_number === selectedPhase) || activePhases[0];
-  const activeModel = currentPhaseObj?.model_3d_url || modelPath || DEFAULT_MODEL_PATH;
+  const activeModel = currentPhaseObj?.model_3d_url ?? modelPath ?? DEFAULT_MODEL_PATH;
   const activeAttacksList = useMemo(() => {
     return currentPhaseObj?.attacks || getEntityDefaultAttacks(bossName, category, selectedPhase);
   }, [currentPhaseObj, bossName, category, selectedPhase]);
@@ -253,8 +253,8 @@ export const WikiBoss3DCard: React.FC<Readonly<WikiBoss3DCardProps>> = ({
                 hpLabel={hpLabel}
                 damageLabel={damageLabel}
                 speedLabel={speedLabel}
-                currentHp={currentPhaseObj.hp || hp}
-                currentDamage={currentPhaseObj.damage || damage}
+                currentHp={currentPhaseObj.hp ?? hp}
+                currentDamage={currentPhaseObj.damage ?? damage}
                 armor={armor}
                 speed={speed}
               />

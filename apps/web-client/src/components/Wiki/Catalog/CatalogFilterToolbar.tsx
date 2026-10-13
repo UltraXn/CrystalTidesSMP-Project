@@ -27,7 +27,7 @@ export default function CatalogFilterToolbar({
   onSelectMod,
   total3DCount,
   getModCount,
-}: CatalogFilterToolbarProps) {
+}: Readonly<CatalogFilterToolbarProps>) {
   return (
     <div className="flex flex-col items-stretch justify-between gap-4 rounded-2xl border border-white/10 bg-slate-900/60 p-4 shadow-lg backdrop-blur-xl md:flex-row md:items-center">
       {/* Search Bar */}
@@ -59,10 +59,9 @@ export default function CatalogFilterToolbar({
 
       {/* Mod Chips */}
       {mods.length > 0 && selectedTab !== 'guias_generales' && (
-        <div
-          role="group"
+        <fieldset
           aria-label="Filtrar por mod"
-          className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0"
+          className="m-0 flex items-center gap-2 overflow-x-auto border-none p-0 pb-1 md:pb-0"
         >
           <span className="mr-1 shrink-0 text-[11px] font-bold uppercase tracking-wider text-slate-400">
             Mod:
@@ -95,7 +94,7 @@ export default function CatalogFilterToolbar({
               </button>
             );
           })}
-        </div>
+        </fieldset>
       )}
     </div>
   );

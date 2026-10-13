@@ -50,15 +50,15 @@ function computeFaceUVs(
   dx: number,
   dy: number,
   dz: number,
-  mirror: boolean
+  mirror: boolean,
 ): FaceUV[] {
   const facesUV: FaceUV[] = [
-    [u + dz + dx, v + dz, dz, dy],      // +X (right)
-    [u, v + dz, dz, dy],                // -X (left)
-    [u + dz, v, dx, dz],                // +Y (top)
-    [u + dz + dx, v, dx, dz],           // -Y (bottom)
-    [u + dz, v + dz, dx, dy],           // +Z (front)
-    [u + dz + dx + dz, v + dz, dx, dy]  // -Z (back)
+    [u + dz + dx, v + dz, dz, dy], // +X (right)
+    [u, v + dz, dz, dy], // -X (left)
+    [u + dz, v, dx, dz], // +Y (top)
+    [u + dz + dx, v, dx, dz], // -Y (bottom)
+    [u + dz, v + dz, dx, dy], // +Z (front)
+    [u + dz + dx + dz, v + dz, dx, dy], // -Z (back)
   ];
 
   if (mirror) {
@@ -75,19 +75,16 @@ function computeFaceUVs(
  */
 function applyMinecraftUVs(
   geometry: THREE.BoxGeometry,
-  u: number,
-  v: number,
-  dx: number,
-  dy: number,
-  dz: number,
+  cube: BedrockCube,
   tw: number,
   th: number,
-  mirror = false
 ): void {
   const uvAttr = geometry.attributes.uv;
   if (!uvAttr) return;
 
-  const facesUV = computeFaceUVs(u, v, dx, dy, dz, mirror);
+  const [u, v] = cube.uv;
+  const [dx, dy, dz] = cube.size;
+  const facesUV = computeFaceUVs(u, v, dx, dy, dz, cube.mirror ?? false);
 
   for (let faceIdx = 0; faceIdx < 6; faceIdx++) {
     const [fu, fv, fw, fh] = facesUV[faceIdx];
@@ -135,7 +132,7 @@ function createCubeMesh(
   pivot: [number, number, number],
   material: THREE.Material,
   textureWidth: number,
-  textureHeight: number
+  textureHeight: number,
 ): THREE.Mesh | null {
   const dimensions = resolveCubeDimensions(cube);
   if (!dimensions) {
@@ -145,17 +142,7 @@ function createCubeMesh(
   const [dx, dy, dz] = dimensions;
   const boxGeo = new THREE.BoxGeometry(dx, dy, dz);
 
-  applyMinecraftUVs(
-    boxGeo,
-    cube.uv[0],
-    cube.uv[1],
-    cube.size[0],
-    cube.size[1],
-    cube.size[2],
-    textureWidth,
-    textureHeight,
-    cube.mirror
-  );
+  applyMinecraftUVs(boxGeo, cube, textureWidth, textureHeight);
 
   const mesh = new THREE.Mesh(boxGeo, material);
   mesh.castShadow = true;
@@ -191,7 +178,7 @@ function createBedrockMaterial(texture?: THREE.Texture): THREE.MeshStandardMater
     metalness: 0.1,
     transparent: true,
     alphaTest: 0.1,
-    side: THREE.DoubleSide
+    side: THREE.DoubleSide,
   });
 }
 
@@ -210,7 +197,7 @@ function createBoneNode(bone: BedrockBone): BoneNode {
       THREE.MathUtils.degToRad(bone.rotation[0]),
       THREE.MathUtils.degToRad(bone.rotation[1]),
       THREE.MathUtils.degToRad(bone.rotation[2]),
-      ROTATION_ORDER
+      ROTATION_ORDER,
     );
   }
 
@@ -235,14 +222,14 @@ function attachBoneToParent(
   bone: BedrockBone,
   current: BoneNode,
   boneMap: Map<string, BoneNode>,
-  rootGroup: THREE.Group
+  rootGroup: THREE.Group,
 ): void {
   if (bone.parent && boneMap.has(bone.parent)) {
     const parent = boneMap.get(bone.parent)!;
     current.group.position.set(
       current.pivot[0] - parent.pivot[0],
       current.pivot[1] - parent.pivot[1],
-      current.pivot[2] - parent.pivot[2]
+      current.pivot[2] - parent.pivot[2],
     );
     parent.group.add(current.group);
   } else {
@@ -258,7 +245,7 @@ function attachCubesToBone(
   current: BoneNode,
   material: THREE.Material,
   tw: number,
-  th: number
+  th: number,
 ): void {
   if (!bone.cubes || bone.cubes.length === 0) return;
 
@@ -275,7 +262,7 @@ function attachCubesToBone(
  */
 export function buildBedrockModel(
   geoData: BedrockGeometry,
-  texture?: THREE.Texture
+  texture?: THREE.Texture,
 ): THREE.Object3D {
   const rootGroup = new THREE.Group();
 

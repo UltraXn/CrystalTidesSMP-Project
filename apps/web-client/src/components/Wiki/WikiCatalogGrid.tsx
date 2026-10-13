@@ -33,8 +33,8 @@ function matchesSearch(article: WikiArticle, term: string): boolean {
   const lowerTerm = term.toLowerCase();
   const titleMatch = article.title.toLowerCase().includes(lowerTerm);
   const descMatch = (article.content || '').toLowerCase().includes(lowerTerm);
-  const modMatch = (article.boss_mod_name || '').toLowerCase().includes(lowerTerm);
-  const locMatch = (article.boss_location || '').toLowerCase().includes(lowerTerm);
+  const modMatch = (article.boss_mod_name ?? '').toLowerCase().includes(lowerTerm);
+  const locMatch = (article.boss_location ?? '').toLowerCase().includes(lowerTerm);
   return titleMatch || descMatch || modMatch || locMatch;
 }
 
@@ -42,7 +42,7 @@ export default function WikiCatalogGrid({
   articles,
   selectedCategory: initialCategory = 'all',
   onCategoryChange,
-}: WikiCatalogGridProps) {
+}: Readonly<WikiCatalogGridProps>) {
   const [selectedTab, setSelectedTab] = useState<string>(initialCategory);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMod, setSelectedMod] = useState<string>('all');
