@@ -26,7 +26,7 @@ describe('LauncherLegalModal', () => {
 
   it('should call onClose when clicking outside the modal', () => {
     render(<LauncherLegalModal isOpen={true} onClose={onCloseMock} />);
-    fireEvent.click(screen.getByRole('dialog'));
+    fireEvent.click(screen.getByLabelText('Close modal backdrop'));
     expect(onCloseMock).toHaveBeenCalled();
   });
 
@@ -36,9 +36,15 @@ describe('LauncherLegalModal', () => {
     expect(onCloseMock).not.toHaveBeenCalled();
   });
 
+  it('should call onClose on Escape key press', () => {
+    render(<LauncherLegalModal isOpen={true} onClose={onCloseMock} />);
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' });
+    expect(onCloseMock).toHaveBeenCalled();
+  });
+
   it('should render the "Terms of Service" tab by default', () => {
     render(<LauncherLegalModal isOpen={true} onClose={onCloseMock} />);
-    expect(screen.getByText('Terms of Service')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Terms of Service' })).toBeInTheDocument();
     expect(
       screen.getByText(
         'Directrices de uso, licenciamiento y cumplimiento con el EULA de Mojang Studios.',
@@ -48,8 +54,8 @@ describe('LauncherLegalModal', () => {
 
   it('should switch to "Privacy Policy" tab when clicked', () => {
     render(<LauncherLegalModal isOpen={true} onClose={onCloseMock} />);
-    fireEvent.click(screen.getByText('Privacy Policy'));
-    expect(screen.getByText('Privacy Policy')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Privacy Policy/i }));
+    expect(screen.getByRole('heading', { name: 'Privacy Policy' })).toBeInTheDocument();
     expect(
       screen.getByText(
         'Políticas de privacidad, almacenamiento seguro en OS Vault y cero telemetría invasiva.',
@@ -59,7 +65,7 @@ describe('LauncherLegalModal', () => {
 
   it('should switch to "Help & Community Channels" tab when clicked', () => {
     render(<LauncherLegalModal isOpen={true} onClose={onCloseMock} />);
-    fireEvent.click(screen.getByText('Help & Support'));
+    fireEvent.click(screen.getByRole('button', { name: /Help & Support/i }));
     expect(screen.getByText('Help & Community Channels')).toBeInTheDocument();
     expect(
       screen.getByText(
@@ -105,7 +111,7 @@ describe('LauncherLegalModal', () => {
 
   it('should handle initialTab prop correctly', () => {
     render(<LauncherLegalModal isOpen={true} initialTab="privacy" onClose={onCloseMock} />);
-    expect(screen.getByText('Privacy Policy')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Privacy Policy' })).toBeInTheDocument();
     expect(
       screen.getByText(
         'Políticas de privacidad, almacenamiento seguro en OS Vault y cero telemetría invasiva.',
@@ -115,7 +121,7 @@ describe('LauncherLegalModal', () => {
 
   it('should handle missing initialTab prop correctly', () => {
     render(<LauncherLegalModal isOpen={true} onClose={onCloseMock} />);
-    expect(screen.getByText('Terms of Service')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Terms of Service' })).toBeInTheDocument();
     expect(
       screen.getByText(
         'Directrices de uso, licenciamiento y cumplimiento con el EULA de Mojang Studios.',

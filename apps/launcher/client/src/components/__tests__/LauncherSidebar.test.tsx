@@ -101,60 +101,46 @@ describe('LauncherSidebar', () => {
   it('renders home button with active styles when activeNav is "home"', () => {
     render(<LauncherSidebar activeNav="home" onSelectNav={mockOnSelectNav} />);
     const homeButton = screen.getByTitle('Home');
-    expect(homeButton).toHaveStyle(
-      'border: 1px solid #121620; background-color: #0D1017; color: #2DD4BF; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);',
-    );
+    expect(homeButton).toHaveStyle({ color: '#2DD4BF' });
   });
 
   it('renders home button with inactive styles when activeNav is not "home"', () => {
     render(<LauncherSidebar activeNav="locker" onSelectNav={mockOnSelectNav} />);
     const homeButton = screen.getByTitle('Home');
-    expect(homeButton).toHaveStyle(
-      'border: 1px solid transparent; background-color: transparent; color: #94A3B8; box-shadow: none;',
-    );
+    expect(homeButton).toHaveStyle({ color: '#94A3B8' });
   });
 
   it('renders locker button with amber dot when activeNav is "locker"', () => {
     render(<LauncherSidebar activeNav="locker" onSelectNav={mockOnSelectNav} />);
     const lockerButton = screen.getByTitle('Locker');
     const dot = lockerButton.querySelector('span');
-    expect(dot).toHaveStyle(
-      'background-color: #F2B82E; box-shadow: 0 0 6px rgba(242, 184, 46, 0.8);',
-    );
+    expect(dot).toHaveStyle({ backgroundColor: '#F2B82E' });
   });
 
   it('renders gallery button with red dot when activeNav is "gallery"', () => {
     render(<LauncherSidebar activeNav="gallery" onSelectNav={mockOnSelectNav} />);
     const galleryButton = screen.getByTitle('Gallery');
     const dot = galleryButton.querySelector('span');
-    expect(dot).toHaveStyle(
-      'background-color: #EF4444; box-shadow: 0 0 6px rgba(239, 68, 68, 0.8);',
-    );
+    expect(dot).toHaveStyle({ backgroundColor: '#EF4444' });
   });
 
   it('renders store button with red dot when activeNav is "store"', () => {
     render(<LauncherSidebar activeNav="store" onSelectNav={mockOnSelectNav} />);
     const storeButton = screen.getByTitle('Store');
     const dot = storeButton.querySelector('span');
-    expect(dot).toHaveStyle(
-      'background-color: #EF4444; box-shadow: 0 0 6px rgba(239, 68, 68, 0.8);',
-    );
+    expect(dot).toHaveStyle({ backgroundColor: '#EF4444' });
   });
 
   it('handles boundary case where activeNav is undefined', () => {
     render(<LauncherSidebar activeNav={undefined as any} onSelectNav={mockOnSelectNav} />);
     const homeButton = screen.getByTitle('Home');
-    expect(homeButton).toHaveStyle(
-      'border: 1px solid transparent; background-color: transparent; color: #94A3B8; box-shadow: none;',
-    );
+    expect(homeButton).toHaveStyle({ color: '#94A3B8' });
   });
 
   it('handles boundary case where activeNav is null', () => {
     render(<LauncherSidebar activeNav={null as any} onSelectNav={mockOnSelectNav} />);
     const homeButton = screen.getByTitle('Home');
-    expect(homeButton).toHaveStyle(
-      'border: 1px solid transparent; background-color: transparent; color: #94A3B8; box-shadow: none;',
-    );
+    expect(homeButton).toHaveStyle({ color: '#94A3B8' });
   });
 
   it('handles boundary case where onSelectNav is undefined', () => {

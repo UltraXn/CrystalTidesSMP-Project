@@ -208,17 +208,17 @@ export const launchGame = async (
     if (!homeDir) throw new Error('No se pudo obtener el directorio del usuario.');
 
     const normalizedHome = homeDir.replace(/\\/g, '/');
-    const gameDirectory = params.gameDir || `${normalizedHome}/.crystaltides`;
+    const gameDirectory = params.gameDir ?? `${normalizedHome}/.crystaltides`;
 
     onProgress?.('Comprobando entorno de Java...', 0.1);
     const requiredJavaVersion = getJavaVersionForMinecraft(params.mcVersion);
     const runtimesDir = `${normalizedHome}/.crystaltides/runtimes`;
-    const javaPath = params.javaPath || (await ensureJava(requiredJavaVersion, runtimesDir));
+    const javaPath = params.javaPath ?? (await ensureJava(requiredJavaVersion, runtimesDir));
 
     onProgress?.('Cargando perfil de Minecraft...', 0.2);
     const versionId = resolveVersionId(params);
     const versionData = await readVersionManifest(gameDirectory, versionId, params.mcVersion);
-    const mainClass = versionData.mainClass || 'net.minecraft.client.main.Main';
+    const mainClass = versionData.mainClass ?? 'net.minecraft.client.main.Main';
 
     onProgress?.('Sincronizando preajustes de GPU y shaders...', 0.4);
     try {

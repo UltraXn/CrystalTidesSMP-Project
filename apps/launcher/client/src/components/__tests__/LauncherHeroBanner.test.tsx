@@ -3,9 +3,10 @@ import '@testing-library/jest-dom/vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { LauncherHeroBanner } from '../LauncherHeroBanner';
 import { fetchServerStatus } from '../../services/serverStatusService';
+import { WallpaperMode } from '../types';
 
 vi.mock('../../services/serverStatusService', () => ({
-  fetchServerStatus: vi.fn(),
+  fetchServerStatus: vi.fn().mockResolvedValue(null),
 }));
 
 describe('LauncherHeroBanner', () => {
@@ -22,6 +23,7 @@ describe('LauncherHeroBanner', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(fetchServerStatus).mockResolvedValue(null);
   });
 
   afterEach(() => {
@@ -41,7 +43,13 @@ describe('LauncherHeroBanner', () => {
   });
 
   it('renders server status when available', async () => {
-    fetchServerStatus.mockResolvedValueOnce({ online: true, playersOnline: 10 });
+    vi.mocked(fetchServerStatus).mockResolvedValueOnce({
+      online: true,
+      playersOnline: 10,
+      maxPlayers: 100,
+      version: '1.20.1',
+      motd: 'Welcome',
+    });
     render(<LauncherHeroBanner {...defaultProps} />);
     await waitFor(() => {
       expect(screen.getByText('10 Online')).toBeInTheDocument();
@@ -49,35 +57,41 @@ describe('LauncherHeroBanner', () => {
   });
 
   it('renders server status offline when not available', async () => {
-    fetchServerStatus.mockResolvedValueOnce({ online: false });
+    vi.mocked(fetchServerStatus).mockResolvedValueOnce({
+      online: false,
+      playersOnline: 0,
+      maxPlayers: 0,
+      version: '',
+      motd: '',
+    });
     render(<LauncherHeroBanner {...defaultProps} />);
     await waitFor(() => {
-      expect(screen.queryByText('Online')).not.toBeInTheDocument();
+      expect(screen.queryByText(/Online$/)).not.toBeInTheDocument();
     });
   });
 
   it('calls onSelectWallpaperMode with "day" when day button is clicked', () => {
     render(<LauncherHeroBanner {...defaultProps} />);
-    fireEvent.click(screen.getByText('Day'));
+    fireEvent.click(screen.getByRole('button', { name: /Day/i }));
     expect(defaultProps.onSelectWallpaperMode).toHaveBeenCalledWith('day');
   });
 
   it('calls onSelectWallpaperMode with "night" when night button is clicked', () => {
     render(<LauncherHeroBanner {...defaultProps} />);
-    fireEvent.click(screen.getByText('Night'));
+    fireEvent.click(screen.getByRole('button', { name: /Night/i }));
     expect(defaultProps.onSelectWallpaperMode).toHaveBeenCalledWith('night');
   });
 
   it('renders day button with active styles', () => {
     render(<LauncherHeroBanner {...defaultProps} />);
-    const dayButton = screen.getByText('Day');
+    const dayButton = screen.getByRole('button', { name: /Day/i });
     expect(dayButton).toHaveStyle('background-color: #1F2638');
     expect(dayButton).toHaveStyle('color: #FAFCFF');
   });
 
   it('renders night button with active styles', () => {
     render(<LauncherHeroBanner {...defaultProps} wallpaperMode="night" />);
-    const nightButton = screen.getByText('Night');
+    const nightButton = screen.getByRole('button', { name: /Night/i });
     expect(nightButton).toHaveStyle('background-color: #1F2638');
     expect(nightButton).toHaveStyle('color: #FAFCFF');
   });
@@ -90,9 +104,9 @@ describe('LauncherHeroBanner', () => {
     expect(accountSwitcher).toHaveStyle('border-color: #262E42');
   });
 
-  it('does not render account switcher button when onOpenAccountSwitcher is not provided', () => {
+  it('does not render account switcher button as clickable when onOpenAccountSwitcher is not provided', () => {
     render(<LauncherHeroBanner {...defaultProps} onOpenAccountSwitcher={undefined} />);
-    const accountSwitcher = screen.queryByTitle('Cambiar de cuenta');
+    const accountSwitcher = screen.getByTitle('Cambiar de cuenta');
     expect(accountSwitcher).toHaveStyle('cursor: default');
     expect(accountSwitcher).toHaveStyle('background-color: #11131C');
     expect(accountSwitcher).toHaveStyle('border-color: #262E42');

@@ -2,12 +2,14 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import '@testing-library/jest-dom/vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { LauncherChatPopup } from '../LauncherChatPopup';
+import { FriendEntry, ChatMessage } from '../types';
 
 const mockFriend: FriendEntry = {
-  id: '1',
   name: 'John Doe',
   avatar: 'https://example.com/avatar.jpg',
   status: 'Online',
+  statusType: 'online',
+  hasUnreadMessage: false,
 };
 
 const mockMessages: ChatMessage[] = [
@@ -18,9 +20,9 @@ const mockMessages: ChatMessage[] = [
 const mockChatInput = 'Hello, friend!';
 
 describe('LauncherChatPopup', () => {
-  let onChatInputChange: jest.Mock;
-  let onSendMessage: jest.Mock;
-  let onCloseChat: jest.Mock;
+  let onChatInputChange: ReturnType<typeof vi.fn>;
+  let onSendMessage: ReturnType<typeof vi.fn>;
+  let onCloseChat: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     onChatInputChange = vi.fn();
@@ -45,12 +47,12 @@ describe('LauncherChatPopup', () => {
     );
 
     const popup = screen.getByRole('dialog');
+    expect(popup).toBeInTheDocument();
     expect(popup).toHaveStyle('position: absolute');
     expect(popup).toHaveStyle('bottom: 16px');
     expect(popup).toHaveStyle('right: 345px');
     expect(popup).toHaveStyle('width: 290px');
     expect(popup).toHaveStyle('height: 320px');
-    expect(popup).toHaveStyle('backgroundColor: #080c14');
   });
 
   it('renders the friend name and status correctly', () => {

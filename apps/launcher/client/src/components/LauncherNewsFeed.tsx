@@ -1,5 +1,30 @@
 import React from 'react';
 
+const cardBaseStyle: React.CSSProperties = {
+  width: '100%',
+  height: 169,
+  borderRadius: 14,
+  display: 'flex',
+  position: 'relative',
+  overflow: 'hidden',
+  cursor: 'pointer',
+  transition: 'all 160ms ease',
+  boxSizing: 'border-box',
+  padding: 0,
+  border: '1px solid transparent',
+  textAlign: 'left',
+  font: 'inherit',
+  color: 'inherit',
+  background: 'none',
+};
+
+const cardPaddedStyle: React.CSSProperties = {
+  ...cardBaseStyle,
+  padding: '16px 20px',
+  flexDirection: 'column',
+  justifyContent: 'space-between',
+};
+
 export const LauncherNewsFeed: React.FC = () => {
   return (
     <div
@@ -70,22 +95,15 @@ export const LauncherNewsFeed: React.FC = () => {
           }}
         >
           {/* Card 1: N CHANGELOG (Figma Node 10:1586) */}
-          <div
+          <button
+            type="button"
             onClick={() =>
               window.open('https://crystaltidessmp.net/news', '_blank', 'noopener,noreferrer')
             }
             style={{
-              width: '100%',
-              height: 169,
-              borderRadius: 14,
+              ...cardBaseStyle,
               backgroundColor: '#11131A',
-              border: '1px solid #262E42',
-              display: 'flex',
-              position: 'relative',
-              overflow: 'hidden',
-              cursor: 'pointer',
-              transition: 'all 160ms ease',
-              boxSizing: 'border-box',
+              borderColor: '#262E42',
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.borderColor = '#404D6B';
@@ -202,28 +220,18 @@ export const LauncherNewsFeed: React.FC = () => {
                 <span style={{ color: '#616B85', fontSize: 14 }}>↗</span>
               </div>
             </div>
-          </div>
+          </button>
 
           {/* Card 2: NEW VERSION / 26.1 (Figma Node 10:1587) */}
-          <div
+          <button
+            type="button"
             onClick={() =>
               window.open('https://crystaltidessmp.net/download', '_blank', 'noopener,noreferrer')
             }
             style={{
-              width: '100%',
-              height: 169,
-              borderRadius: 14,
+              ...cardPaddedStyle,
               background: 'linear-gradient(180deg, #142E1F 0%, #0A140F 100%)',
-              border: '1px solid #38734D',
-              padding: '16px 20px',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              position: 'relative',
-              overflow: 'hidden',
-              cursor: 'pointer',
-              transition: 'all 160ms ease',
-              boxSizing: 'border-box',
+              borderColor: '#38734D',
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.borderColor = '#61F27A';
@@ -301,7 +309,7 @@ export const LauncherNewsFeed: React.FC = () => {
               </span>
               <span style={{ color: '#616B85', fontSize: 14 }}>↗</span>
             </div>
-          </div>
+          </button>
         </div>
 
         {/* ── ROW 2: BECOME A CREATOR (Left) + NEW MODS (Right) ── */}
@@ -316,25 +324,15 @@ export const LauncherNewsFeed: React.FC = () => {
           }}
         >
           {/* Card 3: PARTNER PROGRAM / BECOME A CREATOR (Figma Node 10:1590) */}
-          <div
+          <button
+            type="button"
             onClick={() =>
               window.open('https://crystaltidessmp.net', '_blank', 'noopener,noreferrer')
             }
             style={{
-              width: '100%',
-              height: 169,
-              borderRadius: 14,
+              ...cardPaddedStyle,
               backgroundColor: '#1F140F',
-              border: '1px solid #593826',
-              padding: '16px 20px',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              position: 'relative',
-              overflow: 'hidden',
-              cursor: 'pointer',
-              transition: 'all 160ms ease',
-              boxSizing: 'border-box',
+              borderColor: '#593826',
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.borderColor = '#FACC66';
@@ -397,7 +395,7 @@ export const LauncherNewsFeed: React.FC = () => {
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
               <span style={{ color: '#616B85', fontSize: 14 }}>↗</span>
             </div>
-          </div>
+          </button>
 
           {/* Card 4: NEW MODS! (Figma Node 10:1589) */}
           <div
@@ -450,9 +448,10 @@ export const LauncherNewsFeed: React.FC = () => {
                 { icon: '⌘', title: 'ADVANCED\nKEYSTROKES', bg: '#1F141A' },
                 { icon: '🛡️', title: 'COMBAT\nHUD', bg: '#1A241F' },
                 { icon: '🌧️', title: 'WEATHER\nCHANGER', bg: '#241714' },
-              ].map((mod, mIdx) => (
-                <div
-                  key={mIdx}
+              ].map((mod) => (
+                <button
+                  type="button"
+                  key={mod.title}
                   style={{
                     height: 84,
                     borderRadius: 8,
@@ -468,6 +467,8 @@ export const LauncherNewsFeed: React.FC = () => {
                     gap: 6,
                     cursor: 'pointer',
                     transition: 'all 140ms ease',
+                    color: 'inherit',
+                    font: 'inherit',
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.borderColor = '#FF7380';
@@ -491,7 +492,7 @@ export const LauncherNewsFeed: React.FC = () => {
                   >
                     {mod.title}
                   </span>
-                </div>
+                </button>
               ))}
             </div>
 

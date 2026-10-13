@@ -3,17 +3,17 @@
    ═══════════════════════════════════════ */
 :root {
   /* Color palette */
-  --background: #06070B;
-  --background-alt: #0B2C29;
-  --primary: #0F766E;
+  --background: #06070b;
+  --background-alt: #0b2c29;
+  --primary: #0f766e;
   --primary-glow: rgba(15, 118, 110, 0.3);
-  --accent: #2DD4BF;
+  --accent: #2dd4bf;
   --accent-glow: rgba(45, 212, 191, 0.2);
-  --text: #F3F4F6;
+  --text: #f3f4f6;
   --text-muted: rgba(243, 244, 246, 0.6);
-  --success: #10B981;
-  --warning: #F59E0B;
-  --danger: #EF4444;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
 
   /* Surfaces & borders */
   --surface-low: rgba(15, 23, 42, 0.35);
@@ -102,7 +102,6 @@ body {
   -webkit-app-region: no-drag;
 }
 
-
 /* Minimalist Dark Card Styles (Modrinth / Linear Inspired) */
 .glass-card {
   background: rgba(13, 16, 23, 0.85);
@@ -148,7 +147,7 @@ body {
 
 .btn-primary {
   background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
-  color: #FFFFFF;
+  color: #ffffff;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
   border: 1px solid rgba(255, 255, 255, 0.15);
 }
@@ -161,26 +160,26 @@ body {
 
 .btn-secondary {
   background-color: rgba(255, 255, 255, 0.04);
-  color: #E2E8F0;
+  color: #e2e8f0;
   border: 1px solid rgba(255, 255, 255, 0.09);
 }
 
 .btn-secondary:hover {
   background-color: rgba(255, 255, 255, 0.08);
   border-color: rgba(255, 255, 255, 0.18);
-  color: #FFFFFF;
+  color: #ffffff;
 }
 
 .btn-danger {
   background: rgba(239, 68, 68, 0.15);
-  color: #FCA5A5;
+  color: #fca5a5;
   border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
 .btn-danger:hover {
   background: rgba(239, 68, 68, 0.25);
   border-color: rgba(239, 68, 68, 0.5);
-  color: #FFFFFF;
+  color: #ffffff;
 }
 
 .btn-ghost {
@@ -190,7 +189,7 @@ body {
 
 .btn-ghost:hover {
   background-color: var(--surface-ultra-low);
-  color: #FFFFFF;
+  color: #ffffff;
   border-color: var(--border-low);
 }
 
@@ -245,10 +244,10 @@ body {
 }
 
 /* ── Form Elements ── */
-input[type="text"],
-input[type="email"],
-input[type="password"],
-input[type="number"],
+input[type='text'],
+input[type='email'],
+input[type='password'],
+input[type='number'],
 select,
 textarea {
   font-family: var(--font-family);
@@ -256,18 +255,21 @@ textarea {
   border-radius: 10px;
   border: 1.5px solid var(--border-low);
   background-color: rgba(0, 0, 0, 0.25);
-  color: #FFFFFF;
+  color: #ffffff;
   font-size: 14px;
   outline: none;
-  transition: border-color 0.25s ease, box-shadow 0.25s ease, background-color 0.25s ease;
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    background-color 0.25s ease;
   width: 100%;
   box-sizing: border-box;
 }
 
-input[type="text"]:focus,
-input[type="email"]:focus,
-input[type="password"]:focus,
-input[type="number"]:focus,
+input[type='text']:focus,
+input[type='email']:focus,
+input[type='password']:focus,
+input[type='number']:focus,
 select:focus,
 textarea:focus {
   border-color: rgba(45, 212, 191, 0.5);
@@ -275,10 +277,10 @@ textarea:focus {
   background-color: rgba(0, 0, 0, 0.35);
 }
 
-input[type="text"]::placeholder,
-input[type="email"]::placeholder,
-input[type="password"]::placeholder,
-input[type="number"]::placeholder {
+input[type='text']::placeholder,
+input[type='email']::placeholder,
+input[type='password']::placeholder,
+input[type='number']::placeholder {
   color: rgba(255, 255, 255, 0.25);
 }
 
@@ -294,12 +296,12 @@ select {
 }
 
 select option {
-  background-color: #0B0D14;
-  color: #FFFFFF;
+  background-color: #0b0d14;
+  color: #ffffff;
 }
 
 /* Range Slider */
-input[type="range"] {
+input[type='range'] {
   appearance: none;
   -webkit-appearance: none;
   width: 100%;
@@ -310,7 +312,7 @@ input[type="range"] {
   transition: background 0.2s ease;
 }
 
-input[type="range"]::-webkit-slider-thumb {
+input[type='range']::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
   width: 18px;
@@ -318,17 +320,19 @@ input[type="range"]::-webkit-slider-thumb {
   border-radius: 50%;
   background: var(--accent);
   cursor: pointer;
-  box-shadow: 0 0 10px var(--accent-glow), 0 2px 6px rgba(0,0,0,0.4);
+  box-shadow:
+    0 0 10px var(--accent-glow),
+    0 2px 6px rgba(0, 0, 0, 0.4);
   border: 2px solid rgba(255, 255, 255, 0.2);
   transition: transform 0.15s ease;
 }
 
-input[type="range"]::-webkit-slider-thumb:hover {
+input[type='range']::-webkit-slider-thumb:hover {
   transform: scale(1.15);
 }
 
 /* Checkbox */
-input[type="checkbox"] {
+input[type='checkbox'] {
   accent-color: var(--accent);
   width: 16px;
   height: 16px;
@@ -351,8 +355,12 @@ input[type="checkbox"] {
 
 /* ── Animations ── */
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slideUp {
@@ -371,16 +379,20 @@ input[type="checkbox"] {
 }
 
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 .skeleton-shimmer {
   background: linear-gradient(
     90deg,
-    rgba(255,255,255,0.03) 25%,
-    rgba(255,255,255,0.06) 50%,
-    rgba(255,255,255,0.03) 75%
+    rgba(255, 255, 255, 0.03) 25%,
+    rgba(255, 255, 255, 0.06) 50%,
+    rgba(255, 255, 255, 0.03) 75%
   );
   background-size: 200% 100%;
   animation: shimmer 1.8s ease-in-out infinite;
@@ -405,12 +417,12 @@ input[type="checkbox"] {
 }
 
 .tab-btn:hover {
-  color: #FFFFFF;
+  color: #ffffff;
   background-color: rgba(255, 255, 255, 0.04);
 }
 
 .tab-btn.active {
-  color: #FFFFFF;
+  color: #ffffff;
   background-color: rgba(255, 255, 255, 0.08);
   border-color: rgba(255, 255, 255, 0.12);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
@@ -449,7 +461,7 @@ input[type="checkbox"] {
 
 .chip.active-white {
   background-color: rgba(255, 255, 255, 0.08);
-  color: #FFFFFF;
+  color: #ffffff;
   border-color: rgba(255, 255, 255, 0.2);
   font-weight: 700;
 }
@@ -486,8 +498,15 @@ input[type="checkbox"] {
 
 /* Pulso del indicador de servidor en línea */
 @keyframes pingRing {
-  0% { transform: scale(1); opacity: 0.7; }
-  80%, 100% { transform: scale(2.6); opacity: 0; }
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  80%,
+  100% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
 }
 
 .pulse-dot {
@@ -508,8 +527,13 @@ input[type="checkbox"] {
 
 /* Flotación suave para la skin del jugador */
 @keyframes floatY {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-7px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-7px);
+  }
 }
 
 .float-anim {
@@ -518,16 +542,18 @@ input[type="checkbox"] {
 
 /* Tarjetas de noticias v2 */
 .news-card-v2 {
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
-              border-color 0.3s ease,
-              box-shadow 0.3s ease;
+  transition:
+    transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 .news-card-v2:hover {
   transform: translateY(-3px);
   border-color: rgba(45, 212, 191, 0.28) !important;
-  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45),
-              0 0 20px rgba(45, 212, 191, 0.06);
+  box-shadow:
+    0 14px 34px rgba(0, 0, 0, 0.45),
+    0 0 20px rgba(45, 212, 191, 0.06);
 }
 
 /* Tooltip "¡IP copiada!" */
@@ -535,8 +561,9 @@ input[type="checkbox"] {
   opacity: 0;
   transform: translateY(4px);
   pointer-events: none;
-  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transition:
+    opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .copied-tip.visible {
@@ -556,10 +583,10 @@ input[type="checkbox"] {
   left: 2px;
   width: 12px;
   height: 12px;
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   border-radius: 50%;
   transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 .mod-toggle-switch:checked::after {
   transform: translateX(14px);
@@ -590,12 +617,17 @@ input[type="checkbox"] {
 }
 
 @keyframes octopusGlowPulse {
-  0%, 100% {
-    box-shadow: 0 0 12px rgba(45, 212, 191, 0.15), inset 0 0 10px rgba(45, 212, 191, 0.1);
+  0%,
+  100% {
+    box-shadow:
+      0 0 12px rgba(45, 212, 191, 0.15),
+      inset 0 0 10px rgba(45, 212, 191, 0.1);
     border-color: rgba(45, 212, 191, 0.3);
   }
   50% {
-    box-shadow: 0 0 24px rgba(45, 212, 191, 0.35), inset 0 0 16px rgba(45, 212, 191, 0.2);
+    box-shadow:
+      0 0 24px rgba(45, 212, 191, 0.35),
+      inset 0 0 16px rgba(45, 212, 191, 0.2);
     border-color: rgba(45, 212, 191, 0.6);
   }
 }
@@ -607,8 +639,10 @@ input[type="checkbox"] {
 
 .octopus-logo-box:hover {
   transform: scale(1.15) rotate(6deg) !important;
-  box-shadow: 0 0 30px rgba(45, 212, 191, 0.6), inset 0 0 20px rgba(45, 212, 191, 0.3) !important;
-  border-color: #2DD4BF !important;
+  box-shadow:
+    0 0 30px rgba(45, 212, 191, 0.6),
+    inset 0 0 20px rgba(45, 212, 191, 0.3) !important;
+  border-color: #2dd4bf !important;
 }
 
 .octopus-logo-img {
@@ -621,31 +655,3 @@ input[type="checkbox"] {
   transform: scale(1.1) rotate(-3deg);
   filter: drop-shadow(0 0 20px rgba(45, 212, 191, 0.8)) !important;
 }
-
-/* ── Minimalist Discreet Scrollbars (Noctra & Modern OS Style) ── */
-::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
-  border-radius: 10px;
-  border: none;
-  transition: background 150ms ease;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.28);
-}
-
-::-webkit-scrollbar-corner {
-  background: transparent;
-}
-
-
-

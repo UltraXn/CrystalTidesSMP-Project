@@ -81,11 +81,16 @@ describe('LauncherFriendsPanel', () => {
         onSelectFriendChat={vi.fn()}
       />,
     );
+    fireEvent.click(screen.getByText('Requests'));
     expect(screen.getByText('David')).toBeInTheDocument();
     expect(screen.getByText('Solicitudes Pendientes (1)')).toBeInTheDocument();
   });
 
   it('renders the add friend modal and handles form submission', async () => {
+    (sendFriendRequest as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+      success: true,
+      message: 'Solicitud enviada',
+    });
     const onSearchFriendChange = vi.fn();
     render(
       <LauncherFriendsPanel
@@ -115,6 +120,7 @@ describe('LauncherFriendsPanel', () => {
         onSelectFriendChat={vi.fn()}
       />,
     );
+    fireEvent.click(screen.getByText('Requests'));
     fireEvent.click(screen.getByTitle('Aceptar'));
     expect(acceptFriendRequest).toHaveBeenCalledWith('1');
   });
@@ -130,11 +136,13 @@ describe('LauncherFriendsPanel', () => {
         onSelectFriendChat={vi.fn()}
       />,
     );
+    fireEvent.click(screen.getByText('Requests'));
     fireEvent.click(screen.getByTitle('Rechazar'));
     expect(rejectFriendRequest).toHaveBeenCalledWith('1');
   });
 
   it('handles remove friend', () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
     render(
       <LauncherFriendsPanel
         friendsOnline={mockFriendsOnline}
@@ -199,6 +207,7 @@ describe('LauncherFriendsPanel', () => {
         onSelectFriendChat={vi.fn()}
       />,
     );
+    fireEvent.click(screen.getByText('Requests'));
     expect(screen.getByText('No tienes solicitudes de amistad pendientes.')).toBeInTheDocument();
   });
 

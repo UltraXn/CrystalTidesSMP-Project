@@ -48,20 +48,11 @@ describe('LauncherCrashModal', () => {
 
   it('should handle null homeDir', async () => {
     mockInvoke.mockResolvedValueOnce(null);
-    mockInvoke.mockResolvedValueOnce({
-      exit_code: 1,
-      primary_cause: 'Test Cause',
-      detailed_reason: 'Test Reason',
-      offending_mod: 'Test Mod',
-      recommended_action: 'Test Action',
-      raw_snippet: 'Test Snippet',
-      timestamp: new Date().toISOString(),
-    });
 
     render(<LauncherCrashModal isOpen={true} onClose={mockOnClose} />);
-    await waitFor(() => expect(mockInvoke).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(mockInvoke).toHaveBeenCalledTimes(1));
     expect(mockInvoke).toHaveBeenCalledWith('get_home_dir');
-    expect(mockInvoke).toHaveBeenCalledWith('analyze_game_crash', { gameDir: '', exitCode: 255 });
+    expect(mockInvoke).not.toHaveBeenCalledWith('analyze_game_crash', expect.anything());
   });
 
   it('should handle error in fetchDiagnostic', async () => {

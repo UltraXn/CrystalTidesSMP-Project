@@ -8,13 +8,7 @@ import {
   Globe,
   Palette,
   Settings,
-  AlertTriangle,
   Cloud,
-  Monitor,
-  Cpu,
-  Code,
-  RotateCcw,
-  Eye,
   Check,
   X,
   Plus,
@@ -32,6 +26,7 @@ import {
   InstalledMod,
 } from '../services/modManagerService';
 import { getSettings, saveSettings } from '../services/settingsService';
+import { AdvancedSettingsTab } from './AdvancedSettingsTab';
 
 export type ConfigTab = 'loader' | 'mods' | 'shaders' | 'worlds' | 'resources' | 'advanced';
 
@@ -161,7 +156,7 @@ const formatBytes = (bytes: number): string => {
 
 const extractModName = (filename: string): { name: string; version: string } => {
   const clean = filename.replace(/\.jar(\.disabled)?$/, '');
-  const parts = clean.split(/[-_v](?=[0-9])/);
+  const parts = clean.split(/[-_v](?=\d)/);
   if (parts.length > 1) {
     return { name: parts[0].replace(/[-_]/g, ' '), version: parts.slice(1).join('.') };
   }
@@ -261,7 +256,7 @@ export const LauncherVersionConfigModal: React.FC<LauncherVersionConfigModalProp
               return {
                 id: m.filename,
                 filename: m.filename,
-                name: m.title || name,
+                name: m.title ?? name,
                 author: 'Mod Author',
                 version: `v${version}`,
                 fileSize: formatBytes(m.sizeBytes),
@@ -703,685 +698,35 @@ export const LauncherVersionConfigModal: React.FC<LauncherVersionConfigModalProp
               gap: 14,
             }}
           >
-            {activeTab === 'advanced' ? (
-              /* ── ADVANCED SETTINGS TAB (Exact Noctra Style) ── */
-              <>
-                {/* 1. Header Banner */}
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    paddingBottom: 4,
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div
-                      style={{
-                        width: 38,
-                        height: 38,
-                        borderRadius: 10,
-                        backgroundColor: 'rgba(255, 255, 255, 0.04)',
-                        border: '1px solid rgba(255, 255, 255, 0.08)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: 'rgba(255, 255, 255, 0.8)',
-                      }}
-                    >
-                      <MorphIcon
-                        icon={Settings}
-                        size={18}
-                        color="rgba(255, 255, 255, 0.8)"
-                        strokeWidth={2}
-                      />
-                    </div>
-
-                    <div>
-                      <div style={{ fontSize: 16, fontWeight: 900, color: '#FFFFFF' }}>
-                        Advanced Settings
-                      </div>
-                      <div
-                        style={{
-                          fontSize: 11,
-                          color: '#F87171',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 6,
-                          fontWeight: 600,
-                        }}
-                      >
-                        <MorphIcon
-                          icon={AlertTriangle}
-                          size={13}
-                          color="#F87171"
-                          strokeWidth={2.2}
-                        />
-                        <span>
-                          Proceed with caution. Modifying these settings may cause game instability.
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 8,
-                      fontSize: 10.5,
-                      color: 'rgba(255, 255, 255, 0.4)',
-                      textAlign: 'right',
-                    }}
-                  >
-                    <div>
-                      <div>All settings synced to Crystal Cloud</div>
-                      <div style={{ color: 'rgba(255, 255, 255, 0.25)' }}>
-                        Last synced: 2 hours ago
-                      </div>
-                    </div>
-                    <MorphIcon
-                      icon={Cloud}
-                      size={16}
-                      color="rgba(255, 255, 255, 0.5)"
-                      strokeWidth={2}
-                    />
-                  </div>
-                </div>
-
-                {/* 2. Game Resolution Card */}
-                <div
-                  style={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.02)',
-                    border: '1px solid rgba(255, 255, 255, 0.06)',
-                    borderRadius: 14,
-                    padding: '16px 20px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 14,
-                  }}
-                >
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <div
-                        style={{
-                          width: 32,
-                          height: 32,
-                          borderRadius: 8,
-                          backgroundColor: 'rgba(255, 255, 255, 0.04)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          color: 'rgba(255, 255, 255, 0.7)',
-                        }}
-                      >
-                        <MorphIcon
-                          icon={Monitor}
-                          size={16}
-                          color="rgba(255, 255, 255, 0.7)"
-                          strokeWidth={2}
-                        />
-                      </div>
-
-                      <div>
-                        <div style={{ fontSize: 13.5, fontWeight: 800, color: '#FFFFFF' }}>
-                          Game Resolution
-                        </div>
-                        <div style={{ fontSize: 11, color: 'rgba(255, 255, 255, 0.4)' }}>
-                          Define custom launch resolution and fullscreen preferences.
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Enabled Toggle */}
-                    <div
-                      onClick={() => setResEnabled(!resEnabled)}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 6,
-                        cursor: 'pointer',
-                        fontSize: 11.5,
-                        fontWeight: 800,
-                        color: resEnabled ? '#10B981' : 'rgba(255, 255, 255, 0.4)',
-                      }}
-                    >
-                      <span>Enabled</span>
-                      <div
-                        style={{
-                          width: 16,
-                          height: 16,
-                          borderRadius: 4,
-                          backgroundColor: resEnabled ? '#10B981' : 'rgba(255, 255, 255, 0.05)',
-                          border: resEnabled
-                            ? '1.5px solid #10B981'
-                            : '1.5px solid rgba(255, 255, 255, 0.2)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                      >
-                        {resEnabled && (
-                          <MorphIcon icon={Check} size={11} color="#FFFFFF" strokeWidth={3} />
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Resolution Input Row */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
-                    {/* W / H inputs */}
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 6,
-                        backgroundColor: 'rgba(0, 0, 0, 0.4)',
-                        border: '1px solid rgba(255, 255, 255, 0.08)',
-                        borderRadius: 8,
-                        padding: '4px 8px',
-                      }}
-                    >
-                      <span
-                        style={{ fontSize: 11, fontWeight: 800, color: 'rgba(255, 255, 255, 0.4)' }}
-                      >
-                        W
-                      </span>
-                      <input
-                        type="number"
-                        value={resWidth}
-                        onChange={(e) => {
-                          const val = Number(e.target.value);
-                          setResWidth(val);
-                          handleSaveAdvancedSettings(undefined, val, undefined, undefined);
-                        }}
-                        style={{
-                          width: 54,
-                          background: 'none',
-                          border: 'none',
-                          color: '#FFFFFF',
-                          fontSize: 12,
-                          fontWeight: 800,
-                          outline: 'none',
-                          textAlign: 'center',
-                        }}
-                      />
-                      <span
-                        style={{ fontSize: 11, fontWeight: 800, color: 'rgba(255, 255, 255, 0.4)' }}
-                      >
-                        H
-                      </span>
-                      <input
-                        type="number"
-                        value={resHeight}
-                        onChange={(e) => {
-                          const val = Number(e.target.value);
-                          setResHeight(val);
-                          handleSaveAdvancedSettings(undefined, undefined, val, undefined);
-                        }}
-                        style={{
-                          width: 54,
-                          background: 'none',
-                          border: 'none',
-                          color: '#FFFFFF',
-                          fontSize: 12,
-                          fontWeight: 800,
-                          outline: 'none',
-                          textAlign: 'center',
-                        }}
-                      />
-                    </div>
-
-                    {/* Checkboxes */}
-                    <label
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 6,
-                        fontSize: 11,
-                        color: 'rgba(255, 255, 255, 0.7)',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={fullscreen}
-                        onChange={(e) => {
-                          setFullscreen(e.target.checked);
-                          handleSaveAdvancedSettings(
-                            undefined,
-                            undefined,
-                            undefined,
-                            e.target.checked,
-                          );
-                        }}
-                        style={{ accentColor: '#10B981' }}
-                      />
-                      Fullscreen mode:
-                    </label>
-
-                    <label
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 6,
-                        fontSize: 11,
-                        color: 'rgba(255, 255, 255, 0.7)',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={borderless}
-                        onChange={(e) => setBorderless(e.target.checked)}
-                        style={{ accentColor: '#10B981' }}
-                      />
-                      Borderless Window:
-                    </label>
-
-                    <label
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 6,
-                        fontSize: 11,
-                        color: 'rgba(255, 255, 255, 0.7)',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={lockAspect}
-                        onChange={(e) => setLockAspect(e.target.checked)}
-                        style={{ accentColor: '#10B981' }}
-                      />
-                      Lock Aspect Ratio:
-                    </label>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setResWidth(1920);
-                        setResHeight(1080);
-                        handleSaveAdvancedSettings(undefined, 1920, 1080, undefined);
-                      }}
-                      title="Reset Resolution"
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: 'rgba(255, 255, 255, 0.4)',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        padding: 2,
-                      }}
-                    >
-                      <MorphIcon
-                        icon={RotateCcw}
-                        size={14}
-                        color="currentColor"
-                        strokeWidth={2.2}
-                      />
-                    </button>
-                  </div>
-
-                  {/* Resolution Presets & Options */}
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 10,
-                      flexWrap: 'wrap',
-                      paddingTop: 4,
-                    }}
-                  >
-                    {[
-                      { label: '1080p', w: 1920, h: 1080 },
-                      { label: '1440p', w: 2560, h: 1440 },
-                      { label: '4K', w: 3840, h: 2160 },
-                    ].map((p) => {
-                      const isSel = resWidth === p.w && resHeight === p.h;
-                      return (
-                        <button
-                          key={p.label}
-                          type="button"
-                          onClick={() => {
-                            setResWidth(p.w);
-                            setResHeight(p.h);
-                            handleSaveAdvancedSettings(undefined, p.w, p.h, undefined);
-                          }}
-                          style={{
-                            padding: '4px 10px',
-                            borderRadius: 6,
-                            backgroundColor: isSel
-                              ? 'rgba(16, 185, 129, 0.15)'
-                              : 'rgba(255, 255, 255, 0.04)',
-                            border: isSel
-                              ? '1px solid #10B981'
-                              : '1px solid rgba(255, 255, 255, 0.08)',
-                            color: isSel ? '#10B981' : 'rgba(255, 255, 255, 0.7)',
-                            fontSize: 10.5,
-                            fontWeight: 800,
-                            cursor: 'pointer',
-                          }}
-                        >
-                          {p.label}
-                        </button>
-                      );
-                    })}
-
-                    <label
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 6,
-                        fontSize: 11,
-                        color: 'rgba(255, 255, 255, 0.6)',
-                        cursor: 'pointer',
-                        marginLeft: 6,
-                      }}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={matchNative}
-                        onChange={(e) => setMatchNative(e.target.checked)}
-                        style={{ accentColor: '#10B981' }}
-                      />
-                      Match Native Display
-                    </label>
-
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 6,
-                        fontSize: 11,
-                        color: 'rgba(255, 255, 255, 0.4)',
-                        cursor: 'pointer',
-                        marginLeft: 6,
-                      }}
-                    >
-                      <MorphIcon icon={Eye} size={14} color="currentColor" strokeWidth={2} />
-                      <span>Visualize on screen</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 3. Allocated Memory (RAM) Card */}
-                <div
-                  style={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.02)',
-                    border: '1px solid rgba(255, 255, 255, 0.06)',
-                    borderRadius: 14,
-                    padding: '16px 20px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 14,
-                  }}
-                >
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <div
-                        style={{
-                          width: 32,
-                          height: 32,
-                          borderRadius: 8,
-                          backgroundColor: 'rgba(255, 255, 255, 0.04)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          color: 'rgba(255, 255, 255, 0.7)',
-                        }}
-                      >
-                        <MorphIcon
-                          icon={Cpu}
-                          size={16}
-                          color="rgba(255, 255, 255, 0.7)"
-                          strokeWidth={2}
-                        />
-                      </div>
-
-                      <div>
-                        <div style={{ fontSize: 13.5, fontWeight: 800, color: '#FFFFFF' }}>
-                          Allocated Memory
-                        </div>
-                        <div style={{ fontSize: 11, color: 'rgba(255, 255, 255, 0.4)' }}>
-                          Overrides global RAM settings for this specific profile.
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Enabled Toggle */}
-                    <div
-                      onClick={() => setRamEnabled(!ramEnabled)}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 6,
-                        cursor: 'pointer',
-                        fontSize: 11.5,
-                        fontWeight: 800,
-                        color: ramEnabled ? '#10B981' : 'rgba(255, 255, 255, 0.4)',
-                      }}
-                    >
-                      <span>Enabled</span>
-                      <div
-                        style={{
-                          width: 16,
-                          height: 16,
-                          borderRadius: 4,
-                          backgroundColor: ramEnabled ? '#10B981' : 'rgba(255, 255, 255, 0.05)',
-                          border: ramEnabled
-                            ? '1.5px solid #10B981'
-                            : '1.5px solid rgba(255, 255, 255, 0.2)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                      >
-                        {ramEnabled && (
-                          <MorphIcon icon={Check} size={11} color="#FFFFFF" strokeWidth={3} />
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* RAM Slider Row */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                    <div
-                      style={{
-                        padding: '5px 12px',
-                        borderRadius: 6,
-                        backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                        border: '1px solid rgba(255, 255, 255, 0.1)',
-                        fontSize: 11.5,
-                        fontWeight: 800,
-                        color: '#FFFFFF',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {allocatedRam} GB / {maxSystemRam} GB
-                    </div>
-
-                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                      <input
-                        type="range"
-                        min={1}
-                        max={maxSystemRam}
-                        value={allocatedRam}
-                        onChange={(e) => {
-                          const val = Number(e.target.value);
-                          setAllocatedRam(val);
-                          handleSaveAdvancedSettings(val, undefined, undefined, undefined);
-                        }}
-                        style={{
-                          width: '100%',
-                          accentColor: '#E2E8F0',
-                          cursor: 'pointer',
-                        }}
-                      />
-                      <div
-                        style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          fontSize: 9.5,
-                          color: 'rgba(255, 255, 255, 0.35)',
-                          fontWeight: 600,
-                        }}
-                      >
-                        <span>1 GB</span>
-                        <span>8 GB</span>
-                        <span>16 GB</span>
-                        <span>24 GB</span>
-                        <span>32 GB</span>
-                      </div>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setAllocatedRam(6);
-                        handleSaveAdvancedSettings(6, undefined, undefined, undefined);
-                      }}
-                      title="Reset RAM to 6GB"
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: 'rgba(255, 255, 255, 0.4)',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        padding: 2,
-                      }}
-                    >
-                      <MorphIcon
-                        icon={RotateCcw}
-                        size={14}
-                        color="currentColor"
-                        strokeWidth={2.2}
-                      />
-                    </button>
-                  </div>
-                </div>
-
-                {/* 4. JVM Arguments Card */}
-                <div
-                  style={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.02)',
-                    border: '1px solid rgba(255, 255, 255, 0.06)',
-                    borderRadius: 14,
-                    padding: '16px 20px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 12,
-                  }}
-                >
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <div
-                        style={{
-                          width: 32,
-                          height: 32,
-                          borderRadius: 8,
-                          backgroundColor: 'rgba(255, 255, 255, 0.04)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          color: 'rgba(255, 255, 255, 0.7)',
-                        }}
-                      >
-                        <MorphIcon
-                          icon={Code}
-                          size={16}
-                          color="rgba(255, 255, 255, 0.7)"
-                          strokeWidth={2}
-                        />
-                      </div>
-
-                      <div>
-                        <div style={{ fontSize: 13.5, fontWeight: 800, color: '#FFFFFF' }}>
-                          JVM Arguments
-                        </div>
-                        <div style={{ fontSize: 11, color: 'rgba(255, 255, 255, 0.4)' }}>
-                          Custom Java execution flags for advanced performance tweaking.
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Enabled Toggle */}
-                    <div
-                      onClick={() => setJvmEnabled(!jvmEnabled)}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 6,
-                        cursor: 'pointer',
-                        fontSize: 11.5,
-                        fontWeight: 800,
-                        color: jvmEnabled ? '#10B981' : 'rgba(255, 255, 255, 0.4)',
-                      }}
-                    >
-                      <span>Enabled</span>
-                      <div
-                        style={{
-                          width: 16,
-                          height: 16,
-                          borderRadius: 4,
-                          backgroundColor: jvmEnabled ? '#10B981' : 'rgba(255, 255, 255, 0.05)',
-                          border: jvmEnabled
-                            ? '1.5px solid #10B981'
-                            : '1.5px solid rgba(255, 255, 255, 0.2)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                      >
-                        {jvmEnabled && (
-                          <MorphIcon icon={Check} size={11} color="#FFFFFF" strokeWidth={3} />
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {jvmEnabled && (
-                    <input
-                      type="text"
-                      value={jvmArgs}
-                      onChange={(e) => setJvmArgs(e.target.value)}
-                      placeholder="-XX:+UseG1GC..."
-                      style={{
-                        width: '100%',
-                        backgroundColor: 'rgba(0, 0, 0, 0.4)',
-                        border: '1px solid rgba(255, 255, 255, 0.1)',
-                        borderRadius: 8,
-                        padding: '8px 12px',
-                        color: '#2DD4BF',
-                        fontFamily: 'monospace',
-                        fontSize: 11,
-                        outline: 'none',
-                        boxSizing: 'border-box',
-                      }}
-                    />
-                  )}
-                </div>
-              </>
-            ) : activeTab === 'mods' ? (
+            {activeTab === 'advanced' && (
+              <AdvancedSettingsTab
+                resEnabled={resEnabled}
+                setResEnabled={setResEnabled}
+                resWidth={resWidth}
+                setResWidth={setResWidth}
+                resHeight={resHeight}
+                setResHeight={setResHeight}
+                fullscreen={fullscreen}
+                setFullscreen={setFullscreen}
+                borderless={borderless}
+                setBorderless={setBorderless}
+                lockAspect={lockAspect}
+                setLockAspect={setLockAspect}
+                matchNative={matchNative}
+                setMatchNative={setMatchNative}
+                ramEnabled={ramEnabled}
+                setRamEnabled={setRamEnabled}
+                allocatedRam={allocatedRam}
+                setAllocatedRam={setAllocatedRam}
+                maxSystemRam={maxSystemRam}
+                jvmEnabled={jvmEnabled}
+                setJvmEnabled={setJvmEnabled}
+                jvmArgs={jvmArgs}
+                setJvmArgs={setJvmArgs}
+                onSaveAdvancedSettings={handleSaveAdvancedSettings}
+              />
+            )}
+            {activeTab === 'mods' && (
               /* ── MODS TAB (Exact Noctra Style) ── */
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {/* 3rd Party Mods Box */}
@@ -1396,14 +741,6 @@ export const LauncherVersionConfigModal: React.FC<LauncherVersionConfigModalProp
                     justifyContent: 'space-between',
                     cursor: 'pointer',
                     transition: 'all 140ms ease',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.35)';
-                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.035)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.14)';
-                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.02)';
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
@@ -1476,14 +813,6 @@ export const LauncherVersionConfigModal: React.FC<LauncherVersionConfigModalProp
                         padding: '10px 16px',
                         transition: 'all 140ms ease',
                       }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.035)';
-                        e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.015)';
-                        e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.05)';
-                      }}
                     >
                       {/* Left: Mod Icon + Name + Author */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
@@ -1528,9 +857,14 @@ export const LauncherVersionConfigModal: React.FC<LauncherVersionConfigModalProp
                         </span>
 
                         {/* Enabled Checkbox */}
-                        <div
+                        <button
+                          type="button"
                           onClick={() => handleToggleMod(mod)}
                           style={{
+                            background: 'none',
+                            border: 'none',
+                            padding: 0,
+                            font: 'inherit',
                             display: 'flex',
                             alignItems: 'center',
                             gap: 8,
@@ -1561,7 +895,7 @@ export const LauncherVersionConfigModal: React.FC<LauncherVersionConfigModalProp
                               <MorphIcon icon={Check} size={11} color="#FFFFFF" strokeWidth={3} />
                             )}
                           </div>
-                        </div>
+                        </button>
 
                         {/* Settings Button */}
                         <button
@@ -1610,7 +944,8 @@ export const LauncherVersionConfigModal: React.FC<LauncherVersionConfigModalProp
                   ))}
                 </div>
               </div>
-            ) : (
+            )}
+            {activeTab !== 'advanced' && activeTab !== 'mods' && (
               /* ── OTHER TABS (Loader, Shaders, Worlds, Resources) ── */
               <div
                 style={{

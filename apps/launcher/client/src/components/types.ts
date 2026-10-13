@@ -1,33 +1,34 @@
 export type NavSection =
-  | "home"
-  | "profiles"
-  | "locker"
-  | "notifications"
-  | "chat"
-  | "versions"
-  | "gallery"
-  | "servers"
-  | "mods"
-  | "store"
-  | "rewards"
-  | "stats"
-  | "settings";
+  | 'home'
+  | 'profiles'
+  | 'locker'
+  | 'notifications'
+  | 'chat'
+  | 'versions'
+  | 'gallery'
+  | 'servers'
+  | 'mods'
+  | 'store'
+  | 'rewards'
+  | 'stats'
+  | 'settings';
 
-export type WallpaperMode = "day" | "night";
+export type WallpaperMode = 'day' | 'night';
 
-export type ConnectionStatus = "online" | "offline" | "reconnecting";
+export type ConnectionStatus = 'online' | 'offline' | 'reconnecting';
 
 export interface FriendEntry {
   name: string;
   avatar: string;
   status: string;
-  statusType: "online" | "launcher" | "menu" | "idle" | "offline";
+  statusType: 'online' | 'launcher' | 'menu' | 'idle' | 'offline';
   activityServer?: string;
   hasUnreadMessage?: boolean;
 }
 
 export interface ChatMessage {
-  sender: "me" | "them";
+  id?: string;
+  sender: 'me' | 'them';
   text: string;
   time: string;
 }

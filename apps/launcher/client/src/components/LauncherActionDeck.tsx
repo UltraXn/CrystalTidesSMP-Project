@@ -147,7 +147,7 @@ const getLoaderIcon = (loaderType?: string) => {
 };
 
 const formatLoaderName = (type?: string) => {
-  const t = (type || 'vanilla').toLowerCase();
+  const t = (type ?? 'vanilla').toLowerCase();
   if (t === 'neoforge') return 'NeoForge';
   if (t === 'fabric') return 'Fabric';
   if (t === 'forge') return 'Forge';
@@ -487,7 +487,7 @@ const ActionDeckContent: React.FC<ActionDeckContentProps> = ({
         <span data-testid="loader-icon" style={{ display: 'inline-flex', alignItems: 'center' }}>
           {getLoaderIcon(activeProfile?.loaderType)}
         </span>
-        <span>{activeProfile?.mcVersion || '1.21.1'}</span>
+        <span>{activeProfile?.mcVersion ?? '1.21.1'}</span>
         {isOffline && <span style={{ opacity: 0.7, fontSize: 11 }}>• Offline</span>}
       </div>
 
@@ -547,12 +547,7 @@ const ActionDeckContent: React.FC<ActionDeckContentProps> = ({
               color: '#FFFFFF',
             }}
           >
-            <MorphIcon
-              icon={isPaused ? Play : Pause}
-              size={11}
-              color="#FFFFFF"
-              strokeWidth={2.5}
-            />
+            <MorphIcon icon={isPaused ? Play : Pause} size={11} color="#FFFFFF" strokeWidth={2.5} />
           </button>
         </div>
       )}

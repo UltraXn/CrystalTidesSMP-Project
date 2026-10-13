@@ -30,14 +30,14 @@ describe('LauncherRelayChatView', () => {
     expect(screen.getByText('anuncios')).toBeInTheDocument();
     expect(screen.getByText('clanes-squads')).toBeInTheDocument();
     expect(screen.getByText('soporte-staff')).toBeInTheDocument();
-    expect(screen.getByText('¡Bienvenidos al Relay de CrystalTides!')).toBeInTheDocument();
+    expect(screen.getByText(/¡Bienvenidos al Relay de CrystalTides!/i)).toBeInTheDocument();
   });
 
   it('handles sending a message', async () => {
     render(<LauncherRelayChatView />);
     const input = screen.getByPlaceholderText('Enviar mensaje a #global...');
     fireEvent.change(input, { target: { value: 'Hello World' } });
-    fireEvent.submit(screen.getByText('Enviar'));
+    fireEvent.submit(input.closest('form')!);
 
     await waitFor(() => {
       expect(screen.getByText('Hello World')).toBeInTheDocument();
@@ -50,10 +50,10 @@ describe('LauncherRelayChatView', () => {
     fireEvent.click(screen.getByText('Añadir'));
     const input = screen.getByPlaceholderText('Nickname de amigo...');
     fireEvent.change(input, { target: { value: 'newFriend' } });
-    fireEvent.submit(screen.getByText('Iniciar Chat'));
+    fireEvent.submit(input.closest('form')!);
 
     await waitFor(() => {
-      expect(screen.getByText('newFriend')).toBeInTheDocument();
+      expect(screen.getAllByText('newFriend').length).toBeGreaterThanOrEqual(1);
     });
   });
 
@@ -84,11 +84,11 @@ describe('LauncherRelayChatView', () => {
     fireEvent.click(screen.getByText('Añadir'));
     const input = screen.getByPlaceholderText('Nickname de amigo...');
     fireEvent.change(input, { target: { value: 'newFriend' } });
-    fireEvent.submit(screen.getByText('Iniciar Chat'));
+    fireEvent.submit(input.closest('form')!);
 
     await waitFor(() => {
       expect(screen.getByText('Mensajes Directos')).toBeInTheDocument();
-      expect(screen.getByText('newFriend')).toBeInTheDocument();
+      expect(screen.getAllByText('newFriend').length).toBeGreaterThanOrEqual(1);
     });
   });
 
@@ -115,30 +115,40 @@ describe('LauncherRelayChatView', () => {
     fireEvent.click(screen.getByText('Añadir'));
     const input = screen.getByPlaceholderText('Nickname de amigo...');
     fireEvent.change(input, { target: { value: 'newFriend' } });
-    fireEvent.submit(screen.getByText('Iniciar Chat'));
+    fireEvent.submit(input.closest('form')!);
 
     await waitFor(() => {
-      fireEvent.click(screen.getByText('newFriend'));
-      expect(screen.getByText('newFriend')).toBeInTheDocument();
-      expect(screen.getByText('¡Hola testUser!')).toBeInTheDocument();
+      expect(screen.getAllByText('newFriend').length).toBeGreaterThanOrEqual(1);
+    });
+
+    const friendItem = screen.getAllByText('newFriend')[0];
+    fireEvent.click(friendItem);
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/¡Hola testUser! Conectado a través de Crystal Relay\./i),
+      ).toBeInTheDocument();
     });
   });
 
   it('handles empty message input', () => {
     render(<LauncherRelayChatView />);
-    fireEvent.submit(screen.getByText('Enviar'));
-    expect(screen.queryByText('')).not.toBeInTheDocument();
+    const input = screen.getByPlaceholderText('Enviar mensaje a #global...');
+    fireEvent.change(input, { target: { value: '' } });
+    fireEvent.submit(input.closest('form')!);
+    expect(screen.getByText(/¡Bienvenidos al Relay de CrystalTides!/i)).toBeInTheDocument();
   });
 
   it('handles empty friend nickname', () => {
     render(<LauncherRelayChatView />);
     fireEvent.click(screen.getByText('Añadir'));
     fireEvent.submit(screen.getByText('Iniciar Chat'));
-    expect(screen.queryByText('')).not.toBeInTheDocument();
+    expect(screen.getByText('Sin chats privados')).toBeInTheDocument();
   });
 
   it('renders empty state for no messages', () => {
     render(<LauncherRelayChatView />);
+    fireEvent.click(screen.getByText('soporte-staff'));
     expect(
       screen.getByText('Sé el primero en enviar un mensaje en este canal.'),
     ).toBeInTheDocument();
@@ -152,8 +162,9 @@ describe('LauncherRelayChatView', () => {
   it('handles closing the add friend modal', () => {
     render(<LauncherRelayChatView />);
     fireEvent.click(screen.getByText('Añadir'));
+    expect(screen.getByPlaceholderText('Nickname de amigo...')).toBeInTheDocument();
     fireEvent.click(screen.getByText('Cerrar'));
-    expect(screen.queryByText('Nickname de amigo...')).not.toBeInTheDocument();
+    expect(screen.queryByPlaceholderText('Nickname de amigo...')).not.toBeInTheDocument();
   });
 
   it('handles invalid friend nickname', () => {
@@ -161,22 +172,22 @@ describe('LauncherRelayChatView', () => {
     fireEvent.click(screen.getByText('Añadir'));
     const input = screen.getByPlaceholderText('Nickname de amigo...');
     fireEvent.change(input, { target: { value: 'a'.repeat(17) } });
-    fireEvent.submit(screen.getByText('Iniciar Chat'));
-    expect(screen.queryByText('')).not.toBeInTheDocument();
+    fireEvent.submit(input.closest('form')!);
+    expect(screen.queryByText('a'.repeat(17))).not.toBeInTheDocument();
   });
 
   it('handles invalid message input', () => {
     render(<LauncherRelayChatView />);
     const input = screen.getByPlaceholderText('Enviar mensaje a #global...');
     fireEvent.change(input, { target: { value: ' '.repeat(100) } });
-    fireEvent.submit(screen.getByText('Enviar'));
-    expect(screen.queryByText('')).not.toBeInTheDocument();
+    fireEvent.submit(input.closest('form')!);
+    expect(screen.queryByText(' '.repeat(100))).not.toBeInTheDocument();
   });
 
   it('handles invalid search input', () => {
     render(<LauncherRelayChatView />);
     const input = screen.getByPlaceholderText('Buscar canal o amigo...');
     fireEvent.change(input, { target: { value: ' '.repeat(100) } });
-    expect(screen.queryByText('')).not.toBeInTheDocument();
+    expect(screen.getByText('global')).toBeInTheDocument();
   });
 });

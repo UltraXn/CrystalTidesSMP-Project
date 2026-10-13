@@ -1,69 +1,66 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { index } from '../index';
+import { describe, it, expect } from 'vitest';
+import * as Components from '../index';
 
-describe('index', () => {
-  beforeEach(() => {
-    // Mockea cualquier dependencia externa si es necesario
-  });
-
-  afterEach(() => {
-    // Limpia cualquier mockeo después de cada prueba
-  });
-
+describe('components index module', () => {
   it('should export all components correctly', () => {
-    expect(index).toHaveProperty('CrystalClientView');
-    expect(index).toHaveProperty('LauncherLoginView');
-    expect(index).toHaveProperty('LauncherSidebar');
-    expect(index).toHaveProperty('LauncherTitleBar');
-    expect(index).toHaveProperty('LauncherHeroBanner');
-    expect(index).toHaveProperty('LauncherActionDeck');
-    expect(index).toHaveProperty('LauncherNewsFeed');
-    expect(index).toHaveProperty('LauncherFriendsPanel');
-    expect(index).toHaveProperty('LauncherChatPopup');
-    expect(index).toHaveProperty('LauncherChangeVersionView');
-    expect(index).toHaveProperty('LauncherVersionConfigModal');
-    expect(index).toHaveProperty('LauncherLockerView');
-    expect(index).toHaveProperty('LauncherGalleryView');
-    expect(index).toHaveProperty('LauncherRelayChatView');
-    expect(index).toHaveProperty('LauncherCrashModal');
-    expect(index).toHaveProperty('RewardsPage');
-    expect(index).toHaveProperty('PlayerStatsWidget');
-    expect(index).toHaveProperty('AccountSwitcherModal');
-    expect(index).toHaveProperty('RoleBadge');
-    expect(index).toHaveProperty('UpdaterModal');
-    expect(index).toHaveProperty('Launcher3DSkinViewer');
-    expect(index).toHaveProperty('LauncherLoadingScreen');
-    expect(index).toHaveProperty('LauncherLegalModal');
+    expect(Components).toHaveProperty('CrystalClientView');
+    expect(Components).toHaveProperty('LauncherLoginView');
+    expect(Components).toHaveProperty('LauncherSidebar');
+    expect(Components).toHaveProperty('LauncherTitleBar');
+    expect(Components).toHaveProperty('LauncherHeroBanner');
+    expect(Components).toHaveProperty('LauncherActionDeck');
+    expect(Components).toHaveProperty('LauncherNewsFeed');
+    expect(Components).toHaveProperty('LauncherFriendsPanel');
+    expect(Components).toHaveProperty('LauncherChatPopup');
+    expect(Components).toHaveProperty('LauncherChangeVersionView');
+    expect(Components).toHaveProperty('LauncherVersionConfigModal');
+    expect(Components).toHaveProperty('LauncherLockerView');
+    expect(Components).toHaveProperty('LauncherGalleryView');
+    expect(Components).toHaveProperty('LauncherRelayChatView');
+    expect(Components).toHaveProperty('LauncherCrashModal');
+    expect(Components).toHaveProperty('RewardsPage');
+    expect(Components).toHaveProperty('PlayerStatsWidget');
+    expect(Components).toHaveProperty('AccountSwitcherModal');
+    expect(Components).toHaveProperty('RoleBadge');
+    expect(Components).toHaveProperty('UpdaterModal');
+    expect(Components).toHaveProperty('Launcher3DSkinViewer');
+    expect(Components).toHaveProperty('LauncherLoadingScreen');
+    expect(Components).toHaveProperty('LauncherLegalModal');
   });
 
-  it('should not export empty components', () => {
-    expect(index.CrystalClientView).not.toBeUndefined();
-    expect(index.LauncherLoginView).not.toBeUndefined();
-    expect(index.LauncherSidebar).not.toBeUndefined();
-    expect(index.LauncherTitleBar).not.toBeUndefined();
-    expect(index.LauncherHeroBanner).not.toBeUndefined();
-    expect(index.LauncherActionDeck).not.toBeUndefined();
-    expect(index.LauncherNewsFeed).not.toBeUndefined();
-    expect(index.LauncherFriendsPanel).not.toBeUndefined();
-    expect(index.LauncherChatPopup).not.toBeUndefined();
-    expect(index.LauncherChangeVersionView).not.toBeUndefined();
-    expect(index.LauncherVersionConfigModal).not.toBeUndefined();
-    expect(index.LauncherLockerView).not.toBeUndefined();
-    expect(index.LauncherGalleryView).not.toBeUndefined();
-    expect(index.LauncherRelayChatView).not.toBeUndefined();
-    expect(index.LauncherCrashModal).not.toBeUndefined();
-    expect(index.RewardsPage).not.toBeUndefined();
-    expect(index.PlayerStatsWidget).not.toBeUndefined();
-    expect(index.AccountSwitcherModal).not.toBeUndefined();
-    expect(index.RoleBadge).not.toBeUndefined();
-    expect(index.UpdaterModal).not.toBeUndefined();
-    expect(index.Launcher3DSkinViewer).not.toBeUndefined();
-    expect(index.LauncherLoadingScreen).not.toBeUndefined();
-    expect(index.LauncherLegalModal).not.toBeUndefined();
+  it('should not export empty or undefined components', () => {
+    expect(Components.CrystalClientView).toBeDefined();
+    expect(Components.LauncherLoginView).toBeDefined();
+    expect(Components.LauncherSidebar).toBeDefined();
+    expect(Components.LauncherTitleBar).toBeDefined();
+    expect(Components.LauncherHeroBanner).toBeDefined();
+    expect(Components.LauncherActionDeck).toBeDefined();
+    expect(Components.LauncherNewsFeed).toBeDefined();
+    expect(Components.LauncherFriendsPanel).toBeDefined();
+    expect(Components.LauncherChatPopup).toBeDefined();
+    expect(Components.LauncherChangeVersionView).toBeDefined();
+    expect(Components.LauncherVersionConfigModal).toBeDefined();
+    expect(Components.LauncherLockerView).toBeDefined();
+    expect(Components.LauncherGalleryView).toBeDefined();
+    expect(Components.LauncherRelayChatView).toBeDefined();
+    expect(Components.LauncherCrashModal).toBeDefined();
+    expect(Components.RewardsPage).toBeDefined();
+    expect(Components.PlayerStatsWidget).toBeDefined();
+    expect(Components.AccountSwitcherModal).toBeDefined();
+    expect(Components.RoleBadge).toBeDefined();
+    expect(Components.UpdaterModal).toBeDefined();
+    expect(Components.Launcher3DSkinViewer).toBeDefined();
+    expect(Components.LauncherLoadingScreen).toBeDefined();
+    expect(Components.LauncherLegalModal).toBeDefined();
   });
 
-  it('should export types and Logos correctly', () => {
-    expect(index).toHaveProperty('types');
-    expect(index).toHaveProperty('Logos');
+  it('should export loader and branding logos correctly', () => {
+    expect(Components.FabricLogo).toBeDefined();
+    expect(Components.ForgeLogo).toBeDefined();
+    expect(Components.NeoForgeLogo).toBeDefined();
+    expect(Components.QuiltLogo).toBeDefined();
+    expect(Components.VanillaLogo).toBeDefined();
+    expect(Components.CrystalSolidMonogram).toBeDefined();
+    expect(Components.CrystalTidesLogo).toBeDefined();
   });
 });

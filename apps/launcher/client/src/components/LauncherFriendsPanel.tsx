@@ -1,14 +1,7 @@
-import React, { useState } from "react";
-import { MorphIcon } from "morphicons/react";
-import {
-  UserPlus,
-  Check,
-  X,
-  Search,
-  Users,
-  Star,
-} from "lucide";
-import { FriendEntry } from "./types";
+import React, { useState } from 'react';
+import { MorphIcon } from 'morphicons/react';
+import { UserPlus, Check, X, Search, Users, Star } from 'lucide';
+import { FriendEntry } from './types';
 import {
   FriendRequest,
   sendFriendRequest,
@@ -16,7 +9,7 @@ import {
   rejectFriendRequest,
   removeFriend,
   toggleFavoriteFriend,
-} from "../services/friendsService";
+} from '../services/friendsService';
 
 interface LauncherFriendsPanelProps {
   friendsOnline: FriendEntry[];
@@ -30,18 +23,175 @@ interface LauncherFriendsPanelProps {
 
 const getStatusDotColor = (type: string) => {
   switch (type) {
-    case "online":
-      return "#2ED96B"; // Green (Online in Figma)
-    case "launcher":
-      return "#F2B82E"; // Yellow/Amber (In Launcher/Menus)
-    case "menu":
-      return "#F2B82E"; // Yellow
-    case "idle":
-      return "#F2B82E"; // Amber
+    case 'online':
+      return '#2ED96B'; // Green (Online in Figma)
+    case 'launcher':
+      return '#F2B82E'; // Yellow/Amber (In Launcher/Menus)
+    case 'menu':
+      return '#F2B82E'; // Yellow
+    case 'idle':
+      return '#F2B82E'; // Amber
     default:
-      return "#737A8C"; // Gray (Offline)
+      return '#737A8C'; // Gray (Offline)
   }
 };
+
+const AddFriendDrawer: React.FC<{
+  isOpen: boolean;
+  input: string;
+  onInputChange: (val: string) => void;
+  onSubmit: (e: React.SyntheticEvent) => void;
+  feedback: { msg: string; success: boolean } | null;
+}> = ({ isOpen, input, onInputChange, onSubmit, feedback }) => {
+  if (!isOpen) return null;
+  return (
+    <form
+      onSubmit={onSubmit}
+      style={{
+        backgroundColor: '#0B0D12',
+        border: '1px solid #262E42',
+        borderRadius: 12,
+        padding: '12px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 8,
+        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.5)',
+      }}
+    >
+      <div style={{ fontSize: 11, fontWeight: 800, color: '#FAFCFF' }}>Añadir Amigo</div>
+      <div style={{ display: 'flex', gap: 6 }}>
+        <input
+          type="text"
+          placeholder="Username de Minecraft..."
+          value={input}
+          onChange={(e) => onInputChange(e.target.value)}
+          style={{
+            flex: 1,
+            backgroundColor: '#12141C',
+            border: '1px solid #292E40',
+            borderRadius: 6,
+            padding: '6px 10px',
+            color: '#FAFCFF',
+            fontSize: 11,
+            outline: 'none',
+          }}
+        />
+        <button
+          type="submit"
+          style={{
+            padding: '0 12px',
+            backgroundColor: '#2DD4BF',
+            border: 'none',
+            borderRadius: 6,
+            color: '#090A0D',
+            fontWeight: 800,
+            fontSize: 11,
+            cursor: 'pointer',
+          }}
+        >
+          Enviar
+        </button>
+      </div>
+      {feedback && (
+        <div
+          style={{
+            fontSize: 10,
+            fontWeight: 700,
+            color: feedback.success ? '#2DD4BF' : '#EF4444',
+          }}
+        >
+          {feedback.msg}
+        </div>
+      )}
+    </form>
+  );
+};
+
+const RequestsTabContent: React.FC<{
+  friendRequests: FriendRequest[];
+  onAccept: (id: string) => void;
+  onReject: (id: string) => void;
+}> = ({ friendRequests, onAccept, onReject }) => (
+  <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flex: 1, overflowY: 'auto' }}>
+    <div style={{ fontSize: 10, fontWeight: 800, color: '#73809E', textTransform: 'uppercase' }}>
+      Solicitudes Pendientes ({friendRequests.length})
+    </div>
+
+    {friendRequests.length === 0 ? (
+      <div style={{ textAlign: 'center', padding: '40px 0', color: '#616B85', fontSize: 11.5 }}>
+        No tienes solicitudes de amistad pendientes.
+      </div>
+    ) : (
+      friendRequests.map((req) => (
+        <div
+          key={req.id}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            backgroundColor: 'rgba(14, 16, 22, 0.35)',
+            border: '1px solid #1F2430',
+            borderRadius: 10,
+            padding: '10px 12px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <img
+              src={req.avatar}
+              alt={req.username}
+              style={{ width: 28, height: 28, borderRadius: 6, imageRendering: 'pixelated' }}
+            />
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 800, color: '#FAFCFF' }}>{req.username}</div>
+              <div style={{ fontSize: 9.5, color: '#8591AD' }}>{req.sentAt}</div>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <button
+              type="button"
+              onClick={() => onAccept(req.id)}
+              title="Aceptar"
+              style={{
+                width: 26,
+                height: 26,
+                borderRadius: 6,
+                backgroundColor: 'rgba(45, 212, 191, 0.2)',
+                border: '1px solid rgba(45, 212, 191, 0.5)',
+                color: '#2DD4BF',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <MorphIcon icon={Check} size={13} color="#2DD4BF" strokeWidth={3} />
+            </button>
+            <button
+              type="button"
+              onClick={() => onReject(req.id)}
+              title="Rechazar"
+              style={{
+                width: 26,
+                height: 26,
+                borderRadius: 6,
+                backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                border: '1px solid rgba(239, 68, 68, 0.4)',
+                color: '#EF4444',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <MorphIcon icon={X} size={13} color="#EF4444" strokeWidth={3} />
+            </button>
+          </div>
+        </div>
+      ))
+    )}
+  </div>
+);
 
 export const LauncherFriendsPanel: React.FC<LauncherFriendsPanelProps> = ({
   friendsOnline,
@@ -52,30 +202,32 @@ export const LauncherFriendsPanel: React.FC<LauncherFriendsPanelProps> = ({
   onSelectFriendChat,
   onRefreshFriends,
 }) => {
-  const [activeTab, setActiveTab] = useState<"friends" | "requests">("friends");
+  const [activeTab, setActiveTab] = useState<'friends' | 'requests'>('friends');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [addUsernameInput, setAddUsernameInput] = useState("");
+  const [addUsernameInput, setAddUsernameInput] = useState('');
   const [addFeedback, setAddFeedback] = useState<{ msg: string; success: boolean } | null>(null);
 
   const filteredOnline = friendsOnline.filter((f) =>
-    f.name.toLowerCase().includes(searchFriend.toLowerCase())
+    f.name.toLowerCase().includes(searchFriend.toLowerCase()),
   );
   const filteredOffline = friendsOffline.filter((f) =>
-    f.name.toLowerCase().includes(searchFriend.toLowerCase())
+    f.name.toLowerCase().includes(searchFriend.toLowerCase()),
   );
 
-  const handleSendRequest = async (e: React.FormEvent) => {
+  const handleSendRequest = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (!addUsernameInput.trim()) return;
     const res = await sendFriendRequest(addUsernameInput);
-    setAddFeedback({ msg: res.message, success: res.success });
-    if (res.success) {
-      setAddUsernameInput("");
-      onRefreshFriends?.();
-      setTimeout(() => {
-        setAddFeedback(null);
-        setIsAddModalOpen(false);
-      }, 1500);
+    if (res) {
+      setAddFeedback({ msg: res.message || '', success: !!res.success });
+      if (res.success) {
+        setAddUsernameInput('');
+        onRefreshFriends?.();
+        setTimeout(() => {
+          setAddFeedback(null);
+          setIsAddModalOpen(false);
+        }, 1500);
+      }
     }
   };
 
@@ -108,44 +260,63 @@ export const LauncherFriendsPanel: React.FC<LauncherFriendsPanelProps> = ({
       style={{
         width: 331,
         minWidth: 331,
-        backgroundColor: "#090A0D",
-        borderLeft: "1px solid #1F2430",
-        display: "flex",
-        flexDirection: "column",
-        padding: "18px 24px",
+        backgroundColor: '#090A0D',
+        borderLeft: '1px solid #1F2430',
+        display: 'flex',
+        flexDirection: 'column',
+        padding: '18px 24px',
         gap: 12,
-        boxSizing: "border-box",
+        boxSizing: 'border-box',
         zIndex: 10,
-        height: "100%",
-        userSelect: "none",
-        position: "relative",
+        height: '100%',
+        userSelect: 'none',
+        position: 'relative',
       }}
     >
       {/* Header Tabs (Exact Noctra / Figma Style) */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingBottom: 4 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14, fontWeight: 900 }}>
-          <span
-            onClick={() => setActiveTab("friends")}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          paddingBottom: 4,
+        }}
+      >
+        <div
+          style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, fontWeight: 900 }}
+        >
+          <button
+            type="button"
+            onClick={() => setActiveTab('friends')}
             style={{
-              color: activeTab === "friends" ? "#FAFCFF" : "#73809E",
-              cursor: "pointer",
-              letterSpacing: "-0.01em",
-              transition: "color 150ms ease",
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              font: 'inherit',
+              color: activeTab === 'friends' ? '#FAFCFF' : '#73809E',
+              cursor: 'pointer',
+              letterSpacing: '-0.01em',
+              transition: 'color 150ms ease',
             }}
           >
             Friends
-          </span>
-          <span style={{ color: "#262E42", fontWeight: 400 }}>|</span>
-          <span
-            onClick={() => setActiveTab("requests")}
+          </button>
+          <span style={{ color: '#262E42', fontWeight: 400 }}>|</span>
+          <button
+            type="button"
+            onClick={() => setActiveTab('requests')}
             style={{
-              color: activeTab === "requests" ? "#FAFCFF" : "#73809E",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              font: 'inherit',
+              color: activeTab === 'requests' ? '#FAFCFF' : '#73809E',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
               gap: 5,
-              letterSpacing: "-0.01em",
-              transition: "color 150ms ease",
+              letterSpacing: '-0.01em',
+              transition: 'color 150ms ease',
             }}
           >
             <span>Requests</span>
@@ -155,20 +326,20 @@ export const LauncherFriendsPanel: React.FC<LauncherFriendsPanelProps> = ({
                   minWidth: 16,
                   height: 16,
                   borderRadius: 8,
-                  backgroundColor: "#F2B82E",
-                  color: "#090A0D",
+                  backgroundColor: '#F2B82E',
+                  color: '#090A0D',
                   fontSize: 9.5,
                   fontWeight: 900,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  padding: "0 4px",
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '0 4px',
                 }}
               >
                 {friendRequests.length}
               </span>
             )}
-          </span>
+          </button>
         </div>
 
         {/* Add Friend Button with Squircle Box */}
@@ -180,14 +351,14 @@ export const LauncherFriendsPanel: React.FC<LauncherFriendsPanelProps> = ({
             width: 32,
             height: 32,
             borderRadius: 9,
-            backgroundColor: isAddModalOpen ? "#1A1F29" : "#12141C",
-            border: isAddModalOpen ? "1px solid #2E384D" : "1px solid #292E40",
-            color: isAddModalOpen ? "#2DD4BF" : "#73809E",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            transition: "all 150ms ease",
+            backgroundColor: isAddModalOpen ? '#1A1F29' : '#12141C',
+            border: isAddModalOpen ? '1px solid #2E384D' : '1px solid #292E40',
+            color: isAddModalOpen ? '#2DD4BF' : '#73809E',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'all 150ms ease',
           }}
           title="Add Friend"
         >
@@ -195,165 +366,35 @@ export const LauncherFriendsPanel: React.FC<LauncherFriendsPanelProps> = ({
         </button>
       </div>
 
-      {/* Add Friend Inline Drawer */}
-      {isAddModalOpen && (
-        <form
-          onSubmit={handleSendRequest}
-          style={{
-            backgroundColor: "#0B0D12",
-            border: "1px solid #262E42",
-            borderRadius: 12,
-            padding: "12px",
-            display: "flex",
-            flexDirection: "column",
-            gap: 8,
-            boxShadow: "0 8px 24px rgba(0, 0, 0, 0.5)",
-          }}
-        >
-          <div style={{ fontSize: 11, fontWeight: 800, color: "#FAFCFF" }}>Añadir Amigo</div>
-          <div style={{ display: "flex", gap: 6 }}>
-            <input
-              type="text"
-              placeholder="Username de Minecraft..."
-              value={addUsernameInput}
-              onChange={(e) => setAddUsernameInput(e.target.value)}
-              style={{
-                flex: 1,
-                backgroundColor: "#12141C",
-                border: "1px solid #292E40",
-                borderRadius: 6,
-                padding: "6px 10px",
-                color: "#FAFCFF",
-                fontSize: 11,
-                outline: "none",
-              }}
-            />
-            <button
-              type="submit"
-              style={{
-                padding: "0 12px",
-                backgroundColor: "#2DD4BF",
-                border: "none",
-                borderRadius: 6,
-                color: "#090A0D",
-                fontWeight: 800,
-                fontSize: 11,
-                cursor: "pointer",
-              }}
-            >
-              Enviar
-            </button>
-          </div>
-          {addFeedback && (
-            <div
-              style={{
-                fontSize: 10,
-                fontWeight: 700,
-                color: addFeedback.success ? "#2DD4BF" : "#EF4444",
-              }}
-            >
-              {addFeedback.msg}
-            </div>
-          )}
-        </form>
-      )}
+      <AddFriendDrawer
+        isOpen={isAddModalOpen}
+        input={addUsernameInput}
+        onInputChange={setAddUsernameInput}
+        onSubmit={handleSendRequest}
+        feedback={addFeedback}
+      />
 
       {/* Tab Content: FRIENDS vs REQUESTS */}
-      {activeTab === "requests" ? (
-        /* ── REQUESTS TAB ── */
-        <div style={{ display: "flex", flexDirection: "column", gap: 10, flex: 1, overflowY: "auto" }}>
-          <div style={{ fontSize: 10, fontWeight: 800, color: "#73809E", textTransform: "uppercase" }}>
-            Solicitudes Pendientes ({friendRequests.length})
-          </div>
-
-          {friendRequests.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "40px 0", color: "#616B85", fontSize: 11.5 }}>
-              No tienes solicitudes de amistad pendientes.
-            </div>
-          ) : (
-            friendRequests.map((req) => (
-              <div
-                key={req.id}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  backgroundColor: "rgba(14, 16, 22, 0.35)",
-                  border: "1px solid #1F2430",
-                  borderRadius: 10,
-                  padding: "10px 12px",
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <img
-                    src={req.avatar}
-                    alt={req.username}
-                    style={{ width: 28, height: 28, borderRadius: 6, imageRendering: "pixelated" }}
-                  />
-                  <div>
-                    <div style={{ fontSize: 12, fontWeight: 800, color: "#FAFCFF" }}>{req.username}</div>
-                    <div style={{ fontSize: 9.5, color: "#8591AD" }}>{req.sentAt}</div>
-                  </div>
-                </div>
-
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <button
-                    type="button"
-                    onClick={() => handleAccept(req.id)}
-                    title="Aceptar"
-                    style={{
-                      width: 26,
-                      height: 26,
-                      borderRadius: 6,
-                      backgroundColor: "rgba(45, 212, 191, 0.2)",
-                      border: "1px solid rgba(45, 212, 191, 0.5)",
-                      color: "#2DD4BF",
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <MorphIcon icon={Check} size={13} color="#2DD4BF" strokeWidth={3} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleReject(req.id)}
-                    title="Rechazar"
-                    style={{
-                      width: 26,
-                      height: 26,
-                      borderRadius: 6,
-                      backgroundColor: "rgba(239, 68, 68, 0.15)",
-                      border: "1px solid rgba(239, 68, 68, 0.4)",
-                      color: "#EF4444",
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <MorphIcon icon={X} size={13} color="#EF4444" strokeWidth={3} />
-                  </button>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
+      {activeTab === 'requests' ? (
+        <RequestsTabContent
+          friendRequests={friendRequests}
+          onAccept={handleAccept}
+          onReject={handleReject}
+        />
       ) : (
         /* ── FRIENDS TAB ── */
         <>
           {/* Search Box */}
-          <div style={{ position: "relative", width: "100%" }}>
+          <div style={{ position: 'relative', width: '100%' }}>
             <div
               style={{
-                position: "absolute",
+                position: 'absolute',
                 left: 12,
-                top: "50%",
-                transform: "translateY(-50%)",
-                pointerEvents: "none",
-                display: "flex",
-                alignItems: "center",
+                top: '50%',
+                transform: 'translateY(-50%)',
+                pointerEvents: 'none',
+                display: 'flex',
+                alignItems: 'center',
               }}
             >
               <MorphIcon icon={Search} size={14} color="#73809E" strokeWidth={2.2} />
@@ -364,22 +405,22 @@ export const LauncherFriendsPanel: React.FC<LauncherFriendsPanelProps> = ({
               value={searchFriend}
               onChange={(e) => onSearchFriendChange(e.target.value)}
               style={{
-                width: "100%",
-                backgroundColor: "#12141C",
-                border: "1px solid #292E40",
+                width: '100%',
+                backgroundColor: '#12141C',
+                border: '1px solid #292E40',
                 borderRadius: 10,
-                padding: "9px 12px 9px 36px",
-                color: "#FAFCFF",
+                padding: '9px 12px 9px 36px',
+                color: '#FAFCFF',
                 fontSize: 12,
-                outline: "none",
-                boxSizing: "border-box",
-                transition: "border-color 150ms ease",
+                outline: 'none',
+                boxSizing: 'border-box',
+                transition: 'border-color 150ms ease',
               }}
               onFocus={(e) => {
-                e.currentTarget.style.borderColor = "rgba(45, 212, 191, 0.4)";
+                e.currentTarget.style.borderColor = 'rgba(45, 212, 191, 0.4)';
               }}
               onBlur={(e) => {
-                e.currentTarget.style.borderColor = "#292E40";
+                e.currentTarget.style.borderColor = '#292E40';
               }}
             />
           </div>
@@ -389,12 +430,12 @@ export const LauncherFriendsPanel: React.FC<LauncherFriendsPanelProps> = ({
             <div
               style={{
                 flex: 1,
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                textAlign: "center",
-                padding: "24px 16px",
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                textAlign: 'center',
+                padding: '24px 16px',
                 gap: 12,
               }}
             >
@@ -403,24 +444,24 @@ export const LauncherFriendsPanel: React.FC<LauncherFriendsPanelProps> = ({
                   width: 48,
                   height: 48,
                   borderRadius: 14,
-                  backgroundColor: "#12141C",
-                  border: "1px solid #292E40",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "#73809E",
+                  backgroundColor: '#12141C',
+                  border: '1px solid #292E40',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#73809E',
                 }}
               >
                 <MorphIcon icon={Users} size={22} color="#73809E" strokeWidth={1.8} />
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                <div style={{ fontSize: 13, fontWeight: 800, color: "#FAFCFF" }}>
-                  {searchFriend ? "No se encontraron jugadores" : "No tienes amigos aún"}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <div style={{ fontSize: 13, fontWeight: 800, color: '#FAFCFF' }}>
+                  {searchFriend ? 'No se encontraron jugadores' : 'No tienes amigos aún'}
                 </div>
-                <div style={{ fontSize: 11, color: "#8591AD", lineHeight: 1.4 }}>
+                <div style={{ fontSize: 11, color: '#8591AD', lineHeight: 1.4 }}>
                   {searchFriend
                     ? `No hay resultados para "${searchFriend}"`
-                    : "Agrega a tus amigos de CrystalTides o Minecraft para ver cuándo están en línea y jugar juntos."}
+                    : 'Agrega a tus amigos de CrystalTides o Minecraft para ver cuándo están en línea y jugar juntos.'}
                 </div>
               </div>
               {!searchFriend && (
@@ -429,15 +470,15 @@ export const LauncherFriendsPanel: React.FC<LauncherFriendsPanelProps> = ({
                   onClick={() => setIsAddModalOpen(true)}
                   style={{
                     marginTop: 4,
-                    padding: "8px 16px",
+                    padding: '8px 16px',
                     borderRadius: 8,
-                    backgroundColor: "rgba(45, 212, 191, 0.12)",
-                    border: "1px solid rgba(45, 212, 191, 0.35)",
-                    color: "#2DD4BF",
+                    backgroundColor: 'rgba(45, 212, 191, 0.12)',
+                    border: '1px solid rgba(45, 212, 191, 0.35)',
+                    color: '#2DD4BF',
                     fontSize: 11.5,
                     fontWeight: 800,
-                    cursor: "pointer",
-                    transition: "all 150ms ease",
+                    cursor: 'pointer',
+                    transition: 'all 150ms ease',
                   }}
                 >
                   + Añadir Primer Amigo
@@ -445,7 +486,16 @@ export const LauncherFriendsPanel: React.FC<LauncherFriendsPanelProps> = ({
               )}
             </div>
           ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 8, flex: 1, minHeight: 0, overflowY: "auto" }}>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 8,
+                flex: 1,
+                minHeight: 0,
+                overflowY: 'auto',
+              }}
+            >
               {/* Online Friends Section */}
               {filteredOnline.length > 0 && (
                 <>
@@ -453,62 +503,74 @@ export const LauncherFriendsPanel: React.FC<LauncherFriendsPanelProps> = ({
                     style={{
                       fontSize: 10,
                       fontWeight: 800,
-                      color: "#73809E",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.08em",
+                      color: '#73809E',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.08em',
                       paddingLeft: 2,
                     }}
                   >
                     Online — {filteredOnline.length}
                   </div>
 
-                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                     {filteredOnline.map((friend) => (
                       <div
                         key={friend.name}
-                        onClick={() => onSelectFriendChat(friend)}
                         style={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                          padding: "8px 10px",
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '8px 10px',
                           borderRadius: 10,
-                          backgroundColor: "rgba(14, 16, 22, 0.35)",
-                          cursor: "pointer",
-                          transition: "all 120ms ease",
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = "rgba(14, 16, 22, 0.75)";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = "rgba(14, 16, 22, 0.35)";
+                          backgroundColor: 'rgba(14, 16, 22, 0.35)',
+                          transition: 'all 120ms ease',
                         }}
                       >
                         {/* Left: Avatar + Indicator + Name + Status */}
-                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                          <div style={{ position: "relative" }}>
+                        <button
+                          type="button"
+                          onClick={() => onSelectFriendChat(friend)}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 10,
+                            background: 'none',
+                            border: 'none',
+                            padding: 0,
+                            textAlign: 'left',
+                            cursor: 'pointer',
+                            flex: 1,
+                            minWidth: 0,
+                          }}
+                        >
+                          <div style={{ position: 'relative' }}>
                             <img
                               src={friend.avatar}
                               alt={friend.name}
-                              style={{ width: 32, height: 32, borderRadius: 8, imageRendering: "pixelated" }}
+                              style={{
+                                width: 32,
+                                height: 32,
+                                borderRadius: 8,
+                                imageRendering: 'pixelated',
+                              }}
                             />
                             <span
                               style={{
-                                position: "absolute",
+                                position: 'absolute',
                                 bottom: -2,
                                 right: -2,
                                 width: 8,
                                 height: 8,
-                                borderRadius: "50%",
+                                borderRadius: '50%',
                                 backgroundColor: getStatusDotColor(friend.statusType),
-                                border: "2px solid #090A0D",
+                                border: '2px solid #090A0D',
                               }}
                             />
                           </div>
 
-                          <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                              <span style={{ fontSize: 12.5, fontWeight: 800, color: "#F5F7FF" }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                              <span style={{ fontSize: 12.5, fontWeight: 800, color: '#F5F7FF' }}>
                                 {friend.name}
                               </span>
                               {friend.hasUnreadMessage && (
@@ -516,20 +578,20 @@ export const LauncherFriendsPanel: React.FC<LauncherFriendsPanelProps> = ({
                                   style={{
                                     width: 6,
                                     height: 6,
-                                    borderRadius: "50%",
-                                    backgroundColor: "#2DD4BF",
+                                    borderRadius: '50%',
+                                    backgroundColor: '#2DD4BF',
                                   }}
                                 />
                               )}
                             </div>
-                            <span style={{ fontSize: 10.5, color: "#8591AD" }}>
+                            <span style={{ fontSize: 10.5, color: '#8591AD' }}>
                               {friend.status}
                             </span>
                           </div>
-                        </div>
+                        </button>
 
                         {/* Right quick actions (Favorite + Remove) */}
-                        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                           <button
                             type="button"
                             onClick={(e) => {
@@ -538,12 +600,12 @@ export const LauncherFriendsPanel: React.FC<LauncherFriendsPanelProps> = ({
                             }}
                             title="Favorite"
                             style={{
-                              background: "none",
-                              border: "none",
-                              color: "#73809E",
-                              cursor: "pointer",
+                              background: 'none',
+                              border: 'none',
+                              color: '#73809E',
+                              cursor: 'pointer',
                               padding: 2,
-                              display: "flex",
+                              display: 'flex',
                             }}
                           >
                             <MorphIcon icon={Star} size={13} color="currentColor" strokeWidth={2} />
@@ -556,12 +618,12 @@ export const LauncherFriendsPanel: React.FC<LauncherFriendsPanelProps> = ({
                             }}
                             title="Remove Friend"
                             style={{
-                              background: "none",
-                              border: "none",
-                              color: "#616B85",
-                              cursor: "pointer",
+                              background: 'none',
+                              border: 'none',
+                              color: '#616B85',
+                              cursor: 'pointer',
                               padding: 2,
-                              display: "flex",
+                              display: 'flex',
                             }}
                           >
                             <MorphIcon icon={X} size={13} color="currentColor" strokeWidth={2.2} />
@@ -575,43 +637,50 @@ export const LauncherFriendsPanel: React.FC<LauncherFriendsPanelProps> = ({
 
               {/* Offline Section */}
               {filteredOffline.length > 0 && (
-                <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 12 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12 }}>
                   <div
                     style={{
                       fontSize: 10,
                       fontWeight: 800,
-                      color: "#616B85",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.08em",
+                      color: '#616B85',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.08em',
                       paddingLeft: 2,
                     }}
                   >
                     Offline — {filteredOffline.length}
                   </div>
 
-                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                     {filteredOffline.map((friend) => (
                       <div
                         key={friend.name}
-                        onClick={() => onSelectFriendChat(friend)}
                         style={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                          padding: "6px 10px",
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '6px 10px',
                           borderRadius: 10,
-                          backgroundColor: "rgba(11, 13, 17, 0.25)",
-                          cursor: "pointer",
-                          transition: "all 120ms ease",
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = "rgba(11, 13, 17, 0.55)";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = "rgba(11, 13, 17, 0.25)";
+                          backgroundColor: 'rgba(11, 13, 17, 0.25)',
+                          transition: 'all 120ms ease',
                         }}
                       >
-                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <button
+                          type="button"
+                          onClick={() => onSelectFriendChat(friend)}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 10,
+                            background: 'none',
+                            border: 'none',
+                            padding: 0,
+                            textAlign: 'left',
+                            cursor: 'pointer',
+                            flex: 1,
+                            minWidth: 0,
+                          }}
+                        >
                           <img
                             src={friend.avatar}
                             alt={friend.name}
@@ -619,19 +688,17 @@ export const LauncherFriendsPanel: React.FC<LauncherFriendsPanelProps> = ({
                               width: 28,
                               height: 28,
                               borderRadius: 7,
-                              filter: "grayscale(100%)",
-                              imageRendering: "pixelated",
+                              filter: 'grayscale(100%)',
+                              imageRendering: 'pixelated',
                             }}
                           />
-                          <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                            <span style={{ fontSize: 12, fontWeight: 700, color: "#A6ADBF" }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                            <span style={{ fontSize: 12, fontWeight: 700, color: '#A6ADBF' }}>
                               {friend.name}
                             </span>
-                            <span style={{ fontSize: 10, color: "#667085" }}>
-                              {friend.status}
-                            </span>
+                            <span style={{ fontSize: 10, color: '#667085' }}>{friend.status}</span>
                           </div>
-                        </div>
+                        </button>
 
                         <button
                           type="button"
@@ -641,12 +708,12 @@ export const LauncherFriendsPanel: React.FC<LauncherFriendsPanelProps> = ({
                           }}
                           title="Remove Friend"
                           style={{
-                            background: "none",
-                            border: "none",
-                            color: "#616B85",
-                            cursor: "pointer",
+                            background: 'none',
+                            border: 'none',
+                            color: '#616B85',
+                            cursor: 'pointer',
                             padding: 2,
-                            display: "flex",
+                            display: 'flex',
                           }}
                         >
                           <MorphIcon icon={X} size={13} color="currentColor" strokeWidth={2.2} />

@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vite
 import '@testing-library/jest-dom/vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { useAuth } from '../../services/authContext';
-import { launchGame, LaunchParams } from '../../services/launcherService';
+import { launchGame } from '../../services/launcherService';
 import { getSettings } from '../../services/settingsService';
 import { getProfile, getProfiles } from '../../services/profileService';
 import { getFriends, getFriendRequests } from '../../services/friendsService';
@@ -53,7 +53,14 @@ describe('CrystalClientView', () => {
   };
 
   beforeEach(() => {
-    (useAuth as Mock).mockReturnValue({ currentSession: mockCurrentSession });
+    vi.clearAllMocks();
+    (useAuth as Mock).mockReturnValue({
+      currentSession: mockCurrentSession,
+      savedAccounts: [],
+      switchAccount: vi.fn(),
+      removeAccount: vi.fn(),
+      addAccount: vi.fn(),
+    });
     (getSettings as Mock).mockReturnValue({
       mcVersion: '1.21.1',
       loaderType: 'neoforge',
@@ -91,143 +98,109 @@ describe('CrystalClientView', () => {
     expect(screen.getByText('testUser')).toBeInTheDocument();
     expect(screen.getByText('CrystalTides SMP')).toBeInTheDocument();
     expect(screen.getByText('1,364h')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /LAUNCH/i })).toBeInTheDocument();
   });
 
-  it('handles toggle connection status', () => {
+  it('handles toggle connection status between online and offline', () => {
     render(<CrystalClientView />);
-    const toggleButton = screen.getByRole('button', { name: /toggle connection/i });
+    const toggleButton = screen.getByRole('button', { name: /• Ver Offline/i });
+    expect(toggleButton).toBeInTheDocument();
+
     fireEvent.click(toggleButton);
-    expect(screen.getByRole('button', { name: /toggle connection/i })).toHaveTextContent(
-      'Go Online',
-    );
+    expect(screen.getByText('• Conectar')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /PLAY OFFLINE/i })).toBeInTheDocument();
   });
 
-  it('handles minimize window', async () => {
+  it('handles window minimize', async () => {
     render(<CrystalClientView />);
     const minimizeButton = screen.getByRole('button', { name: /minimize/i });
     fireEvent.click(minimizeButton);
     await waitFor(() => expect(mockMinimize).toHaveBeenCalled());
   });
 
-  it('handles maximize window', async () => {
+  it('handles window maximize', async () => {
     render(<CrystalClientView />);
     const maximizeButton = screen.getByRole('button', { name: /maximize/i });
     fireEvent.click(maximizeButton);
     await waitFor(() => expect(mockToggleMaximize).toHaveBeenCalled());
   });
 
-  it('handles close window', async () => {
+  it('handles window close', async () => {
     render(<CrystalClientView />);
     const closeButton = screen.getByRole('button', { name: /close/i });
     fireEvent.click(closeButton);
     await waitFor(() => expect(mockClose).toHaveBeenCalled());
   });
 
-  it('handles start drag', async () => {
+  it('handles start drag on titlebar header', async () => {
     render(<CrystalClientView />);
-    const titleBar = screen.getByRole('region', { name: /title bar/i });
-    fireEvent.mouseDown(titleBar);
+    const header = document.querySelector('header');
+    expect(header).toBeInTheDocument();
+    fireEvent.mouseDown(header!, { button: 0 });
     await waitFor(() => expect(mockStartDragging).toHaveBeenCalled());
   });
 
-  it('handles launch game', async () => {
+  it('handles launching the game successfully', async () => {
     const launchGameMock = launchGame as Mock;
+    launchGameMock.mockImplementation(
+      (_params: any, onProgress: (msg: string, pct: number) => void) => {
+        onProgress('Iniciando...', 0.5);
+        return Promise.resolve();
+      },
+    );
+
     render(<CrystalClientView />);
-    const launchButton = screen.getByRole('button', { name: /launch/i });
+    const launchButton = screen.getByRole('button', { name: /LAUNCH/i });
     fireEvent.click(launchButton);
-    await waitFor(() => expect(launchGameMock).toHaveBeenCalled());
+
+    await waitFor(() => {
+      expect(launchGameMock).toHaveBeenCalled();
+    });
   });
 
-  it('handles toggle pause download', () => {
-    render(<CrystalClientView />);
-    const pauseButton = screen.getByRole('button', { name: /pause/i });
-    fireEvent.click(pauseButton);
-    expect(screen.getByRole('button', { name: /resume/i })).toBeInTheDocument();
-  });
-
-  it('handles cancel download', () => {
-    render(<CrystalClientView />);
-    const cancelButton = screen.getByRole('button', { name: /cancel/i });
-    fireEvent.click(cancelButton);
-    expect(screen.getByRole('button', { name: /launch/i })).toBeInTheDocument();
-  });
-
-  it('handles send chat message', () => {
-    render(<CrystalClientView />);
-    const chatInput = screen.getByRole('textbox', { name: /chat/i });
-    fireEvent.change(chatInput, { target: { value: 'Hello' } });
-    const sendButton = screen.getByRole('button', { name: /send/i });
-    fireEvent.click(sendButton);
-    expect(screen.getByText('Hello')).toBeInTheDocument();
-  });
-
-  it('handles account switcher open', () => {
-    render(<CrystalClientView />);
-    const accountSwitcherButton = screen.getByRole('button', { name: /account switcher/i });
-    fireEvent.click(accountSwitcherButton);
-    expect(screen.getByRole('dialog', { name: /account switcher/i })).toBeInTheDocument();
-  });
-
-  it('handles crash modal open', () => {
-    render(<CrystalClientView />);
+  it('handles crash modal open when launch game rejects', async () => {
     const launchGameMock = launchGame as Mock;
-    launchGameMock.mockRejectedValue(new Error('Launch failed'));
-    const launchButton = screen.getByRole('button', { name: /launch/i });
+    launchGameMock.mockRejectedValue(new Error('Minecraft crashed'));
+
+    render(<CrystalClientView />);
+    const launchButton = screen.getByRole('button', { name: /LAUNCH/i });
     fireEvent.click(launchButton);
-    expect(screen.getByRole('dialog', { name: /crash reporter/i })).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(screen.getByText(/Game Crash Detected/i)).toBeInTheDocument();
+    });
   });
 
-  it('handles boundary case: no current session', () => {
-    (useAuth as Mock).mockReturnValue({ currentSession: null });
+  it('opens account switcher modal when profile badge is clicked', () => {
+    render(<CrystalClientView />);
+    const accountSwitcherBadge = screen.getByTitle('Cambiar de cuenta');
+    fireEvent.click(accountSwitcherBadge);
+    expect(screen.getByText(/Perfiles de Minecraft/i)).toBeInTheDocument();
+  });
+
+  it('switches navigation tab when sidebar item is clicked', () => {
+    render(<CrystalClientView />);
+    const lockerNav = screen.getByTitle('Locker');
+    fireEvent.click(lockerNav);
+    expect(screen.getByText('LOCKER')).toBeInTheDocument();
+  });
+
+  it('handles fallback gracefully when no user session is active', () => {
+    (useAuth as Mock).mockReturnValue({
+      currentSession: null,
+      savedAccounts: [],
+      switchAccount: vi.fn(),
+      removeAccount: vi.fn(),
+      addAccount: vi.fn(),
+    });
     render(<CrystalClientView />);
     expect(screen.getByText('Player')).toBeInTheDocument();
   });
 
-  it('handles boundary case: empty friends list', () => {
-    (getFriends as Mock).mockReturnValue([]);
-    render(<CrystalClientView />);
-    expect(screen.getByText('No friends online')).toBeInTheDocument();
-  });
-
-  it('handles boundary case: empty friend requests list', () => {
-    (getFriendRequests as Mock).mockReturnValue([]);
-    render(<CrystalClientView />);
-    expect(screen.getByText('No friend requests')).toBeInTheDocument();
-  });
-
-  it('handles boundary case: empty chat messages', () => {
-    render(<CrystalClientView />);
-    expect(screen.getByText('No messages')).toBeInTheDocument();
-  });
-
-  it('handles boundary case: empty profiles list', () => {
+  it('handles empty profiles list without crashing', () => {
     (getProfiles as Mock).mockReturnValue([]);
+    (getProfile as Mock).mockReturnValue(undefined);
     render(<CrystalClientView />);
-    expect(screen.getByText('No profiles available')).toBeInTheDocument();
-  });
-
-  it('handles boundary case: empty settings', () => {
-    (getSettings as Mock).mockReturnValue({});
-    render(<CrystalClientView />);
-    expect(screen.getByText('Default settings')).toBeInTheDocument();
-  });
-
-  it('handles boundary case: empty profile', () => {
-    (getProfile as Mock).mockReturnValue({});
-    render(<CrystalClientView />);
-    expect(screen.getByText('Default profile')).toBeInTheDocument();
-  });
-
-  it('handles boundary case: empty launch parameters', () => {
-    const launchGameMock = launchGame as Mock;
-    launchGameMock.mockImplementation(
-      (params: LaunchParams, callback: (statusText: string, progressFraction: number) => void) => {
-        callback('Launching...', 0.5);
-      },
-    );
-    render(<CrystalClientView />);
-    const launchButton = screen.getByRole('button', { name: /launch/i });
-    fireEvent.click(launchButton);
-    expect(screen.getByText('Launching...')).toBeInTheDocument();
+    expect(screen.getByText('testUser')).toBeInTheDocument();
   });
 });

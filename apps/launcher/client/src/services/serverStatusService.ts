@@ -1,4 +1,4 @@
-import { invoke } from "@tauri-apps/api/core";
+import { invoke } from '@tauri-apps/api/core';
 
 export interface ServerStatus {
   online: boolean;
@@ -25,7 +25,7 @@ const isSafeHost = (host: string): boolean => {
 
 export const fetchServerStatus = async (
   host: string,
-  port = 25565
+  port = 25565,
 ): Promise<ServerStatus | null> => {
   if (!isSafeHost(host)) {
     console.warn('Unsafe host supplied to fetchServerStatus:', host);
@@ -36,24 +36,24 @@ export const fetchServerStatus = async (
     const hostPart = port === 25565 ? host.trim() : `${host.trim()}:${port}`;
     const url = `https://api.mcstatus.io/v2/status/java/${encodeURIComponent(hostPart)}`;
 
-    const responseText: string = await invoke("http_get", {
+    const responseText: string = await invoke('http_get', {
       url,
       headers: {},
     });
 
-    const body = JSON.parse(responseText);
-    const online = body.online === true;
+    const body = typeof responseText === 'string' ? JSON.parse(responseText) : responseText || {};
+    const online = body?.online === true;
 
     let playersOnline: number | null = null;
     let playersMax: number | null = null;
-    if (body.players && typeof body.players === "object") {
-      if (typeof body.players.online === "number") playersOnline = body.players.online;
-      if (typeof body.players.max === "number") playersMax = body.players.max;
+    if (body.players && typeof body.players === 'object') {
+      if (typeof body.players.online === 'number') playersOnline = body.players.online;
+      if (typeof body.players.max === 'number') playersMax = body.players.max;
     }
 
     return { online, playersOnline, playersMax };
   } catch (err) {
-    console.warn("Could not fetch server status:", err);
+    console.warn('Could not fetch server status:', err);
     return null;
   }
 };

@@ -1,7 +1,7 @@
-const LOG_KEY = "crystaltides_logs";
+const LOG_KEY = 'crystaltides_logs';
 const MAX_LOG_LINES = 500;
 
-export type LogLevel = "info" | "warn" | "error" | "debug";
+export type LogLevel = 'info' | 'warn' | 'error' | 'debug';
 
 export interface LogEntry {
   timestamp: string;
@@ -25,13 +25,10 @@ const saveLogs = (logs: LogEntry[]) => {
   localStorage.setItem(LOG_KEY, JSON.stringify(trimmed));
 };
 
-export const log = (
-  message: string,
-  opts?: { level?: LogLevel; category?: string }
-) => {
+export const log = (message: string, opts?: { level?: LogLevel; category?: string }) => {
   const entry: LogEntry = {
     timestamp: new Date().toISOString(),
-    level: opts?.level || "info",
+    level: opts?.level ?? 'info',
     category: opts?.category,
     message,
   };
@@ -41,15 +38,15 @@ export const log = (
   saveLogs(logs);
 
   // Also print to console
-  const prefix = entry.category ? `[${entry.category}] ` : "";
+  const prefix = entry.category ? `[${entry.category}] ` : '';
   switch (entry.level) {
-    case "error":
+    case 'error':
       console.error(`${prefix}${message}`);
       break;
-    case "warn":
+    case 'warn':
       console.warn(`${prefix}${message}`);
       break;
-    case "debug":
+    case 'debug':
       console.debug(`${prefix}${message}`);
       break;
     default:
@@ -66,8 +63,8 @@ export const clearLogs = () => {
 export const getLogText = (): string => {
   return getStoredLogs()
     .map((e) => {
-      const cat = e.category ? `[${e.category}] ` : "";
+      const cat = e.category ? `[${e.category}] ` : '';
       return `[${e.timestamp}] [${e.level.toUpperCase()}] ${cat}${e.message}`;
     })
-    .join("\n");
+    .join('\n');
 };

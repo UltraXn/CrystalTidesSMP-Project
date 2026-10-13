@@ -1,13 +1,13 @@
-import { useState, useEffect } from "react";
-import { AuthProvider, useAuth } from "./services/authContext";
-import { checkForAppUpdates, UpdateInfo } from "./services/updateService";
+import { useState, useEffect } from 'react';
+import { AuthProvider, useAuth } from './services/authContext';
+import { checkForAppUpdates, UpdateInfo } from './services/updateService';
 import {
   CrystalClientView,
   LauncherLoginView,
   LauncherLoadingScreen,
   UpdaterModal,
-} from "./components";
-import "./App.css";
+} from './components';
+import './App.css';
 
 function LauncherContent() {
   const { currentSession, isLoading, loginMicrosoft, loginGuest } = useAuth();
@@ -27,17 +27,17 @@ function LauncherContent() {
 
   if (!currentSession) {
     return (
-      <div style={{ width: "100vw", height: "100vh", overflow: "hidden", position: "relative" }}>
+      <div style={{ width: '100vw', height: '100vh', overflow: 'hidden', position: 'relative' }}>
         <LauncherLoginView
           onLoginMicrosoft={async () => {
             try {
               await loginMicrosoft();
             } catch (err) {
-              console.error("Error al iniciar sesión con Microsoft:", err);
+              console.error('Error al iniciar sesión con Microsoft:', err);
             }
           }}
           onContinueAsGuest={(username) => {
-            loginGuest(username || "Jugador");
+            loginGuest(username || 'Jugador');
           }}
         />
       </div>
@@ -45,12 +45,12 @@ function LauncherContent() {
   }
 
   return (
-    <div style={{ width: "100vw", height: "100vh", overflow: "hidden", position: "relative" }}>
+    <div style={{ width: '100vw', height: '100vh', overflow: 'hidden', position: 'relative' }}>
       <CrystalClientView />
 
       {updateInfo?.available && updateInfo.updateObj && (
         <UpdaterModal
-          version={updateInfo.version || "Nueva versión"}
+          version={updateInfo.version ?? 'Nueva versión'}
           notes={updateInfo.notes}
           updateObj={updateInfo.updateObj}
           onClose={() => setUpdateInfo(null)}

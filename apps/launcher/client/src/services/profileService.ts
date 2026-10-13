@@ -2,7 +2,7 @@ export interface Profile {
   id: string;
   name: string;
   mcVersion: string;
-  loaderType: "vanilla" | "neoforge" | "fabric" | "forge" | "";
+  loaderType: 'vanilla' | 'neoforge' | 'fabric' | 'forge' | '';
   loaderVersion: string;
   iconPath: string; // E.g., "box", "compass", "layers"
   gameDir?: string; // Custom game directory
@@ -16,16 +16,16 @@ export interface Profile {
   lastUsed?: string;
 }
 
-const STORAGE_KEY = "crystaltides_profiles";
-const ACTIVE_PROFILE_KEY = "crystaltides_active_profile_id";
+const STORAGE_KEY = 'crystaltides_profiles';
+const ACTIVE_PROFILE_KEY = 'crystaltides_active_profile_id';
 
 const DEFAULT_PROFILE: Profile = {
-  id: "default-profile-id",
-  name: "Default",
-  mcVersion: "1.21.1",
-  loaderType: "neoforge",
-  loaderVersion: "21.1.65",
-  iconPath: "box",
+  id: 'default-profile-id',
+  name: 'Default',
+  mcVersion: '1.21.1',
+  loaderType: 'neoforge',
+  loaderVersion: '21.1.65',
+  iconPath: 'box',
   isolateSaves: false,
   useOptimization: true,
   created: new Date().toISOString(),
@@ -57,11 +57,11 @@ export const getProfile = (id: string): Profile | undefined => {
   return profiles.find((p) => p.id === id);
 };
 
-export const createProfile = (profileData: Omit<Profile, "id" | "created">): Profile => {
+export const createProfile = (profileData: Omit<Profile, 'id' | 'created'>): Profile => {
   const profiles = getProfiles();
   const newProfile: Profile = {
     ...profileData,
-    id: `profile-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    id: `profile-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`,
     created: new Date().toISOString(),
   };
   profiles.push(newProfile);
@@ -81,8 +81,8 @@ export const updateProfile = (profile: Profile): Profile => {
 };
 
 export const deleteProfile = (id: string): void => {
-  if (id === "default-profile-id") {
-    throw new Error("No se puede eliminar el perfil por defecto.");
+  if (id === 'default-profile-id') {
+    throw new Error('No se puede eliminar el perfil por defecto.');
   }
   const profiles = getProfiles();
   const filtered = profiles.filter((p) => p.id !== id);
@@ -91,7 +91,7 @@ export const deleteProfile = (id: string): void => {
   // If the deleted profile was active, reset active selection
   const activeId = getSelectedProfileId();
   if (activeId === id) {
-    setSelectedProfileId("default-profile-id");
+    setSelectedProfileId('default-profile-id');
   }
 };
 
@@ -102,7 +102,7 @@ export const cloneProfile = (id: string): Profile => {
   const profiles = getProfiles();
   const newProfile: Profile = {
     ...original,
-    id: `profile-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    id: `profile-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`,
     name: `${original.name} (Copia)`,
     created: new Date().toISOString(),
     lastUsed: undefined,
@@ -116,8 +116,8 @@ export const cloneProfile = (id: string): Profile => {
 export const getSelectedProfileId = (): string => {
   const id = localStorage.getItem(ACTIVE_PROFILE_KEY);
   if (!id) {
-    localStorage.setItem(ACTIVE_PROFILE_KEY, "default-profile-id");
-    return "default-profile-id";
+    localStorage.setItem(ACTIVE_PROFILE_KEY, 'default-profile-id');
+    return 'default-profile-id';
   }
   return id;
 };
@@ -140,10 +140,10 @@ export const getActiveProfile = (): Profile => {
 };
 
 export const resolveProfileGameDir = (profile: Profile, homeDir: string): string => {
-  const normalizedHome = homeDir.replace(/\\/g, "/");
-  
+  const normalizedHome = homeDir.replace(/\\/g, '/');
+
   if (profile.gameDir && profile.gameDir.trim().length > 0) {
-    return profile.gameDir.trim().replace(/\\/g, "/");
+    return profile.gameDir.trim().replace(/\\/g, '/');
   }
 
   if (profile.isolateSaves) {
