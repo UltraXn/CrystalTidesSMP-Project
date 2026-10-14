@@ -35,122 +35,125 @@ if (!API_KEY) {
   process.exit(1);
 }
 
-// Las 10 Directivas Quirúrgicas de Auditoría
+// Las 10 Directivas Exploratorias de Caza Autónoma de Bugs
 export const JULES_10_AGENT_SPECS = [
   {
-    id: 'SEC-01',
-    category: 'Robustez & Acceso',
-    title: 'Hardening de Autenticación, JWT y Control de Sesión',
-    prompt: `Actúa como un Ingeniero de Confiabilidad de Software y Arquitectura Defensiva.
-Tu objetivo es fortalecer el flujo de autenticación y control de acceso del proyecto:
-1. Inspecciona la validación de tokens JWT: asegura que se declaren algoritmos de verificación explícitos (como HS256 o RS256) siguiendo las especificaciones RFC.
-2. Verifica el control de acceso en las consultas: asegura que ninguna consulta de datos de usuario se realice sin verificar que pertenezca al usuario de la sesión activa (principio de menor privilegio).
-3. Revisa la integridad de las sesiones en middlewares y handlers de autenticación.
-Proporciona mejoras limpias y aplica los parches de código necesarios para reforzar la arquitectura defensiva.`
+    id: 'HUNT-UI-01',
+    category: 'Búsqueda de Bugs',
+    title: 'Exploración Autónoma de Bugs en Frontend, Estado y Ciclos de Vida',
+    prompt: `Actúa como un Cazador Autónomo de Bugs e Ingeniero de Fiabilidad de Frontend.
+Tu misión es explorar libremente el código de frontend (React, TypeScript, stores de estado Zustand, hooks e interfaces de usuario) en busca de fallos reales:
+1. Explora el código fuente y las rutas de renderizado buscando condiciones de carrera en el estado, desincronizaciones de UI, o efectos secundarios (useEffect) con dependencias incorrectas o llamadas cíclicas.
+2. Identifica listeners de eventos, sockets o timers que queden huérfanos o provoquen fugas de memoria por falta de cleanup al desmontar componentes.
+3. Examina las transiciones de estado complejas (ej. login, descarga, lanzamiento del juego, carga de instancias) buscando estados de congelamiento o bloqueos visuales ("pantallas en blanco").
+4. Si el entorno lo permite, ejecuta las herramientas de verificación del proyecto ('npm test', 'npm run lint' o chequeo de tipos con tsc).
+5. Si descubres un fallo concreto o comportamiento anómalo, documenta claramente la evidencia, diseña la solución mínima y aplica el parche asegurando que la UI sea resiliente.`
   },
   {
-    id: 'SEC-02',
-    category: 'Validación de Entradas',
-    title: 'Robustez de Consultas, Parámetros y Sanitización de Datos',
-    prompt: `Actúa como un Especialista en Calidad de Código y Validación de Entradas.
-Tu objetivo es asegurar la robustez y tratamiento seguro de los datos de entrada y salida:
-1. Consultas de base de datos: verifica que todas las consultas a SQLite/Postgres utilicen consultas parametrizadas (?) o query builders tipados en lugar de concatenación directa de strings.
-2. Renderizado de texto y vistas: verifica que la inserción de contenido dinámico use sanitización estricta (DOMPurify) o los enlaces seguros nativos del framework.
-3. Validación de URLs externas: asegura que cualquier petición HTTP saliente hacia URLs provistas por el usuario valide el dominio y protocolo permitido.
-4. Manejo de rutas y archivos: asegura que las operaciones de sistema de archivos normalicen las rutas de entrada.
-Genera el parche de código con las mejoras de robustez.`
+    id: 'HUNT-RUST-02',
+    category: 'Búsqueda de Bugs',
+    title: 'Caza Autónoma de Bugs en Backend Rust, Concurrencia y Procesos',
+    prompt: `Actúa como un Cazador Autónomo de Bugs e Ingeniero de Sistemas en Rust.
+Tu misión es explorar libremente el backend nativo (Tauri, Rust, IPC y gestión de procesos del sistema) en busca de fallos reales:
+1. Explora el código en src-tauri/ y analiza el uso de primitivas de sincronización (Mutex, RwLock, Arc, canales mpsc). Busca posibles situaciones de deadlock, contención indebida o liberación prematura de guardias (MutexGuard).
+2. Analiza el ciclo de vida de procesos hijos y threads en segundo plano: verifica que no queden procesos zombis o huérfanos y que el sondeo de procesos se realice sin condiciones de carrera.
+3. Busca llamadas a .unwrap() o .expect() en caminos de ejecución normales que puedan causar un panic! en caso de errores de I/O, rutas inexistentes o payloads inesperados.
+4. Si el entorno lo permite, ejecuta 'cargo check' o 'cargo test' para observar advertencias del compilador o fallos de tests.
+5. Si descubres un fallo o riesgo real de pánico/bloqueo, formula la solución idiomática en Rust y aplica el parche preservando la robustez del sistema.`
   },
   {
-    id: 'SEC-03',
-    category: 'Configuración & Entorno',
-    title: 'Higiene de Variables de Entorno y Separación de Configuración',
-    prompt: `Actúa como un Ingeniero de Configuración y Gestión de Entornos.
-Tu objetivo es auditar la separación entre código y variables de entorno:
-1. Verifica que claves privadas, tokens y credenciales de servicios externos se obtengan exclusivamente de variables de entorno seguras (process.env) o bóvedas locales (Secure Vault).
-2. Asegura que los bundles públicos de frontend (Vite/Tauri) no incluyan variables de configuración privadas ni valores confidenciales en código fuente.
-3. Revisa que los archivos de configuración local (.env, certificados) estén debidamente protegidos y no commiteados.
-Aplica los cambios necesarios para modularizar la configuración.`
-  },
-  {
-    id: 'DEAD-01',
+    id: 'HUNT-DEAD-03',
     category: 'Código Muerto',
-    title: 'Higiene de Dependencias y Poda de Exports Huérfanos (Knip)',
-    prompt: `Actúa como un Especialista en Arquitectura y Optimización de Código Muerto (Knip Standard).
-Tu objetivo exclusivo es eliminar código no utilizado y dependencias huérfanas:
-1. Identifica exports en funciones, tipos, interfaces y componentes que no tengan ninguna referencia o importación en el proyecto.
-2. Identifica dependencias en package.json (o Cargo.toml) que no sean importadas en ninguna parte del código base.
-3. Identifica dependencias no declaradas que se estén importando de forma fantasma.
-Poda limpiamente los exports muertos y dependencias sin uso preservando intacta la funcionalidad activa.`
+    title: 'Auditoría Exploratoria de Código Muerto, Dependencias y Exports Huérfanos',
+    prompt: `Actúa como un Especialista en Higiene de Código y Poda de Código Muerto.
+Tu misión es explorar todo el repositorio para identificar y erradicar código zombie y redundante:
+1. Explora las carpetas del proyecto buscando archivos fuente, utilidades o componentes completamente desconectados del árbol de importaciones o bundles de compilación.
+2. Identifica funciones, interfaces, constantes y tipos exportados que no tengan ningún consumidor en el código base.
+3. Revisa package.json y Cargo.toml buscando dependencias declaradas que nunca se importen o utilicen.
+4. Detecta ramas condicionales inalcanzables (código muerto detrás de condiciones siempre falsas o retornos tempranos).
+5. Poda de forma limpia y segura el código muerto garantizando que el build, los tipos y los tests sigan funcionando al 100%.`
   },
   {
-    id: 'DEAD-02',
-    category: 'Código Muerto',
-    title: 'Eliminación de Funciones Zombie, Archivos Obsoletos y Ramas Muertas',
-    prompt: `Actúa como un Ingeniero de Refactorización y Limpieza de Deuda Técnica.
-Tu objetivo exclusivo es erradicar código zombie:
-1. Archivos .ts, .tsx, .rs o .java que estén completamente desconectados del árbol de imports o del bundle de compilación.
-2. Ramas de ejecución inalcanzables (unreachable code en condicionales 'if (false)', switches con casos muertos o early returns que bloquean código posterior).
-3. Variables y parámetros declarados pero nunca leídos.
-4. Helpers y utilidades duplicadas que puedan consolidarse en una única función pura.
-Elimina los archivos y bloques muertos garantizando que los tests y compilación pasen sin errores.`
+    id: 'HUNT-ROBUST-04',
+    category: 'Robustez de Acceso',
+    title: 'Exploración de Robustez en Autenticación, Sesión y Manejo de Tokens',
+    prompt: `Actúa como un Especialista en Arquitectura Defensiva e Integridad de Sesión.
+Tu misión es explorar los flujos de autenticación, sesión y comunicación del proyecto:
+1. Explora los módulos de autenticación (OAuth, Discord, sesión de usuario, almacenamiento de perfiles).
+2. Verifica cómo se manejan y validan los tokens y credenciales de sesión: busca posibles estados donde tokens expirados no se refresquen adecuadamente o provoquen fallos silenciosos.
+3. Revisa que no existan credenciales sensibles o tokens de prueba expuestos en código fuente o persistidos en logs de depuración.
+4. Comprueba que las operaciones que acceden a recursos protegidos o datos privados validen siempre la identidad del contexto de la sesión activa.
+5. Aplica las mejoras necesarias para garantizar un manejo limpio, robusto y confiable de la sesión.`
   },
   {
-    id: 'BUG-01',
-    category: 'Bugs & Concurrencia',
-    title: 'Auditoría de Concurrencia, Race Conditions y Bloqueos de Base de Datos',
-    prompt: `Actúa como un Especialista en Sistemas Concurrentes y Bases de Datos de Alto Rendimiento.
-Tu objetivo exclusivo es encontrar y corregir condiciones de carrera (race conditions):
-1. SQLite Concurrency: asegurar que conexiones SQLite concurrentes tengan 'timeout >= 30.0s' y modo WAL habilitado con checkpoints adecuados para prevenir 'database is locked'.
-2. Locks en Rust/C++: auditar Mutex y RwLock para prevenir deadlocks o liberación prematura de guardias (MutexGuard) mientras hilos en segundo plano observan el estado de procesos.
-3. Mutaciones asíncronas en frontend: auditar hooks de React y Zustand donde múltiples llamadas concurrentes o clics rápidos puedan desincronizar el estado del cliente.
-Implementa mecanismos de bloqueo atómico, transacciones protegidas o mutex adecuados.`
+    id: 'HUNT-FAIL-05',
+    category: 'Resiliencia ante Fallos',
+    title: 'Caza de Excepciones Silenciadas, Fallos de Red y Recuperación ante Errores',
+    prompt: `Actúa como un Ingeniero de Resiliencia de Software y Confiabilidad ante Fallos.
+Tu misión es explorar cómo reacciona la aplicación ante fallos y condiciones adversas:
+1. Explora el código buscando bloques 'catch' vacíos o excepciones silenciadas que oculten errores críticos y dejen la aplicación en un estado zombi o inconsistente.
+2. Analiza las llamadas a APIs externas, descargas de recursos o conexiones de red: busca qué ocurre si la red se cae, devuelve códigos 5xx o datos incompletos. ¿Tiene timeouts adecuados y reintentos o mensajes claros al usuario?
+3. Revisa la resiliencia en la interfaz: verifica si existen ErrorBoundaries o límites de captura que eviten el colapso total de la aplicación ante errores de renderizado.
+4. Si encuentras caminos de ejecución propensos a fallos no recuperados, implementa manejo de errores estructurado con logging y recuperación elegante.`
   },
   {
-    id: 'BUG-02',
-    category: 'Bugs & Concurrencia',
-    title: 'Detección de Fugas de Memoria, Sockets Huérfanos y Ciclo de Vida de Recursos',
-    prompt: `Actúa como un Diagnosticador de Fugas de Memoria (Memory Leak Specialist).
-Tu objetivo exclusivo es auditar la retención indebida de recursos:
-1. Event listeners agregados al DOM o proceso que carezcan de su correspondiente 'removeEventListener' en funciones de cleanup de useEffect.
-2. Timers e intervalos ('setInterval', 'setTimeout') que no se cancelen al desmontar componentes o detener procesos.
-3. Conexiones WebSocket, sockets TCP o handles de archivos que permanezcan abiertos tras errores o cierres inesperados.
-4. Descriptores de procesos hijos huérfanos sin llamada a .wait() / .try_wait().
-Aplica los parches de cleanup correspondientes en cada ciclo de vida.`
+    id: 'HUNT-DATA-06',
+    category: 'Integridad de Datos',
+    title: 'Exploración de Validación de Entradas, Esquemas y Persistencia Local',
+    prompt: `Actúa como un Ingeniero de Integridad de Datos y Validación de Esquemas.
+Tu misión es explorar la persistencia local y el intercambio de datos entre frontend y backend:
+1. Explora el almacenamiento local (SQLite, JSON, configuraciones locales, perfiles de juego): busca posibles inconsistencias, escrituras no atómicas o lecturas que no validen la integridad del archivo.
+2. Analiza las consultas a base de datos y verifica que todas las operaciones usen consultas parametrizadas o bindings tipados para evitar corrupción de datos.
+3. Examina la deserialización de payloads (IPC commands, llamadas HTTP, parseo de configs): comprueba si se validan los tipos con esquemas estrictos (ej. Zod o serde) o si campos inesperados/faltantes pueden romper la aplicación.
+4. Normaliza y valida rutas de archivos para evitar errores al interactuar con el sistema de archivos del sistema operativo.
+5. Aplica los parches de código necesarios para blindar la integridad de los datos.`
   },
   {
-    id: 'BUG-03',
-    category: 'Bugs & Concurrencia',
-    title: 'Tratamiento de Excepciones Silenciadas, Unwraps Inseguros y Resiliencia UI',
-    prompt: `Actúa como un Ingeniero de Resiliencia de Software y Manejo de Errores.
-Tu objetivo exclusivo es erradicar fallos no controlados:
-1. Rust: busca .unwrap() o .expect() en caminos de ejecución normales donde una entrada inválida pueda provocar un 'panic!'. Reemplázalos con manejo idiomático '?' o 'match' devolviendo errores estructurados.
-2. TypeScript: busca bloques 'catch (e) {}' vacíos que silencien fallos críticos sin logging ni recuperación.
-3. UI: asegura que componentes propensos a fallos o renderizado dinámico estén envueltos en ErrorBoundaries funcionales para prevenir pantallas blancas de la muerte.
-4. Promise Rejections: detecta promesas asíncronas sin '.catch()' o bloque try/catch en funciones 'async'.
-Implementa logging contextual y recuperación elegante en cada caso.`
+    id: 'HUNT-ASYNC-07',
+    category: 'Fugas y Ciclos Asíncronos',
+    title: 'Caza de Fugas de Recursos, Conexiones Colgadas y Ciclos Asíncronos',
+    prompt: `Actúa como un Diagnosticador de Rendimiento y Gestión de Recursos.
+Tu misión es explorar el consumo y liberación de recursos en la aplicación:
+1. Busca conexiones de red (WebSockets, HTTP clients, sockets TCP) o manejadores de archivos abiertos que no tengan una política explícita de timeout o no se cierren en caso de fallo.
+2. Identifica promesas flotantes (floating promises) o funciones asíncronas no encadenadas que puedan emitir UnhandledPromiseRejection.
+3. Detecta buffers en memoria o acumuladores de eventos que crezcan indefinidamente sin mecanismo de expulsión o límite de tamaño.
+4. Revisa que las tareas en background y workers se detengan limpiamente cuando la aplicación se cierra o cambia de estado.
+5. Si descubres fugas o recursos colgados, implementa los mecanismos de liberación y límites correspondientes.`
   },
   {
-    id: 'BUG-04',
-    category: 'Bugs & Concurrencia',
-    title: 'Robustez de Tipado, Esquemas Zod y Deserialización Insegura',
-    prompt: `Actúa como un Arquitecto de Tipado Estricto y Validación de Datos.
-Tu objetivo exclusivo es auditar las fronteras de deserialización:
-1. Detección y eliminación de tipos 'any' o conversiones forzadas 'as unknown as T' que oculten incompatibilidades de tipos.
-2. Validación de esquemas en endpoints API: todo payload recibido debe validarse estrictamente con Zod schemas (safeParse) antes de ser consumido por la lógica de negocio.
-3. Deserialización JSON / NBT: en el backend Rust o TypeScript, asegurar que deserializaciones no fallen con panic si faltan campos opcionales o vienen con tipos inesperados.
-Añade esquemas robustos y tipado exhaustivo.`
+    id: 'HUNT-TEST-08',
+    category: 'Calidad & Tests',
+    title: 'Exploración de Suites de Pruebas, Casos Límite y Cobertura Crítica',
+    prompt: `Actúa como un Ingeniero de Calidad de Software y Testing Automatizado.
+Tu misión es auditar y robustecer las suites de pruebas del proyecto:
+1. Explora los tests existentes (Vitest, Jest, Cargo tests) y ejecútalos para verificar su estado actual.
+2. Identifica áreas críticas de la lógica de negocio (ej. autenticación, cálculo de rutas, gestión de versiones, IPC) que carezcan de pruebas o tengan aserciones superficiales.
+3. Diseña casos de prueba para valores límite (edge cases): entradas vacías, caracteres especiales, archivos inexistentes, respuestas corruptas o desconexiones súbitas.
+4. Implementa las pruebas unitarias o de integración necesarias para proteger el código contra regresiones futuras.`
   },
   {
-    id: 'QUAL-01',
-    category: 'Calidad & Smells',
-    title: 'Refactorización de Complejidad Cognitiva (>15) y Reglas SonarQube',
-    prompt: `Actúa como un Arquitecto de Calidad de Código y Estándares SonarQube / Oxlint.
-Tu objetivo exclusivo es desmantelar monolitos y deuda técnica:
-1. Complejidad Cognitiva > 15 (Regla SonarQube S3776): detecta funciones monolíticas y extráelas en funciones puras, Feature Hooks o lookup tables desacopladas con early returns.
-2. Cero Strings Duplicados (Regla S1192): extrae cadenas repetidas >= 3 veces a constantes o enums semánticos.
-3. Keys estables en listas (React S6479): elimina 'key={index}' en listas mutables y asigna identificadores únicos estables.
-4. Pureza de Hooks: verificar que funciones sin estado o ciclo de vida no sean emuladas como hooks falsos y vivan como utilidades puras.
-Refactoriza el código reduciendo la complejidad a <= 15 manteniendo el comportamiento 100% idéntico.`
+    id: 'HUNT-CLEAN-09',
+    category: 'Mantenibilidad',
+    title: 'Refactorización Exploratoria de Complejidad Cognitiva y Código Duplicado',
+    prompt: `Actúa como un Arquitecto de Software enfocado en Calidad, Simplicidad y Mantenibilidad.
+Tu misión es explorar el repositorio buscando deuda técnica y complejidad excesiva:
+1. Identifica funciones monolíticas con alta complejidad cognitiva (múltiples anidaciones, condicionales en cascada, lógica mezclada) que dificulten el mantenimiento.
+2. Desacopla la lógica compleja en subfunciones puras, Feature Hooks o lookup tables bien documentadas con retornos tempranos (early returns).
+3. Busca bloques de lógica duplicados entre diferentes módulos y consolídalos en utilidades reutilizables.
+4. Verifica que los nombres de variables, funciones e interfaces sean descriptivos y reflejen con precisión su responsabilidad única.
+5. Aplica la refactorización preservando 100% el comportamiento original y asegurando que las pruebas sigan pasando.`
+  },
+  {
+    id: 'HUNT-BUILD-10',
+    category: 'Integridad de Build',
+    title: 'Auditoría de Integridad en Compilación, Empaquetado y Configuración de Tipos',
+    prompt: `Actúa como un Especialista en Herramientas de Compilación, Empaquetado y Tipado.
+Tu misión es auditar la infraestructura de construcción y configuración del proyecto:
+1. Revisa las configuraciones de compilación (tsconfig.json, vite.config.ts, Cargo.toml, tauri.conf.json) buscando flags permisivas o inconsistencias.
+2. Analiza el tipado TypeScript en busca del uso innecesario de 'any' o aserciones inseguras que oculten errores en tiempo de compilación.
+3. Verifica los scripts de 'package.json' y 'Cargo.toml' asegurando que comandos como build, lint y test se ejecuten de manera determinista y sin advertencias no resueltas.
+4. Si el entorno lo permite, ejecuta el build de prueba para comprobar que no existan advertencias de empaquetado o discrepancias de dependencias.
+5. Aplica las mejoras de configuración y tipos necesarias para asegurar una compilación limpia y robusta.`
   }
 ];
 
@@ -224,6 +227,9 @@ async function main() {
   const repoFilterIdx = args.indexOf('--repo');
   const repoFilter = repoFilterIdx !== -1 ? args[repoFilterIdx + 1]?.toLowerCase() : null;
 
+  const branchIdx = args.indexOf('--branch');
+  const customBranch = branchIdx !== -1 ? args[branchIdx + 1] : null;
+
   const agentFilterIdx = args.indexOf('--agent');
   const agentFilter = agentFilterIdx !== -1 ? args[agentFilterIdx + 1]?.toUpperCase() : null;
 
@@ -272,7 +278,7 @@ async function main() {
 
   console.log(`Repositorios objetivo identificados (${targetSources.length}):`);
   targetSources.forEach(s => {
-    const branch = s.githubRepo?.defaultBranch?.displayName || 'main';
+    const branch = customBranch || s.githubRepo?.defaultBranch?.displayName || 'main';
     console.log(`  📁 \x1b[1m${s.id || s.name}\x1b[0m (branch: ${branch})`);
   });
   console.log('');
@@ -294,7 +300,7 @@ async function main() {
     console.log('  \x1b[36mpnpm jules:dry-run\x1b[0m o \x1b[36mnode scripts/jules_orchestrator.mjs --dry-run\x1b[0m\n');
     console.log('Para DESPACHAR los agentes a Google Jules ejecuta:');
     console.log('  \x1b[32mnode scripts/jules_orchestrator.mjs --dispatch\x1b[0m');
-    console.log('  (Opcional: \x1b[36m--repo <nombre>\x1b[0m, \x1b[36m--agent <id>\x1b[0m, \x1b[36m--limit 1\x1b[0m)\n');
+    console.log('  (Opciones: \x1b[36m--repo <nombre>\x1b[0m, \x1b[36m--agent <id>\x1b[0m, \x1b[36m--branch <nombre>\x1b[0m, \x1b[36m--limit <n>\x1b[0m)\n');
     return;
   }
 
@@ -302,7 +308,7 @@ async function main() {
     console.log('\x1b[33m--- SIMULACIÓN DE DESPACHO (--dry-run) ---\x1b[0m\n');
     for (const source of targetSources) {
       const repoName = source.id || source.name;
-      const branch = source.githubRepo?.defaultBranch?.displayName || 'main';
+      const branch = customBranch || source.githubRepo?.defaultBranch?.displayName || 'main';
       console.log(`\x1b[1m\x1b[35m=== Repositorio: ${repoName} (Branch: ${branch}) ===\x1b[0m`);
       for (const spec of specsToRun) {
         console.log(`  🤖 [${spec.id}] [${spec.category}] ${spec.title}`);
@@ -319,8 +325,8 @@ async function main() {
 
     for (const source of targetSources) {
       const repoName = source.id || source.name;
-      const branch = source.githubRepo?.defaultBranch?.displayName || 'main';
-      console.log(`\x1b[1m\x1b[34m>> Despachando ${specsToRun.length} agente(s) hacia ${repoName}...\x1b[0m`);
+      const branch = customBranch || source.githubRepo?.defaultBranch?.displayName || 'main';
+      console.log(`\x1b[1m\x1b[34m>> Despachando ${specsToRun.length} agente(s) hacia ${repoName} (branch: ${branch})...\x1b[0m`);
 
       for (const spec of specsToRun) {
         process.stdout.write(`   → Despachando [${spec.id}] ${spec.title.slice(0, 45)}... `);
