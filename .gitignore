@@ -8,6 +8,7 @@ pnpm-debug.log*
 lerna-debug.log*
 
 *.exe
+/quilt-installer.jar
 node_modules
 dist
 dist-ssr

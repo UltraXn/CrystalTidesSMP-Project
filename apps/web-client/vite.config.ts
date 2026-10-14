@@ -5,8 +5,64 @@ import { boneyardPlugin } from 'boneyard-js/vite';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+function oxcMinifyPlugin(): PluginOption {
+  return {
+    name: 'vite-plugin-oxc-minifier',
+    apply: 'build',
+    enforce: 'post',
+    async renderChunk(code, chunk) {
+      if (!chunk.fileName.endsWith('.js') && !chunk.fileName.endsWith('.mjs')) {
+        return null;
+      }
+      const { minifySync } = await import('oxc-minify');
+      const result = minifySync(chunk.fileName, code, {
+        module: true,
+        compress: {
+          dropConsole: true,
+          dropDebugger: true,
+          target: 'es2020',
+          unused: true,
+          joinVars: true,
+          sequences: true,
+          treeshake: {
+            annotations: true,
+            propertyReadSideEffects: false,
+            unknownGlobalSideEffects: false,
+          },
+        },
+        mangle: {
+          toplevel: true,
+        },
+        codegen: {
+          removeWhitespace: true,
+        },
+        sourcemap: false,
+      });
+
+      if (result.errors && result.errors.length > 0) {
+        throw new Error(
+          `[oxc-minify] Error minificando ${chunk.fileName}:\n${result.errors.map((e) => (typeof e === 'object' && e ? JSON.stringify(e) : e)).join('\n')}`,
+        );
+      }
+
+      return {
+        code: result.code,
+        map: null,
+      };
+    },
+  };
+}
+
 export default defineConfig(async () => {
   const dirname = path.dirname(fileURLToPath(import.meta.url));
+  const isOxc =
+    process.env.VITE_MINIFIER === 'oxc' ||
+    process.argv.includes('oxc') ||
+    process.argv.includes('--oxc');
+
+  if (isOxc) {
+    process.env.NODE_ENV = 'production';
+  }
 
   const plugins: PluginOption[] = [react({ plugins: [] }) as unknown as PluginOption];
   if (!process.env.VITEST) {
@@ -16,8 +72,17 @@ export default defineConfig(async () => {
   if (process.env.BONEYARD === 'true') {
     plugins.push(boneyardPlugin({ skipInitial: true }));
   }
+  if (isOxc) {
+    plugins.push(oxcMinifyPlugin());
+  }
 
   return {
+    mode: isOxc ? 'production' : undefined,
+    define: isOxc
+      ? {
+          'process.env.NODE_ENV': JSON.stringify('production'),
+        }
+      : undefined,
     plugins,
     optimizeDeps: {
       entries: ['index.html', 'src/main.tsx', 'src/App.tsx'],
@@ -70,6 +135,8 @@ export default defineConfig(async () => {
       emptyOutDir: true,
       sourcemap: false,
       target: 'es2020',
+      minify: isOxc ? false : ('esbuild' as const),
+      cssMinify: 'esbuild' as const,
       cssCodeSplit: true,
       chunkSizeWarningLimit: 1000,
       rollupOptions: {
