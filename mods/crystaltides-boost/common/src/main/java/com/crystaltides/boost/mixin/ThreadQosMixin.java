@@ -18,7 +18,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(Minecraft.class)
 public abstract class ThreadQosMixin {
 
-    @Inject(method = "run", at = @At("HEAD"))
+    @Inject(method = "run", at = @At("HEAD"), require = 0)
     private void crystaltides$boostRenderThreadPriority(CallbackInfo ci) {
         Thread renderThread = Thread.currentThread();
         try {

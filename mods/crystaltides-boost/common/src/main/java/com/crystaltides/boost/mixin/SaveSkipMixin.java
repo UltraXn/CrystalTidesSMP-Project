@@ -37,7 +37,8 @@ public abstract class SaveSkipMixin {
     @Inject(
         method = "write(Lnet/minecraft/world/level/ChunkPos;Ljava/nio/ByteBuffer;)V",
         at = @At("HEAD"),
-        cancellable = true
+        cancellable = true,
+        require = 0
     )
     private void crystaltides$onChunkWrite(ChunkPos pos, ByteBuffer buffer, CallbackInfo ci) {
         if (buffer == null || !buffer.hasRemaining()) {

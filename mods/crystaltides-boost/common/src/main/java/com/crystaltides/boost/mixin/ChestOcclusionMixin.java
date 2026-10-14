@@ -40,7 +40,8 @@ public abstract class ChestOcclusionMixin<T extends BlockEntity> {
     @Inject(
         method = "render(Lnet/minecraft/world/level/block/entity/BlockEntity;FLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;II)V",
         at = @At("HEAD"),
-        cancellable = true
+        cancellable = true,
+        require = 0
     )
     private void crystaltides$cullObstructedChest(
         T blockEntity,

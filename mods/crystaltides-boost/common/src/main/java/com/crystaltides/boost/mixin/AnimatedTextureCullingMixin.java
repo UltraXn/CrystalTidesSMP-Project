@@ -26,7 +26,7 @@ public abstract class AnimatedTextureCullingMixin {
     @Unique
     private long crystaltides$lastActiveTick = -1L;
 
-    @Inject(method = "tickAndUpload", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "tickAndUpload", at = @At("HEAD"), cancellable = true, require = 0)
     private void crystaltides$onTickAndUpload(CallbackInfo ci) {
         Minecraft mc = Minecraft.getInstance();
         if (mc == null) {

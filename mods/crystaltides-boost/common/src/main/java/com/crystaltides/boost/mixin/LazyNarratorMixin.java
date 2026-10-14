@@ -15,20 +15,20 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * Narration is only initialized on demand if the user turns it on (Ctrl+B).
  */
 @SuppressWarnings({"java:S100", "PMD.UnusedPrivateMethod", "PMD.UnusedFormalParameter", "PMD.AbstractClassWithoutAbstractMethod"})
-@Mixin(targets = "net.minecraft.client.NarratorManager")
+@Mixin(targets = {"net.minecraft.client.NarratorManager", "net.minecraft.client.GameNarrator"})
 public abstract class LazyNarratorMixin {
 
     @Shadow
     public abstract NarratorStatus getStatus();
 
-    @Inject(method = "updateBookText(Ljava/lang/String;)V", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "updateBookText(Ljava/lang/String;)V", at = @At("HEAD"), cancellable = true, require = 0)
     private void crystaltides$onUpdateBookText(String text, CallbackInfo ci) {
         if (this.getStatus() == NarratorStatus.OFF) {
             ci.cancel();
         }
     }
 
-    @Inject(method = "sayNow(Ljava/lang/String;)V", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "sayNow(Ljava/lang/String;)V", at = @At("HEAD"), cancellable = true, require = 0)
     private void crystaltides$onSayNow(String message, CallbackInfo ci) {
         if (this.getStatus() == NarratorStatus.OFF) {
             ci.cancel();

@@ -1,7 +1,6 @@
 package com.crystaltides.boost.mixin;
 
 import com.crystaltides.boost.CrystalTidesBoostCommon;
-import net.minecraft.Util;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -21,7 +20,7 @@ import java.util.concurrent.ForkJoinWorkerThread;
  * that the Render Thread always gets CPU time slices without waiting.
  */
 @SuppressWarnings({"java:S100", "PMD.UnusedPrivateMethod", "PMD.UnusedFormalParameter", "PMD.AbstractClassWithoutAbstractMethod", "PMD.MissingStaticMethodInNonInstantiatableClass", "PMD.GuardLogStatement"})
-@Mixin(Util.class)
+@Mixin(targets = {"net.minecraft.util.Util", "net.minecraft.Util"})
 public abstract class WorkerPriorityMixin {
 
     private WorkerPriorityMixin() {
@@ -30,7 +29,8 @@ public abstract class WorkerPriorityMixin {
 
     @Inject(
         method = "createWorker(Ljava/lang/String;Ljava/util/concurrent/ForkJoinPool;)Ljava/util/concurrent/ForkJoinWorkerThread;",
-        at = @At("RETURN")
+        at = @At("RETURN"),
+        require = 0
     )
     private static void crystaltides$adjustWorkerPriority(
         String name,
