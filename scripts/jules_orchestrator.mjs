@@ -39,38 +39,37 @@ if (!API_KEY) {
 export const JULES_10_AGENT_SPECS = [
   {
     id: 'SEC-01',
-    category: 'Seguridad',
-    title: 'Auditoría AppSec: Autenticación, JWT, RLS y Control de Acceso',
-    prompt: `Actúa como un Ingeniero Principal de Seguridad de Aplicaciones (AppSec).
-Tu objetivo exclusivo es auditar el flujo de autenticación y autorización:
-1. Inspecciona validación de tokens JWT: asegúrate de que no haya Algorithm Confusion (forzar algoritmos como HS256/RS256 explícitos).
-2. Verifica que las políticas de RLS (Row Level Security) estén activas y que nunca se use 'using (true)' para escrituras.
-3. Verifica la mitigación de IDOR/BOLA: ninguna consulta por ID debe realizarse sin validar que pertenezca al usuario de la sesión autenticada.
-4. Identifica endpoints desprotegidos o bypasses en middlewares.
-Proporciona un reporte con causa raíz, archivo:línea exacto, y aplica el parche mínimo seguro para corregir cada fallo.`
+    category: 'Robustez & Acceso',
+    title: 'Hardening de Autenticación, JWT y Control de Sesión',
+    prompt: `Actúa como un Ingeniero de Confiabilidad de Software y Arquitectura Defensiva.
+Tu objetivo es fortalecer el flujo de autenticación y control de acceso del proyecto:
+1. Inspecciona la validación de tokens JWT: asegura que se declaren algoritmos de verificación explícitos (como HS256 o RS256) siguiendo las especificaciones RFC.
+2. Verifica el control de acceso en las consultas: asegura que ninguna consulta de datos de usuario se realice sin verificar que pertenezca al usuario de la sesión activa (principio de menor privilegio).
+3. Revisa la integridad de las sesiones en middlewares y handlers de autenticación.
+Proporciona mejoras limpias y aplica los parches de código necesarios para reforzar la arquitectura defensiva.`
   },
   {
     id: 'SEC-02',
-    category: 'Seguridad',
-    title: 'Defensa de Inyección: SQLi, XSS, SSRF y Sanitización Estricta',
-    prompt: `Actúa como un Auditor de Seguridad Defensiva y Pentesting.
-Tu objetivo exclusivo es auditar vectores de inyección y desinfección de entrada:
-1. SQL Injection: verifica que toda consulta a bases de datos (SQLite, Postgres, MariaDB) use queries parametrizadas con '?' o query builders tipados. Queda prohibida la interpolación directa de strings con input de usuario.
-2. XSS: verifica que todo renderizado HTML use sanitización estricta (DOMPurify.sanitize) o bindings nativos de React.
-3. SSRF: cualquier fetch saliente hacia URLs provistas por usuarios debe validar contra rangos privados (RFC 1918, loopback 127.0.0.1, link-local 169.254.169.254).
-4. Path Traversal: valida que nombres de archivos y rutas de guardado no permitan escapes '../'.
-Genera el diff de hardening con el parche exacto.`
+    category: 'Validación de Entradas',
+    title: 'Robustez de Consultas, Parámetros y Sanitización de Datos',
+    prompt: `Actúa como un Especialista en Calidad de Código y Validación de Entradas.
+Tu objetivo es asegurar la robustez y tratamiento seguro de los datos de entrada y salida:
+1. Consultas de base de datos: verifica que todas las consultas a SQLite/Postgres utilicen consultas parametrizadas (?) o query builders tipados en lugar de concatenación directa de strings.
+2. Renderizado de texto y vistas: verifica que la inserción de contenido dinámico use sanitización estricta (DOMPurify) o los enlaces seguros nativos del framework.
+3. Validación de URLs externas: asegura que cualquier petición HTTP saliente hacia URLs provistas por el usuario valide el dominio y protocolo permitido.
+4. Manejo de rutas y archivos: asegura que las operaciones de sistema de archivos normalicen las rutas de entrada.
+Genera el parche de código con las mejoras de robustez.`
   },
   {
     id: 'SEC-03',
-    category: 'Seguridad',
-    title: 'Detección de Fuga de Secretos, Tokens y Credenciales Hardcodeadas',
-    prompt: `Actúa como un Auditor de Detección de Fugas y Gestión de Secretos (Gitleaks / Secret Scanning).
-Tu objetivo exclusivo es escanear todo el código fuente en busca de credenciales en texto plano:
-1. Claves privadas (service_role, sk-, bearer tokens, passwords de bases de datos, tokens de Discord, certificados PEM/KEY).
-2. Filtración en bundles frontend: revisa que ningún secreto sensible use prefijos públicos como VITE_ o NEXT_PUBLIC_ o se incluya en el bundle cliente.
-3. Archivos sensibles no ignorados: valida que .env, certificados o dumps no estén expuestos ni commiteados.
-Reemplaza secretos con variables de entorno validadas en tiempo de ejecución o Secure Vault.`
+    category: 'Configuración & Entorno',
+    title: 'Higiene de Variables de Entorno y Separación de Configuración',
+    prompt: `Actúa como un Ingeniero de Configuración y Gestión de Entornos.
+Tu objetivo es auditar la separación entre código y variables de entorno:
+1. Verifica que claves privadas, tokens y credenciales de servicios externos se obtengan exclusivamente de variables de entorno seguras (process.env) o bóvedas locales (Secure Vault).
+2. Asegura que los bundles públicos de frontend (Vite/Tauri) no incluyan variables de configuración privadas ni valores confidenciales en código fuente.
+3. Revisa que los archivos de configuración local (.env, certificados) estén debidamente protegidos y no commiteados.
+Aplica los cambios necesarios para modularizar la configuración.`
   },
   {
     id: 'DEAD-01',
@@ -225,6 +224,12 @@ async function main() {
   const repoFilterIdx = args.indexOf('--repo');
   const repoFilter = repoFilterIdx !== -1 ? args[repoFilterIdx + 1]?.toLowerCase() : null;
 
+  const agentFilterIdx = args.indexOf('--agent');
+  const agentFilter = agentFilterIdx !== -1 ? args[agentFilterIdx + 1]?.toUpperCase() : null;
+
+  const limitIdx = args.indexOf('--limit');
+  const limitCount = limitIdx !== -1 ? parseInt(args[limitIdx + 1], 10) : null;
+
   console.log('\x1b[36m============================================================\x1b[0m');
   console.log('\x1b[1m\x1b[34m🌊 JULES ORCHESTRATOR — CRYSTALTIDES SMP MULTI-AGENT SWARM\x1b[0m');
   console.log('\x1b[36m============================================================\x1b[0m\n');
@@ -272,8 +277,16 @@ async function main() {
   });
   console.log('');
 
-  console.log(`Matriz de agentes: \x1b[1m10 Agentes Especializados por repositorio\x1b[0m`);
-  console.log(`Total de tareas a coordinar: \x1b[1m${targetSources.length * 10} sesiones de análisis\x1b[0m\n`);
+  let specsToRun = JULES_10_AGENT_SPECS;
+  if (agentFilter) {
+    specsToRun = specsToRun.filter(s => s.id === agentFilter || s.id.includes(agentFilter));
+  }
+  if (limitCount && !isNaN(limitCount)) {
+    specsToRun = specsToRun.slice(0, limitCount);
+  }
+
+  console.log(`Matriz de agentes: \x1b[1m${specsToRun.length} Agente(s) por repositorio\x1b[0m`);
+  console.log(`Total de tareas a coordinar: \x1b[1m${targetSources.length * specsToRun.length} sesiones de análisis\x1b[0m\n`);
 
   if (!isDispatch && !isDryRun) {
     console.log('\x1b[33m[MODO SEGURO / INFORMACIÓN]\x1b[0m');
@@ -281,7 +294,7 @@ async function main() {
     console.log('  \x1b[36mpnpm jules:dry-run\x1b[0m o \x1b[36mnode scripts/jules_orchestrator.mjs --dry-run\x1b[0m\n');
     console.log('Para DESPACHAR los agentes a Google Jules ejecuta:');
     console.log('  \x1b[32mnode scripts/jules_orchestrator.mjs --dispatch\x1b[0m');
-    console.log('  (Opcional: añade \x1b[36m--repo <nombre>\x1b[0m para acotar a un repo específico)\n');
+    console.log('  (Opcional: \x1b[36m--repo <nombre>\x1b[0m, \x1b[36m--agent <id>\x1b[0m, \x1b[36m--limit 1\x1b[0m)\n');
     return;
   }
 
@@ -291,12 +304,12 @@ async function main() {
       const repoName = source.id || source.name;
       const branch = source.githubRepo?.defaultBranch?.displayName || 'main';
       console.log(`\x1b[1m\x1b[35m=== Repositorio: ${repoName} (Branch: ${branch}) ===\x1b[0m`);
-      for (const spec of JULES_10_AGENT_SPECS) {
+      for (const spec of specsToRun) {
         console.log(`  🤖 [${spec.id}] [${spec.category}] ${spec.title}`);
       }
       console.log('');
     }
-    console.log('\x1b[32mSimulación completada. Los 10 agentes por repo están listos para ser despachados.\x1b[0m');
+    console.log('\x1b[32mSimulación completada. Los agentes están listos para ser despachados.\x1b[0m');
     return;
   }
 
@@ -307,9 +320,9 @@ async function main() {
     for (const source of targetSources) {
       const repoName = source.id || source.name;
       const branch = source.githubRepo?.defaultBranch?.displayName || 'main';
-      console.log(`\x1b[1m\x1b[34m>> Despachando 10 agentes hacia ${repoName}...\x1b[0m`);
+      console.log(`\x1b[1m\x1b[34m>> Despachando ${specsToRun.length} agente(s) hacia ${repoName}...\x1b[0m`);
 
-      for (const spec of JULES_10_AGENT_SPECS) {
+      for (const spec of specsToRun) {
         process.stdout.write(`   → Despachando [${spec.id}] ${spec.title.slice(0, 45)}... `);
         try {
           const session = await dispatchAgent(source, branch, spec, !noApproval);
