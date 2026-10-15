@@ -1,15 +1,8 @@
-pub mod fsr;
-pub mod input_hook;
-pub mod instant_replay;
-pub mod interop;
-pub mod overlay_renderer;
-pub mod pacing_guard;
 pub mod thread_qos;
-pub mod ui;
 
 use jni::JNIEnv;
 use jni::objects::{JClass, JString};
-use jni::sys::{jboolean, jfloat, jint, jstring};
+use jni::sys::{jboolean, jstring};
 
 #[no_mangle]
 pub extern "system" fn Java_com_crystaltides_agent_CrystalAgent_nativeInit(
@@ -17,141 +10,51 @@ pub extern "system" fn Java_com_crystaltides_agent_CrystalAgent_nativeInit(
     _class: JClass,
     input: JString,
 ) -> jstring {
-    let input: String = match env.get_string(&input) {
+    let input_str: String = match env.get_string(&input) {
         Ok(s) => s.into(),
         Err(_) => "default".to_string(),
     };
 
-    // Initialize FSR 3.1 runtime engine and GPU Instant Replay buffer
-    fsr::init_fsr_engine();
-    instant_replay::init_replay_system();
+    let qos_status = thread_qos::optimize_current_thread(true)
+        .unwrap_or_else(|e| format!("QoS error: {}", e));
 
     let output = format!(
-        "🦀 [Rust Core] Native Game Bridge v2.0 & FSR 3.1 Frame Gen Active! Signal: {}",
-        input
+        "🦀 [Rust Core] Native Game Bridge v2.0 initialized (signal: {}). QoS: {}",
+        input_str, qos_status
     );
 
-    let response = env
-        .new_string(output)
-        .expect("Couldn't create java string!");
-
-    response.into_raw()
+    match env.new_string(output) {
+        Ok(js) => js.into_raw(),
+        Err(e) => {
+            let _ = env.throw_new(
+                "java/lang/RuntimeException",
+                format!("Failed to create JNI string: {}", e),
+            );
+            std::ptr::null_mut()
+        }
+    }
 }
 
-/// Optimizes the caller thread (Render Thread) with Time Critical priority and EcoQoS bypass
+/// Optimizes the caller thread with Above Normal priority and EcoQoS bypass
 #[no_mangle]
 pub extern "system" fn Java_com_crystaltides_agent_CrystalAgent_nativeOptimizeCurrentThread(
-    env: JNIEnv,
+    mut env: JNIEnv,
     _class: JClass,
-    time_critical: jboolean,
+    above_normal: jboolean,
 ) -> jstring {
-    let res = thread_qos::optimize_current_thread(time_critical != 0)
+    let res = thread_qos::optimize_current_thread(above_normal != 0)
         .unwrap_or_else(|e| format!("Error: {}", e));
 
-    let response = env.new_string(res).expect("Couldn't create java string!");
-    response.into_raw()
-}
-
-/// Dynamically updates FSR 3.1 configuration
-#[no_mangle]
-pub extern "system" fn Java_com_crystaltides_agent_CrystalAgent_nativeSetFsrConfig(
-    _env: JNIEnv,
-    _class: JClass,
-    enabled: jboolean,
-    frame_gen: jboolean,
-    render_scale: jfloat,
-    target_fps: jint,
-    sharpness: jfloat,
-) -> jboolean {
-    let config = fsr::FsrConfig {
-        enabled: enabled != 0,
-        frame_gen_enabled: frame_gen != 0,
-        render_scale,
-        target_fps: target_fps as u32,
-        sharpness,
-        motion_vector_mode: "OpticalFlowEstimated".to_string(),
-    };
-
-    fsr::update_fsr_config(config);
-    1 // true
-}
-
-/// Returns real-time FSR 3.1 & Frame Generation telemetry as a JSON string
-#[no_mangle]
-pub extern "system" fn Java_com_crystaltides_agent_CrystalAgent_nativeGetFsrTelemetry(
-    env: JNIEnv,
-    _class: JClass,
-) -> jstring {
-    let telemetry = fsr::get_telemetry();
-    let json_str = serde_json::to_string(&telemetry).unwrap_or_else(|_| "{}".to_string());
-
-    let response = env.new_string(json_str).expect("Couldn't create java string!");
-    response.into_raw()
-}
-
-/// Connects the active OpenGL framebuffer texture with the WGL_NV_DX_interop2 zero-copy bridge
-#[no_mangle]
-pub extern "system" fn Java_com_crystaltides_agent_CrystalAgent_nativeInitInterop(
-    env: JNIEnv,
-    _class: JClass,
-    texture_id: jint,
-    width: jint,
-    height: jint,
-) -> jstring {
-    let res = interop::init_interop(texture_id as u32, width as u32, height as u32)
-        .unwrap_or_else(|e| format!("Interop error: {}", e));
-
-    let response = env.new_string(res).expect("Couldn't create java string!");
-    response.into_raw()
-}
-
-/// Records a presented frame to maintain frametime pacing and synthetic frame generation counts
-#[no_mangle]
-pub extern "system" fn Java_com_crystaltides_agent_CrystalAgent_nativeRecordFrame(
-    _env: JNIEnv,
-    _class: JClass,
-) {
-    fsr::record_presented_frame();
-}
-
-/// Renders the in-game overlay over OpenGL
-#[no_mangle]
-pub extern "system" fn Java_com_crystaltides_agent_CrystalAgent_nativeRenderOverlay(
-    _env: JNIEnv,
-    _class: JClass,
-    width: jint,
-    height: jint,
-) {
-    overlay_renderer::present_overlay(width, height);
-}
-
-/// Checks if overlay is currently visible
-#[no_mangle]
-pub extern "system" fn Java_com_crystaltides_agent_CrystalAgent_nativeIsOverlayVisible(
-    _env: JNIEnv,
-    _class: JClass,
-) -> jboolean {
-    if input_hook::is_overlay_visible() { 1 } else { 0 }
-}
-
-/// Toggles overlay visibility
-#[no_mangle]
-pub extern "system" fn Java_com_crystaltides_agent_CrystalAgent_nativeToggleOverlay(
-    _env: JNIEnv,
-    _class: JClass,
-) -> jboolean {
-    if input_hook::toggle_overlay() { 1 } else { 0 }
-}
-
-/// Flushes the rolling 30s GPU replay buffer to disk and returns the saved file path
-#[no_mangle]
-pub extern "system" fn Java_com_crystaltides_agent_CrystalAgent_nativeSaveReplayClip(
-    env: JNIEnv,
-    _class: JClass,
-) -> jstring {
-    let result = instant_replay::save_current_replay().unwrap_or_else(|e| format!("Error: {}", e));
-    let response = env.new_string(result).expect("Couldn't create java string!");
-    response.into_raw()
+    match env.new_string(res) {
+        Ok(js) => js.into_raw(),
+        Err(e) => {
+            let _ = env.throw_new(
+                "java/lang/RuntimeException",
+                format!("Failed to create JNI string: {}", e),
+            );
+            std::ptr::null_mut()
+        }
+    }
 }
 
 

@@ -7,7 +7,7 @@
 #[cfg(target_os = "windows")]
 use windows::Win32::System::Threading::{
     GetCurrentThread, GetCurrentThreadId, SetThreadPriority,
-    THREAD_PRIORITY_HIGHEST, THREAD_PRIORITY_TIME_CRITICAL,
+    THREAD_PRIORITY_ABOVE_NORMAL, THREAD_PRIORITY_NORMAL,
 };
 
 #[cfg(target_os = "windows")]
@@ -18,20 +18,20 @@ struct ThreadPowerThrottlingState {
     state_mask: u32,
 }
 
-/// Optimizes the calling thread (e.g. Minecraft Render Thread):
-/// 1. Elevates thread priority to TIME_CRITICAL or HIGHEST
+/// Optimizes the calling thread:
+/// 1. Elevates thread priority to ABOVE_NORMAL or NORMAL
 /// 2. Disables Windows 11 EcoQoS (ThreadPowerThrottling) directly on the thread handle
-pub fn optimize_current_thread(time_critical: bool) -> Result<String, String> {
+pub fn optimize_current_thread(above_normal: bool) -> Result<String, String> {
     #[cfg(target_os = "windows")]
     unsafe {
         let thread = GetCurrentThread();
         let thread_id = GetCurrentThreadId();
 
-        // 1. Thread priority
-        let target_prio = if time_critical {
-            THREAD_PRIORITY_TIME_CRITICAL
+        // 1. Thread priority (capped at ABOVE_NORMAL)
+        let target_prio = if above_normal {
+            THREAD_PRIORITY_ABOVE_NORMAL
         } else {
-            THREAD_PRIORITY_HIGHEST
+            THREAD_PRIORITY_NORMAL
         };
 
         let prio_ok = SetThreadPriority(thread, target_prio);
@@ -72,6 +72,24 @@ pub fn optimize_current_thread(time_critical: bool) -> Result<String, String> {
 
     #[cfg(not(target_os = "windows"))]
     {
+        let _ = above_normal;
         Ok("Thread QoS only active on Windows platform.".to_string())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_optimize_current_thread_above_normal() {
+        let res = optimize_current_thread(true);
+        assert!(res.is_ok());
+    }
+
+    #[test]
+    fn test_optimize_current_thread_normal() {
+        let res = optimize_current_thread(false);
+        assert!(res.is_ok());
     }
 }
