@@ -4,27 +4,27 @@ license = "MIT"
 issueTrackerURL = "https://github.com/CrystalTides/crystaltides/issues"
 
 [[mods]]
-modId = "crystaltides-boost"
+modId = "crystaltides_boost"
 version = "1.0.0"
 displayName = "CrystalTides Boost"
 authors = "CrystalTides Team"
 description = '''
-Multiloader low-level PC client optimization mod: ThreadQos scheduling, SaveSkip chunk hash deduplication, LazyNarrator fast boot, and Occlusion. 100% compatible with Embeddium and Oculus Shaders.
+Multiloader client-side performance mod: intelligent ThreadQoS priority scheduling and animated texture culling. 100% compatible with Embeddium and Oculus Shaders.
 '''
 
 [[mixins]]
 config = "crystaltides-boost.common.mixins.json"
 
-[[dependencies.crystaltides-boost]]
+[[dependencies.crystaltides_boost]]
 modId = "neoforge"
 type = "required"
-versionRange = "[21.0.0,)"
+versionRange = "[21.1.0,21.2)"
 ordering = "NONE"
 side = "CLIENT"
 
-[[dependencies.crystaltides-boost]]
+[[dependencies.crystaltides_boost]]
 modId = "minecraft"
 type = "required"
-versionRange = "[1.21,)"
+versionRange = "[1.21.1,1.21.2)"
 ordering = "NONE"
 side = "CLIENT"

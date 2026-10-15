@@ -1,10 +1,22 @@
 plugins {
-    id 'java'
+    id 'multiloader-loader'
+    id 'net.neoforged.moddev'
 }
 
-dependencies {
-    implementation project(':common')
-    compileOnly "net.neoforged:neoforge:${project.neoforge_version}"
-    compileOnly "org.spongepowered:mixin:${project.mixin_version}"
-    compileOnly "org.slf4j:slf4j-api:2.0.12"
+neoForge {
+    version = neoforge_version
+    runs {
+        configureEach {
+            systemProperty 'neoforge.enabledGameTestNamespaces', 'crystaltides_boost'
+            jvmArgument '-Dmixin.debug.verbose=true'
+        }
+        client {
+            client()
+        }
+    }
+    mods {
+        crystaltides_boost {
+            sourceSet sourceSets.main
+        }
+    }
 }

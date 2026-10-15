@@ -1,0 +1,10 @@
+bin/
+build/
+.gradle/
+run/
+runs/
+target/
+.scannerwork/
+.vscode/
+.idea/
+

@@ -1,10 +1,38 @@
 plugins {
-    id 'java-library'
+    id 'multiloader-common'
+    id 'net.neoforged.moddev'
+}
+
+neoForge {
+    neoFormVersion = neo_form_version
 }
 
 dependencies {
-    compileOnly fileTree(dir: '../libs', include: ['*.jar'])
-    compileOnly project(':stubs')
-    compileOnly "org.spongepowered:mixin:${project.mixin_version}"
-    compileOnly "org.slf4j:slf4j-api:2.0.12"
+    compileOnly 'org.spongepowered:mixin:0.8.7'
+    compileOnly 'org.ow2.asm:asm-tree:9.6'
+    compileOnly 'org.slf4j:slf4j-api:2.0.9'
+    testImplementation 'org.slf4j:slf4j-api:2.0.9'
+    testRuntimeOnly 'org.slf4j:slf4j-simple:2.0.9'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+configurations {
+    commonJava {
+        canBeResolved = false
+        canBeConsumed = true
+    }
+    commonResources {
+        canBeResolved = false
+        canBeConsumed = true
+    }
+}
+
+artifacts {
+    commonJava sourceSets.main.java.sourceDirectories.singleFile
+    commonResources sourceSets.main.resources.sourceDirectories.singleFile
 }

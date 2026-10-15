@@ -3,7 +3,7 @@
   "id": "crystaltides-boost",
   "version": "1.0.0",
   "name": "CrystalTides Boost",
-  "description": "Multiloader low-level PC client optimization mod: ThreadQos scheduling, SaveSkip chunk hash deduplication, LazyNarrator fast boot, and Occlusion. 100% compatible with Sodium and Iris Shaders.",
+  "description": "Multiloader client-side performance mod: intelligent ThreadQoS priority scheduling and animated texture culling. 100% compatible with Sodium and Iris Shaders.",
   "authors": ["CrystalTides Team"],
   "contact": {
     "homepage": "https://crystaltides.net"
@@ -16,7 +16,7 @@
   "mixins": ["crystaltides-boost.common.mixins.json"],
   "depends": {
     "fabricloader": ">=0.15.0",
-    "minecraft": ">=1.21"
+    "minecraft": "~1.21.1"
   },
   "suggests": {
     "sodium": "*",
