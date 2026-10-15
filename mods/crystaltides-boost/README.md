@@ -1,80 +1,102 @@
 # ⚡ CrystalTides Boost (`crystaltides-boost`)
 
-> **Client-side performance & low-level hardware optimization mod for CrystalTides.**  
-> Arquitectura multiloader agnóstica (`common`, `fabric`, `neoforge`) orientada a exprimir el hardware, estabilizar los frametimes y eliminar micro-stutters en Minecraft 1.21.1.
+> **Client-side performance & thread scheduling mod for Minecraft 1.21.1.**  
+> Arquitectura MultiLoader nativa (`common`, `fabric`, `neoforge`) construida con **Fabric Loom** y **NeoForge ModDevGradle**. Diseñado para estabilizar frametimes, optimizar la prioridad del render thread y eliminar sobrecarga de VRAM cuando el juego está minimizado, manteniendo 100% de compatibilidad con **Sodium**, **Iris**, **Embeddium** y **Oculus**.
 
 ---
 
-## 🏗️ 1. Arquitectura Multiloader
+## 🏗️ 1. Arquitectura MultiLoader
 
-El proyecto sigue una división estricta en 4 módulos:
+El proyecto se estructura bajo el estándar MultiLoader de Gradle 8.10:
 
 ```
 mods/crystaltides-boost/
-├── common/                  # Lógica universal y Mixins de SpongePowered
+├── common/                  # Lógica agnóstica de plataforma, config y Mixins
 │   ├── src/main/java/com/crystaltides/boost/
-│   │   ├── mixin/           # Mixins de alto rendimiento
-│   │   └── platform/        # Abstracción de servicios (ServiceLoader)
-├── fabric/                  # Entrypoints y bindings específicos para Fabric Loader
-├── neoforge/                # Entrypoints y bindings específicos para NeoForge
-├── stubs/                   # Capa de contratos y tipos API de Minecraft (compile-only)
-└── libs/                    # Fallback de dependencias empaquetadas locales
+│   │   ├── config/          # Parser BoostConfig (crystaltides-boost.properties)
+│   │   ├── mixin/           # ThreadQosMixin, AnimatedTextureCullingMixin, BoostMixinPlugin
+│   │   └── platform/        # Abstracción de servicios de plataforma (IPlatformHelper)
+├── fabric/                  # Subproyecto Fabric (Fabric Loom 1.8.x + Intermediary Refmap)
+├── neoforge/                # Subproyecto NeoForge (ModDevGradle 2.0.x + NeoForm Refmap)
+└── buildSrc/                # Convenciones Gradle compartidas (multiloader-common, multiloader-loader)
 ```
 
----
-
-## 🚀 2. Optimizaciones Implementadas
-
-| Optimización                        | Archivo                                                                                                                                                                                                 | Mecanismo & Impacto                                                                                                                                                    |
-| :---------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Animated Texture Culling**        | [`AnimatedTextureCullingMixin.java`](file:///c:/Users/nacho/Desktop/Portafolio/crystaltides/mods/crystaltides-boost/common/src/main/java/com/crystaltides/boost/mixin/AnimatedTextureCullingMixin.java) | Congela subidas redundantes a la VRAM (`glTexSubImage2D`) cuando el juego está minimizado o en pausa. Deduplica pases múltiples por tick.                              |
-| **Chest Occlusion & Hibernation**   | [`ChestOcclusionMixin.java`](file:///c:/Users/nacho/Desktop/Portafolio/crystaltides/mods/crystaltides-boost/common/src/main/java/com/crystaltides/boost/mixin/ChestOcclusionMixin.java)                 | Culling espacial zero-allocation para cofres enterrados o con obstrucción total superior/frontal. Culling por distancia cuadrática (>64 bloques) para cofres cerrados. |
-| **Render Thread QoS**               | [`ThreadQosMixin.java`](file:///c:/Users/nacho/Desktop/Portafolio/crystaltides/mods/crystaltides-boost/common/src/main/java/com/crystaltides/boost/mixin/ThreadQosMixin.java)                           | Eleva el hilo de Renderizado OpenGL a `Thread.MAX_PRIORITY (10)` para minimizar el jitter de presentación y la latencia de entrada.                                    |
-| **Worker Priority Demotion**        | [`WorkerPriorityMixin.java`](file:///c:/Users/nacho/Desktop/Portafolio/crystaltides/mods/crystaltides-boost/common/src/main/java/com/crystaltides/boost/mixin/WorkerPriorityMixin.java)                 | Degrada los hilos de generación y mallado de chunks a `NORM_PRIORITY - 2` para evitar que saturen la CPU e interrumpan al hilo de render.                              |
-| **SaveSkip (CRC32C Deduplication)** | [`SaveSkipMixin.java`](file:///c:/Users/nacho/Desktop/Portafolio/crystaltides/mods/crystaltides-boost/common/src/main/java/com/crystaltides/boost/mixin/SaveSkipMixin.java)                             | Checksum CRC32C acelerado por hardware para descartar escrituras en disco de chunks que no sufrieron modificaciones durante el autoguardado.                           |
-| **Lazy Narrator Boot**              | [`LazyNarratorMixin.java`](file:///c:/Users/nacho/Desktop/Portafolio/crystaltides/mods/crystaltides-boost/common/src/main/java/com/crystaltides/boost/mixin/LazyNarratorMixin.java)                     | Pospone la inicialización síncrona de las librerías nativas de texto a voz (Flite/SAPI), recortando 2-4 segundos del arranque inicial.                                 |
+- **Mapeos Oficiales**: Desarrollado contra mappings oficiales de Mojang en tiempo de compilación.
+- **Refmaps de Producción**: Fabric genera automáticamente `crystaltides-boost.refmap.json` mapeando a Intermediary (`class_310`, `class_1060`, etc.), garantizando que los mixins operen en clientes de producción sin requerir mappings de desarrollo.
+- **Identificadores Normalizados**:
+  - Fabric: `id = "crystaltides-boost"` en `fabric.mod.json`.
+  - NeoForge: `modId = "crystaltides_boost"` en `neoforge.mods.toml` (cumpliendo con la restricción FML `^[a-z][a-z0-9_]{1,63}$`).
 
 ---
 
-## 🛡️ 3. Arquitectura de Stubs y Aislamiento en Compilación
+## 🚀 2. Optimizaciones Activas
 
-Para permitir el análisis estático en el IDE y la compilación sin exigir la descarga pesada de mappings de Mojang (Loom 500MB+):
-
-1. **Módulo `stubs/`**: Declara las firmas de tipo mínimas (`Minecraft`, `ChestRenderer`, `PoseStack`, `Vec3`, etc.).
-2. **Scope `provided` / `compileOnly`**:
-   - Maven (`common/pom.xml`): `<scope>provided</scope>`.
-   - Gradle (`common/build.gradle`): `compileOnly project(':stubs')` y `compileOnly fileTree(dir: '../libs')`.
-3. **Regla de Exclusión en Empaquetado**:
-   - `maven-jar-plugin` excluye estrictamente `net/minecraft/**` y `com/mojang/**`.
-   - **Garantía:** El JAR distribuible **jamás** contiene stubs, eliminando colisiones en runtime con el ClassLoader del loader.
+| Optimización                 | Clase Destino en MC 1.21.1                                    | Funcionamiento & Beneficio                                                                                                                                                                                                                                                                                                                                                                                                       |
+| :--------------------------- | :------------------------------------------------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Render Thread QoS**        | `net.minecraft.client.Minecraft.run()`                        | Eleva el hilo de renderizado principal (`Render thread`) a `Thread.MAX_PRIORITY` (10) inmediatamente al iniciar el bucle de juego. Minimiza la latencia de entrada y previene micro-tirones (frame drops) causados por la contención de hilos de fondo del sistema operativo o del recolector de basura (GC).                                                                                                                    |
+| **Animated Texture Culling** | `net.minecraft.client.renderer.texture.TextureManager.tick()` | Consulta el estado de la ventana en tiempo real vía GLFW (`GLFW.glfwGetWindowAttrib(window, GLFW.GLFW_ICONIFIED) == GLFW.GLFW_TRUE`). Si el cliente está minimizado en la barra de tareas, congela el procesamiento de texturas animadas y las subidas a la VRAM (`glTexSubImage2D`), reduciendo drásticamente el uso de GPU en segundo plano. Al restaurar la ventana, las texturas continúan fluidamente sin desincronización. |
 
 ---
 
-## 🔍 4. Supresiones de Linters y Estándares de Calidad
+## ⚙️ 3. Configuración (`crystaltides-boost.properties`)
 
-Los mixins utilizan supresiones explícitas para alinear SpongePowered con SonarQube y PMD:
+El mod lee su configuración automáticamente desde el directorio estándar `config/` relativo al entorno de ejecución de la instancia:
 
-| Supresión                                | Herramienta | Justificación Técnica                                                                                                                |
-| :--------------------------------------- | :---------- | :----------------------------------------------------------------------------------------------------------------------------------- |
-| `java:S100` / `java:S116`                | SonarQube   | SpongePowered exige el uso de prefijos con signo de dólar (`crystaltides$method`) para evitar colisiones entre mods.                 |
-| `PMD.UnusedPrivateMethod`                | PMD 7       | Métodos `@Inject` son invocados dinámicamente mediante transformación de bytecode en runtime (ASM), no por llamadas directas.        |
-| `PMD.UnusedFormalParameter`              | PMD 7       | SpongePowered exige replicar la firma exacta del método destino de Minecraft, independientemente de si se usan todos los parámetros. |
-| `PMD.AbstractClassWithoutAbstractMethod` | PMD 7       | Convención de SpongePowered para impedir instanciación directa (`new Mixin()`) y permitir `@Shadow`.                                 |
+**Ruta:** `<gameDir>/config/crystaltides-boost.properties`
 
----
+```properties
+# CrystalTides Boost - Configuración de Optimización
+# Valores: true | false
 
-## 🧪 5. Comandos de Verificación
-
-```powershell
-# 1. Ejecutar análisis estático con PMD 7 CLI (JDK 21):
-$env:JAVA_HOME = "C:\Program Files\Java\jdk-21"
-$env:PATH = "C:\Program Files\Java\jdk-21\bin;$env:PATH"
-.tools/pmd-bin-7.10.0/bin/pmd.bat check -d mods/crystaltides-boost/common/src/main/java/com/crystaltides/boost --use-version java-21 -R category/java/errorprone.xml,category/java/bestpractices.xml --no-fail-on-violation -f text
-
-# 2. Análisis SonarQube vía túnel SSH hacia OCI:
-# Iniciar túnel si no está activo: ssh -N -L 9000:localhost:9000 oci
-pnpm sonar:mod
-
-# 3. Consultar Quality Gate en SonarQube:
-sonar quality-gate status -p crystaltides-boost
+threadQos=true
+animatedTextureCulling=true
 ```
+
+El plugin de configuración de Mixins (`BoostMixinPlugin`, implementando `IMixinConfigPlugin`) lee este archivo antes de que las clases del juego sean cargadas por el ClassLoader, permitiendo activar o desactivar cada optimización a nivel de bytecode de forma segura.
+
+---
+
+## 🗑️ 4. Mixins Obsoletos / Eliminados (Auditoría Técnica)
+
+Durante la refactorización arquitectónica de la versión 1.21.1, se eliminaron los siguientes mixins de versiones anteriores:
+
+1. **`WorkerPriorityMixin`**: Intentaba degradar la prioridad de los hilos de chunks inyectando en `Util.createWorker`. En Minecraft 1.21.1, Mojang reemplazó esa estructura por expresiones lambda anónimas dentro de `makeExecutor`, haciendo imposible la inyección limpia.
+2. **`SaveSkipMixin`**: Saltaba escrituras en disco de chunks no modificados mediante un cálculo de checksum en singleplayer. Se eliminó para prevenir riesgos de corrupción de partidas ante cierres inesperados.
+3. **`LazyNarratorMixin`**: Modificaba `NarratorStatus` de forma frágil sin refmaps de Loom.
+4. **`ChestOcclusionMixin`**: Realizaba culling espacial directo sobre `ChestRenderer` sin verificación de oclusión real; provocaba glitch visual en las tapas de los cofres al utilizarse junto a motores de renderizado modernos como Sodium o Embeddium.
+
+---
+
+## 🎮 5. Integración con CrystalTides Launcher Lite
+
+El launcher gestiona el ciclo de vida del mod automáticamente:
+
+1. **Despliegue Dinámico (`deploy_boost_mod`)**:
+   - En instancias **Fabric** o **Quilt** (1.21.1), extrae el binario embebido de Fabric en `mods/crystaltides-boost.jar`.
+   - En instancias **NeoForge** (1.21.1), extrae el binario embebido de NeoForge en `mods/crystaltides-boost.jar`.
+2. **Restricción Estricta de Versión (`shouldDeployBoost`)**:
+   - El launcher valida que la versión sea exactamente `1.21.1` antes de desplegar. Si se detecta otra versión (ej. 1.20.x o 1.21.4), el mod se retira o se omite para prevenir fallos de arranque por diferencias de mappings.
+3. **Limpieza Criptográfica (`remove_crystaltides_boost`)**:
+   - Comprueba el checksum SHA-256 del archivo en `mods/crystaltides-boost.jar` contra los hashes conocidos (legacy, Fabric y NeoForge). Solo elimina el mod si coincide con uno de los binarios oficiales del launcher, respetando modificaciones personalizadas del usuario.
+
+---
+
+## 🛠️ 6. Compilación y Desarrollo
+
+Requisitos: **JDK 21**.
+
+```bash
+# Compilar ambos loaders y generar los JARs de producción:
+./gradlew build
+
+# Ejecutar cliente de desarrollo Fabric (1.21.1):
+./gradlew :fabric:runClient
+
+# Ejecutar cliente de desarrollo NeoForge (1.21.1):
+./gradlew :neoforge:runClient
+```
+
+Los artefactos finales listos para distribución se generan en:
+
+- `fabric/build/libs/crystaltides-boost-fabric-1.21.1-1.0.0.jar`
+- `neoforge/build/libs/crystaltides-boost-neoforge-1.21.1-1.0.0.jar`
