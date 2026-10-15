@@ -12,48 +12,44 @@ El **CrystalTides Game Bridge** (o Game Agent) es un componente cliente experime
 
 ## 🌟 Core Features
 
-- 🖥️ **Custom HUDs & Overlays**: Renderizado directo sobre la interfaz de Minecraft para información de misiones, staff y eventos.
-- 📡 **Native Telemetry**: Recolección de métricas de rendimiento y red desde la perspectiva del jugador.
-- 🛠️ **JVM Injection**: Se engancha al arranque del juego como un `-javaagent` para optimizaciones dinámicas.
-- ⚡ **Rust-Native Performance**: Núcleo escrito en Rust para tareas pesadas sin afectar el GC de Java.
-- 🎮 **Premium Interactions**: Futuras capacidades de interacción enriquecida exclusivas para usuarios del launcher oficial.
+- 🔌 **Asynchronous Local IPC**: Cliente de socket asíncrono en hilo dedicado restringido a `127.0.0.1`, con cola que descarta ante saturación y handshake con token de sesión.
+- 📊 **Non-Intrusive GC & Heap Telemetry**: Listener JMX de notificaciones para medir pausas de GC sin asignaciones periódicas y reporte de memoria heap (usada y máxima).
+- ⚡ **Thread QoS & Windows EcoQoS Bypass**: Ajuste nativo de prioridad de hilo en Windows (hasta `THREAD_PRIORITY_ABOVE_NORMAL`) y desactivación de EcoQoS (Power Throttling) vía Win32 `SetThreadInformation`.
+- 🎮 **Game Lifecycle Notification**: Señalización de `notifyGameReady` para notificar al launcher cuando el menú principal del juego está listo.
 
 ---
 
 ## 🏗️ Architecture
 
-El Game Bridge opera como un puente entre el ecosistema nativo de CrystalTides y el runtime de Java de Minecraft:
+El Game Bridge opera como un puente entre el launcher local y el runtime de Java de Minecraft:
 
 ```mermaid
 graph TD
     subgraph "Launcher Control"
-        L[CrystalTides Launcher] -->|Inject| MC[Minecraft Process]
+        L[CrystalTides Launcher] -->|Inject -javaagent| MC[Minecraft Process]
+        L <-->|Local IPC 127.0.0.1| JA[Java Agent]
     end
 
     subgraph "In-Game Environment"
-        MC -->|Load| JA[Java Agent]
-        JA -->|FFI| RC[Rust Core Performance]
-        RC -->|System Access| HW[Hardware/Network]
-    end
-
-    subgraph "Cloud / Web"
-        RC <-->|Sync| WS[Web Server]
+        JA -->|JNI| RC[Rust Core: thread_qos]
+        RC -->|Win32 API| HW[Thread Priority & EcoQoS]
+        JA -->|JMX Listeners| JVM[JVM GC & Heap Telemetry]
     end
 ```
 
 > [!NOTE]
-> **Estado de Desarrollo**: Este es un componente **experimental**. No es obligatorio para entrar al servidor, pero habilita características premium en el launcher oficial.
+> **Estado de Desarrollo**: Este es un componente **experimental**. No es obligatorio para entrar al servidor, pero habilita características de telemetría y optimización en el launcher oficial.
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Componente        | Tecnología                        | Propósito                               |
-| :---------------- | :-------------------------------- | :-------------------------------------- |
-| **Injection**     | Java Instrumentation API          | Enganche en el bytecode de Minecraft    |
-| **Logic Core**    | [Rust](https://www.rust-lang.org) | Cómputo de alto rendimiento y seguridad |
-| **Communication** | JNI / Dart FFI                    | Interoperabilidad Java <-> Rust         |
-| **UI Rendering**  | OpenGL / Dear ImGui               | Overlays nativos sobre el juego         |
+| Componente     | Tecnología                        | Propósito                                        |
+| :------------- | :-------------------------------- | :----------------------------------------------- |
+| **Injection**  | Java Instrumentation API          | Enganche en el arranque de la JVM (`-javaagent`) |
+| **Local IPC**  | Java Sockets (`127.0.0.1`)        | Telemetría y señalización hacia el Launcher      |
+| **Telemetry**  | Java Management API (JMX)         | Monitoreo no intrusivo de pausas de GC y heap    |
+| **Thread QoS** | [Rust](https://www.rust-lang.org) | Win32 Thread Priority y desactivación de EcoQoS  |
 
 ---
 
@@ -68,14 +64,6 @@ graph TD
     npm run build
     ```
     _Este comando orquesta la compilación del binario en Rust y el empaquetado del JAR del agente._
-
----
-
-## 🗺️ Roadmap Experimental
-
-- [ ] **Rich In-Game Menu**: Menú de configuración del launcher accesible directamente desde el juego (`Shift + Tab`).
-- [ ] **Instant Replay integration**: Captura de clips de gameplay delegada al núcleo de Rust.
-- [ ] **SpacetimeDB Telemetry**: Envío de métricas de red en tiempo real para optimizar el routing de los jugadores.
 
 ---
 

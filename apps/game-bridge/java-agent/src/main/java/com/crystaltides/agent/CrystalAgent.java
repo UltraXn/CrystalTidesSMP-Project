@@ -1,15 +1,14 @@
 package com.crystaltides.agent;
 
 import java.lang.instrument.Instrumentation;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * CrystalAgent - The JVM Infiltrator & Native Hardware Bridge.
  *
  * Injected as a -javaagent before Minecraft starts. Orchestrates:
- * 1. Direct Win32 ThreadQoS & EcoQoS bypass for the Render Thread.
- * 2. WGL_NV_DX_interop2 zero-copy texture sharing with DirectX 12.
- * 3. AMD FidelityFX FSR 3.1 & Frame Generation pipeline.
+ * 1. IPC connection to the CrystalTides Launcher (127.0.0.1).
+ * 2. Non-intrusive JMX GC pause and memory telemetry.
+ * 3. Win32 ThreadQoS & EcoQoS optimization for the main game thread.
  */
 @SuppressWarnings({"java:S106", "java:S1172"})
 public class CrystalAgent {
@@ -21,7 +20,6 @@ public class CrystalAgent {
     private static volatile boolean nativeLoaded = false;
     private static final long START_TIME_MS = System.currentTimeMillis();
     private static final java.util.concurrent.atomic.AtomicBoolean GAME_READY_SENT = new java.util.concurrent.atomic.AtomicBoolean(false);
-    private static final AtomicReference<Thread> READY_WATCHER = new AtomicReference<>();
 
     public static void premain(String agentArgs, Instrumentation inst) {
         System.out.println("==================================================");
@@ -36,9 +34,10 @@ public class CrystalAgent {
         String javaVer = System.getProperty("java.version", "Unknown");
         String osName = System.getProperty("os.name", "Unknown");
         String ipcToken = System.getProperty("crystaltides.ipc.token", "");
+        String mcVersion = System.getProperty("crystaltides.minecraft.version", "unknown");
         com.crystaltides.agent.ipc.IpcClient.sendHandshake(
             ipcToken,
-            "1.21.1",
+            mcVersion,
             "CrystalAgent-v2.0 (" + osName + ", Java " + javaVer + ")",
             0,
             null,
@@ -46,32 +45,20 @@ public class CrystalAgent {
             null
         );
 
-        // 3. Fallback TitleScreen / GameReady trigger (after 12s if not triggered explicitly)
-        Thread readyWatcher = new Thread(() -> {
-            try {
-                Thread.sleep(12000);
-                notifyGameReady();
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-        }, "CrystalAgent-ReadyWatcher");
-        readyWatcher.setDaemon(true);
-        readyWatcher.setPriority(Thread.MIN_PRIORITY);
-        READY_WATCHER.set(readyWatcher);
-        readyWatcher.start();
-
         try {
             System.loadLibrary("game_bridge_core");
             nativeLoaded = true;
-            String response = nativeInit("Bootstrapping FSR 3.1 & Native Swapchain Bridge...");
+            String response = nativeInit("Core Init");
             System.out.println(response);
 
-            // Automatically optimize the startup thread
+            // Automatically optimize the startup thread (capped at THREAD_PRIORITY_ABOVE_NORMAL)
             String qos = nativeOptimizeCurrentThread(true);
             System.out.println("⚡ [CrystalAgent] Initial Thread QoS: " + qos);
         } catch (UnsatisfiedLinkError e) {
             System.err.println("❌ [CrystalAgent] FAILED to load Native Core: " + e.getMessage());
             System.err.println("⚠️ [CrystalAgent] Running in fallback software mode.");
+        } catch (Exception e) {
+            System.err.println("❌ [CrystalAgent] Error initializing Native Core: " + e.getMessage());
         }
 
         System.out.println("==================================================");
@@ -79,10 +66,6 @@ public class CrystalAgent {
 
     public static void notifyGameReady() {
         if (GAME_READY_SENT.compareAndSet(false, true)) {
-            Thread watcher = READY_WATCHER.getAndSet(null);
-            if (watcher != null) {
-                watcher.interrupt();
-            }
             long duration = System.currentTimeMillis() - START_TIME_MS;
             com.crystaltides.agent.ipc.IpcClient.sendGameReady(duration);
             System.out.println("🎮 [CrystalAgent] Dispatched game_ready (Bootstrap duration: " + duration + "ms)");
@@ -101,27 +84,5 @@ public class CrystalAgent {
 
     public static native String nativeInit(String input);
 
-    public static native String nativeOptimizeCurrentThread(boolean timeCritical);
-
-    public static native boolean nativeSetFsrConfig(
-        boolean enabled,
-        boolean frameGen,
-        float renderScale,
-        int targetFps,
-        float sharpness
-    );
-
-    public static native String nativeGetFsrTelemetry();
-
-    public static native String nativeInitInterop(int textureId, int width, int height);
-
-    public static native void nativeRecordFrame();
-
-    public static native void nativeRenderOverlay(int width, int height);
-
-    public static native boolean nativeIsOverlayVisible();
-
-    public static native boolean nativeToggleOverlay();
-
-    public static native String nativeSaveReplayClip();
+    public static native String nativeOptimizeCurrentThread(boolean aboveNormal);
 }

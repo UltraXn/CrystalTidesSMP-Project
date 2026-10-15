@@ -34,32 +34,37 @@ public class IpcClient {
     private static volatile boolean connected = false;
     private static final AtomicReference<Thread> WORKER_THREAD = new AtomicReference<>();
 
+    private static final Object LOCK = new Object();
     private static int targetPort = DEFAULT_PORT;
 
-    public static synchronized void startAsyncClient() {
-        if (RUNNING.get()) {
-            return;
-        }
-        RUNNING.set(true);
+    public static void startAsyncClient() {
+        synchronized (LOCK) {
+            if (RUNNING.get()) {
+                return;
+            }
+            RUNNING.set(true);
 
-        try {
-            targetPort = Integer.getInteger("crystaltides.ipc.port", DEFAULT_PORT);
-        } catch (Exception e) {
-            targetPort = DEFAULT_PORT;
-        }
+            try {
+                targetPort = Integer.getInteger("crystaltides.ipc.port", DEFAULT_PORT);
+            } catch (Exception e) {
+                targetPort = DEFAULT_PORT;
+            }
 
-        Thread worker = new Thread(IpcClient::workerLoop, "CrystalAgent-IPC-Worker");
-        worker.setDaemon(true);
-        worker.setPriority(Thread.MIN_PRIORITY);
-        WORKER_THREAD.set(worker);
-        worker.start();
+            Thread worker = new Thread(IpcClient::workerLoop, "CrystalAgent-IPC-Worker");
+            worker.setDaemon(true);
+            worker.setPriority(Thread.MIN_PRIORITY);
+            WORKER_THREAD.set(worker);
+            worker.start();
+        }
     }
 
-    public static synchronized void stopAsyncClient() {
-        RUNNING.set(false);
-        Thread worker = WORKER_THREAD.getAndSet(null);
-        if (worker != null) {
-            worker.interrupt();
+    public static void stopAsyncClient() {
+        synchronized (LOCK) {
+            RUNNING.set(false);
+            Thread worker = WORKER_THREAD.getAndSet(null);
+            if (worker != null) {
+                worker.interrupt();
+            }
         }
     }
 
@@ -104,8 +109,6 @@ public class IpcClient {
     }
 
     public static void sendTelemetry(
-            double fps,
-            double frametimeP99Ms,
             double gcPauseTimeMs,
             Long memoryUsedMb,
             Long memoryTotalMb,
@@ -113,8 +116,6 @@ public class IpcClient {
     ) {
         StringBuilder sb = new StringBuilder();
         sb.append("{\"type\":\"telemetry\"");
-        sb.append(String.format(java.util.Locale.US, ",\"fps\":%.1f", fps));
-        sb.append(String.format(java.util.Locale.US, ",\"frametime_p99_ms\":%.2f", frametimeP99Ms));
         sb.append(String.format(java.util.Locale.US, ",\"gc_pause_time_ms\":%.1f", gcPauseTimeMs));
         if (memoryUsedMb != null) sb.append(",\"memory_used_mb\":").append(memoryUsedMb);
         if (memoryTotalMb != null) sb.append(",\"memory_total_mb\":").append(memoryTotalMb);

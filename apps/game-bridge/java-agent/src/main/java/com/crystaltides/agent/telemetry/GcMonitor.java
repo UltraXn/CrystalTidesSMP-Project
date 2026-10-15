@@ -35,19 +35,23 @@ public class GcMonitor {
     private static final AtomicBoolean RUNNING = new AtomicBoolean(true);
     private static final MemoryMXBean MEMORY_BEAN = ManagementFactory.getMemoryMXBean();
 
-    public static synchronized void start() {
-        if (STARTED.getAndSet(true)) {
-            return;
+    private static final Object LOCK = new Object();
+
+    public static void start() {
+        synchronized (LOCK) {
+            if (STARTED.getAndSet(true)) {
+                return;
+            }
+
+            // 1. Attach JMX GC Listeners
+            registerGcNotificationListeners();
+
+            // 2. Start Telemetry Heartbeat Daemon Thread
+            Thread heartbeatThread = new Thread(GcMonitor::telemetryLoop, "CrystalAgent-Telemetry-Worker");
+            heartbeatThread.setDaemon(true);
+            heartbeatThread.setPriority(Thread.MIN_PRIORITY);
+            heartbeatThread.start();
         }
-
-        // 1. Attach JMX GC Listeners
-        registerGcNotificationListeners();
-
-        // 2. Start Telemetry Heartbeat Daemon Thread
-        Thread heartbeatThread = new Thread(GcMonitor::telemetryLoop, "CrystalAgent-Telemetry-Worker");
-        heartbeatThread.setDaemon(true);
-        heartbeatThread.setPriority(Thread.MIN_PRIORITY);
-        heartbeatThread.start();
     }
 
     private static void registerGcNotificationListeners() {
@@ -93,12 +97,9 @@ public class GcMonitor {
                     // Drain recent GC pause duration
                     double gcPause = RECENT_GC_PAUSE_MS.sumThenReset();
 
-                    // Telemetry values: FPS and frametimes can be hooked from Native Core or estimated
-                    double fps = 0.0;
-                    double p99 = 0.0;
                     String backend = "OpenGL/LWJGL";
 
-                    IpcClient.sendTelemetry(fps, p99, gcPause, usedMb, totalMb, backend);
+                    IpcClient.sendTelemetry(gcPause, usedMb, totalMb, backend);
                 }
             } catch (InterruptedException ie) {
                 Thread.currentThread().interrupt();

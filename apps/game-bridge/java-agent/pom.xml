@@ -24,8 +24,7 @@
                     <archive>
                         <manifestEntries>
                             <Premain-Class>com.crystaltides.agent.CrystalAgent</Premain-Class>
-                            <Can-Redefine-Classes>true</Can-Redefine-Classes>
-                            <Can-Retransform-Classes>true</Can-Retransform-Classes>
+                            <Agent-Class>com.crystaltides.agent.CrystalAgent</Agent-Class>
                         </manifestEntries>
                     </archive>
                 </configuration>

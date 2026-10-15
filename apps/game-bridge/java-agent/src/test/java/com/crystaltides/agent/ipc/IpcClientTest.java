@@ -22,8 +22,8 @@ class IpcClientTest {
             IpcClient.sendHandshake(null, null, null, 0, null, null, null);
             IpcClient.sendHandshake("token\"with\\escape", "mc", "client", 1, "glR", "glV", "glVer");
             IpcClient.sendGameReady(1234L);
-            IpcClient.sendTelemetry(60.0, 16.6, 2.5, 512L, 2048L, "Vulkan");
-            IpcClient.sendTelemetry(0.0, 0.0, 0.0, null, null, null);
+            IpcClient.sendTelemetry(2.5, 512L, 2048L, "Vulkan");
+            IpcClient.sendTelemetry(0.0, null, null, null);
         });
     }
 
