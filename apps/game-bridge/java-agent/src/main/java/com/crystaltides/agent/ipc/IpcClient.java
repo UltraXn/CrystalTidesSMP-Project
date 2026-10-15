@@ -30,6 +30,10 @@ public class IpcClient {
     private static final int DEFAULT_PORT = 28195;
 
     private static final BlockingQueue<String> OUTGOING_QUEUE = new LinkedBlockingQueue<>(256);
+    // The launcher drops any connection whose first frame is not an authenticated handshake,
+    // so the handshake is kept aside and replayed as the first line of every (re)connection.
+    private static final AtomicReference<String> HANDSHAKE_FRAME = new AtomicReference<>();
+    private static final long HANDSHAKE_WAIT_MS = 50;
     private static final AtomicBoolean RUNNING = new AtomicBoolean(false);
     private static volatile boolean connected = false;
     private static final AtomicReference<Thread> WORKER_THREAD = new AtomicReference<>();
@@ -74,12 +78,15 @@ public class IpcClient {
 
     public static void sendJson(String json) {
         if (json == null || json.isEmpty()) return;
-        // Strip line breaks so each JSON payload is exactly one line
-        String singleLine = json.replace('\n', ' ').replace('\r', ' ').trim();
         // Drop message if queue is full to avoid any memory buildup
-        if (!OUTGOING_QUEUE.offer(singleLine)) {
+        if (!OUTGOING_QUEUE.offer(toSingleLine(json))) {
             LOGGER.warning("Outgoing queue full, dropping payload");
         }
+    }
+
+    private static String toSingleLine(String json) {
+        // Strip line breaks so each JSON payload is exactly one line
+        return json.replace('\n', ' ').replace('\r', ' ').trim();
     }
 
     public static void sendHandshake(
@@ -101,7 +108,7 @@ public class IpcClient {
         if (glVendor != null) sb.append(",\"gl_vendor\":\"").append(escape(glVendor)).append("\"");
         if (glVersion != null) sb.append(",\"gl_version\":\"").append(escape(glVersion)).append("\"");
         sb.append("}");
-        sendJson(sb.toString());
+        HANDSHAKE_FRAME.set(toSingleLine(sb.toString()));
     }
 
     public static void sendGameReady(long loadDurationMs) {
@@ -129,7 +136,10 @@ public class IpcClient {
         int backoffMs = 1000;
 
         while (RUNNING.get()) {
-            connectAndServe();
+            if (connectAndServe()) {
+                // A healthy session ended; retry quickly instead of inheriting old backoff
+                backoffMs = 1000;
+            }
             try {
                 Thread.sleep(backoffMs);
                 backoffMs = Math.min(backoffMs * 2, 5000);
@@ -140,16 +150,21 @@ public class IpcClient {
         }
     }
 
-    private static void connectAndServe() {
+    /** @return true if a connection was established during this attempt. */
+    private static boolean connectAndServe() {
+        boolean established = false;
         try (Socket socket = new Socket()) {
             socket.setTcpNoDelay(true);
             socket.connect(new InetSocketAddress(DEFAULT_HOST, targetPort), 3000);
 
+            established = true;
             connected = true;
             LOGGER.log(Level.INFO, "Connected to Tauri Launcher on port {0}", targetPort);
 
             try (PrintWriter writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8), true)) {
-                sendLoop(socket, writer);
+                if (sendHandshakeFrame(socket, writer)) {
+                    sendLoop(socket, writer);
+                }
             }
         } catch (InterruptedException ie) {
             Thread.currentThread().interrupt();
@@ -158,6 +173,23 @@ public class IpcClient {
         } finally {
             connected = false;
         }
+        return established;
+    }
+
+    /**
+     * Writes the handshake as the first frame of the connection, waiting for it to be
+     * registered if the worker connected before premain called sendHandshake.
+     */
+    private static boolean sendHandshakeFrame(Socket socket, PrintWriter writer) throws InterruptedException {
+        while (RUNNING.get() && !socket.isClosed()) {
+            String handshake = HANDSHAKE_FRAME.get();
+            if (handshake != null) {
+                writer.println(handshake);
+                return !writer.checkError();
+            }
+            Thread.sleep(HANDSHAKE_WAIT_MS);
+        }
+        return false;
     }
 
     private static void sendLoop(Socket socket, PrintWriter writer) throws InterruptedException {

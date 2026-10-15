@@ -1,18 +1,17 @@
-# Rust
-/native-core/target/
-**/*.rs.bk
-
 # Java
 /java-agent/target/
 **/*.class
 /test-env/com/
 
+# Logs & Crash Dumps
+hs_err_pid*.log
+replay_pid*.log
+test-env/agent.jar
+
 # Binaries
 *.dll
 *.exe
 *.jar
-!/test-env/agent.jar # Keeping the test agent for now
-!/test-env/game_bridge_core.dll
 
 # OS
 .DS_Store

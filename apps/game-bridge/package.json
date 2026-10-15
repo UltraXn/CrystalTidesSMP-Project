@@ -4,9 +4,8 @@
   "private": true,
   "scripts": {
     "build:java": "pwsh -NoProfile -ExecutionPolicy Bypass -File java-agent/build-agent.ps1",
-    "build:rust": "cargo build --manifest-path native-core/Cargo.toml --release",
-    "sync:assets": "pwsh -NoProfile -Command \"Copy-Item 'java-agent/target/game-bridge-1.0-SNAPSHOT.jar' '../launcher-lite/src-tauri/assets/game-bridge.jar' -Force; Copy-Item 'F:/cargo_target/release/game_bridge_core.dll' '../launcher-lite/src-tauri/assets/game_bridge_core.dll' -Force; Write-Host 'Assets synchronized'\"",
-    "build": "npm run build:java && npm run build:rust && npm run sync:assets",
-    "test": "cargo test --manifest-path native-core/Cargo.toml"
+    "sync:assets": "pwsh -NoProfile -Command \"Copy-Item 'java-agent/target/game-bridge-1.0-SNAPSHOT.jar' '../launcher-lite/src-tauri/assets/game-bridge.jar' -Force; Write-Host 'Assets synchronized'\"",
+    "build": "npm run build:java && npm run sync:assets",
+    "test": "cd java-agent && mvn -q test"
   }
 }

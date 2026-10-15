@@ -3,12 +3,11 @@ package com.crystaltides.agent;
 import java.lang.instrument.Instrumentation;
 
 /**
- * CrystalAgent - The JVM Infiltrator & Native Hardware Bridge.
+ * CrystalAgent - Ultra-low-overhead Minecraft Client Bridge.
  *
  * Injected as a -javaagent before Minecraft starts. Orchestrates:
  * 1. IPC connection to the CrystalTides Launcher (127.0.0.1).
  * 2. Non-intrusive JMX GC pause and memory telemetry.
- * 3. Win32 ThreadQoS & EcoQoS optimization for the main game thread.
  */
 @SuppressWarnings({"java:S106", "java:S1172"})
 public class CrystalAgent {
@@ -17,15 +16,10 @@ public class CrystalAgent {
         // Utility agent entrypoint
     }
 
-    private static volatile boolean nativeLoaded = false;
     private static final long START_TIME_MS = System.currentTimeMillis();
     private static final java.util.concurrent.atomic.AtomicBoolean GAME_READY_SENT = new java.util.concurrent.atomic.AtomicBoolean(false);
 
     public static void premain(String agentArgs, Instrumentation inst) {
-        System.out.println("==================================================");
-        System.out.println("🧟 [CrystalAgent] INJECTION SUCCESSFUL");
-        System.out.println("🧪 [CrystalAgent] JVM Infiltrator Active (v2.0-native)");
-
         // 1. Boot IPC client and Non-Intrusive GcMonitor
         com.crystaltides.agent.ipc.IpcClient.startAsyncClient();
         com.crystaltides.agent.telemetry.GcMonitor.start();
@@ -45,23 +39,7 @@ public class CrystalAgent {
             null
         );
 
-        try {
-            System.loadLibrary("game_bridge_core");
-            nativeLoaded = true;
-            String response = nativeInit("Core Init");
-            System.out.println(response);
-
-            // Automatically optimize the startup thread (capped at THREAD_PRIORITY_ABOVE_NORMAL)
-            String qos = nativeOptimizeCurrentThread(true);
-            System.out.println("⚡ [CrystalAgent] Initial Thread QoS: " + qos);
-        } catch (UnsatisfiedLinkError e) {
-            System.err.println("❌ [CrystalAgent] FAILED to load Native Core: " + e.getMessage());
-            System.err.println("⚠️ [CrystalAgent] Running in fallback software mode.");
-        } catch (Exception e) {
-            System.err.println("❌ [CrystalAgent] Error initializing Native Core: " + e.getMessage());
-        }
-
-        System.out.println("==================================================");
+        System.out.println("[CrystalAgent] Agente cargado (IPC iniciado)");
     }
 
     public static void notifyGameReady() {
@@ -75,14 +53,4 @@ public class CrystalAgent {
     public static void agentmain(String agentArgs, Instrumentation inst) {
         premain(agentArgs, inst);
     }
-
-    public static boolean isNativeLoaded() {
-        return nativeLoaded;
-    }
-
-    // --- Native JNI Interface (Rust game_bridge_core) ---
-
-    public static native String nativeInit(String input);
-
-    public static native String nativeOptimizeCurrentThread(boolean aboveNormal);
 }

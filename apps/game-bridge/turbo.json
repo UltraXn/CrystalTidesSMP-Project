@@ -1,0 +1,32 @@
+{
+  "$schema": "https://turborepo.dev/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "build": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "java-agent/src/**",
+        "java-agent/pom.xml",
+        "java-agent/checkstyle.xml",
+        "java-agent/build-agent.ps1",
+        "!java-agent/target/**"
+      ],
+      "outputs": [
+        "java-agent/target/game-bridge-1.0-SNAPSHOT.jar",
+        "../launcher-lite/src-tauri/assets/game-bridge.jar"
+      ],
+      "env": []
+    },
+    "test": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "java-agent/src/**",
+        "java-agent/pom.xml",
+        "java-agent/checkstyle.xml",
+        "!java-agent/target/**"
+      ],
+      "outputs": [],
+      "env": []
+    }
+  }
+}

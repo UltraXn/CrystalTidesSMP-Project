@@ -13,7 +13,6 @@ class CrystalAgentTest {
             CrystalAgent.notifyGameReady();
             // Second call should be a no-op (compareAndSet false)
             CrystalAgent.notifyGameReady();
-            assertFalse(CrystalAgent.isNativeLoaded());
         });
     }
 }
