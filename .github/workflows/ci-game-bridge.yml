@@ -1,0 +1,33 @@
+name: CI | Game Bridge Agent
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - apps/game-bridge/**
+      - .github/workflows/ci-game-bridge.yml
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - apps/game-bridge/**
+      - .github/workflows/ci-game-bridge.yml
+
+jobs:
+  java-agent:
+    name: Test Java Agent (game-bridge.jar)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: temurin
+          cache: maven
+
+      # El agente compila con release 17 (pom.xml); los tests abren sockets en 127.0.0.1
+      - name: Test with Maven
+        run: mvn -B -f apps/game-bridge/java-agent/pom.xml test

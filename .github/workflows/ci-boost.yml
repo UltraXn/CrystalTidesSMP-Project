@@ -1,0 +1,50 @@
+name: CI | CrystalTides Boost Mod
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - mods/crystaltides-boost/**
+      - .github/workflows/ci-boost.yml
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - mods/crystaltides-boost/**
+      - .github/workflows/ci-boost.yml
+
+jobs:
+  boost:
+    name: Build & Test (Fabric + NeoForge)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: mods/crystaltides-boost
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: temurin
+
+      # Cachea Loom/ModDevGradle (Minecraft, mappings, NeoForm): el primer build los descarga
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      # build incluye common:test y el annotation processor de Mixin (valida los targets
+      # de los mixins contra Minecraft 1.21.1 y genera el refmap de Fabric)
+      - name: Build & Test
+        run: ./gradlew build --no-daemon --console=plain
+
+      - name: Upload mod jars
+        uses: actions/upload-artifact@v4
+        with:
+          name: crystaltides-boost-jars
+          path: |
+            mods/crystaltides-boost/fabric/build/libs/crystaltides-boost-fabric-*.jar
+            mods/crystaltides-boost/neoforge/build/libs/crystaltides-boost-neoforge-*.jar
+            !mods/crystaltides-boost/**/*-sources.jar
+          if-no-files-found: error
