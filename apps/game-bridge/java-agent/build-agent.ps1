@@ -7,6 +7,10 @@ if (-not (Test-Path "$jdk\javac.exe")) {
 
 $agentDir = $PSScriptRoot
 Write-Host "Compiling Java Agent using JDK at: $jdk"
+# Start from a clean output dir so classes from deleted sources never end up in the jar
+if (Test-Path "$agentDir\target\classes") {
+    Remove-Item -Recurse -Force "$agentDir\target\classes"
+}
 New-Item -ItemType Directory -Force -Path "$agentDir\target\classes" | Out-Null
 
 $sources = Get-ChildItem -Path "$agentDir\src\main\java" -Recurse -Filter *.java | ForEach-Object { $_.FullName }
