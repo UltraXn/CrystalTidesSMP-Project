@@ -18,15 +18,22 @@ public final class BoostConfig {
 
     public static final String KEY_THREAD_QOS = "threadQos";
     public static final String KEY_ANIMATED_TEXTURE_CULLING = "animatedTextureCulling";
+    public static final String KEY_AGENT_BRIDGE = "agentBridge";
 
     private final boolean threadQos;
     private final boolean animatedTextureCulling;
+    private final boolean agentBridge;
 
     private static volatile BoostConfig instance;
 
     public BoostConfig(boolean threadQos, boolean animatedTextureCulling) {
+        this(threadQos, animatedTextureCulling, true);
+    }
+
+    public BoostConfig(boolean threadQos, boolean animatedTextureCulling, boolean agentBridge) {
         this.threadQos = threadQos;
         this.animatedTextureCulling = animatedTextureCulling;
+        this.agentBridge = agentBridge;
     }
 
     public static BoostConfig getInstance() {
@@ -76,8 +83,9 @@ public final class BoostConfig {
 
         boolean threadQos = parseBooleanStrict(properties.getProperty(KEY_THREAD_QOS), true);
         boolean animatedTextureCulling = parseBooleanStrict(properties.getProperty(KEY_ANIMATED_TEXTURE_CULLING), true);
+        boolean agentBridge = parseBooleanStrict(properties.getProperty(KEY_AGENT_BRIDGE), true);
 
-        return new BoostConfig(threadQos, animatedTextureCulling);
+        return new BoostConfig(threadQos, animatedTextureCulling, agentBridge);
     }
 
     private static boolean parseBooleanStrict(String value, boolean defaultValue) {
@@ -112,7 +120,9 @@ public final class BoostConfig {
                 writer.write("# Elevates the OpenGL / Iris render thread to MAX_PRIORITY for lower jitter\n");
                 writer.write(KEY_THREAD_QOS + "=" + threadQos + "\n\n");
                 writer.write("# Skips ticking animated textures when the game window is minimized (iconified)\n");
-                writer.write(KEY_ANIMATED_TEXTURE_CULLING + "=" + animatedTextureCulling + "\n");
+                writer.write(KEY_ANIMATED_TEXTURE_CULLING + "=" + animatedTextureCulling + "\n\n");
+                writer.write("# Reports FPS / p99 frametime and game_ready to the CrystalTides launcher (no-op without it)\n");
+                writer.write(KEY_AGENT_BRIDGE + "=" + agentBridge + "\n");
             }
         } catch (IOException e) {
             LOGGER.warn("[CrystalTides Boost] Could not write default config to {}: {}", targetFile, e.getMessage());
@@ -125,5 +135,9 @@ public final class BoostConfig {
 
     public boolean isAnimatedTextureCullingEnabled() {
         return animatedTextureCulling;
+    }
+
+    public boolean isAgentBridgeEnabled() {
+        return agentBridge;
     }
 }

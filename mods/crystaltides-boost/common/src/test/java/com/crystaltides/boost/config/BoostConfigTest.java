@@ -46,6 +46,33 @@ class BoostConfigTest {
     }
 
     @Test
+    @DisplayName("agentBridge es true por defecto (configs antiguas sin la clave) y se desactiva explícitamente")
+    void testAgentBridgeKey() {
+        assertTrue(BoostConfig.parse(new StringReader("threadQos=true\nanimatedTextureCulling=true")).isAgentBridgeEnabled(),
+            "Una config previa sin agentBridge debe mantener el bridge activo");
+        assertTrue(new BoostConfig(true, true).isAgentBridgeEnabled());
+
+        BoostConfig disabled = BoostConfig.parse(new StringReader("agentBridge=false"));
+        assertFalse(disabled.isAgentBridgeEnabled(), "agentBridge=false debe desactivar el bridge");
+        assertTrue(disabled.isThreadQosEnabled());
+        assertTrue(disabled.isAnimatedTextureCullingEnabled());
+    }
+
+    @Test
+    @DisplayName("La config por defecto escrita a disco incluye agentBridge y se puede releer")
+    void testSaveDefaultRoundTrip(@org.junit.jupiter.api.io.TempDir java.nio.file.Path dir) throws Exception {
+        java.nio.file.Path file = dir.resolve(BoostConfig.FILE_NAME);
+        new BoostConfig(true, false, false).saveDefault(file);
+        String content = java.nio.file.Files.readString(file);
+        assertTrue(content.contains("agentBridge=false"), content);
+
+        BoostConfig reloaded = BoostConfig.parse(new StringReader(content));
+        assertTrue(reloaded.isThreadQosEnabled());
+        assertFalse(reloaded.isAnimatedTextureCullingEnabled());
+        assertFalse(reloaded.isAgentBridgeEnabled());
+    }
+
+    @Test
     @DisplayName("Valores explícitos 'true' (case-insensitive y con espacios) deben habilitar los mixins")
     void testExplicitTrueEnablesMixins() {
         String input = "threadQos = true \nanimatedTextureCulling = TRUE ";

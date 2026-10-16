@@ -1,5 +1,6 @@
 package com.crystaltides.boost.mixin;
 
+import com.crystaltides.boost.bridge.AgentBridge;
 import com.crystaltides.boost.config.BoostConfig;
 import org.objectweb.asm.tree.ClassNode;
 import org.slf4j.Logger;
@@ -18,8 +19,8 @@ public class BoostMixinPlugin implements IMixinConfigPlugin {
     @Override
     public void onLoad(String mixinPackage) {
         this.config = BoostConfig.getInstance();
-        LOGGER.info("[CrystalTides Boost] Mixin configuration plugin loaded. ThreadQoS: {}, AnimatedTextureCulling: {}",
-            config.isThreadQosEnabled(), config.isAnimatedTextureCullingEnabled());
+        LOGGER.info("[CrystalTides Boost] Mixin configuration plugin loaded. ThreadQoS: {}, AnimatedTextureCulling: {}, AgentBridge: {}",
+            config.isThreadQosEnabled(), config.isAnimatedTextureCullingEnabled(), config.isAgentBridgeEnabled());
     }
 
     @Override
@@ -45,7 +46,28 @@ public class BoostMixinPlugin implements IMixinConfigPlugin {
             return enabled;
         }
 
+        if (mixinClassName.endsWith("FrameTelemetryMixin") || mixinClassName.endsWith("GameReadyMixin")) {
+            return shouldApplyAgentBridgeMixin(mixinClassName);
+        }
+
         return true;
+    }
+
+    private boolean shouldApplyAgentBridgeMixin(String mixinClassName) {
+        if (config == null || !config.isAgentBridgeEnabled()) {
+            LOGGER.info("[CrystalTides Boost] Disabling {} via configuration.", simpleName(mixinClassName));
+            return false;
+        }
+        // Without the launcher agent there is nobody to report to: skip the per-frame hook entirely
+        if (!AgentBridge.isAgentPresent()) {
+            LOGGER.info("[CrystalTides Boost] Launcher agent not present; skipping {}.", simpleName(mixinClassName));
+            return false;
+        }
+        return true;
+    }
+
+    private static String simpleName(String className) {
+        return className.substring(className.lastIndexOf('.') + 1);
     }
 
     @Override

@@ -5,7 +5,12 @@
   "compatibilityLevel": "JAVA_21",
   "plugin": "com.crystaltides.boost.mixin.BoostMixinPlugin",
   "mixins": [],
-  "client": ["ThreadQosMixin", "AnimatedTextureCullingMixin"],
+  "client": [
+    "ThreadQosMixin",
+    "AnimatedTextureCullingMixin",
+    "FrameTelemetryMixin",
+    "GameReadyMixin"
+  ],
   "injectors": {
     "defaultRequire": 1
   }

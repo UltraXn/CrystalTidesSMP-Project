@@ -30,10 +30,11 @@ public final class CrystalTidesBoostCommon {
         LOGGER.info("[{}] Initialized on {}", MOD_NAME, platformName);
 
         BoostConfig config = BoostConfig.getInstance();
-        LOGGER.info("[{}] Active optimizations -> ThreadQoS: {}, AnimatedTextureCulling: {}",
+        LOGGER.info("[{}] Active optimizations -> ThreadQoS: {}, AnimatedTextureCulling: {}, AgentBridge: {}",
             MOD_NAME,
             config.isThreadQosEnabled() ? "ENABLED" : "DISABLED",
-            config.isAnimatedTextureCullingEnabled() ? "ENABLED" : "DISABLED"
+            config.isAnimatedTextureCullingEnabled() ? "ENABLED" : "DISABLED",
+            config.isAgentBridgeEnabled() ? "ENABLED" : "DISABLED"
         );
     }
 }
