@@ -9,14 +9,64 @@ neoForge {
         configureEach {
             systemProperty 'neoforge.enabledGameTestNamespaces', 'crystaltides_boost'
             jvmArgument '-Dmixin.debug.verbose=true'
+            // -PmixinExport: dumps transformed classes to run/.mixin.out
+            if (project.hasProperty('mixinExport')) {
+                jvmArgument '-Dmixin.debug.export=true'
+            }
+            // -PmixinStrict: injections without targets become errors, even optional ones (require = 0).
+            // Do not combine with -PcompatTest: compatibility mods rely on optional injectors.
+            if (project.hasProperty('mixinStrict')) {
+                jvmArgument '-Dmixin.debug.countInjections=true'
+            }
+            // -PagentJar=<path>/game-bridge.jar: attach the launcher agent to exercise the telemetry mixins
+            if (project.hasProperty('agentJar')) {
+                jvmArgument "-javaagent:${project.property('agentJar')}"
+            }
         }
         client {
             client()
+            // -PquickPlay=<host:port>: connect on startup (opens a client Netty connection for NettyQosMixin)
+            if (project.hasProperty('quickPlay')) {
+                programArguments.addAll('--quickPlayMultiplayer', project.property('quickPlay').toString())
+            }
         }
     }
     mods {
         crystaltides_boost {
             sourceSet sourceSets.main
         }
+    }
+}
+
+// Dev-only compatibility runs (never part of the jar or CI):
+//   ./gradlew :neoforge:runClient -PcompatTest                     Sodium + Iris + ImmediatelyFast
+//   ./gradlew :neoforge:runClient -PcompatTest -PcompatDynamicFps  ...plus Dynamic FPS (eco mode must switch off)
+if (project.hasProperty('compatTest')) {
+    repositories {
+        exclusiveContent {
+            forRepository {
+                maven {
+                    name = 'Modrinth'
+                    url = 'https://api.modrinth.com/maven'
+                }
+            }
+            filter { includeGroup('maven.modrinth') }
+        }
+    }
+    dependencies {
+        runtimeOnly "maven.modrinth:sodium:${compat_sodium_version}-neoforge"
+        runtimeOnly "maven.modrinth:iris:${compat_iris_version}-neoforge"
+        runtimeOnly "maven.modrinth:immediatelyfast:${compat_immediatelyfast_version}-neoforge"
+        if (project.hasProperty('compatDynamicFps')) {
+            runtimeOnly "maven.modrinth:dynamic-fps:${compat_dynamic_fps_neoforge}"
+        }
+    }
+}
+
+// The common mixin config names Fabric's Intermediary refmap; NeoForge runs on Mojang names and
+// ships no refmap, so drop the key here instead of letting Mixin warn about a missing file.
+processResources {
+    filesMatching('*.mixins.json') {
+        filter { String line -> line.contains('"refmap"') ? null : line }
     }
 }

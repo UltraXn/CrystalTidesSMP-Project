@@ -26,15 +26,13 @@ public final class CrystalTidesBoostCommon {
             return;
         }
 
-        String platformName = Services.PLATFORM.getPlatformName();
-        LOGGER.info("[{}] Initialized on {}", MOD_NAME, platformName);
-
+        // Which mixins are active (and why the others are not) is decided and logged by BoostMixinPlugin
         BoostConfig config = BoostConfig.getInstance();
-        LOGGER.info("[{}] Active optimizations -> ThreadQoS: {}, AnimatedTextureCulling: {}, AgentBridge: {}",
+        LOGGER.info("[{}] Initialized on {} (background eco: {}, thread QoS: {})",
             MOD_NAME,
-            config.isThreadQosEnabled() ? "ENABLED" : "DISABLED",
-            config.isAnimatedTextureCullingEnabled() ? "ENABLED" : "DISABLED",
-            config.isAgentBridgeEnabled() ? "ENABLED" : "DISABLED"
+            Services.PLATFORM.getPlatformName(),
+            config.isBackgroundEcoEnabled() ? "enabled" : "disabled",
+            config.isThreadQosEnabled() ? "enabled" : "disabled"
         );
     }
 }

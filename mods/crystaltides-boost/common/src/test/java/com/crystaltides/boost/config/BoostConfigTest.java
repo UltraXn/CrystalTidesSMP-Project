@@ -2,9 +2,13 @@ package com.crystaltides.boost.config;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.StringReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -79,5 +83,104 @@ class BoostConfigTest {
         BoostConfig config = BoostConfig.parse(new StringReader(input));
         assertTrue(config.isThreadQosEnabled(), "threadQos debe ser true");
         assertTrue(config.isAnimatedTextureCullingEnabled(), "animatedTextureCulling debe ser true");
+    }
+
+    @Test
+    @DisplayName("Una config de la versión 1.0 (sin las claves nuevas) recibe los valores por defecto de eco, QoS, render y workers")
+    void testLegacyConfigGetsNewDefaults() {
+        BoostConfig config = BoostConfig.parse(new StringReader("threadQos=true\nanimatedTextureCulling=true\nagentBridge=true"));
+        assertEquals(BoostConfig.DEFAULT_SOUND_THREAD_PRIORITY, config.getSoundThreadPriority());
+        assertEquals(BoostConfig.DEFAULT_NETWORK_THREAD_PRIORITY, config.getNetworkThreadPriority());
+        assertTrue(config.isBackgroundEcoEnabled());
+        assertEquals(BoostConfig.DEFAULT_UNFOCUSED_FPS_LIMIT, config.getUnfocusedFpsLimit());
+        assertEquals(BoostConfig.DEFAULT_MINIMIZED_FPS_LIMIT, config.getMinimizedFpsLimit());
+        assertFalse(config.isMuteWhenMinimized(), "silenciar al minimizar es opcional (false por defecto)");
+        assertTrue(config.isFastAmbientParticlesEnabled());
+        assertTrue(config.isShaderSamplerCacheEnabled());
+        assertTrue(config.isSkipFrameYield(), "skipFrameYield=true por defecto");
+        assertEquals(BoostConfig.BACKGROUND_WORKERS_AUTO, config.getBackgroundWorkerLimit(), "backgroundWorkerLimit=auto por defecto");
+    }
+
+    @Test
+    @DisplayName("Prioridades y límites de FPS fuera de rango se ajustan al rango y los no numéricos usan el defecto")
+    void testNumericKeysAreClampedOrDefaulted() {
+        BoostConfig clamped = BoostConfig.parse(new StringReader(
+            "soundThreadPriority=15\nnetworkThreadPriority=-3\nunfocusedFpsLimit=1000\nminimizedFpsLimit=-1"));
+        assertEquals(10, clamped.getSoundThreadPriority());
+        assertEquals(0, clamped.getNetworkThreadPriority());
+        assertEquals(BoostConfig.MAX_FPS_LIMIT, clamped.getUnfocusedFpsLimit(), "260+ sería 'ilimitado' para runTick");
+        assertEquals(0, clamped.getMinimizedFpsLimit());
+
+        BoostConfig invalid = BoostConfig.parse(new StringReader(
+            "soundThreadPriority=high\nnetworkThreadPriority=\nunfocusedFpsLimit=30fps\nminimizedFpsLimit= 12 "));
+        assertEquals(BoostConfig.DEFAULT_SOUND_THREAD_PRIORITY, invalid.getSoundThreadPriority());
+        assertEquals(BoostConfig.DEFAULT_NETWORK_THREAD_PRIORITY, invalid.getNetworkThreadPriority());
+        assertEquals(BoostConfig.DEFAULT_UNFOCUSED_FPS_LIMIT, invalid.getUnfocusedFpsLimit());
+        assertEquals(12, invalid.getMinimizedFpsLimit(), "se recortan los espacios");
+    }
+
+    @Test
+    @DisplayName("Las claves booleanas nuevas se leen y la plantilla escrita conserva todos los valores")
+    void testTemplateRoundTripWithAllKeys(@TempDir Path dir) throws Exception {
+        BoostConfig custom = BoostConfig.builder()
+            .threadQos(false)
+            .soundThreadPriority(9)
+            .networkThreadPriority(0)
+            .backgroundEco(false)
+            .unfocusedFpsLimit(45)
+            .minimizedFpsLimit(0)
+            .muteWhenMinimized(true)
+            .animatedTextureCulling(false)
+            .fastAmbientParticles(false)
+            .shaderSamplerCache(false)
+            .skipFrameYield(false)
+            .backgroundWorkerLimit(6)
+            .agentBridge(false)
+            .build();
+        Path file = dir.resolve(BoostConfig.FILE_NAME);
+        custom.saveDefault(file);
+
+        String content = Files.readString(file);
+        for (String key : new String[] {
+            BoostConfig.KEY_THREAD_QOS, BoostConfig.KEY_SOUND_THREAD_PRIORITY, BoostConfig.KEY_NETWORK_THREAD_PRIORITY,
+            BoostConfig.KEY_BACKGROUND_ECO, BoostConfig.KEY_UNFOCUSED_FPS_LIMIT, BoostConfig.KEY_MINIMIZED_FPS_LIMIT,
+            BoostConfig.KEY_MUTE_WHEN_MINIMIZED, BoostConfig.KEY_ANIMATED_TEXTURE_CULLING, BoostConfig.KEY_FAST_AMBIENT_PARTICLES,
+            BoostConfig.KEY_SHADER_SAMPLER_CACHE, BoostConfig.KEY_SKIP_FRAME_YIELD, BoostConfig.KEY_BACKGROUND_WORKER_LIMIT,
+            BoostConfig.KEY_AGENT_BRIDGE}) {
+            assertTrue(content.contains(key + "="), "falta la clave " + key);
+        }
+
+        BoostConfig reloaded = BoostConfig.load(dir);
+        assertFalse(reloaded.isThreadQosEnabled());
+        assertEquals(9, reloaded.getSoundThreadPriority());
+        assertEquals(0, reloaded.getNetworkThreadPriority());
+        assertFalse(reloaded.isBackgroundEcoEnabled());
+        assertEquals(45, reloaded.getUnfocusedFpsLimit());
+        assertEquals(0, reloaded.getMinimizedFpsLimit());
+        assertTrue(reloaded.isMuteWhenMinimized());
+        assertFalse(reloaded.isAnimatedTextureCullingEnabled());
+        assertFalse(reloaded.isFastAmbientParticlesEnabled());
+        assertFalse(reloaded.isShaderSamplerCacheEnabled());
+        assertFalse(reloaded.isSkipFrameYield());
+        assertEquals(6, reloaded.getBackgroundWorkerLimit());
+        assertFalse(reloaded.isAgentBridgeEnabled());
+    }
+
+    @Test
+    @DisplayName("Sin archivo se escribe la plantilla por defecto y un archivo existente nunca se reescribe")
+    void testLoadWritesDefaultsOnlyWhenMissing(@TempDir Path dir) throws Exception {
+        BoostConfig created = BoostConfig.load(dir);
+        Path file = dir.resolve(BoostConfig.FILE_NAME);
+        assertTrue(Files.exists(file));
+        String template = Files.readString(file);
+        assertEquals(BoostConfig.defaults().template(), template);
+        assertTrue(template.contains(BoostConfig.KEY_BACKGROUND_WORKER_LIMIT + "=auto"), "auto se escribe por nombre");
+        assertTrue(template.contains(BoostConfig.KEY_SKIP_FRAME_YIELD + "=true"));
+        assertTrue(created.isBackgroundEcoEnabled());
+
+        Files.writeString(file, "# editado a mano\nunfocusedFpsLimit=20\n");
+        BoostConfig edited = BoostConfig.load(dir);
+        assertEquals(20, edited.getUnfocusedFpsLimit());
+        assertEquals("# editado a mano\nunfocusedFpsLimit=20\n", Files.readString(file));
     }
 }

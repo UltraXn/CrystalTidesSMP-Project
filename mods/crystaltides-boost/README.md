@@ -1,105 +1,160 @@
 # ⚡ CrystalTides Boost (`crystaltides-boost`)
 
-> **Client-side performance & thread scheduling mod for Minecraft 1.21.1.**  
-> Arquitectura MultiLoader nativa (`common`, `fabric`, `neoforge`) construida con **Fabric Loom** y **NeoForge ModDevGradle**. Diseñado para estabilizar frametimes, optimizar la prioridad del render thread y eliminar sobrecarga de VRAM cuando el juego está minimizado, manteniendo 100% de compatibilidad con **Sodium**, **Iris**, **Embeddium** y **Oculus**.
+> **Client-side performance & thread scheduling mod for Minecraft 1.21.1.**
+> Arquitectura MultiLoader nativa (`common`, `fabric`, `neoforge`) construida con **Fabric Loom** y **NeoForge ModDevGradle**. Estabiliza el frametime, prioriza los hilos de render, audio y red, y reduce el consumo cuando el juego está en segundo plano. Compatible con **Sodium**, **Embeddium**, **Iris**, **Oculus** e **ImmediatelyFast**.
 
 ---
 
 ## 🏗️ 1. Arquitectura MultiLoader
 
-El proyecto se estructura bajo el estándar MultiLoader de Gradle 8.10:
-
 ```
 mods/crystaltides-boost/
 ├── common/                  # Lógica agnóstica de plataforma, config y Mixins
-│   ├── src/main/java/com/crystaltides/boost/
-│   │   ├── config/          # Parser BoostConfig (crystaltides-boost.properties)
-│   │   ├── mixin/           # ThreadQosMixin, AnimatedTextureCullingMixin, BoostMixinPlugin
-│   │   └── platform/        # Abstracción de servicios de plataforma (IPlatformHelper)
-├── fabric/                  # Subproyecto Fabric (Fabric Loom 1.8.x + Intermediary Refmap)
-├── neoforge/                # Subproyecto NeoForge (ModDevGradle 2.0.x + NeoForm Refmap)
-└── buildSrc/                # Convenciones Gradle compartidas (multiloader-common, multiloader-loader)
+│   └── src/main/java/com/crystaltides/boost/
+│       ├── bridge/          # AgentBridge (telemetría hacia el launcher, MethodHandle invokeExact)
+│       ├── client/          # BackgroundEco, BackgroundWorkers, AmbientBiomes, ThreadQos, WindowStateTracker (+ GlfwIconifyHook)
+│       ├── compat/          # CompatReport (mods detectados) y MixinSelection (qué mixins aplicar)
+│       ├── config/          # BoostConfig (crystaltides-boost.properties)
+│       ├── mixin/           # Mixins + BoostMixinPlugin
+│       └── platform/        # IPlatformHelper + Services (ServiceLoader)
+├── fabric/                  # Fabric Loom 1.8.x (refmap Intermediary)
+├── neoforge/                # ModDevGradle 2.0.x (Mojmap en runtime, sin refmap)
+└── buildSrc/                # Convenciones Gradle compartidas
 ```
 
-- **Mapeos Oficiales**: Desarrollado contra mappings oficiales de Mojang en tiempo de compilación.
-- **Refmaps de Producción**: Fabric genera automáticamente `crystaltides-boost.refmap.json` mapeando a Intermediary (`class_310`, `class_1060`, etc.), garantizando que los mixins operen en clientes de producción sin requerir mappings de desarrollo.
-- **Identificadores Normalizados**:
-  - Fabric: `id = "crystaltides-boost"` en `fabric.mod.json`.
-  - NeoForge: `modId = "crystaltides_boost"` en `neoforge.mods.toml` (cumpliendo con la restricción FML `^[a-z][a-z0-9_]{1,63}$`).
+- **Mapeos:** Mojang oficiales (Mojmap 1.21.1) en todo el código.
+- **Refmap de Fabric:** el JSON común declara `"refmap": "${mod_id}.refmap.json"`. Loom solo añade esa clave a los JSON de su propio source set, y este llega desde `:common`; sin ella, en producción (Intermediary) los mixins no encuentran sus objetivos. En NeoForge la clave se elimina al empaquetar, porque allí no hay refmap.
+- **MixinExtras 0.4.1:** lo incluyen Fabric Loader 0.16+ y NeoForge 21.1. En el build se usa `compileOnly`, y en Fabric también el procesador de anotaciones, que genera las entradas del refmap de `@ModifyReturnValue` y `@WrapWithCondition`.
+- **IDs:** Fabric `crystaltides-boost`; NeoForge `crystaltides_boost` (FML exige `^[a-z][a-z0-9_]{1,63}$`).
 
 ---
 
-## 🚀 2. Optimizaciones Activas
+## 🚀 2. Optimizaciones
 
-| Optimización                    | Clase Destino en MC 1.21.1                                    | Funcionamiento & Beneficio                                                                                                                                                                                                                                                                                                                                                                                                       |
-| :------------------------------ | :------------------------------------------------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Render Thread QoS**           | `net.minecraft.client.Minecraft.run()`                        | Eleva el hilo de renderizado principal (`Render thread`) a `Thread.MAX_PRIORITY` (10) inmediatamente al iniciar el bucle de juego. Minimiza la latencia de entrada y previene micro-tirones (frame drops) causados por la contención de hilos de fondo del sistema operativo o del recolector de basura (GC).                                                                                                                    |
-| **Animated Texture Culling**    | `net.minecraft.client.renderer.texture.TextureManager.tick()` | Consulta el estado de la ventana en tiempo real vía GLFW (`GLFW.glfwGetWindowAttrib(window, GLFW.GLFW_ICONIFIED) == GLFW.GLFW_TRUE`). Si el cliente está minimizado en la barra de tareas, congela el procesamiento de texturas animadas y las subidas a la VRAM (`glTexSubImage2D`), reduciendo drásticamente el uso de GPU en segundo plano. Al restaurar la ventana, las texturas continúan fluidamente sin desincronización. |
-| **Agent Bridge (Frametime)**    | `net.minecraft.client.Minecraft.runTick(boolean)`             | Reporta el inicio de cada frame al agente `game-bridge.jar` del launcher, que calcula FPS medio y frametime p99 por ventana de 1 s y los envía por IPC. Llamada sin allocations vía `MethodHandle` resuelto en el system class loader. Solo se aplica si el agente está presente.                                                                                                                                                |
-| **Agent Bridge (`game_ready`)** | `net.minecraft.client.gui.screens.TitleScreen.init()`         | Al inicializarse por primera vez la pantalla de título, notifica `game_ready` al launcher (una sola vez por sesión). Solo se aplica si el agente está presente.                                                                                                                                                                                                                                                                  |
+| Optimización | Objetivo (Mojmap 1.21.1) | Qué hace |
+| :-- | :-- | :-- |
+| **Render thread QoS** | `Minecraft.run()` | Sube el hilo de render a `MAX_PRIORITY` (10). Vanilla ya lo hace con más de 4 núcleos; este mixin lo aplica también con 4 o menos, a costa de algo de CPU del servidor integrado en singleplayer. |
+| **Sound thread QoS** | `SoundEngineExecutor.run()` | Sube a prioridad 8 como mínimo (configurable) el hilo "Sound engine", que decodifica la música y los discos en streaming. Evita cortes cuando los workers de chunks saturan la CPU. |
+| **Netty client IO QoS** | `Connection.channelActive(...)` | Sube a prioridad 7 como mínimo (configurable) el hilo de E/S que atiende la conexión del cliente. Las conexiones del servidor integrado no se tocan. |
+| **Modo eco en segundo plano** | `Minecraft.getFramerateLimit()` | 5 FPS con la ventana minimizada y 30 FPS sin foco (configurable). Nunca sube tu límite y no actúa durante la carga de recursos. Se desactiva solo si hay Dynamic FPS o FPS Reducer. |
+| **Silencio al minimizar** (opcional) | `SoundEngine.updateSource(Camera)` | Ganancia 0 en el listener de OpenAL mientras está minimizado y restaura tu volumen al volver, sin modificar las opciones. |
+| **Animated texture culling** | llamada a `TextureManager.tick()` en `Minecraft.tick()` | Minimizado, deja de subir texturas animadas a la GPU. Congela de forma coherente vanilla, el seguimiento de sprites de Sodium y los atlas PBR de Iris. |
+| **Partículas ambientales rápidas** | `ClientLevel.animateTick(...)` y `doAnimateTick(...)` | Una vez por segundo comprueba si algún bioma cercano tiene partículas ambientales (en vanilla, solo algunos del Nether). Mientras ninguno las tenga, se salta la búsqueda de bioma que `doAnimateTick` hace en cada posición; en el perfil era el 22 % del tiempo Java del hilo de render. Sodium e Iris no tocan este código. |
+| **Caché de samplers de shader** | llamada a `Uniform.glGetUniformLocation` en `ShaderInstance.apply()` | Reutiliza la posición de cada sampler, que vanilla ya guarda al enlazar el shader, en vez de pedírsela al driver en cada `apply()`; en el perfil con NVIDIA era el 21 % del tiempo nativo del hilo de render. Se omite con Sodium o Embeddium, que traen el mismo arreglo. |
+| **Sin `Thread.yield()` por frame** | llamada a `Thread.yield()` en `Minecraft.runTick(boolean)` | Quita la cesión de CPU del final de cada frame. En Windows, `yield` entrega el núcleo del hilo de render a cualquier hilo listo en ese núcleo, workers incluidos. |
+| **Límite de workers en segundo plano** | `Util.getMaxThreads()` | Reduce el pool `Worker-Main`, que genera el terreno en singleplayer y construye las mallas de chunks con el renderer vanilla (Sodium usa sus propios hilos). `auto` usa la mitad de las CPUs lógicas menos uno, con un mínimo de 2. Un `-Dmax.bg.threads` explícito siempre gana. Solo cambia el máximo que lee `Util.makeExecutor`, sin tocar sus lambdas (ver §4). |
+| **Agent bridge (frametime)** | `Minecraft.runTick(boolean)` | Marca el inicio de cada frame para el agente `game-bridge.jar` del launcher (FPS y p99). Solo se aplica si el agente está presente. |
+| **Agent bridge (`game_ready`)** | `Minecraft.onGameLoadFinished(...)` | Avisa al launcher cuando termina la carga inicial, también con quickPlay o con la pantalla de accesibilidad del primer arranque. Solo se aplica si el agente está presente. |
+
+**Prioridades de hilo:**
+- HotSpot en Windows traduce 5-6 a NORMAL, 7-8 a ABOVE_NORMAL y 9-10 a HIGHEST. En Linux las prioridades de Java se ignoran salvo con `-XX:ThreadPriorityPolicy=1` y root.
+- Solo se suben, nunca se bajan. Un hilo de Java hereda la prioridad de quien lo crea, así que los hilos que vanilla recrea desde el hilo de render (por ejemplo, "Sound engine" al recargar el sonido) pueden llegar ya con prioridad 10, y se respeta.
+
+**Cero asignaciones** en los hooks que se ejecutan en cada frame o en cada tick:
+- `@ModifyVariable`, `@ModifyReturnValue`, `@ModifyExpressionValue` y `@WrapWithCondition` no reciben `CallbackInfo` ni crean objetos.
+- El `@Inject` por tick de las partículas ambientales no es cancelable y no usa su `CallbackInfo`, así que Mixin pasa `null`.
+- El `@WrapOperation` de la caché de samplers envuelve una llamada estática, así que MixinExtras 0.4.1 genera un `Operation` sin capturas (una única instancia). Solo empaqueta argumentos el camino de respaldo, que vanilla nunca toma.
+- El resto de `@Inject` se ejecutan una sola vez: al arrancar un hilo, al abrir una conexión o al terminar la carga.
+
+**Compatibilidad verificada** contra el código de Sodium `mc1.21.1-0.6.9` e Iris `1.21.1`:
+- Ninguno de los dos toca `getFramerateLimit` ni `limitDisplayFPS`.
+- La espera de fence que Sodium inyecta en `runTick` queda dentro del intervalo de frame una sola vez.
+- Cancelar el tick de texturas congela juntos los contadores de Sodium y los atlas PBR de Iris.
+
+**Medido:** Fabric sin Sodium, flags de JVM del launcher (ZGC), afinidad de 12 hilos (6 núcleos con SMT), vuelo de 3 minutos generando terreno nuevo y 2 runs por configuración. Cada fila añade algo a la anterior:
+
+| Configuración | FPS medio | p99 (mediana) | Peor segundo | Secciones renderizadas |
+| :-- | --: | --: | --: | --: |
+| Base: QoS de hilos, sin las optimizaciones de abajo | 85,7 / 155,7 ¹ | 70,6 / 12,2 ms | 8,5 / 122,8 | 516 |
+| + partículas ambientales y caché de samplers | 88,7 | 72,4 ms | 29,0 | 510 |
+| + sin `Thread.yield()` | 96,3 | 53,1 ms | 31,5 | 507 |
+| + 6 workers (vanilla: 11) | 114,2 | 19,0 ms | 57,9 | 481 |
+| + 4 workers | 135,1 | 14,4 ms | 79,3 | 432 |
+
+¹ Las dos runs base difieren mucho: la segunda se mantuvo en 156 FPS con el terreno cargado y no se identificó la causa. Las otras nueve runs son coherentes entre sí.
+
+- Menos workers también significa menos terreno a la vista mientras se genera: un 7 % menos de secciones con 6 workers y un 16 % menos con 4. Parte de la subida de FPS viene de ahí.
+- `auto` (5 workers con 12 hilos) no se midió directamente; queda entre las dos últimas filas.
+- Ninguna run superó ~165 FPS en un segundo. Es un tope externo al juego, probablemente del driver, y recorta las diferencias por arriba.
+- El arranque no cambió: 16-19 s de recursos y 5-6 s de mundo en todas las runs.
 
 ---
 
-## ⚙️ 3. Configuración (`crystaltides-boost.properties`)
+## ⚙️ 3. Configuración (`<gameDir>/config/crystaltides-boost.properties`)
 
-El mod lee su configuración automáticamente desde el directorio estándar `config/` relativo al entorno de ejecución de la instancia:
+El plugin de mixins la lee una sola vez, antes de que se cargue cualquier clase de Minecraft. Si el archivo no existe, se crea con valores documentados; un archivo existente nunca se reescribe y las claves que falten toman su valor por defecto.
 
-**Ruta:** `<gameDir>/config/crystaltides-boost.properties`
+Los valores por defecto (en un `.properties` los comentarios van en su propia línea):
 
 ```properties
-# CrystalTides Boost - Configuración de Optimización
-# Valores: true | false
-
 threadQos=true
+# 1-10, 0 = no tocar
+soundThreadPriority=8
+networkThreadPriority=7
+backgroundEco=true
+# 1-259, 0 = sin límite
+unfocusedFpsLimit=30
+# 1-259, 0 = usar unfocusedFpsLimit
+minimizedFpsLimit=5
+muteWhenMinimized=false
 animatedTextureCulling=true
+fastAmbientParticles=true
+# se omite solo con Sodium o Embeddium
+shaderSamplerCache=true
+skipFrameYield=true
+# auto, 0 = vanilla, o un número fijo de 1 a 255
+backgroundWorkerLimit=auto
 agentBridge=true
 ```
 
-El plugin de configuración de Mixins (`BoostMixinPlugin`, implementando `IMixinConfigPlugin`) lee este archivo antes de que las clases del juego sean cargadas por el ClassLoader, permitiendo activar o desactivar cada optimización a nivel de bytecode de forma segura. Los mixins de `agentBridge` además se omiten automáticamente cuando el juego no fue lanzado con el agente (`-javaagent:game-bridge.jar`), así que fuera del launcher no añaden ningún hook por frame. Las configs existentes sin la clave `agentBridge` la toman como `true`.
+`backgroundWorkerLimit=auto` supone dos CPUs lógicas por núcleo. Si la afinidad del proceso deja un solo hilo por núcleo, `auto` se queda corto; es lo que hace el launcher en Xeon con HT y en Intel híbridos. En ese caso, usa un número fijo o pasa `-Dmax.bg.threads`.
+
+Al arrancar, el log muestra la plataforma, los mods detectados (Sodium, Embeddium, Iris, Oculus, ImmediatelyFast, Dynamic FPS, FPS Reducer, Lithium y FerriteCore), los mixins activos y los desactivados, con el motivo de cada uno.
 
 ---
 
-## 🗑️ 4. Mixins Obsoletos / Eliminados (Auditoría Técnica)
+## 🗑️ 4. Mixins eliminados (no reintroducir)
 
-Durante la refactorización arquitectónica de la versión 1.21.1, se eliminaron los siguientes mixins de versiones anteriores:
+1. **`WorkerPriorityMixin`:** inyectaba en `Util.makeExecutor`, cuyas lambdas internas no son estables entre compilaciones.
+2. **`SaveSkipMixin`:** saltaba escrituras de chunks y ponía en riesgo la integridad de los mundos.
+3. **`LazyNarratorMixin`:** modificaba `NarratorStatus` de forma frágil.
+4. **`ChestOcclusionMixin`:** hacía culling de `ChestRenderer` y causaba fallos visuales con Sodium y Embeddium.
 
-1. **`WorkerPriorityMixin`**: Intentaba degradar la prioridad de los hilos de chunks inyectando en `Util.createWorker`. En Minecraft 1.21.1, Mojang reemplazó esa estructura por expresiones lambda anónimas dentro de `makeExecutor`, haciendo imposible la inyección limpia.
-2. **`SaveSkipMixin`**: Saltaba escrituras en disco de chunks no modificados mediante un cálculo de checksum en singleplayer. Se eliminó para prevenir riesgos de corrupción de partidas ante cierres inesperados.
-3. **`LazyNarratorMixin`**: Modificaba `NarratorStatus` de forma frágil sin refmaps de Loom.
-4. **`ChestOcclusionMixin`**: Realizaba culling espacial directo sobre `ChestRenderer` sin verificación de oclusión real; provocaba glitch visual en las tapas de los cofres al utilizarse junto a motores de renderizado modernos como Sodium o Embeddium.
+Tampoco se usan `@Overwrite` ni `@Redirect`, ni se cargan clases `net.minecraft.*` desde `BoostMixinPlugin`.
 
 ---
 
 ## 🎮 5. Integración con CrystalTides Launcher Lite
 
-El launcher gestiona el ciclo de vida del mod automáticamente:
-
-1. **Despliegue Dinámico (`deploy_boost_mod`)**:
-   - En instancias **Fabric** o **Quilt** (1.21.1), extrae el binario embebido de Fabric en `mods/crystaltides-boost.jar`.
-   - En instancias **NeoForge** (1.21.1), extrae el binario embebido de NeoForge en `mods/crystaltides-boost.jar`.
-2. **Restricción Estricta de Versión (`shouldDeployBoost`)**:
-   - El launcher valida que la versión sea exactamente `1.21.1` antes de desplegar. Si se detecta otra versión (ej. 1.20.x o 1.21.4), el mod se retira o se omite para prevenir fallos de arranque por diferencias de mappings.
-3. **Limpieza Criptográfica (`remove_crystaltides_boost`)**:
-   - Comprueba el checksum SHA-256 del archivo en `mods/crystaltides-boost.jar` contra los hashes conocidos (legacy, Fabric y NeoForge). Solo elimina el mod si coincide con uno de los binarios oficiales del launcher, respetando modificaciones personalizadas del usuario.
+1. **`deploy_boost_mod`:** extrae el jar embebido de Fabric (en instancias Fabric o Quilt) o de NeoForge en `mods/crystaltides-boost.jar`.
+2. **`shouldDeployBoost`:** solo lo despliega en Minecraft 1.21.1.
+3. **`remove_crystaltides_boost`:** solo borra el jar si su SHA-256 coincide con un binario oficial, sea el actual o uno anterior.
+4. **Sincronización:** `node scripts/sync-launcher-assets.mjs [--build|--check]` desde la raíz del monorepo copia los jars, actualiza los hashes y conserva los anteriores. Con `LAUNCHER_LITE_DIR=<ruta>` trabaja sobre otra copia de launcher-lite, por ejemplo un git worktree.
 
 ---
 
-## 🛠️ 6. Compilación y Desarrollo
+## 🛠️ 6. Compilación y desarrollo
 
 Requisitos: **JDK 21**.
 
 ```bash
-# Compilar ambos loaders y generar los JARs de producción:
-./gradlew build
-
-# Ejecutar cliente de desarrollo Fabric (1.21.1):
-./gradlew :fabric:runClient
-
-# Ejecutar cliente de desarrollo NeoForge (1.21.1):
-./gradlew :neoforge:runClient
+./gradlew build                      # ambos loaders + tests de :common
+./gradlew :fabric:runClient          # cliente de desarrollo Fabric
+./gradlew :neoforge:runClient        # cliente de desarrollo NeoForge
 ```
 
-Los artefactos finales listos para distribución se generan en:
+Opciones solo para desarrollo, que nunca entran en el jar ni en el CI:
 
-- `fabric/build/libs/crystaltides-boost-fabric-1.21.1-1.0.0.jar`
-- `neoforge/build/libs/crystaltides-boost-neoforge-1.21.1-1.0.0.jar`
+| Propiedad | Efecto |
+| :-- | :-- |
+| `-PcompatTest` | Añade Sodium 0.6.9 e Iris 1.8.8 al run (desde el maven de Modrinth), y en NeoForge también ImmediatelyFast 1.3.5. En Fabric no se incluye porque Loom no pone en el classpath de desarrollo la librería que lleva dentro de su jar. |
+| `-PcompatDynamicFps` | Junto con `-PcompatTest`, añade Dynamic FPS; el modo eco debe desactivarse solo. |
+| `-PmixinExport` | Exporta las clases transformadas a `.mixin.out`. |
+| `-PmixinStrict` | Convierte en error cualquier inyección sin objetivo, también las opcionales. No combinar con `-PcompatTest`: algunos inyectores de Sodium solo tienen objetivo en NeoForge y son opcionales en Fabric. |
+| `-PagentJar=<ruta>` | Engancha `game-bridge.jar` para ejercitar la telemetría y `game_ready`. |
+| `-PquickPlay=<host:port>` | Conecta al arrancar (abre una conexión Netty de cliente). |
+| `-PquickPlayWorld=<carpeta>` | Solo Fabric. Abre ese mundo de singleplayer al arrancar (benchmarks). |
+| `-PjvmArgs="<flags>"` | Solo Fabric. Añade flags de JVM, por ejemplo los del launcher para medir con su GC. Con `-Dcrystaltides.boost.debugStats=true`, el log registra cada segundo los FPS y las secciones renderizadas (`[BenchStats]`). |
+| `-PjfrFile=<ruta>.jfr` | Solo Fabric. Graba un perfil de Java Flight Recorder de 150 s a partir del segundo 50. |
+
+Artefactos: `fabric/build/libs/crystaltides-boost-fabric-1.21.1-<versión>.jar` y `neoforge/build/libs/crystaltides-boost-neoforge-1.21.1-<versión>.jar`.

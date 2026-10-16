@@ -2,14 +2,24 @@
   "required": true,
   "minVersion": "0.8",
   "package": "com.crystaltides.boost.mixin",
+  "refmap": "${mod_id}.refmap.json",
   "compatibilityLevel": "JAVA_21",
   "plugin": "com.crystaltides.boost.mixin.BoostMixinPlugin",
   "mixins": [],
   "client": [
     "ThreadQosMixin",
+    "SoundEngineQosMixin",
+    "NettyQosMixin",
+    "BackgroundEcoMixin",
+    "BackgroundAudioMixin",
     "AnimatedTextureCullingMixin",
+    "AmbientParticleMixin",
+    "ShaderSamplerCacheMixin",
+    "FrameYieldMixin",
+    "BackgroundWorkerLimitMixin",
     "FrameTelemetryMixin",
-    "GameReadyMixin"
+    "GameReadyMixin",
+    "DebugStatsMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -18,6 +18,9 @@ public interface IPlatformHelper {
     /**
      * Checks if a specific mod ID is present and loaded in the active runtime.
      * Useful for detecting Sodium, Embeddium, Iris, or Oculus without hard dependencies.
+     *
+     * Must also work at pre-launch, from the mixin config plugin, before any Minecraft class is
+     * loaded (on NeoForge that means before ModList exists).
      */
     boolean isModLoaded(String modId);
 
