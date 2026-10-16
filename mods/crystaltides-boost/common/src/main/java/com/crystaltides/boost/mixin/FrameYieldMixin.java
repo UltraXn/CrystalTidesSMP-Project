@@ -13,11 +13,12 @@ import org.spongepowered.asm.mixin.injection.At;
  * thread's time slice to any thread ready on that core, lower-priority background workers included;
  * the render thread then waits to be rescheduled before it can start the next frame. The loading-screen
  * yield in Minecraft#doWorldLoad is left alone.
+ * require = 0: if another mod rewrote this call, the optimization is skipped instead of failing startup.
  */
 @Mixin(value = Minecraft.class, priority = 1050)
 public abstract class FrameYieldMixin {
 
-    @WrapWithCondition(method = "runTick", at = @At(value = "INVOKE", target = "Ljava/lang/Thread;yield()V", remap = false))
+    @WrapWithCondition(method = "runTick", at = @At(value = "INVOKE", target = "Ljava/lang/Thread;yield()V", remap = false), require = 0)
     private boolean crystaltides$skipFrameYield() {
         return false;
     }

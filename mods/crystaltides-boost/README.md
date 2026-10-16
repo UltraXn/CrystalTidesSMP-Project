@@ -42,7 +42,7 @@ mods/crystaltides-boost/
 | **Partículas ambientales rápidas** | `ClientLevel.animateTick(...)` y `doAnimateTick(...)` | Una vez por segundo comprueba si algún bioma cercano tiene partículas ambientales (en vanilla, solo algunos del Nether). Mientras ninguno las tenga, se salta la búsqueda de bioma que `doAnimateTick` hace en cada posición; en el perfil era el 22 % del tiempo Java del hilo de render. Sodium e Iris no tocan este código. |
 | **Caché de samplers de shader** | llamada a `Uniform.glGetUniformLocation` en `ShaderInstance.apply()` | Reutiliza la posición de cada sampler, que vanilla ya guarda al enlazar el shader, en vez de pedírsela al driver en cada `apply()`; en el perfil con NVIDIA era el 21 % del tiempo nativo del hilo de render. Se omite con Sodium o Embeddium, que traen el mismo arreglo. |
 | **Sin `Thread.yield()` por frame** | llamada a `Thread.yield()` en `Minecraft.runTick(boolean)` | Quita la cesión de CPU del final de cada frame. En Windows, `yield` entrega el núcleo del hilo de render a cualquier hilo listo en ese núcleo, workers incluidos. |
-| **Límite de workers en segundo plano** | `Util.getMaxThreads()` | Reduce el pool `Worker-Main`, que genera el terreno en singleplayer y construye las mallas de chunks con el renderer vanilla (Sodium usa sus propios hilos). `auto` usa la mitad de las CPUs lógicas menos uno, con un mínimo de 2. Un `-Dmax.bg.threads` explícito siempre gana. Solo cambia el máximo que lee `Util.makeExecutor`, sin tocar sus lambdas (ver §4). |
+| **Límite de workers en segundo plano** | `Util.getMaxThreads()` | Reduce el pool `Worker-Main`, que genera el terreno en singleplayer y construye las mallas de chunks con el renderer vanilla (Sodium usa sus propios hilos). `auto` usa un worker por núcleo físico menos uno, con un mínimo de 2. Un `-Dmax.bg.threads` explícito siempre gana. Solo cambia el máximo que lee `Util.makeExecutor`, sin tocar sus lambdas (ver §4). |
 | **Agent bridge (frametime)** | `Minecraft.runTick(boolean)` | Marca el inicio de cada frame para el agente `game-bridge.jar` del launcher (FPS y p99). Solo se aplica si el agente está presente. |
 | **Agent bridge (`game_ready`)** | `Minecraft.onGameLoadFinished(...)` | Avisa al launcher cuando termina la carga inicial, también con quickPlay o con la pantalla de accesibilidad del primer arranque. Solo se aplica si el agente está presente. |
 
@@ -60,6 +60,8 @@ mods/crystaltides-boost/
 - Ninguno de los dos toca `getFramerateLimit` ni `limitDisplayFPS`.
 - La espera de fence que Sodium inyecta en `runTick` queda dentro del intervalo de frame una sola vez.
 - Cancelar el tick de texturas congela juntos los contadores de Sodium y los atlas PBR de Iris.
+
+Los mixins que apuntan a una llamada concreta usan `require = 0`: texturas animadas, partículas ambientales, samplers de shader y `Thread.yield()`. Si otro mod reescribe esa llamada, la optimización se omite en vez de impedir que el juego arranque.
 
 **Medido:** Fabric sin Sodium, flags de JVM del launcher (ZGC), afinidad de 12 hilos (6 núcleos con SMT), vuelo de 3 minutos generando terreno nuevo y 2 runs por configuración. Cada fila añade algo a la anterior:
 
@@ -107,7 +109,7 @@ backgroundWorkerLimit=auto
 agentBridge=true
 ```
 
-`backgroundWorkerLimit=auto` supone dos CPUs lógicas por núcleo. Si la afinidad del proceso deja un solo hilo por núcleo, `auto` se queda corto; es lo que hace el launcher en Xeon con HT y en Intel híbridos. En ese caso, usa un número fijo o pasa `-Dmax.bg.threads`.
+Java no ve los núcleos físicos, así que `backgroundWorkerLimit=auto` lee `-Dcrystaltides.boost.physicalCores`. El launcher de CrystalTides lo pasa con los núcleos que quedan dentro de su máscara de afinidad. Sin ese dato, `auto` supone dos CPUs lógicas por núcleo, y en una CPU sin SMT se queda corto: usa un número fijo. Un `-Dmax.bg.threads` explícito gana siempre sobre la config.
 
 Al arrancar, el log muestra la plataforma, los mods detectados (Sodium, Embeddium, Iris, Oculus, ImmediatelyFast, Dynamic FPS, FPS Reducer, Lithium y FerriteCore), los mixins activos y los desactivados, con el motivo de cada uno.
 

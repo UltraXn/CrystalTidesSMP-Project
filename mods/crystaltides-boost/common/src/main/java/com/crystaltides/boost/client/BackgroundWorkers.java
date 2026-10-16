@@ -18,6 +18,11 @@ public final class BackgroundWorkers {
 
     private static final Logger LOGGER = LoggerFactory.getLogger("crystaltides-boost");
     public static final String MAX_THREADS_PROPERTY = "max.bg.threads";
+    /**
+     * Physical cores the process may run on. Java cannot see SMT, so the CrystalTides launcher, which sets
+     * the process affinity, passes the count of physical cores inside its affinity mask.
+     */
+    public static final String PHYSICAL_CORES_PROPERTY = "crystaltides.boost.physicalCores";
 
     private BackgroundWorkers() {
     }
@@ -25,32 +30,36 @@ public final class BackgroundWorkers {
     /** Called once, while Util initializes its executors. */
     public static int maxThreads(int vanillaMax) {
         if (System.getProperty(MAX_THREADS_PROPERTY) != null) {
-            return vanillaMax; // an explicit -Dmax.bg.threads (player or launcher) always wins
+            return vanillaMax; // an explicit -Dmax.bg.threads always wins
         }
         int logicalCpus = Runtime.getRuntime().availableProcessors();
-        int cap = resolve(BoostConfig.getInstance().getBackgroundWorkerLimit(), logicalCpus);
+        int physicalCores = Integer.getInteger(PHYSICAL_CORES_PROPERTY, 0);
+        int cap = resolve(BoostConfig.getInstance().getBackgroundWorkerLimit(), logicalCpus, physicalCores);
         if (cap <= 0) {
             return vanillaMax;
         }
-        int result = Math.min(vanillaMax, cap);
-        LOGGER.info("[Workers] background pool capped at {} workers (vanilla: {} on {} logical CPUs)",
-            Math.min(result, Math.max(1, logicalCpus - 1)), Math.max(1, logicalCpus - 1), logicalCpus);
-        return result;
+        int vanillaPool = Math.max(1, logicalCpus - 1);
+        LOGGER.info("[Workers] background pool: {} workers (vanilla: {}; {} logical CPUs, physical cores: {})",
+            Math.min(vanillaPool, cap), vanillaPool, logicalCpus, physicalCores > 0 ? physicalCores : "unknown");
+        return Math.min(vanillaMax, cap);
     }
 
     /** Effective cap for a backgroundWorkerLimit setting; 0 or less means vanilla. */
-    public static int resolve(int configured, int logicalCpus) {
+    public static int resolve(int configured, int logicalCpus, int physicalCores) {
         if (configured == BoostConfig.BACKGROUND_WORKERS_AUTO) {
-            return autoLimit(logicalCpus);
+            return autoLimit(logicalCpus, physicalCores);
         }
         return configured;
     }
 
     /**
-     * Leaves about one physical core for the render thread and one for the integrated server, assuming
-     * two logical CPUs per core, and never goes below two workers.
+     * One worker per physical core minus one, never fewer than two. Workers then leave the SMT siblings
+     * free for the render thread and the integrated server; with one logical CPU per core this matches
+     * vanilla's pool, since there is no sibling to free. Without the launcher's count (0) it assumes two
+     * logical CPUs per core.
      */
-    public static int autoLimit(int logicalCpus) {
-        return Math.max(2, logicalCpus / 2 - 1);
+    public static int autoLimit(int logicalCpus, int physicalCores) {
+        int cores = physicalCores > 0 ? Math.min(physicalCores, logicalCpus) : logicalCpus / 2;
+        return Math.max(2, cores - 1);
     }
 }

@@ -22,7 +22,8 @@ import java.util.List;
  * thread: a profile of vanilla 1.21.1 put 21% of the render thread's native time there.
  *
  * Sodium and Embeddium ship the same fix (their own ShaderInstanceMixin), so BoostMixinPlugin skips
- * this mixin when either is installed.
+ * this mixin when either is installed. require = 0: if another mod rewrote this call, the cache is
+ * skipped instead of failing startup.
  */
 @Mixin(value = ShaderInstance.class, priority = 1050)
 public abstract class ShaderSamplerCacheMixin {
@@ -41,7 +42,8 @@ public abstract class ShaderSamplerCacheMixin {
      */
     @WrapOperation(
         method = "apply",
-        at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/shaders/Uniform;glGetUniformLocation(ILjava/lang/CharSequence;)I")
+        at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/shaders/Uniform;glGetUniformLocation(ILjava/lang/CharSequence;)I"),
+        require = 0
     )
     private int crystaltides$cachedSamplerLocation(int program, CharSequence name, Operation<Integer> original,
                                                    @Local(ordinal = 1) int samplerIndex) {

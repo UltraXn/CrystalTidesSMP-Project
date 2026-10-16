@@ -18,6 +18,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * The guarded branch only spawns biome ambient particles, so treating the position as a full block
  * when no nearby biome has them changes nothing visible; block, fluid and marker particles are untouched.
  * Sodium and Iris do not modify doAnimateTick, so this also helps with them installed.
+ * require = 0 on the call-site injector: if another mod rewrote that call, the biome lookup simply runs
+ * as in vanilla instead of failing startup.
  */
 @Mixin(value = ClientLevel.class, priority = 1050)
 public abstract class AmbientParticleMixin {
@@ -43,7 +45,8 @@ public abstract class AmbientParticleMixin {
         at = @At(
             value = "INVOKE",
             target = "Lnet/minecraft/world/level/block/state/BlockState;isCollisionShapeFullBlock(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;)Z"
-        )
+        ),
+        require = 0
     )
     private boolean crystaltides$skipBiomeLookup(boolean fullBlock) {
         return fullBlock || !this.crystaltides$ambientParticlesNearby;

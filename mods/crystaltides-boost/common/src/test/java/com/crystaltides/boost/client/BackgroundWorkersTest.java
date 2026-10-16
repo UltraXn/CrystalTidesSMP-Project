@@ -11,22 +11,34 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class BackgroundWorkersTest {
 
     @Test
-    @DisplayName("auto deja un núcleo físico al render y otro al servidor integrado, con un mínimo de 2 workers")
-    void testAutoLimit() {
-        assertEquals(2, BackgroundWorkers.autoLimit(4));
-        assertEquals(2, BackgroundWorkers.autoLimit(6));
-        assertEquals(3, BackgroundWorkers.autoLimit(8));
-        assertEquals(5, BackgroundWorkers.autoLimit(12));
-        assertEquals(7, BackgroundWorkers.autoLimit(16));
-        assertEquals(23, BackgroundWorkers.autoLimit(48));
+    @DisplayName("Sin el dato del launcher, auto supone dos CPUs lógicas por núcleo y deja al menos 2 workers")
+    void testAutoLimitAssumesSmt() {
+        assertEquals(2, BackgroundWorkers.autoLimit(4, 0));
+        assertEquals(2, BackgroundWorkers.autoLimit(6, 0));
+        assertEquals(3, BackgroundWorkers.autoLimit(8, 0));
+        assertEquals(5, BackgroundWorkers.autoLimit(12, 0));
+        assertEquals(7, BackgroundWorkers.autoLimit(16, 0));
+        assertEquals(23, BackgroundWorkers.autoLimit(48, 0));
+    }
+
+    @Test
+    @DisplayName("Con los núcleos físicos del launcher, auto usa un worker por núcleo menos uno; sin SMT queda igual que vanilla")
+    void testAutoLimitWithLauncherPhysicalCores() {
+        assertEquals(5, BackgroundWorkers.autoLimit(12, 6), "6 núcleos con SMT: lo mismo que sin el dato");
+        assertEquals(7, BackgroundWorkers.autoLimit(8, 8), "Xeon con un hilo por núcleo: vanilla (8 - 1)");
+        assertEquals(5, BackgroundWorkers.autoLimit(6, 6), "6 núcleos sin SMT: vanilla (6 - 1)");
+        assertEquals(7, BackgroundWorkers.autoLimit(16, 8), "CCD0 de un Ryzen X3D: 8 núcleos con SMT");
+        assertEquals(7, BackgroundWorkers.autoLimit(8, 24), "nunca más núcleos que CPUs lógicas visibles");
+        assertEquals(2, BackgroundWorkers.autoLimit(2, 2), "mínimo de 2");
     }
 
     @Test
     @DisplayName("resolve: 0 es vanilla, un número es un tope fijo y auto se calcula desde la CPU")
     void testResolve() {
-        assertEquals(0, BackgroundWorkers.resolve(0, 12));
-        assertEquals(4, BackgroundWorkers.resolve(4, 12));
-        assertEquals(5, BackgroundWorkers.resolve(BoostConfig.BACKGROUND_WORKERS_AUTO, 12));
+        assertEquals(0, BackgroundWorkers.resolve(0, 12, 6));
+        assertEquals(4, BackgroundWorkers.resolve(4, 12, 6));
+        assertEquals(5, BackgroundWorkers.resolve(BoostConfig.BACKGROUND_WORKERS_AUTO, 12, 0));
+        assertEquals(7, BackgroundWorkers.resolve(BoostConfig.BACKGROUND_WORKERS_AUTO, 8, 8));
     }
 
     @Test
