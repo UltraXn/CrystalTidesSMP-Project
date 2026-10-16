@@ -5,11 +5,11 @@ issueTrackerURL = "https://github.com/CrystalTides/crystaltides/issues"
 
 [[mods]]
 modId = "crystaltides_boost"
-version = "1.0.0"
+version = "${version}"
 displayName = "CrystalTides Boost"
 authors = "CrystalTides Team"
 description = '''
-Multiloader client-side performance mod: intelligent ThreadQoS priority scheduling and animated texture culling. 100% compatible with Embeddium and Oculus Shaders.
+Multiloader client-side performance mod: render, sound and network thread QoS, background eco mode (minimized / unfocused FPS caps) and animated texture culling. Compatible with Sodium, Embeddium, Iris, Oculus and ImmediatelyFast.
 '''
 
 [[mixins]]

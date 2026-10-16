@@ -4,6 +4,7 @@ import com.crystaltides.boost.platform.IPlatformHelper;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.fml.loading.FMLPaths;
+import net.neoforged.fml.loading.LoadingModList;
 
 import java.nio.file.Path;
 
@@ -19,7 +20,13 @@ public class NeoForgePlatformHelper implements IPlatformHelper {
 
     @Override
     public boolean isModLoaded(String modId) {
-        return ModList.get() != null && ModList.get().isLoaded(modId);
+        ModList modList = ModList.get();
+        if (modList != null) {
+            return modList.isLoaded(modId);
+        }
+        // Mixin config plugins run before ModList exists; the loading mod list is already built then
+        LoadingModList loadingModList = FMLLoader.getLoadingModList();
+        return loadingModList != null && loadingModList.getModFileById(modId) != null;
     }
 
     @Override

@@ -10,6 +10,9 @@
  * Al cambiar un crystaltides-boost-*.jar, su hash anterior se añade a LEGACY_BOOST_JAR_SHA256
  * para que remove_crystaltides_boost siga reconociendo las copias ya desplegadas.
  * Los jars son reproducibles, así que recompilar sin cambios no produce diferencias.
+ *
+ * LAUNCHER_LITE_DIR=<ruta> apunta a otra copia de launcher-lite (p. ej. un git worktree) en lugar
+ * del submódulo apps/launcher-lite. Los nombres de los jars salen de mods/crystaltides-boost/gradle.properties.
  */
 import { execSync } from 'node:child_process';
 import crypto from 'node:crypto';
@@ -19,14 +22,29 @@ import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const boostDir = path.join(root, 'mods', 'crystaltides-boost');
-const liteTauri = path.join(root, 'apps', 'launcher-lite', 'src-tauri');
+const gameBridgeDir = path.join(root, 'apps', 'game-bridge');
+const liteDir = process.env.LAUNCHER_LITE_DIR
+  ? path.resolve(process.env.LAUNCHER_LITE_DIR)
+  : path.join(root, 'apps', 'launcher-lite');
+const liteTauri = path.join(liteDir, 'src-tauri');
 const assetsDir = path.join(liteTauri, 'assets');
 const manifestPath = path.join(assetsDir, 'MANIFEST.md');
 const agentRsPath = path.join(liteTauri, 'src', 'agent.rs');
 
+function gradleProperty(name) {
+  const props = fs.readFileSync(path.join(boostDir, 'gradle.properties'), 'utf8');
+  const match = props.match(new RegExp(`^${name}=(.+)$`, 'm'));
+  if (!match) fail(`gradle.properties de crystaltides-boost no define ${name}`);
+  return match[1].trim();
+}
+
+const boostJar = (loader) =>
+  path.join(boostDir, loader, 'build', 'libs',
+    `crystaltides-boost-${loader}-${gradleProperty('minecraft_version')}-${gradleProperty('version')}.jar`);
+
 const BOOST_JARS = [
-  { asset: 'crystaltides-boost-fabric.jar', built: path.join(boostDir, 'fabric', 'build', 'libs', 'crystaltides-boost-fabric-1.21.1-1.0.0.jar') },
-  { asset: 'crystaltides-boost-neoforge.jar', built: path.join(boostDir, 'neoforge', 'build', 'libs', 'crystaltides-boost-neoforge-1.21.1-1.0.0.jar') },
+  { asset: 'crystaltides-boost-fabric.jar', built: boostJar('fabric') },
+  { asset: 'crystaltides-boost-neoforge.jar', built: boostJar('neoforge') },
 ];
 
 const args = new Set(process.argv.slice(2));
@@ -49,8 +67,13 @@ if (build) {
   const gradlew = path.join(boostDir, process.platform === 'win32' ? 'gradlew.bat' : 'gradlew');
   console.log('▶ Compilando crystaltides-boost (Gradle)...');
   execSync(`"${gradlew}" build --console=plain`, { cwd: boostDir, stdio: 'inherit' });
-  console.log('▶ Compilando game-bridge (copia game-bridge.jar a assets)...');
-  execSync('pnpm --filter @crystaltides/game-bridge build', { cwd: root, stdio: 'inherit' });
+  console.log('▶ Compilando game-bridge...');
+  // build:java y copia propia: el script "build" del paquete copia a una ruta fija del submódulo
+  // y no respetaría LAUNCHER_LITE_DIR
+  execSync('pnpm --filter @crystaltides/game-bridge run build:java', { cwd: root, stdio: 'inherit' });
+  const agentJar = path.join(gameBridgeDir, 'java-agent', 'target', 'game-bridge-1.0-SNAPSHOT.jar');
+  if (!fs.existsSync(agentJar)) fail(`No se generó ${path.relative(root, agentJar)}`);
+  fs.copyFileSync(agentJar, path.join(assetsDir, 'game-bridge.jar'));
 }
 
 const problems = [];

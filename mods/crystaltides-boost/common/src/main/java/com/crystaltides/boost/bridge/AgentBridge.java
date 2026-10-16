@@ -15,6 +15,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * resolved reflectively from there on purpose: referencing it directly could make the
  * loader's game class loader (Knot / FML) define a second copy with its own static state.
  * When the agent is absent (game not started from the launcher) every call is a no-op.
+ *
+ * The handles are static finals so the JIT treats them as constants and can inline the agent
+ * method; they are invoked with invokeExact and exact primitive types ((J)V and ()V), which
+ * involves no boxing, no varargs array and no allocation.
  */
 public final class AgentBridge {
 
@@ -22,6 +26,8 @@ public final class AgentBridge {
     static final String AGENT_CLASS = "com.crystaltides.agent.CrystalAgent";
 
     private static final Handles HANDLES = Handles.resolve(ClassLoader.getSystemClassLoader());
+    private static final MethodHandle RECORD_FRAME_START = HANDLES.recordFrameStart();
+    private static final MethodHandle NOTIFY_GAME_READY = HANDLES.notifyGameReady();
     private static final AtomicBoolean GAME_READY_SENT = new AtomicBoolean(false);
     private static volatile boolean failed;
 
@@ -29,30 +35,28 @@ public final class AgentBridge {
     }
 
     public static boolean isAgentPresent() {
-        return HANDLES.recordFrameStart() != null || HANDLES.notifyGameReady() != null;
+        return RECORD_FRAME_START != null || NOTIFY_GAME_READY != null;
     }
 
-    /** Render thread, once per frame. Must stay allocation-free. */
-    public static void onFrameStart() {
-        MethodHandle handle = HANDLES.recordFrameStart();
-        if (handle == null || failed) {
+    /** Render thread, once per frame, with the frame start timestamp. Must stay allocation-free. */
+    public static void onFrameStart(long nanoTime) {
+        if (RECORD_FRAME_START == null || failed) {
             return;
         }
         try {
-            handle.invokeExact(System.nanoTime());
+            RECORD_FRAME_START.invokeExact(nanoTime);
         } catch (Throwable t) {
             disable("recordFrameStart", t);
         }
     }
 
-    /** Called when the TitleScreen is initialised; only the first call is forwarded. */
+    /** Called when the initial game load finishes; only the first call is forwarded. */
     public static void notifyGameReady() {
-        MethodHandle handle = HANDLES.notifyGameReady();
-        if (handle == null || failed || !GAME_READY_SENT.compareAndSet(false, true)) {
+        if (NOTIFY_GAME_READY == null || failed || !GAME_READY_SENT.compareAndSet(false, true)) {
             return;
         }
         try {
-            handle.invokeExact();
+            NOTIFY_GAME_READY.invokeExact();
         } catch (Throwable t) {
             disable("notifyGameReady", t);
         }

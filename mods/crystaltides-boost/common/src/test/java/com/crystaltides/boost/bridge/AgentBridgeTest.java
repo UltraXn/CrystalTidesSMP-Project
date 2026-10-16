@@ -33,14 +33,14 @@ class AgentBridgeTest {
     }
 
     @Test
-    @DisplayName("onFrameStart reenvía un timestamp monotónico por frame y game_ready se envía una sola vez")
+    @DisplayName("onFrameStart reenvía el timestamp exacto de cada frame y game_ready se envía una sola vez")
     void testBridgeForwardsCalls() {
         int framesBefore = CrystalAgent.FRAMES.get();
-        long before = System.nanoTime();
-        AgentBridge.onFrameStart();
-        AgentBridge.onFrameStart();
+        long first = System.nanoTime();
+        AgentBridge.onFrameStart(first);
+        AgentBridge.onFrameStart(first + 16_666_667L);
         assertEquals(framesBefore + 2, CrystalAgent.FRAMES.get());
-        assertTrue(CrystalAgent.LAST_FRAME_NANOS.get() >= before);
+        assertEquals(first + 16_666_667L, CrystalAgent.LAST_FRAME_NANOS.get());
 
         AgentBridge.notifyGameReady();
         AgentBridge.notifyGameReady();

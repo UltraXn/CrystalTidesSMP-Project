@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "id": "crystaltides-boost",
-  "version": "1.0.0",
+  "version": "${version}",
   "name": "CrystalTides Boost",
-  "description": "Multiloader client-side performance mod: intelligent ThreadQoS priority scheduling and animated texture culling. 100% compatible with Sodium and Iris Shaders.",
+  "description": "Multiloader client-side performance mod: render, sound and network thread QoS, background eco mode (minimized / unfocused FPS caps) and animated texture culling. Compatible with Sodium, Iris and ImmediatelyFast.",
   "authors": ["CrystalTides Team"],
   "contact": {
     "homepage": "https://crystaltides.net"
@@ -15,7 +15,7 @@
   },
   "mixins": ["crystaltides-boost.common.mixins.json"],
   "depends": {
-    "fabricloader": ">=0.15.0",
+    "fabricloader": ">=0.16.0",
     "minecraft": "1.21.1"
   },
   "suggests": {
