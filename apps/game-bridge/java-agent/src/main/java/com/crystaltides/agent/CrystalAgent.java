@@ -42,6 +42,19 @@ public class CrystalAgent {
         System.out.println("[CrystalAgent] Agente cargado (IPC iniciado)");
     }
 
+    /**
+     * Public bridge entrypoint, invoked by the crystaltides-boost mod on the render thread at
+     * the start of every frame (resolved reflectively through the system class loader).
+     * Never allocates and never blocks.
+     */
+    public static void recordFrameStart(long nanoTime) {
+        com.crystaltides.agent.telemetry.FrameStats.global().onFrameStart(nanoTime);
+    }
+
+    /**
+     * Public bridge entrypoint, invoked by the crystaltides-boost mod once the TitleScreen is
+     * initialised. Idempotent: only the first call dispatches game_ready.
+     */
     public static void notifyGameReady() {
         if (GAME_READY_SENT.compareAndSet(false, true)) {
             long duration = System.currentTimeMillis() - START_TIME_MS;

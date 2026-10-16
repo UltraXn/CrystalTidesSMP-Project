@@ -121,14 +121,48 @@ public class IpcClient {
             Long memoryTotalMb,
             String swapchainBackend
     ) {
+        sendTelemetry(gcPauseTimeMs, memoryUsedMb, memoryTotalMb, swapchainBackend, null, null);
+    }
+
+    /**
+     * @param fps            average FPS over the heartbeat window, or null when no frame source
+     *                       (crystaltides-boost) is attached
+     * @param frametimeP99Ms p99 frametime over the same window, or null alongside fps
+     */
+    public static void sendTelemetry(
+            double gcPauseTimeMs,
+            Long memoryUsedMb,
+            Long memoryTotalMb,
+            String swapchainBackend,
+            Double fps,
+            Double frametimeP99Ms
+    ) {
+        sendJson(telemetryJson(gcPauseTimeMs, memoryUsedMb, memoryTotalMb, swapchainBackend, fps, frametimeP99Ms));
+    }
+
+    static String telemetryJson(
+            double gcPauseTimeMs,
+            Long memoryUsedMb,
+            Long memoryTotalMb,
+            String swapchainBackend,
+            Double fps,
+            Double frametimeP99Ms
+    ) {
         StringBuilder sb = new StringBuilder();
         sb.append("{\"type\":\"telemetry\"");
-        sb.append(String.format(java.util.Locale.US, ",\"gc_pause_time_ms\":%.1f", gcPauseTimeMs));
+        // NaN/Infinity are not valid JSON and would make the launcher drop the whole frame
+        if (isFinite(fps)) sb.append(String.format(java.util.Locale.US, ",\"fps\":%.1f", fps));
+        if (isFinite(frametimeP99Ms)) sb.append(String.format(java.util.Locale.US, ",\"frametime_p99_ms\":%.2f", frametimeP99Ms));
+        sb.append(String.format(java.util.Locale.US, ",\"gc_pause_time_ms\":%.1f", Double.isFinite(gcPauseTimeMs) ? gcPauseTimeMs : 0.0));
         if (memoryUsedMb != null) sb.append(",\"memory_used_mb\":").append(memoryUsedMb);
         if (memoryTotalMb != null) sb.append(",\"memory_total_mb\":").append(memoryTotalMb);
         if (swapchainBackend != null) sb.append(",\"swapchain_backend\":\"").append(escape(swapchainBackend)).append("\"");
         sb.append("}");
-        sendJson(sb.toString());
+        return sb.toString();
+    }
+
+    private static boolean isFinite(Double value) {
+        return value != null && Double.isFinite(value);
     }
 
     @SuppressWarnings("PMD.UnusedAssignment")

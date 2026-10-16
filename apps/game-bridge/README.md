@@ -6,16 +6,22 @@ Agente Java (`-javaagent`) que se ejecuta dentro del proceso de Minecraft del cl
 
 ## 🌟 Características Principales
 
-- 🔌 **Asynchronous Local IPC**: Cliente de socket asíncrono en hilo dedicado restringido a `127.0.0.1`, con cola no bloqueante que descarta payloads ante saturación y handshake de autenticación con token de sesión.
+- 🔌 **Asynchronous Local IPC**: Cliente de socket asíncrono en hilo dedicado restringido a `127.0.0.1`, con cola no bloqueante que descarta payloads ante saturación y handshake de autenticación con token de sesión, que se reenvía como primer frame en cada (re)conexión.
 - 📊 **GC & Heap Telemetry**: Listener JMX (`GarbageCollectorMXBean`) de notificaciones para registrar pausas de GC sin asignaciones periódicas, junto con muestreo periódico (1 Hz) de memoria heap utilizada y máxima (`MemoryMXBean`).
 
 ---
 
 ## 🎮 Ciclo de Vida y Señal `game_ready`
 
+El agente expone dos entrypoints públicos que invoca el mod `crystaltides-boost` (resueltos por reflexión desde el system class loader, sin dependencia de compilación):
+
+| Entrypoint                                     | Llamado desde                                            | Efecto                                                                                                                                               |
+| :--------------------------------------------- | :------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `CrystalAgent.recordFrameStart(long nanoTime)` | Mixin en `Minecraft.runTick` (render thread, cada frame) | Alimenta `FrameStats` (ring buffer sin allocations). Cada heartbeat de telemetría añade `fps` y `frametime_p99_ms` de la ventana del último segundo. |
+| `CrystalAgent.notifyGameReady()`               | Mixin en `TitleScreen.init`                              | Envía `game_ready` con `load_duration_ms` desde `premain`. Idempotente.                                                                              |
+
 > [!NOTE]
-> El método `CrystalAgent.notifyGameReady()` está implementado como punto de extensión público para cuando el cliente complete su carga inicial (por ejemplo, mediante un mod o mixin de Minecraft).
-> Actualmente **no se emite de forma automática** (no se utilizan temporizadores artificiales en el agente). El launcher no se bloquea en espera de este mensaje y gestiona el ciclo de vida del juego de manera desacoplada.
+> Sin el mod (instancias vanilla/Forge o con `agentBridge=false`) el agente solo reporta GC y heap: los campos `fps`/`frametime_p99_ms` se omiten (el launcher los toma como 0) y `game_ready` no se emite. El launcher no se bloquea en espera de este mensaje y gestiona el ciclo de vida del juego de manera desacoplada.
 
 ---
 

@@ -29,6 +29,24 @@ class IpcClientTest {
     }
 
     @Test
+    void testTelemetryJsonWireFormat() {
+        assertEquals(
+                "{\"type\":\"telemetry\",\"fps\":143.9,\"frametime_p99_ms\":8.25,\"gc_pause_time_ms\":12.0,"
+                        + "\"memory_used_mb\":2048,\"memory_total_mb\":4096,\"swapchain_backend\":\"OpenGL/LWJGL\"}",
+                IpcClient.telemetryJson(12.0, 2048L, 4096L, "OpenGL/LWJGL", 143.94, 8.254));
+
+        // Without a frame source the launcher defaults fps/p99 to 0
+        assertEquals(
+                "{\"type\":\"telemetry\",\"gc_pause_time_ms\":0.0}",
+                IpcClient.telemetryJson(0.0, null, null, null, null, null));
+
+        // Non-finite values must never reach the wire (invalid JSON)
+        assertEquals(
+                "{\"type\":\"telemetry\",\"gc_pause_time_ms\":0.0}",
+                IpcClient.telemetryJson(Double.NaN, null, null, null, Double.NaN, Double.POSITIVE_INFINITY));
+    }
+
+    @Test
     void testQueueSaturationTriggersWarningBranch() {
         assertDoesNotThrow(() -> {
             for (int i = 0; i < 300; i++) {

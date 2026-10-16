@@ -86,6 +86,9 @@ public class GcMonitor {
             try {
                 Thread.sleep(1000);
 
+                // Sample every heartbeat so each window covers ~1s even while disconnected
+                FrameStats.Sample frames = FrameStats.global().sample(System.nanoTime());
+
                 if (IpcClient.isConnected()) {
                     // Extract memory stats
                     MemoryUsage heapUsage = MEMORY_BEAN.getHeapMemoryUsage();
@@ -99,7 +102,13 @@ public class GcMonitor {
 
                     String backend = "OpenGL/LWJGL";
 
-                    IpcClient.sendTelemetry(gcPause, usedMb, totalMb, backend);
+                    IpcClient.sendTelemetry(
+                            gcPause,
+                            usedMb,
+                            totalMb,
+                            backend,
+                            frames != null ? frames.fps() : null,
+                            frames != null ? frames.frametimeP99Ms() : null);
                 }
             } catch (InterruptedException ie) {
                 Thread.currentThread().interrupt();
