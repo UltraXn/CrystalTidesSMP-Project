@@ -46,6 +46,13 @@ repositories {
     }
 }
 
+// Jars reproducibles: el launcher embebe estos binarios y fija su SHA-256 (assets/MANIFEST.md),
+// así que recompilar sin cambios en el código no debe cambiar el hash.
+tasks.withType(AbstractArchiveTask).configureEach {
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
+}
+
 jar {
     manifest {
         attributes([

@@ -22,7 +22,9 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 $jarTool = "C:\Program Files\Java\jdk-21\bin\jar.exe"
-& $jarTool --create --file "$agentDir\target\game-bridge-1.0-SNAPSHOT.jar" --manifest="$agentDir\src\main\resources\META-INF\MANIFEST.MF" -C "$agentDir\target\classes" .
+# --date fija el timestamp de las entradas: jar reproducible, porque el launcher embebe este
+# binario y fija su SHA-256 (launcher-lite/src-tauri/assets/MANIFEST.md)
+& $jarTool --create --date="2000-01-01T00:00:00Z" --file "$agentDir\target\game-bridge-1.0-SNAPSHOT.jar" --manifest="$agentDir\src\main\resources\META-INF\MANIFEST.MF" -C "$agentDir\target\classes" .
 if ($LASTEXITCODE -ne 0) {
     Write-Error "jar creation failed"
     exit 1

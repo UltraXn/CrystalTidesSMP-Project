@@ -50,6 +50,7 @@
     "lint:rust:pedantic": "cargo clippy --workspace --all-targets -- -W clippy::pedantic",
     "deny:rust": "cargo deny check",
     "machete:rust": "cargo machete",
+    "sync:launcher-assets": "node scripts/sync-launcher-assets.mjs",
     "lint:java": "pwsh -File scripts/lint-java.ps1 -Tool all",
     "lint:java:pmd": "pwsh -File scripts/lint-java.ps1 -Tool pmd",
     "lint:java:checkstyle": "pwsh -File scripts/lint-java.ps1 -Tool checkstyle",
