@@ -8,7 +8,7 @@ import app from '../app';
 const isIsolatedEnv = (process.env.SUPABASE_URL ?? '').endsWith('.invalid');
 
 describe.skipIf(!isIsolatedEnv)('RAG Controller & Integration E2E Test Suite', () => {
-  const SECRET = process.env.RAG_INGEST_SECRET || 'CrystalRAGSecretKey2026';
+  const SECRET = process.env.RAG_INGEST_SECRET ?? '';
 
   it('debe rechazar solicitudes a /api/rag/ingest sin header de autenticación válido (401 Unauthorized)', async () => {
     const res = await request(app).post('/api/rag/ingest').send({ entities: [], items: [] });

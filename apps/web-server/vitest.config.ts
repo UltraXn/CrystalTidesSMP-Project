@@ -17,9 +17,9 @@ const TEST_ENV: Record<string, string> = {
   MC_DB_PASSWORD: '',
   MC_SERVER_HOST: '127.0.0.1',
   MC_SERVER_PORT: '1',
-  ADMIN_JWT_SECRET: 'test-admin-jwt-secret',
-  JWT_SECRET: 'test-jwt-secret',
-  COOKIE_SECRET: 'test-cookie-secret',
+  ADMIN_JWT_SECRET: 'test-admin-jwt-secret-0123456789abcdef',
+  JWT_SECRET: 'test-jwt-secret-0123456789abcdef0123',
+  COOKIE_SECRET: 'test-cookie-secret-0123456789abcdef',
   // 32 zero bytes, base64-encoded. Test-only key.
   TOTP_ENCRYPTION_KEY: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=',
   BOT_API_KEY: '',

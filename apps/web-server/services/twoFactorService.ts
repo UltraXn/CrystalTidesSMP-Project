@@ -4,9 +4,7 @@ import jwt from 'jsonwebtoken';
 import supabase from '../config/supabaseClient.js';
 import { sealSecret, openSecret } from '../utils/secretBox.js';
 
-const ADMIN_JWT_SECRET =
-  process.env.ADMIN_JWT_SECRET ??
-  (process.env.NODE_ENV === 'test' ? 'test-admin-jwt-secret' : undefined);
+const ADMIN_JWT_SECRET = process.env.ADMIN_JWT_SECRET;
 if (!ADMIN_JWT_SECRET) {
   throw new Error('ADMIN_JWT_SECRET environment variable is required');
 }

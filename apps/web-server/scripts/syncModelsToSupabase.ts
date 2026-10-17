@@ -1,37 +1,45 @@
-import fs from 'node:fs'
-import path from 'node:path'
-import { createArticle, getAllArticles, updateArticle } from '../services/wikiService.js'
+import 'dotenv/config';
+import fs from 'node:fs';
+import path from 'node:path';
+import { createArticle, getAllArticles, updateArticle } from '../services/wikiService.js';
 
 interface ManifestItem {
-  modId: string
-  name: string
-  geoPath: string
-  texturePath?: string
+  modId: string;
+  name: string;
+  geoPath: string;
+  texturePath?: string;
 }
 
 async function syncModelsToSupabase() {
-  const manifestPath = path.resolve('../web-client/public/models/manifest.json')
+  const manifestPath = path.resolve('../web-client/public/models/manifest.json');
   if (!fs.existsSync(manifestPath)) {
-    console.error('❌ No se encontró manifest.json en public/models/')
-    return
+    console.error('❌ No se encontró manifest.json en public/models/');
+    return;
   }
 
-  const items: ManifestItem[] = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'))
-  console.log(`📦 Sincronizando ${items.length} modelos de manifest.json con Supabase wiki_articles...`)
+  const items: ManifestItem[] = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
+  console.log(
+    `📦 Sincronizando ${items.length} modelos de manifest.json con Supabase wiki_articles...`,
+  );
 
-  const existingArticles = await getAllArticles().catch(() => [])
-  const existingSlugs = new Set(existingArticles.map(a => a.slug))
+  const existingArticles = await getAllArticles().catch(() => []);
+  const existingSlugs = new Set(existingArticles.map((a) => a.slug));
 
-  let insertedCount = 0
-  let updatedCount = 0
+  let insertedCount = 0;
+  let updatedCount = 0;
 
   for (const item of items) {
-    const formattedName = item.name.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
-    const slug = `bestiario-${item.modId}-${item.name}`.toLowerCase()
-    
+    const formattedName = item.name
+      .split('_')
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ');
+    const slug = `bestiario-${item.modId}-${item.name}`.toLowerCase();
+
     // Normalizar separadores de path para URL web
-    const modelUrl = `/models/${item.geoPath.replace(/\\/g, '/')}`
-    const textureUrl = item.texturePath ? `/models/${item.texturePath.replace(/\\/g, '/')}` : undefined
+    const modelUrl = `/models/${item.geoPath.replace(/\\/g, '/')}`;
+    const textureUrl = item.texturePath
+      ? `/models/${item.texturePath.replace(/\\/g, '/')}`
+      : undefined;
 
     const articleData = {
       slug,
@@ -46,24 +54,26 @@ async function syncModelsToSupabase() {
       hp: '100 - 500',
       damage: 'Alta',
       location: 'Overworld / Mazmorras',
-      drops: ['Items del Mod', 'KilluCoins']
-    }
+      drops: ['Items del Mod', 'KilluCoins'],
+    };
 
     if (existingSlugs.has(slug)) {
-      const existing = existingArticles.find(a => a.slug === slug)
+      const existing = existingArticles.find((a) => a.slug === slug);
       if (existing && existing.id) {
-        await updateArticle(existing.id, articleData).catch(err => console.error(`Error actualizando ${slug}:`, err))
-        updatedCount++
+        await updateArticle(existing.id, articleData).catch((err) =>
+          console.error(`Error actualizando ${slug}:`, err),
+        );
+        updatedCount++;
       }
     } else {
-      await createArticle(articleData).catch(err => console.error(`Error creando ${slug}:`, err))
-      insertedCount++
+      await createArticle(articleData).catch((err) => console.error(`Error creando ${slug}:`, err));
+      insertedCount++;
     }
   }
 
-  console.log(`\n🎉 Sincronización con Supabase completada!`)
-  console.log(`✨ Nuevas fichas creadas: ${insertedCount}`)
-  console.log(`🔄 Fichas actualizadas: ${updatedCount}`)
+  console.log(`\n🎉 Sincronización con Supabase completada!`);
+  console.log(`✨ Nuevas fichas creadas: ${insertedCount}`);
+  console.log(`🔄 Fichas actualizadas: ${updatedCount}`);
 }
 
-syncModelsToSupabase().catch(console.error)
+syncModelsToSupabase().catch(console.error);

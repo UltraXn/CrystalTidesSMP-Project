@@ -1,8 +1,10 @@
-import dotenv from 'dotenv'; // Force deploy - trigger watcher reload
-dotenv.config();
+// Single place where .env is loaded. It must stay the first import: ES modules
+// evaluate their imports before the importing file's body runs.
+import 'dotenv/config';
 
 import express from 'express';
 import { createServer } from 'http';
+import { EnvValidationError, getEnv } from './config/env.js';
 import { initVault } from './services/vaultService.js';
 import { initWebSocket } from './services/websocketService.js';
 
@@ -67,9 +69,23 @@ process.on('SIGINT', () => shutdown('SIGINT'));
 
 async function loadMainApp() {
   console.log('🔑 [Vault] Secrets loaded. Initializing main application...');
+  getEnv(); // Fails fast on missing or weak configuration (see config/env.ts)
   const { default: app } = await import('./app.js');
   realApp = app;
   console.log('✅ [Vault] Main application initialized and fully operational.');
+}
+
+// Bad configuration will not fix itself: exit so the platform reports a failed
+// instance instead of serving 503 forever.
+function handleStartupError(error: unknown) {
+  if (error instanceof EnvValidationError) {
+    console.error(`❌ [Config] ${error.message}`);
+    process.exit(1);
+  }
+  console.error(
+    '❌ [Vault] Failed to import/initialize main application after loading secrets:',
+    error,
+  );
 }
 
 // Background initialization loop
@@ -79,10 +95,7 @@ async function startApp() {
     try {
       await loadMainApp();
     } catch (error) {
-      console.error(
-        '❌ [Vault] Failed to import/initialize main application after loading secrets:',
-        error,
-      );
+      handleStartupError(error);
     }
   } else {
     console.warn('⚠️ [Vault] Vault is sealed or connection failed. Retrying in 10 seconds...');
@@ -96,10 +109,7 @@ async function startApp() {
         try {
           await loadMainApp();
         } catch (error) {
-          console.error(
-            '❌ [Vault] Failed to import/initialize main application after loading secrets:',
-            error,
-          );
+          handleStartupError(error);
         }
       } else {
         console.warn(

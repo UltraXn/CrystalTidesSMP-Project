@@ -40,13 +40,13 @@ import { apiLimiter, uploadLimiter } from './middleware/rateLimitMiddleware.js';
 import authRoutes from './routes/authRoutes.js';
 
 import cookieParser from 'cookie-parser';
+import { getEnv } from './config/env.js';
 
 const app = express();
 
 // Trust Proxy: Cloud Run's front end is one hop. Cloudflare's client IP is
 // resolved separately (utils/clientIp.ts). Add one hop per extra load balancer.
-const trustProxyHops = Number.parseInt(process.env.TRUST_PROXY_HOPS ?? '1', 10);
-app.set('trust proxy', Number.isNaN(trustProxyHops) ? 1 : trustProxyHops);
+app.set('trust proxy', getEnv().TRUST_PROXY_HOPS);
 
 // Security Middleware
 // Strict CSP by default: this server serves JSON, so 'unsafe-inline' is never
@@ -100,11 +100,7 @@ app.use(
     credentials: true,
   }),
 );
-const cookieSecret =
-  process.env.COOKIE_SECRET ??
-  process.env.JWT_SECRET ??
-  'crystaltides_cookie_signature_secret_key_2026';
-app.use(cookieParser(cookieSecret));
+app.use(cookieParser(getEnv().COOKIE_SECRET));
 app.use(checkCanaryToken);
 app.use(express.json());
 

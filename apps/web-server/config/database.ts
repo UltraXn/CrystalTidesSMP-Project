@@ -1,7 +1,4 @@
 import mysql from 'mysql2/promise';
-import dotenv from 'dotenv';
-
-dotenv.config();
 
 function createMockPool(): mysql.Pool {
   console.warn('⚠️ [Database] Using Mock Database Pool (MOCK_DATABASE=true)');
