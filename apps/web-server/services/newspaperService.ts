@@ -3,11 +3,7 @@ import { buildPressAgentPrompt } from './prompts/pressAgentPrompt.js';
 import { generateResilientLLMResponse } from './llmFallbackPipeline.js';
 import dotenv from 'dotenv';
 
-const initialNodeEnv = process.env.NODE_ENV;
-dotenv.config({ override: true });
-if (initialNodeEnv === 'test') {
-  process.env.NODE_ENV = 'test';
-}
+dotenv.config();
 
 const CONSTANTS = {
   FIELD_CREATED_AT: 'created_at',

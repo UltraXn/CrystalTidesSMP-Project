@@ -2,7 +2,12 @@ import { describe, it, expect } from 'vitest';
 import request from 'supertest';
 import app from '../app';
 
-describe('RAG Controller & Integration E2E Test Suite', () => {
+// The ingest pipeline deletes knowledge rows of every mod missing from
+// `active_mods`, so this suite must only ever reach the unresolvable test host
+// configured in vitest.config.ts — never a real Supabase project.
+const isIsolatedEnv = (process.env.SUPABASE_URL ?? '').endsWith('.invalid');
+
+describe.skipIf(!isIsolatedEnv)('RAG Controller & Integration E2E Test Suite', () => {
   const SECRET = process.env.RAG_INGEST_SECRET || 'CrystalRAGSecretKey2026';
 
   it('debe rechazar solicitudes a /api/rag/ingest sin header de autenticación válido (401 Unauthorized)', async () => {

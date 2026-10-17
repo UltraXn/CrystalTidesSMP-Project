@@ -4,11 +4,7 @@ import { generateResilientLLMResponse } from './llmFallbackPipeline.js';
 import { createPoll } from './pollService.js';
 import dotenv from 'dotenv';
 
-const initialNodeEnv = process.env.NODE_ENV;
-dotenv.config({ override: true });
-if (initialNodeEnv === 'test') {
-  process.env.NODE_ENV = 'test';
-}
+dotenv.config();
 
 const DISCORD_ANNOUNCEMENTS_WEBHOOK_URL =
   process.env.DISCORD_ANNOUNCEMENTS_WEBHOOK_URL ??

@@ -1,10 +1,6 @@
 import dotenv from 'dotenv';
 
-const initialNodeEnv = process.env.NODE_ENV;
-dotenv.config({ override: true });
-if (initialNodeEnv === 'test') {
-  process.env.NODE_ENV = 'test';
-}
+dotenv.config();
 
 export interface LLMOptions {
   systemPrompt: string;
