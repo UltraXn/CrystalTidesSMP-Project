@@ -11,7 +11,9 @@ vi.mock('three', () => ({
     position = { set: vi.fn() };
     lookAt = vi.fn();
   },
+  PCFShadowMap: 1,
   WebGLRenderer: class {
+    shadowMap = { enabled: false, type: 0 };
     get domElement() {
       return document.createElement('canvas');
     }

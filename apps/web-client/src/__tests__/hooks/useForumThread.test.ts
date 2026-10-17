@@ -9,7 +9,7 @@ vi.mock('../../context/AuthContext', () => ({
   useAuth: vi.fn(),
 }));
 
-vi.mock('react-router-dom', () => ({
+vi.mock('react-router', () => ({
   useParams: vi.fn(),
   useNavigate: vi.fn(),
 }));

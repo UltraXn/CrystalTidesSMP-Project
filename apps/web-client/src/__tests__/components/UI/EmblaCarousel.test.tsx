@@ -65,9 +65,9 @@ describe('EmblaCarousel', () => {
     render(<EmblaCarousel slides={mockSlides} />);
     
     mockSlides.forEach(slide => {
-      expect(screen.getByText(slide.name)).toBeInTheDocument();
-      expect(screen.getByText(slide.rank as string)).toBeInTheDocument();
-      expect(screen.getByText(`"${slide.description}"`)).toBeInTheDocument();
+      expect(screen.getAllByText(slide.name)[0]).toBeInTheDocument();
+      expect(screen.getAllByText(slide.rank as string)[0]).toBeInTheDocument();
+      expect(screen.getAllByText(`"${slide.description}"`)[0]).toBeInTheDocument();
     });
   });
 

@@ -157,6 +157,6 @@ describe('SuccessModal', () => {
       />,
     );
     expect(screen.getByAltText(/crystaltides/i)).toBeInTheDocument();
-    expect(screen.getByRole('img', { name: /check circle/i })).toBeInTheDocument();
+    expect(document.querySelector('svg.lucide-circle-check')).toBeInTheDocument();
   });
 });

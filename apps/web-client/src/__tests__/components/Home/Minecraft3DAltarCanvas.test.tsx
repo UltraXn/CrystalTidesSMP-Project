@@ -20,7 +20,10 @@ vi.mock('three', () => {
         PerspectiveCamera: class {
             position = { set: vi.fn(), z: 5 };
         },
+        PCFShadowMap: 1,
         WebGLRenderer: class {
+            setAnimationLoop = vi.fn();
+            shadowMap = { enabled: false, type: 0 };
             get domElement() {
                 return document.createElement('canvas');
             }

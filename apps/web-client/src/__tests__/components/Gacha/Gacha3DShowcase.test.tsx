@@ -77,7 +77,10 @@ vi.mock('three', () => {
             near = 0.1;
             far = 100;
         },
+        PCFShadowMap: 1,
         WebGLRenderer: class {
+            setAnimationLoop = vi.fn();
+            shadowMap = { enabled: false, type: 0 };
             get domElement() {
                 return document.createElement('canvas');
             }

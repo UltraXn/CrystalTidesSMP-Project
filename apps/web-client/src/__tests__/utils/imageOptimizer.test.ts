@@ -62,12 +62,15 @@ describe('imageOptimizer', () => {
     });
 
     it('should handle FileReader errors', async () => {
+        // Like a real FileReader: the failure is exposed on reader.error, not on the event.
         class MockFileReaderError {
             onload: ((event: { target: { result: string } }) => void) | null = null;
-            onerror: ((event: Error) => void) | null = null;
+            onerror: (() => void) | null = null;
+            error: Error | null = null;
             readAsDataURL() {
                 setTimeout(() => {
-                    this.onerror?.(new Error('Read error'));
+                    this.error = new Error('Read error');
+                    this.onerror?.();
                 }, 0);
             }
         }

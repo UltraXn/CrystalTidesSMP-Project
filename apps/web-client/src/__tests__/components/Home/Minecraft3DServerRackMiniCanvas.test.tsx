@@ -2,6 +2,9 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderWithProviders } from '@/utils/test-utils';
 import { Minecraft3DServerRackMiniCanvas } from '@/components/Home/Minecraft3DServerRackMiniCanvas';
 
+// The component stops its render loop with renderer.setAnimationLoop(null).
+const { setAnimationLoop } = vi.hoisted(() => ({ setAnimationLoop: vi.fn() }));
+
 vi.mock('three', () => ({
     Scene: class {
         add = vi.fn();
@@ -11,7 +14,10 @@ vi.mock('three', () => ({
         position = { set: vi.fn() };
         lookAt = vi.fn();
     },
+    PCFShadowMap: 1,
     WebGLRenderer: class {
+        setAnimationLoop = setAnimationLoop;
+        shadowMap = { enabled: false, type: 0 };
         get domElement() {
             return document.createElement('canvas');
         }
@@ -98,7 +104,7 @@ describe('Minecraft3DServerRackMiniCanvas', () => {
     it('renders mini rack canvas container and mounts canvas', async () => {
         const { container } = renderWithProviders(<Minecraft3DServerRackMiniCanvas />);
 
-        const wrapper = container.querySelector('.w-12.h-12');
+        const wrapper = container.querySelector('.size-12');
         expect(wrapper).toBeInTheDocument();
         expect(wrapper?.querySelector('canvas')).toBeInTheDocument();
     });
@@ -106,6 +112,6 @@ describe('Minecraft3DServerRackMiniCanvas', () => {
     it('cleans up without error on unmount', () => {
         const { unmount } = renderWithProviders(<Minecraft3DServerRackMiniCanvas />);
         expect(() => unmount()).not.toThrow();
-        expect(window.cancelAnimationFrame).toHaveBeenCalled();
+        expect(setAnimationLoop).toHaveBeenLastCalledWith(null);
     });
 });

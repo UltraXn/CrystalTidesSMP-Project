@@ -84,17 +84,19 @@ describe('KanbanColumn', () => {
             />
         );
 
+        // The header is a native <button>: Enter/Space activate it like a click.
+        const user = userEvent.setup();
         const header = screen.getByRole('button');
         header.focus();
 
         // Act: press enter
-        fireEvent.keyDown(header, { key: 'Enter' });
+        await user.keyboard('{Enter}');
 
         // Assert
         expect(screen.getByTestId('kanban-card-10')).toBeInTheDocument();
 
         // Act: press space to collapse
-        fireEvent.keyDown(header, { key: ' ' });
+        await user.keyboard(' ');
         expect(screen.queryByTestId('kanban-card-10')).not.toBeInTheDocument();
     });
 

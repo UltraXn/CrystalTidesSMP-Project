@@ -61,7 +61,7 @@ describe('PremiumAlert', () => {
     render(
       <PremiumAlert isOpen={true} message="Test message" onClose={onCloseMock} variant="error" />,
     );
-    expect(screen.getByRole('img', { name: /alert circle/i })).toBeInTheDocument();
+    expect(document.querySelector('svg.lucide-circle-alert')).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 3 }).textContent).toBe('Error');
   });
 

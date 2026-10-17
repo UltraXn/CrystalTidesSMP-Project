@@ -214,10 +214,8 @@ describe("Launcher/ModManagerPage Component", () => {
 
     expect(await screen.findByText("Iris Shaders")).toBeInTheDocument();
 
-    const deleteButtons = screen.getAllByTitle("Eliminar mod");
-    expect(deleteButtons.length).toBeGreaterThan(0);
-
-    await user.click(deleteButtons[0]);
+    // Official mods (Sodium) cannot be deleted: target the user-installed one.
+    await user.click(screen.getByRole("button", { name: /Eliminar mod Iris Shaders/i }));
 
     expect(confirmSpy).toHaveBeenCalled();
     await waitFor(() => {
@@ -261,12 +259,12 @@ describe("Launcher/ModManagerPage Component", () => {
     expect(screen.getByText("Sincronización de Mods Oficiales")).toBeInTheDocument();
     expect(await screen.findByText("crystaltides-core-1.0")).toBeInTheDocument();
 
-    const syncBtn = screen.getByRole("button", { name: "Sincronizar mods con el servidor" });
+    const syncBtn = screen.getByRole("button", { name: "Sincronizar mods oficiales ahora" });
     await user.click(syncBtn);
 
     expect(mockSyncOfficialMods).toHaveBeenCalled();
     await waitFor(() => {
-      expect(screen.getByText("✅ Sincronización completada.")).toBeInTheDocument();
+      expect(screen.getByText("¡Sincronización completada con éxito!")).toBeInTheDocument();
     });
   });
 
@@ -274,7 +272,7 @@ describe("Launcher/ModManagerPage Component", () => {
     const user = userEvent.setup();
     renderWithProviders(<ModManagerPage />);
 
-    const searchTab = screen.getByRole("tab", { name: "Buscador de mods en línea" });
+    const searchTab = screen.getByRole("tab", { name: "Explorar y buscar mods online" });
     await user.click(searchTab);
 
     expect(await screen.findByText("Lithium")).toBeInTheDocument();

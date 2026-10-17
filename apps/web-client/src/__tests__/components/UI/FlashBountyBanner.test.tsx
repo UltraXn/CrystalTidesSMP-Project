@@ -15,7 +15,7 @@ vi.mock('framer-motion', () => ({
   AnimatePresence: ({ children }: { children?: ReactNode }) => <>{children}</>,
 }));
 
-vi.mock('react-router-dom', () => ({
+vi.mock('react-router', () => ({
   Link: ({ children, to }: { children: ReactNode; to: string }) => <a href={to}>{children}</a>,
 }));
 

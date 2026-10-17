@@ -141,9 +141,7 @@ describe("Admin/WikiManager", () => {
     if (deleteButtons.length > 0) {
       await user.click(deleteButtons[0]);
       // ConfirmationModal should appear
-      expect(
-        screen.getByText("Eliminar Artículo de la Wiki"),
-      ).toBeInTheDocument();
+      expect(screen.getByText("Eliminar Artículo")).toBeInTheDocument();
     }
   });
 

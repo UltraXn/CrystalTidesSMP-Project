@@ -104,9 +104,9 @@ describe('NotificationCenter', () => {
 
     it('should render notifications with correct icons', () => {
         render(<NotificationCenter initialOpen />);
-        const successIcon = screen.getByRole('img', { name: /CheckCircle2/i });
-        const warningIcon = screen.getByRole('img', { name: /AlertTriangle/i });
-        const infoIcon = screen.getByRole('img', { name: /Info/i });
+        const successIcon = document.querySelector('svg.lucide-circle-check');
+        const warningIcon = document.querySelector('svg.lucide-triangle-alert');
+        const infoIcon = document.querySelector('svg.lucide-info');
 
         expect(successIcon).toBeInTheDocument();
         expect(warningIcon).toBeInTheDocument();

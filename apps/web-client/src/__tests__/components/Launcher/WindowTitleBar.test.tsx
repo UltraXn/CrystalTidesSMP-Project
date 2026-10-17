@@ -1,18 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { screen, fireEvent } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { WindowTitleBar } from "@/components/Launcher/WindowTitleBar";
 import { renderWithProviders } from "@/utils/test-utils";
 
 const mockMinimize = vi.fn();
 const mockClose = vi.fn();
-const mockStartDragging = vi.fn().mockResolvedValue(undefined);
 
 vi.mock("@tauri-apps/api/window", () => ({
   getCurrentWindow: () => ({
     minimize: mockMinimize,
     close: mockClose,
-    startDragging: mockStartDragging,
   }),
 }));
 
@@ -50,24 +48,13 @@ describe("Launcher/WindowTitleBar", () => {
     expect(mockClose).toHaveBeenCalledTimes(1);
   });
 
-  it("initiates window dragging on mouse down with left button", () => {
+  // Dragging is native: Tauri moves the window from elements marked data-tauri-drag-region,
+  // so no JS mousedown handler (startDragging) is involved anymore.
+  it("marks the title area as a native Tauri drag region", () => {
     const { container } = renderWithProviders(<WindowTitleBar />);
     const dragRegion = container.querySelector(".titlebar-drag-region");
+
     expect(dragRegion).toBeInTheDocument();
-
-    if (dragRegion) {
-      fireEvent.mouseDown(dragRegion, { button: 0 });
-      expect(mockStartDragging).toHaveBeenCalledTimes(1);
-    }
-  });
-
-  it("does not initiate window dragging with non-left mouse button", () => {
-    const { container } = renderWithProviders(<WindowTitleBar />);
-    const dragRegion = container.querySelector(".titlebar-drag-region");
-
-    if (dragRegion) {
-      fireEvent.mouseDown(dragRegion, { button: 2 });
-      expect(mockStartDragging).not.toHaveBeenCalled();
-    }
+    expect(dragRegion).toHaveAttribute("data-tauri-drag-region");
   });
 });
