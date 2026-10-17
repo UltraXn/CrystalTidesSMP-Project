@@ -1,6 +1,7 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import request from 'supertest';
 import app from '../app';
+import { signInAs } from './helpers/signInAs.js';
 
 // The ingest pipeline deletes knowledge rows of every mod missing from
 // `active_mods`, so this suite must only ever reach the unresolvable test host
@@ -59,13 +60,10 @@ describe.skipIf(!isIsolatedEnv)('RAG Controller & Integration E2E Test Suite', (
   });
 
   it('debe responder a la búsqueda RAG GET /api/rag/search?q=Ignis', async () => {
-    // La búsqueda es solo para staff; el bot (rol owner) es la única identidad
-    // que el entorno hermético puede autenticar.
-    process.env.BOT_API_KEY = 'test-bot-key-for-rag-search';
-    const res = await request(app)
-      .get('/api/rag/search?q=Ignis')
-      .set('Authorization', 'Bearer test-bot-key-for-rag-search');
-    process.env.BOT_API_KEY = '';
+    // La búsqueda es solo para staff
+    const { headers } = signInAs('moderator');
+    const res = await request(app).get('/api/rag/search?q=Ignis').set(headers);
+    vi.restoreAllMocks();
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('query', 'Ignis');

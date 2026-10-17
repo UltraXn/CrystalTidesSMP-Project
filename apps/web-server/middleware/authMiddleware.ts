@@ -3,7 +3,7 @@ import { Request, Response, NextFunction } from 'express';
 import supabase from '../config/supabaseClient.js';
 import { sendError } from '../utils/responseHandler.js';
 import { logSecurityFailure } from '../services/auditService.js';
-import { ADMIN_ROLES } from '../utils/roleUtils.js';
+import { ADMIN_ROLES, SERVICE_ROLE } from '../utils/roleUtils.js';
 
 type CachedUser = NonNullable<Express.Request['user']>;
 
@@ -30,7 +30,6 @@ const AUTH_CONSTANTS = {
   BOT_SYSTEM_ID: 'bot_system_id',
   BOT_EMAIL: 'bot@crystaltidessmp.net',
   BOT_USERNAME: 'CrystalBot',
-  BOT_ROLE: 'owner',
   ADMIN_2FA_COOKIE: 'admin_2fa_token',
   ADMIN_TOKEN_HEADER: 'x-admin-token',
   AUTH_HEADER: 'authorization',
@@ -84,7 +83,8 @@ function createBotUser(): CachedUser {
     id: AUTH_CONSTANTS.BOT_SYSTEM_ID,
     email: AUTH_CONSTANTS.BOT_EMAIL,
     username: AUTH_CONSTANTS.BOT_USERNAME,
-    role: AUTH_CONSTANTS.BOT_ROLE,
+    // Not an admin: routes must grant SERVICE_ROLE explicitly (see roleUtils).
+    role: SERVICE_ROLE,
     avatar_url: '',
     app_metadata: { two_factor_enabled: false },
   };

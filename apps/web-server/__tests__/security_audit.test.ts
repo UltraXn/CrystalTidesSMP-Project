@@ -27,7 +27,9 @@
  *         [FIXED] POST /api/uploads/image (magic-byte validation) +
  *         restrict_image_uploads_storage.sql (RLS deny client writes)
  *   C-03  /op restriction bypass in bridgeRoutes ("/op", "op\tx", minecraft:op, deop)
- *         [FIXED] normalized base-command denylist (op, deop) for non-owners
+ *         plus "execute ... run op", LuckPerms and sudo
+ *         [FIXED] per-role allowlist (utils/commandPolicy.ts); behaviour covered
+ *         in __tests__/routes/bridgeQueue.test.ts
  */
 
 import { describe, it, expect, vi, afterEach } from 'vitest';
@@ -300,13 +302,6 @@ describe('A08 — Data Integrity Failures', () => {
 describe('Regression — post-fix static checks', () => {
   const readSrc = (...segments: string[]) =>
     fs.readFileSync(path.join(__dirname, '..', ...segments), 'utf-8');
-
-  it('C-03: bridge restrict uses normalized denylist (no startsWith op bypass)', () => {
-    const src = readSrc('routes', 'bridgeRoutes.ts');
-    expect(src).toContain('OWNER_ONLY_COMMANDS');
-    expect(src).toContain("'deop'");
-    expect(src).not.toContain("startsWith('op ')");
-  });
 
   it('F-04: authMiddleware has no user_metadata role fallback', () => {
     const src = readSrc('middleware', 'authMiddleware.ts');

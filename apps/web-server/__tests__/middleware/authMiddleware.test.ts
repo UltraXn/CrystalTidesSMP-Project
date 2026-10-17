@@ -65,7 +65,7 @@ describe('Auth Middleware Suite', () => {
       // Assert
       expect(mockNext).toHaveBeenCalled();
       expect(mockReq.user).toBeDefined();
-      expect(mockReq.user?.role).toBe('owner');
+      expect(mockReq.user?.role).toBe('service');
       expect(mockReq.user?.username).toBe('CrystalBot');
     });
 
