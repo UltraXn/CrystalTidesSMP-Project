@@ -33,7 +33,6 @@
     "doctor:score": "pnpm --filter @crystaltides/client run doctor:score",
     "doctor:lite": "pnpm --filter @crystaltides/launcher-lite run doctor",
     "doctor:lite:score": "pnpm --filter @crystaltides/launcher-lite run doctor:score",
-    "doctor:launcher": "pnpm --filter @crystaltides/launcher-client run doctor",
     "audit:knip": "knip",
     "lint:deps": "syncpack list-mismatches",
     "format:deps": "syncpack format",
