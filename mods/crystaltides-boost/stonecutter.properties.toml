@@ -1,6 +1,6 @@
 # Build properties for every node (see settings.gradle.kts). Sections are matched by the node's tags,
 # its Minecraft version and its loader: ["1.21.1"], [fabric], [fabric."1.21.1"]...
-mod.version = "1.1.0"
+mod.version = "1.2.0"
 
 # Compile-time Fabric Loader for every version; the runtime minimum is mod.fabric_loader_min
 deps.fabric_loader = "0.19.5"

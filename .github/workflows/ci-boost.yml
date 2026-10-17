@@ -30,14 +30,18 @@ jobs:
     outputs:
       list: ${{ steps.read.outputs.list }}
       fabric-tasks: ${{ steps.read.outputs.fabric-tasks }}
+      runtime: ${{ steps.read.outputs.runtime }}
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
-          sparse-checkout: mods/crystaltides-boost/settings.gradle.kts
+          sparse-checkout: |
+            mods/crystaltides-boost/settings.gradle.kts
+            mods/crystaltides-boost/stonecutter.properties.toml
           sparse-checkout-cone-mode: false
 
-      # Los grupos viven en settings.gradle.kts (match("1.21.1", "fabric", "neoforge") ...): se leen de ahí
+      # Los grupos viven en settings.gradle.kts (match("1.21.1", "fabric", "neoforge") ...) y las versiones de
+      # Minecraft que cubre cada uno en stonecutter.properties.toml (mod.mc_releases): se leen de ahí
       - name: Read the version groups
         id: read
         working-directory: mods/crystaltides-boost
@@ -46,6 +50,18 @@ jobs:
           test -n "$versions"
           echo "list=$(printf '%s\n' $versions | jq -R . | jq -cs .)" >> "$GITHUB_OUTPUT"
           echo "fabric-tasks=$(printf ':%s-fabric:build ' $versions)" >> "$GITHUB_OUTPUT"
+          python3 - "$versions" <<'EOF' >> "$GITHUB_OUTPUT"
+          import json, sys, tomllib
+          with open("stonecutter.properties.toml", "rb") as handle:
+              props = tomllib.load(handle)
+          runs = []
+          for group in sys.argv[1].split():
+              java = 25 if int(group.split(".")[0]) >= 26 else 21
+              for mc in props[group]["mod"]["mc_releases"]:
+                  for loader in ("fabric", "neoforge"):
+                      runs.append({"mc": mc, "group": group, "loader": loader, "java": java})
+          print("runtime=" + json.dumps(runs))
+          EOF
 
   fabric:
     name: Fabric (all versions) + tests
@@ -135,3 +151,77 @@ jobs:
             mods/crystaltides-boost/versions/${{ matrix.version }}-neoforge/build/libs/crystaltides-boost-neoforge-*.jar
             !mods/crystaltides-boost/versions/*/build/libs/*-sources.jar
           if-no-files-found: error
+
+  # Arranca el cliente real (HeadlessMC + Xvfb, sin GPU) en cada versión de Minecraft con el jar de su grupo:
+  # el mod de prueba entra en un mundo de singleplayer, espera a que carguen los chunks y cierra el juego
+  runtime:
+    name: Runtime ${{ matrix.loader }} ${{ matrix.mc }}
+    needs: [versions, fabric, neoforge]
+    # También si falla el build de algún nodo: el resto de versiones se prueba igual
+    if: ${{ !cancelled() && needs.versions.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.versions.outputs.runtime) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          sparse-checkout: mods/crystaltides-boost/tools
+          sparse-checkout-cone-mode: false
+
+      # El juego usa el JAVA_HOME que haya al empezar mc-runtime-test
+      - name: Setup Java ${{ matrix.java }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+
+      - name: Download the mod jar
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ matrix.loader == 'fabric' && 'crystaltides-boost-fabric' || format('crystaltides-boost-neoforge-{0}', matrix.group) }}
+          path: artifact
+
+      # mc-runtime-test-mod no publica 1.21.2 ni 1.21.9: se usa el de su grupo (1.21.3, 1.21.10), que
+      # declara ~1.21.0 en Fabric y [1.21.0,) en NeoForge
+      - name: Stage the mod and the test mod
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p run/mods
+          jar=$(find artifact -name "crystaltides-boost-${{ matrix.loader }}-${{ matrix.group }}-*.jar" ! -name "*-sources.jar" | head -1)
+          test -n "$jar"
+          cp "$jar" run/mods/
+          for tm in "${{ matrix.mc }}" "${{ matrix.group }}"; do
+            gh release download "$tm-latest" --repo headlesshq/mc-runtime-test-mod \
+              --pattern "mc-runtime-test-$tm-${{ matrix.loader }}-*.jar" --dir run/mods && break
+          done
+          ls -l run/mods
+          test "$(ls run/mods | grep -c '^mc-runtime-test-')" -eq 1
+
+      - name: Run Minecraft ${{ matrix.mc }} (${{ matrix.loader }})
+        uses: headlesshq/mc-runtime-test@5.0.0
+        with:
+          mc: ${{ matrix.mc }}
+          modloader: ${{ matrix.loader }}
+          # El mod de prueba ya está en run/mods
+          mc-runtime-test: none
+          java: ${{ matrix.java }}
+          # 34 cachés de .minecraft desplazarían a las de Gradle (límite de 10 GB por repositorio)
+          cache-mc: "false"
+
+      - name: Check the game log
+        run: python3 -I mods/crystaltides-boost/tools/check_runtime_log.py run/logs/latest.log --group ${{ matrix.group }}
+
+      - name: Upload the game log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: runtime-log-${{ matrix.loader }}-${{ matrix.mc }}
+          path: |
+            run/logs/latest.log
+            run/crash-reports/
+          if-no-files-found: ignore
