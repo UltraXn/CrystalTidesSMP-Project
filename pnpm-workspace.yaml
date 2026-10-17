@@ -1,6 +1,7 @@
 packages:
   - 'apps/*'
-  - 'apps/launcher/*'
+  - '!apps/launcher'
+  - '!apps/launcher/**'
   - 'packages/*'
 
 # Política de Seguridad en Cadena de Suministro (AGENTS.md Regla 2.1)
