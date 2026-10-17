@@ -168,12 +168,15 @@ Tampoco se usan `@Overwrite` ni `@Redirect`, ni se cargan clases `net.minecraft.
 
 ## 🎮 5. Integración con CrystalTides Launcher Lite
 
-1. **`deploy_boost_mod`:** extrae el jar embebido de Fabric (en instancias Fabric o Quilt) o de NeoForge en `mods/crystaltides-boost.jar`.
-2. **`shouldDeployBoost`:** solo lo despliega en Minecraft 1.21.1. El launcher todavía embebe únicamente el grupo `1.21.1`; desplegar las demás versiones es trabajo pendiente.
+1. **Jars embebidos:** el launcher embebe un jar por grupo y loader (hoy 20) en `src-tauri/assets/boost/`.
+2. **`deploy_boost_mod`:** despliega en `mods/crystaltides-boost.jar` el jar del grupo que contiene la versión de Minecraft de la instancia: el de Fabric en Fabric y Quilt, y el de NeoForge en NeoForge.
+   - La versión tiene que estar en `mod.mc_releases` de un grupo. Si no hay build para ella (1.20.1, un snapshot o una versión posterior a las soportadas), retira el jar que el launcher hubiera desplegado antes.
+   - En TypeScript, `resolveBoostMcVersion` solo filtra por loader y normaliza la versión (`quilt-loader-0.31.0-beta.4-26.2` → `26.2`).
 3. **`remove_crystaltides_boost`:** solo borra el jar si su SHA-256 coincide con un binario oficial, sea el actual o uno anterior.
-4. **Sincronización:** `node scripts/sync-launcher-assets.mjs [--build|--check]`, desde la raíz del monorepo.
-   - Copia los jars del grupo `1.21.1` (`versions/1.21.1-fabric` y `versions/1.21.1-neoforge`), actualiza los hashes y conserva los anteriores.
-   - Con `--build` compila antes solo esos dos nodos.
+4. **Sincronización:** `node scripts/sync-launcher-assets.mjs [--from-ci <id>|--build|--check]`, desde la raíz del monorepo.
+   - Copia los jars, genera `src-tauri/src/boost_jars.rs` (la tabla grupo → versiones de Minecraft que usa `deploy_boost_mod`) y las filas de `MANIFEST.md`, y conserva los hashes anteriores en `LEGACY_BOOST_JAR_SHA256`.
+   - Con `--from-ci <id>` usa los jars de una ejecución en verde de `ci-boost.yml`, que tiene que ser de los mismos fuentes del mod que el checkout. Es la forma recomendada: no hace falta compilar los 20 nodos.
+   - Con `--build` compila antes todos los nodos en local. Tarda: los de NeoForge decompilan Minecraft uno a uno.
    - Con `LAUNCHER_LITE_DIR=<ruta>` trabaja sobre otra copia de launcher-lite, por ejemplo un git worktree.
 
 ---
