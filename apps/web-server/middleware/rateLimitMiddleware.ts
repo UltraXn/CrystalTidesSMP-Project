@@ -140,6 +140,18 @@ export const imageUploadLimiter = createLimiter({
 });
 
 /**
+ * Security Report Limiter - 20 reports per 10 minutes per client IP.
+ * Its own budget: failed logins must not use up the registration allowance.
+ */
+export const securityReportLimiter = createLimiter({
+  windowMs: WINDOW_MS.TEN_MINUTES,
+  max: 20,
+  errorCode: ERROR_CODES.RATE_LIMIT_EXCEEDED,
+  errorMessage: 'Too many reports. Please try again later.',
+  keyBy: 'ip',
+});
+
+/**
  * Inbound Webhook Limiter - 30 requests per minute per client IP
  */
 export const webhookLimiter = createLimiter({
