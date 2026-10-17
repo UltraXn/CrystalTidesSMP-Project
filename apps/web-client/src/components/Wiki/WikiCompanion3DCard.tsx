@@ -72,7 +72,10 @@ export const WikiCompanion3DCard: React.FC<Readonly<WikiCompanion3DCardProps>> =
       <div className="relative overflow-hidden rounded-2xl border border-emerald-500/20 bg-[#06100c]/90 shadow-xl backdrop-blur-xl">
         <div className="grid grid-cols-1 items-stretch gap-0 lg:grid-cols-12">
           {/* 3D Viewport Column */}
-          <div className="min-h-95 bg-radial relative flex size-full cursor-grab items-center justify-center overflow-hidden border-b border-emerald-500/20 from-emerald-950/30 via-black to-black outline-none focus:outline-none active:cursor-grabbing lg:col-span-5 lg:border-b-0 lg:border-r">
+          <section
+            aria-label="Visualizador 3D Mascota"
+            className="min-h-95 bg-radial relative flex size-full cursor-grab items-center justify-center overflow-hidden border-b border-emerald-500/20 from-emerald-950/30 via-black to-black outline-none focus:outline-none active:cursor-grabbing lg:col-span-5 lg:border-b-0 lg:border-r"
+          >
             {isLoading && (
               <div className="backdrop-blur-xs absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/80">
                 <div className="mb-2 size-6 animate-spin rounded-full border-2 border-emerald-500/30 border-t-emerald-500" />
@@ -105,7 +108,7 @@ export const WikiCompanion3DCard: React.FC<Readonly<WikiCompanion3DCardProps>> =
                 <Maximize2 aria-hidden="true" className="size-3.5" />
               </button>
             </div>
-          </div>
+          </section>
 
           {/* Stats & Description Column */}
           <div className="flex flex-col justify-between space-y-3 p-5 lg:col-span-7">

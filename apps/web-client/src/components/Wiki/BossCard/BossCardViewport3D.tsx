@@ -34,7 +34,8 @@ export function BossCardViewport3D({
   });
 
   return (
-    <div
+    <section
+      aria-label="Visualizador 3D interactivo"
       className={`min-h-115 relative flex size-full cursor-grab items-center justify-center overflow-hidden border-b border-white/5 focus:outline-none active:cursor-grabbing lg:col-span-5 lg:border-b-0 lg:border-r ${themeStyles.viewportBg}`}
     >
       {isLoading && (
@@ -109,6 +110,6 @@ export function BossCardViewport3D({
           Arrastra para rotar 360°
         </span>
       </div>
-    </div>
+    </section>
   );
 }
