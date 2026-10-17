@@ -1,8 +1,9 @@
 import { useTranslation } from 'react-i18next';
-import { Shield, Trash2 } from 'lucide-react';
+import { Shield } from 'lucide-react';
 import Loader from '../../UI/Loader';
 import { useTwoFactorAuth, UseTwoFactorAuthOptions } from './useTwoFactorAuth';
 import { TwoFactorSetupBox } from './TwoFactorSetupBox';
+import { TwoFactorDisableBox } from './TwoFactorDisableBox';
 
 export type TwoFactorSetupProps = UseTwoFactorAuthOptions;
 
@@ -132,32 +133,12 @@ export default function TwoFactorSetup(props: Readonly<TwoFactorSetupProps> = {}
       )}
 
       {enabled && (
-        <button
-          type="button"
-          onClick={handleDisable}
-          disabled={loading}
-          style={{
-            background: 'rgba(239, 68, 68, 0.15)',
-            color: '#ef4444',
-            border: '1px solid rgba(239, 68, 68, 0.3)',
-            padding: '0.8rem 1.5rem',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            fontWeight: '600',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            justifyContent: 'center',
-          }}
-        >
-          {loading ? (
-            <Loader minimal />
-          ) : (
-            <>
-              <Trash2 size={14} /> {t('account.security.disable_2fa', 'Disable 2FA')}
-            </>
-          )}
-        </button>
+        <TwoFactorDisableBox
+          token={token}
+          onTokenChange={setToken}
+          onDisable={handleDisable}
+          loading={loading}
+        />
       )}
     </div>
   );

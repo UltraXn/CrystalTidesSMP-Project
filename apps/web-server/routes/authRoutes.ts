@@ -5,7 +5,12 @@ import { authenticateToken } from '../middleware/authMiddleware.js';
 import { sensitiveActionLimiter } from '../middleware/rateLimitMiddleware.js';
 import { validate } from '../middleware/validateResource.js';
 import { checkFormHoneypot } from '../middleware/honeypotMiddleware.js';
-import { verify2FASchema, enable2FASchema, registerSchema } from '../schemas/authSchemas.js';
+import {
+  verify2FASchema,
+  enable2FASchema,
+  disable2FASchema,
+  registerSchema,
+} from '../schemas/authSchemas.js';
 
 const AUTH_ROUTES = {
   REGISTER: '/register',
@@ -40,7 +45,12 @@ router.post(
   validate(enable2FASchema),
   twoFactorController.enable2FA,
 );
-router.post(AUTH_ROUTES.TWO_FACTOR_DISABLE, sensitiveActionLimiter, twoFactorController.disable2FA);
+router.post(
+  AUTH_ROUTES.TWO_FACTOR_DISABLE,
+  sensitiveActionLimiter,
+  validate(disable2FASchema),
+  twoFactorController.disable2FA,
+);
 router.post(
   AUTH_ROUTES.TWO_FACTOR_VERIFY,
   sensitiveActionLimiter,

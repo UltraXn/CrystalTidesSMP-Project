@@ -28,17 +28,25 @@ describe('TwoFactorSetup', () => {
     expect(handleSetup).toHaveBeenCalled();
   });
 
-  it('renders disable 2FA button when already enabled', async () => {
+  it('keeps the disable button locked until the current code is entered', () => {
+    renderWithProviders(<TwoFactorSetup mockEnabled={true} onDisable={vi.fn()} />);
+
+    const disableBtn = screen.getByRole('button', { name: /desactivar 2fa|disable 2fa/i });
+    expect(disableBtn).toBeDisabled();
+  });
+
+  it('disables 2FA with the current code when already enabled', async () => {
     vi.spyOn(window, 'confirm').mockReturnValue(true);
     const handleDisable = vi.fn().mockResolvedValue({ success: true });
     const user = userEvent.setup();
 
     renderWithProviders(<TwoFactorSetup mockEnabled={true} onDisable={handleDisable} />);
 
+    await user.type(screen.getByLabelText(/código 2fa actual|current 2fa code/i), '123456');
     const disableBtn = screen.getByRole('button', { name: /desactivar 2fa|disable 2fa/i });
-    expect(disableBtn).toBeInTheDocument();
+    expect(disableBtn).toBeEnabled();
 
     await user.click(disableBtn);
-    expect(handleDisable).toHaveBeenCalled();
+    expect(handleDisable).toHaveBeenCalledWith('123456');
   });
 });

@@ -908,6 +908,8 @@
       "2fa_enabled": "¡2FA Activado Correctamente!",
       "2fa_disabled": "2FA Desactivado",
       "2fa_disable_confirm": "¿Estás seguro de que quieres desactivar el 2FA?",
+      "2fa_disable_code_label": "Código 2FA actual",
+      "2fa_disable_code_required": "Introduce el código actual de 6 dígitos de tu app de autenticación para desactivar el 2FA.",
       "cant_scan": "¿No puedes escanear el código QR?",
       "copied": "¡Copiado!",
       "enter_code": "Introduce el Código",
