@@ -223,12 +223,7 @@ public class McpAdminTools {
           if (Files.exists(path)) {
             try (Reader r = Files.newBufferedReader(path)) {
               Object loaded = yaml.load(r);
-              if (loaded instanceof Map) {
-                //noinspection unchecked
-                root = new LinkedHashMap<>((Map<String, Object>) loaded);
-              } else {
-                root = new LinkedHashMap<>();
-              }
+              root = toMutableStringObjectMap(loaded);
             }
           } else {
             root = new LinkedHashMap<>();
@@ -343,15 +338,26 @@ public class McpAdminTools {
     return v == null ? null : String.valueOf(v);
   }
 
-  @SuppressWarnings("unchecked")
   private static Map<String, Object> getOrCreateMap(Map<String, Object> parent, String key) {
     Object o = parent.get(key);
-    if (o instanceof Map<?, ?> m) {
-      return new LinkedHashMap<>((Map<String, Object>) m);
+    if (o instanceof Map<?, ?>) {
+      return toMutableStringObjectMap(o);
     }
     Map<String, Object> created = new LinkedHashMap<>();
     parent.put(key, created);
     return created;
+  }
+
+  private static Map<String, Object> toMutableStringObjectMap(Object obj) {
+    Map<String, Object> result = new LinkedHashMap<>();
+    if (obj instanceof Map<?, ?> map) {
+      for (Map.Entry<?, ?> entry : map.entrySet()) {
+        if (entry.getKey() != null) {
+          result.put(entry.getKey().toString(), entry.getValue());
+        }
+      }
+    }
+    return result;
   }
 
   private static void putIfPresent(Map<String, Object> target, Map<String, Object> source, String key) {
