@@ -43,9 +43,22 @@ vi.mock('@tanstack/react-query', async (importOriginal) => {
   };
 });
 
+vi.mock('@/services/supabaseClient', () => ({
+  supabase: {
+    auth: {
+      getSession: vi.fn().mockResolvedValue({
+        data: { session: { access_token: 'mock-session-token' } },
+      }),
+    },
+  },
+}));
+
 // Mock adminAuth
 vi.mock('@/services/adminAuth', () => ({
-  getAdminToken: vi.fn().mockReturnValue('mock-admin-token'),
+  getAuthHeaders: vi.fn(() => ({
+    Authorization: 'Bearer mock-session-token',
+    'x-admin-token': 'mock-admin-token',
+  })),
 }));
 
 describe('Admin/RoadmapAdminManager', () => {
@@ -117,6 +130,20 @@ describe('Admin/RoadmapAdminManager', () => {
     // Wait for the status message to appear
     const statusMsg = await screen.findByRole('status');
     expect(statusMsg).toHaveTextContent('✅ Configuración de Roadmap actualizada correctamente.');
+  });
+
+  it('sends the Supabase session plus the 2FA admin token when saving', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<RoadmapAdminManager />);
+
+    await user.click(screen.getByRole('button', { name: /Guardar configuración del roadmap/i }));
+    await screen.findByRole('status');
+
+    const [, init] = vi.mocked(global.fetch).mock.calls[0];
+    expect(init?.headers).toMatchObject({
+      Authorization: 'Bearer mock-session-token',
+      'x-admin-token': 'mock-admin-token',
+    });
   });
 
   it('shows error message when save fails', async () => {

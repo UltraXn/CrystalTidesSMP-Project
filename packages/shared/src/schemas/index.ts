@@ -13,6 +13,7 @@ export * from './note.js';
 export * from './policy.js';
 export * from './poll.js';
 export * from './profileComment.js';
+export * from './roadmap.js';
 export * from './rule.js';
 export * from './settings.js';
 export * from './suggestion.js';
