@@ -1,6 +1,9 @@
 import cron from 'node-cron';
 import supabase from './supabaseService.js';
 
+// system_logs holds the security audit trail: keep it long enough to investigate incidents.
+const LOG_RETENTION_DAYS = Number(process.env.LOG_RETENTION_DAYS) || 90;
+
 export const initCleanupJob = () => {
   // ... same code ...
   // Programar tarea: Todos los Domingos a las 00:00 (0 0 * * 0)
@@ -35,18 +38,20 @@ export const initCleanupJob = () => {
     }
   });
 
-  // Tarea 2: Limpieza quincenal de LOGS (Todos los días a las 01:00 comprueba logs > 15 días)
+  // Tarea 2: Limpieza de LOGS (Todos los días a las 01:00 borra logs > LOG_RETENTION_DAYS)
   cron.schedule('0 1 * * *', async () => {
-    console.log('🧹 [Cleanup] Iniciando limpieza de logs antiguos (> 15 días)...');
+    console.log(
+      `🧹 [Cleanup] Iniciando limpieza de logs antiguos (> ${LOG_RETENTION_DAYS} días)...`,
+    );
     try {
-      const fifteenDaysAgo = new Date();
-      fifteenDaysAgo.setDate(fifteenDaysAgo.getDate() - 15);
+      const retentionCutoff = new Date();
+      retentionCutoff.setDate(retentionCutoff.getDate() - LOG_RETENTION_DAYS);
 
       // Supabase delete with filter
       const { error, count } = await supabase
         .from('system_logs')
         .delete({ count: 'exact' })
-        .lt('created_at', fifteenDaysAgo.toISOString());
+        .lt('created_at', retentionCutoff.toISOString());
 
       if (error) throw error;
 
