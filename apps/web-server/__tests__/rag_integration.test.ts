@@ -59,7 +59,13 @@ describe.skipIf(!isIsolatedEnv)('RAG Controller & Integration E2E Test Suite', (
   });
 
   it('debe responder a la búsqueda RAG GET /api/rag/search?q=Ignis', async () => {
-    const res = await request(app).get('/api/rag/search?q=Ignis');
+    // La búsqueda es solo para staff; el bot (rol owner) es la única identidad
+    // que el entorno hermético puede autenticar.
+    process.env.BOT_API_KEY = 'test-bot-key-for-rag-search';
+    const res = await request(app)
+      .get('/api/rag/search?q=Ignis')
+      .set('Authorization', 'Bearer test-bot-key-for-rag-search');
+    process.env.BOT_API_KEY = '';
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('query', 'Ignis');

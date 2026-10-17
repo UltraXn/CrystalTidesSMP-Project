@@ -8,6 +8,11 @@ import { generateAIBossPoll } from '../services/aiPollService.js';
 const TABLE_NEWSPAPER = 'ai_newspaper_editions';
 const TABLE_DAILY_QUESTS = 'ai_daily_quests';
 
+interface LikeResult {
+  liked: boolean;
+  likes_count: number;
+}
+
 /**
  * Helper para estandarizar las respuestas de error
  */
@@ -70,37 +75,37 @@ export async function getNewspaperArchive(req: Request, res: Response): Promise<
 
 /**
  * POST /api/ai/newspaper/:id/like
- * Incrementa el contador de likes real de una edición en Supabase
+ * Registra el like del usuario (uno por edición) e incrementa el contador de forma atómica
  */
 export async function likeNewspaperEdition(req: Request, res: Response): Promise<void> {
   try {
     const id = Number(req.params.id);
-    if (!id) {
+    if (!Number.isSafeInteger(id) || id <= 0) {
       res.status(400).json({ error: 'ID de edición inválido' });
       return;
     }
+    if (!req.user) {
+      res.status(401).json({ error: 'Authentication required' });
+      return;
+    }
 
-    const { data: current } = await supabase
-      .from(TABLE_NEWSPAPER)
-      .select('likes_count')
-      .eq('id', id)
-      .single();
-
-    const newLikes = (current?.likes_count || 0) + 1;
-
-    const { data, error } = await supabase
-      .from(TABLE_NEWSPAPER)
-      .update({ likes_count: newLikes })
-      .eq('id', id)
-      .select('id, likes_count')
-      .single();
+    const { data, error } = await supabase.rpc('like_newspaper_edition', {
+      p_edition_id: id,
+      p_user_id: req.user.id,
+    });
 
     if (error) {
       sendErrorResponse(res, error);
       return;
     }
 
-    res.json({ success: true, likes_count: data?.likes_count || newLikes });
+    const rows = (data ?? []) as LikeResult[];
+    if (rows.length === 0) {
+      res.status(404).json({ error: 'Edición no encontrada' });
+      return;
+    }
+
+    res.json({ success: true, liked: rows[0].liked, likes_count: rows[0].likes_count });
   } catch (err: unknown) {
     sendErrorResponse(res, err);
   }

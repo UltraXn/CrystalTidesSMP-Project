@@ -18,7 +18,7 @@ const router = Router();
 // Rutas Públicas (Web / Launcher / In-game Bridge)
 router.get('/newspaper/latest', getLatestNewspaper);
 router.get('/newspaper/archive', getNewspaperArchive);
-router.post('/newspaper/:id/like', sensitiveActionLimiter, likeNewspaperEdition);
+router.post('/newspaper/:id/like', authenticateToken, sensitiveActionLimiter, likeNewspaperEdition);
 router.get('/quests/daily', getDailyQuests);
 
 // Rutas de Administración / Trigger Manual (Protegidas)
