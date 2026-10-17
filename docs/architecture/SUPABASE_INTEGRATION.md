@@ -18,9 +18,7 @@ Supabase es una alternativa de código abierto a Firebase construida sobre Postg
 - **Realtime**: Suscripciones vía WebSocket para datos en vivo.
 - **Edge Functions**: Funciones serverless (Deno).
 
-### Detalles del Proyecto
-
-- **URL**: `https://gyoqnqvqhuxlcbrvtfia.supabase.co`
+- **URL**: `https://<your-project-id>.supabase.co`
 - **Estado**: Activo
 - **Plan**: Free Tier (500MB DB / 1GB Storage)
 
@@ -128,8 +126,8 @@ Dado que el servidor de Minecraft usa MySQL para datos masivos (LuckPerms, CoreP
 ### Configuración de Frontend (.env)
 
 ```env
-VITE_SUPABASE_URL=https://gyoqnqvqhuxlcbrvtfia.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJhbG... (Public Key)
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
 ```
 
 ### Configuración de Backend
