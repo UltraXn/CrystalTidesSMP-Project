@@ -30,8 +30,6 @@ jobs:
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: 10
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -62,8 +60,11 @@ jobs:
     timeout-minutes: 15
 
     steps:
+      # apps/launcher-lite es un submódulo (repo público): sin esto el directorio no existe
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          submodules: true
 
       - name: Setup Rust
         uses: actions-rust-lang/setup-rust-toolchain@v1
