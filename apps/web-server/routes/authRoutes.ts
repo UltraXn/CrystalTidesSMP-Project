@@ -26,7 +26,7 @@ router.post(
   AUTH_ROUTES.REGISTER,
   checkFormHoneypot(HONEYPOT_FIELD),
   validate(registerSchema),
-  authController.registerUser
+  authController.registerUser,
 );
 
 // Protected 2FA routes (require valid Supabase session token)
@@ -38,14 +38,14 @@ router.post(
   AUTH_ROUTES.TWO_FACTOR_ENABLE,
   sensitiveActionLimiter,
   validate(enable2FASchema),
-  twoFactorController.enable2FA
+  twoFactorController.enable2FA,
 );
 router.post(AUTH_ROUTES.TWO_FACTOR_DISABLE, sensitiveActionLimiter, twoFactorController.disable2FA);
 router.post(
   AUTH_ROUTES.TWO_FACTOR_VERIFY,
   sensitiveActionLimiter,
   validate(verify2FASchema),
-  twoFactorController.verify2FA
+  twoFactorController.verify2FA,
 );
 router.post(AUTH_ROUTES.TWO_FACTOR_LOGOUT, twoFactorController.clear2FA);
 
