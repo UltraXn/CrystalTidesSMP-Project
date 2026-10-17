@@ -11,12 +11,47 @@ on:
     paths:
       - mods/crystaltides-boost/**
       - .github/workflows/ci-boost.yml
+  workflow_dispatch:
+
+# Un push nuevo a la misma rama o PR cancela la ejecución en curso
+concurrency:
+  group: ci-boost-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Gradle se ejecuta con Java 25 (gradle/gradle-daemon-jvm.properties) y los nodos compilan con Java 21
+  # (1.21.x) o 25 (26.x): se usan como toolchains los JDK de setup-java en vez de descargar otros.
+  GRADLE_TOOLCHAINS: -Porg.gradle.java.installations.fromEnv=JAVA_HOME_21_X64,JAVA_HOME_25_X64 -Porg.gradle.java.installations.auto-download=false
 
 jobs:
-  boost:
-    name: Build & Test (Fabric + NeoForge)
+  versions:
+    name: Version groups
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    outputs:
+      list: ${{ steps.read.outputs.list }}
+      fabric-tasks: ${{ steps.read.outputs.fabric-tasks }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          sparse-checkout: mods/crystaltides-boost/settings.gradle.kts
+          sparse-checkout-cone-mode: false
+
+      # Los grupos viven en settings.gradle.kts (match("1.21.1", "fabric", "neoforge") ...): se leen de ahí
+      - name: Read the version groups
+        id: read
+        working-directory: mods/crystaltides-boost
+        run: |
+          versions=$(grep -oP '^\s*match\("\K[^"]+' settings.gradle.kts)
+          test -n "$versions"
+          echo "list=$(printf '%s\n' $versions | jq -R . | jq -cs .)" >> "$GITHUB_OUTPUT"
+          echo "fabric-tasks=$(printf ':%s-fabric:build ' $versions)" >> "$GITHUB_OUTPUT"
+
+  fabric:
+    name: Fabric (all versions) + tests
+    needs: versions
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
     defaults:
       run:
         working-directory: mods/crystaltides-boost
@@ -24,27 +59,79 @@ jobs:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-      - name: Setup Java 21
+      - name: Setup Java 21 + 25
         uses: actions/setup-java@v4
         with:
-          java-version: 21
           distribution: temurin
+          # El último queda como JAVA_HOME: Gradle necesita el 25
+          java-version: |
+            21
+            25
 
-      # Cachea Loom/ModDevGradle (Minecraft, mappings, NeoForm): el primer build los descarga
+      # Cachea los jars de Minecraft y los mappings de Loom; los PR solo leen la caché
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: ${{ github.event_name == 'pull_request' }}
 
-      # build incluye common:test y el annotation processor de Mixin (valida los targets
-      # de los mixins contra Minecraft 1.21.1 y genera el refmap de Fabric)
+      # Cada nodo Fabric ejecuta los tests unitarios (no dependen del loader)
       - name: Build & Test
-        run: ./gradlew build --no-daemon --console=plain
+        run: ./gradlew ${{ needs.versions.outputs.fabric-tasks }} --console=plain $GRADLE_TOOLCHAINS
 
-      - name: Upload mod jars
+      # 1.21.x está ofuscado y Loom remapea las anotaciones de los mixins en el bytecode (sin refmap):
+      # un nombre de Mojang que quede ahí fallaría en un Fabric de producción
+      - name: Check the mixin remapping (1.21.x)
+        run: python3 -I tools/check_remap.py $(ls versions/1.21*-fabric/build/libs/*.jar | grep -v -- -sources)
+
+      - name: Upload the Fabric jars
         uses: actions/upload-artifact@v4
         with:
-          name: crystaltides-boost-jars
+          name: crystaltides-boost-fabric
           path: |
-            mods/crystaltides-boost/fabric/build/libs/crystaltides-boost-fabric-*.jar
-            mods/crystaltides-boost/neoforge/build/libs/crystaltides-boost-neoforge-*.jar
-            !mods/crystaltides-boost/**/*-sources.jar
+            mods/crystaltides-boost/versions/*-fabric/build/libs/crystaltides-boost-fabric-*.jar
+            !mods/crystaltides-boost/versions/*/build/libs/*-sources.jar
+          if-no-files-found: error
+
+  neoforge:
+    name: NeoForge ${{ matrix.version }}
+    needs: versions
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        version: ${{ fromJSON(needs.versions.outputs.list) }}
+    defaults:
+      run:
+        working-directory: mods/crystaltides-boost
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup Java 21 + 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: |
+            21
+            25
+
+      # Cachea el Minecraft decompilado y parcheado de esta versión; los PR solo leen la caché
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: ${{ github.event_name == 'pull_request' }}
+
+      # Un nodo por runner: NeoForm decompila Minecraft con Vineflower, que reserva max(4 GB, 256 MB por
+      # núcleo) de heap, así que el daemon de Gradle va con menos memoria que en local
+      - name: Build
+        run: ./gradlew :${{ matrix.version }}-neoforge:build --console=plain -Dorg.gradle.jvmargs=-Xmx2g $GRADLE_TOOLCHAINS
+
+      - name: Upload the NeoForge jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: crystaltides-boost-neoforge-${{ matrix.version }}
+          path: |
+            mods/crystaltides-boost/versions/${{ matrix.version }}-neoforge/build/libs/crystaltides-boost-neoforge-*.jar
+            !mods/crystaltides-boost/versions/*/build/libs/*-sources.jar
           if-no-files-found: error
