@@ -22,6 +22,9 @@ const ERRORS = {
 } as const;
 
 const handleError = (res: Response, error: unknown) => {
+  if (error instanceof userService.InvalidRoleError) {
+    return sendError(res, error.message, 'INVALID_ROLE', 400);
+  }
   const message = error instanceof Error ? error.message : String(error);
   return sendError(res, message);
 };
@@ -55,7 +58,8 @@ const authorizeRoleUpdate = async (
     };
   }
 
-  const targetPriority = getRolePriority(targetUser.user_metadata?.role);
+  // Authoritative role from profiles: user_metadata.role is editable by its owner.
+  const targetPriority = getRolePriority(await userService.getProfileRole(targetUser.id));
 
   if (targetPriority >= requestorPriority && requestorPriority < 100) {
     return {
@@ -185,11 +189,11 @@ export const getFullProfile = async (req: Request, res: Response) => {
     const isStaff = STAFF_ROLES.includes(requesterRole);
     const canSeeWallet = isOwner || isStaff;
 
+    const walletUuid = canSeeWallet ? await userService.getLinkedMinecraftUuid(profile.id) : null;
+
     const [stats, wallet, threads] = await Promise.all([
       profile.username ? playerStatsService.getPlayerStats(profile.username) : null,
-      canSeeWallet && profile.minecraft_uuid
-        ? playerStatsService.getMoney(profile.minecraft_uuid)
-        : null,
+      walletUuid ? playerStatsService.getMoney(walletUuid) : null,
       forumService.getUserThreads(profile.id),
     ]);
 
