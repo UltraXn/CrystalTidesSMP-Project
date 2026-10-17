@@ -91,12 +91,13 @@ function tomlSection(toml, header) {
 
 // Valores con un string o una lista de strings, que en TOML se escriben igual que en JSON
 function tomlValue(section, key, where) {
-  const match = section.match(new RegExp(`^${key.replaceAll('.', '\\.')}\\s*=\\s*([^#\\n]+)`, 'm'));
-  if (!match) fail(`stonecutter.properties.toml no define ${key} en ${where}`);
+  const line = section.split('\n').find((candidate) => candidate.split('=')[0].trim() === key);
+  if (!line) fail(`stonecutter.properties.toml no define ${key} en ${where}`);
+  const raw = line.slice(line.indexOf('=') + 1).split('#')[0].trim();
   try {
-    return JSON.parse(match[1].trim());
+    return JSON.parse(raw);
   } catch {
-    return fail(`stonecutter.properties.toml: valor de ${key} en ${where} no reconocido (${match[1].trim()})`);
+    return fail(`stonecutter.properties.toml: valor de ${key} en ${where} no reconocido (${raw})`);
   }
 }
 
@@ -107,15 +108,19 @@ function readBoostLayout() {
   const version = tomlValue(tomlSection(toml, null), 'mod.version', 'la sección raíz');
   if (typeof version !== 'string') fail('mod.version de stonecutter.properties.toml tiene que ser un string');
 
-  const nodes = [...settings.matchAll(/^\s*match\(\s*"([^"]+)"((?:\s*,\s*"[^"]+")+)\s*\)/gm)];
+  // Las llamadas, no la declaración fun match(...): el primer string es el grupo y el resto, sus loaders
+  const nodes = settings
+    .split(/\r?\n/)
+    .filter((line) => line.trimStart().startsWith('match("'))
+    .map((line) => [...line.matchAll(/"([^"]+)"/g)].map((m) => m[1]));
   if (nodes.length === 0) fail('settings.gradle.kts de crystaltides-boost no declara grupos con match(...)');
-  const groups = nodes.map(([, group, loaders]) => {
+  const groups = nodes.map(([group, ...loaders]) => {
     const where = `["${group}"]`;
     const mcReleases = tomlValue(tomlSection(toml, where), 'mod.mc_releases', where);
     if (!Array.isArray(mcReleases) || mcReleases.length === 0 || !mcReleases.every((mc) => typeof mc === 'string')) {
       fail(`mod.mc_releases de ${where} tiene que ser una lista de versiones de Minecraft`);
     }
-    return { group, loaders: [...loaders.matchAll(/"([^"]+)"/g)].map((m) => m[1]), mcReleases };
+    return { group, loaders, mcReleases };
   });
   return { version, groups };
 }
@@ -150,8 +155,12 @@ function localSources(specs) {
   );
 }
 
+// git y gh son los del PATH de quien ejecuta el script, como en cualquier script de desarrollo
+// eslint-disable-next-line sonarjs/no-os-command-from-path
+const git = (args, options) => execFileSync('git', ['-C', root, ...args], options);
+
 function githubRepo() {
-  const url = execFileSync('git', ['-C', root, 'remote', 'get-url', 'origin'], { encoding: 'utf8' }).trim();
+  const url = git(['remote', 'get-url', 'origin'], { encoding: 'utf8' }).trim();
   const match = url.match(/github\.com[:/]([^/]+\/[^/]+?)(?:\.git)?$/);
   if (!match) fail(`El remoto origin (${url}) no es un repositorio de GitHub`);
   return match[1];
@@ -161,15 +170,14 @@ function githubRepo() {
 // los jars de la ejecución tienen que salir de los mismos. La documentación y los comprobadores del CI
 // (tools/) no entran en los jars y pueden diferir
 function requireSameModSources(sha) {
-  const git = (...args) => execFileSync('git', ['-C', root, ...args], { stdio: 'ignore' });
   try {
-    git('cat-file', '-e', `${sha}^{commit}`);
+    git(['cat-file', '-e', `${sha}^{commit}`], { stdio: 'ignore' });
   } catch {
     fail(`El commit ${sha.slice(0, 8)} de la ejecución no está en este checkout (git fetch)`);
   }
   const notInJars = [':(exclude)mods/crystaltides-boost/*.md', ':(exclude)mods/crystaltides-boost/tools'];
   try {
-    git('diff', '--quiet', sha, '--', 'mods/crystaltides-boost', ...notInJars);
+    git(['diff', '--quiet', sha, '--', 'mods/crystaltides-boost', ...notInJars], { stdio: 'ignore' });
   } catch {
     fail(`mods/crystaltides-boost difiere entre este checkout y el commit ${sha.slice(0, 8)} de la ejecución`);
   }
@@ -185,6 +193,7 @@ function listFiles(dir) {
 // Artifacts de una ejecución en verde de ci-boost.yml, descargados en un directorio nuevo que se borra al salir
 function ciSources(runId, specs) {
   const repo = githubRepo();
+  // eslint-disable-next-line sonarjs/no-os-command-from-path -- gh del PATH, como git
   const gh = (...args) => execFileSync('gh', [...args, '--repo', repo], { encoding: 'utf8' });
   const run = JSON.parse(gh('run', 'view', runId, '--json', 'workflowName,conclusion,headSha,headBranch,url'));
   if (run.workflowName !== CI_WORKFLOW) {
@@ -222,6 +231,7 @@ function buildLocally(specs) {
   console.log('▶ Compilando game-bridge...');
   // build:java y copia propia: el script "build" del paquete copia a una ruta fija del submódulo
   // y no respetaría LAUNCHER_LITE_DIR
+  // eslint-disable-next-line sonarjs/no-os-command-from-path -- pnpm del PATH, como git
   execSync('pnpm --filter @crystaltides/game-bridge run build:java', { cwd: root, stdio: 'inherit' });
   const agentJar = path.join(gameBridgeDir, 'java-agent', 'target', 'game-bridge-1.0-SNAPSHOT.jar');
   if (!fs.existsSync(agentJar)) fail(`No se generó ${path.relative(root, agentJar)}`);
