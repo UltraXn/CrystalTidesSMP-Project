@@ -35,6 +35,10 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
+      # web-client and web-server resolve @crystaltides/shared from its dist/
+      - name: Build shared package
+        run: pnpm --filter @crystaltides/shared build
+
       - name: Lint (Web)
         run: pnpm turbo run lint --filter=@crystaltides/client --filter=@crystaltides/server
 
@@ -42,6 +46,9 @@ jobs:
         run: |
           cd apps/web-client
           pnpm tsc --noEmit
+
+      - name: Typecheck (Web Server)
+        run: pnpm --filter @crystaltides/server exec tsc --noEmit
 
       - name: Unit & Component Tests (Web)
         run: |

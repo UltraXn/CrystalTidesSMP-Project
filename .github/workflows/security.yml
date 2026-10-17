@@ -131,8 +131,10 @@ jobs:
           rules_file_name: .zap/rules.tsv
           fail_action: false
 
-  docker-scout:
-    name: Docker Scout Container Vulnerability Scan
+  # Docker Scout needs a Docker Hub account entitled to Scout; without one it failed on
+  # every run. Trivy scans the same image with no account.
+  image-scan:
+    name: Container Image Vulnerability Scan (Web Client)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -149,13 +151,15 @@ jobs:
           load: true
           tags: crystaltides-web:test
 
-      - name: Docker Scout Vulnerability Scan
-        uses: docker/scout-action@v1
+      - name: Trivy image scan
+        uses: aquasecurity/trivy-action@master
         with:
-          command: quickview,cve
-          image: crystaltides-web:test
-          only-severities: critical,high
-          exit-code: false
+          scan-type: 'image'
+          image-ref: crystaltides-web:test
+          format: 'table'
+          exit-code: '0'
+          ignore-unfixed: true
+          severity: 'CRITICAL,HIGH'
 
   trivy-scan:
     name: Trivy Container & Infrastructure Security Scan
