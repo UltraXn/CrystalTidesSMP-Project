@@ -1,7 +1,7 @@
 packages:
-  - 'apps/*'
-  - '!apps/launcher'
-  - '!apps/launcher/**'
+  - 'apps/web-client'
+  - 'apps/web-server'
+  - 'apps/launcher-lite'
   - 'packages/*'
 
 # Política de Seguridad en Cadena de Suministro (AGENTS.md Regla 2.1)
@@ -20,7 +20,7 @@ catalog:
   react-dom: ^19.2.3
   '@types/react': ^19.2.7
   '@types/react-dom': ^19.2.3
-  typescript: 7.0.2
+  typescript: ~5.8.3
   zod: ^4.2.1
   vite: ^6.2.0
 

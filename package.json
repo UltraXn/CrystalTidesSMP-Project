@@ -102,16 +102,6 @@
     "ip-address": "9.0.5",
     "tinyglobby": {
       "glob": "11.1.0"
-    },
-    "typescript": "npm:@typescript/typescript6@^6.0.2",
-    "@crystaltides/client": {
-      "typescript": "7.0.2"
-    },
-    "@crystaltides/server": {
-      "typescript": "7.0.2"
-    },
-    "@crystaltides/shared": {
-      "typescript": "7.0.2"
     }
   },
   "devDependencies": {
@@ -130,7 +120,7 @@
     "@types/react-dom": "^19.2.3",
     "@typescript-eslint/eslint-plugin": "^8.50.1",
     "@typescript-eslint/parser": "^8.50.1",
-    "@typescript/typescript6": "^6.0.2",
+    "typescript": "catalog:",
     "@vitejs/plugin-react": "^5.1.2",
     "autoprefixer": "^10.4.23",
     "concurrently": "^8.0.0",
