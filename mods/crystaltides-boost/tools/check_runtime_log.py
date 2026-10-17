@@ -34,6 +34,11 @@ MIXIN_ERROR = re.compile(
 # Harmless: Mixin builds whose highest "official" level is JAVA_13 (Fabric Loader 0.16, for one) warn
 # about JAVA_21/JAVA_25 and still apply the mixins
 HARMLESS_WARNING = re.compile(r"Compatibility level JAVA_\d+ specified by crystaltides-boost\.common\.mixins\.json is higher than")
+# Lines from or about this mod: its logger ("(crystaltides-boost)" on Fabric, "[crystaltides-boost/]" on
+# NeoForge), its messages, its classes or its mixin config. Not a bare "crystaltides": the CI workspace
+# path (CrystalTidesSMP-Project) shows up in other mods' and loaders' messages.
+OURS = re.compile(r"\(crystaltides-boost\)|\[crystaltides-boost/|\[CrystalTides Boost\]|com\.crystaltides\.boost"
+                  r"|crystaltides-boost\.common\.mixins\.json")
 
 
 def version_key(version):
@@ -68,9 +73,9 @@ def check(lines, group):
             problems.append(f"{mixin} is enabled but never ran: no '{evidence}' line")
 
     for line in lines:
-        lowered = line.lower()
-        if "crystaltides" not in lowered:
+        if not OURS.search(line):
             continue
+        lowered = line.lower()
         if MIXIN_ERROR.search(line):
             problems.append("mixin error: " + line.strip()[:300])
         elif HARMLESS_WARNING.search(line):
