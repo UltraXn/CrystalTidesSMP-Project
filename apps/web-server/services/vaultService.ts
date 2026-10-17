@@ -1,5 +1,22 @@
 import vault from 'node-vault';
 
+type VaultClient = ReturnType<typeof vault>;
+
+/**
+ * The server runs with a periodic token (docs/operations/web-server-secrets.md):
+ * it expires unless renewed, so every successful start extends it. A failed
+ * renewal must not block the start-up: the token is still valid right now.
+ */
+async function renewToken(client: VaultClient): Promise<void> {
+  try {
+    await client.tokenRenewSelf();
+  } catch (error) {
+    console.warn(
+      `⚠️ [Vault] Token renewal failed: ${error instanceof Error ? error.message : error}`,
+    );
+  }
+}
+
 /**
  * Initializes the HashiCorp Vault client and loads secrets into process.env.
  * If VAULT_ADDR or VAULT_TOKEN are not set, it falls back to local environment variables.
@@ -56,6 +73,7 @@ export async function initVault(): Promise<boolean> {
     }
 
     console.log(`✅ [Vault] Loaded ${Object.keys(secrets).length} secrets into environment.`);
+    await renewToken(client);
     return true;
   } catch (error) {
     console.error(

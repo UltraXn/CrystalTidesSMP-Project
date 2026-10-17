@@ -93,8 +93,18 @@ jobs:
           # Architectural test requirement: submodules: recursive
           submodules: recursive
 
-      - name: Google Auth
-        id: auth
+      # Keyless auth (Workload Identity Federation) once the GCP_WORKLOAD_IDENTITY_PROVIDER
+      # and GCP_DEPLOY_SERVICE_ACCOUNT repo variables exist; until then, the legacy JSON key.
+      # Drop the fallback step and the GCP_CREDENTIALS secret after the first keyless deploy.
+      - name: Google Auth (Workload Identity Federation)
+        if: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER != '' }}
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SERVICE_ACCOUNT }}
+
+      - name: Google Auth (legacy JSON key)
+        if: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER == '' }}
         uses: google-github-actions/auth@v2
         with:
           credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
@@ -125,12 +135,20 @@ jobs:
       # KOFI_VERIFICATION_TOKEN
       # SUPABASE_URL
 
+      # Non-secret configuration only: Cloud Run shows env vars in plain text to anyone
+      # who can read the service. Secrets live in Vault.
+      # ENV_FILE goes through `env:` so bash never expands `$`, backticks or quotes in it.
       - name: Write runtime env (never baked into the image)
+        env:
+          ENV_FILE: ${{ secrets.ENV_FILE }}
         run: |
-          printf '%s\n' "${{ secrets.ENV_FILE }}" > runtime.env
+          printf '%s\n' "$ENV_FILE" > runtime.env
           printf 'NODE_ENV=production\n' >> runtime.env
           printf 'VAULT_ADDR=https://vault.crystaltidessmp.net\n' >> runtime.env
-          printf 'VAULT_TOKEN=%s\n' "${{ secrets.VAULT_TOKEN }}" >> runtime.env
+          if grep -q '^VAULT_TOKEN=' runtime.env; then
+            echo "::error::VAULT_TOKEN must come from Secret Manager (vault-token), not ENV_FILE"
+            exit 1
+          fi
 
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v2
@@ -139,6 +157,10 @@ jobs:
           region: ${{ env.REGION }}
           image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/backend:${{ github.sha }}
           flags: '--memory=1Gi --cpu=1 --port=3001 --env-vars-file=runtime.env'
+          # The only secret Cloud Run holds: the Vault token, read from Secret Manager when
+          # an instance starts. The rest is loaded from Vault (docs/operations/web-server-secrets.md).
+          secrets: |
+            VAULT_TOKEN=vault-token:latest
 
   deploy-frontend:
     name: Deploy Frontend
@@ -162,8 +184,18 @@ jobs:
           # Architectural test requirement: submodules: recursive
           submodules: recursive
 
-      - name: Google Auth
-        id: auth
+      # Keyless auth (Workload Identity Federation) once the GCP_WORKLOAD_IDENTITY_PROVIDER
+      # and GCP_DEPLOY_SERVICE_ACCOUNT repo variables exist; until then, the legacy JSON key.
+      # Drop the fallback step and the GCP_CREDENTIALS secret after the first keyless deploy.
+      - name: Google Auth (Workload Identity Federation)
+        if: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER != '' }}
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SERVICE_ACCOUNT }}
+
+      - name: Google Auth (legacy JSON key)
+        if: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER == '' }}
         uses: google-github-actions/auth@v2
         with:
           credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
