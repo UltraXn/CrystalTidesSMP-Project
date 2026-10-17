@@ -17,6 +17,8 @@ interface LimiterConfig {
   errorCode: string;
   errorMessage: string;
   keyBy?: 'ip' | 'userOrIp';
+  /** One budget per route instead of one shared by every route the limiter is mounted on. */
+  perRoute?: boolean;
   skip?: (req: Request) => boolean;
 }
 
@@ -45,12 +47,22 @@ export const clientIpKey = (req: Request): string => ipKeyGenerator(getClientIp(
 export const userOrIpKey = (req: Request): string =>
   req.user?.id ? `user:${req.user.id}` : clientIpKey(req);
 
+/**
+ * "POST /api/ai/newspaper/:id/like": the route pattern, not the concrete URL, so
+ * changing an id in the path does not open a new bucket.
+ */
+export const routeOf = (req: Request): string => {
+  const pattern: unknown = req.route?.path;
+  return `${req.method} ${req.baseUrl}${typeof pattern === 'string' ? pattern : ''}`;
+};
+
 const createLimiter = ({
   windowMs,
   max,
   errorCode,
   errorMessage,
   keyBy = 'userOrIp',
+  perRoute = false,
   skip,
 }: LimiterConfig) => {
   const responsePayload: RateLimitErrorResponse = {
@@ -67,7 +79,10 @@ const createLimiter = ({
     standardHeaders: true,
     legacyHeaders: false,
     message: responsePayload,
-    keyGenerator: keyBy === 'ip' ? clientIpKey : userOrIpKey,
+    keyGenerator: (req: Request) => {
+      const clientKey = keyBy === 'ip' ? clientIpKey(req) : userOrIpKey(req);
+      return perRoute ? `${routeOf(req)}|${clientKey}` : clientKey;
+    },
     ...(skip ? { skip } : {}),
   });
 };
@@ -84,13 +99,14 @@ export const apiLimiter = createLimiter({
 });
 
 /**
- * Strict Auth/Sensitive Limiter - 10 requests per 10 minutes per account (or IP).
- * Apply it to specific write/expensive routes, never to whole routers: page
- * loads would burn through the budget.
+ * Strict Auth/Sensitive Limiter - 10 requests per 10 minutes per account (or IP)
+ * on each route it is mounted on: likes do not use up the registration or 2FA
+ * budget. Apply it to specific write/expensive routes, never to whole routers.
  */
 export const sensitiveActionLimiter = createLimiter({
   windowMs: WINDOW_MS.TEN_MINUTES,
   max: 10,
+  perRoute: true,
   errorCode: ERROR_CODES.RATE_LIMIT_EXCEEDED,
   errorMessage: 'Too many sensitive actions. Please try again later.',
 });

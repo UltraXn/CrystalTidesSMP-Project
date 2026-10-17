@@ -54,6 +54,19 @@ describe('strict rate limiting', () => {
     expect(statuses[SENSITIVE_LIMIT]).toBe(429);
   });
 
+  it('gives each sensitive route its own budget', async () => {
+    const client = viaCloudflare('203.0.113.50');
+    for (let attempt = 0; attempt < SENSITIVE_LIMIT; attempt++) {
+      await register(client);
+    }
+
+    const registerAgain = await register(client);
+    const ragIngest = await request(app).post('/api/rag/ingest').set(client).send({});
+
+    expect(registerAgain.status).toBe(429);
+    expect(ragIngest.status).not.toBe(429);
+  });
+
   it('does not apply the strict budget to public reads', async () => {
     const statuses: number[] = [];
     for (let attempt = 0; attempt < SENSITIVE_LIMIT + 5; attempt++) {
