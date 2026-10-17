@@ -12,7 +12,8 @@
  * Los jars son reproducibles, así que recompilar sin cambios no produce diferencias.
  *
  * LAUNCHER_LITE_DIR=<ruta> apunta a otra copia de launcher-lite (p. ej. un git worktree) en lugar
- * del submódulo apps/launcher-lite. Los nombres de los jars salen de mods/crystaltides-boost/gradle.properties.
+ * del submódulo apps/launcher-lite. La versión del mod sale de mods/crystaltides-boost/stonecutter.properties.toml
+ * y los jars, de los nodos Stonecutter del grupo LAUNCHER_NODE.
  */
 import { execSync } from 'node:child_process';
 import crypto from 'node:crypto';
@@ -31,16 +32,21 @@ const assetsDir = path.join(liteTauri, 'assets');
 const manifestPath = path.join(assetsDir, 'MANIFEST.md');
 const agentRsPath = path.join(liteTauri, 'src', 'agent.rs');
 
-function gradleProperty(name) {
-  const props = fs.readFileSync(path.join(boostDir, 'gradle.properties'), 'utf8');
-  const match = props.match(new RegExp(`^${name}=(.+)$`, 'm'));
-  if (!match) fail(`gradle.properties de crystaltides-boost no define ${name}`);
-  return match[1].trim();
+// Grupo de versiones de Minecraft (nodo Stonecutter) que launcher-lite embebe y despliega hoy: 1.21 - 1.21.1
+const LAUNCHER_NODE = '1.21.1';
+
+// Clave de la sección raíz de stonecutter.properties.toml (antes de la primera [sección])
+function modProperty(name) {
+  const toml = fs.readFileSync(path.join(boostDir, 'stonecutter.properties.toml'), 'utf8');
+  const rootSection = toml.split(/^\[/m)[0];
+  const match = rootSection.match(new RegExp(`^${name.replace('.', '\\.')}\\s*=\\s*"([^"]+)"`, 'm'));
+  if (!match) fail(`stonecutter.properties.toml de crystaltides-boost no define ${name}`);
+  return match[1];
 }
 
 const boostJar = (loader) =>
-  path.join(boostDir, loader, 'build', 'libs',
-    `crystaltides-boost-${loader}-${gradleProperty('minecraft_version')}-${gradleProperty('version')}.jar`);
+  path.join(boostDir, 'versions', `${LAUNCHER_NODE}-${loader}`, 'build', 'libs',
+    `crystaltides-boost-${loader}-${LAUNCHER_NODE}-${modProperty('mod.version')}.jar`);
 
 const BOOST_JARS = [
   { asset: 'crystaltides-boost-fabric.jar', built: boostJar('fabric') },
@@ -65,8 +71,9 @@ const sameBytes = (a, b) => fs.existsSync(a) && fs.existsSync(b) && fs.readFileS
 if (build) {
   // Ruta absoluta: con NoDefaultCurrentDirectoryInExePath, cmd no busca ejecutables en el cwd
   const gradlew = path.join(boostDir, process.platform === 'win32' ? 'gradlew.bat' : 'gradlew');
-  console.log('▶ Compilando crystaltides-boost (Gradle)...');
-  execSync(`"${gradlew}" build --console=plain`, { cwd: boostDir, stdio: 'inherit' });
+  console.log(`▶ Compilando crystaltides-boost ${LAUNCHER_NODE} (Gradle)...`);
+  // Solo los dos nodos embebidos: `build` a secas construiría los 20 (10 decompilaciones de NeoForge)
+  execSync(`"${gradlew}" :${LAUNCHER_NODE}-fabric:build :${LAUNCHER_NODE}-neoforge:build --console=plain`, { cwd: boostDir, stdio: 'inherit' });
   console.log('▶ Compilando game-bridge...');
   // build:java y copia propia: el script "build" del paquete copia a una ruta fija del submódulo
   // y no respetaría LAUNCHER_LITE_DIR
