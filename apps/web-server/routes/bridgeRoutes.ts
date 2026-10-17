@@ -2,6 +2,7 @@ import express from 'express';
 import { authenticateToken, require2FA } from '../middleware/authMiddleware.js';
 import * as commandService from '../services/commandService.js';
 import { checkRole, ADMIN_ROLES } from '../utils/roleUtils.js';
+import { adminCommandLimiter } from '../middleware/rateLimitMiddleware.js';
 import { validate } from '../middleware/validateResource.js';
 import { queueCommandSchema } from '../schemas/bridgeSchemas.js';
 
@@ -14,6 +15,7 @@ const ALLOWED_OP_USERS = new Set(['neroferno', 'killuwu', 'killu']);
 router.post(
   '/queue',
   authenticateToken,
+  adminCommandLimiter,
   checkRole(ADMIN_ROLES),
   require2FA,
   validate(queueCommandSchema),

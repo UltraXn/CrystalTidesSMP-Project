@@ -1,9 +1,7 @@
 import { rateLimit, ipKeyGenerator } from 'express-rate-limit';
 import type { Request } from 'express';
-
-interface DeviceIdentifiableRequest extends Request {
-  deviceId?: string;
-}
+import { getClientIp } from '../utils/clientIp.js';
+import { SERVICE_ROLE } from '../utils/roleUtils.js';
 
 interface RateLimitErrorResponse {
   success: false;
@@ -18,14 +16,11 @@ interface LimiterConfig {
   max: number;
   errorCode: string;
   errorMessage: string;
-  useClientKey?: boolean;
+  keyBy?: 'ip' | 'userOrIp';
+  skip?: (req: Request) => boolean;
 }
 
 const DEFAULT_IP = '127.0.0.1';
-
-const COOKIE_KEYS = {
-  DEVICE_ID: 'device_id',
-} as const;
 
 const WINDOW_MS = {
   ONE_MINUTE: 1 * 60 * 1000,
@@ -40,21 +35,23 @@ const ERROR_CODES = {
   WEBHOOK_RATE_LIMIT_EXCEEDED: 'WEBHOOK_RATE_LIMIT_EXCEEDED',
 } as const;
 
-const getClientKey = (req: Request): string => {
-  const customReq = req as DeviceIdentifiableRequest;
-  const deviceId = customReq.deviceId ?? customReq.signedCookies?.[COOKIE_KEYS.DEVICE_ID];
-  if (deviceId) {
-    return deviceId;
-  }
-  return ipKeyGenerator(req.ip ?? DEFAULT_IP);
-};
+export const clientIpKey = (req: Request): string => ipKeyGenerator(getClientIp(req) || DEFAULT_IP);
+
+/**
+ * Authenticated callers are limited per account, anonymous ones per client IP.
+ * Never key on a value the client picks (cookies, headers): a fresh value per
+ * request would mean a fresh bucket per request.
+ */
+export const userOrIpKey = (req: Request): string =>
+  req.user?.id ? `user:${req.user.id}` : clientIpKey(req);
 
 const createLimiter = ({
   windowMs,
   max,
   errorCode,
   errorMessage,
-  useClientKey = true,
+  keyBy = 'userOrIp',
+  skip,
 }: LimiterConfig) => {
   const responsePayload: RateLimitErrorResponse = {
     success: false,
@@ -70,33 +67,55 @@ const createLimiter = ({
     standardHeaders: true,
     legacyHeaders: false,
     message: responsePayload,
-    ...(useClientKey
-      ? {
-          keyGenerator: getClientKey,
-          validate: { keyGeneratorIpFallback: false },
-        }
-      : {}),
+    keyGenerator: keyBy === 'ip' ? clientIpKey : userOrIpKey,
+    ...(skip ? { skip } : {}),
   });
 };
 
 /**
- * General API Limiter - 100 requests per minute per device
+ * General API Limiter - 100 requests per minute per client IP
  */
 export const apiLimiter = createLimiter({
   windowMs: WINDOW_MS.ONE_MINUTE,
   max: 100,
   errorCode: ERROR_CODES.TOO_MANY_REQUESTS,
-  errorMessage: 'Too many requests from this device, please try again after a minute',
+  errorMessage: 'Too many requests, please try again after a minute',
+  keyBy: 'ip',
 });
 
 /**
- * Strict Auth/Sensitive Limiter - 10 requests per 10 minutes per device
+ * Strict Auth/Sensitive Limiter - 10 requests per 10 minutes per account (or IP).
+ * Apply it to specific write/expensive routes, never to whole routers: page
+ * loads would burn through the budget.
  */
 export const sensitiveActionLimiter = createLimiter({
   windowMs: WINDOW_MS.TEN_MINUTES,
   max: 10,
   errorCode: ERROR_CODES.RATE_LIMIT_EXCEEDED,
-  errorMessage: 'Too many sensitive actions from this device. Please try again later.',
+  errorMessage: 'Too many sensitive actions. Please try again later.',
+});
+
+/**
+ * Gacha Roll Limiter - 30 rolls per 10 minutes per account
+ */
+export const gachaRollLimiter = createLimiter({
+  windowMs: WINDOW_MS.TEN_MINUTES,
+  max: 30,
+  errorCode: ERROR_CODES.RATE_LIMIT_EXCEEDED,
+  errorMessage: 'Too many rolls. Please try again in a few minutes.',
+});
+
+/**
+ * Admin Console Limiter - 60 queued commands per 10 minutes per admin.
+ * The Discord chat bridge (service role) relays every message, so it is only
+ * bound by the general limiter.
+ */
+export const adminCommandLimiter = createLimiter({
+  windowMs: WINDOW_MS.TEN_MINUTES,
+  max: 60,
+  errorCode: ERROR_CODES.RATE_LIMIT_EXCEEDED,
+  errorMessage: 'Too many queued commands. Please try again later.',
+  skip: (req) => req.user?.role === SERVICE_ROLE,
 });
 
 /**
@@ -121,13 +140,12 @@ export const imageUploadLimiter = createLimiter({
 });
 
 /**
- * Inbound Webhook Limiter - 30 requests per minute
- * Webhooks use IP because external servers (Ko-Fi / Discord) don't send client cookies.
+ * Inbound Webhook Limiter - 30 requests per minute per client IP
  */
 export const webhookLimiter = createLimiter({
   windowMs: WINDOW_MS.ONE_MINUTE,
   max: 30,
   errorCode: ERROR_CODES.WEBHOOK_RATE_LIMIT_EXCEEDED,
   errorMessage: 'Too many webhook calls.',
-  useClientKey: false,
+  keyBy: 'ip',
 });

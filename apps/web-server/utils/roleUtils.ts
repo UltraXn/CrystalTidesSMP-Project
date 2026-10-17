@@ -4,6 +4,10 @@ import { NextFunction, Request, Response } from 'express';
 export const ADMIN_ROLES = ['admin', 'neroferno', 'killu', 'killuwu', 'developer', 'owner'];
 export const STAFF_ROLES = [...ADMIN_ROLES, 'staff', 'moderator', 'mod', 'helper'];
 
+// Machine accounts (the Discord bot API key). Deliberately outside ADMIN/STAFF:
+// every route has to grant it explicitly.
+export const SERVICE_ROLE = 'service';
+
 /**
  * Middleware to check if the user has specific roles.
  * @param allowedRoles List of roles allowed to access the route.

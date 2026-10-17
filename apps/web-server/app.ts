@@ -36,19 +36,17 @@ import { checkCanaryToken } from './middleware/honeypotMiddleware.js';
 import { initCleanupJob } from './services/cleanupService.js';
 
 import helmet from 'helmet';
-import {
-  apiLimiter,
-  sensitiveActionLimiter,
-  uploadLimiter,
-} from './middleware/rateLimitMiddleware.js';
+import { apiLimiter, uploadLimiter } from './middleware/rateLimitMiddleware.js';
 import authRoutes from './routes/authRoutes.js';
 
 import cookieParser from 'cookie-parser';
 
 const app = express();
 
-// Trust Proxy (Required for Rate Limiting behind Proxy/Load Balancer)
-app.set('trust proxy', 1);
+// Trust Proxy: Cloud Run's front end is one hop. Cloudflare's client IP is
+// resolved separately (utils/clientIp.ts). Add one hop per extra load balancer.
+const trustProxyHops = Number.parseInt(process.env.TRUST_PROXY_HOPS ?? '1', 10);
+app.set('trust proxy', Number.isNaN(trustProxyHops) ? 1 : trustProxyHops);
 
 // Security Middleware
 // Strict CSP by default: this server serves JSON, so 'unsafe-inline' is never
@@ -107,8 +105,6 @@ const cookieSecret =
   process.env.JWT_SECRET ??
   'crystaltides_cookie_signature_secret_key_2026';
 app.use(cookieParser(cookieSecret));
-import { ensureDeviceId } from './middleware/deviceIdMiddleware.js';
-app.use(ensureDeviceId);
 app.use(checkCanaryToken);
 app.use(express.json());
 
@@ -126,11 +122,13 @@ app.use('/api/news', newsRoutes);
 app.use('/api/minecraft', minecraftRoutes);
 app.use('/api/tickets', ticketRoutes);
 app.use('/api/users', userRoutes);
-app.use('/api/auth', sensitiveActionLimiter, authRoutes);
-app.use('/api/discord', sensitiveActionLimiter, discordRoutes);
+// Strict limiters live on the specific write/expensive routes inside each router:
+// mounting them on a whole router would also throttle ordinary page loads.
+app.use('/api/auth', authRoutes);
+app.use('/api/discord', discordRoutes);
 app.use('/api/logs', logRoutes);
 app.use('/api/donations', donationRoutes);
-app.use('/api/suggestions', sensitiveActionLimiter, suggestionRoutes);
+app.use('/api/suggestions', suggestionRoutes);
 app.use('/api/polls', pollRoutes);
 app.use('/api/forum', forumRoutes);
 app.use('/api/events', eventRoutes);
@@ -142,14 +140,14 @@ app.use('/api/policies', policyRoutes);
 app.use('/api/profiles/comments', profileCommentRoutes);
 app.use('/api/wiki', wikiRoutes);
 app.use('/api/locations', locationRoutes);
-app.use('/api/rag', sensitiveActionLimiter, ragRoutes);
-app.use('/api/ai', sensitiveActionLimiter, aiRoutes);
+app.use('/api/rag', ragRoutes);
+app.use('/api/ai', aiRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/player-stats', playerStatsRoutes);
 app.use('/api/server', serverRoutes);
 app.use('/api/server/status', serverStatusRoutes);
-app.use('/api/bridge', sensitiveActionLimiter, bridgeRoutes); // Secure CrystalBridge
-app.use('/api/gacha', sensitiveActionLimiter, gachaRoutes);
+app.use('/api/bridge', bridgeRoutes); // Secure CrystalBridge
+app.use('/api/gacha', gachaRoutes);
 
 import roadmapRoutes from './routes/roadmapRoutes.js';
 

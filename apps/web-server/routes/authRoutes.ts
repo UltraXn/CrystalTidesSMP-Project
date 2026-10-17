@@ -26,9 +26,10 @@ const HONEYPOT_FIELD = 'confirm_email';
 
 const router = Router();
 
-// Public registration route (Rate limited by sensitiveActionLimiter on /api/auth in app.ts)
+// Public registration route
 router.post(
   AUTH_ROUTES.REGISTER,
+  sensitiveActionLimiter,
   checkFormHoneypot(HONEYPOT_FIELD),
   validate(registerSchema),
   authController.registerUser,
