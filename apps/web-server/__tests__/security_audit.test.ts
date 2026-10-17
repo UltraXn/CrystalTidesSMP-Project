@@ -30,11 +30,12 @@
  *         [FIXED] normalized base-command denylist (op, deop) for non-owners
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import request from 'supertest';
 import fs from 'fs';
 import path from 'path';
 import app from '../app.js';
+import supabase from '../config/supabaseClient.js';
 
 const UNAUTH_HEADERS = {};
 const USER_HEADERS = { Authorization: 'Bearer fake-user-token' };
@@ -81,7 +82,16 @@ describe('A01 — Broken Access Control', () => {
    * Returns wallet balance and forum activity without auth.
    * ============================================================ */
   describe('F-03 · Full profile public exposure', () => {
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
     it('should require auth to view full profile with wallet (currently public)', async () => {
+      // Hermetic: the test env points Supabase to an unresolvable host (500 otherwise).
+      vi.spyOn(supabase.auth.admin, 'listUsers').mockResolvedValue({
+        data: { users: [], aud: 'authenticated' },
+        error: null,
+      } as unknown as Awaited<ReturnType<typeof supabase.auth.admin.listUsers>>);
       const res = await request(app).get('/api/users/profile/testuser/full').set(UNAUTH_HEADERS);
       // 200 = public (current behavior — information disclosure)
       // 404 = user not found (acceptable, still public)
