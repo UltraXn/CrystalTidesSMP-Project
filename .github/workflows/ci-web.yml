@@ -53,7 +53,7 @@ jobs:
       - name: Unit & Component Tests (Web)
         run: |
           cd apps/web-client
-          pnpm vitest run --poolOptions.forks.maxForks=4
+          pnpm vitest run --maxWorkers=4
 
       - name: Build (Web)
         run: pnpm turbo run build --filter=@crystaltides/client --filter=@crystaltides/server
