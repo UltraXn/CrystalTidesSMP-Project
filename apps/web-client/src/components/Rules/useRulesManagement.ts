@@ -5,8 +5,14 @@ import { getRules, createRule, updateRule, deleteRule, Rule } from '../../servic
 import { supabase } from '../../services/supabaseClient';
 import type { ProcessedRule, TranslateFn, TranslationField } from './rulesData';
 import { API_URL, DEFAULT_CATEGORY, LANG_ES, LANG_EN, INITIAL_FORM_DATA } from './rulesData';
+import { isStaffRole } from '../../utils/roleUtils';
+import type { TrustedProfile } from '../../context/AuthContext';
 
-export function useRulesManagement(user: User | null, t: TranslateFn) {
+export function useRulesManagement(
+  user: User | null,
+  t: TranslateFn,
+  profile?: TrustedProfile | { role?: string | null } | null,
+) {
   const [rules, setRules] = useState<Rule[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
@@ -20,9 +26,8 @@ export function useRulesManagement(user: User | null, t: TranslateFn) {
   const [formData, setFormData] = useState<Partial<Rule>>(INITIAL_FORM_DATA);
   const [translating, setTranslating] = useState<string | null>(null);
 
-  const allowedRoles = useMemo(() => ['admin', 'developer', 'neroferno', 'killu', 'helper'], []);
-  const userRole = (user?.user_metadata?.role as string | undefined)?.toLowerCase() ?? '';
-  const isStaff = allowedRoles.includes(userRole);
+  const userRole = (profile?.role ?? '').toLowerCase();
+  const isStaff = isStaffRole(userRole);
 
   const fetchRules = useCallback(async () => {
     setLoading(true);

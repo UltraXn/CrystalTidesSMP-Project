@@ -13,6 +13,7 @@ import {
   type ForumAuthorData,
   type PendingImageRepl,
   checkIsAdmin,
+  checkIsStaff,
   compressImage,
 } from '../types/forum';
 
@@ -74,7 +75,7 @@ export function useForumThread() {
   const params = useParams<{ type?: string; id?: string }>();
   const type = params.id ? (params.type ?? 'topic') : 'topic';
   const id = params.id ?? params.type;
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
 
@@ -117,8 +118,10 @@ export function useForumThread() {
     overrideComments.length > 0 ? overrideComments : (threadQueryData?.comments ?? []);
   const error = threadError ? threadError.message : null;
 
-  const isAdmin = checkIsAdmin(user?.user_metadata);
-  const isOwnerOrAdmin = (targetUserId: string | null) => isAdmin || user?.id === targetUserId;
+  const isAdmin = checkIsAdmin(profile);
+  const isStaff = checkIsStaff(profile);
+  const isOwnerOrAdmin = (targetUserId: string | null) =>
+    isStaff || (Boolean(user?.id) && user?.id === targetUserId);
 
   useEffect(() => {
     return () => {
@@ -356,26 +359,7 @@ export function useForumThread() {
         finalContent += `\n\n![Imagen](${publicUrl})`;
       }
 
-      const currentRole = currentUser?.user_metadata?.role || 'user';
-      const username =
-        currentUser?.user_metadata?.username || currentUser?.email?.split('@')[0] || 'Usuario';
-
-      const body = isTopic
-        ? {
-            content: finalContent,
-            user_data: {
-              id: currentUser.id,
-              name: username,
-              avatar: currentUser?.user_metadata?.avatar_url,
-              role: currentRole,
-            },
-          }
-        : {
-            user_name: username,
-            user_avatar: currentUser?.user_metadata?.avatar_url,
-            content: finalContent,
-            user_role: currentRole,
-          };
+      const body = { content: finalContent };
 
       const url = isTopic
         ? `${API_URL}/forum/thread/${id}/posts`
@@ -426,6 +410,7 @@ export function useForumThread() {
     isTopic,
     user,
     isAdmin,
+    isStaff,
     isOwnerOrAdmin,
     isEditingThread,
     editThreadData,

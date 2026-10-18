@@ -116,7 +116,7 @@ export default function CommandPalette({ forceOpen = false }: Readonly<CommandPa
   const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { profile } = useAuth();
 
   useEffect(() => {
     if (isOpen) {
@@ -190,7 +190,7 @@ export default function CommandPalette({ forceOpen = false }: Readonly<CommandPa
     },
   ];
 
-  if (isStaff(user)) {
+  if (isStaff(profile)) {
     actions.unshift({
       section: 'Administración',
       items: [

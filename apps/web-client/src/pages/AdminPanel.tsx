@@ -1,5 +1,5 @@
 import { useState, useEffect, type ReactNode } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth, type TrustedProfile } from '../context/AuthContext';
 import { useNavigate } from 'react-router';
 import { isStaff } from '../utils/roleUtils';
 import {
@@ -409,6 +409,7 @@ interface AdminHeaderProps {
   isMobile: boolean;
   scrollDirection: 'up' | 'down' | null;
   user: AdminUser;
+  profile?: TrustedProfile | null;
   onOpen2FAModal: () => void;
 }
 
@@ -417,12 +418,13 @@ function AdminHeader({
   isMobile,
   scrollDirection,
   user,
+  profile,
   onOpen2FAModal,
 }: Readonly<AdminHeaderProps>) {
   const { t, i18n } = useTranslation();
   const isHidden = isMobile && scrollDirection === 'down';
 
-  const rawUsername = user?.user_metadata?.username;
+  const rawUsername = profile?.username ?? user?.user_metadata?.username;
   const rawFullName = user?.user_metadata?.full_name;
   const username =
     (typeof rawUsername === 'string' ? rawUsername : undefined) ??
@@ -430,8 +432,7 @@ function AdminHeader({
     user?.email?.split('@')[0] ??
     'Admin';
 
-  const rawRole = user?.user_metadata?.role;
-  const role = typeof rawRole === 'string' ? rawRole : ROLES.USER;
+  const role = profile?.role ?? ROLES.USER;
 
   return (
     <header className={`admin-layout-header ${isHidden ? 'hide' : ''}`}>
@@ -550,7 +551,7 @@ function AccessDeniedView({ onNavigateHome }: Readonly<{ onNavigateHome: () => v
 
 export default function AdminPanel() {
   const { t } = useTranslation();
-  const { user, loading } = useAuth();
+  const { user, profile, loading } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<string>(ADMIN_TABS.OVERVIEW);
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < MOBILE_BREAKPOINT);
@@ -599,14 +600,13 @@ export default function AdminPanel() {
     return <AdminLoadingView loadingText={t('admin.loading_panel')} />;
   }
 
-  const isAdmin = isStaff(user);
+  const isAdmin = isStaff(profile);
   if (!isAdmin) {
     return <AccessDeniedView onNavigateHome={() => navigate(ROUTES.HOME)} />;
   }
 
-  const rawAppRole = user?.app_metadata?.role;
-  const appRole = typeof rawAppRole === 'string' ? rawAppRole.toLowerCase() : '';
-  const hasSecureAccess = SUPER_ADMIN_ROLES.some((role) => appRole.includes(role));
+  const role = profile?.role?.toLowerCase() ?? '';
+  const hasSecureAccess = SUPER_ADMIN_ROLES.some((r) => role.includes(r)) || role === 'owner';
 
   return (
     <div className="admin-layout-container">
@@ -637,6 +637,7 @@ export default function AdminPanel() {
           isMobile={isMobile}
           scrollDirection={scrollDirection}
           user={user}
+          profile={profile}
           onOpen2FAModal={() => setShow2FAModal(true)}
         />
 

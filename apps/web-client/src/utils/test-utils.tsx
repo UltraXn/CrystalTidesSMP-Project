@@ -18,6 +18,8 @@ const createTestQueryClient = () =>
 
 export const defaultMockAuth: AuthContextType = {
   user: null,
+  profile: null,
+  refreshProfile: vi.fn(),
   loading: false,
   login: vi.fn(),
   loginWithProvider: vi.fn(),

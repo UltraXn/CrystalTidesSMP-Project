@@ -83,7 +83,7 @@ const AccountSidebar: React.FC<Readonly<AccountSidebarProps>> = ({
   onClose,
 }) => {
   const { t } = useTranslation();
-  const { logout, updateUser } = useAuth();
+  const { logout, updateUser, profile } = useAuth();
   const navigate = useNavigate();
 
   const [uploading, setUploading] = useState(false);
@@ -98,7 +98,7 @@ const AccountSidebar: React.FC<Readonly<AccountSidebarProps>> = ({
     }
   }, [isEditingName]);
 
-  const isAdmin = checkAdmin(user);
+  const isAdmin = checkAdmin(profile);
   const { data: authoritativeBalance } = useGachaBalance(user?.id);
 
   const handleLogout = async () => {
@@ -254,8 +254,7 @@ const AccountSidebar: React.FC<Readonly<AccountSidebarProps>> = ({
                 <span>KilluCoins</span>
               </span>
               <span className="font-mono text-xs font-black text-amber-300">
-                {(authoritativeBalance ?? user?.user_metadata?.gacha_balance ?? 0).toLocaleString()}{' '}
-                KC
+                {(authoritativeBalance ?? 0).toLocaleString()} KC
               </span>
             </div>
           </div>

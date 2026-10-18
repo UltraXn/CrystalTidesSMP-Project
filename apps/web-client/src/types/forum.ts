@@ -1,3 +1,5 @@
+import { isAdminRole, isStaffRole } from '../utils/roleUtils';
+
 export interface ForumAuthorData {
   username: string;
   full_name: string;
@@ -100,24 +102,16 @@ export const getCategorySlug = (categoryId?: number): string => {
   }
 };
 
-export const checkIsAdmin = (
-  userMetadata?: { role?: string; username?: string; name?: string } | null,
-): boolean => {
-  if (!userMetadata) return false;
-  const role = (userMetadata.role ?? '').toLowerCase();
-  const username = (userMetadata.username ?? userMetadata.name ?? '').toLowerCase();
-  const privilegedRoles = [
-    'admin',
-    'staff',
-    'helper',
-    'moderator',
-    'developer',
-    'neroferno',
-    'killu',
-  ];
-  const privilegedUsers = ['admin', 'neroferno', 'killu'];
+export const checkIsAdmin = (roleOrProfile?: { role?: string | null } | string | null): boolean => {
+  if (!roleOrProfile) return false;
+  const role = typeof roleOrProfile === 'string' ? roleOrProfile : roleOrProfile.role;
+  return isAdminRole(role);
+};
 
-  return privilegedRoles.includes(role) || privilegedUsers.includes(username);
+export const checkIsStaff = (roleOrProfile?: { role?: string | null } | string | null): boolean => {
+  if (!roleOrProfile) return false;
+  const role = typeof roleOrProfile === 'string' ? roleOrProfile : roleOrProfile.role;
+  return isStaffRole(role);
 };
 
 export const compressImage = async (file: File): Promise<Blob> => {

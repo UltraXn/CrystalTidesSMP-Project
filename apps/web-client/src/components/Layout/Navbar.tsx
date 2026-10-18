@@ -21,7 +21,7 @@ import '../../styles/layout/navbar.css';
 
 export default function Navbar() {
   const { t, i18n } = useTranslation();
-  const { user, logout } = useAuth();
+  const { user, profile, logout } = useAuth();
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -71,7 +71,7 @@ export default function Navbar() {
   };
 
   const location = useLocation();
-  const isAdmin = checkAdmin(user);
+  const isAdmin = checkAdmin(profile);
 
   // Hide navbar on policy pages if requested
   if (location.pathname.startsWith('/policies')) return null;

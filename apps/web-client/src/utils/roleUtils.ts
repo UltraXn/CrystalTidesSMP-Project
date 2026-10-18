@@ -1,92 +1,62 @@
-import { User } from '@supabase/supabase-js';
+import {
+  ADMIN_ROLES as SHARED_ADMIN_ROLES,
+  STAFF_ROLES as SHARED_STAFF_ROLES,
+} from '@crystaltides/shared';
+import type { TrustedProfile } from '../context/AuthContext';
 
-const DEFAULT_SUPABASE_ROLES: ReadonlySet<string> = new Set(['authenticated', 'anon', 'service_role']);
+export const ADMIN_ROLES: ReadonlySet<string> = new Set(
+  (SHARED_ADMIN_ROLES ?? ['admin', 'neroferno', 'killu', 'killuwu', 'developer', 'owner']).map(
+    (r) => r.toLowerCase(),
+  ),
+);
 
-// Centralized role definitions based on project requirements
-const ADMIN_ROLES: ReadonlySet<string> = new Set(['admin', 'neroferno', 'killu', 'developer', 'staff']);
-const STAFF_EXTRA_ROLES = ['moderator', 'mod', 'helper'] as const;
-const STAFF_ROLES: ReadonlySet<string> = new Set([...ADMIN_ROLES, ...STAFF_EXTRA_ROLES]);
+export const STAFF_ROLES: ReadonlySet<string> = new Set(
+  (SHARED_STAFF_ROLES ?? [...ADMIN_ROLES, 'staff', 'moderator', 'mod', 'helper']).map((r) =>
+    r.toLowerCase(),
+  ),
+);
 
 /**
- * Extracts the role defined in app_metadata (tamper-proof RBAC managed by server).
+ * Checks if a role string qualifies as an admin role.
  */
-const getAppMetadataRole = (user: User): string | null => {
-    const role: unknown = user.app_metadata?.role;
-    return typeof role === 'string' ? role : null;
+export const isAdminRole = (role?: string | null): boolean => {
+  if (!role || typeof role !== 'string') return false;
+  return ADMIN_ROLES.has(role.toLowerCase());
 };
 
 /**
- * Extracts non-privileged roles from user_metadata.
- * Rejects privileged roles to prevent client-side privilege escalation.
+ * Checks if a role string qualifies as a staff role.
  */
-const getUserMetadataRole = (user: User): string | null => {
-    const role: unknown = user.user_metadata?.role;
-    if (typeof role === 'string' && !STAFF_ROLES.has(role.toLowerCase())) {
-        return role;
-    }
-    return null;
+export const isStaffRole = (role?: string | null): boolean => {
+  if (!role || typeof role !== 'string') return false;
+  return STAFF_ROLES.has(role.toLowerCase());
+};
+
+type RoleBearer = TrustedProfile | { role?: string | null } | string | null | undefined;
+
+/**
+ * Extracts a trusted role string from a role bearer (profile or raw role string).
+ * Security Invariant: user_metadata is never consulted here.
+ */
+export const getUserRole = (target: RoleBearer): string | null => {
+  if (!target) return null;
+  if (typeof target === 'string') return target.toLowerCase();
+  if (typeof target.role === 'string') return target.role.toLowerCase();
+  return null;
 };
 
 /**
- * Extracts top-level role if extended by a trusted server response,
- * ignoring default Supabase system roles.
+ * Checks if a profile, role string, or role-bearer has admin privileges.
  */
-const getTopLevelRole = (user: User): string | null => {
-    const role: unknown = user.role;
-    if (typeof role === 'string' && !DEFAULT_SUPABASE_ROLES.has(role)) {
-        return role;
-    }
-    return null;
+export const isAdmin = (target: RoleBearer): boolean => {
+  const role = getUserRole(target);
+  return isAdminRole(role);
 };
 
 /**
- * Validates whether a user's role comes from an authoritative location and matches the role set.
+ * Checks if a profile, role string, or role-bearer has staff privileges.
  */
-const hasAuthoritativeRole = (user: User | null, roleSet: ReadonlySet<string>): boolean => {
-    if (!user) {
-        return false;
-    }
-
-    const role = getUserRole(user);
-    if (!role) {
-        return false;
-    }
-
-    const appRole: unknown = user.app_metadata?.role;
-    const topRole: unknown = user.role;
-    const isAuthoritative =
-        (typeof appRole === 'string' && appRole === role) ||
-        (typeof topRole === 'string' && topRole === role);
-
-    return isAuthoritative && roleSet.has(role.toLowerCase());
-};
-
-/**
- * Extracts a role from a Supabase user object from multiple possible locations.
- * @param user The Supabase user object
- */
-export const getUserRole = (user: User | null): string | null => {
-    if (!user) {
-        return null;
-    }
-
-    return getAppMetadataRole(user) ?? getUserMetadataRole(user) ?? getTopLevelRole(user);
-};
-
-/**
- * Checks if a user has one of the admin roles.
- * Security Invariant: Only authoritative app_metadata or trusted server-side roles are accepted.
- * @param user The Supabase user object
- */
-export const isAdmin = (user: User | null): boolean => {
-    return hasAuthoritativeRole(user, ADMIN_ROLES);
-};
-
-/**
- * Checks if a user has one of the staff roles.
- * Security Invariant: Only authoritative app_metadata or trusted server-side roles are accepted.
- * @param user The Supabase user object
- */
-export const isStaff = (user: User | null): boolean => {
-    return hasAuthoritativeRole(user, STAFF_ROLES);
+export const isStaff = (target: RoleBearer): boolean => {
+  const role = getUserRole(target);
+  return isStaffRole(role);
 };

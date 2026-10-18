@@ -75,6 +75,12 @@ describe('useForumThread Hook', () => {
         id: 'admin-1',
         user_metadata: { role: 'admin', username: 'SuperAdmin' },
       },
+      profile: {
+        id: 'admin-1',
+        role: 'admin',
+        username: 'SuperAdmin',
+        avatar_url: null,
+      },
     } as any);
 
     const { result } = renderHook(() => useForumThread());
@@ -82,11 +88,36 @@ describe('useForumThread Hook', () => {
     expect(result.current.isOwnerOrAdmin('any-user-id')).toBe(true);
   });
 
+  it('rejects admin privileges if only user_metadata has admin role but profile is user', () => {
+    vi.mocked(AuthContext.useAuth).mockReturnValue({
+      user: {
+        id: 'spoofed-user',
+        user_metadata: { role: 'admin', username: 'Attacker' },
+      },
+      profile: {
+        id: 'spoofed-user',
+        role: 'user',
+        username: 'Attacker',
+        avatar_url: null,
+      },
+    } as any);
+
+    const { result } = renderHook(() => useForumThread());
+    expect(result.current.isAdmin).toBe(false);
+    expect(result.current.isOwnerOrAdmin('other-id')).toBe(false);
+  });
+
   it('identifies non-admin owner privileges correctly', () => {
     vi.mocked(AuthContext.useAuth).mockReturnValue({
       user: {
         id: 'user-123',
         user_metadata: { role: 'user', username: 'NormalUser' },
+      },
+      profile: {
+        id: 'user-123',
+        role: 'user',
+        username: 'NormalUser',
+        avatar_url: null,
       },
     } as any);
 
@@ -99,6 +130,7 @@ describe('useForumThread Hook', () => {
   it('opens delete confirmation modal for thread and comment', () => {
     vi.mocked(AuthContext.useAuth).mockReturnValue({
       user: { id: 'admin-1', user_metadata: { role: 'admin' } },
+      profile: { id: 'admin-1', role: 'admin', username: 'Admin', avatar_url: null },
     } as any);
 
     const { result } = renderHook(() => useForumThread());
@@ -122,6 +154,7 @@ describe('useForumThread Hook', () => {
   it('handles inline edit mode state transitions', () => {
     vi.mocked(AuthContext.useAuth).mockReturnValue({
       user: { id: 'user-123', user_metadata: { role: 'user' } },
+      profile: { id: 'user-123', role: 'user', username: 'Normal', avatar_url: null },
     } as any);
 
     const { result } = renderHook(() => useForumThread());
@@ -136,5 +169,24 @@ describe('useForumThread Hook', () => {
       result.current.cancelEditThread();
     });
     expect(result.current.isEditingThread).toBe(false);
+  });
+
+  it('grants moderation privileges to staff roles (moderator, helper)', () => {
+    vi.mocked(AuthContext.useAuth).mockReturnValue({
+      user: {
+        id: 'mod-1',
+        user_metadata: { role: 'moderator', username: 'Moderator' },
+      },
+      profile: {
+        id: 'mod-1',
+        role: 'moderator',
+        username: 'Moderator',
+        avatar_url: null,
+      },
+    } as any);
+
+    const { result } = renderHook(() => useForumThread());
+    expect(result.current.isStaff).toBe(true);
+    expect(result.current.isOwnerOrAdmin('any-other-user')).toBe(true);
   });
 });

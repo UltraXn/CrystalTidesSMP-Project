@@ -3,8 +3,19 @@ import { createContext, useState, useContext, useEffect, useMemo, useCallback } 
 import { supabase } from '../services/supabaseClient';
 import { User, Provider, AuthResponse, OAuthResponse } from '@supabase/supabase-js';
 
+export interface TrustedProfile {
+  id?: string;
+  role: string;
+  username: string | null;
+  avatar_url: string | null;
+  medals?: (string | number)[];
+  reputation?: number;
+}
+
 export interface AuthContextType {
   user: User | null;
+  profile: TrustedProfile | null;
+  refreshProfile: () => Promise<void>;
   login: (email: string, password: string) => Promise<AuthResponse['data']>;
   loginWithProvider: (provider: Provider) => Promise<OAuthResponse['data']>;
   logout: () => Promise<void>;
@@ -23,40 +34,93 @@ export const useAuth = () => {
   return useContext(AuthContext) as AuthContextType;
 };
 
+async function fetchTrustedProfile(userId: string): Promise<TrustedProfile | null> {
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, role, username, avatar_url, medals, reputation')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (error || !data) return null;
+    return {
+      id: data.id,
+      role: data.role || 'user',
+      username: data.username ?? null,
+      avatar_url: data.avatar_url ?? null,
+      medals: Array.isArray(data.medals) ? data.medals : [],
+      reputation: typeof data.reputation === 'number' ? data.reputation : 0,
+    };
+  } catch {
+    return null;
+  }
+}
+
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<TrustedProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const refreshProfile = useCallback(async () => {
+    if (!user) {
+      setProfile(null);
+      return;
+    }
+    const prof = await fetchTrustedProfile(user.id);
+    setProfile(prof);
+  }, [user]);
+
   useEffect(() => {
-    // 1. Verificar sesión activa al inicio
-    const checkSession = async () => {
-      try {
-        // Usar getUser() en lugar de getSession() para asegurar datos frescos del servidor
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        setUser(user ?? null);
-      } catch (error) {
+    let mounted = true;
+
+    // 1. Obtener sesión local inicial sin colgar el arranque
+    supabase.auth
+      .getSession()
+      .then(async ({ data: { session } }) => {
+        if (!mounted) return;
+        const initialUser = session?.user ?? null;
+        setUser(initialUser);
+        if (initialUser) {
+          const prof = await fetchTrustedProfile(initialUser.id);
+          if (mounted) {
+            setProfile(prof);
+            setLoading(false);
+          }
+        } else {
+          setProfile(null);
+          setLoading(false);
+        }
+      })
+      .catch((error) => {
         console.error('Error verificando sesión:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+        if (mounted) setLoading(false);
+      });
 
-    checkSession();
-
-    // 2. Escuchar cambios de estado
+    // 2. Escuchar cambios de estado difiriendo llamadas asíncronas para evitar deadlocks de locks
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      // Simplificado para evitar bucles infinitos y bloqueos
-      // session.user viene del token JWT. Si necesitamos datos frescos post-link,
-      // refreshSession() debe ser llamado explícitamente donde ocurra la acción.
-      setUser(session?.user ?? null);
-      setLoading(false);
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      const nextUser = session?.user ?? null;
+      setUser(nextUser);
+      if (nextUser) {
+        setTimeout(async () => {
+          if (!mounted) return;
+          const prof = await fetchTrustedProfile(nextUser.id);
+          if (mounted) {
+            setProfile(prof);
+            setLoading(false);
+          }
+        }, 0);
+      } else {
+        setProfile(null);
+        setLoading(false);
+      }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   // 3. Revalidación Inteligente (Móvil/Tab Focus)
@@ -64,11 +128,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const handleFocus = async () => {
       if (document.visibilityState === 'visible') {
-        const {
-          data: { user: freshUser },
-        } = await supabase.auth.getUser();
-        if (freshUser) {
-          setUser(freshUser);
+        try {
+          const {
+            data: { user: freshUser },
+          } = await supabase.auth.getUser();
+          if (freshUser) {
+            setUser(freshUser);
+            const prof = await fetchTrustedProfile(freshUser.id);
+            setProfile(prof);
+          }
+        } catch (error) {
+          console.warn('Error revalidando sesión en foco:', error);
         }
       }
     };
@@ -119,6 +189,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       console.error('Error signing out:', error);
     } finally {
       setUser(null);
+      setProfile(null);
     }
   }, []);
 
@@ -186,6 +257,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const value = useMemo(
     () => ({
       user,
+      profile,
+      refreshProfile,
       login,
       loginWithProvider,
       logout,
@@ -193,7 +266,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       updateUser,
       loading,
     }),
-    [user, loading, login, loginWithProvider, logout, register, updateUser],
+    [
+      user,
+      profile,
+      refreshProfile,
+      loading,
+      login,
+      loginWithProvider,
+      logout,
+      register,
+      updateUser,
+    ],
   );
 
   return <AuthContext.Provider value={value}>{!loading && children}</AuthContext.Provider>;
