@@ -8,10 +8,8 @@ bindPort = 7000
 [auth]
 # ⚠️ IMPORTANTE DE SEGURIDAD:
 # Este token autentica los clientes FRP (Laptop de desarrollo, Termux en celular, etc.).
-# Si cambias este valor, debes actualizarlo también en:
-# - deploy/oracle-cloud/frpc.toml.laptop
-# - deploy/oracle-cloud/frpc.toml.phone
-token = "CrystalTidesFRP2026"
+# Se inyecta dinámicamente desde la variable de entorno FRP_AUTH_TOKEN.
+token = "{{ .Envs.FRP_AUTH_TOKEN }}"
 
 # Rango estricto de puertos permitidos para tunelización (Evita secuestro de puertos reservados)
 allowPorts = [

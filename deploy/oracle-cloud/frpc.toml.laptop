@@ -1,6 +1,6 @@
 serverAddr = "150.136.151.234"
 serverPort = 7000
-auth.token = "CrystalTidesFRP2026"
+auth.token = "{{ .Envs.FRP_AUTH_TOKEN }}"
 
 [[proxies]]
 name = "wings-http"

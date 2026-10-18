@@ -1,23 +1,25 @@
-version: '3.8'
-
 services:
   # 🗄️ Database for Pelican Panel
   database:
     image: mariadb:10.11
     restart: unless-stopped
-    stop_grace_period: 30s
+    stop_grace_period: 60s
     environment:
       MYSQL_DATABASE: pelican
       MYSQL_USER: pelican
-      MYSQL_PASSWORD: ${PELICAN_DB_PASSWORD:-pelican_db_password_change_me}
-      MYSQL_ROOT_PASSWORD: ${PELICAN_ROOT_PASSWORD:-pelican_root_password_change_me}
+      MYSQL_PASSWORD: ${PELICAN_DB_PASSWORD:?PELICAN_DB_PASSWORD must be set}
+      MYSQL_ROOT_PASSWORD: ${PELICAN_ROOT_PASSWORD:?PELICAN_ROOT_PASSWORD must be set}
     volumes:
       - db-data:/var/lib/mysql
     mem_limit: 1g
     cpus: 1.50
     pids_limit: 256
     healthcheck:
-      test: ["CMD-SHELL", "mariadb-admin ping -h 127.0.0.1 -u root --password=$$MYSQL_ROOT_PASSWORD || exit 1"]
+      test:
+        [
+          'CMD-SHELL',
+          'mariadb-admin ping -h 127.0.0.1 -u root --password=$$MYSQL_ROOT_PASSWORD || exit 1',
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -25,8 +27,8 @@ services:
     logging:
       driver: json-file
       options:
-        max-size: "10m"
-        max-file: "3"
+        max-size: '10m'
+        max-file: '3'
     networks:
       - pelican-network
 
@@ -34,13 +36,14 @@ services:
   cache:
     image: redis:7-alpine
     restart: unless-stopped
+    stop_grace_period: 30s
     volumes:
       - redis-data:/data
     mem_limit: 256m
     cpus: 0.50
     pids_limit: 128
     healthcheck:
-      test: ["CMD-SHELL", "redis-cli ping | grep PONG || exit 1"]
+      test: ['CMD-SHELL', 'redis-cli ping | grep PONG || exit 1']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -48,8 +51,8 @@ services:
     logging:
       driver: json-file
       options:
-        max-size: "10m"
-        max-file: "3"
+        max-size: '10m'
+        max-file: '3'
     networks:
       - pelican-network
 
@@ -63,8 +66,8 @@ services:
       APP_DEBUG: 'false'
       APP_URL: https://panel.crystaltidessmp.net
       BEHIND_PROXY: 'true'
-      APP_NAME: "CrystalTides SMP"
-      APP_LOGO: "https://crystaltidessmp.net/images/ui/logo.webp"
+      APP_NAME: 'CrystalTides SMP'
+      APP_LOGO: 'https://crystaltidessmp.net/images/ui/logo.webp'
       TRUSTED_PROXIES: 172.16.0.0/12 # ponytail: Docker bridge range
       APP_TIMEZONE: America/Santiago
       DB_CONNECTION: mysql
@@ -72,19 +75,22 @@ services:
       DB_PORT: 3306
       DB_DATABASE: pelican
       DB_USERNAME: pelican
-      DB_PASSWORD: ${PELICAN_DB_PASSWORD:-pelican_db_password_change_me}
+      DB_PASSWORD: ${PELICAN_DB_PASSWORD:?PELICAN_DB_PASSWORD must be set}
       CACHE_DRIVER: redis
       SESSION_DRIVER: redis
       QUEUE_CONNECTION: redis
       REDIS_HOST: cache
     volumes:
       - panel-data:/var/www/html/storage
-      - ./memory-limit.ini:/usr/local/etc/php/conf.d/memory-limit.ini
     mem_limit: 1g
     cpus: 1.50
     pids_limit: 256
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8080/ || exit 1"]
+      test:
+        [
+          'CMD-SHELL',
+          'curl -fsS http://127.0.0.1:80/ || curl -fsS http://127.0.0.1:8080/ || exit 1',
+        ]
       interval: 15s
       timeout: 5s
       retries: 3
@@ -92,8 +98,8 @@ services:
     logging:
       driver: json-file
       options:
-        max-size: "10m"
-        max-file: "3"
+        max-size: '10m'
+        max-file: '3'
     depends_on:
       database:
         condition: service_healthy
@@ -106,6 +112,9 @@ services:
   frps:
     image: fatedier/frps:v0.54.0
     restart: unless-stopped
+    stop_grace_period: 30s
+    environment:
+      FRP_AUTH_TOKEN: ${FRP_AUTH_TOKEN:?FRP_AUTH_TOKEN must be set}
     ports:
       - '7000:7000' # FRP Control port (frpc connects here)
       - '25565:25565' # Minecraft proxy port (players connect here)
@@ -113,12 +122,13 @@ services:
       - '8022:8022' # Laptop SSH proxy port (Discord Bot connects here)
       - '2022:2022' # Wings SFTP proxy port (WinSCP connects here)
     volumes:
-      - ./frps.toml:/etc/frp/frps.toml
-    command: -c /etc/frp/frps.toml
+      - ./deploy/oracle-cloud/frps.toml:/etc/frp/frps.toml:ro
+    command: ['-c', '/etc/frp/frps.toml']
     mem_limit: 256m
     cpus: 0.50
+    pids_limit: 128
     healthcheck:
-      test: ["CMD-SHELL", "nc -z 127.0.0.1 7000 || exit 1"]
+      test: ['CMD-SHELL', 'nc -z 127.0.0.1 7000 || exit 1']
       interval: 15s
       timeout: 5s
       retries: 3
@@ -126,8 +136,8 @@ services:
     logging:
       driver: json-file
       options:
-        max-size: "10m"
-        max-file: "3"
+        max-size: '10m'
+        max-file: '3'
     networks:
       - pelican-network
 
@@ -136,20 +146,24 @@ services:
     image: hashicorp/vault:1.15.0
     container_name: crystaltides-vault
     environment:
-      VAULT_DEV_ROOT_TOKEN_ID: ${VAULT_DEV_ROOT_TOKEN_ID:-crystaltides-root-token}
-      VAULT_DEV_LISTEN_ADDRESS: 0.0.0.0:8200
       VAULT_ADDR: http://127.0.0.1:8200
     cap_add:
       - IPC_LOCK
-    command: server -dev -dev-listen-address=0.0.0.0:8200
+    command: ['vault', 'server', '-config=/vault/config/config.hcl']
     volumes:
       - vault-data:/vault/file
+      - ./deploy/vault/config.hcl:/vault/config/config.hcl:ro
     restart: unless-stopped
+    stop_grace_period: 30s
     mem_limit: 256m
     cpus: 0.50
     pids_limit: 128
     healthcheck:
-      test: ["CMD-SHELL", "vault status || exit 1"]
+      test:
+        [
+          'CMD-SHELL',
+          "wget --no-verbose --tries=1 --spider 'http://127.0.0.1:8200/v1/sys/health?standbyok=true&sealedcode=200&uninitcode=200' || exit 1",
+        ]
       interval: 15s
       timeout: 5s
       retries: 3
@@ -157,29 +171,31 @@ services:
     logging:
       driver: json-file
       options:
-        max-size: "10m"
-        max-file: "3"
+        max-size: '10m'
+        max-file: '3'
     networks:
       - pelican-network
 
   # 🤖 Discord Bot
   bot:
-    image: crystaltides-bot:latest
+    image: crystaltides-bot:${BOT_IMAGE_TAG:-1.0.0}
     container_name: crystaltides-bot
-    user: "1001:1001"
+    user: '1001:1001'
     environment:
       PORT: 3002
       NODE_ENV: production
     env_file:
-      - .env.bot
+      - path: .env.bot
+        required: true
     volumes:
       - ./id_minecraft_pem:/app/id_minecraft_pem:ro
     restart: unless-stopped
+    stop_grace_period: 30s
     mem_limit: 512m
     cpus: 1.0
     pids_limit: 256
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:3002/health || exit 1"]
+      test: ['CMD-SHELL', 'curl -fsS http://127.0.0.1:3002/health || exit 1']
       interval: 20s
       timeout: 5s
       retries: 3
@@ -187,8 +203,8 @@ services:
     logging:
       driver: json-file
       options:
-        max-size: "10m"
-        max-file: "3"
+        max-size: '10m'
+        max-file: '3'
     networks:
       - pelican-network
 
@@ -196,17 +212,25 @@ services:
   caddy:
     image: caddy:2-alpine
     restart: unless-stopped
+    stop_grace_period: 30s
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
     ports:
       - '80:80'
       - '443:443'
     volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile
+      - ./deploy/oracle-cloud/Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy-data:/data
       - caddy-config:/config
     mem_limit: 256m
     cpus: 0.50
+    pids_limit: 128
     healthcheck:
-      test: ["CMD-SHELL", "caddy version || exit 1"]
+      test:
+        [
+          'CMD-SHELL',
+          'wget --no-verbose --tries=1 --spider http://127.0.0.1:2019/config/ || exit 1',
+        ]
       interval: 15s
       timeout: 5s
       retries: 3
@@ -214,8 +238,8 @@ services:
     logging:
       driver: json-file
       options:
-        max-size: "10m"
-        max-file: "3"
+        max-size: '10m'
+        max-file: '3'
     depends_on:
       panel:
         condition: service_healthy

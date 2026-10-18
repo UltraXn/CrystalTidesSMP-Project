@@ -1,6 +1,6 @@
 serverAddr = "<YOUR_ORACLE_VM_PUBLIC_IP>"
 serverPort = 7000
-auth.token = "CrystalTidesFRP2026"
+auth.token = "{{ .Envs.FRP_AUTH_TOKEN }}"
 
 [[proxies]]
 name = "local-spy"

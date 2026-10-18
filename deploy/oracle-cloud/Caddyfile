@@ -14,37 +14,52 @@
     }
 }
 
+(anti_fuzzing) {
+    @blocked_paths {
+        path_regexp dotfiles /\.(?!well-known/)
+        path *.env* *.bak *.sql *.db *.sqlite* *.key *.pem *.log
+    }
+    respond @blocked_paths 404
+}
+
 # 🦅 Pelican Panel Web & API
 panel.crystaltidessmp.net {
     import security_headers
+    import anti_fuzzing
     reverse_proxy panel:80
 }
 
-# 🔑 HashiCorp Vault (Legacy / Temporario)
+# 🔑 HashiCorp Vault (Production Secrets Manager)
 vault.crystaltidessmp.net {
+    import security_headers
+    import anti_fuzzing
     reverse_proxy crystaltides-vault:8200
 }
 
 # 🤖 Discord Bot Webhook & Health
 bot.crystaltidessmp.net {
     import security_headers
+    import anti_fuzzing
     reverse_proxy crystaltides-bot:3002
 }
 
 # 🗺️ Pelican Daemon Remote Node via FRP
 node.crystaltidessmp.net {
     import security_headers
+    import anti_fuzzing
     reverse_proxy frps:8082
 }
 
 # 🗺️ Pelican Daemon Local VPS Node
 node-vps.crystaltidessmp.net {
     import security_headers
-    reverse_proxy 127.0.0.1:8080
+    import anti_fuzzing
+    reverse_proxy host.docker.internal:8080
 }
 
 # 🌐 Fallback HTTP IP Direct Access
 http://150.136.151.234 {
     import security_headers
+    import anti_fuzzing
     reverse_proxy panel:80
 }
