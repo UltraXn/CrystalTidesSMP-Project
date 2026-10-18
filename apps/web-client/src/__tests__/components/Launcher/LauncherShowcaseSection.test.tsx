@@ -121,6 +121,9 @@ describe("Launcher/LauncherShowcaseSection Component", () => {
   it("shows, displays, and copies SHA-256 checksum", () => {
     renderWithProviders(<LauncherShowcaseSection />);
 
+    // The default tab follows the visitor's OS (Linux on CI runners): pick Windows explicitly.
+    fireEvent.click(screen.getByRole("button", { name: /Windows \(10 \/ 11\)/i }));
+
     const toggleChecksumBtn = screen.getByRole("button", {
       name: /Ver Hashes SHA-256 de Verificación/i,
     });
