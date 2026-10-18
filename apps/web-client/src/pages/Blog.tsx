@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Calendar, ArrowRight, Tag } from 'lucide-react';
 import { Link, useNavigate } from 'react-router';
@@ -143,17 +143,21 @@ const LikeButton = ({ articleId, initialLikes = 0, initialIsLiked = false }: Lik
   const navigate = useNavigate();
   const isFallback = String(articleId).startsWith('fallback');
   const [likes, setLikes] = useState<number>(initialLikes);
+  const [prevInitialLikes, setPrevInitialLikes] = useState<number>(initialLikes);
   const [isLiked, setIsLiked] = useState<boolean>(initialIsLiked);
+  const [prevInitialIsLiked, setPrevInitialIsLiked] = useState<boolean>(initialIsLiked);
   const [particles, setParticles] = useState<Particle[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
-  useEffect(() => {
+  if (initialLikes !== prevInitialLikes) {
+    setPrevInitialLikes(initialLikes);
     setLikes(initialLikes);
-  }, [initialLikes]);
+  }
 
-  useEffect(() => {
+  if (initialIsLiked !== prevInitialIsLiked) {
+    setPrevInitialIsLiked(initialIsLiked);
     setIsLiked(initialIsLiked);
-  }, [initialIsLiked]);
+  }
 
   if (isFallback) {
     return null;
