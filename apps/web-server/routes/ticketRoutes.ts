@@ -8,7 +8,7 @@ import {
   addTicketMessageSchema,
   updateTicketStatusSchema,
   banUserSchema,
-} from '../schemas/ticketSchemas.js';
+} from '@crystaltides/shared';
 import { sensitiveActionLimiter } from '../middleware/rateLimitMiddleware.js';
 
 const TICKET_ROUTES = {

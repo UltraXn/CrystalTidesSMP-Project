@@ -5,7 +5,7 @@ import { sendError } from '../utils/responseHandler.js';
 import { logSecurityFailure } from '../services/auditService.js';
 import { webhookLimiter } from '../middleware/rateLimitMiddleware.js';
 import { validate } from '../middleware/validateResource.js';
-import { minecraftWebhookSchema } from '../schemas/webhookSchemas.js';
+import { minecraftWebhookSchema } from '@crystaltides/shared';
 
 const router = express.Router();
 

@@ -10,7 +10,7 @@ import {
   enable2FASchema,
   disable2FASchema,
   registerSchema,
-} from '../schemas/authSchemas.js';
+} from '@crystaltides/shared';
 
 const AUTH_ROUTES = {
   REGISTER: '/register',

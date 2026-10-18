@@ -1,10 +1,10 @@
 import { useState, useRef } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../../../services/supabaseClient';
 import { uploadImage as uploadImageSecure } from '../../../services/uploadService';
-import { newsSchema, NewsFormValues } from '../../../schemas/news';
+import { newsFormSchema, type NewsFormValues } from '@crystaltides/shared';
 
 function canvasToWebpBlob(canvas: HTMLCanvasElement): Promise<Blob> {
   return new Promise((resolve, reject) => {
@@ -61,7 +61,7 @@ export function useNewsForm(initialData?: NewsFormValues) {
   const API_URL = import.meta.env.VITE_API_URL || '/api';
 
   const form = useForm<NewsFormValues>({
-    resolver: zodResolver(newsSchema),
+    resolver: zodResolver(newsFormSchema) as Resolver<NewsFormValues>,
     defaultValues: initialData || {
       title: '',
       title_en: '',

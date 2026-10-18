@@ -23,8 +23,7 @@
     "services/**/*.ts",
     "middleware/**/*.ts",
     "types/**/*.ts",
-    "utils/**/*.ts",
-    "schemas/**/*.ts"
+    "utils/**/*.ts"
   ],
   "exclude": [
     "node_modules",

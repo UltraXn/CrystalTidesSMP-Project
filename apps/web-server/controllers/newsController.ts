@@ -1,5 +1,6 @@
 import supabase from '../services/supabaseService.js';
 import * as logService from '../services/logService.js';
+import * as minecraftService from '../services/minecraftService.js';
 import { translateText } from '../services/translationService.js';
 
 import { Request, Response } from 'express';
@@ -27,10 +28,10 @@ interface NewsWebhookProps {
   slug: string;
 }
 
-// Helper: Handle errors uniformly
+// Helper: Handle errors uniformly without leaking internal DB errors
 const handleControllerError = (res: Response, error: unknown) => {
-  const message = error instanceof Error ? error.message : String(error);
-  res.status(500).json({ error: message });
+  console.error('[NewsController] Internal error:', error);
+  res.status(500).json({ error: 'Internal server error' });
 };
 
 // Helper: Resolve ID or Slug to news ID
@@ -459,88 +460,239 @@ export const deleteNews = async (req: Request, res: Response) => {
   }
 };
 
-export const getLauncherNewsFeed = async (req: Request, res: Response) => {
-  try {
-    let newsItems = (
-      await supabase
-        .from('news_feed_items')
-        .select(
-          'id, title, slug, summary, category, tag_label, tag_color, banner_image_url, action_label, action_url, is_featured, priority, created_at',
-        )
-        .eq('is_published', true)
-        .order('priority', { ascending: false })
-        .order('created_at', { ascending: false })
-        .limit(10)
-    ).data as Record<string, unknown>[] | null;
+interface LauncherServerStatus {
+  online: boolean;
+  motd: string;
+  networkRegion: string;
+  latencyMs: number | null;
+  players: { online: number; max: number };
+  version: string | null;
+}
 
-    if (!newsItems || newsItems.length === 0) {
-      const fallback = await supabase
-        .from('news')
-        .select('id, title, slug, summary, content, category, image_url, created_at, is_featured')
-        .order('created_at', { ascending: false })
-        .limit(10);
-      newsItems = fallback.data as Record<string, unknown>[] | null;
-    }
+interface LauncherChangelog {
+  version: string;
+  buildDate: string;
+  bullets: string[];
+  actionUrl: string;
+}
 
-    const { data: latestNewspaper } = await supabase
-      .from('ai_newspaper_editions')
-      .select('id, issue_number, issue_date, headline, front_page_summary, created_at')
-      .order('id', { ascending: false })
+interface RawChangelogRow {
+  tag_label?: string | null;
+  title?: string | null;
+  created_at?: string | null;
+  content_markdown?: string | null;
+  summary?: string | null;
+  action_url?: string | null;
+}
+
+interface RawNewspaperEdition {
+  id: number | string;
+  issue_number: number | string;
+  issue_date?: string;
+  headline: string;
+  front_page_summary: string;
+  created_at: string;
+}
+
+interface NewsFeedCard {
+  id: string;
+  title: string;
+  slug: string;
+  category: string;
+  tag: string;
+  tagColor: string;
+  summary: string;
+  imageUrl: string | null;
+  actionLabel: string;
+  actionUrl: string;
+  publishedAt: string;
+}
+
+const parseChangelogBullets = (text: string | null | undefined): string[] => {
+  if (!text) return [];
+  return text
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .map((line) => line.replace(/^[-*•]\s*/, '').trim())
+    .filter((line) => line.length > 0);
+};
+
+const formatBuildDate = (isoDate: string | null | undefined): string => {
+  if (!isoDate) return '';
+  const dateObj = new Date(isoDate);
+  if (Number.isNaN(dateObj.getTime())) return '';
+  const year = dateObj.getUTCFullYear();
+  const month = String(dateObj.getUTCMonth() + 1).padStart(2, '0');
+  return `${year}.${month}`;
+};
+
+const fetchLauncherServerStatus = async (): Promise<LauncherServerStatus> => {
+  const mcHost = process.env.MC_SERVER_HOST ?? 'mc.crystaltidessmp.net';
+  const mcPort = Number.parseInt(process.env.MC_SERVER_PORT ?? '25565', 10);
+  const liveStatus = await minecraftService.getServerStatus(mcHost, mcPort);
+
+  const motd =
+    liveStatus.online && typeof liveStatus.motd === 'string' && liveStatus.motd.trim()
+      ? liveStatus.motd.trim()
+      : (process.env.MC_SERVER_MOTD ?? 'CrystalTides SMP');
+
+  const latencyMs =
+    liveStatus.online && typeof liveStatus.ping === 'number' ? liveStatus.ping : null;
+
+  const players =
+    liveStatus.online && liveStatus.players
+      ? { online: liveStatus.players.online, max: liveStatus.players.max }
+      : { online: 0, max: 0 };
+
+  const version = liveStatus.online && liveStatus.version ? liveStatus.version : null;
+
+  return {
+    online: Boolean(liveStatus.online),
+    motd,
+    networkRegion: process.env.MC_NETWORK_REGION ?? 'US-East',
+    latencyMs,
+    players,
+    version,
+  };
+};
+
+const fetchLatestLauncherChangelog = async (): Promise<LauncherChangelog | null> => {
+  const { data: changelogFeedRow } = await supabase
+    .from('news_feed_items')
+    .select('tag_label, title, created_at, content_markdown, summary, action_url')
+    .eq('is_published', true)
+    .in('category', ['CHANGELOG', 'UPDATE'])
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  let changelogRow = changelogFeedRow as RawChangelogRow | null;
+
+  if (!changelogRow) {
+    const { data: newsChangelogRow } = await supabase
+      .from('news')
+      .select('title, created_at, content, summary')
+      .eq('status', 'Published')
+      .in('category', ['CHANGELOG', 'UPDATE'])
+      .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle();
 
-    const items = (newsItems || []).map(formatNewsFeedItem);
-
-    interface RawNewsItem {
-      id: string | number;
-      is_featured?: boolean;
-      [key: string]: unknown;
-    }
-
-    let featured =
-      items.find((i) =>
-        ((newsItems as RawNewsItem[]) || []).find(
-          (raw) => String(raw.id) === i.id && raw.is_featured,
-        ),
-      ) ||
-      items[0] ||
-      null;
-
-    if (!featured && latestNewspaper) {
-      featured = {
-        id: `newspaper-${latestNewspaper.id}`,
-        title: latestNewspaper.headline,
-        slug: `newspaper-${latestNewspaper.issue_number}`,
-        category: 'NOTICIERO',
-        tag: `EDICIÓN #${latestNewspaper.issue_number}`,
-        tagColor: '#2DD4BF',
-        summary: latestNewspaper.front_page_summary,
-        imageUrl: null,
-        actionLabel: 'LEER EDICIÓN',
-        actionUrl: `https://crystaltidessmp.net/newspaper/latest`,
-        publishedAt: String(latestNewspaper.created_at),
+    if (newsChangelogRow) {
+      changelogRow = {
+        tag_label: null,
+        title: newsChangelogRow.title,
+        created_at: newsChangelogRow.created_at,
+        content_markdown: newsChangelogRow.content,
+        summary: newsChangelogRow.summary,
+        action_url: null,
       };
     }
+  }
+
+  if (!changelogRow) {
+    return null;
+  }
+
+  const rawBullets = parseChangelogBullets(changelogRow.content_markdown || changelogRow.summary);
+
+  return {
+    version: changelogRow.tag_label || changelogRow.title || '',
+    buildDate: formatBuildDate(changelogRow.created_at),
+    bullets: rawBullets.length > 0 ? rawBullets : [changelogRow.title || 'Actualización'],
+    actionUrl: changelogRow.action_url || 'https://crystaltidessmp.net/changelog',
+  };
+};
+
+const fetchNewsFeedRows = async (): Promise<Record<string, unknown>[]> => {
+  const { data: feedData } = await supabase
+    .from('news_feed_items')
+    .select(
+      'id, title, slug, summary, content_markdown, category, tag_label, tag_color, banner_image_url, action_label, action_url, is_featured, priority, created_at',
+    )
+    .eq('is_published', true)
+    .order('priority', { ascending: false })
+    .order('created_at', { ascending: false })
+    .limit(10);
+
+  if (feedData && feedData.length > 0) {
+    return feedData as Record<string, unknown>[];
+  }
+
+  const { data: fallbackData } = await supabase
+    .from('news')
+    .select('id, title, slug, summary, content, category, image_url, created_at, is_featured')
+    .eq('status', 'Published')
+    .order('created_at', { ascending: false })
+    .limit(10);
+
+  return (fallbackData || []) as Record<string, unknown>[];
+};
+
+const fetchLatestNewspaper = async (): Promise<RawNewspaperEdition | null> => {
+  const { data } = await supabase
+    .from('ai_newspaper_editions')
+    .select('id, issue_number, issue_date, headline, front_page_summary, created_at')
+    .order('id', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  return (data as RawNewspaperEdition | null) ?? null;
+};
+
+const resolveFeaturedLauncherItem = (
+  items: NewsFeedCard[],
+  rawItems: Record<string, unknown>[],
+  latestNewspaper: RawNewspaperEdition | null,
+): NewsFeedCard | null => {
+  const explicitFeatured = items.find((i) =>
+    rawItems.some((raw) => String(raw.id) === i.id && Boolean(raw.is_featured)),
+  );
+
+  if (explicitFeatured) {
+    return explicitFeatured;
+  }
+
+  if (items[0]) {
+    return items[0];
+  }
+
+  if (latestNewspaper) {
+    return {
+      id: `newspaper-${latestNewspaper.id}`,
+      title: latestNewspaper.headline,
+      slug: `newspaper-${latestNewspaper.issue_number}`,
+      category: 'NOTICIERO',
+      tag: `EDICIÓN #${latestNewspaper.issue_number}`,
+      tagColor: '#2DD4BF',
+      summary: latestNewspaper.front_page_summary,
+      imageUrl: null,
+      actionLabel: 'LEER EDICIÓN',
+      actionUrl: 'https://crystaltidessmp.net/newspaper/latest',
+      publishedAt: String(latestNewspaper.created_at),
+    };
+  }
+
+  return null;
+};
+
+export const getLauncherNewsFeed = async (req: Request, res: Response) => {
+  try {
+    const [serverStatus, latestChangelog, newsItems, latestNewspaper] = await Promise.all([
+      fetchLauncherServerStatus(),
+      fetchLatestLauncherChangelog(),
+      fetchNewsFeedRows(),
+      fetchLatestNewspaper(),
+    ]);
+
+    const items = newsItems.map(formatNewsFeedItem);
+    const featured = resolveFeaturedLauncherItem(items, newsItems, latestNewspaper);
 
     const feedPayload = {
       featured,
       cards: items.slice(0, 6),
-      latestChangelog: {
-        version: '0.1.0-alpha',
-        buildDate: '2026.8',
-        bullets: [
-          'Sincronización en la nube de perfiles y shaders',
-          'Optimización de memoria JVM y rendimiento',
-          'Integración nativa con CrystalCore y chat relay',
-        ],
-        actionUrl: 'https://crystaltidessmp.net/changelog',
-      },
-      serverStatus: {
-        online: true,
-        motd: 'CrystalTides SMP • Temporada Abisal',
-        networkRegion: 'US-East',
-        latencyMs: 18,
-      },
+      latestChangelog,
+      serverStatus,
     };
 
     res.status(200).json(feedPayload);

@@ -9,7 +9,7 @@ import {
   gachaHistorySchema,
   gachaStatusSchema,
   addFundsSchema,
-} from '../schemas/gachaSchemas.js';
+} from '@crystaltides/shared';
 
 const router = express.Router();
 

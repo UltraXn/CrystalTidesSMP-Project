@@ -51,7 +51,7 @@ import {
   updateNewsSchema,
   createCommentSchema,
   updateCommentSchema,
-} from '../schemas/newsSchemas.js';
+} from '@crystaltides/shared';
 
 router.get('/', newsController.getAllNews);
 router.get('/feed', newsController.getLauncherNewsFeed);

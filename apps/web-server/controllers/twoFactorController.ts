@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import * as twoFactorService from '../services/twoFactorService.js';
 import { sendSuccess, sendError } from '../utils/responseHandler.js';
 import { MemoryRateLimiter } from '../utils/rateLimiter.js';
-import type { Enable2FAPayload, Verify2FAPayload } from '../schemas/authSchemas.js';
+import type { Enable2FAPayload, Verify2FAPayload } from '@crystaltides/shared';
 
 const TWO_FACTOR_ERRORS = {
   UNAUTHORIZED: 'User not authenticated',

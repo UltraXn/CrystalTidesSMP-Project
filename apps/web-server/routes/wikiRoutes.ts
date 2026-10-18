@@ -3,7 +3,7 @@ import * as wikiController from '../controllers/wikiController.js';
 import { authenticateToken } from '../middleware/authMiddleware.js';
 import { checkRole, STAFF_ROLES } from '../utils/roleUtils.js';
 import { validate } from '../middleware/validateResource.js';
-import { createWikiArticleSchema, updateWikiArticleSchema } from '../schemas/wikiSchemas.js';
+import { createWikiArticleSchema, updateWikiArticleSchema } from '@crystaltides/shared';
 
 const router = express.Router();
 
@@ -83,7 +83,13 @@ router.get('/:slug', wikiController.getArticle);
  *     security:
  *       - bearerAuth: []
  */
-router.post('/', authenticateToken, checkRole(STAFF_ROLES), validate(createWikiArticleSchema), wikiController.createWikiArticle);
+router.post(
+  '/',
+  authenticateToken,
+  checkRole(STAFF_ROLES),
+  validate(createWikiArticleSchema),
+  wikiController.createWikiArticle,
+);
 
 /**
  * @swagger
@@ -94,7 +100,13 @@ router.post('/', authenticateToken, checkRole(STAFF_ROLES), validate(createWikiA
  *     security:
  *       - bearerAuth: []
  */
-router.put('/:id', authenticateToken, checkRole(STAFF_ROLES), validate(updateWikiArticleSchema), wikiController.updateWikiArticle);
+router.put(
+  '/:id',
+  authenticateToken,
+  checkRole(STAFF_ROLES),
+  validate(updateWikiArticleSchema),
+  wikiController.updateWikiArticle,
+);
 
 /**
  * @swagger

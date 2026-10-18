@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const suggestionTypeSchema = z.enum([
+export const suggestionTypes = [
   'General',
   'Bug',
   'Mod',
@@ -10,11 +10,13 @@ export const suggestionTypeSchema = z.enum([
   'server',
   'web',
   'discord',
-]);
+] as const;
+
+export const suggestionTypeSchema = z.enum(suggestionTypes);
 
 export const createSuggestionPayloadSchema = z.object({
   nickname: z.string().min(3, 'Nickname required (min 3 chars)').max(50),
-  type: z.union([suggestionTypeSchema, z.string()]).optional(),
+  type: suggestionTypeSchema,
   message: z
     .string()
     .min(10, 'Message must be at least 10 characters')
@@ -33,6 +35,9 @@ export const createSuggestionSchema = z.object({
 export const updateSuggestionStatusSchema = z.object({
   body: updateSuggestionStatusPayloadSchema,
 });
+
+// Form-compatible alias for web-client
+export const suggestionFormSchema = createSuggestionPayloadSchema;
 
 // Inferred TypeScript types
 export type CreateSuggestionPayload = z.infer<typeof createSuggestionPayloadSchema>;

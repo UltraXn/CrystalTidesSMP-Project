@@ -12,7 +12,7 @@ import {
   updateUserRoleSchema,
   voteKarmaSchema,
   profileSchema,
-} from '../schemas/userSchemas.js';
+} from '@crystaltides/shared';
 import { checkRole, ADMIN_ROLES, STAFF_ROLES } from '../utils/roleUtils.js';
 
 const ROUTES = {

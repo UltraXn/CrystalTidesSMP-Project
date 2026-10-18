@@ -24,7 +24,6 @@ catalog:
   zod: ^4.2.1
   vite: ^6.2.0
 
-
 # Dependencias transitivas con vulnerabilidades altas o críticas (pnpm audit).
 # Rangos ^: corrigen sin saltar de versión mayor. Revisar con `pnpm audit --audit-level=high`
 # y quitar cada entrada cuando la dependencia que la arrastra ya traiga la versión buena.
@@ -46,6 +45,7 @@ overrides:
   'postcss@<8.5.18': ^8.5.18
   'serialize-javascript@<7.0.3': ^7.0.3 # mocha (cypress-cucumber, solo tests)
   'source-map-js@<1.2.2': ^1.2.2
+  'tar@<7.5.22': ^7.5.22
 
 auditConfig:
   ignoreGhsas:

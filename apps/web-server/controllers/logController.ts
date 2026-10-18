@@ -3,6 +3,11 @@ import { Request, Response } from 'express';
 import { ensureString } from '../utils/typeUtils.js';
 import { getClientIp } from '../utils/clientIp.js';
 
+const handleLogError = (res: Response, error: unknown) => {
+  console.error('[LogController] Internal error:', error);
+  res.status(500).json({ error: 'Internal server error' });
+};
+
 export const getLogs = async (req: Request, res: Response) => {
   try {
     const page = ensureString(req.query.page, '1');
@@ -21,8 +26,7 @@ export const getLogs = async (req: Request, res: Response) => {
     const data = await logService.getLogs({ limit: parsedLimit, offset, source, search });
     res.json(data);
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    res.status(500).json({ error: message });
+    handleLogError(res, error);
   }
 };
 
@@ -32,8 +36,7 @@ export const createLog = async (req: Request, res: Response) => {
     const log = await logService.createLog(logData);
     res.status(201).json(log);
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    res.status(500).json({ error: message });
+    handleLogError(res, error);
   }
 };
 

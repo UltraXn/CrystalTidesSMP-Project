@@ -17,7 +17,7 @@ import { User, UserIdentity } from '@supabase/supabase-js';
 
 import Loader from '../UI/Loader';
 import TwoFactorSetup from '../Profile/Security/TwoFactorSetup';
-import { updateUserSchema, UpdateUserFormValues } from '../../schemas/user';
+import { updateUserFormSchema, type UpdateUserFormValues } from '@crystaltides/shared';
 import { useUpdateProfile, useUpdatePassword } from '../../hooks/useAccountData';
 
 interface ProfileSettingsProps {
@@ -108,7 +108,7 @@ function useProfileSettingsForm({
   const [publicStats, setPublicStats] = useState(user?.user_metadata?.public_stats !== false);
 
   const form = useForm<UpdateUserFormValues>({
-    resolver: zodResolver(updateUserSchema),
+    resolver: zodResolver(updateUserFormSchema),
     defaultValues: {
       bio: user?.user_metadata?.bio || '',
       social_discord:

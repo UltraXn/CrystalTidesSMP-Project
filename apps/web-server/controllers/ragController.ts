@@ -369,7 +369,6 @@ export async function handleRagIngestPush(req: Request, res: Response): Promise<
     console.error('❌ Error en handleRagIngestPush:', errorMsg);
     const errorResponse: RagIngestErrorResponse = {
       error: INGEST_MESSAGES.INGESTION_ERROR,
-      details: errorMsg,
     };
     res.status(500).json(errorResponse);
   }

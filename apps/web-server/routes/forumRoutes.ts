@@ -2,7 +2,12 @@ import express from 'express';
 import * as forumController from '../controllers/forumController.js';
 import { authenticateToken } from '../middleware/authMiddleware.js';
 import { validate } from '../middleware/validateResource.js';
-import { createThreadSchema, createPostSchema, updateThreadSchema, updatePostSchema } from '../schemas/forumSchemas.js';
+import {
+  createThreadSchema,
+  createPostSchema,
+  updateThreadSchema,
+  updatePostSchema,
+} from '@crystaltides/shared';
 
 const router = express.Router();
 

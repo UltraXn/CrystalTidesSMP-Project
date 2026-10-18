@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, Link } from 'react-router';
 import SectionDivider from '../components/Layout/SectionDivider';
 import TicketForm from '../components/Support/TicketForm';
-import { CreateTicketFormValues } from '../schemas/ticket';
+import type { CreateTicketFormValues } from '@crystaltides/shared';
 import Loader from '../components/UI/Loader';
 
 interface Ticket {

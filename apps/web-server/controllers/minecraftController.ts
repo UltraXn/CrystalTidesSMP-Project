@@ -77,7 +77,7 @@ const ERRORS = {
 } as const;
 
 // --- SUPABASE CLIENT SETUP ---
-const supabaseUrl = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL;
+const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 let supabase: SupabaseClient | null = null;
 if (supabaseUrl && supabaseKey) {
@@ -221,8 +221,8 @@ async function clearSupabaseMetadata(
   token: string | undefined,
   metadataToClear: Record<string, null>,
 ): Promise<void> {
-  const sbUrl = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL;
-  const sbAnonKey = process.env.SUPABASE_ANON_KEY ?? process.env.VITE_SUPABASE_ANON_KEY;
+  const sbUrl = process.env.SUPABASE_URL;
+  const sbAnonKey = process.env.SUPABASE_ANON_KEY;
 
   if (token && sbUrl && sbAnonKey) {
     const userSupabase = createClient(sbUrl, sbAnonKey, {
@@ -397,22 +397,16 @@ async function handleDiscordAutoSync(
 
 export const getStatus = async (req: Request, res: Response) => {
   try {
-    const host = process.env.MC_SERVER_HOST ?? 'localhost';
+    const host = process.env.MC_SERVER_HOST ?? 'mc.crystaltidessmp.net';
     const port = Number.parseInt(process.env.MC_SERVER_PORT ?? '25565', 10);
 
     const status = await minecraftService.getServerStatus(host, port);
     res.json(status);
   } catch (error) {
     console.error('[Minecraft Status CRITICAL 500]:', error);
-    let details: string | undefined;
-    if (process.env.NODE_ENV === 'development') {
-      details = error instanceof Error ? error.message : String(error);
-    }
-
     res.status(500).json({
       online: false,
       error: 'Internal server error fetching status',
-      details,
     });
   }
 };
@@ -494,10 +488,9 @@ export const verifyLinkCode = async (req: Request, res: Response) => {
 
     res.json({ success: true, source, linked: true, playerName });
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+    console.error('[MinecraftController] Link error:', error);
     res.status(500).json({
       error: 'Error al procesar la vinculación.',
-      details: process.env.NODE_ENV === 'development' ? errorMessage : 'Internal Server Error',
     });
   }
 };
@@ -585,8 +578,7 @@ export const checkLinkStatus = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error('Check Link Status Error:', error);
-    const message = error instanceof Error ? error.message : String(error);
-    res.status(500).json({ error: message });
+    res.status(500).json({ error: 'Error al verificar el estado de vinculación.' });
   }
 };
 

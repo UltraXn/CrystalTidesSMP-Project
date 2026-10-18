@@ -17,7 +17,14 @@ interface LikeResult {
  * Helper para estandarizar las respuestas de error
  */
 const sendErrorResponse = (res: Response, err: unknown, status = 500): void => {
-  res.status(status).json({ error: err instanceof Error ? err.message : String(err) });
+  if (status >= 500) {
+    console.error('[AIController] Internal error:', err);
+  }
+  let safeMessage = 'Internal server error';
+  if (status < 500) {
+    safeMessage = err instanceof Error ? err.message : String(err);
+  }
+  res.status(status).json({ error: safeMessage });
 };
 
 /**

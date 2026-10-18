@@ -57,6 +57,10 @@ export const banUserSchema = z.object({
   body: banUserPayloadSchema,
 });
 
+// Form-compatible aliases for web-client
+export const ticketFormSchema = createTicketPayloadSchema;
+export const addTicketMessageFormSchema = addTicketMessagePayloadSchema;
+
 // Inferred TypeScript types
 export type CreateTicketPayload = z.infer<typeof createTicketPayloadSchema>;
 export type AddTicketMessagePayload = z.infer<typeof addTicketMessagePayloadSchema>;

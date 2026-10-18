@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import { Request, Response } from 'express';
 import supabase from '../config/supabaseClient.js';
-import { kofiWebhookSchema, type KofiWebhookPayload } from '../schemas/donationSchemas.js';
+import { kofiWebhookSchema, type KofiWebhookPayload } from '@crystaltides/shared';
 
 // --- Constants & Configuration ---
 

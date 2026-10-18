@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import NewsForm from '../../components/Admin/NewsForm';
-import { NewsFormValues } from '../../schemas/news';
+import type { NewsFormValues } from '@crystaltides/shared';
 import { User } from '@supabase/supabase-js';
 
 const mockUser = {
@@ -9,7 +9,7 @@ const mockUser = {
   app_metadata: { role: 'admin' },
   user_metadata: { full_name: 'NeroFerno' },
   aud: 'authenticated',
-  created_at: new Date().toISOString()
+  created_at: new Date().toISOString(),
 } as unknown as User;
 
 const mockNewsArticle: NewsFormValues = {
@@ -25,7 +25,7 @@ The Nether dimension has trembled and the gates of the Eternal Flame Altar are o
 Gather your clans, equip your armor and face Ignis.`,
   category: 'Eventos',
   status: 'Published',
-  image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800'
+  image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800',
 };
 
 const meta: Meta<typeof NewsForm> = {
@@ -45,14 +45,14 @@ export const EditExistingNews: Story = {
     initialData: mockNewsArticle,
     onSave: async (data) => console.log('Save news form:', data),
     onCancel: () => console.log('Cancel edit'),
-    user: mockUser
-  }
+    user: mockUser,
+  },
 };
 
 export const CreateNewArticle: Story = {
   args: {
     onSave: async (data) => console.log('Create news article:', data),
     onCancel: () => console.log('Cancel create'),
-    user: mockUser
-  }
+    user: mockUser,
+  },
 };

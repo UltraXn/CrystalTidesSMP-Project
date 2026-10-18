@@ -1,7 +1,7 @@
 import { Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { User } from '@supabase/supabase-js';
-import { NewsFormValues } from '../../schemas/news';
+import type { NewsFormValues } from '@crystaltides/shared';
 import { useNewsForm } from './News/useNewsForm';
 import { NewsSpanishFields } from './News/NewsSpanishFields';
 import { NewsEnglishFields } from './News/NewsEnglishFields';

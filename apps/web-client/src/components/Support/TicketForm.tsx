@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from 'react-i18next';
 import { Plus } from 'lucide-react';
-import { createTicketSchema, CreateTicketFormValues } from '../../schemas/ticket';
+import { ticketFormSchema, type CreateTicketFormValues } from '@crystaltides/shared';
 
 interface TicketFormProps {
   onClose: () => void;
@@ -20,7 +20,7 @@ export default function TicketForm({ onClose, onSubmit }: Readonly<TicketFormPro
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<CreateTicketFormValues>({
-    resolver: zodResolver(createTicketSchema),
+    resolver: zodResolver(ticketFormSchema),
     defaultValues: {
       category: 'general',
       priority: 'medium',

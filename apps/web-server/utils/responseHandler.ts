@@ -37,19 +37,13 @@ export const sendError = (
   statusCode: number = 500,
   details?: unknown,
 ) => {
-  // Sanitize details to avoid circular references and leak info
-  let safeDetails = process.env.NODE_ENV === 'development' ? details : undefined;
-  let safeMessage = message;
-  if (process.env.NODE_ENV !== 'development' && statusCode >= 500) {
-    safeMessage = 'Internal server error';
+  if (statusCode >= 500) {
+    console.error(`[Server Error ${statusCode}] code=${code}:`, details ?? message);
   }
 
-  if (details instanceof Error && process.env.NODE_ENV === 'development') {
-    safeDetails = {
-      message: details.message,
-      stack: details.stack,
-    };
-  }
+  // In production-ready systems, 5xx errors MUST NEVER leak internal messages, stacks, or database details to clients
+  const safeMessage = statusCode >= 500 ? 'Internal server error' : message;
+  const safeDetails = statusCode >= 500 ? undefined : details;
 
   return res.status(statusCode).json({
     success: false,

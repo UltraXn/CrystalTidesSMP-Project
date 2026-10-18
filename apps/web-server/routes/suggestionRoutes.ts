@@ -3,7 +3,7 @@ import * as suggestionController from '../controllers/suggestionController.js';
 import { authenticateToken } from '../middleware/authMiddleware.js';
 import { checkRole, STAFF_ROLES } from '../utils/roleUtils.js';
 import { validate } from '../middleware/validateResource.js';
-import { createSuggestionSchema, updateSuggestionStatusSchema } from '../schemas/suggestionSchemas.js';
+import { createSuggestionSchema, updateSuggestionStatusSchema } from '@crystaltides/shared';
 import { sensitiveActionLimiter } from '../middleware/rateLimitMiddleware.js';
 
 const router = express.Router();
@@ -62,7 +62,13 @@ router.get('/', suggestionController.getSuggestions);
  *           schema:
  *             $ref: '#/components/schemas/Suggestion'
  */
-router.post('/', authenticateToken, sensitiveActionLimiter, validate(createSuggestionSchema), suggestionController.createSuggestion);
+router.post(
+  '/',
+  authenticateToken,
+  sensitiveActionLimiter,
+  validate(createSuggestionSchema),
+  suggestionController.createSuggestion,
+);
 
 /**
  * @swagger
@@ -73,7 +79,13 @@ router.post('/', authenticateToken, sensitiveActionLimiter, validate(createSugge
  *     security:
  *       - bearerAuth: []
  */
-router.patch('/:id/status', authenticateToken, checkRole(STAFF_ROLES), validate(updateSuggestionStatusSchema), suggestionController.updateStatus);
+router.patch(
+  '/:id/status',
+  authenticateToken,
+  checkRole(STAFF_ROLES),
+  validate(updateSuggestionStatusSchema),
+  suggestionController.updateStatus,
+);
 
 /**
  * @swagger
@@ -84,6 +96,11 @@ router.patch('/:id/status', authenticateToken, checkRole(STAFF_ROLES), validate(
  *     security:
  *       - bearerAuth: []
  */
-router.delete('/:id', authenticateToken, checkRole(STAFF_ROLES), suggestionController.deleteSuggestion);
+router.delete(
+  '/:id',
+  authenticateToken,
+  checkRole(STAFF_ROLES),
+  suggestionController.deleteSuggestion,
+);
 
 export default router;

@@ -3,7 +3,7 @@ import { linkAccount, getDiscordAnnouncements } from '../controllers/discordCont
 import { authenticateToken } from '../middleware/authMiddleware.js';
 import { sensitiveActionLimiter } from '../middleware/rateLimitMiddleware.js';
 import { validate } from '../middleware/validateResource.js';
-import { linkDiscordSchema } from '../schemas/discordSchemas.js';
+import { linkDiscordSchema } from '@crystaltides/shared';
 
 const router = Router();
 

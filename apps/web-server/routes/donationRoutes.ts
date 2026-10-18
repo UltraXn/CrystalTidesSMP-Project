@@ -1,8 +1,15 @@
 import express from 'express';
-import { testDonation, getDonations, createDonation, updateDonation, deleteDonation, getDonationStats } from '../controllers/donationController.js';
+import {
+  testDonation,
+  getDonations,
+  createDonation,
+  updateDonation,
+  deleteDonation,
+  getDonationStats,
+} from '../controllers/donationController.js';
 import { authenticateToken } from '../middleware/authMiddleware.js';
 import { validate } from '../middleware/validateResource.js';
-import { createDonationSchema, updateDonationSchema } from '../schemas/donationSchemas.js';
+import { createDonationSchema, updateDonationSchema } from '@crystaltides/shared';
 import { checkRole, ADMIN_ROLES, STAFF_ROLES } from '../utils/roleUtils.js';
 
 const router = express.Router();
@@ -69,7 +76,13 @@ router.get('/', authenticateToken, checkRole(STAFF_ROLES), getDonations);
  *     security:
  *       - bearerAuth: []
  */
-router.post('/', authenticateToken, checkRole(STAFF_ROLES), validate(createDonationSchema), createDonation);
+router.post(
+  '/',
+  authenticateToken,
+  checkRole(STAFF_ROLES),
+  validate(createDonationSchema),
+  createDonation,
+);
 
 /**
  * @swagger
@@ -91,7 +104,13 @@ router.get('/stats', authenticateToken, checkRole(STAFF_ROLES), getDonationStats
  *     security:
  *       - bearerAuth: []
  */
-router.put('/:id', authenticateToken, checkRole(STAFF_ROLES), validate(updateDonationSchema), updateDonation);
+router.put(
+  '/:id',
+  authenticateToken,
+  checkRole(STAFF_ROLES),
+  validate(updateDonationSchema),
+  updateDonation,
+);
 
 /**
  * @swagger

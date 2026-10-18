@@ -4,7 +4,7 @@ import * as gachaBalanceService from '../services/gachaBalanceService.js';
 import * as logService from '../services/logService.js';
 import { sendSuccess, sendError } from '../utils/responseHandler.js';
 import { ensureString } from '../utils/typeUtils.js';
-import type { UpdateRoadmapConfigPayload } from '../schemas/roadmapSchemas.js';
+import type { UpdateRoadmapConfigPayload } from '@crystaltides/shared';
 
 export interface RoadmapDayConfig {
   day: number;

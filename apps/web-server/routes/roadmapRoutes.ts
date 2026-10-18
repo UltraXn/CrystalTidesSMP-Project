@@ -12,7 +12,7 @@ import {
 } from '../middleware/authMiddleware.js';
 import { checkRole, ADMIN_ROLES } from '../utils/roleUtils.js';
 import { validate } from '../middleware/validateResource.js';
-import { updateRoadmapConfigSchema } from '../schemas/roadmapSchemas.js';
+import { updateRoadmapConfigSchema } from '@crystaltides/shared';
 
 const router = Router();
 

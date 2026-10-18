@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { Provider } from '@supabase/supabase-js';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { loginSchema, LoginFormValues } from '../schemas/user';
+import { loginFormSchema, type LoginFormValues } from '@crystaltides/shared';
 
 const STYLES = {
   input:
@@ -129,7 +129,7 @@ export default function Login() {
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
+    resolver: zodResolver(loginFormSchema),
   });
 
   const handleProviderLogin = async (provider: Provider) => {

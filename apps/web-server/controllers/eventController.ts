@@ -117,7 +117,11 @@ const getErrorMessage = (error: unknown): string => {
 };
 
 const sendErrorResponse = (res: Response, error: unknown, statusCode = 500): Response => {
-  return res.status(statusCode).json({ error: getErrorMessage(error) });
+  if (statusCode >= 500) {
+    console.error('[EventController] Internal error:', error);
+  }
+  const safeMessage = statusCode >= 500 ? 'Internal server error' : getErrorMessage(error);
+  return res.status(statusCode).json({ error: safeMessage });
 };
 
 const parseNumericId = (rawId: unknown): number => {
@@ -151,7 +155,6 @@ export const getAllEvents = async (_req: Request, res: Response): Promise<void> 
 
 export const createEvent = async (req: Request, res: Response): Promise<void> => {
   try {
-    console.log('Creating event - Body received:', JSON.stringify(req.body));
     const event = await eventService.createEvent(req.body);
     const requestorUsername = getRequestorUsername(req);
 

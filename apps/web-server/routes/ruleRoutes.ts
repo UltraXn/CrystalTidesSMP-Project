@@ -23,13 +23,25 @@ const router = express.Router();
  *         description: Lista de reglas ordenadas
  */
 import { validate } from '../middleware/validateResource.js';
-import { ruleSchema, updateRuleSchema } from '../schemas/ruleSchemas.js';
+import { ruleSchema, updateRuleSchema } from '@crystaltides/shared';
 
 router.get('/', ruleController.getRules);
 
 // Protected Routes (Admin/Staff only)
-router.post('/', authenticateToken, checkRole(STAFF_ROLES), validate(ruleSchema), ruleController.createRule);
-router.put('/:id', authenticateToken, checkRole(STAFF_ROLES), validate(updateRuleSchema), ruleController.updateRule);
+router.post(
+  '/',
+  authenticateToken,
+  checkRole(STAFF_ROLES),
+  validate(ruleSchema),
+  ruleController.createRule,
+);
+router.put(
+  '/:id',
+  authenticateToken,
+  checkRole(STAFF_ROLES),
+  validate(updateRuleSchema),
+  ruleController.updateRule,
+);
 router.delete('/:id', authenticateToken, checkRole(STAFF_ROLES), ruleController.deleteRule);
 
 export default router;

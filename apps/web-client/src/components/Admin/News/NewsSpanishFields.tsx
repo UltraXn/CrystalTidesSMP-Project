@@ -2,7 +2,7 @@ import React from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { Image as ImageIcon, Loader2, Languages } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { NewsFormValues } from '../../../schemas/news';
+import type { NewsFormValues } from '@crystaltides/shared';
 
 interface NewsSpanishFieldsProps {
   form: UseFormReturn<NewsFormValues>;

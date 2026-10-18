@@ -332,6 +332,57 @@ describe('Regression — post-fix static checks', () => {
     const src = readSrc('app.ts');
     expect(src).toContain('ENABLE_API_DOCS');
   });
+
+  it('Zod schemas centralization: schemas directories do not exist on filesystem', () => {
+    const serverSchemasDir = path.join(__dirname, '..', 'schemas');
+    const clientSchemasDir = path.join(__dirname, '..', '..', 'web-client', 'src', 'schemas');
+    expect(fs.existsSync(serverSchemasDir)).toBe(false);
+    expect(fs.existsSync(clientSchemasDir)).toBe(false);
+  });
+
+  it('News feed controller uses dynamic server telemetry and no hardcoded changelog/latency', () => {
+    const newsSrc = readSrc('controllers', 'newsController.ts');
+    expect(newsSrc).not.toContain("'0.1.0-alpha'");
+    expect(newsSrc).not.toContain('latencyMs: 18');
+    expect(newsSrc).toContain('minecraftService.getServerStatus');
+
+    const mcSrc = readSrc('controllers', 'minecraftController.ts');
+    const getStatusBlock = mcSrc.slice(mcSrc.indexOf('export const getStatus'));
+    expect(getStatusBlock.slice(0, 300)).not.toContain("'localhost'");
+  });
+
+  it('Monorepo and web-client package.json dependency hygiene', () => {
+    const rootPkgPath = path.join(__dirname, '..', '..', '..', 'package.json');
+    const rootPkg = JSON.parse(fs.readFileSync(rootPkgPath, 'utf-8'));
+
+    // Root package.json should not declare runtime dependencies block
+    expect(rootPkg.dependencies).toBeUndefined();
+
+    // Root package.json should not use @vitejs/plugin-react (Babel)
+    const rootDevDeps = rootPkg.devDependencies || {};
+    expect(rootDevDeps['@vitejs/plugin-react']).toBeUndefined();
+
+    // Workspaces alignment
+    expect(rootPkg.workspaces).toEqual(
+      expect.arrayContaining([
+        'apps/web-client',
+        'apps/web-server',
+        'apps/launcher-lite',
+        'packages/*',
+      ]),
+    );
+
+    // apps/web-client/package.json hygiene
+    const clientPkgPath = path.join(__dirname, '..', '..', 'web-client', 'package.json');
+    const clientPkg = JSON.parse(fs.readFileSync(clientPkgPath, 'utf-8'));
+
+    // No husky in production dependencies
+    expect(clientPkg.dependencies?.husky).toBeUndefined();
+
+    // No duplicate playwright in devDependencies (only @playwright/test)
+    expect(clientPkg.devDependencies?.playwright).toBeUndefined();
+    expect(clientPkg.devDependencies?.['@playwright/test']).toBeDefined();
+  });
 });
 
 describe('A09 — Logging & Monitoring Failures', () => {
@@ -356,6 +407,41 @@ describe('A09 — Logging & Monitoring Failures', () => {
         'utf-8',
       );
       expect(source).not.toMatch(/console\.log\(`\[UPDATE NEWS\]/);
+    });
+
+    it('should not have console.log of req.body in eventController', () => {
+      const source = fs.readFileSync(
+        path.join(__dirname, '..', 'controllers', 'eventController.ts'),
+        'utf-8',
+      );
+      expect(source).not.toMatch(/console\.log\(.*req\.body/);
+    });
+
+    it('should not leak internal staff_tasks column hints in taskController 500 responses', () => {
+      const source = fs.readFileSync(
+        path.join(__dirname, '..', 'controllers', 'taskController.ts'),
+        'utf-8',
+      );
+      expect(source).not.toContain('Verifica que las columnas (column_id, due_date)');
+    });
+
+    it('should not have NODE_ENV === development branches in responseHandler or controllers', () => {
+      const responseHandlerSource = fs.readFileSync(
+        path.join(__dirname, '..', 'utils', 'responseHandler.ts'),
+        'utf-8',
+      );
+      expect(responseHandlerSource).not.toContain("NODE_ENV === 'development'");
+
+      const controllersDir = path.join(__dirname, '..', 'controllers');
+      const controllerFiles = fs.readdirSync(controllersDir).filter((file) => file.endsWith('.ts'));
+
+      for (const file of controllerFiles) {
+        const source = fs.readFileSync(path.join(controllersDir, file), 'utf-8');
+        expect(
+          source,
+          `Controller ${file} should not have NODE_ENV === 'development'`,
+        ).not.toContain("NODE_ENV === 'development'");
+      }
     });
   });
 });

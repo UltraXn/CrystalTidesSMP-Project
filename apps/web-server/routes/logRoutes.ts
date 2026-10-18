@@ -4,7 +4,7 @@ import * as logController from '../controllers/logController.js'; // Internal Lo
 import { authenticateToken, optionalAuthenticateToken } from '../middleware/authMiddleware.js';
 import { checkRole, STAFF_ROLES } from '../utils/roleUtils.js';
 import { validate } from '../middleware/validateResource.js';
-import { createLogSchema, reportSecuritySchema } from '../schemas/logSchemas.js';
+import { createLogSchema, reportSecuritySchema } from '@crystaltides/shared';
 import { securityReportLimiter } from '../middleware/rateLimitMiddleware.js';
 
 const router = express.Router();

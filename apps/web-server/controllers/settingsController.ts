@@ -93,16 +93,6 @@ function isUserAdmin(user: Request['user']): boolean {
 }
 
 /**
- * Extracts a normalized error message string from an unknown error.
- */
-function getErrorMessage(error: unknown): string {
-  if (error instanceof Error) {
-    return error.message;
-  }
-  return String(error);
-}
-
-/**
  * Safely parses a JSON string or returns the value if already an array.
  * Throws SyntaxError on malformed JSON strings so caller try/catch can handle it.
  */
@@ -250,7 +240,6 @@ export const getSettings = async (req: Request, res: Response) => {
     console.error('[Settings Controller CRITICAL 500]:', error);
     return res.status(500).json({
       error: 'Internal Server Error loading settings',
-      details: getErrorMessage(error),
       timestamp: new Date().toISOString(),
     });
   }
@@ -282,7 +271,8 @@ export const getSetting = async (req: Request, res: Response) => {
 
     return res.json(data);
   } catch (error: unknown) {
-    return res.status(500).json({ error: getErrorMessage(error) });
+    console.error('[Settings Controller getSetting error]:', error);
+    return res.status(500).json({ error: 'Internal server error' });
   }
 };
 
@@ -320,6 +310,7 @@ export const updateSetting = async (req: Request, res: Response) => {
     const updatedRecord = Array.isArray(data) && data.length > 0 ? data[0] : null;
     return res.json(updatedRecord);
   } catch (error: unknown) {
-    return res.status(500).json({ error: getErrorMessage(error) });
+    console.error('[Settings Controller updateSetting error]:', error);
+    return res.status(500).json({ error: 'Internal server error' });
   }
 };

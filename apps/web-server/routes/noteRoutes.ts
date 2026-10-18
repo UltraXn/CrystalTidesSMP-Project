@@ -3,7 +3,7 @@ import * as noteController from '../controllers/noteController.js';
 import { authenticateToken } from '../middleware/authMiddleware.js';
 import { checkRole, STAFF_ROLES } from '../utils/roleUtils.js';
 import { validate } from '../middleware/validateResource.js';
-import { createNoteSchema } from '../schemas/noteSchemas.js';
+import { createNoteSchema } from '@crystaltides/shared';
 
 const router = express.Router();
 

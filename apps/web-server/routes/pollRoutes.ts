@@ -3,7 +3,7 @@ import * as pollController from '../controllers/pollController.js';
 import { authenticateToken } from '../middleware/authMiddleware.js';
 import { checkRole, ADMIN_ROLES } from '../utils/roleUtils.js';
 import { validate } from '../middleware/validateResource.js';
-import { createPollSchema, votePollSchema, updatePollSchema } from '../schemas/pollSchemas.js';
+import { createPollSchema, votePollSchema, updatePollSchema } from '@crystaltides/shared';
 
 const router = express.Router();
 
@@ -97,7 +97,13 @@ router.post('/vote', authenticateToken, validate(votePollSchema), pollController
  *     security:
  *       - bearerAuth: []
  */
-router.post('/create', authenticateToken, checkRole(ADMIN_ROLES), validate(createPollSchema), pollController.create);
+router.post(
+  '/create',
+  authenticateToken,
+  checkRole(ADMIN_ROLES),
+  validate(createPollSchema),
+  pollController.create,
+);
 
 /**
  * @swagger
@@ -108,7 +114,13 @@ router.post('/create', authenticateToken, checkRole(ADMIN_ROLES), validate(creat
  *     security:
  *       - bearerAuth: []
  */
-router.put('/update/:id', authenticateToken, checkRole(ADMIN_ROLES), validate(updatePollSchema), pollController.update);
+router.put(
+  '/update/:id',
+  authenticateToken,
+  checkRole(ADMIN_ROLES),
+  validate(updatePollSchema),
+  pollController.update,
+);
 
 /**
  * @swagger

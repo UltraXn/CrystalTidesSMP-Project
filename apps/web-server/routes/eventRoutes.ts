@@ -3,7 +3,7 @@ import * as eventController from '../controllers/eventController.js';
 import { authenticateToken } from '../middleware/authMiddleware.js';
 import { checkRole, ADMIN_ROLES, STAFF_ROLES } from '../utils/roleUtils.js';
 import { validate } from '../middleware/validateResource.js';
-import { createEventSchema, updateEventSchema, registerEventSchema } from '../schemas/eventSchemas.js';
+import { createEventSchema, updateEventSchema, registerEventSchema } from '@crystaltides/shared';
 
 const router = express.Router();
 
@@ -70,7 +70,12 @@ router.get('/my-registrations', authenticateToken, eventController.getUserRegist
  *     security:
  *       - bearerAuth: []
  */
-router.get('/:id/registrations', authenticateToken, checkRole(STAFF_ROLES), eventController.getEventRegistrations);
+router.get(
+  '/:id/registrations',
+  authenticateToken,
+  checkRole(STAFF_ROLES),
+  eventController.getEventRegistrations,
+);
 
 /**
  * @swagger
@@ -81,7 +86,13 @@ router.get('/:id/registrations', authenticateToken, checkRole(STAFF_ROLES), even
  *     security:
  *       - bearerAuth: []
  */
-router.post('/', authenticateToken, checkRole(ADMIN_ROLES), validate(createEventSchema), eventController.createEvent);
+router.post(
+  '/',
+  authenticateToken,
+  checkRole(ADMIN_ROLES),
+  validate(createEventSchema),
+  eventController.createEvent,
+);
 
 /**
  * @swagger
@@ -92,7 +103,13 @@ router.post('/', authenticateToken, checkRole(ADMIN_ROLES), validate(createEvent
  *     security:
  *       - bearerAuth: []
  */
-router.put('/:id', authenticateToken, checkRole(ADMIN_ROLES), validate(updateEventSchema), eventController.updateEvent);
+router.put(
+  '/:id',
+  authenticateToken,
+  checkRole(ADMIN_ROLES),
+  validate(updateEventSchema),
+  eventController.updateEvent,
+);
 
 /**
  * @swagger
@@ -114,6 +131,11 @@ router.delete('/:id', authenticateToken, checkRole(ADMIN_ROLES), eventController
  *     security:
  *       - bearerAuth: []
  */
-router.post('/:id/register', authenticateToken, validate(registerEventSchema), eventController.registerForEvent);
+router.post(
+  '/:id/register',
+  authenticateToken,
+  validate(registerEventSchema),
+  eventController.registerForEvent,
+);
 
 export default router;

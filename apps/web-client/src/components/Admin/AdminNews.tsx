@@ -5,7 +5,7 @@ import Loader from '../UI/Loader';
 import { formatDate } from '../../utils/date';
 import NewsForm from './NewsForm';
 import { DeleteNewsModal } from './News/DeleteNewsModal';
-import { NewsFormValues } from '../../schemas/news';
+import type { NewsFormValues } from '@crystaltides/shared';
 import { User } from '@supabase/supabase-js';
 import {
   useAdminNews,

@@ -3,7 +3,7 @@ import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Send, CheckCircle, Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { createSuggestionSchema, type CreateSuggestionFormValues } from '../../schemas/suggestion';
+import { suggestionFormSchema, type CreateSuggestionFormValues } from '@crystaltides/shared';
 import NicknameAvatar from './NicknameAvatar';
 import { API_URL, JSON_HEADERS, SELECT_OPTION_CLASS } from './constants';
 import { nextTempSuggestionId } from './utils';
@@ -57,7 +57,7 @@ export default function SuggestionForm({ onSuggestionCreated }: Readonly<Suggest
     control,
     formState: { errors, isSubmitting },
   } = useForm<CreateSuggestionFormValues>({
-    resolver: zodResolver(createSuggestionSchema),
+    resolver: zodResolver(suggestionFormSchema),
     defaultValues: {
       nickname: '',
       type: 'General',

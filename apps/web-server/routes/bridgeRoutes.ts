@@ -6,7 +6,7 @@ import { checkRole, ADMIN_ROLES, SERVICE_ROLE } from '../utils/roleUtils.js';
 import { authorizeCommand } from '../utils/commandPolicy.js';
 import { adminCommandLimiter } from '../middleware/rateLimitMiddleware.js';
 import { validate } from '../middleware/validateResource.js';
-import { queueCommandSchema } from '../schemas/bridgeSchemas.js';
+import { queueCommandSchema } from '@crystaltides/shared';
 
 const router = express.Router();
 

@@ -5,7 +5,7 @@ import * as notionController from '../controllers/notionController.js';
 import { authenticateToken } from '../middleware/authMiddleware.js';
 import { checkRole, STAFF_ROLES } from '../utils/roleUtils.js';
 import { validate } from '../middleware/validateResource.js';
-import { createTaskSchema, updateTaskSchema } from '../schemas/taskSchemas.js';
+import { createTaskSchema, updateTaskSchema } from '@crystaltides/shared';
 
 const router = express.Router();
 

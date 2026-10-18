@@ -65,6 +65,10 @@ export const disable2FASchema = z.object({
   body: verify2FAPayloadSchema,
 });
 
+// Form-compatible aliases for web-client
+export const loginFormSchema = loginPayloadSchema;
+export const registerFormSchema = registerPayloadSchema;
+
 // Inferred TypeScript types
 export type LoginPayload = z.infer<typeof loginPayloadSchema>;
 export type RegisterPayload = z.infer<typeof registerPayloadSchema>;

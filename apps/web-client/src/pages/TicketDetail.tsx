@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { addTicketMessageSchema, AddTicketMessageFormValues } from '../schemas/ticket';
+import { addTicketMessageFormSchema, type AddTicketMessageFormValues } from '@crystaltides/shared';
 import { m as motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../services/supabaseClient';
@@ -219,7 +219,7 @@ function TicketReplyBox({ isClosed, onSendMessage }: Readonly<TicketReplyBoxProp
     reset,
     formState: { isSubmitting },
   } = useForm<AddTicketMessageFormValues>({
-    resolver: zodResolver(addTicketMessageSchema),
+    resolver: zodResolver(addTicketMessageFormSchema),
   });
 
   const handleFormSubmit = async (data: AddTicketMessageFormValues) => {

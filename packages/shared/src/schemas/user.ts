@@ -95,8 +95,9 @@ export const profileSchema = z.object({
   }),
 });
 
-// For backward compatibility with web-client ProfileSettings
+// For backward compatibility and explicit form usage with web-client ProfileSettings
 export const updateUserSchema = updateUserPayloadSchema;
+export const updateUserFormSchema = updateUserPayloadSchema;
 
 // Inferred TypeScript types
 export type UpdateUserPayload = z.infer<typeof updateUserPayloadSchema>;
