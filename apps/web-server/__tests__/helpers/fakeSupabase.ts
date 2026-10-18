@@ -83,7 +83,23 @@ export class FakeQuery implements PromiseLike<QueryResult> {
   }
 
   ilike(column: string, pattern: string): this {
-    const regex = new RegExp(`^${pattern.replace(/%/g, '.*')}$`, 'i');
+    let regStr = '';
+    let escaped = false;
+    for (const char of pattern) {
+      if (escaped) {
+        regStr += char.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        escaped = false;
+      } else if (char === '\\') {
+        escaped = true;
+      } else if (char === '%') {
+        regStr += '.*';
+      } else if (char === '_') {
+        regStr += '.';
+      } else {
+        regStr += char.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      }
+    }
+    const regex = new RegExp(`^${regStr}$`, 'i');
     this.filters.push(
       (row) => typeof row[column] === 'string' && regex.test(row[column] as string),
     );
@@ -115,7 +131,10 @@ export class FakeQuery implements PromiseLike<QueryResult> {
     return this;
   }
 
-  limit(): this {
+  private limitCount?: number;
+
+  limit(count?: number): this {
+    this.limitCount = count;
     return this;
   }
 
@@ -144,7 +163,10 @@ export class FakeQuery implements PromiseLike<QueryResult> {
     }
 
     const rows = this.db.rows(this.table);
-    const matches = rows.filter((row) => this.filters.every((f) => f(row)));
+    let matches = rows.filter((row) => this.filters.every((f) => f(row)));
+    if (this.limitCount !== undefined) {
+      matches = matches.slice(0, this.limitCount);
+    }
 
     switch (this.operation) {
       case 'insert':

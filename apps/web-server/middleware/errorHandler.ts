@@ -34,8 +34,15 @@ export const errorHandler = (
     return sendError(res, 'JSON inválido', 'INVALID_JSON', 400);
   }
 
-  const statusCode = err.statusCode ?? err.status ?? 500;
-  const errorCode = err.code ?? (statusCode >= 500 ? 'INTERNAL_ERROR' : 'BAD_REQUEST');
+  const rawStatus = Number(err.statusCode ?? err.status);
+  const statusCode =
+    Number.isInteger(rawStatus) && rawStatus >= 400 && rawStatus <= 599 ? rawStatus : 500;
+
+  if (statusCode >= 500) {
+    console.error('[Unhandled]', req.method, req.path, err);
+  }
+
+  const errorCode = statusCode >= 500 ? 'INTERNAL_ERROR' : (err.code ?? 'BAD_REQUEST');
   const message = err.message || 'Error interno del servidor';
 
   return sendError(res, message, errorCode, statusCode, err);

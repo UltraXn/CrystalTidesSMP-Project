@@ -120,6 +120,9 @@ export async function refundGachaBalance(userId: string, amount: number): Promis
       return;
     }
   }
+
+  console.error('[GachaBalance] Failed to credit balance after retries:', { userId, amount });
+  throw new Error('BALANCE_CREDIT_FAILED');
 }
 
 export async function getUnlockedTiers(userId: string): Promise<string[]> {

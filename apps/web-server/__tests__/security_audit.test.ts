@@ -99,11 +99,13 @@ describe('A01 — Broken Access Control', () => {
         app_metadata: {},
         created_at: '2026-01-01T00:00:00Z',
       } as unknown as User;
-      vi.spyOn(supabase.auth.admin, 'listUsers').mockResolvedValue({
-        data: { users: [target], aud: 'authenticated' },
+      vi.spyOn(supabase.auth.admin, 'getUserById').mockResolvedValue({
+        data: { user: target },
         error: null,
-      } as unknown as Awaited<ReturnType<typeof supabase.auth.admin.listUsers>>);
-      const db = new FakeSupabase({ profiles: [{ id: target.id, role: 'user' }] });
+      } as unknown as Awaited<ReturnType<typeof supabase.auth.admin.getUserById>>);
+      const db = new FakeSupabase({
+        profiles: [{ id: target.id, username: 'testuser', role: 'user' }],
+      });
       vi.spyOn(supabase, 'from').mockImplementation(db.from as unknown as typeof supabase.from);
       vi.spyOn(playerStatsService, 'getPlayerStats').mockResolvedValue(null);
       const getMoney = vi.spyOn(playerStatsService, 'getMoney').mockResolvedValue(1234);
