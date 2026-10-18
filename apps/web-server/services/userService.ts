@@ -174,26 +174,6 @@ const buildIdentifierVariants = (identifier: string): IdentifierVariants => {
 };
 
 /**
- * Checks whether a Supabase user matches any variant of an identifier.
- */
-const userMatchesIdentifier = (user: User, variants: IdentifierVariants): boolean => {
-  const meta = user.user_metadata || {};
-  if (meta.minecraft_uuid && meta.minecraft_uuid === variants.raw) {
-    return true;
-  }
-
-  const candidates = [
-    (meta.username || '').toLowerCase(),
-    (meta.full_name || '').toLowerCase(),
-    (meta.minecraft_nick || '').toLowerCase(),
-  ];
-
-  return candidates.some(
-    (field) => field === variants.space || field === variants.underscore || field === variants.dash,
-  );
-};
-
-/**
  * Builds the public profile representation from a Supabase auth user.
  */
 const buildPublicProfile = (target: User, trusted: TrustedProfileFields): PublicProfile => {
@@ -461,13 +441,7 @@ async function findUserByIdentifier(identifier: string): Promise<User | null> {
   const userFromLinked = await lookupUserByLinkedAccount(identifier);
   if (userFromLinked) return userFromLinked;
 
-  try {
-    const users = await listAllAuthUsers();
-    const variants = buildIdentifierVariants(identifier);
-    return users.find((u) => userMatchesIdentifier(u, variants)) ?? null;
-  } catch {
-    return null;
-  }
+  return null;
 }
 
 /**

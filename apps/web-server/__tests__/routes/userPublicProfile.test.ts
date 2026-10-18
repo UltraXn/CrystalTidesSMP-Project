@@ -136,4 +136,30 @@ describe('User Public Profile (Phase 2 - Fix 15: 50+ users & linked accounts)', 
     expect(resNormal.status).toBe(200);
     expect(resNormal.body.data.id).toBe(USER_55_ID);
   });
+
+  it('does NOT resolve a user via user_metadata.minecraft_uuid when no linked_accounts entry exists', async () => {
+    const SPOOFED_UUID = '77777777-7777-4777-8777-777777777777';
+    const IMPOSTER_ID = '88888888-8888-4888-8888-888888888888';
+
+    const listUsersSpy = vi.spyOn(supabase.auth.admin, 'listUsers').mockResolvedValue({
+      data: {
+        users: [
+          mockUser(IMPOSTER_ID, {
+            username: 'ImposterUser',
+            minecraft_uuid: SPOOFED_UUID,
+          }),
+        ],
+        aud: 'authenticated',
+      },
+      error: null,
+    } as never);
+
+    vi.spyOn(pool, 'execute').mockResolvedValue([[], []] as never);
+
+    const res = await request(app).get(`/api/users/profile/${SPOOFED_UUID}`);
+
+    expect(res.status).toBe(404);
+    expect(res.body.success).toBe(false);
+    expect(listUsersSpy).not.toHaveBeenCalled();
+  });
 });
