@@ -170,4 +170,23 @@ describe('useForumThread Hook', () => {
     });
     expect(result.current.isEditingThread).toBe(false);
   });
+
+  it('grants moderation privileges to staff roles (moderator, helper)', () => {
+    vi.mocked(AuthContext.useAuth).mockReturnValue({
+      user: {
+        id: 'mod-1',
+        user_metadata: { role: 'moderator', username: 'Moderator' },
+      },
+      profile: {
+        id: 'mod-1',
+        role: 'moderator',
+        username: 'Moderator',
+        avatar_url: null,
+      },
+    } as any);
+
+    const { result } = renderHook(() => useForumThread());
+    expect(result.current.isStaff).toBe(true);
+    expect(result.current.isOwnerOrAdmin('any-other-user')).toBe(true);
+  });
 });

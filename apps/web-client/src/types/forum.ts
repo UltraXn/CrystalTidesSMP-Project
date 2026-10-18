@@ -1,4 +1,4 @@
-import { isAdminRole } from '../utils/roleUtils';
+import { isAdminRole, isStaffRole } from '../utils/roleUtils';
 
 export interface ForumAuthorData {
   username: string;
@@ -106,6 +106,12 @@ export const checkIsAdmin = (roleOrProfile?: { role?: string | null } | string |
   if (!roleOrProfile) return false;
   const role = typeof roleOrProfile === 'string' ? roleOrProfile : roleOrProfile.role;
   return isAdminRole(role);
+};
+
+export const checkIsStaff = (roleOrProfile?: { role?: string | null } | string | null): boolean => {
+  if (!roleOrProfile) return false;
+  const role = typeof roleOrProfile === 'string' ? roleOrProfile : roleOrProfile.role;
+  return isStaffRole(role);
 };
 
 export const compressImage = async (file: File): Promise<Blob> => {

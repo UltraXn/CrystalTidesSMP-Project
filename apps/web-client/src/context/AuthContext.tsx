@@ -71,45 +71,56 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, [user]);
 
   useEffect(() => {
-    // 1. Verificar sesión activa al inicio
-    const checkSession = async () => {
-      try {
-        // Usar getUser() en lugar de getSession() para asegurar datos frescos del servidor
-        const {
-          data: { user: activeUser },
-        } = await supabase.auth.getUser();
-        setUser(activeUser ?? null);
-        if (activeUser) {
-          const prof = await fetchTrustedProfile(activeUser.id);
-          setProfile(prof);
+    let mounted = true;
+
+    // 1. Obtener sesión local inicial sin colgar el arranque
+    supabase.auth
+      .getSession()
+      .then(async ({ data: { session } }) => {
+        if (!mounted) return;
+        const initialUser = session?.user ?? null;
+        setUser(initialUser);
+        if (initialUser) {
+          const prof = await fetchTrustedProfile(initialUser.id);
+          if (mounted) {
+            setProfile(prof);
+            setLoading(false);
+          }
         } else {
           setProfile(null);
+          setLoading(false);
         }
-      } catch (error) {
+      })
+      .catch((error) => {
         console.error('Error verificando sesión:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+        if (mounted) setLoading(false);
+      });
 
-    checkSession();
-
-    // 2. Escuchar cambios de estado
+    // 2. Escuchar cambios de estado difiriendo llamadas asíncronas para evitar deadlocks de locks
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       const nextUser = session?.user ?? null;
       setUser(nextUser);
       if (nextUser) {
-        const prof = await fetchTrustedProfile(nextUser.id);
-        setProfile(prof);
+        setTimeout(async () => {
+          if (!mounted) return;
+          const prof = await fetchTrustedProfile(nextUser.id);
+          if (mounted) {
+            setProfile(prof);
+            setLoading(false);
+          }
+        }, 0);
       } else {
         setProfile(null);
+        setLoading(false);
       }
-      setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   // 3. Revalidación Inteligente (Móvil/Tab Focus)
@@ -117,13 +128,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const handleFocus = async () => {
       if (document.visibilityState === 'visible') {
-        const {
-          data: { user: freshUser },
-        } = await supabase.auth.getUser();
-        if (freshUser) {
-          setUser(freshUser);
-          const prof = await fetchTrustedProfile(freshUser.id);
-          setProfile(prof);
+        try {
+          const {
+            data: { user: freshUser },
+          } = await supabase.auth.getUser();
+          if (freshUser) {
+            setUser(freshUser);
+            const prof = await fetchTrustedProfile(freshUser.id);
+            setProfile(prof);
+          }
+        } catch (error) {
+          console.warn('Error revalidando sesión en foco:', error);
         }
       }
     };

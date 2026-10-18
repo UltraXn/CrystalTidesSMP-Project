@@ -17,6 +17,7 @@ export default function ForumThread() {
     isTopic,
     user,
     isAdmin,
+    isStaff,
     isOwnerOrAdmin,
     isEditingThread,
     editThreadData,
@@ -111,7 +112,7 @@ export default function ForumThread() {
           isEditingThread={isEditingThread}
           editThreadData={editThreadData}
           isOwnerOrAdmin={isOwnerOrAdmin(thread.author_id)}
-          isAdmin={isAdmin}
+          isAdmin={isAdmin || isStaff}
           onEditThreadDataChange={setEditThreadData}
           onStartEditThread={startEditThread}
           onCancelEditThread={cancelEditThread}
@@ -175,7 +176,7 @@ export default function ForumThread() {
           <ForumReplySection
             user={user}
             threadLocked={thread.locked}
-            isAdmin={isAdmin}
+            isAdmin={isAdmin || isStaff}
             newComment={newComment}
             setNewComment={setNewComment}
             pendingImageRepl={pendingImageRepl}
