@@ -15,7 +15,9 @@ vi.mock("three", () => ({
     aspect = 1;
     updateProjectionMatrix = vi.fn();
   },
+  PCFShadowMap: 1,
   WebGLRenderer: class {
+    setAnimationLoop = vi.fn();
     domElement = document.createElement("canvas");
     setSize = vi.fn();
     setPixelRatio = vi.fn();

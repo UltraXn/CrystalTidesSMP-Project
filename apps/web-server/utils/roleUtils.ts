@@ -9,31 +9,30 @@ export const STAFF_ROLES = [...ADMIN_ROLES, 'staff', 'moderator', 'mod', 'helper
  * @param allowedRoles List of roles allowed to access the route.
  */
 export const checkRole = (allowedRoles: string[]) => {
-    return (req: Request, res: Response, next: NextFunction) => {
-        const userRole = req.user?.role?.toLowerCase();
-        if (!userRole || !allowedRoles.includes(userRole)) {
-             return res.status(403).json({ error: 'Insufficent permissions' });
-        }
-        next();
-    };
+  return (req: Request, res: Response, next: NextFunction) => {
+    const userRole = req.user?.role?.toLowerCase();
+    if (!userRole || !allowedRoles.includes(userRole)) {
+      return res.status(403).json({ error: 'Insufficent permissions' });
+    }
+    next();
+  };
 };
 
 const ROLE_PRIORITY: Record<string, number> = {
-    'neroferno': 100,
-    'killu': 95,
-    'developer': 90,
-    'admin': 80,
-    'moderator': 50,
-    'mod': 50,
-    'helper': 30,
-    'staff': 20,
-    'founder': 10,
-    'donor': 5,
-    'user': 0
+  neroferno: 100,
+  killu: 95,
+  developer: 90,
+  admin: 80,
+  moderator: 50,
+  mod: 50,
+  helper: 30,
+  staff: 20,
+  founder: 10,
+  donor: 5,
+  user: 0,
 };
 
 export const getRolePriority = (role?: string): number => {
-    if (!role) return 0;
-    return ROLE_PRIORITY[role.toLowerCase()] || 0;
+  if (!role) return 0;
+  return ROLE_PRIORITY[role.toLowerCase()] || 0;
 };
-

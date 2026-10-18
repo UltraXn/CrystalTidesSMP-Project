@@ -17,6 +17,12 @@ describe('ImageUploader', () => {
         globalThis.URL.createObjectURL = vi.fn().mockReturnValue('blob:mock-url');
         globalThis.URL.revokeObjectURL = vi.fn();
         
+        // jsdom has no createImageBitmap: the component decodes the file with it
+        vi.stubGlobal(
+            'createImageBitmap',
+            vi.fn().mockResolvedValue({ width: 1024, height: 768, close: vi.fn() }),
+        );
+
         // Mock Canvas toBlob
         HTMLCanvasElement.prototype.getContext = vi.fn().mockReturnValue({
             drawImage: vi.fn(),
@@ -37,13 +43,14 @@ describe('ImageUploader', () => {
     });
 
     afterEach(() => {
+        vi.unstubAllGlobals();
         vi.restoreAllMocks();
     });
 
     it('renders the initial state with upload button correctly', () => {
         render(<ImageUploader onImageUploaded={mockOnImageUploaded} />);
         expect(screen.getByText('Subir Imagen (WebP)')).toBeInTheDocument();
-        expect(screen.getByLabelText('Input field')).toBeInTheDocument();
+        expect(screen.getByLabelText('Seleccionar archivo de imagen')).toBeInTheDocument();
     });
 
     it('renders current image when provided', () => {
@@ -57,7 +64,7 @@ describe('ImageUploader', () => {
         vi.mocked(uploadImage).mockResolvedValue('https://example.com/saved.webp');
         render(<ImageUploader onImageUploaded={mockOnImageUploaded} />);
         
-        const fileInput = screen.getByLabelText('Input field') as HTMLInputElement;
+        const fileInput = screen.getByLabelText('Seleccionar archivo de imagen') as HTMLInputElement;
         fireEvent.change(fileInput, { target: { files: [mockFile] } });
 
         await waitFor(() => {
@@ -69,7 +76,7 @@ describe('ImageUploader', () => {
         vi.mocked(uploadImage).mockRejectedValue(new Error('Network error'));
         render(<ImageUploader onImageUploaded={mockOnImageUploaded} />);
         
-        const fileInput = screen.getByLabelText('Input field') as HTMLInputElement;
+        const fileInput = screen.getByLabelText('Seleccionar archivo de imagen') as HTMLInputElement;
         fireEvent.change(fileInput, { target: { files: [mockFile] } });
 
         await waitFor(() => {

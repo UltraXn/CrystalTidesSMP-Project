@@ -1,3 +1,19 @@
 [submodule "apps/launcher-lite"]
 	path = apps/launcher-lite
 	url = https://github.com/UltraXn/crystaltides-launcher-lite.git
+[submodule "apps/launcher"]
+	path = apps/launcher
+	url = https://github.com/UltraXn/crystal-launcher.git
+[submodule "apps/discord-bot"]
+	path = apps/discord-bot
+	url = https://github.com/UltraXn/CrystalTidesSMP-Bot-DC.git
+[submodule "apps/game-bridge"]
+	path = apps/game-bridge
+	url = https://github.com/UltraXn/crystal-agent.git
+[submodule "plugins/crystalcore"]
+	path = plugins/crystalcore
+	url = https://github.com/UltraXn/Crystalcore.git
+[submodule "mods/crystaltides-boost"]
+	path = mods/crystaltides-boost
+	url = https://github.com/UltraXn/crystaltides-boost.git
+

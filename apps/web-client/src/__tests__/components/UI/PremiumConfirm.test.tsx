@@ -4,17 +4,19 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import PremiumConfirm from '@/components/UI/PremiumConfirm';
 
-vi.mock('framer-motion', () => ({
-    motion: {
-        div: ({ children, ...p }: { children?: React.ReactNode } & Record<string, unknown>) => <div {...(p as React.HTMLAttributes<HTMLDivElement>)}>{children}</div>,
-        button: ({ children, ...p }: { children?: React.ReactNode } & Record<string, unknown>) => <button {...(p as React.ButtonHTMLAttributes<HTMLButtonElement>)}>{children}</button>
-    },
-    m: {
-        div: ({ children, ...p }: { children?: React.ReactNode } & Record<string, unknown>) => <div {...(p as React.HTMLAttributes<HTMLDivElement>)}>{children}</div>,
-        button: ({ children, ...p }: { children?: React.ReactNode } & Record<string, unknown>) => <button {...(p as React.ButtonHTMLAttributes<HTMLButtonElement>)}>{children}</button>
-    },
-    AnimatePresence: ({ children }: { children?: React.ReactNode }) => <>{children}</>
-}));
+// Any motion.<tag> / m.<tag> renders the plain element (the component uses m.dialog).
+vi.mock('framer-motion', async () => {
+    const { createElement } = await import('react');
+    const element = (tag: string) =>
+        ({ children, ...p }: { children?: React.ReactNode } & Record<string, unknown>) =>
+            createElement(tag, p, children);
+    const tags = new Proxy({}, { get: (_target, tag: string) => element(tag) });
+    return {
+        motion: tags,
+        m: tags,
+        AnimatePresence: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
+    };
+});
 
 describe('PremiumConfirm', () => {
     let onConfirm: Mock;

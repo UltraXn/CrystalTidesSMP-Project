@@ -1,31 +1,36 @@
 # syntax=docker/dockerfile:1.7
 # Multi-stage frontend: Vite build → unprivileged nginx.
 
-FROM node:24-alpine AS deps
+# Stage 1: Pruner - minimal workspace slice for @crystaltides/client (same as web-server)
+FROM node:24-alpine AS pruner
+WORKDIR /app
+RUN apk add --no-cache libc6-compat
+COPY . .
+RUN npx turbo prune --scope=@crystaltides/client --docker
+
+# Stage 2: Dependencies and Vite build
+FROM node:24-alpine AS builder
 WORKDIR /app
 RUN apk add --no-cache libc6-compat \
-  && npm install -g npm@11.6.4
-COPY package.json package-lock.json turbo.json ./
-COPY apps/web-server/package.json ./apps/web-server/
-COPY apps/web-client/package.json ./apps/web-client/
-COPY apps/discord-bot/package.json ./apps/discord-bot/
-COPY apps/game-bridge/package.json ./apps/game-bridge/
-COPY packages/shared/package.json ./packages/shared/
-COPY packages/eslint-config/package.json ./packages/eslint-config/
-# Lockfile generated on Windows only pins win32 optional deps;
-# install the Alpine/musl Oxide binding explicitly for Vite/Tailwind.
-RUN npm ci \
-  && npm install --no-save @tailwindcss/oxide-linux-x64-musl@4.2.2
+  && corepack enable && corepack prepare pnpm@10.29.3 --activate
 
-FROM deps AS builder
+# First install only dependencies needed for this scope (layer cached).
+# pnpm-lock.yaml records every platform variant, so the musl bindings
+# (Tailwind Oxide, Rollup) resolve without manual installs.
+COPY --from=pruner /app/out/json/ .
+COPY --from=pruner /app/out/pnpm-lock.yaml ./pnpm-lock.yaml
+COPY --from=pruner /app/out/pnpm-workspace.yaml ./pnpm-workspace.yaml
+COPY --from=pruner /app/.npmrc ./.npmrc
+RUN pnpm install --frozen-lockfile
+
 ARG VITE_SUPABASE_URL
 ARG VITE_SUPABASE_ANON_KEY
 ARG VITE_API_URL
 ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL \
     VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY \
     VITE_API_URL=$VITE_API_URL
-COPY . .
-RUN npx turbo run build --filter=@crystaltides/client...
+COPY --from=pruner /app/out/full/ .
+RUN pnpm turbo run build --filter=@crystaltides/client...
 
 FROM nginxinc/nginx-unprivileged:1.27-alpine AS runner
 USER root

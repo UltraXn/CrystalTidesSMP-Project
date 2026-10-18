@@ -30,21 +30,21 @@ describe('Toast Component', () => {
     it('should render the Toast with success type', () => {
         render(<Toast message="Success message" type="success" isVisible={true} onClose={onCloseMock} />);
         expect(screen.getByRole('alert')).toBeInTheDocument();
-        expect(screen.getByRole('img', { name: /check circle/i })).toBeInTheDocument();
+        expect(document.querySelector('svg.lucide-circle-check')).toBeInTheDocument();
         expect(screen.getByText(/success message/i)).toBeInTheDocument();
     });
 
     it('should render the Toast with error type', () => {
         render(<Toast message="Error message" type="error" isVisible={true} onClose={onCloseMock} />);
         expect(screen.getByRole('alert')).toBeInTheDocument();
-        expect(screen.getByRole('img', { name: /alert circle/i })).toBeInTheDocument();
+        expect(document.querySelector('svg.lucide-circle-alert')).toBeInTheDocument();
         expect(screen.getByText(/error message/i)).toBeInTheDocument();
     });
 
     it('should render the Toast with info type', () => {
         render(<Toast message="Info message" type="info" isVisible={true} onClose={onCloseMock} />);
         expect(screen.getByRole('alert')).toBeInTheDocument();
-        expect(screen.getByRole('img', { name: /info/i })).toBeInTheDocument();
+        expect(document.querySelector('svg.lucide-info')).toBeInTheDocument();
         expect(screen.getByText(/info message/i)).toBeInTheDocument();
     });
 

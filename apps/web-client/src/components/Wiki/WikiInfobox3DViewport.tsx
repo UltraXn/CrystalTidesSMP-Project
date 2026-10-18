@@ -33,6 +33,7 @@ export function WikiInfobox3DViewport({
       >
         <canvas
           ref={canvasRef}
+          role="img"
           aria-label={`Modelo 3D interactivo de ${article.title}`}
           className="block size-full"
         >

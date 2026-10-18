@@ -1,11 +1,7 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
 
-const initialNodeEnv = process.env.NODE_ENV;
-dotenv.config({ override: true });
-if (initialNodeEnv === 'test') {
-  process.env.NODE_ENV = 'test';
-}
+dotenv.config();
 
 const CONSTANTS = {
   TABLE_MOD_KNOWLEDGE_BASE: 'mod_knowledge_base',

@@ -13,7 +13,10 @@ vi.mock("three", () => ({
     position = { set: vi.fn() };
     lookAt = vi.fn();
   },
+  PCFShadowMap: 1,
   WebGLRenderer: class {
+    setAnimationLoop = vi.fn();
+    shadowMap = { enabled: false, type: 0 };
     setSize = vi.fn();
     setPixelRatio = vi.fn();
     render = vi.fn();
@@ -79,8 +82,9 @@ describe("WikiInfobox3D", () => {
     renderWithProviders(<WikiInfobox3D article={sampleArticle} />);
 
     expect(screen.getByText("Ficha de Entidad Oficial")).toBeInTheDocument();
+    // The title also appears as the canvas fallback text: match the heading.
     expect(
-      screen.getByText("Ignis, the Flame Monarch")
+      screen.getByRole("heading", { name: "Ignis, the Flame Monarch" })
     ).toBeInTheDocument();
     expect(screen.getByText("Cataclysm")).toBeInTheDocument();
   });

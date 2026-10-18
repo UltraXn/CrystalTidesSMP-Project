@@ -1,6 +1,7 @@
 packages:
-  - 'apps/*'
-  - 'apps/launcher/*'
+  - 'apps/web-client'
+  - 'apps/web-server'
+  - 'apps/launcher-lite'
   - 'packages/*'
 
 # Política de Seguridad en Cadena de Suministro (AGENTS.md Regla 2.1)
@@ -19,7 +20,35 @@ catalog:
   react-dom: ^19.2.3
   '@types/react': ^19.2.7
   '@types/react-dom': ^19.2.3
-  typescript: 7.0.2
+  typescript: ~5.8.3
   zod: ^4.2.1
   vite: ^6.2.0
 
+
+# Dependencias transitivas con vulnerabilidades altas o críticas (pnpm audit).
+# Rangos ^: corrigen sin saltar de versión mayor. Revisar con `pnpm audit --audit-level=high`
+# y quitar cada entrada cuando la dependencia que la arrastra ya traiga la versión buena.
+overrides:
+  'axios@<1.20.0': ^1.20.0 # node-vault (web-server)
+  'proxy-addr@<2.0.8': ^2.0.8 # express: falsificación de IP
+  'ip-address@<10.3.1': ^10.3.1 # express-rate-limit
+  'undici@>=6.0.0 <6.28.1': ^6.28.1 # discord.js
+  'handlebars@<4.7.10': ^4.7.10
+  'shell-quote@<1.11.0': ^1.11.0
+  'brace-expansion@<1.1.20': ^1.1.20
+  'brace-expansion@>=2.0.0 <2.1.6': ^2.1.6
+  'brace-expansion@>=5.0.0 <5.0.11': ^5.0.11
+  'browserslist@<4.28.7': ^4.28.7
+  'fast-uri@<3.1.7': ^3.1.7
+  'js-yaml@>=4.0.0 <4.3.2': ^4.3.2
+  'minimatch@>=9.0.0 <9.0.7': ^9.0.7
+  'nanoid@<3.3.18': ^3.3.18
+  'postcss@<8.5.18': ^8.5.18
+  'serialize-javascript@<7.0.3': ^7.0.3 # mocha (cypress-cucumber, solo tests)
+  'source-map-js@<1.2.2': ^1.2.2
+
+auditConfig:
+  ignoreGhsas:
+    # braces: DoS con patrones muy anidados, sin versión corregida. Solo llega por
+    # micromatch en herramientas de desarrollo que procesan nuestros propios globs.
+    - GHSA-vfj7-8cjw-p6xm

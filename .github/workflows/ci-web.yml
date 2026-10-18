@@ -21,21 +21,23 @@ jobs:
       CI: true
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: 10
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 24
           cache: pnpm
 
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
+
+      # web-client and web-server resolve @crystaltides/shared from its dist/
+      - name: Build shared package
+        run: pnpm --filter @crystaltides/shared build
 
       - name: Lint (Web)
         run: pnpm turbo run lint --filter=@crystaltides/client --filter=@crystaltides/server
@@ -45,10 +47,13 @@ jobs:
           cd apps/web-client
           pnpm tsc --noEmit
 
+      - name: Typecheck (Web Server)
+        run: pnpm --filter @crystaltides/server exec tsc --noEmit
+
       - name: Unit & Component Tests (Web)
         run: |
           cd apps/web-client
-          pnpm vitest run --poolOptions.forks.maxForks=4
+          pnpm vitest run --maxWorkers=4
 
       - name: Build (Web)
         run: pnpm turbo run build --filter=@crystaltides/client --filter=@crystaltides/server
@@ -60,14 +65,17 @@ jobs:
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
       CI: true
+      # The client refuses to start without these. The golden paths never reach
+      # Supabase, so placeholder values on an unresolvable host are enough.
+      VITE_SUPABASE_URL: https://supabase.e2e.invalid
+      VITE_SUPABASE_ANON_KEY: e2e-placeholder-anon-key
+      VITE_API_URL: http://localhost:3001/api
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: 10
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -89,7 +97,7 @@ jobs:
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: |
           cd apps/web-client
-          pnpm dlx playwright install --with-deps chromium
+          pnpm exec playwright install --with-deps chromium
 
       - name: Run Playwright E2E Tests
         run: |

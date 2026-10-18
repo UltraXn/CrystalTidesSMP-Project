@@ -62,9 +62,10 @@ describe('MinecraftAvatar', () => {
 
     it('should render skin texture correctly', () => {
         render(<MinecraftAvatar src="https://example.com/skin.png" />);
-        const div = screen.getByRole('img', { name: /Avatar/i });
-        expect(div).toBeInTheDocument();
-        expect(div).toHaveStyle('background-image: url("https://example.com/skin.png")');
+        // The accessible <img> is visually hidden; its wrapper paints the face crop.
+        const img = screen.getByRole('img', { name: /Avatar/i });
+        expect(img).toBeInTheDocument();
+        expect(img.parentElement).toHaveStyle('background-image: url("https://example.com/skin.png")');
     });
 
     it('should handle onError event', () => {

@@ -1,9 +1,6 @@
 [workspace]
 resolver = "2"
 members = [
-  "apps/launcher/client/src-tauri",
-  "apps/launcher/installer/src-tauri",
-  "apps/launcher/uninstaller/src-tauri",
   "apps/launcher-lite/src-tauri",
 ]
 

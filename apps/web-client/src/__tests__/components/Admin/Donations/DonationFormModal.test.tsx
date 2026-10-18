@@ -74,10 +74,10 @@ describe('DonationFormModal', () => {
         expect(screen.getByRole('spinbutton')).toHaveValue(25.5);
         expect(screen.getByRole('combobox')).toHaveValue('USD');
         expect(screen.getByRole('textbox', { name: /message/i })).toHaveValue('Great server!');
-        expect(screen.getByRole('checkbox')).toHaveAttribute('aria-checked', 'true');
+        expect(screen.getByRole('checkbox')).toBeChecked();
     });
 
-    it('toggles is_public checkbox on click and on keydown (Enter/Space)', async () => {
+    it('toggles is_public checkbox on click and with Space (native checkbox)', async () => {
         // Arrange
         const user = userEvent.setup();
         renderWithProviders(
@@ -90,20 +90,16 @@ describe('DonationFormModal', () => {
         );
 
         const checkbox = screen.getByRole('checkbox');
-        expect(checkbox).toHaveAttribute('aria-checked', 'true');
+        expect(checkbox).toBeChecked();
 
         // Act: click to toggle off
         await user.click(checkbox);
-        expect(checkbox).toHaveAttribute('aria-checked', 'false');
+        expect(checkbox).not.toBeChecked();
 
-        // Act: press space to toggle on
+        // Act: press space to toggle on (Enter submits the form on a native checkbox)
         checkbox.focus();
         await user.keyboard(' ');
-        expect(checkbox).toHaveAttribute('aria-checked', 'true');
-
-        // Act: press enter to toggle off
-        await user.keyboard('{Enter}');
-        expect(checkbox).toHaveAttribute('aria-checked', 'false');
+        expect(checkbox).toBeChecked();
     });
 
     it('calls onClose when close button or cancel button is clicked', async () => {

@@ -24,13 +24,11 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: 10
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: pnpm
+          # No cache: this job never installs, so there is no pnpm store to save.
       - name: PNPM Audit
         run: pnpm audit --audit-level=high
 
@@ -78,7 +76,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [javascript-typescript, java-kotlin]
+        # Java (crystalcore) se analiza en su propio repo desde la división en submódulos
+        language: [javascript-typescript]
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -88,18 +87,6 @@ jobs:
         with:
           languages: ${{ matrix.language }}
           queries: security-extended,security-and-quality
-
-      - name: Setup Java 21
-        if: matrix.language == 'java-kotlin'
-        uses: actions/setup-java@v4 # v4.7.0
-        with:
-          java-version: 21
-          distribution: temurin
-          cache: maven
-
-      - name: Build Java Plugin (for CodeQL)
-        if: matrix.language == 'java-kotlin'
-        run: mvn -f plugins/crystalcore/pom.xml clean package -DskipTests -B
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3 # v3.28.10
@@ -116,8 +103,6 @@ jobs:
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: 10
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -146,8 +131,10 @@ jobs:
           rules_file_name: .zap/rules.tsv
           fail_action: false
 
-  docker-scout:
-    name: Docker Scout Container Vulnerability Scan
+  # Docker Scout needs a Docker Hub account entitled to Scout; without one it failed on
+  # every run. Trivy scans the same image with no account.
+  image-scan:
+    name: Container Image Vulnerability Scan (Web Client)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -164,13 +151,15 @@ jobs:
           load: true
           tags: crystaltides-web:test
 
-      - name: Docker Scout Vulnerability Scan
-        uses: docker/scout-action@v1
+      - name: Trivy image scan
+        uses: aquasecurity/trivy-action@master
         with:
-          command: quickview,cve
-          image: crystaltides-web:test
-          only-severities: critical,high
-          exit-code: false
+          scan-type: 'image'
+          image-ref: crystaltides-web:test
+          format: 'table'
+          exit-code: '0'
+          ignore-unfixed: true
+          severity: 'CRITICAL,HIGH'
 
   trivy-scan:
     name: Trivy Container & Infrastructure Security Scan

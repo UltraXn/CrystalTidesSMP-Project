@@ -3,6 +3,9 @@ import { fireEvent } from '@testing-library/react';
 import { renderWithProviders } from '@/utils/test-utils';
 import { Minecraft3DServerRackCanvas } from '@/components/Home/Minecraft3DServerRackCanvas';
 
+// The component stops its render loop with renderer.setAnimationLoop(null).
+const { setAnimationLoop } = vi.hoisted(() => ({ setAnimationLoop: vi.fn() }));
+
 vi.mock('three', () => ({
     Scene: class {
         add = vi.fn();
@@ -14,7 +17,10 @@ vi.mock('three', () => ({
         aspect = 1;
         updateProjectionMatrix = vi.fn();
     },
+    PCFShadowMap: 1,
     WebGLRenderer: class {
+        setAnimationLoop = setAnimationLoop;
+        shadowMap = { enabled: false, type: 0 };
         get domElement() {
             return document.createElement('canvas');
         }
@@ -118,6 +124,6 @@ describe('Minecraft3DServerRackCanvas', () => {
     it('cleans up without error on unmount', () => {
         const { unmount } = renderWithProviders(<Minecraft3DServerRackCanvas />);
         expect(() => unmount()).not.toThrow();
-        expect(window.cancelAnimationFrame).toHaveBeenCalled();
+        expect(setAnimationLoop).toHaveBeenLastCalledWith(null);
     });
 });

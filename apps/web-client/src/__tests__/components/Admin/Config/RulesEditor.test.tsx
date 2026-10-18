@@ -133,7 +133,7 @@ describe("RulesEditor", () => {
     const titleInput = screen.getByPlaceholderText('Ej: PVP Consensuado');
     fireEvent.change(titleInput, { target: { value: 'Prohibido Hacks' } });
 
-    const contentInput = screen.getByPlaceholderText('Descripción detallada de la regla...');
+    const contentInput = screen.getByPlaceholderText('Descripción detallada de la normativa...');
     fireEvent.change(contentInput, { target: { value: 'El uso de clientes modificados con ventajas acarrea sanción permanente.' } });
 
     const saveBtn = screen.getByRole('button', { name: /Guardar Regla/i });

@@ -21,6 +21,7 @@ import oracle.ucp.jdbc.PoolDataSource;
 import oracle.ucp.jdbc.PoolDataSourceFactory;
 
 import javax.sql.DataSource;
+import java.time.Duration;
 import java.io.IOException;
 import java.io.Reader;
 import java.net.URL;
@@ -336,7 +337,7 @@ public class Utils {
     if (password != null) pds.setPassword(new String(password));
     pds.setInitialPoolSize(1);
     pds.setMinPoolSize(1);
-    pds.setConnectionWaitTimeout(10);
+    pds.setConnectionWaitDuration(Duration.ofSeconds(10));
     pds.setConnectionProperty("remarksReporting", "true");
     pds.setConnectionProperty("oracle.jdbc.vectorDefaultGetObjectType", "double[]");
     pds.setConnectionProperty("oracle.jdbc.jsonDefaultGetObjectType", "java.lang.String");

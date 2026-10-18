@@ -31,10 +31,9 @@ test.describe("Golden Path 4: Security & Auth Route Guard", () => {
     await page.goto("/login");
     await expect(page).toHaveURL(/login/);
 
-    // Verify presence of input fields
-    const inputs = page.locator("input");
-    const inputCount = await inputs.count();
-    expect(inputCount).toBeGreaterThanOrEqual(1);
+    // The login route is lazy-loaded: wait for the form instead of counting
+    // inputs while the "Cargando contenido..." fallback is still on screen.
+    await expect(page.locator("input").first()).toBeVisible();
 
     // Verify submit button
     const submitBtn = page
