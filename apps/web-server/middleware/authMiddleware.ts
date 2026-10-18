@@ -148,11 +148,6 @@ function extractAdminToken(req: Request): string | null {
     return signedToken;
   }
 
-  const cookieToken = req.cookies?.[AUTH_CONSTANTS.ADMIN_2FA_COOKIE];
-  if (typeof cookieToken === 'string') {
-    return cookieToken;
-  }
-
   const headerToken = req.headers[AUTH_CONSTANTS.ADMIN_TOKEN_HEADER];
   if (typeof headerToken === 'string') {
     return headerToken;

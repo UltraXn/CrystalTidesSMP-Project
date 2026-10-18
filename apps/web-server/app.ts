@@ -41,6 +41,7 @@ import authRoutes from './routes/authRoutes.js';
 
 import cookieParser from 'cookie-parser';
 import { getEnv } from './config/env.js';
+import { ALLOWED_ORIGINS, rejectCrossSiteWrites } from './middleware/csrfGuard.js';
 
 const app = express();
 
@@ -89,24 +90,19 @@ import hpp from 'hpp';
 // Middleware
 app.use(
   cors({
-    origin: [
-      'https://crystaltides.net',
-      'https://api.crystaltides.net',
-      'https://crystaltidessmp.net',
-      'https://api.crystaltidessmp.net',
-      'http://localhost:3000', // Local development
-      'http://localhost:5173', // Vite default
-    ],
+    origin: ALLOWED_ORIGINS,
     credentials: true,
   }),
 );
+app.use(rejectCrossSiteWrites());
 app.use(cookieParser(getEnv().COOKIE_SECRET));
 app.use(checkCanaryToken);
+// JSON only: form-encoded bodies (what a cross-site <form> can send) are parsed
+// just on the Ko-Fi webhook route.
 app.use(express.json());
 
 // Iniciar Jobs
 initCleanupJob();
-app.use(express.urlencoded({ extended: true })); // Necesario para Ko-Fi payload
 app.use(hpp()); // Protect against HTTP Parameter Pollution attacks
 
 // Routes
