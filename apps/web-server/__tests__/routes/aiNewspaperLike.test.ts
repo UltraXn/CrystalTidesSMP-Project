@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import request from 'supertest';
 import app from '../../app.js';
 import { supabase } from '../../services/ragService.js';
+import { signInAs } from '../helpers/signInAs.js';
 
 // authenticateToken reads BOT_API_KEY per request; the bot is the only identity
 // the hermetic test env can authenticate without a real Supabase project.
@@ -59,9 +60,24 @@ describe('POST /api/ai/newspaper/:id/like', () => {
 });
 
 describe('GET /api/rag/search', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('is not public: every query computes embeddings', async () => {
     const res = await request(app).get('/api/rag/search?q=Ignis');
 
     expect(res.status).toBe(401);
+  });
+
+  it.each([
+    ['missing', ''],
+    ['blank', '?q=%20%20'],
+    ['too long', `?q=${'a'.repeat(201)}`],
+  ])('rejects a %s query before computing embeddings', async (_label, query) => {
+    const { headers } = signInAs('moderator');
+    const res = await request(app).get(`/api/rag/search${query}`).set(headers);
+
+    expect(res.status).toBe(400);
   });
 });

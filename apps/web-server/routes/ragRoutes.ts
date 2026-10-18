@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { z, ZodError } from 'zod';
 import { handleRagIngestPush } from '../controllers/ragController.js';
 import { authenticateToken } from '../middleware/authMiddleware.js';
 import { sensitiveActionLimiter } from '../middleware/rateLimitMiddleware.js';
@@ -6,6 +7,10 @@ import { searchModKnowledge, verifyAndSanitizeKnowledgeQuery } from '../services
 import { checkRole, STAFF_ROLES } from '../utils/roleUtils.js';
 
 const router = Router();
+
+// Each query costs an embeddings call: require it and bound its length.
+const searchQuerySchema = z.object({ q: z.string().trim().min(1).max(200) });
+const SEARCH_QUERY_ERROR = 'El parámetro ?q= es obligatorio (1-200 caracteres)';
 
 // Endpoint para push automático de KubeJS
 router.post('/ingest', sensitiveActionLimiter, handleRagIngestPush);
@@ -18,11 +23,7 @@ router.get(
   checkRole(STAFF_ROLES),
   async (req, res) => {
     try {
-      const q = (req.query.q as string) || '';
-      if (!q) {
-        res.status(400).json({ error: 'Falta el parámetro de consulta ?q=' });
-        return;
-      }
+      const { q } = searchQuerySchema.parse(req.query);
 
       const results = await searchModKnowledge(q, 5);
       const sanitized = verifyAndSanitizeKnowledgeQuery(q, results);
@@ -35,6 +36,10 @@ router.get(
         results,
       });
     } catch (err: unknown) {
+      if (err instanceof ZodError) {
+        res.status(400).json({ error: SEARCH_QUERY_ERROR });
+        return;
+      }
       // El detalle solo va al log: puede incluir datos internos del proveedor
       console.error(
         '[RAG] Error en la búsqueda:',
