@@ -58,6 +58,8 @@ interface TrustedProfileFields {
 
 interface LinkedUuidRow extends RowDataPacket {
   minecraft_uuid: string | null;
+  web_user_id?: string | null;
+  minecraft_name?: string | null;
 }
 
 const CONSTANTS = {
@@ -380,14 +382,82 @@ export const updateUserMetadata = async (
   return user;
 };
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+async function lookupUserByProfile(identifier: string): Promise<User | null> {
+  try {
+    const variants = buildIdentifierVariants(identifier);
+    const { data: profile } = await supabase
+      .from(CONSTANTS.PROFILES_TABLE)
+      .select('id')
+      .or(
+        `username.ilike.${variants.raw},username.ilike.${variants.space},username.ilike.${variants.underscore}`,
+      )
+      .maybeSingle();
+
+    if (!profile?.id) return null;
+    const {
+      data: { user },
+    } = await supabase.auth.admin.getUserById(profile.id);
+    return user ?? null;
+  } catch (error) {
+    console.warn('[UserService] Profile lookup failed, falling back:', error);
+    return null;
+  }
+}
+
+async function lookupUserByLinkedAccount(identifier: string): Promise<User | null> {
+  try {
+    const [rows] = await pool.execute<LinkedUuidRow[]>(
+      'SELECT web_user_id FROM linked_accounts WHERE minecraft_uuid = ? OR minecraft_name = ? LIMIT 1',
+      [identifier, identifier],
+    );
+    const linkedWebId = rows[0]?.web_user_id;
+    if (!linkedWebId) return null;
+    const {
+      data: { user },
+    } = await supabase.auth.admin.getUserById(linkedWebId);
+    return user ?? null;
+  } catch (error) {
+    console.error('[UserService] Linked account identifier lookup failed:', error);
+    return null;
+  }
+}
+
+async function findUserByIdentifier(identifier: string): Promise<User | null> {
+  if (UUID_REGEX.test(identifier)) {
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.admin.getUserById(identifier);
+      if (user) return user;
+    } catch {
+      // UUID lookup fallback
+    }
+  }
+
+  const userFromProfile = await lookupUserByProfile(identifier);
+  if (userFromProfile) return userFromProfile;
+
+  const userFromLinked = await lookupUserByLinkedAccount(identifier);
+  if (userFromLinked) return userFromLinked;
+
+  try {
+    const users = await listAllAuthUsers();
+    const variants = buildIdentifierVariants(identifier);
+    return users.find((u) => userMatchesIdentifier(u, variants)) ?? null;
+  } catch {
+    return null;
+  }
+}
+
 /**
- * Get public profile by username, nickname, or Minecraft UUID
+ * Get public profile by username, nickname, or Minecraft UUID.
+ * Queries profiles and linked_accounts directly to avoid listAllAuthUsers full scans
+ * and ensure users beyond page 1 (50+) resolve properly.
  */
 export const getPublicProfile = async (identifier: string): Promise<PublicProfile | null> => {
-  const users = await listAllAuthUsers();
-
-  const variants = buildIdentifierVariants(identifier);
-  const target = users.find((u) => userMatchesIdentifier(u, variants));
+  const target = await findUserByIdentifier(identifier);
 
   if (!target) return null;
 

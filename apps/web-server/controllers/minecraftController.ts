@@ -76,21 +76,6 @@ const ERRORS = {
   AUTH_PENDING: 'authorization_pending',
 } as const;
 
-// --- DATABASE INITIALIZATION ---
-try {
-  await pool.execute(
-    'ALTER TABLE linked_accounts ADD COLUMN IF NOT EXISTS gacha_balance BIGINT DEFAULT 0 AFTER web_user_id',
-  );
-} catch {
-  try {
-    await pool.execute(
-      'ALTER TABLE linked_accounts ADD COLUMN gacha_balance BIGINT DEFAULT 0 AFTER web_user_id',
-    );
-  } catch {
-    // Column exists or table cannot be altered in this environment
-  }
-}
-
 // --- SUPABASE CLIENT SETUP ---
 const supabaseUrl = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;

@@ -77,6 +77,35 @@ export class FakeQuery implements PromiseLike<QueryResult> {
     return this;
   }
 
+  gte(column: string, value: number): this {
+    this.filters.push((row) => Number(row[column]) >= value);
+    return this;
+  }
+
+  ilike(column: string, pattern: string): this {
+    const regex = new RegExp(`^${pattern.replace(/%/g, '.*')}$`, 'i');
+    this.filters.push(
+      (row) => typeof row[column] === 'string' && regex.test(row[column] as string),
+    );
+    return this;
+  }
+
+  or(expr: string): this {
+    const clauses = expr.split(',').map((part) => part.trim().split('.'));
+    this.filters.push((row) =>
+      clauses.some(([col, op, val]) => {
+        const rowVal = String(row[col] ?? '');
+        if (op === 'eq') return rowVal.toLowerCase() === (val ?? '').toLowerCase();
+        if (op === 'ilike') {
+          const reg = new RegExp(`^${(val ?? '').replace(/%/g, '.*')}$`, 'i');
+          return reg.test(rowVal);
+        }
+        return false;
+      }),
+    );
+    return this;
+  }
+
   in(column: string, values: unknown[]): this {
     this.filters.push((row) => values.includes(row[column]));
     return this;
