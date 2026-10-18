@@ -1116,6 +1116,8 @@
       "2fa_enabled": "2FA Enabled Successfully!",
       "2fa_disabled": "2FA Disabled",
       "2fa_disable_confirm": "Are you sure you want to disable 2FA?",
+      "2fa_disable_code_label": "Current 2FA code",
+      "2fa_disable_code_required": "Enter the current 6-digit code from your authenticator app to disable 2FA.",
       "cant_scan": "Can't scan the QR code?",
       "copied": "Copied!",
       "enter_code": "Enter Code",

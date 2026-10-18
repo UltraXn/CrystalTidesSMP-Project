@@ -253,7 +253,8 @@ export const createComment = async (req: Request, res: Response) => {
     } = await supabase.auth.admin.getUserById(user.id);
 
     const finalUsername = profile?.username || authUser?.user_metadata?.username || user.username;
-    const finalRole = authUser?.user_metadata?.role || profile?.role || 'user';
+    // Role badge only from profiles: user_metadata.role is editable by the commenter.
+    const finalRole = profile?.role || user.role || 'user';
     const finalAvatar = authUser?.user_metadata?.avatar_url || profile?.avatar_url || null;
 
     const { data, error } = await supabase

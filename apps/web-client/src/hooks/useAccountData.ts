@@ -412,13 +412,20 @@ export const useEnable2FA = () => {
 export const useDisable2FA = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async () => {
+    mutationFn: async ({ token }: { token: string }) => {
       const accessToken = await getRequiredSessionToken();
       const res = await fetch(`${API_URL}/auth/2fa/disable`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${accessToken}` },
+        headers: {
+          'Content-Type': HEADERS.CONTENT_TYPE_JSON,
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ token }),
       });
-      if (!res.ok) throw new Error('Failed to disable 2FA');
+      if (!res.ok) {
+        const message = await parseErrorMessage(res, 'Failed to disable 2FA');
+        throw new Error(message);
+      }
       return { success: true };
     },
     onSuccess: () => {

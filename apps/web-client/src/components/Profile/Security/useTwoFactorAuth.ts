@@ -17,7 +17,7 @@ export interface UseTwoFactorAuthOptions {
     error?: string;
   }>;
   onEnable?: (token: string, secret: string) => Promise<{ success: boolean; error?: string }>;
-  onDisable?: () => Promise<{ success: boolean; error?: string }>;
+  onDisable?: (token: string) => Promise<{ success: boolean; error?: string }>;
 }
 
 export function useTwoFactorAuth({
@@ -96,7 +96,17 @@ export function useTwoFactorAuth({
     );
   };
 
+  // The server only removes the factor after a valid code, so a stolen session cannot disable it.
   const handleDisable = async () => {
+    if (token.length !== 6) {
+      setError(
+        t(
+          'account.security.2fa_disable_code_required',
+          'Enter the current 6-digit code from your authenticator app to disable 2FA.',
+        ),
+      );
+      return;
+    }
     if (
       !confirm(t('account.security.2fa_disable_confirm', 'Are you sure you want to disable 2FA?'))
     )
@@ -105,8 +115,9 @@ export function useTwoFactorAuth({
 
     if (onDisable) {
       try {
-        const res = await onDisable();
+        const res = await onDisable(token);
         if (res.success) {
+          setToken('');
           setSuccess(t('account.security.2fa_disabled', '2FA Disabled'));
         } else setError(res.error ?? 'Failed');
       } catch {
@@ -115,12 +126,16 @@ export function useTwoFactorAuth({
       return;
     }
 
-    disable2FAMutation(undefined, {
-      onSuccess: () => {
-        setSuccess(t('account.security.2fa_disabled', '2FA Disabled'));
+    disable2FAMutation(
+      { token },
+      {
+        onSuccess: () => {
+          setToken('');
+          setSuccess(t('account.security.2fa_disabled', '2FA Disabled'));
+        },
+        onError: (err: Error) => setError(err.message),
       },
-      onError: (err: Error) => setError(err.message),
-    });
+    );
   };
 
   return {

@@ -20,7 +20,9 @@ export const checkRole = (allowedRoles: string[]) => {
 
 const ROLE_PRIORITY: Record<string, number> = {
   neroferno: 100,
+  owner: 100,
   killu: 95,
+  killuwu: 95,
   developer: 90,
   admin: 80,
   moderator: 50,

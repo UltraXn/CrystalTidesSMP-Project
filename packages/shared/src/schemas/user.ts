@@ -24,8 +24,28 @@ export const updateUserMetadataPayloadSchema = z.object({
   }),
 });
 
+// Keep in sync with the profiles_role_check constraint
+// (database/web-server/migrations/20261017_align_profile_roles.sql).
+export const USER_ROLES = [
+  'user',
+  'donor',
+  'founder',
+  'helper',
+  'staff',
+  'mod',
+  'moderator',
+  'developer',
+  'admin',
+  'killu',
+  'killuwu',
+  'neroferno',
+  'owner',
+] as const;
+
+export type UserRole = (typeof USER_ROLES)[number];
+
 export const updateUserRolePayloadSchema = z.object({
-  role: z.string().min(1, 'Role is required'),
+  role: z.enum(USER_ROLES),
 });
 
 // Express route wrapper schemas

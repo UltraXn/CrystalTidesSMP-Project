@@ -3,6 +3,7 @@ import { Request, Response, NextFunction } from 'express';
 import supabase from '../config/supabaseClient.js';
 import { sendError } from '../utils/responseHandler.js';
 import { logSecurityFailure } from '../services/auditService.js';
+import { ADMIN_ROLES } from '../utils/roleUtils.js';
 
 type CachedUser = NonNullable<Express.Request['user']>;
 
@@ -222,9 +223,7 @@ export const require2FA = async (
 
   const is2FAEnabled = Boolean(user.app_metadata?.two_factor_enabled);
   const userRole = (user.role || '').toLowerCase();
-  const isStaffOrAdmin = ['admin', 'owner', 'developer', 'neroferno', 'killu', 'killuwu'].includes(
-    userRole,
-  );
+  const isStaffOrAdmin = ADMIN_ROLES.includes(userRole);
 
   if (isStaffOrAdmin && !is2FAEnabled) {
     logSecurityEvent(req, '2FA Enrollment Required for Admin Action', true);

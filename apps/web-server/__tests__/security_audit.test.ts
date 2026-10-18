@@ -34,8 +34,12 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import request from 'supertest';
 import fs from 'fs';
 import path from 'path';
+import type { User } from '@supabase/supabase-js';
 import app from '../app.js';
 import supabase from '../config/supabaseClient.js';
+import * as playerStatsService from '../services/playerStatsService.js';
+import * as forumService from '../services/forumService.js';
+import { FakeSupabase } from './helpers/fakeSupabase.js';
 
 const UNAUTH_HEADERS = {};
 const USER_HEADERS = { Authorization: 'Bearer fake-user-token' };
@@ -86,17 +90,28 @@ describe('A01 — Broken Access Control', () => {
       vi.restoreAllMocks();
     });
 
-    it('should require auth to view full profile with wallet (currently public)', async () => {
-      // Hermetic: the test env points Supabase to an unresolvable host (500 otherwise).
+    it('does not expose the wallet to anonymous visitors', async () => {
+      const target = {
+        id: '33333333-3333-4333-8333-333333333333',
+        user_metadata: { username: 'testuser', minecraft_uuid: 'uuid-of-testuser' },
+        app_metadata: {},
+        created_at: '2026-01-01T00:00:00Z',
+      } as unknown as User;
       vi.spyOn(supabase.auth.admin, 'listUsers').mockResolvedValue({
-        data: { users: [], aud: 'authenticated' },
+        data: { users: [target], aud: 'authenticated' },
         error: null,
       } as unknown as Awaited<ReturnType<typeof supabase.auth.admin.listUsers>>);
+      const db = new FakeSupabase({ profiles: [{ id: target.id, role: 'user' }] });
+      vi.spyOn(supabase, 'from').mockImplementation(db.from as unknown as typeof supabase.from);
+      vi.spyOn(playerStatsService, 'getPlayerStats').mockResolvedValue(null);
+      const getMoney = vi.spyOn(playerStatsService, 'getMoney').mockResolvedValue(1234);
+      vi.spyOn(forumService, 'getUserThreads').mockResolvedValue([]);
+
       const res = await request(app).get('/api/users/profile/testuser/full').set(UNAUTH_HEADERS);
-      // 200 = public (current behavior — information disclosure)
-      // 404 = user not found (acceptable, still public)
-      // After fix: expect(res.status).toBe(401);
-      expect([200, 401, 404]).toContain(res.status);
+
+      expect(res.status).toBe(200);
+      expect(res.body.data).not.toHaveProperty('wallet');
+      expect(getMoney).not.toHaveBeenCalled();
     });
   });
 

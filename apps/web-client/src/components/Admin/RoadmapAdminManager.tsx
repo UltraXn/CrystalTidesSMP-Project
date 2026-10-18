@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Gift, Save, RefreshCw } from 'lucide-react';
-import { getAdminToken } from '../../services/adminAuth';
+import { supabase } from '../../services/supabaseClient';
+import { getAuthHeaders } from '../../services/adminAuth';
 import { RoadmapDayCard } from './Roadmap/RoadmapDayCard';
 
 export interface RoadmapDayConfig {
@@ -47,12 +48,14 @@ export default function RoadmapAdminManager() {
     setSaving(true);
     setMsg(null);
     try {
-      const token = getAdminToken();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       const res = await fetch(`${API_URL}/roadmap/admin/config`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          ...getAuthHeaders(session?.access_token ?? null),
         },
         body: JSON.stringify({ days }),
       });

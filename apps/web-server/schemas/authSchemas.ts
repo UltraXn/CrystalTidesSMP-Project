@@ -6,6 +6,7 @@ export {
   registerSchema,
   verify2FASchema,
   enable2FASchema,
+  disable2FASchema,
   loginSchema,
   type RegisterPayload,
   type LoginPayload,

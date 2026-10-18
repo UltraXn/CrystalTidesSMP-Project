@@ -1,7 +1,10 @@
 import { Request, Response } from 'express';
 import supabase from '../services/supabaseService.js';
 import * as gachaBalanceService from '../services/gachaBalanceService.js';
+import * as logService from '../services/logService.js';
 import { sendSuccess, sendError } from '../utils/responseHandler.js';
+import { ensureString } from '../utils/typeUtils.js';
+import type { UpdateRoadmapConfigPayload } from '../schemas/roadmapSchemas.js';
 
 export interface RoadmapDayConfig {
   day: number;
@@ -19,6 +22,14 @@ interface UserStreakRow {
   prestige_level?: number;
   last_claim_at?: string | null;
   total_claims?: number;
+}
+
+interface StreakWrite {
+  current_streak: number;
+  prestige_level: number;
+  streak_shields: number;
+  last_claim_at: string;
+  total_claims: number;
 }
 
 interface StreakCalculationResult {
@@ -41,6 +52,8 @@ interface PrestigeMilestoneResult {
 const CONSTANTS = {
   ERROR_UNAUTHORIZED: 'UNAUTHORIZED',
   MSG_USER_ID_REQUIRED: 'User ID required',
+  MSG_ALREADY_CLAIMED: 'La recompensa de hoy ya fue reclamada',
+  PG_UNIQUE_VIOLATION: '23505',
   TABLE_ROADMAP_CONFIG: 'monthly_roadmap_config',
   TABLE_USER_STREAKS: 'user_daily_streaks',
   TABLE_USER_ACHIEVEMENTS: 'user_achievements',
@@ -278,9 +291,12 @@ const PRESTIGE_ACHIEVEMENTS: Readonly<Record<number, { id: string; title: string
   6: { id: 'prestige_iridium', title: `${CONSTANTS.LOGRO_PREFIX}Prestigio Iridium Mítico` },
 };
 
-function extractUserId(req: Request): string | undefined {
-  const authUser = (req as Request & { user?: { id?: string } }).user;
-  return authUser?.id ?? (req.query.userId as string) ?? (req.body.userId as string) ?? undefined;
+/**
+ * Streak status is also read by the launcher without a session (`?userId=`);
+ * an authenticated caller always reads their own row.
+ */
+function resolveStreakUserId(req: Request): string {
+  return req.user?.id ?? ensureString(req.query.userId);
 }
 
 function canClaimStreak(lastClaimAt: string | null | undefined): boolean {
@@ -443,21 +459,102 @@ async function checkLegendaryAchievement(userId: string): Promise<boolean> {
   return Boolean(data);
 }
 
-async function saveStreakUpdate(
-  userId: string,
-  streak: number,
-  prestige: number,
-  shields: number,
-  totalClaims: number,
-): Promise<void> {
-  await supabase.from(CONSTANTS.TABLE_USER_STREAKS).upsert({
-    [CONSTANTS.COL_USER_ID]: userId,
-    current_streak: streak,
-    prestige_level: prestige,
-    streak_shields: shields,
+async function fetchStreak(userId: string): Promise<UserStreakRow | null> {
+  const { data, error } = await supabase
+    .from(CONSTANTS.TABLE_USER_STREAKS)
+    .select('*')
+    .eq(CONSTANTS.COL_USER_ID, userId)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data as UserStreakRow | null;
+}
+
+function buildStreakWrite(
+  streakResult: StreakCalculationResult,
+  prestigeLevel: number,
+  previousTotalClaims: number,
+): StreakWrite {
+  return {
+    current_streak: streakResult.newStreak,
+    prestige_level: prestigeLevel,
+    streak_shields: streakResult.remainingShields,
     last_claim_at: new Date().toISOString(),
-    total_claims: totalClaims + 1,
-  });
+    total_claims: previousTotalClaims + 1,
+  };
+}
+
+/**
+ * Compare-and-swap on `total_claims`: the write only lands if nobody claimed
+ * since `previous` was read, so parallel requests can credit the reward once.
+ */
+async function commitStreakClaim(
+  userId: string,
+  previous: UserStreakRow | null,
+  next: StreakWrite,
+): Promise<boolean> {
+  if (!previous) {
+    const { error } = await supabase
+      .from(CONSTANTS.TABLE_USER_STREAKS)
+      .insert({ [CONSTANTS.COL_USER_ID]: userId, ...next });
+    if (error?.code === CONSTANTS.PG_UNIQUE_VIOLATION) return false;
+    if (error) throw error;
+    return true;
+  }
+
+  const update = supabase
+    .from(CONSTANTS.TABLE_USER_STREAKS)
+    .update(next)
+    .eq(CONSTANTS.COL_USER_ID, userId);
+  const guarded =
+    previous.total_claims == null
+      ? update.is('total_claims', null)
+      : update.eq('total_claims', previous.total_claims);
+
+  const { data, error } = await guarded.select(CONSTANTS.COL_USER_ID);
+  if (error) throw error;
+  return (data?.length ?? 0) > 0;
+}
+
+async function revertStreakClaim(
+  userId: string,
+  previous: UserStreakRow | null,
+  committed: StreakWrite,
+): Promise<void> {
+  const table = supabase.from(CONSTANTS.TABLE_USER_STREAKS);
+  const { error } = previous
+    ? await table
+        .update({
+          current_streak: previous.current_streak,
+          prestige_level: previous.prestige_level,
+          streak_shields: previous.streak_shields,
+          last_claim_at: previous.last_claim_at,
+          total_claims: previous.total_claims,
+        })
+        .eq(CONSTANTS.COL_USER_ID, userId)
+        .eq('total_claims', committed.total_claims)
+    : await table
+        .delete()
+        .eq(CONSTANTS.COL_USER_ID, userId)
+        .eq('total_claims', committed.total_claims);
+
+  if (error) {
+    console.error('[Roadmap] Failed to roll back streak claim:', error);
+  }
+}
+
+async function creditClaimReward(
+  userId: string,
+  previous: UserStreakRow | null,
+  committed: StreakWrite,
+  rewardAmount: number,
+): Promise<void> {
+  try {
+    await gachaBalanceService.refundGachaBalance(userId, rewardAmount);
+  } catch (error) {
+    await revertStreakClaim(userId, previous, committed);
+    throw error;
+  }
 }
 
 export const getRoadmapConfig = async (_req: Request, res: Response) => {
@@ -480,18 +577,12 @@ export const getRoadmapConfig = async (_req: Request, res: Response) => {
 
 export const getUserStreakStatus = async (req: Request, res: Response) => {
   try {
-    const userId = extractUserId(req);
+    const userId = resolveStreakUserId(req);
     if (!userId) {
       return sendError(res, CONSTANTS.MSG_USER_ID_REQUIRED, CONSTANTS.ERROR_UNAUTHORIZED, 401);
     }
 
-    const { data: rawStreak } = await supabase
-      .from(CONSTANTS.TABLE_USER_STREAKS)
-      .select('*')
-      .eq(CONSTANTS.COL_USER_ID, userId)
-      .single();
-
-    const streak = rawStreak as UserStreakRow | null;
+    const streak = await fetchStreak(userId);
     const currentStreak = streak?.current_streak ?? 0;
     const canClaim = canClaimStreak(streak?.last_claim_at);
     const hasLegendaryAchievement = await checkLegendaryAchievement(userId);
@@ -521,18 +612,12 @@ export const getUserStreakStatus = async (req: Request, res: Response) => {
 
 export const claimDailyReward = async (req: Request, res: Response) => {
   try {
-    const userId = extractUserId(req);
+    const userId = req.user?.id;
     if (!userId) {
       return sendError(res, CONSTANTS.MSG_USER_ID_REQUIRED, CONSTANTS.ERROR_UNAUTHORIZED, 401);
     }
 
-    const { data: rawStreak } = await supabase
-      .from(CONSTANTS.TABLE_USER_STREAKS)
-      .select('*')
-      .eq(CONSTANTS.COL_USER_ID, userId)
-      .single();
-
-    const streak = rawStreak as UserStreakRow | null;
+    const streak = await fetchStreak(userId);
     const lastClaimAt = streak?.last_claim_at ? new Date(streak.last_claim_at) : null;
     const streakResult = calculateNextStreak(
       lastClaimAt,
@@ -557,15 +642,19 @@ export const claimDailyReward = async (req: Request, res: Response) => {
     );
 
     const rewardAmount = calculateRewardAmount(dayConfig, milestone.nextPrestigeLevel);
-    await gachaBalanceService.refundGachaBalance(userId, rewardAmount);
-
-    await saveStreakUpdate(
-      userId,
-      streakResult.newStreak,
+    const claim = buildStreakWrite(
+      streakResult,
       milestone.nextPrestigeLevel,
-      streakResult.remainingShields,
       streak?.total_claims ?? 0,
     );
+
+    // Claim first, credit second: only the request that wins the swap gets paid.
+    const claimed = await commitStreakClaim(userId, streak, claim);
+    if (!claimed) {
+      return sendError(res, CONSTANTS.MSG_ALREADY_CLAIMED, 'ALREADY_CLAIMED', 409);
+    }
+
+    await creditClaimReward(userId, streak, claim, rewardAmount);
 
     if (milestone.unlockedAchievement) {
       await unlockAchievements(userId, milestone.achievementId, milestone.achievementTitle);
@@ -601,16 +690,26 @@ export const claimDailyReward = async (req: Request, res: Response) => {
 
 export const updateRoadmapAdminConfig = async (req: Request, res: Response) => {
   try {
-    const days = req.body.days as RoadmapDayConfig[];
-    if (!Array.isArray(days)) {
-      return sendError(res, 'Days array required', 'INVALID_BODY', 400);
-    }
+    const { days } = req.body as UpdateRoadmapConfigPayload;
 
     const { error } = await supabase.from(CONSTANTS.TABLE_ROADMAP_CONFIG).upsert(days);
 
     if (error) {
       console.error('[Roadmap Admin] Supabase error:', error);
+      return sendError(res, 'Failed to update roadmap config', 'UPDATE_FAILED', 500);
     }
+
+    logService
+      .createLog({
+        user_id: req.user?.id,
+        username: req.user?.username ?? 'Admin',
+        action: 'UPDATE_ROADMAP_CONFIG',
+        details: days
+          .map((d) => `day ${d.day}: ${d.reward_value} x${d.multiplier ?? 1}`)
+          .join(', '),
+        source: 'web',
+      })
+      .catch(console.error);
 
     return sendSuccess(res, { message: 'Configuración de Roadmap actualizada correctamente' });
   } catch (error) {

@@ -1,23 +1,25 @@
 import { Request, Response } from 'express';
-import { z } from 'zod';
 import * as twoFactorService from '../services/twoFactorService.js';
 import { sendSuccess, sendError } from '../utils/responseHandler.js';
-import supabase from '../config/supabaseClient.js';
+import { MemoryRateLimiter } from '../utils/rateLimiter.js';
+import type { Enable2FAPayload, Verify2FAPayload } from '../schemas/authSchemas.js';
 
 const TWO_FACTOR_ERRORS = {
   UNAUTHORIZED: 'User not authenticated',
   SETUP_FAILED: 'Setup failed',
-  INVALID_DATA: 'Invalid 2FA data',
   INVALID_TOKEN: 'Invalid Token',
   ENABLE_FAILED: 'Enable failed',
   DISABLE_FAILED: 'Disable failed',
-  INVALID_FORMAT: 'Invalid token format',
-  USER_FETCH_FAILED: 'User fetch failed',
   NOT_ENABLED: '2FA is not enabled for this account',
   INVALID_CODE: 'Invalid 2FA Code',
   VERIFY_FAILED: 'Verification failed',
   STATUS_FAILED: 'Status check failed',
   OTP_URL_FAILED: 'Failed to generate OTP Auth URL',
+  ALREADY_ENABLED:
+    '2FA is already enabled. Disable it with a valid code before setting it up again.',
+  SETUP_REQUIRED: 'Start the 2FA setup before enabling it',
+  NOT_CONFIGURED: '2FA is temporarily unavailable',
+  TOO_MANY_ATTEMPTS: 'Too many 2FA attempts. Try again later.',
 } as const;
 
 const TWO_FACTOR_SUCCESS = {
@@ -31,13 +33,18 @@ const TWO_FACTOR_SUCCESS = {
 
 const ERROR_CODES = {
   UNAUTHORIZED: 'UNAUTHORIZED',
-  VALIDATION_ERROR: 'VALIDATION_ERROR',
   INVALID_TOKEN: 'INVALID_TOKEN',
-  SERVER_ERROR: 'SERVER_ERROR',
   NOT_ENABLED: '2FA_NOT_ENABLED',
+  ALREADY_ENABLED: '2FA_ALREADY_ENABLED',
+  SETUP_REQUIRED: '2FA_SETUP_REQUIRED',
+  NOT_CONFIGURED: '2FA_NOT_CONFIGURED',
+  TOO_MANY_ATTEMPTS: '2FA_TOO_MANY_ATTEMPTS',
 } as const;
 
 const COOKIE_NAME = 'admin_2fa_token';
+
+// Per-user budget for code checks: a stolen session must not be able to brute-force 6 digits.
+const codeAttemptLimiter = new MemoryRateLimiter({ windowMs: 15 * 60 * 1000, maxRequests: 5 });
 
 const getCookieOptions = (maxAge?: number) => ({
   httpOnly: true,
@@ -47,28 +54,6 @@ const getCookieOptions = (maxAge?: number) => ({
   ...(maxAge ? { maxAge } : {}),
 });
 
-const Enable2FASchema = z.object({
-  token: z.string().min(6, 'Token must be at least 6 digits').max(8),
-  secret: z.string().min(16, 'Invalid secret length').max(64),
-});
-
-const Verify2FASchema = z.object({
-  token: z.string().min(6, 'Token must be at least 6 digits').max(8),
-});
-
-interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-    email?: string;
-    username: string;
-    role: string;
-  };
-}
-
-const getAuthenticatedUser = (req: Request) => {
-  return (req as AuthenticatedRequest).user;
-};
-
 const extractErrorMessage = (error: unknown, defaultMessage: string): string => {
   if (error instanceof Error) {
     return error.message;
@@ -76,12 +61,30 @@ const extractErrorMessage = (error: unknown, defaultMessage: string): string => 
   return defaultMessage;
 };
 
+const sendFailure = (res: Response, error: unknown, fallbackMessage: string) => {
+  if (error instanceof twoFactorService.TwoFactorConfigError) {
+    console.error('[2FA]', error.message);
+    return sendError(res, TWO_FACTOR_ERRORS.NOT_CONFIGURED, ERROR_CODES.NOT_CONFIGURED, 503);
+  }
+  return sendError(res, extractErrorMessage(error, fallbackMessage));
+};
+
+const isCodeAttemptAllowed = (userId: string) => codeAttemptLimiter.check(`2fa:${userId}`).allowed;
+
+const sendTooManyAttempts = (res: Response) =>
+  sendError(res, TWO_FACTOR_ERRORS.TOO_MANY_ATTEMPTS, ERROR_CODES.TOO_MANY_ATTEMPTS, 429);
+
 // Setup - Generate Secret & QR (Protected by AuthenticateToken)
 export const setup2FA = async (req: Request, res: Response) => {
   try {
-    const user = getAuthenticatedUser(req);
+    const user = req.user;
     if (!user) {
       return sendError(res, TWO_FACTOR_ERRORS.UNAUTHORIZED, ERROR_CODES.UNAUTHORIZED, 401);
+    }
+
+    // Replacing an active factor must go through disable, which requires a valid code.
+    if (await twoFactorService.isEnrolled(user.id)) {
+      return sendError(res, TWO_FACTOR_ERRORS.ALREADY_ENABLED, ERROR_CODES.ALREADY_ENABLED, 409);
     }
 
     const email = user.email ?? 'user';
@@ -91,96 +94,90 @@ export const setup2FA = async (req: Request, res: Response) => {
       throw new Error(TWO_FACTOR_ERRORS.OTP_URL_FAILED);
     }
 
+    await twoFactorService.savePendingSecret(user.id, base32);
     const qrCode = await twoFactorService.generateQRCode(otpauth_url);
 
-    // Return secret (base32) so frontend can use it if QR fails, and current state
+    // Return secret (base32) so frontend can use it if QR fails
     return sendSuccess(res, { secret: base32, qrCode }, TWO_FACTOR_SUCCESS.SETUP_INITIATED);
   } catch (error) {
-    return sendError(res, extractErrorMessage(error, TWO_FACTOR_ERRORS.SETUP_FAILED));
+    return sendFailure(res, error, TWO_FACTOR_ERRORS.SETUP_FAILED);
   }
 };
 
-// Enable - Verify token & Save Secret (Protected by AuthenticateToken)
+// Enable - Verify token against the pending secret (Protected by AuthenticateToken)
 export const enable2FA = async (req: Request, res: Response) => {
   try {
-    const user = getAuthenticatedUser(req);
+    const user = req.user;
     if (!user) {
       return sendError(res, TWO_FACTOR_ERRORS.UNAUTHORIZED, ERROR_CODES.UNAUTHORIZED, 401);
     }
-
-    const parseResult = Enable2FASchema.safeParse(req.body);
-    if (!parseResult.success) {
-      const validationMessage =
-        parseResult.error.issues[0]?.message || TWO_FACTOR_ERRORS.INVALID_DATA;
-      return sendError(res, validationMessage, ERROR_CODES.VALIDATION_ERROR, 400);
+    if (!isCodeAttemptAllowed(user.id)) {
+      return sendTooManyAttempts(res);
     }
 
-    const { token, secret } = parseResult.data;
+    // Any `secret` sent by the client is ignored: only the server-generated pending one counts.
+    const { token } = req.body as Enable2FAPayload;
+    const result = await twoFactorService.activatePendingSecret(user.id, token);
 
-    const verified = twoFactorService.verifyToken(token, secret);
-    if (!verified) {
+    if (result === 'not_enrolled') {
+      return sendError(res, TWO_FACTOR_ERRORS.SETUP_REQUIRED, ERROR_CODES.SETUP_REQUIRED, 400);
+    }
+    if (result === 'invalid') {
       return sendError(res, TWO_FACTOR_ERRORS.INVALID_TOKEN, ERROR_CODES.INVALID_TOKEN, 400);
     }
 
-    await twoFactorService.updateUser2FARecord(user.id, secret, true);
-
     return sendSuccess(res, { enabled: true }, TWO_FACTOR_SUCCESS.ENABLED);
   } catch (error) {
-    return sendError(res, extractErrorMessage(error, TWO_FACTOR_ERRORS.ENABLE_FAILED));
+    return sendFailure(res, error, TWO_FACTOR_ERRORS.ENABLE_FAILED);
   }
 };
 
-// Disable (Protected by AuthenticateToken)
+// Disable - Requires a valid code from the active factor (Protected by AuthenticateToken)
 export const disable2FA = async (req: Request, res: Response) => {
   try {
-    const user = getAuthenticatedUser(req);
+    const user = req.user;
     if (!user) {
       return sendError(res, TWO_FACTOR_ERRORS.UNAUTHORIZED, ERROR_CODES.UNAUTHORIZED, 401);
     }
+    if (!isCodeAttemptAllowed(user.id)) {
+      return sendTooManyAttempts(res);
+    }
 
-    await twoFactorService.updateUser2FARecord(user.id, null, false);
+    const { token } = req.body as Verify2FAPayload;
+    const result = await twoFactorService.verifyActiveCode(user.id, token);
+
+    // 'not_enrolled' covers legacy accounts whose secret lived in app_metadata:
+    // there is no server-side factor to prove, so only the flag is cleared.
+    if (result === 'invalid') {
+      return sendError(res, TWO_FACTOR_ERRORS.INVALID_CODE, ERROR_CODES.INVALID_TOKEN, 400);
+    }
+
+    await twoFactorService.removeTotp(user.id);
+    res.clearCookie(COOKIE_NAME, getCookieOptions());
     return sendSuccess(res, { enabled: false }, TWO_FACTOR_SUCCESS.DISABLED);
   } catch (error) {
-    return sendError(res, extractErrorMessage(error, TWO_FACTOR_ERRORS.DISABLE_FAILED));
+    return sendFailure(res, error, TWO_FACTOR_ERRORS.DISABLE_FAILED);
   }
 };
 
 // Verify - For Admin Access (Protected by AuthenticateToken)
 export const verify2FA = async (req: Request, res: Response) => {
   try {
-    const user = getAuthenticatedUser(req);
+    const user = req.user;
     if (!user) {
       return sendError(res, TWO_FACTOR_ERRORS.UNAUTHORIZED, ERROR_CODES.UNAUTHORIZED, 401);
     }
-
-    const parseResult = Verify2FASchema.safeParse(req.body);
-    if (!parseResult.success) {
-      const validationMessage =
-        parseResult.error.issues[0]?.message || TWO_FACTOR_ERRORS.INVALID_FORMAT;
-      return sendError(res, validationMessage, ERROR_CODES.VALIDATION_ERROR, 400);
+    if (!isCodeAttemptAllowed(user.id)) {
+      return sendTooManyAttempts(res);
     }
 
-    const { token } = parseResult.data; // TOTP code
+    const { token } = req.body as Verify2FAPayload;
+    const result = await twoFactorService.verifyActiveCode(user.id, token);
 
-    // Fetch user's stored secret from Supabase Admin (app_metadata)
-    const {
-      data: { user: fullUser },
-      error,
-    } = await supabase.auth.admin.getUserById(user.id);
-
-    if (error || !fullUser) {
-      return sendError(res, TWO_FACTOR_ERRORS.USER_FETCH_FAILED, ERROR_CODES.SERVER_ERROR, 500);
-    }
-
-    const secret = fullUser.app_metadata?.two_factor_secret;
-    const enabled = fullUser.app_metadata?.two_factor_enabled;
-
-    if (!enabled || !secret) {
+    if (result === 'not_enrolled') {
       return sendError(res, TWO_FACTOR_ERRORS.NOT_ENABLED, ERROR_CODES.NOT_ENABLED, 403);
     }
-
-    const verified = twoFactorService.verifyToken(token, secret);
-    if (!verified) {
+    if (result === 'invalid') {
       return sendError(res, TWO_FACTOR_ERRORS.INVALID_CODE, ERROR_CODES.INVALID_TOKEN, 400);
     }
 
@@ -192,7 +189,7 @@ export const verify2FA = async (req: Request, res: Response) => {
 
     return sendSuccess(res, { adminToken }, TWO_FACTOR_SUCCESS.VERIFIED);
   } catch (error) {
-    return sendError(res, extractErrorMessage(error, TWO_FACTOR_ERRORS.VERIFY_FAILED));
+    return sendFailure(res, error, TWO_FACTOR_ERRORS.VERIFY_FAILED);
   }
 };
 
@@ -205,27 +202,14 @@ export const clear2FA = async (req: Request, res: Response) => {
 // Check Status - Returns if 2FA is enabled
 export const get2FAStatus = async (req: Request, res: Response) => {
   try {
-    const user = getAuthenticatedUser(req);
+    const user = req.user;
     if (!user) {
       return sendError(res, TWO_FACTOR_ERRORS.UNAUTHORIZED, ERROR_CODES.UNAUTHORIZED, 401);
     }
 
-    const {
-      data: { user: fullUser },
-      error,
-    } = await supabase.auth.admin.getUserById(user.id);
-    if (error || !fullUser) {
-      throw error || new Error(TWO_FACTOR_ERRORS.USER_FETCH_FAILED);
-    }
-
-    return sendSuccess(
-      res,
-      {
-        enabled: !!fullUser.app_metadata?.two_factor_enabled,
-      },
-      TWO_FACTOR_SUCCESS.STATUS_FETCHED,
-    );
+    const enabled = await twoFactorService.isEnrolled(user.id);
+    return sendSuccess(res, { enabled }, TWO_FACTOR_SUCCESS.STATUS_FETCHED);
   } catch (error) {
-    return sendError(res, extractErrorMessage(error, TWO_FACTOR_ERRORS.STATUS_FAILED));
+    return sendFailure(res, error, TWO_FACTOR_ERRORS.STATUS_FAILED);
   }
 };

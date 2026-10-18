@@ -40,7 +40,8 @@ export const enable2FAPayloadSchema = z.object({
     .string()
     .length(6, 'The token must be 6 digits long')
     .regex(/^\d+$/, 'The token must contain only digits'),
-  secret: z.string().min(16, 'Secret is invalid'),
+  // Ignored by the server (it uses its own pending secret); still accepted from older clients.
+  secret: z.string().min(16, 'Secret is invalid').optional(),
 });
 
 // Express route wrapper schemas
@@ -58,6 +59,10 @@ export const verify2FASchema = z.object({
 
 export const enable2FASchema = z.object({
   body: enable2FAPayloadSchema,
+});
+
+export const disable2FASchema = z.object({
+  body: verify2FAPayloadSchema,
 });
 
 // Inferred TypeScript types

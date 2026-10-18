@@ -1,8 +1,9 @@
 import { useTranslation } from 'react-i18next';
-import { Shield, Trash2 } from 'lucide-react';
+import { Shield } from 'lucide-react';
 import Loader from '../../UI/Loader';
 import { useTwoFactorAuth, UseTwoFactorAuthOptions } from './useTwoFactorAuth';
 import { TwoFactorSetupBox } from './TwoFactorSetupBox';
+import { TwoFactorDisableBox } from './TwoFactorDisableBox';
 
 export type TwoFactorSetupProps = UseTwoFactorAuthOptions;
 
@@ -94,7 +95,6 @@ export default function TwoFactorSetup(props: Readonly<TwoFactorSetupProps> = {}
         <button
           type="button"
           onClick={handleSetup}
-          disabled={loading}
           className="btn-primary"
           style={{
             background: 'var(--accent)',
@@ -106,13 +106,12 @@ export default function TwoFactorSetup(props: Readonly<TwoFactorSetupProps> = {}
             padding: '0.8rem 1.5rem',
             borderRadius: '8px',
             border: 'none',
-            cursor: loading ? 'not-allowed' : 'pointer',
+            cursor: 'pointer',
             width: '100%',
             transition: 'color 0.2s, background-color 0.2s, border-color 0.2s, opacity 0.2s',
-            opacity: loading ? 0.7 : 1,
           }}
         >
-          {loading ? <Loader minimal /> : t('account.security.setup_2fa', 'Setup 2FA')}
+          {t('account.security.setup_2fa', 'Setup 2FA')}
         </button>
       )}
 
@@ -132,32 +131,12 @@ export default function TwoFactorSetup(props: Readonly<TwoFactorSetupProps> = {}
       )}
 
       {enabled && (
-        <button
-          type="button"
-          onClick={handleDisable}
-          disabled={loading}
-          style={{
-            background: 'rgba(239, 68, 68, 0.15)',
-            color: '#ef4444',
-            border: '1px solid rgba(239, 68, 68, 0.3)',
-            padding: '0.8rem 1.5rem',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            fontWeight: '600',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            justifyContent: 'center',
-          }}
-        >
-          {loading ? (
-            <Loader minimal />
-          ) : (
-            <>
-              <Trash2 size={14} /> {t('account.security.disable_2fa', 'Disable 2FA')}
-            </>
-          )}
-        </button>
+        <TwoFactorDisableBox
+          token={token}
+          onTokenChange={setToken}
+          onDisable={handleDisable}
+          loading={loading}
+        />
       )}
     </div>
   );
