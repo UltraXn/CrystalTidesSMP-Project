@@ -72,8 +72,8 @@ describe('Auth Middleware Suite', () => {
 
     it('authenticates system bot when token matches BOT_API_KEY', async () => {
       // Arrange
-      process.env.BOT_API_KEY = 'secret-bot-key-123';
-      mockReq.headers = { authorization: 'Bearer secret-bot-key-123' };
+      process.env.BOT_API_KEY = 'test-bot-key';
+      mockReq.headers = { authorization: 'Bearer test-bot-key' };
 
       // Act
       await authenticateToken(mockReq as Request, mockRes as Response, mockNext);
@@ -306,6 +306,28 @@ describe('Auth Middleware Suite', () => {
 
       // Assert
       expect(mockNext).toHaveBeenCalled();
+    });
+  });
+
+  describe('optionalAuthenticateToken', () => {
+    it('assigns role "service" (not owner) when bot API key is provided and gets rejected by staff routes', async () => {
+      process.env.BOT_API_KEY = 'test-bot-key';
+      mockReq.headers = { authorization: 'Bearer test-bot-key' };
+
+      await optionalAuthenticateToken(mockReq as Request, mockRes as Response, mockNext);
+
+      expect(mockNext).toHaveBeenCalled();
+      expect(mockReq.user).toBeDefined();
+      expect(mockReq.user?.role).toBe('service');
+      expect(mockReq.user?.role).not.toBe('owner');
+
+      const staffNext = vi.fn();
+      const staffMiddleware = checkRole(STAFF_ROLES);
+      staffMiddleware(mockReq as Request, mockRes as Response, staffNext);
+
+      expect(mockRes.status).toHaveBeenCalledWith(403);
+      expect(mockRes.json).toHaveBeenCalledWith({ error: 'Insufficent permissions' });
+      expect(staffNext).not.toHaveBeenCalled();
     });
   });
 });

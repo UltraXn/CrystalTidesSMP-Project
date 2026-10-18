@@ -12,13 +12,8 @@ function applyValidatedValues(req: Request, res: Response, parsed: Record<string
   if (parsed.params !== undefined) {
     req.params = parsed.params as typeof req.params;
   }
-  if (parsed.query && typeof parsed.query === 'object') {
-    try {
-      Object.assign(req.query, parsed.query);
-    } catch {
-      // Express 5: req.query has only a getter; safe fallback via res.locals.validated
-    }
-  }
+  // In Express 5, req.query is dynamically computed from URL on access.
+  // Validated and coerced query values are accessible via res.locals.validated.
 }
 
 export const validate = (schema: ZodType) => (req: Request, res: Response, next: NextFunction) => {
