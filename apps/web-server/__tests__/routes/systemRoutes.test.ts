@@ -33,14 +33,15 @@ describe('System Routes (/api/system)', () => {
     expect(res.body.checks).toEqual({ mysql: 'ok', supabase: 'ok' });
   });
 
-  it('GET /api/system/ready returns 503 when MySQL is down', async () => {
+  it('GET /api/system/ready returns 200 when MySQL is down (non-critical dependency)', async () => {
     vi.spyOn(pool, 'query').mockRejectedValueOnce(new Error('ECONNREFUSED'));
 
     const res = await request(app).get('/api/system/ready');
 
-    expect(res.status).toBe(503);
-    expect(res.body.status).toBe('unavailable');
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe('degraded');
     expect(res.body.checks.mysql).toBe('down');
+    expect(res.body.checks.supabase).toBe('ok');
   });
 
   it('GET /api/system/ready returns 503 when Supabase ping fails', async () => {
