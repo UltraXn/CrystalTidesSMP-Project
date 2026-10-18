@@ -1,6 +1,6 @@
 import { useNavigate, Link, useSearchParams } from 'react-router';
 import { Medal, Info, CheckCircle, Lock, Sparkles } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth, type TrustedProfile } from '../context/AuthContext';
 import { useEffect, useState, useMemo, lazy, Suspense, type ComponentProps } from 'react';
 import { supabase } from '../services/supabaseClient';
 import { UserIdentity, Provider, User } from '@supabase/supabase-js';
@@ -1486,7 +1486,7 @@ function PostsTabContent({ threads, isLoading, t }: Readonly<PostsTabProps>) {
 }
 
 interface MedalsTabProps {
-  userMedals?: string[];
+  userMedals?: (string | number)[];
   medalDefinitions: TranslatableItem[];
   t: TranslationFunction;
   lang: string;
@@ -1520,7 +1520,7 @@ function MedalsTabContent({ userMedals, medalDefinitions, t, lang }: Readonly<Me
       }}
     >
       {userMedals.map((medalId) => {
-        const def = medalDefinitions.find((m) => m.id === medalId);
+        const def = medalDefinitions.find((m) => String(m.id) === String(medalId));
         if (!def) return null;
         const Icon = MEDAL_ICONS[def.icon as keyof typeof MEDAL_ICONS] || Medal;
 
@@ -1871,6 +1871,7 @@ interface AccountContentAreaProps {
   discordIdentity?: UserIdentity;
   twitchIdentity?: UserIdentity;
   isDiscordLinked: boolean;
+  profile?: TrustedProfile | null;
 }
 
 const AccountContentArea: React.FC<Readonly<AccountContentAreaProps>> = (props) => {
@@ -1937,7 +1938,7 @@ const AccountContentArea: React.FC<Readonly<AccountContentAreaProps>> = (props) 
             {props.t('account.medals_title', { defaultValue: 'Mis Medallas' })}
           </h2>
           <MedalsTabContent
-            userMedals={props.user?.user_metadata?.medals}
+            userMedals={props.profile?.medals ?? []}
             medalDefinitions={props.medalDefinitions}
             t={props.t}
             lang={props.lang}
@@ -2001,7 +2002,7 @@ const AccountContentArea: React.FC<Readonly<AccountContentAreaProps>> = (props) 
 
 export default function Account() {
   const { t, i18n } = useTranslation();
-  const { user, loading } = useAuth();
+  const { user, profile, loading } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -2118,6 +2119,7 @@ export default function Account() {
             discordIdentity={discordIdentity}
             twitchIdentity={twitchIdentity}
             isDiscordLinked={isDiscordLinked}
+            profile={profile}
           />
         </main>
       </div>

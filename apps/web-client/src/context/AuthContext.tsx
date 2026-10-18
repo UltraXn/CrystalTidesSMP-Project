@@ -3,8 +3,19 @@ import { createContext, useState, useContext, useEffect, useMemo, useCallback } 
 import { supabase } from '../services/supabaseClient';
 import { User, Provider, AuthResponse, OAuthResponse } from '@supabase/supabase-js';
 
+export interface TrustedProfile {
+  id?: string;
+  role: string;
+  username: string | null;
+  avatar_url: string | null;
+  medals?: (string | number)[];
+  reputation?: number;
+}
+
 export interface AuthContextType {
   user: User | null;
+  profile: TrustedProfile | null;
+  refreshProfile: () => Promise<void>;
   login: (email: string, password: string) => Promise<AuthResponse['data']>;
   loginWithProvider: (provider: Provider) => Promise<OAuthResponse['data']>;
   logout: () => Promise<void>;
@@ -23,9 +34,41 @@ export const useAuth = () => {
   return useContext(AuthContext) as AuthContextType;
 };
 
+async function fetchTrustedProfile(userId: string): Promise<TrustedProfile | null> {
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, role, username, avatar_url, medals, reputation')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (error || !data) return null;
+    return {
+      id: data.id,
+      role: data.role || 'user',
+      username: data.username ?? null,
+      avatar_url: data.avatar_url ?? null,
+      medals: Array.isArray(data.medals) ? data.medals : [],
+      reputation: typeof data.reputation === 'number' ? data.reputation : 0,
+    };
+  } catch {
+    return null;
+  }
+}
+
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<TrustedProfile | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const refreshProfile = useCallback(async () => {
+    if (!user) {
+      setProfile(null);
+      return;
+    }
+    const prof = await fetchTrustedProfile(user.id);
+    setProfile(prof);
+  }, [user]);
 
   useEffect(() => {
     // 1. Verificar sesión activa al inicio
@@ -33,9 +76,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       try {
         // Usar getUser() en lugar de getSession() para asegurar datos frescos del servidor
         const {
-          data: { user },
+          data: { user: activeUser },
         } = await supabase.auth.getUser();
-        setUser(user ?? null);
+        setUser(activeUser ?? null);
+        if (activeUser) {
+          const prof = await fetchTrustedProfile(activeUser.id);
+          setProfile(prof);
+        } else {
+          setProfile(null);
+        }
       } catch (error) {
         console.error('Error verificando sesión:', error);
       } finally {
@@ -49,10 +98,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      // Simplificado para evitar bucles infinitos y bloqueos
-      // session.user viene del token JWT. Si necesitamos datos frescos post-link,
-      // refreshSession() debe ser llamado explícitamente donde ocurra la acción.
-      setUser(session?.user ?? null);
+      const nextUser = session?.user ?? null;
+      setUser(nextUser);
+      if (nextUser) {
+        const prof = await fetchTrustedProfile(nextUser.id);
+        setProfile(prof);
+      } else {
+        setProfile(null);
+      }
       setLoading(false);
     });
 
@@ -69,6 +122,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         } = await supabase.auth.getUser();
         if (freshUser) {
           setUser(freshUser);
+          const prof = await fetchTrustedProfile(freshUser.id);
+          setProfile(prof);
         }
       }
     };
@@ -119,6 +174,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       console.error('Error signing out:', error);
     } finally {
       setUser(null);
+      setProfile(null);
     }
   }, []);
 
@@ -186,6 +242,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const value = useMemo(
     () => ({
       user,
+      profile,
+      refreshProfile,
       login,
       loginWithProvider,
       logout,
@@ -193,7 +251,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       updateUser,
       loading,
     }),
-    [user, loading, login, loginWithProvider, logout, register, updateUser],
+    [
+      user,
+      profile,
+      refreshProfile,
+      loading,
+      login,
+      loginWithProvider,
+      logout,
+      register,
+      updateUser,
+    ],
   );
 
   return <AuthContext.Provider value={value}>{!loading && children}</AuthContext.Provider>;

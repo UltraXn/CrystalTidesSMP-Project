@@ -69,11 +69,11 @@ function executeSpinStep(params: SpinAnimationParams): void {
 }
 
 export function useGachaGame() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, profile, loading: authLoading } = useAuth();
   const [mockUser, setMockUser] = useState<User | null>(null);
 
   const activeUser = user || mockUser;
-  const userIsAdmin = useMemo(() => isAdmin(activeUser), [activeUser]);
+  const userIsAdmin = useMemo(() => isAdmin(profile || activeUser), [profile, activeUser]);
 
   const [selectedTier, setSelectedTier] = useState<GachaTier>(DISPLAY_GACHA_TIERS[0]);
   const [killuBalance, setKilluBalance] = useState(0);

@@ -485,9 +485,9 @@ export default function PublicProfile() {
   const { username } = useParams();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, profile: currentProfile } = useAuth();
 
-  const isAdmin = checkIsAdmin(currentUser);
+  const isAdmin = checkIsAdmin(currentProfile);
 
   const [overrideProfile, setOverrideProfile] = useState<Profile | null>(null);
   const [givingKarma, setGivingKarma] = useState(false);

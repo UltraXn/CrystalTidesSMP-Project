@@ -74,7 +74,7 @@ export function useForumThread() {
   const params = useParams<{ type?: string; id?: string }>();
   const type = params.id ? (params.type ?? 'topic') : 'topic';
   const id = params.id ?? params.type;
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
 
@@ -117,7 +117,7 @@ export function useForumThread() {
     overrideComments.length > 0 ? overrideComments : (threadQueryData?.comments ?? []);
   const error = threadError ? threadError.message : null;
 
-  const isAdmin = checkIsAdmin(user?.user_metadata);
+  const isAdmin = checkIsAdmin(profile);
   const isOwnerOrAdmin = (targetUserId: string | null) => isAdmin || user?.id === targetUserId;
 
   useEffect(() => {
@@ -356,7 +356,7 @@ export function useForumThread() {
         finalContent += `\n\n![Imagen](${publicUrl})`;
       }
 
-      const currentRole = currentUser?.user_metadata?.role || 'user';
+      const currentRole = profile?.role || 'user';
       const username =
         currentUser?.user_metadata?.username || currentUser?.email?.split('@')[0] || 'Usuario';
 

@@ -36,12 +36,12 @@ function getUserAvatarUrl(user: unknown): string | undefined {
 
 export default function MobileBottomNav() {
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   // Check for admin role
-  const userIsAdmin = isAdmin(user);
+  const userIsAdmin = isAdmin(profile);
 
   const avatarUrl = getUserAvatarUrl(user);
 

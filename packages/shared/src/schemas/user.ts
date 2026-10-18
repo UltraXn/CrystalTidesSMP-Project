@@ -44,6 +44,23 @@ export const USER_ROLES = [
 
 export type UserRole = (typeof USER_ROLES)[number];
 
+export const ADMIN_ROLES: readonly string[] = [
+  'admin',
+  'neroferno',
+  'killu',
+  'killuwu',
+  'developer',
+  'owner',
+] as const;
+
+export const STAFF_ROLES: readonly string[] = [
+  ...ADMIN_ROLES,
+  'staff',
+  'moderator',
+  'mod',
+  'helper',
+] as const;
+
 export const updateUserRolePayloadSchema = z.object({
   role: z.enum(USER_ROLES),
 });

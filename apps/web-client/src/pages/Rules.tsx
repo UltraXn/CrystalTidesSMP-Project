@@ -14,7 +14,7 @@ import { useRulesManagement } from '../components/Rules/useRulesManagement';
 
 export default function Rules() {
   const { t, i18n } = useTranslation();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
 
   useSEO({
     title: 'Reglamento Oficial y Normas de Convivencia',
@@ -50,7 +50,7 @@ export default function Rules() {
     startEdit,
     handleCopyCommand,
     toggleExpandRule,
-  } = useRulesManagement(user, t);
+  } = useRulesManagement(user, t, profile);
 
   return (
     <div className="relative w-full">

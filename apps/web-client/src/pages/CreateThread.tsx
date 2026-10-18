@@ -159,21 +159,13 @@ const createThreadPayload = (
   categoryId: string,
   title: string,
   content: string,
-  user: AuthUserData | null,
+  _user: AuthUserData | null,
   pollData: ReturnType<typeof buildPollPayload>,
 ) => {
-  const username = user?.user_metadata?.username ?? user?.email?.split('@')[0] ?? 'Usuario';
-
   return {
     category_id: Number.parseInt(categoryId, 10),
     title,
     content,
-    user_data: {
-      id: user?.id ?? 'anonymous',
-      name: username,
-      avatar: user?.user_metadata?.avatar_url,
-      role: user?.user_metadata?.role ?? 'user',
-    },
     poll_data: pollData,
   };
 };
