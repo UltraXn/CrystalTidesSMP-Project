@@ -95,7 +95,6 @@ export default function TwoFactorSetup(props: Readonly<TwoFactorSetupProps> = {}
         <button
           type="button"
           onClick={handleSetup}
-          disabled={loading}
           className="btn-primary"
           style={{
             background: 'var(--accent)',
@@ -107,13 +106,12 @@ export default function TwoFactorSetup(props: Readonly<TwoFactorSetupProps> = {}
             padding: '0.8rem 1.5rem',
             borderRadius: '8px',
             border: 'none',
-            cursor: loading ? 'not-allowed' : 'pointer',
+            cursor: 'pointer',
             width: '100%',
             transition: 'color 0.2s, background-color 0.2s, border-color 0.2s, opacity 0.2s',
-            opacity: loading ? 0.7 : 1,
           }}
         >
-          {loading ? <Loader minimal /> : t('account.security.setup_2fa', 'Setup 2FA')}
+          {t('account.security.setup_2fa', 'Setup 2FA')}
         </button>
       )}
 
