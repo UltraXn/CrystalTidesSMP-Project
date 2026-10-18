@@ -92,7 +92,7 @@ jobs:
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: |
           cd apps/web-client
-          pnpm dlx playwright install --with-deps chromium
+          pnpm exec playwright install --with-deps chromium
 
       - name: Run Playwright E2E Tests
         run: |
