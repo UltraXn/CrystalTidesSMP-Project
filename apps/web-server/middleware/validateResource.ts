@@ -1,6 +1,26 @@
 import { Request, Response, NextFunction } from 'express';
 import { ZodError, type ZodType } from 'zod';
 
+function applyValidatedValues(req: Request, res: Response, parsed: Record<string, unknown>): void {
+  if (res.locals) {
+    res.locals.validated = parsed;
+  }
+
+  if (parsed.body !== undefined) {
+    req.body = parsed.body;
+  }
+  if (parsed.params !== undefined) {
+    req.params = parsed.params as typeof req.params;
+  }
+  if (parsed.query && typeof parsed.query === 'object') {
+    try {
+      Object.assign(req.query, parsed.query);
+    } catch {
+      // Express 5: req.query has only a getter; safe fallback via res.locals.validated
+    }
+  }
+}
+
 export const validate = (schema: ZodType) => (req: Request, res: Response, next: NextFunction) => {
   try {
     const parsed = schema.parse({
@@ -10,21 +30,12 @@ export const validate = (schema: ZodType) => (req: Request, res: Response, next:
     }) as Record<string, unknown>;
 
     if (parsed && typeof parsed === 'object') {
-      if ('body' in parsed && parsed.body !== undefined) {
-        req.body = parsed.body;
-      }
-      if ('query' in parsed && parsed.query !== undefined) {
-        req.query = parsed.query as typeof req.query;
-      }
-      if ('params' in parsed && parsed.params !== undefined) {
-        req.params = parsed.params as typeof req.params;
-      }
+      applyValidatedValues(req, res, parsed);
     }
 
     next();
   } catch (error) {
     if (error instanceof ZodError) {
-      // ZodError by default has an 'errors' property
       return res.status(400).json({
         error: 'Validation Error',
         details: error.issues.map((e) => ({

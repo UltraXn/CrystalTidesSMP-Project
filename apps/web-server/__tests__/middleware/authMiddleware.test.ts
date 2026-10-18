@@ -13,8 +13,24 @@ vi.mock('../../services/auditService.js', () => ({
   logSecurityFailure: vi.fn().mockResolvedValue(undefined),
 }));
 
+interface MockUser {
+  id: string;
+  username?: string;
+  role: string;
+  email?: string;
+  avatar_url?: string;
+  app_metadata?: {
+    two_factor_enabled?: boolean;
+    [key: string]: unknown;
+  };
+}
+
+interface MockRequest extends Partial<Request> {
+  user?: MockUser;
+}
+
 describe('Auth Middleware Suite', () => {
-  let mockReq: Partial<Request>;
+  let mockReq: MockRequest;
   let mockRes: Partial<Response>;
   let mockNext: NextFunction;
 
@@ -82,6 +98,21 @@ describe('Auth Middleware Suite', () => {
 
       // Assert
       expect(mockRes.status).toHaveBeenCalledWith(401);
+      expect(mockNext).not.toHaveBeenCalled();
+    });
+
+    it('returns 503 when Supabase suffers an unexpected outage or network failure', async () => {
+      // Arrange
+      mockReq.headers = { authorization: 'Bearer some-user-token' };
+      vi.spyOn(supabase.auth, 'getUser').mockRejectedValueOnce(
+        new Error('Supabase network connection timeout'),
+      );
+
+      // Act
+      await authenticateToken(mockReq as Request, mockRes as Response, mockNext);
+
+      // Assert
+      expect(mockRes.status).toHaveBeenCalledWith(503);
       expect(mockNext).not.toHaveBeenCalled();
     });
 

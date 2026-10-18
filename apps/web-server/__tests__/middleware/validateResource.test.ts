@@ -102,4 +102,31 @@ describe('validateResource Middleware', () => {
     expect(mockRes.status).toHaveBeenCalledWith(500);
     expect(mockRes.json).toHaveBeenCalledWith({ error: 'Internal Server Error during validation' });
   });
+
+  it('safely validates query parameters in an Express 5 runtime without throwing 500', async () => {
+    const express = (await import('express')).default;
+    const request = (await import('supertest')).default;
+
+    const testApp = express();
+    const querySchema = z.object({
+      query: z.object({
+        search: z.string().min(1),
+        page: z.string().optional(),
+      }),
+    });
+
+    testApp.get('/test-query', validate(querySchema), (req, res) => {
+      res.json({
+        success: true,
+        validatedQuery: res.locals.validated?.query,
+        query: req.query,
+      });
+    });
+
+    const res = await request(testApp).get('/test-query?search=crystal&page=2');
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.validatedQuery).toEqual({ search: 'crystal', page: '2' });
+  });
 });

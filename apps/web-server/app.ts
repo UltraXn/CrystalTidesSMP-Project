@@ -182,4 +182,12 @@ app.get('/', (req, res) => {
   });
 });
 
+import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
+
+// Catch 404 for unmapped routes
+app.use(notFoundHandler);
+
+// Global centralized error handler
+app.use(errorHandler);
+
 export default app;

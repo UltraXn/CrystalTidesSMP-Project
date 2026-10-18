@@ -53,6 +53,8 @@ const ERROR_CODES = {
   TWO_FA_REQUIRED: '2FA_REQUIRED',
 } as const;
 
+const MAX_TOKEN_CACHE_SIZE = 1000;
+
 // 60s in-memory token cache to eliminate Supabase HTTP roundtrip on repeated requests
 const tokenCache = new Map<string, { user: CachedUser; exp: number }>();
 
@@ -61,7 +63,10 @@ function extractBearerToken(req: Request): string | null {
   if (typeof authHeader !== 'string') {
     return null;
   }
-  const token = authHeader.split(' ')[1];
+  if (!authHeader.toLowerCase().startsWith('bearer ')) {
+    return null;
+  }
+  const token = authHeader.slice(7).trim();
   return token || null;
 }
 
@@ -103,6 +108,12 @@ function getCachedUser(token: string): CachedUser | null {
 }
 
 function setCachedUser(token: string, user: CachedUser): void {
+  if (tokenCache.size >= MAX_TOKEN_CACHE_SIZE) {
+    const oldestKey = tokenCache.keys().next().value;
+    if (oldestKey) {
+      tokenCache.delete(oldestKey);
+    }
+  }
   tokenCache.set(token, {
     user,
     exp: Date.now() + AUTH_CONSTANTS.CACHE_TTL_MS,
@@ -201,7 +212,7 @@ export const authenticateToken = async (
     const errorDetail = err instanceof Error ? err.message : ERROR_MESSAGES.UNKNOWN_ERROR;
     console.error('Unexpected auth error:', errorDetail);
     logSecurityEvent(req, ERROR_MESSAGES.AUTH_FAILED, true);
-    return sendError(res, ERROR_MESSAGES.AUTH_FAILED, ERROR_CODES.AUTH_UNEXPECTED, 403, err);
+    return sendError(res, ERROR_MESSAGES.AUTH_FAILED, ERROR_CODES.AUTH_UNEXPECTED, 503, err);
   }
 };
 
@@ -267,6 +278,17 @@ export const optionalAuthenticateToken = async (
   }
 
   try {
+    if (isBotApiKey(token)) {
+      req.user = createBotUser();
+      return next();
+    }
+
+    const cachedUser = getCachedUser(token);
+    if (cachedUser) {
+      req.user = cachedUser;
+      return next();
+    }
+
     const {
       data: { user },
       error,
@@ -274,7 +296,9 @@ export const optionalAuthenticateToken = async (
 
     if (!error && user) {
       const profile = await fetchProfile(user.id);
-      req.user = buildCachedUser(user as SupabaseAuthUser, profile);
+      const resolvedUser = buildCachedUser(user as SupabaseAuthUser, profile);
+      req.user = resolvedUser;
+      setCachedUser(token, resolvedUser);
     }
     next();
   } catch {
