@@ -1,13 +1,14 @@
-import { secureRandom } from '../utils/random';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Calendar, ArrowRight, Tag } from 'lucide-react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import Section from '../components/Layout/Section';
 import { useTranslation } from 'react-i18next';
 import { m as motion, AnimatePresence } from 'framer-motion';
 import { Skeleton } from 'boneyard-js/react';
 import { useSEO } from '../hooks/useSEO';
+import { useAuth } from '../context/AuthContext';
+import { supabase } from '../services/supabaseClient';
 
 export interface Article {
   id: string | number;
@@ -21,6 +22,7 @@ export interface Article {
   slug?: string;
   title_en?: string;
   content_en?: string;
+  likes_count?: number;
 }
 
 interface Particle {
@@ -39,18 +41,12 @@ const CONSTANTS = {
   MAX_DISPLAYED_ARTICLES: 4,
 } as const;
 
-const STORAGE_KEYS = {
-  LIKE_PREFIX: 'like_v1_',
-  IS_LIKED_PREFIX: 'is_liked_v1_',
-} as const;
-
 const CATEGORY_EMOJIS: Readonly<Record<string, string>> = {
   Evento: '🐉',
   Sistema: '⚙️',
   Anuncio: '⚔️',
 };
 const DEFAULT_CATEGORY_EMOJI = '⚔️';
-const PARTICLE_EMOJIS = ['💎', '✨', '💙', '👑'] as const;
 
 const DEFAULT_FALLBACK_NEWS: Article[] = [
   {
@@ -93,25 +89,21 @@ function formatArticleDate(dateString: string): string {
 
 function generateLikeParticles(): Particle[] {
   const timestamp = Date.now();
-  return Array.from({ length: 6 }, (_, index) => {
-    const randomEmojiIndex = Math.floor(secureRandom() * PARTICLE_EMOJIS.length);
-    return {
-      id: timestamp + index,
-      x: (secureRandom() - 0.5) * 80,
-      y: -(secureRandom() * 60 + 30),
-      emoji: PARTICLE_EMOJIS[randomEmojiIndex] ?? '💎',
-      rotate: (secureRandom() - 0.5) * 90,
-    };
-  });
-}
-
-function getInitialLikeCount(articleId: string | number): number {
-  const saved = localStorage.getItem(`${STORAGE_KEYS.LIKE_PREFIX}${articleId}`);
-  return saved ? Number.parseInt(saved, 10) : Math.floor(secureRandom() * 40) + 15;
-}
-
-function getInitialIsLiked(articleId: string | number): boolean {
-  return localStorage.getItem(`${STORAGE_KEYS.IS_LIKED_PREFIX}${articleId}`) === 'true';
+  const offsets = [
+    { x: -30, y: -45, rot: -30, emoji: '💎' },
+    { x: 30, y: -50, rot: 25, emoji: '✨' },
+    { x: -15, y: -65, rot: -10, emoji: '💙' },
+    { x: 15, y: -60, rot: 15, emoji: '👑' },
+    { x: -40, y: -35, rot: -45, emoji: '✨' },
+    { x: 40, y: -40, rot: 40, emoji: '💎' },
+  ];
+  return offsets.map((o, index) => ({
+    id: timestamp + index,
+    x: o.x,
+    y: o.y,
+    emoji: o.emoji,
+    rotate: o.rot,
+  }));
 }
 
 function extractNewsCategories(articles: Article[]): string[] {
@@ -140,28 +132,74 @@ async function fetchPublishedNews(apiUrl: string): Promise<Article[]> {
   }
 }
 
-// Like Button Component with Magic Particles
-const LikeButton = ({ articleId }: { articleId: string | number }) => {
-  const [likes, setLikes] = useState<number>(() => getInitialLikeCount(articleId));
-  const [isLiked, setIsLiked] = useState<boolean>(() => getInitialIsLiked(articleId));
-  const [particles, setParticles] = useState<Particle[]>([]);
+interface LikeButtonProps {
+  articleId: string | number;
+  initialLikes?: number;
+  initialIsLiked?: boolean;
+}
 
-  const handleLike = (e: React.MouseEvent<HTMLButtonElement>) => {
+// Like Button Component with Magic Particles and Server State
+const LikeButton = ({ articleId, initialLikes = 0, initialIsLiked = false }: LikeButtonProps) => {
+  const navigate = useNavigate();
+  const isFallback = String(articleId).startsWith('fallback');
+  const [likes, setLikes] = useState<number>(initialLikes);
+  const [isLiked, setIsLiked] = useState<boolean>(initialIsLiked);
+  const [particles, setParticles] = useState<Particle[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+
+  useEffect(() => {
+    setLikes(initialLikes);
+  }, [initialLikes]);
+
+  useEffect(() => {
+    setIsLiked(initialIsLiked);
+  }, [initialIsLiked]);
+
+  if (isFallback) {
+    return null;
+  }
+
+  const handleLike = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
 
-    const newLiked = !isLiked;
-    const newLikesCount = newLiked ? likes + 1 : likes - 1;
+    if (isLiked || loading) return;
 
-    setIsLiked(newLiked);
-    setLikes(newLikesCount);
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
 
-    localStorage.setItem(`${STORAGE_KEYS.IS_LIKED_PREFIX}${articleId}`, String(newLiked));
-    localStorage.setItem(`${STORAGE_KEYS.LIKE_PREFIX}${articleId}`, String(newLikesCount));
+    if (!session?.access_token) {
+      navigate('/login');
+      return;
+    }
 
-    if (newLiked) {
-      setParticles(generateLikeParticles());
-      setTimeout(() => setParticles([]), CONSTANTS.PARTICLE_DISMISS_DELAY_MS);
+    setLoading(true);
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || CONSTANTS.DEFAULT_API_URL;
+      const res = await fetch(`${apiUrl}/news/${articleId}/like`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (!res.ok) return;
+
+      const data = (await res.json()) as { success: boolean; liked: boolean; likes_count: number };
+      if (data.success) {
+        setIsLiked(data.liked);
+        setLikes(data.likes_count);
+        if (data.liked) {
+          setParticles(generateLikeParticles());
+          setTimeout(() => setParticles([]), CONSTANTS.PARTICLE_DISMISS_DELAY_MS);
+        }
+      }
+    } catch {
+      // Non-blocking network error
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -172,10 +210,12 @@ const LikeButton = ({ articleId }: { articleId: string | number }) => {
   return (
     <div className="relative inline-block">
       <button
-        aria-label="Action"
+        aria-label={isLiked ? 'Ya te gusta' : 'Dar me gusta'}
+        data-testid="like-button"
         type="button"
+        disabled={loading || isLiked}
         onClick={handleLike}
-        className={`flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-black transition-colors ${buttonStyleClass}`}
+        className={`flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-black transition-colors ${buttonStyleClass} ${loading ? 'opacity-70' : ''}`}
       >
         <span className="text-sm leading-none">{isLiked ? '💙' : '🤍'}</span>
         <span>{likes}</span>
@@ -206,7 +246,7 @@ const LikeButton = ({ articleId }: { articleId: string | number }) => {
 };
 
 // Featured News Card - Spans 2 Columns
-const FeaturedNewsCard = ({ article }: { article: Article }) => {
+const FeaturedNewsCard = ({ article, isLiked }: { article: Article; isLiked?: boolean }) => {
   const { t, i18n } = useTranslation();
   const isEn = i18n.language === 'en';
 
@@ -252,7 +292,11 @@ const FeaturedNewsCard = ({ article }: { article: Article }) => {
             <ArrowRight className="transition-transform group-hover/link:translate-x-1" />
           </Link>
 
-          <LikeButton articleId={article.id} />
+          <LikeButton
+            articleId={article.id}
+            initialLikes={article.likes_count ?? 0}
+            initialIsLiked={isLiked}
+          />
         </div>
       </div>
     </div>
@@ -260,7 +304,7 @@ const FeaturedNewsCard = ({ article }: { article: Article }) => {
 };
 
 // Compact News Card for Right Column
-const CompactNewsCard = ({ article }: { article: Article }) => {
+const CompactNewsCard = ({ article, isLiked }: { article: Article; isLiked?: boolean }) => {
   const { t, i18n } = useTranslation();
   const isEn = i18n.language === 'en';
 
@@ -307,7 +351,11 @@ const CompactNewsCard = ({ article }: { article: Article }) => {
             <ArrowRight size={14} className="transition-transform group-hover/link:translate-x-1" />
           </Link>
 
-          <LikeButton articleId={article.id} />
+          <LikeButton
+            articleId={article.id}
+            initialLikes={article.likes_count ?? 0}
+            initialIsLiked={isLiked}
+          />
         </div>
       </div>
     </div>
@@ -336,7 +384,6 @@ const CategoryFilterBar = ({
 
         return (
           <button
-            aria-label="Action"
             type="button"
             key={category}
             onClick={() => onSelectCategory(category)}
@@ -414,12 +461,34 @@ export default function Blog() {
   });
 
   const apiUrl = import.meta.env.VITE_API_URL || CONSTANTS.DEFAULT_API_URL;
+  const { user } = useAuth();
 
   const { data: news = DEFAULT_FALLBACK_NEWS, isLoading: loading } = useQuery<Article[]>({
     queryKey: ['blogPublishedNews'],
     queryFn: () => fetchPublishedNews(apiUrl),
     staleTime: 60_000,
   });
+
+  const { data: likedIds = [] } = useQuery<number[]>({
+    queryKey: ['myLikedNews', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session?.access_token) return [];
+      const res = await fetch(`${apiUrl}/news/likes/mine`, {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      if (!res.ok) return [];
+      const data = (await res.json()) as { liked_ids?: number[] };
+      return data.liked_ids ?? [];
+    },
+    enabled: Boolean(user),
+    staleTime: 60_000,
+  });
+
+  const likedSet = useMemo(() => new Set<number>(likedIds), [likedIds]);
 
   const categories = useMemo(() => extractNewsCategories(news), [news]);
 
@@ -454,14 +523,21 @@ export default function Blog() {
             <div className="min-h-87.5 grid grid-cols-1 gap-8 lg:grid-cols-3">
               {featuredArticle && (
                 <div className="lg:col-span-2">
-                  <FeaturedNewsCard article={featuredArticle} />
+                  <FeaturedNewsCard
+                    article={featuredArticle}
+                    isLiked={likedSet.has(Number(featuredArticle.id))}
+                  />
                 </div>
               )}
 
               {otherArticles.length > 0 ? (
                 <div className="flex flex-col gap-6">
                   {otherArticles.map((article) => (
-                    <CompactNewsCard key={article.id} article={article} />
+                    <CompactNewsCard
+                      key={article.id}
+                      article={article}
+                      isLiked={likedSet.has(Number(article.id))}
+                    />
                   ))}
                 </div>
               ) : (

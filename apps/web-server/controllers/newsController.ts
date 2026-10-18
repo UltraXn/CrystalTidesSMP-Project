@@ -548,3 +548,87 @@ export const getLauncherNewsFeed = async (req: Request, res: Response) => {
     handleControllerError(res, error);
   }
 };
+
+interface NewsLikeResult {
+  liked: boolean;
+  likes_count: number;
+}
+
+export const likeNewsArticle = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const rawId = ensureString(req.params.id);
+    if (!rawId) {
+      res.status(400).json({ error: 'ID de noticia inválido' });
+      return;
+    }
+
+    const numericCandidate = Number(rawId);
+    if (!Number.isNaN(numericCandidate)) {
+      if (!Number.isSafeInteger(numericCandidate) || numericCandidate <= 0) {
+        res.status(400).json({ error: 'ID de noticia inválido' });
+        return;
+      }
+    }
+
+    if (!req.user) {
+      res.status(401).json({ error: ERRORS.UNAUTH });
+      return;
+    }
+
+    const resolvedId = await resolveNewsId(rawId);
+    if (!resolvedId) {
+      res.status(404).json({ error: ERRORS.NEWS_NOT_FOUND });
+      return;
+    }
+
+    const numericId = Number(resolvedId);
+    if (!Number.isSafeInteger(numericId) || numericId <= 0) {
+      res.status(400).json({ error: 'ID de noticia inválido' });
+      return;
+    }
+
+    const { data, error } = await supabase.rpc('like_news_article', {
+      p_news_id: numericId,
+      p_user_id: req.user.id,
+    });
+
+    if (error) {
+      handleControllerError(res, error);
+      return;
+    }
+
+    const rows = (data ?? []) as NewsLikeResult[];
+    if (rows.length === 0) {
+      res.status(404).json({ error: ERRORS.NEWS_NOT_FOUND });
+      return;
+    }
+
+    res.json({ success: true, liked: rows[0].liked, likes_count: rows[0].likes_count });
+  } catch (err: unknown) {
+    handleControllerError(res, err);
+  }
+};
+
+export const getMyLikedNews = async (req: Request, res: Response): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ error: ERRORS.UNAUTH });
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from('news_likes')
+      .select('news_id')
+      .eq('user_id', req.user.id);
+
+    if (error) {
+      handleControllerError(res, error);
+      return;
+    }
+
+    const likedIds = (data ?? []).map((row: { news_id: number }) => row.news_id);
+    res.json({ liked_ids: likedIds });
+  } catch (err: unknown) {
+    handleControllerError(res, err);
+  }
+};

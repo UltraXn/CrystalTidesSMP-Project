@@ -2,6 +2,7 @@ import express from 'express';
 import * as newsController from '../controllers/newsController.js';
 import { authenticateToken } from '../middleware/authMiddleware.js';
 import { checkRole, ADMIN_ROLES } from '../utils/roleUtils.js';
+import { sensitiveActionLimiter } from '../middleware/rateLimitMiddleware.js';
 
 const router = express.Router();
 
@@ -45,20 +46,50 @@ const router = express.Router();
  *         description: Noticia creada
  */
 import { validate } from '../middleware/validateResource.js';
-import { createNewsSchema, updateNewsSchema, createCommentSchema, updateCommentSchema } from '../schemas/newsSchemas.js';
+import {
+  createNewsSchema,
+  updateNewsSchema,
+  createCommentSchema,
+  updateCommentSchema,
+} from '../schemas/newsSchemas.js';
 
 router.get('/', newsController.getAllNews);
 router.get('/feed', newsController.getLauncherNewsFeed);
 router.get('/launcher-feed', newsController.getLauncherNewsFeed);
-router.post('/', authenticateToken, checkRole(ADMIN_ROLES), validate(createNewsSchema), newsController.createNews);
+router.post(
+  '/',
+  authenticateToken,
+  checkRole(ADMIN_ROLES),
+  validate(createNewsSchema),
+  newsController.createNews,
+);
+
+router.get('/likes/mine', authenticateToken, newsController.getMyLikedNews);
+router.post('/:id/like', authenticateToken, sensitiveActionLimiter, newsController.likeNewsArticle);
 
 router.get('/:id', newsController.getNewsById);
 router.get('/:id/comments', newsController.getCommentsByNewsId);
-router.post('/:id/comments', authenticateToken, validate(createCommentSchema), newsController.createComment);
-router.put('/comments/:id', authenticateToken, validate(updateCommentSchema), newsController.updateComment);
+router.post(
+  '/:id/comments',
+  authenticateToken,
+  validate(createCommentSchema),
+  newsController.createComment,
+);
+router.put(
+  '/comments/:id',
+  authenticateToken,
+  validate(updateCommentSchema),
+  newsController.updateComment,
+);
 router.delete('/comments/:id', authenticateToken, newsController.deleteComment);
 
-router.put('/:id', authenticateToken, checkRole(ADMIN_ROLES), validate(updateNewsSchema), newsController.updateNews);
+router.put(
+  '/:id',
+  authenticateToken,
+  checkRole(ADMIN_ROLES),
+  validate(updateNewsSchema),
+  newsController.updateNews,
+);
 router.delete('/:id', authenticateToken, checkRole(ADMIN_ROLES), newsController.deleteNews);
 
 export default router;
