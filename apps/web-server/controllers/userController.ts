@@ -4,10 +4,21 @@ import * as playerStatsService from '../services/playerStatsService.js';
 import * as forumService from '../services/forumService.js';
 
 import { Request, Response } from 'express';
+import { z } from 'zod';
 import { sendSuccess, sendError } from '../utils/responseHandler.js';
 import { getRolePriority, STAFF_ROLES } from '../utils/roleUtils.js';
 import supabase from '../config/supabaseClient.js';
 import { ensureString } from '../utils/typeUtils.js';
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const PROFILE_IDENTIFIER_REGEX = /^[A-Za-z0-9_\- ]{1,64}$/;
+
+const profileIdentifierSchema = z
+  .string()
+  .trim()
+  .refine((val) => PROFILE_IDENTIFIER_REGEX.test(val) || UUID_REGEX.test(val), {
+    message: 'Invalid profile identifier format',
+  });
 
 const CONSTANTS = {
   ADMIN_DEFAULT: 'Admin',
@@ -152,7 +163,12 @@ export const updateUserMetadata = async (req: Request, res: Response) => {
 
 export const getPublicProfile = async (req: Request, res: Response) => {
   try {
-    const username = ensureString(req.params.username);
+    const rawUsername = ensureString(req.params.username);
+    const parsed = profileIdentifierSchema.safeParse(rawUsername);
+    if (!parsed.success) {
+      return sendError(res, 'Identificador de perfil no valido', 'INVALID_IDENTIFIER', 400);
+    }
+    const username = parsed.data;
     const profile = await userService.getPublicProfile(username);
     if (!profile)
       return sendError(
@@ -173,7 +189,12 @@ export const getPublicProfile = async (req: Request, res: Response) => {
  */
 export const getFullProfile = async (req: Request, res: Response) => {
   try {
-    const username = ensureString(req.params.username);
+    const rawUsername = ensureString(req.params.username);
+    const parsed = profileIdentifierSchema.safeParse(rawUsername);
+    if (!parsed.success) {
+      return sendError(res, 'Identificador de perfil no valido', 'INVALID_IDENTIFIER', 400);
+    }
+    const username = parsed.data;
     const profile = await userService.getPublicProfile(username);
 
     if (!profile)

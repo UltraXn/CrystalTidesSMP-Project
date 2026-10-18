@@ -63,14 +63,18 @@ export const voteKarmaSchema = z.object({
   }),
 });
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const PROFILE_IDENTIFIER_REGEX = /^[A-Za-z0-9_\- ]{1,64}$/;
+
 export const profileSchema = z.object({
   params: z.object({
     username: z
       .string()
-      .min(3)
-      .max(32)
-      .regex(/^[a-zA-Z0-9_\-\s]+$/, 'Invalid username format')
-      .optional(),
+      .trim()
+      .refine(
+        (val) => PROFILE_IDENTIFIER_REGEX.test(val) || UUID_REGEX.test(val),
+        'Invalid profile identifier format',
+      ),
   }),
 });
 

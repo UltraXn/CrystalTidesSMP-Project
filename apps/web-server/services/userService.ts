@@ -383,23 +383,42 @@ export const updateUserMetadata = async (
 };
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const PROFILE_IDENTIFIER_REGEX = /^[A-Za-z0-9_\- ]{1,64}$/;
+
+/**
+ * Escapes PostgREST ilike pattern wildcards (%, _, \) so matching is literal.
+ */
+const escapeIlikePattern = (pattern: string): string => pattern.replace(/([\\%_])/g, '\\$1');
 
 async function lookupUserByProfile(identifier: string): Promise<User | null> {
+  if (!PROFILE_IDENTIFIER_REGEX.test(identifier) && !UUID_REGEX.test(identifier)) {
+    return null;
+  }
+
   try {
     const variants = buildIdentifierVariants(identifier);
-    const { data: profile } = await supabase
-      .from(CONSTANTS.PROFILES_TABLE)
-      .select('id')
-      .or(
-        `username.ilike.${variants.raw},username.ilike.${variants.space},username.ilike.${variants.underscore}`,
-      )
-      .maybeSingle();
+    const candidateVariants = [variants.raw, variants.space, variants.underscore];
+    const uniqueVariants = [...new Set(candidateVariants)];
 
-    if (!profile?.id) return null;
-    const {
-      data: { user },
-    } = await supabase.auth.admin.getUserById(profile.id);
-    return user ?? null;
+    for (const variant of uniqueVariants) {
+      const escaped = escapeIlikePattern(variant);
+      const { data, error } = await supabase
+        .from(CONSTANTS.PROFILES_TABLE)
+        .select('id')
+        .ilike('username', escaped)
+        .limit(1);
+
+      if (error) throw error;
+      const profile = (data as { id: string }[] | null)?.[0];
+      if (profile?.id) {
+        const {
+          data: { user },
+        } = await supabase.auth.admin.getUserById(profile.id);
+        if (user) return user;
+      }
+    }
+
+    return null;
   } catch (error) {
     console.warn('[UserService] Profile lookup failed, falling back:', error);
     return null;
