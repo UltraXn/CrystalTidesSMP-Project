@@ -35,7 +35,9 @@ router.post('/minecraft', webhookLimiter, validate(minecraftWebhookSchema), (req
     return sendError(res, 'Unauthorized: Invalid or missing secret', 'AUTH_ERROR', 401);
   }
 
-  console.log(`[MC Webhook] Event: ${event} | Player: ${playerName}`);
+  // Line breaks would let the payload forge extra log entries.
+  const oneLine = (value: unknown) => String(value).replace(/[\r\n]+/g, ' ');
+  console.log(`[MC Webhook] Event: ${oneLine(event)} | Player: ${oneLine(playerName)}`);
 
   // Notify Discord (async)
   import('../services/discordService.js').then((s) =>
