@@ -1,6 +1,7 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import request from 'supertest';
 import app from '../app';
+import { signInAs } from './helpers/signInAs.js';
 
 // The ingest pipeline deletes knowledge rows of every mod missing from
 // `active_mods`, so this suite must only ever reach the unresolvable test host
@@ -8,7 +9,7 @@ import app from '../app';
 const isIsolatedEnv = (process.env.SUPABASE_URL ?? '').endsWith('.invalid');
 
 describe.skipIf(!isIsolatedEnv)('RAG Controller & Integration E2E Test Suite', () => {
-  const SECRET = process.env.RAG_INGEST_SECRET || 'CrystalRAGSecretKey2026';
+  const SECRET = process.env.RAG_INGEST_SECRET ?? '';
 
   it('debe rechazar solicitudes a /api/rag/ingest sin header de autenticación válido (401 Unauthorized)', async () => {
     const res = await request(app).post('/api/rag/ingest').send({ entities: [], items: [] });
@@ -59,7 +60,10 @@ describe.skipIf(!isIsolatedEnv)('RAG Controller & Integration E2E Test Suite', (
   });
 
   it('debe responder a la búsqueda RAG GET /api/rag/search?q=Ignis', async () => {
-    const res = await request(app).get('/api/rag/search?q=Ignis');
+    // La búsqueda es solo para staff
+    const { headers } = signInAs('moderator');
+    const res = await request(app).get('/api/rag/search?q=Ignis').set(headers);
+    vi.restoreAllMocks();
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('query', 'Ignis');

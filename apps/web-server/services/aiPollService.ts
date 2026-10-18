@@ -2,9 +2,6 @@ import { supabase, searchModKnowledge } from './ragService.js';
 import { buildBossPollPrompt, BossPollOutput } from './prompts/bossPollPrompt.js';
 import { generateResilientLLMResponse } from './llmFallbackPipeline.js';
 import { createPoll } from './pollService.js';
-import dotenv from 'dotenv';
-
-dotenv.config();
 
 const DISCORD_ANNOUNCEMENTS_WEBHOOK_URL =
   process.env.DISCORD_ANNOUNCEMENTS_WEBHOOK_URL ??

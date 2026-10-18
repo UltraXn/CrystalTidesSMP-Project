@@ -34,19 +34,23 @@ Para que el despliegue funcione, Github Actions necesita estos secretos:
 
 ### Infraestructura (Críticos)
 
-| Secreto           | Descripción                                                                                       |
-| :---------------- | :------------------------------------------------------------------------------------------------ |
-| `GCP_CREDENTIALS` | JSON de la cuenta de servicio de IAM con permisos `Cloud Run Admin` y `Artifact Registry Writer`. |
-| `PAT_TOKEN`       | Token de acceso personal de GitHub para clonar submódulos privados (si los hubiera).              |
+| Nombre                                  | Tipo     | Descripción                                                                                  |
+| :-------------------------------------- | :------- | :------------------------------------------------------------------------------------------- |
+| `GCP_WORKLOAD_IDENTITY_PROVIDER`        | Variable | Proveedor de Workload Identity Federation (sin claves). Ver `web-server-secrets.md`.         |
+| `GCP_DEPLOY_SERVICE_ACCOUNT`            | Variable | Cuenta `github-deployer` con `Cloud Run Admin` y `Artifact Registry Writer`.                  |
+| `GCP_CREDENTIALS`                       | Secreto  | **Transitorio**: clave JSON que se usa solo mientras no exista la variable de WIF. Borrar después. |
+| `PAT_TOKEN`                             | Secreto  | Token de acceso personal de GitHub para clonar submódulos privados (si los hubiera).         |
 
 ### Aplicación (Runtime)
 
-| Secreto                     | Descripción                                                                  |
-| :-------------------------- | :--------------------------------------------------------------------------- |
-| `ENV_FILE`                  | Contenido completo del `.env` de producción para el Backend (DB, Keys, etc). |
-| `VITE_SUPABASE_URL`         | URL pública de Supabase.                                                     |
-| `VITE_SUPABASE_ANON_KEY`    | Key pública de Supabase.                                                     |
-| `SUPABASE_SERVICE_ROLE_KEY` | Key administrativa (Solo Backend).                                           |
+Los secretos del backend viven en **Vault**; Cloud Run solo recibe el token de Vault desde
+Secret Manager (`vault-token`). Detalle y migración: [`web-server-secrets.md`](./web-server-secrets.md).
+
+| Secreto                  | Descripción                                                                         |
+| :----------------------- | :---------------------------------------------------------------------------------- |
+| `ENV_FILE`               | Solo configuración **no secreta** del backend (Cloud Run la muestra en claro).      |
+| `VITE_SUPABASE_URL`      | URL pública de Supabase.                                                            |
+| `VITE_SUPABASE_ANON_KEY` | Key pública de Supabase.                                                            |
 
 ## 📦 Servicios Desplegados
 

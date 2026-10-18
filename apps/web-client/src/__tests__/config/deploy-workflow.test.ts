@@ -58,7 +58,7 @@ describe('deploy.yml - deploy-backend job', () => {
 
   it('should configure backend build and push tags', () => {
     expect(workflowContent).toContain(
-      '${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/backend:latest'
+      '${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/backend:latest',
     );
   });
 
@@ -80,7 +80,9 @@ describe('deploy.yml - deploy-frontend job', () => {
 
   it('should pass Supabase build args to the frontend docker build', () => {
     expect(workflowContent).toContain('VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}');
-    expect(workflowContent).toContain('VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}');
+    expect(workflowContent).toContain(
+      'VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}',
+    );
     expect(workflowContent).toContain('VITE_API_URL=https://api.crystaltidessmp.net/api');
   });
 
@@ -90,9 +92,26 @@ describe('deploy.yml - deploy-frontend job', () => {
 });
 
 describe('deploy.yml - security and auth', () => {
-  it('should authenticate with GCP using credentials_json in Cloud Run jobs', () => {
-    const credentialMatches = (workflowContent.match(/credentials_json/g) || []).length;
-    expect(credentialMatches).toBeGreaterThanOrEqual(2);
+  const count = (pattern: string) => workflowContent.split(pattern).length - 1;
+
+  it('should authenticate both Cloud Run jobs with Workload Identity Federation', () => {
+    expect(count('workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}')).toBe(2);
+  });
+
+  it('should only use the legacy JSON key while WIF is not configured', () => {
+    expect(count("if: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER == '' }}")).toBe(
+      count('credentials_json'),
+    );
+  });
+
+  it('should mount the Vault token from Secret Manager instead of a plain env var', () => {
+    expect(workflowContent).toContain('VAULT_TOKEN=vault-token:latest');
+    expect(workflowContent).not.toContain('secrets.VAULT_TOKEN');
+  });
+
+  it('should never interpolate ENV_FILE into a shell script', () => {
+    expect(workflowContent).toContain('ENV_FILE: ${{ secrets.ENV_FILE }}');
+    expect(workflowContent).not.toContain('"${{ secrets.ENV_FILE }}"');
   });
 
   it('should checkout with submodules in deployment jobs', () => {

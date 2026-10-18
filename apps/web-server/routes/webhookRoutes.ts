@@ -11,34 +11,40 @@ const router = express.Router();
 
 /** Timing-safe secret comparison (avoids leaking via response time). */
 const safeSecretEqual = (provided: unknown, expected: string): boolean => {
-    if (typeof provided !== 'string' || !expected) return false;
-    const a = Buffer.from(provided);
-    const b = Buffer.from(expected);
-    return a.length === b.length && crypto.timingSafeEqual(a, b);
+  if (typeof provided !== 'string' || !expected) return false;
+  const a = Buffer.from(provided);
+  const b = Buffer.from(expected);
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
 };
 
-router.post('/kofi', webhookLimiter, handleKofiWebhook);
+// Ko-Fi posts x-www-form-urlencoded (data=<json>): the only route that parses forms.
+router.post('/kofi', webhookLimiter, express.urlencoded({ extended: true }), handleKofiWebhook);
 router.post('/minecraft', webhookLimiter, validate(minecraftWebhookSchema), (req, res) => {
-    // Basic placeholder for MC events
-    const { event, player, username, details, secret } = req.body;
-    const playerName = player || username;
+  // Basic placeholder for MC events
+  const { event, player, username, details, secret } = req.body;
+  const playerName = player || username;
 
-    // Security check (Mandatory: verify secret from plugin via body or header)
-    const expectedSecret = process.env.MC_WEBHOOK_SECRET;
-    const providedSecret = secret || (req.headers['x-mc-secret'] as string);
-    if (!expectedSecret || !safeSecretEqual(providedSecret, expectedSecret)) {
-        console.warn(`[MC Webhook] Unauthorized attempt: ${req.ip}`);
-        logSecurityFailure(req, 'Unauthorized: Invalid or missing secret', false).catch(err => console.error('Failed to log security event:', err));
-        return sendError(res, 'Unauthorized: Invalid or missing secret', 'AUTH_ERROR', 401);
-    }
+  // Security check (Mandatory: verify secret from plugin via body or header)
+  const expectedSecret = process.env.MC_WEBHOOK_SECRET;
+  const providedSecret = secret || (req.headers['x-mc-secret'] as string);
+  if (!expectedSecret || !safeSecretEqual(providedSecret, expectedSecret)) {
+    console.warn(`[MC Webhook] Unauthorized attempt: ${req.ip}`);
+    logSecurityFailure(req, 'Unauthorized: Invalid or missing secret', false).catch((err) =>
+      console.error('Failed to log security event:', err),
+    );
+    return sendError(res, 'Unauthorized: Invalid or missing secret', 'AUTH_ERROR', 401);
+  }
 
-    console.log(`[MC Webhook] Event: ${event} | Player: ${playerName}`);
-    
-    // Notify Discord (async)
-    import('../services/discordService.js').then(s => s.notifyMinecraftEvent(event, playerName, details));
+  // Line breaks would let the payload forge extra log entries.
+  const oneLine = (value: unknown) => String(value).replace(/[\r\n]+/g, ' ');
+  console.log(`[MC Webhook] Event: ${oneLine(event)} | Player: ${oneLine(playerName)}`);
 
-    res.json({ success: true });
+  // Notify Discord (async)
+  import('../services/discordService.js').then((s) =>
+    s.notifyMinecraftEvent(event, playerName, details),
+  );
+
+  res.json({ success: true });
 });
 
 export default router;
-

@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import supabase from '../services/supabaseService.js';
 
 interface NewsFeedItem {

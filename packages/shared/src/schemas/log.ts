@@ -7,9 +7,10 @@ export const createLogPayloadSchema = z.object({
   username: z.string().optional(),
 });
 
+// Public endpoint: every field is bounded so anonymous callers cannot bloat system_logs.
 export const reportSecurityPayloadSchema = z.object({
-  email: z.string().email().optional().or(z.literal('')),
-  details: z.string().min(5, 'Proporcione más detalles'),
+  email: z.string().max(254).email().optional().or(z.literal('')),
+  details: z.string().min(5, 'Proporcione más detalles').max(500, 'Detalles demasiado largos'),
 });
 
 // Express route wrapper schemas

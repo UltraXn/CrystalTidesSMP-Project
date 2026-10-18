@@ -36,19 +36,18 @@ import { checkCanaryToken } from './middleware/honeypotMiddleware.js';
 import { initCleanupJob } from './services/cleanupService.js';
 
 import helmet from 'helmet';
-import {
-  apiLimiter,
-  sensitiveActionLimiter,
-  uploadLimiter,
-} from './middleware/rateLimitMiddleware.js';
+import { apiLimiter, uploadLimiter } from './middleware/rateLimitMiddleware.js';
 import authRoutes from './routes/authRoutes.js';
 
 import cookieParser from 'cookie-parser';
+import { getEnv } from './config/env.js';
+import { ALLOWED_ORIGINS, rejectCrossSiteWrites } from './middleware/csrfGuard.js';
 
 const app = express();
 
-// Trust Proxy (Required for Rate Limiting behind Proxy/Load Balancer)
-app.set('trust proxy', 1);
+// Trust Proxy: Cloud Run's front end is one hop. Cloudflare's client IP is
+// resolved separately (utils/clientIp.ts). Add one hop per extra load balancer.
+app.set('trust proxy', getEnv().TRUST_PROXY_HOPS);
 
 // Security Middleware
 // Strict CSP by default: this server serves JSON, so 'unsafe-inline' is never
@@ -91,30 +90,19 @@ import hpp from 'hpp';
 // Middleware
 app.use(
   cors({
-    origin: [
-      'https://crystaltides.net',
-      'https://api.crystaltides.net',
-      'https://crystaltidessmp.net',
-      'https://api.crystaltidessmp.net',
-      'http://localhost:3000', // Local development
-      'http://localhost:5173', // Vite default
-    ],
+    origin: ALLOWED_ORIGINS,
     credentials: true,
   }),
 );
-const cookieSecret =
-  process.env.COOKIE_SECRET ??
-  process.env.JWT_SECRET ??
-  'crystaltides_cookie_signature_secret_key_2026';
-app.use(cookieParser(cookieSecret));
-import { ensureDeviceId } from './middleware/deviceIdMiddleware.js';
-app.use(ensureDeviceId);
+app.use(rejectCrossSiteWrites());
+app.use(cookieParser(getEnv().COOKIE_SECRET));
 app.use(checkCanaryToken);
+// JSON only: form-encoded bodies (what a cross-site <form> can send) are parsed
+// just on the Ko-Fi webhook route.
 app.use(express.json());
 
 // Iniciar Jobs
 initCleanupJob();
-app.use(express.urlencoded({ extended: true })); // Necesario para Ko-Fi payload
 app.use(hpp()); // Protect against HTTP Parameter Pollution attacks
 
 // Routes
@@ -126,11 +114,13 @@ app.use('/api/news', newsRoutes);
 app.use('/api/minecraft', minecraftRoutes);
 app.use('/api/tickets', ticketRoutes);
 app.use('/api/users', userRoutes);
-app.use('/api/auth', sensitiveActionLimiter, authRoutes);
-app.use('/api/discord', sensitiveActionLimiter, discordRoutes);
+// Strict limiters live on the specific write/expensive routes inside each router:
+// mounting them on a whole router would also throttle ordinary page loads.
+app.use('/api/auth', authRoutes);
+app.use('/api/discord', discordRoutes);
 app.use('/api/logs', logRoutes);
 app.use('/api/donations', donationRoutes);
-app.use('/api/suggestions', sensitiveActionLimiter, suggestionRoutes);
+app.use('/api/suggestions', suggestionRoutes);
 app.use('/api/polls', pollRoutes);
 app.use('/api/forum', forumRoutes);
 app.use('/api/events', eventRoutes);
@@ -142,14 +132,14 @@ app.use('/api/policies', policyRoutes);
 app.use('/api/profiles/comments', profileCommentRoutes);
 app.use('/api/wiki', wikiRoutes);
 app.use('/api/locations', locationRoutes);
-app.use('/api/rag', sensitiveActionLimiter, ragRoutes);
-app.use('/api/ai', sensitiveActionLimiter, aiRoutes);
+app.use('/api/rag', ragRoutes);
+app.use('/api/ai', aiRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/player-stats', playerStatsRoutes);
 app.use('/api/server', serverRoutes);
 app.use('/api/server/status', serverStatusRoutes);
-app.use('/api/bridge', sensitiveActionLimiter, bridgeRoutes); // Secure CrystalBridge
-app.use('/api/gacha', sensitiveActionLimiter, gachaRoutes);
+app.use('/api/bridge', bridgeRoutes); // Secure CrystalBridge
+app.use('/api/gacha', gachaRoutes);
 
 import roadmapRoutes from './routes/roadmapRoutes.js';
 

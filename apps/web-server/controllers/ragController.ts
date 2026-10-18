@@ -31,9 +31,7 @@ const INGEST_MESSAGES = {
     `✅ Ingesta completada. Insertados ${count} elementos nuevos.`,
 } as const;
 
-const RAG_INGEST_SECRET =
-  process.env.RAG_INGEST_SECRET ??
-  (process.env.NODE_ENV === 'test' ? 'CrystalRAGSecretKey2026' : undefined);
+const RAG_INGEST_SECRET = process.env.RAG_INGEST_SECRET;
 
 let memoryChecksumCache: string | null = null;
 

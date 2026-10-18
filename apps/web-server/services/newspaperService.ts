@@ -1,9 +1,6 @@
 import { supabase, searchModKnowledge } from './ragService.js';
 import { buildPressAgentPrompt } from './prompts/pressAgentPrompt.js';
 import { generateResilientLLMResponse } from './llmFallbackPipeline.js';
-import dotenv from 'dotenv';
-
-dotenv.config();
 
 const CONSTANTS = {
   FIELD_CREATED_AT: 'created_at',

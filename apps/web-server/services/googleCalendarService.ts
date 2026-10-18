@@ -1,8 +1,5 @@
 import { google } from 'googleapis';
-import dotenv from 'dotenv';
 import path from 'path';
-
-dotenv.config();
 
 const SCOPES = 'https://www.googleapis.com/auth/calendar';
 const CALENDAR_ID = process.env.GOOGLE_CALENDAR_ID;

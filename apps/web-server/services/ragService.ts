@@ -1,7 +1,4 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import dotenv from 'dotenv';
-
-dotenv.config();
 
 const CONSTANTS = {
   TABLE_MOD_KNOWLEDGE_BASE: 'mod_knowledge_base',
@@ -20,12 +17,11 @@ const CONSTANTS = {
   VECTOR_DIMENSIONS: 3072,
 } as const;
 
-const supabaseUrl =
-  process.env.SUPABASE_URL ??
-  (process.env.NODE_ENV === 'test' ? 'https://placeholder-supabase-url.supabase.co' : '');
-const supabaseServiceKey =
-  process.env.SUPABASE_SERVICE_ROLE_KEY ??
-  (process.env.NODE_ENV === 'test' ? 'placeholder-key-value-for-testing' : '');
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+if (!supabaseUrl || !supabaseServiceKey) {
+  throw new Error('Supabase URL or Key missing in environment variables');
+}
 const geminiApiKey = process.env.GEMINI_API_KEY ?? '';
 const cohereApiKey = process.env.COHERE_API_KEY ?? '';
 

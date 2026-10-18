@@ -5,11 +5,21 @@ import { authenticateToken, optionalAuthenticateToken } from '../middleware/auth
 import { checkRole, STAFF_ROLES } from '../utils/roleUtils.js';
 import { validate } from '../middleware/validateResource.js';
 import { createLogSchema, reportSecuritySchema } from '../schemas/logSchemas.js';
-import { sensitiveActionLimiter } from '../middleware/rateLimitMiddleware.js';
+import { securityReportLimiter } from '../middleware/rateLimitMiddleware.js';
 
 const router = express.Router();
 
-// All log routes require staff authentication
+// Security reporting is public: the web client reports failed logins, when
+// there is no session yet. It must stay above the staff guards below.
+router.post(
+  '/security/report',
+  securityReportLimiter,
+  optionalAuthenticateToken,
+  validate(reportSecuritySchema),
+  logController.reportSecurityAlert,
+);
+
+// Every other log route requires staff authentication
 router.use(authenticateToken);
 router.use(checkRole(STAFF_ROLES));
 
@@ -61,15 +71,5 @@ router.post('/', validate(createLogSchema), logController.createLog);
  *         description: Lista de comandos ejecutados por jugadores
  */
 router.get('/commands', logsController.getCommandLogs);
-
-// Security Reporting (Public/Semi-public)
-
-router.post(
-  '/security/report',
-  sensitiveActionLimiter,
-  optionalAuthenticateToken,
-  validate(reportSecuritySchema),
-  logController.reportSecurityAlert,
-);
 
 export default router;

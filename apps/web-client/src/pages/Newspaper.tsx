@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router';
 import {
   Flame,
   Clock,
@@ -11,6 +12,7 @@ import {
   Newspaper as NewspaperIcon,
   Swords,
 } from 'lucide-react';
+import { supabase } from '../services/supabaseClient';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
@@ -780,6 +782,7 @@ export function NewspaperSection() {
   const [activeTab, setActiveTab] = useState<TabType>(TABS.BLOG);
   const [readingEdition, setReadingEdition] = useState<NewspaperEdition | null>(null);
   const [likedEditions, setLikedEditions] = useState<Record<string, boolean>>({});
+  const navigate = useNavigate();
 
   const { data: latestEdition, isLoading: loadingLatest } = useQuery({
     queryKey: ['latest-newspaper-edition'],
@@ -805,9 +808,20 @@ export function NewspaperSection() {
 
   const handleLike = async (editionId: string) => {
     if (likedEditions[editionId]) return;
+    // El servidor solo acepta un like por cuenta: sin sesión, al login
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session?.access_token) {
+      navigate('/login');
+      return;
+    }
     setLikedEditions((prev) => ({ ...prev, [editionId]: true }));
     try {
-      await fetch(`${API_BASE_URL}/ai/newspaper/${editionId}/like`, { method: 'POST' });
+      await fetch(`${API_BASE_URL}/ai/newspaper/${editionId}/like`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
     } catch (err) {
       console.warn('Error al enviar like:', err);
     }
