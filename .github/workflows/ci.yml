@@ -41,11 +41,14 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
+      # launcher-lite is a submodule with its own CI (lint, Vitest, Rust): running its
+      # suite here again only duplicated work and its timing-sensitive tests flaked
+      # under the extra parallel load.
       - name: Lint Codebase
-        run: pnpm turbo run lint
+        run: pnpm turbo run lint --filter=!@crystaltides/launcher-lite
 
       - name: Run Unit Tests
-        run: pnpm turbo run test
+        run: pnpm turbo run test --filter=!@crystaltides/launcher-lite
 
       - name: Dry Run Build
         run: pnpm turbo run build --filter=...[HEAD^1]

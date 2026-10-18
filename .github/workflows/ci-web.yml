@@ -65,6 +65,11 @@ jobs:
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
       CI: true
+      # The client refuses to start without these. The golden paths never reach
+      # Supabase, so placeholder values on an unresolvable host are enough.
+      VITE_SUPABASE_URL: https://supabase.e2e.invalid
+      VITE_SUPABASE_ANON_KEY: e2e-placeholder-anon-key
+      VITE_API_URL: http://localhost:3001/api
     steps:
       - name: Checkout
         uses: actions/checkout@v4
