@@ -168,6 +168,19 @@ export const securityReportLimiter = createLimiter({
 });
 
 /**
+ * Launcher Crash Report Limiter - 10 reports per 10 minutes per client IP.
+ * The route is anonymous and each report writes a log row and pings the staff
+ * Discord webhook, so it needs a much tighter budget than the general limiter.
+ */
+export const crashReportLimiter = createLimiter({
+  windowMs: WINDOW_MS.TEN_MINUTES,
+  max: 10,
+  errorCode: ERROR_CODES.RATE_LIMIT_EXCEEDED,
+  errorMessage: 'Too many crash reports. Please try again later.',
+  keyBy: 'ip',
+});
+
+/**
  * Inbound Webhook Limiter - 30 requests per minute per client IP
  */
 export const webhookLimiter = createLimiter({

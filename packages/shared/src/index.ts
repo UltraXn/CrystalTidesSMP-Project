@@ -12,6 +12,17 @@ export interface PlayerStats {
   raw_kills?: number;
   raw_blocks_mined?: number;
   raw_rank?: string;
+  raw_money?: number;
+  is_top1_constructor?: boolean;
+  is_top1_luchador?: boolean;
+  is_top1_mercader?: boolean;
+  is_top1_constancia?: boolean;
+  is_top1_explorador?: boolean;
+  top1ConstructorScore?: number;
+  top1LuchadorScore?: number;
+  top1MercaderScore?: number;
+  top1ConstanciaScore?: number;
+  top1ExploradorScore?: number;
 }
 
 export interface UserMetadata {

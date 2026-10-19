@@ -1,5 +1,6 @@
 export * from './auth.js';
 export * from './bridge.js';
+export * from './crashReport.js';
 export * from './discord.js';
 export * from './donation.js';
 export * from './event.js';

@@ -1,7 +1,7 @@
 import { RowDataPacket } from 'mysql2';
 import db from '../config/database.js';
 
-interface PlayerStats {
+export interface PlayerStats {
   username: string;
   rank: string;
   rank_image: string;
@@ -19,6 +19,29 @@ interface PlayerStats {
   raw_blocks_mined?: number;
   raw_blocks_placed?: number;
   raw_rank?: string;
+  raw_money?: number;
+  is_top1_constructor?: boolean;
+  is_top1_luchador?: boolean;
+  is_top1_mercader?: boolean;
+  is_top1_constancia?: boolean;
+  is_top1_explorador?: boolean;
+  top1ConstructorScore?: number;
+  top1LuchadorScore?: number;
+  top1MercaderScore?: number;
+  top1ConstanciaScore?: number;
+  top1ExploradorScore?: number;
+}
+
+export interface ServerBenchmarks {
+  topMercaderUuid: string | null;
+  maxMoney: number;
+  top1MercaderScore: number;
+  top1ConstructorScore: number;
+  topLuchadorUuid: string | null;
+  top1LuchadorScore: number;
+  top1ConstanciaScore: number;
+  topExploradorUuid: string | null;
+  top1ExploradorScore: number;
 }
 
 interface SessionStats {
@@ -102,6 +125,26 @@ const MONEY_TIERS = [
   { threshold: 1_000_000, suffix: 'M' },
   { threshold: 1_000, suffix: 'k' },
 ] as const;
+
+export const BENCHMARK_TTL_MS = 5 * 60 * 1000;
+
+export const DEFAULT_BENCHMARKS: ServerBenchmarks = {
+  topMercaderUuid: null,
+  maxMoney: 0,
+  top1MercaderScore: 500,
+  top1ConstructorScore: 100000,
+  topLuchadorUuid: null,
+  top1LuchadorScore: 5000,
+  top1ConstanciaScore: 900,
+  topExploradorUuid: null,
+  top1ExploradorScore: 3000,
+};
+
+let benchmarkCache: { data: ServerBenchmarks; expiresAt: number } | null = null;
+
+export const clearBenchmarkCache = (): void => {
+  benchmarkCache = null;
+};
 
 // --- Helper Functions ---
 
@@ -247,6 +290,171 @@ const getLuckPermsGroups = async (uuid: string): Promise<string[]> => {
   }
 };
 
+async function queryTopMercader(): Promise<{ maxMoney: number; topMercaderUuid: string | null }> {
+  try {
+    const [rows] = await db.query<RowDataPacket[]>(
+      `
+      SELECT uv.uuid, uv.double_value, uv.string_value
+      FROM plan_extension_user_values uv
+      JOIN plan_extension_providers ep ON uv.provider_id = ep.id
+      JOIN plan_extension_plugins pl ON ep.plugin_id = pl.id
+      WHERE (pl.name LIKE '%Economy%' OR pl.name LIKE '%Vault%')
+        AND (ep.name LIKE '%Balance%' OR ep.text LIKE '%Balance%' OR ep.name LIKE '%vault_eco_balance%')
+      ORDER BY uv.double_value DESC
+      LIMIT 1
+      `,
+    );
+
+    if (!rows || rows.length === 0) {
+      return { maxMoney: 0, topMercaderUuid: null };
+    }
+
+    const row = rows[0];
+    let val = Number(row.double_value) || 0;
+    if (val === 0 && row.string_value) {
+      val = Number(row.string_value.replace(/[^0-9.]/g, '')) || 0;
+    }
+
+    return {
+      maxMoney: val,
+      topMercaderUuid: row.uuid ? String(row.uuid) : null,
+    };
+  } catch {
+    return { maxMoney: 0, topMercaderUuid: null };
+  }
+}
+
+async function queryTopLuchador(): Promise<{ maxScore: number; topLuchadorUuid: string | null }> {
+  try {
+    const [rows] = await db.query<RowDataPacket[]>(
+      `
+      SELECT 
+        u.uuid,
+        (COALESCE(k.pvp_kills, 0) * 15 + COALESCE(s.total_mobs, 0)) AS combat_points
+      FROM plan_users u
+      LEFT JOIN (
+        SELECT killer_uuid, COUNT(*) AS pvp_kills
+        FROM plan_kills
+        GROUP BY killer_uuid
+      ) k ON u.uuid = k.killer_uuid
+      LEFT JOIN (
+        SELECT user_id, SUM(mob_kills) AS total_mobs
+        FROM plan_sessions
+        GROUP BY user_id
+      ) s ON u.id = s.user_id
+      ORDER BY combat_points DESC
+      LIMIT 1
+      `,
+    );
+
+    if (!rows || rows.length === 0) {
+      return { maxScore: 5000, topLuchadorUuid: null };
+    }
+
+    const row = rows[0];
+    const combatPoints = Number(row.combat_points) || 0;
+
+    return {
+      maxScore: Math.max(5000, combatPoints),
+      topLuchadorUuid: row.uuid ? String(row.uuid) : null,
+    };
+  } catch {
+    return { maxScore: 5000, topLuchadorUuid: null };
+  }
+}
+
+async function queryTopExplorador(): Promise<{
+  maxScore: number;
+  topExploradorUuid: string | null;
+}> {
+  try {
+    const [rows] = await db.query<RowDataPacket[]>(
+      `
+      SELECT s.user_id, u.uuid,
+        SUM(CASE WHEN s.session_end IS NOT NULL THEN (s.session_end - s.session_start) ELSE (UNIX_TIMESTAMP(NOW()) * 1000 - s.session_start) END) as max_playtime_ms
+      FROM plan_sessions s
+      JOIN plan_users u ON s.user_id = u.id
+      GROUP BY s.user_id, u.uuid
+      ORDER BY max_playtime_ms DESC
+      LIMIT 1
+      `,
+    );
+
+    if (!rows || rows.length === 0) {
+      return { maxScore: 3000, topExploradorUuid: null };
+    }
+
+    const row = rows[0];
+    const playtimeMs = Number(row.max_playtime_ms) || 0;
+    const playtimeHours = Math.floor(playtimeMs / (1000 * 60 * 60));
+    const explorerPoints = Math.round(playtimeHours * 45);
+
+    return {
+      maxScore: Math.max(3000, explorerPoints),
+      topExploradorUuid: row.uuid ? String(row.uuid) : null,
+    };
+  } catch {
+    return { maxScore: 3000, topExploradorUuid: null };
+  }
+}
+
+async function queryServerBenchmarksFromDb(): Promise<ServerBenchmarks> {
+  const [mercaderRes, luchadorRes, exploradorRes] = await Promise.allSettled([
+    queryTopMercader(),
+    queryTopLuchador(),
+    queryTopExplorador(),
+  ]);
+
+  const mercader =
+    mercaderRes.status === 'fulfilled' ? mercaderRes.value : { maxMoney: 0, topMercaderUuid: null };
+  const luchador =
+    luchadorRes.status === 'fulfilled'
+      ? luchadorRes.value
+      : { maxScore: 5000, topLuchadorUuid: null };
+  const explorador =
+    exploradorRes.status === 'fulfilled'
+      ? exploradorRes.value
+      : { maxScore: 3000, topExploradorUuid: null };
+
+  const top1MercaderScore = Math.max(
+    500,
+    Math.round(100 * Math.log10(Math.max(1, mercader.maxMoney))),
+  );
+  const top1LuchadorScore = Math.max(5000, luchador.maxScore);
+  const top1ExploradorScore = Math.max(3000, explorador.maxScore);
+
+  return {
+    topMercaderUuid: mercader.topMercaderUuid,
+    maxMoney: mercader.maxMoney,
+    top1MercaderScore,
+    top1ConstructorScore: 100000,
+    topLuchadorUuid: luchador.topLuchadorUuid,
+    top1LuchadorScore,
+    top1ConstanciaScore: 900,
+    topExploradorUuid: explorador.topExploradorUuid,
+    top1ExploradorScore,
+  };
+}
+
+export const getServerBenchmarks = async (): Promise<ServerBenchmarks> => {
+  const now = Date.now();
+  if (benchmarkCache && benchmarkCache.expiresAt > now) {
+    return benchmarkCache.data;
+  }
+
+  try {
+    const benchmarks = await queryServerBenchmarksFromDb();
+    benchmarkCache = {
+      data: benchmarks,
+      expiresAt: now + BENCHMARK_TTL_MS,
+    };
+    return benchmarks;
+  } catch (error) {
+    console.warn('[PlayerStats] Failed to compute server benchmarks, using defaults:', error);
+    return DEFAULT_BENCHMARKS;
+  }
+};
+
 // --- Main Service Export ---
 
 export const getPlayerStats = async (usernameFragment: string): Promise<PlayerStats | null> => {
@@ -262,15 +470,37 @@ export const getPlayerStats = async (usernameFragment: string): Promise<PlayerSt
 
   const { uuid, name: resolvedName, id: planUserId, registered } = user;
 
-  const [sessionStats, killStats, moneyStats, lpGroups] = await Promise.all([
+  const [sessionStats, killStats, moneyStats, lpGroups, benchmarks] = await Promise.all([
     getSessionStats(planUserId),
     getPvpKills(uuid),
     getMoney(uuid),
     getLuckPermsGroups(uuid),
+    getServerBenchmarks(),
   ]);
 
   const rankData = processRank(lpGroups);
   const playtimeMs = sessionStats.playtime ?? 0;
+
+  const isTop1Mercader = Boolean(
+    (benchmarks.topMercaderUuid &&
+      benchmarks.topMercaderUuid.toLowerCase() === uuid.toLowerCase()) ||
+    (benchmarks.maxMoney > 0 && moneyStats >= benchmarks.maxMoney),
+  );
+
+  const combatPoints = killStats * 15 + (sessionStats.mobs ?? 0);
+  const isTop1Luchador = Boolean(
+    (benchmarks.topLuchadorUuid &&
+      benchmarks.topLuchadorUuid.toLowerCase() === uuid.toLowerCase()) ||
+    (combatPoints >= benchmarks.top1LuchadorScore && benchmarks.top1LuchadorScore > 5000),
+  );
+
+  const playtimeHours = Math.floor(playtimeMs / (1000 * 60 * 60));
+  const explorerPoints = Math.round(playtimeHours * 45);
+  const isTop1Explorador = Boolean(
+    (benchmarks.topExploradorUuid &&
+      benchmarks.topExploradorUuid.toLowerCase() === uuid.toLowerCase()) ||
+    (explorerPoints >= benchmarks.top1ExploradorScore && benchmarks.top1ExploradorScore > 3000),
+  );
 
   return {
     username: resolvedName,
@@ -290,5 +520,16 @@ export const getPlayerStats = async (usernameFragment: string): Promise<PlayerSt
     raw_blocks_mined: 0,
     raw_blocks_placed: 0,
     raw_rank: rankData.name,
+    raw_money: moneyStats,
+    is_top1_constructor: false,
+    is_top1_luchador: isTop1Luchador,
+    is_top1_mercader: isTop1Mercader,
+    is_top1_constancia: false,
+    is_top1_explorador: isTop1Explorador,
+    top1ConstructorScore: benchmarks.top1ConstructorScore,
+    top1LuchadorScore: benchmarks.top1LuchadorScore,
+    top1MercaderScore: benchmarks.top1MercaderScore,
+    top1ConstanciaScore: benchmarks.top1ConstanciaScore,
+    top1ExploradorScore: benchmarks.top1ExploradorScore,
   };
 };

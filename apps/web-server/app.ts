@@ -32,6 +32,7 @@ import locationRoutes from './routes/locationRoutes.js';
 import ragRoutes from './routes/ragRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
 import honeypotRoutes from './routes/honeypotRoutes.js';
+import launcherRoutes from './routes/launcherRoutes.js';
 import { checkCanaryToken } from './middleware/honeypotMiddleware.js';
 import { initCleanupJob } from './services/cleanupService.js';
 
@@ -138,6 +139,7 @@ app.use('/api/settings', settingsRoutes);
 app.use('/api/player-stats', playerStatsRoutes);
 app.use('/api/server', serverRoutes);
 app.use('/api/server/status', serverStatusRoutes);
+app.use('/api/launcher', launcherRoutes);
 app.use('/api/bridge', bridgeRoutes); // Secure CrystalBridge
 app.use('/api/gacha', gachaRoutes);
 

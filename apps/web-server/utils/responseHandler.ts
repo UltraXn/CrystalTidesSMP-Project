@@ -54,3 +54,7 @@ export const sendError = (
     },
   });
 };
+
+export const sendInternalError = (res: Response, err?: unknown) => {
+  return sendError(res, 'Internal server error', 'INTERNAL_ERROR', 500, err);
+};
