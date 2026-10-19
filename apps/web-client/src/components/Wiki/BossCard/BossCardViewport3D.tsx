@@ -3,6 +3,7 @@ import { RotateCcw, Maximize2, Flame } from 'lucide-react';
 import { BossPhaseData, BossAttack } from './defaultBossData';
 import { BossCardTheme } from './bossCardTheme';
 import { useBossCard3D } from './useBossCard3D';
+import Lazy3DContainer from '../../UI/Lazy3DContainer';
 
 interface BossCardViewport3DProps {
   activeModel: string;
@@ -15,7 +16,7 @@ interface BossCardViewport3DProps {
   activeClipOverride?: string | null;
 }
 
-export function BossCardViewport3D({
+function BossCard3DScene({
   activeModel,
   themeStyles,
   activePhases,
@@ -34,10 +35,7 @@ export function BossCardViewport3D({
   });
 
   return (
-    <section
-      aria-label="Visualizador 3D interactivo"
-      className={`min-h-115 relative flex size-full cursor-grab items-center justify-center overflow-hidden border-b border-white/5 focus:outline-none active:cursor-grabbing lg:col-span-5 lg:border-b-0 lg:border-r ${themeStyles.viewportBg}`}
-    >
+    <>
       {isLoading && (
         <div className="backdrop-blur-xs absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/80">
           <div className="mb-2 size-6 animate-spin rounded-full border-2 border-neutral-600 border-t-white" />
@@ -110,6 +108,19 @@ export function BossCardViewport3D({
           Arrastra para rotar 360°
         </span>
       </div>
+    </>
+  );
+}
+
+export function BossCardViewport3D(props: Readonly<BossCardViewport3DProps>) {
+  return (
+    <section
+      aria-label="Visualizador 3D interactivo"
+      className={`min-h-115 relative flex size-full cursor-grab items-center justify-center overflow-hidden border-b border-white/5 focus:outline-none active:cursor-grabbing lg:col-span-5 lg:border-b-0 lg:border-r ${props.themeStyles.viewportBg}`}
+    >
+      <Lazy3DContainer className="absolute inset-0 size-full">
+        <BossCard3DScene {...props} />
+      </Lazy3DContainer>
     </section>
   );
 }

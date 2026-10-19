@@ -127,6 +127,11 @@ interface PlayerStatsData {
   is_top1_mercader?: boolean;
   is_top1_constancia?: boolean;
   is_top1_explorador?: boolean;
+  top1ConstructorScore?: number;
+  top1LuchadorScore?: number;
+  top1MercaderScore?: number;
+  top1ConstanciaScore?: number;
+  top1ExploradorScore?: number;
   prestige_constructor?: number;
   prestige_luchador?: number;
   prestige_mercader?: number;
@@ -508,6 +513,16 @@ function PlaystyleRadarSection({ statsData, t }: Readonly<RadarSectionProps>) {
             playtimeHours: parsePlaytimeHours(statsData?.playtime),
             money: parseMoneyNumber(statsData?.money),
             rank: statsData?.raw_rank ?? 'default',
+            isTop1Constructor: statsData?.is_top1_constructor,
+            isTop1Luchador: statsData?.is_top1_luchador,
+            isTop1Mercader: statsData?.is_top1_mercader,
+            isTop1Constancia: statsData?.is_top1_constancia,
+            isTop1Explorador: statsData?.is_top1_explorador,
+            top1ConstructorScore: statsData?.top1ConstructorScore,
+            top1LuchadorScore: statsData?.top1LuchadorScore,
+            top1MercaderScore: statsData?.top1MercaderScore,
+            top1ConstanciaScore: statsData?.top1ConstanciaScore,
+            top1ExploradorScore: statsData?.top1ExploradorScore,
           }}
         />
       </Suspense>

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { resolveAssetUrl } from '../../../utils/assetUtils';
+import { resolveCachedAssetUrl } from '../../../utils/r2AssetCache';
 import { BossAttack } from './defaultBossData';
 import { BossCardTheme } from './bossCardTheme';
 
@@ -132,6 +132,11 @@ export function useBossCard3D({
     renderer.toneMappingExposure = 1.3;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
 
+    const handleContextLost = (e: Event) => {
+      e.preventDefault();
+    };
+    renderer.domElement?.addEventListener?.('webglcontextlost', handleContextLost);
+
     while (container.firstChild) {
       container.removeChild(container.firstChild);
     }
@@ -171,50 +176,56 @@ export function useBossCard3D({
     });
 
     setIsLoading(true);
+    let isCancelled = false;
     const loader = new GLTFLoader();
-    const resolvedUrl = resolveAssetUrl(activeModel);
 
-    loader.load(
-      resolvedUrl,
-      (gltf) => {
-        const model = gltf.scene;
-        modelRef.current = model;
+    resolveCachedAssetUrl(activeModel).then((resolvedUrl) => {
+      if (isCancelled) return;
 
-        const box = new THREE.Box3().setFromObject(model);
-        const size = box.getSize(new THREE.Vector3());
-        const center = box.getCenter(new THREE.Vector3());
+      loader.load(
+        resolvedUrl,
+        (gltf) => {
+          if (isCancelled) return;
+          const model = gltf.scene;
+          modelRef.current = model;
 
-        const maxDim = Math.max(size.x, size.y, size.z);
-        const scale = 2.0 / (maxDim || 1);
-        model.scale.setScalar(scale);
+          const box = new THREE.Box3().setFromObject(model);
+          const size = box.getSize(new THREE.Vector3());
+          const center = box.getCenter(new THREE.Vector3());
 
-        model.position.x = -center.x * scale;
-        model.position.y = -box.min.y * scale;
-        model.position.z = -center.z * scale;
+          const maxDim = Math.max(size.x, size.y, size.z);
+          const scale = 2.0 / (maxDim || 1);
+          model.scale.setScalar(scale);
 
-        model.traverse(configureMeshMaterials);
+          model.position.x = -center.x * scale;
+          model.position.y = -box.min.y * scale;
+          model.position.z = -center.z * scale;
 
-        activeClipsRef.current = gltf.animations || [];
+          model.traverse(configureMeshMaterials);
 
-        if (gltf.animations && gltf.animations.length > 0) {
-          const mixer = new THREE.AnimationMixer(model);
-          activeMixerRef.current = mixer;
+          activeClipsRef.current = gltf.animations || [];
 
-          const firstClip = gltf.animations[0];
-          const action = mixer.clipAction(firstClip);
-          action.play();
-          currentActionRef.current = action;
-        }
+          if (gltf.animations && gltf.animations.length > 0) {
+            const mixer = new THREE.AnimationMixer(model);
+            activeMixerRef.current = mixer;
 
-        scene.add(model);
-        setIsLoading(false);
-      },
-      undefined,
-      (error) => {
-        console.warn('Failed to load GLTF in WikiBoss3DCard:', error);
-        setIsLoading(false);
-      },
-    );
+            const firstClip = gltf.animations[0];
+            const action = mixer.clipAction(firstClip);
+            action.play();
+            currentActionRef.current = action;
+          }
+
+          scene.add(model);
+          setIsLoading(false);
+        },
+        undefined,
+        (error) => {
+          if (isCancelled) return;
+          console.warn('Failed to load GLTF in WikiBoss3DCard:', error);
+          setIsLoading(false);
+        },
+      );
+    });
 
     const handleResize = () => {
       if (!container || !renderer || !camera) return;
@@ -252,12 +263,15 @@ export function useBossCard3D({
     window.addEventListener('mouseup', onMouseUp);
 
     return () => {
+      renderer.domElement?.removeEventListener?.('webglcontextlost', handleContextLost);
       renderer.setAnimationLoop(null);
       window.removeEventListener('resize', handleResize);
       container.removeEventListener('mousedown', onMouseDown);
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', onMouseUp);
+      renderer.forceContextLoss?.();
       renderer.dispose();
+      isCancelled = true;
     };
   }, [activeModel, themeStyles]);
 

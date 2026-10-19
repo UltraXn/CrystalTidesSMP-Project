@@ -15,6 +15,16 @@ interface PlayerStats {
   blocks_mined: string;
   blocks_placed: string;
   rank?: string;
+  is_top1_constructor?: boolean;
+  is_top1_luchador?: boolean;
+  is_top1_mercader?: boolean;
+  is_top1_constancia?: boolean;
+  is_top1_explorador?: boolean;
+  top1ConstructorScore?: number;
+  top1LuchadorScore?: number;
+  top1MercaderScore?: number;
+  top1ConstanciaScore?: number;
+  top1ExploradorScore?: number;
 }
 
 interface PlayerStatsGridProps {
@@ -71,6 +81,16 @@ function renderRadarContent(loading: boolean, stats: PlayerStats | null, t: TFun
               playtimeHours: parsePlaytime(stats.playtime),
               money: parseMoney(stats.money),
               rank: stats.rank ?? 'default',
+              isTop1Constructor: stats.is_top1_constructor,
+              isTop1Luchador: stats.is_top1_luchador,
+              isTop1Mercader: stats.is_top1_mercader,
+              isTop1Constancia: stats.is_top1_constancia,
+              isTop1Explorador: stats.is_top1_explorador,
+              top1ConstructorScore: stats.top1ConstructorScore,
+              top1LuchadorScore: stats.top1LuchadorScore,
+              top1MercaderScore: stats.top1MercaderScore,
+              top1ConstanciaScore: stats.top1ConstanciaScore,
+              top1ExploradorScore: stats.top1ExploradorScore,
             }}
           />
         </Suspense>

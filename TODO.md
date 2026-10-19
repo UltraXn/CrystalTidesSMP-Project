@@ -71,20 +71,24 @@
 
 ## 🎯 Roadmap Priorizado de Funcionalidades (P1 - P4)
 
-### [ ] [P1 - Alta] Deep Linking `crystaltides://` (1-Click Web-to-Game Launch)
+### [x] [P1 - Alta] Deep Linking `crystaltides://` (1-Click Web-to-Game Launch)
 
-- Integrar `tauri-plugin-deep-link` en el Launcher de Tauri v2 (`crystaltides://join?server=mc.crystaltidessmp.net&profile=default`).
-- Botón "Jugar Ahora" en `web-client` que invoca el esquema URI para abrir el launcher, verificar sesión/modpack e iniciar Minecraft directo al servidor.
+- Parser puro y seguro en Rust (`parse_deep_link_arg`) con validación estricta anti-inyección JVM para `server` (`[a-zA-Z0-9.-]+(:[0-9]{1,5})?`) y `profile` (`[a-zA-Z0-9_-]{1,64}`).
+- `server` limitado a `crystaltidessmp.net` y sus subdominios: el enlace fija el servidor y lanza sin confirmación, así que una web ajena no puede mandar al jugador a otro host.
+- Registro nativo del protocolo URL en Windows (`HKCU\Software\Classes\crystaltides`) y en Linux (`.desktop` con `%u` y `MimeType=x-scheme-handler/crystaltides;`).
+- Selección reactiva de servidor, instancia y auto-lanzamiento en `apps/launcher-lite/src/App.tsx`.
 
-### [ ] [P1 - Alta] Crystal Crash Pipeline en Launcher & Backend
+### [x] [P1 - Alta] Crystal Crash Pipeline en Launcher & Backend
 
-- Detección automática en Tauri Rust de códigos de salida anormales de la JVM y volcado de `.minecraft/crash-reports/*.txt`.
-- Endpoint de ingesta sanitizada en `web-server` / webhook de alertas Discord, con UI amigable en el Launcher que explica el motivo del crash y ofrece soluciones automáticas.
+- Detección en caliente en Rust (`crash_doctor.rs`) y sanitización forense estricta (`sanitize_crash_log` y `sanitizeServerCrashSnippet`) redactando tokens `--accessToken`, `--uuid`, `Bearer`, `Session ID`, JSON `accessToken` y rutas privadas de usuario de Windows, Linux y macOS.
+- Endpoint de ingesta sanitizada en `apps/web-server` (`POST /api/launcher/crash-report`) con validación Zod en `@crystaltides/shared` (`crashReport.ts`), rate-limiting, registro de auditoría y notificación opcional anti-SSRF a webhook de Discord.
+- Modal de diagnóstico forense (`CrashReportModal.tsx`) con i18n 100% simétrico (`es`/`en`) y botón de envío de telemetría anónima en `apps/launcher-lite`.
 
-### [ ] [P1 - Alta] Frontend WebGL Three.js, Lazy Viewports & Cache Local de Assets R2
+### [x] [P1 - Alta] Frontend WebGL Three.js, Lazy Viewports & Cache Local de Assets R2
 
-- `Lazy3DContainer` con `IntersectionObserver` para prevenir el límite de contextos `CONTEXT_LOST_WEBGL`.
-- Cache local persistente (`CacheStorage` / IndexedDB) para geometrías `.geo.json` y texturas `.png` de Cloudflare R2.
+- `Lazy3DContainer` con `IntersectionObserver` (`rootMargin: 200px 0px`) y placeholder semántico `<output>` que monta/desmonta contextos WebGL al entrar/salir del viewport, previniendo el error `CONTEXT_LOST_WEBGL`.
+- Integración en `WikiInfobox3DViewport`, `BossCardViewport3D`, `WikiCompanion3DCard`, `WikiHostile3DCard` y `WikiMerchant3DCard`.
+- Caché local persistente (`CacheStorage` via `r2AssetCache.ts`) para geometrías `.glb`, `.geo.json` y texturas `.png`/`.webp` de Cloudflare R2 con manejo seguro de URLs directas para `.gltf` con recursos relativos.
 
 ### [ ] [P2 - Media-Alta] Fine-Tuning de NPCs con IA & Lore Persona (In-Game Interaction)
 
@@ -101,10 +105,11 @@
 - Exporter de métricas en Java (TPS, MSPT, chunks cargados, conteo de entidades por mundo, heap memory, player count) y métricas de latencia de `web-server`.
 - Dashboard unificado en Grafana para diagnóstico y auditoría en vivo del servidor.
 
-### [ ] [P3 - Media] Benchmark Dinámico de Inflación para Mercader (`PlaystyleRadarFinal.tsx`)
+### [x] [P3 - Media] Benchmark Dinámico de Inflación para Mercader (`PlaystyleRadarFinal.tsx`)
 
-- El componente frontend ya soporta `top1MercaderScore` (con fallback de 500 = 100k KC).
-- Tarea backend: calcular periódicamente en `web-server` el benchmark del Top 1 de KilluCoins / inflación y enviarlo en el payload de estadísticas de usuario.
+- Servicio backend `getServerBenchmarks()` en `apps/web-server/services/playerStatsService.ts` con caché TTL de 5 minutos que calcula en vivo el balance del Top 1 de KilluCoins (`plan_extension_user_values`) en escala logarítmica (`100 * log10(KC)`), el Top 1 de combate por jugador (`(pvp_kills * 15 + total_mobs)`) y el Top 1 de exploración.
+- Prevención de falsos positivos en `isTop1Mercader` comparando contra `benchmarks.maxMoney` real.
+- Conectado y renderizado dinámicamente en `apps/web-client/src/components/User/PlayerStatsGrid.tsx` y `apps/web-client/src/pages/Account.tsx`.
 
 ### [ ] [P4 - Evaluación] Crystal Agent Nativo en Rust (`-javaagent` + OpenGL ImGui Overlay)
 

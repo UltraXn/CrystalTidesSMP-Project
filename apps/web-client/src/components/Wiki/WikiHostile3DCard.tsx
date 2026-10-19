@@ -1,18 +1,7 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
-import {
-  Skull,
-  AlertTriangle,
-  Shield,
-  Zap,
-  Compass,
-  MapPin,
-  Award,
-  Coins,
-  Maximize2,
-  RotateCcw,
-} from 'lucide-react';
-import { useEntityCard3D } from './useEntityCard3D';
+import { Skull, AlertTriangle, Shield, Zap, Compass, MapPin, Award, Coins } from 'lucide-react';
+import { EntityCard3DViewport, type EntityCard3DAccent } from './EntityCard3DViewport';
 
 export interface WikiHostile3DCardProps {
   minimal3dOnly?: boolean;
@@ -31,6 +20,12 @@ export interface WikiHostile3DCardProps {
 
 const DEFAULT_DROPS = ['Piel Mítica', 'Diente Infectado'];
 
+const HOSTILE_ACCENT: EntityCard3DAccent = {
+  spinner: 'border-red-500/30 border-t-red-500',
+  label: 'text-red-400',
+  button: 'border-red-500/30 text-red-400 hover:bg-red-500/20',
+};
+
 export const WikiHostile3DCard: React.FC<Readonly<WikiHostile3DCardProps>> = ({
   minimal3dOnly = false,
   modelPath = '/models/mythology/chupacabra.gltf',
@@ -45,7 +40,7 @@ export const WikiHostile3DCard: React.FC<Readonly<WikiHostile3DCardProps>> = ({
   drops = DEFAULT_DROPS,
   kcReward = 150,
 }) => {
-  const { containerRef, isLoading, resetView, toggleFullscreen } = useEntityCard3D({
+  const viewportConfig = {
     modelPath,
     dirLightColor: 0xef4444,
     dirLightIntensity: 2.2,
@@ -53,20 +48,12 @@ export const WikiHostile3DCard: React.FC<Readonly<WikiHostile3DCardProps>> = ({
     pointLightIntensity: 1.5,
     fallbackColor: 0xef4444,
     fallbackEmissive: 0xd97706,
-  });
+  };
 
   if (minimal3dOnly) {
     return (
       <div className="bg-radial relative flex size-full min-h-80 cursor-grab items-center justify-center overflow-hidden rounded-2xl border border-red-500/20 from-red-950/30 via-black to-black active:cursor-grabbing">
-        {isLoading && (
-          <div className="backdrop-blur-xs absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/80">
-            <div className="mb-2 size-6 animate-spin rounded-full border-2 border-red-500/30 border-t-red-500" />
-            <span className="font-mono text-[9px] uppercase tracking-widest text-red-400">
-              Cargando 3D...
-            </span>
-          </div>
-        )}
-        <div ref={containerRef} className="absolute inset-0 z-10 size-full" />
+        <EntityCard3DViewport config={viewportConfig} accent={HOSTILE_ACCENT} />
       </div>
     );
   }
@@ -80,38 +67,7 @@ export const WikiHostile3DCard: React.FC<Readonly<WikiHostile3DCardProps>> = ({
             aria-label="Visualizador 3D Hostil"
             className="min-h-95 bg-radial relative flex size-full cursor-grab items-center justify-center overflow-hidden border-b border-red-500/20 from-red-950/40 via-black to-black outline-none focus:outline-none active:cursor-grabbing lg:col-span-5 lg:border-b-0 lg:border-r"
           >
-            {isLoading && (
-              <div className="backdrop-blur-xs absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/80">
-                <div className="mb-2 size-6 animate-spin rounded-full border-2 border-red-500/30 border-t-red-500" />
-                <span className="font-mono text-[9px] uppercase tracking-widest text-red-400">
-                  Cargando 3D...
-                </span>
-              </div>
-            )}
-
-            <div ref={containerRef} className="absolute inset-0 z-10 size-full" />
-
-            {/* Controls */}
-            <div className="absolute right-3 top-3 z-20 flex items-center gap-1.5">
-              <button
-                type="button"
-                onClick={resetView}
-                aria-label="Reiniciar cámara"
-                className="cursor-pointer rounded-lg border border-red-500/30 bg-black/60 p-1.5 text-red-400 transition-colors hover:bg-red-500/20"
-                title="Reiniciar Cámara"
-              >
-                <RotateCcw aria-hidden="true" className="size-3.5" />
-              </button>
-              <button
-                type="button"
-                onClick={toggleFullscreen}
-                aria-label="Pantalla completa"
-                className="cursor-pointer rounded-lg border border-red-500/30 bg-black/60 p-1.5 text-red-400 transition-colors hover:bg-red-500/20"
-                title="Pantalla Completa"
-              >
-                <Maximize2 aria-hidden="true" className="size-3.5" />
-              </button>
-            </div>
+            <EntityCard3DViewport config={viewportConfig} accent={HOSTILE_ACCENT} showControls />
           </section>
 
           {/* Stats & Description Column */}

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { resolveAssetUrl } from '../../utils/assetUtils';
+import { resolveCachedAssetUrl } from '../../utils/r2AssetCache';
 
 export interface EntityCard3DConfig {
   modelPath: string;
@@ -80,6 +80,11 @@ export function useEntityCard3D(config: EntityCard3DConfig) {
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     rendererRef.current = renderer;
 
+    const handleContextLost = (e: Event) => {
+      e.preventDefault();
+    };
+    renderer.domElement?.addEventListener?.('webglcontextlost', handleContextLost);
+
     containerRef.current.innerHTML = '';
     containerRef.current.appendChild(renderer.domElement);
 
@@ -111,50 +116,58 @@ export function useEntityCard3D(config: EntityCard3DConfig) {
       setIsLoading(false);
     };
 
+    let isCancelled = false;
     const loader = new GLTFLoader();
-    loader.load(
-      resolveAssetUrl(modelPath),
-      (gltf) => {
-        modelGroup.clear();
-        const loadedModel = gltf.scene;
 
-        loadedModel.traverse((child) => {
-          if ((child as THREE.Mesh).isMesh) {
-            const mesh = child as THREE.Mesh;
-            mesh.castShadow = true;
-            mesh.receiveShadow = true;
-            if (mesh.material) {
-              const mat = mesh.material as THREE.MeshStandardMaterial;
-              mat.roughness = roughness;
-              mat.metalness = metalness;
+    resolveCachedAssetUrl(modelPath).then((resolvedUrl) => {
+      if (isCancelled) return;
+
+      loader.load(
+        resolvedUrl,
+        (gltf) => {
+          if (isCancelled || !modelGroupRef.current) return;
+          modelGroup.clear();
+          const loadedModel = gltf.scene;
+
+          loadedModel.traverse((child) => {
+            if ((child as THREE.Mesh).isMesh) {
+              const mesh = child as THREE.Mesh;
+              mesh.castShadow = true;
+              mesh.receiveShadow = true;
+              if (mesh.material) {
+                const mat = mesh.material as THREE.MeshStandardMaterial;
+                mat.roughness = roughness;
+                mat.metalness = metalness;
+              }
             }
+          });
+
+          const box = new THREE.Box3().setFromObject(loadedModel);
+          const center = box.getCenter(new THREE.Vector3());
+          const size = box.getSize(new THREE.Vector3());
+          const maxDim = Math.max(size.x, size.y, size.z) || 1;
+
+          loadedModel.position.sub(center);
+          const scale = 1.6 / maxDim;
+          modelGroup.scale.setScalar(scale);
+          modelGroup.add(loadedModel);
+
+          if (gltf.animations && gltf.animations.length > 0) {
+            const mixer = new THREE.AnimationMixer(loadedModel);
+            const action = mixer.clipAction(gltf.animations[0]);
+            action.play();
+            mixerRef.current = mixer;
           }
-        });
 
-        const box = new THREE.Box3().setFromObject(loadedModel);
-        const center = box.getCenter(new THREE.Vector3());
-        const size = box.getSize(new THREE.Vector3());
-        const maxDim = Math.max(size.x, size.y, size.z) || 1;
-
-        loadedModel.position.sub(center);
-        const scale = 1.6 / maxDim;
-        modelGroup.scale.setScalar(scale);
-        modelGroup.add(loadedModel);
-
-        if (gltf.animations && gltf.animations.length > 0) {
-          const mixer = new THREE.AnimationMixer(loadedModel);
-          const action = mixer.clipAction(gltf.animations[0]);
-          action.play();
-          mixerRef.current = mixer;
-        }
-
-        setIsLoading(false);
-      },
-      undefined,
-      () => {
-        createProceduralFallback();
-      },
-    );
+          setIsLoading(false);
+        },
+        undefined,
+        () => {
+          if (isCancelled) return;
+          createProceduralFallback();
+        },
+      );
+    });
 
     let lastTime = performance.now();
 
@@ -215,12 +228,15 @@ export function useEntityCard3D(config: EntityCard3DConfig) {
     window.addEventListener('mouseup', onMouseUp);
 
     return () => {
+      renderer.domElement?.removeEventListener?.('webglcontextlost', handleContextLost);
       renderer.setAnimationLoop(null);
       window.removeEventListener('resize', handleResize);
       container.removeEventListener('mousedown', onMouseDown);
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', onMouseUp);
+      renderer.forceContextLoss?.();
       renderer.dispose();
+      isCancelled = true;
     };
   }, [
     modelPath,

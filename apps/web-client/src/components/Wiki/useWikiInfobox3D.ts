@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { resolveAssetUrl } from '../../utils/assetUtils';
+import { resolveCachedAssetUrl } from '../../utils/r2AssetCache';
 
 function configureInfoboxMaterials(child: THREE.Object3D): void {
   if (!(child instanceof THREE.Mesh)) return;
@@ -69,6 +69,11 @@ export function useWikiInfobox3D(modelPath: string | null | undefined) {
     renderer.toneMappingExposure = 1.2;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     rendererRef.current = renderer;
+
+    const handleContextLost = (e: Event) => {
+      e.preventDefault();
+    };
+    renderer.domElement?.addEventListener?.('webglcontextlost', handleContextLost);
 
     const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
     scene.add(ambientLight);
@@ -152,6 +157,7 @@ export function useWikiInfobox3D(modelPath: string | null | undefined) {
     window.addEventListener('mouseup', onMouseUp);
 
     return () => {
+      renderer.domElement?.removeEventListener?.('webglcontextlost', handleContextLost);
       renderer.setAnimationLoop(null);
       window.removeEventListener('resize', handleResize);
       container.removeEventListener('mousedown', onMouseDown);
@@ -159,6 +165,7 @@ export function useWikiInfobox3D(modelPath: string | null | undefined) {
       window.removeEventListener('mouseup', onMouseUp);
       ringGeo.dispose?.();
       ringMat.dispose?.();
+      renderer.forceContextLoss?.();
       renderer.dispose?.();
     };
   }, []);
@@ -176,46 +183,55 @@ export function useWikiInfobox3D(modelPath: string | null | undefined) {
       mixerRef.current = null;
     }
 
+    let isCancelled = false;
     const loader = new GLTFLoader();
-    const resolvedUrl = resolveAssetUrl(modelPath);
 
-    loader.load(
-      resolvedUrl,
-      (gltf) => {
-        if (!sceneRef.current) return;
-        const model = gltf.scene;
+    resolveCachedAssetUrl(modelPath).then((resolvedUrl) => {
+      if (isCancelled || !sceneRef.current) return;
 
-        const box = new THREE.Box3().setFromObject(model);
-        const size = box.getSize(new THREE.Vector3());
-        const center = box.getCenter(new THREE.Vector3());
+      loader.load(
+        resolvedUrl,
+        (gltf) => {
+          if (isCancelled || !sceneRef.current) return;
+          const model = gltf.scene;
 
-        const maxDim = Math.max(size.x, size.y, size.z);
-        const scale = 1.8 / (maxDim || 1);
-        model.scale.setScalar(scale);
+          const box = new THREE.Box3().setFromObject(model);
+          const size = box.getSize(new THREE.Vector3());
+          const center = box.getCenter(new THREE.Vector3());
 
-        model.position.x = -center.x * scale;
-        model.position.y = -box.min.y * scale;
-        model.position.z = -center.z * scale;
+          const maxDim = Math.max(size.x, size.y, size.z);
+          const scale = 1.8 / (maxDim || 1);
+          model.scale.setScalar(scale);
 
-        model.traverse(configureInfoboxMaterials);
+          model.position.x = -center.x * scale;
+          model.position.y = -box.min.y * scale;
+          model.position.z = -center.z * scale;
 
-        if (gltf.animations && gltf.animations.length > 0) {
-          const mixer = new THREE.AnimationMixer(model);
-          mixerRef.current = mixer;
-          const action = mixer.clipAction(gltf.animations[0]);
-          action.play();
-        }
+          model.traverse(configureInfoboxMaterials);
 
-        sceneRef.current.add(model);
-        currentModelRef.current = model;
-        setLoadState({ path: modelPath, loading: false, error: null });
-      },
-      undefined,
-      (error) => {
-        console.warn('Failed to load GLTF in infobox:', error);
-        setLoadState({ path: modelPath, loading: false, error: 'Modelo no disponible' });
-      },
-    );
+          if (gltf.animations && gltf.animations.length > 0) {
+            const mixer = new THREE.AnimationMixer(model);
+            mixerRef.current = mixer;
+            const action = mixer.clipAction(gltf.animations[0]);
+            action.play();
+          }
+
+          sceneRef.current.add(model);
+          currentModelRef.current = model;
+          setLoadState({ path: modelPath, loading: false, error: null });
+        },
+        undefined,
+        (error) => {
+          if (isCancelled) return;
+          console.warn('Failed to load GLTF in infobox:', error);
+          setLoadState({ path: modelPath, loading: false, error: 'Modelo no disponible' });
+        },
+      );
+    });
+
+    return () => {
+      isCancelled = true;
+    };
   }, [modelPath]);
 
   const resetRotation = () => {

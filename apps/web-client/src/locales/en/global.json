@@ -430,7 +430,13 @@
     "search_placeholder": "Search the guide...",
     "loading_article": "Opening tome...",
     "welcome_title": "CrystalTides Library",
-    "welcome_desc": "Select an article from the left to start exploring the secrets of these lands."
+    "welcome_desc": "Select an article from the left to start exploring the secrets of these lands.",
+    "viewer3d": {
+      "loading": "Loading 3D viewer...",
+      "loading_model": "Loading 3D...",
+      "reset_camera": "Reset camera",
+      "fullscreen": "Fullscreen"
+    }
   },
   "forum_thread": {
     "back_link": "Back",

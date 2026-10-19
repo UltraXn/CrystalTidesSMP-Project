@@ -104,7 +104,13 @@
     "search_placeholder": "Buscar en la guía...",
     "loading_article": "Abriendo tomo...",
     "welcome_title": "Biblioteca de CrystalTides",
-    "welcome_desc": "Selecciona un artículo de la izquierda para comenzar a explorar los secretos de estas tierras."
+    "welcome_desc": "Selecciona un artículo de la izquierda para comenzar a explorar los secretos de estas tierras.",
+    "viewer3d": {
+      "loading": "Cargando visualizador 3D...",
+      "loading_model": "Cargando 3D...",
+      "reset_camera": "Reiniciar cámara",
+      "fullscreen": "Pantalla completa"
+    }
   },
   "forum_thread": {
     "back_link": "Volver",

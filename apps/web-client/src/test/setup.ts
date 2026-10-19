@@ -18,7 +18,16 @@ afterAll(() => server.close());
 
 if (typeof window !== 'undefined' && !window.IntersectionObserver) {
   class MockIntersectionObserver {
-    observe = vi.fn();
+    callback?: IntersectionObserverCallback;
+    constructor(callback?: IntersectionObserverCallback) {
+      this.callback = callback;
+    }
+    observe = vi.fn((target?: Element) => {
+      this.callback?.(
+        [{ isIntersecting: true, target } as IntersectionObserverEntry],
+        this as unknown as IntersectionObserver,
+      );
+    });
     unobserve = vi.fn();
     disconnect = vi.fn();
     takeRecords = vi.fn(() => []);

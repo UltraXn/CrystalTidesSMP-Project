@@ -86,6 +86,26 @@ Este documento centraliza el roadmap completo del proyecto, organizando las tare
   - [x] Limpiar `apps/web-client/package.json` moviendo `husky` y `@tauri-apps/api` fuera de `dependencies` de producción.
   - [x] Corregir `apps/web-client/e2e.config.ts` reemplazando `npm run dev` por `pnpm dev`.
   - [x] **Consolidar Dependencias E2E en `apps/web-client`:** Resolver el bloat y duplicidad entre Cypress + Cucumber (`cypress: ^15.19.0`) y Playwright (`playwright: ^1.57.0` duplicado con `@playwright/test: ^1.63.0`), eliminando el paquete redundante de Playwright y definiendo el runner oficial del monorepo.
+- [x] **Deep Linking `crystaltides://` (1-Click Web-to-Game Launch)**:
+  - _Estado:_ ✅ **COMPLETADO (18 de Octubre, 2026)**.
+  - [x] Parser seguro en Rust (`parse_deep_link_arg`) con validación estricta de host/puerto y profile id, y `server` limitado a `*.crystaltidessmp.net`.
+  - [x] Registro nativo de `HKCU\Software\Classes\crystaltides` en Windows y `.desktop` con `MimeType=x-scheme-handler/crystaltides;` en Linux.
+  - [x] Selección reactiva de servidor, instancia y auto-lanzamiento en `apps/launcher-lite/src/App.tsx`.
+- [x] **Crystal Crash Pipeline en Launcher & Backend**:
+  - _Estado:_ ✅ **COMPLETADO (18 de Octubre, 2026)**.
+  - [x] Sanitización forense en caliente en Rust (`sanitize_crash_log`) redactando tokens `--accessToken`, `--uuid`, `Bearer`, `Session ID` y rutas de usuario de SO.
+  - [x] Endpoint de ingesta sanitizada en `apps/web-server` (`POST /api/launcher/crash-report`) con validación Zod en `@crystaltides/shared` (`crashReport.ts`), rate-limiting, audit log y alerta Discord anti-SSRF.
+  - [x] Modal de diagnóstico forense (`CrashReportModal.tsx`) con i18n simétrico (`es`/`en`) y telemetría anónima en `apps/launcher-lite`.
+- [x] **Protección WebGL (`Lazy3DContainer`) & Caché Local de Assets R2**:
+  - _Estado:_ ✅ **COMPLETADO (18 de Octubre, 2026)**.
+  - [x] Componente `Lazy3DContainer` con `IntersectionObserver` que monta/desmonta contextos WebGL al entrar/salir del viewport, previniendo el error `CONTEXT_LOST_WEBGL`.
+  - [x] Integración en `WikiInfobox3DViewport`, `BossCardViewport3D`, `WikiCompanion3DCard`, `WikiHostile3DCard` y `WikiMerchant3DCard`.
+  - [x] Caché local persistente `CacheStorage` (`r2AssetCache.ts`) para geometrías y texturas de Cloudflare R2 con manejo seguro de URLs directas para `.gltf` con recursos relativos.
+- [x] **Benchmark Dinámico de Inflación para Mercader y Top 1**:
+  - _Estado:_ ✅ **COMPLETADO (18 de Octubre, 2026)**.
+  - [x] `getServerBenchmarks()` en `apps/web-server/services/playerStatsService.ts` con caché TTL de 5 minutos calculando en vivo el balance del Top 1 de KilluCoins (`100 * log10(KC)`), el Top 1 de combate por jugador y el Top 1 de exploración.
+  - [x] Eliminación de falsos positivos en `isTop1Mercader` comparando contra `benchmarks.maxMoney` real.
+  - [x] Conectado y renderizado dinámicamente en `PlayerStatsGrid.tsx` y `Account.tsx`.
 
 ### ⚙️ Configuración del Sitio (Fase 1)
 
@@ -151,12 +171,12 @@ Este documento centraliza el roadmap completo del proyecto, organizando las tare
 - [x] **Zustand**: Gestión de estado transversal sin prop-drilling (v5.0.x).
 - [x] **Live Dashboard**: Supabase Realtime para eventos del servidor.
 - [ ] **Live Activity Feed ("El Pulso")**: Stream en tiempo real de logros, eventos y donaciones en la web.
-- [ ] **Deep Linking `crystaltides://`**: Lanzamiento 1-click desde el navegador directo a la sesión de juego.
+- [x] **Deep Linking `crystaltides://`**: Lanzamiento 1-click desde el navegador directo a la sesión de juego.
 
 ### Cliente & Motor Nativo (Crystal Agent)
 
 - [ ] 🚀 **Crystal Agent Nativo (Rust + OpenGL/Vulkan)**: Agente inyectado en JVM (`-javaagent`) con overlay nativo Dear ImGui a cero coste de Garbage Collector.
-- [ ] **Crystal Crash Pipeline**: Captura y diagnóstico inteligente de crashes de la JVM en el Launcher de Tauri v2.
+- [x] **Crystal Crash Pipeline**: Captura y diagnóstico inteligente de crashes de la JVM en el Launcher de Tauri v2.
 
 ### DevOps, Pruebas & Calidad (E2E / BDD)
 
