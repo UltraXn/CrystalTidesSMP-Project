@@ -25,6 +25,8 @@ dist-ssr
 *.sln
 minecraft-plugin/
 .turbo/
+# PMD and other tool binaries, downloaded on demand by scripts/lint-java.ps1
+.tools/
 .gradle/
 **/.gradle/
 .env*
