@@ -37,7 +37,7 @@ const TEXTURE_PATHS = {
   GLASS: '/images/glass.png?v=2',
   OBSIDIAN: '/images/obsidian.png?v=2',
   BEACON: '/images/beacon.png',
-  NETHER_STAR: '/images/items/Nether_Star.gif',
+  NETHER_STAR: '/images/items/Nether_Star.webp',
   BEACON_BEAM: '/images/Beacon_Beam_(texture).png',
   TORO_WITHER_MODEL: '/models/toro_wither.gltf',
 } as const;

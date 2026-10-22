@@ -114,6 +114,7 @@ loop*.md
 oxlint_report.json
 eslint_report.json
 **/eslint_report.json
+**/eslint-report*.json
 scratch_lint.json
 **/scratch_lint.json
 test_results*.txt
