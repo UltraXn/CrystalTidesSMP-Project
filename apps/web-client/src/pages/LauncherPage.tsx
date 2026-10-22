@@ -1,535 +1,498 @@
-import { useState, useCallback } from 'react';
-import { LauncherShowcaseSection } from '../components/Launcher/LauncherShowcaseSection';
-import { DesignSystemShowcase } from '../components/Launcher/DesignSystemShowcase';
-import { ScreenShowcaseSection } from '../components/Launcher/ScreenShowcaseSection';
-import { ArchitectureInfographic } from '../components/Launcher/ArchitectureInfographic';
+import { useState, useCallback, type ReactNode } from 'react';
 import { useSEO } from '../hooks/useSEO';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router';
 import {
-  ChevronDown,
-  Sparkles,
-  ArrowLeft,
-  HelpCircle,
-  Monitor,
-  Layers,
   Download,
-  Check,
-  Copy,
-  HardDrive,
-  Activity,
-  Cpu,
+  Zap,
+  RefreshCw,
+  Feather,
+  ShieldCheck,
+  KeyRound,
+  Monitor,
+  Laptop,
+  Terminal,
+  Plus,
+  Minus,
+  type LucideIcon,
 } from 'lucide-react';
+
+const LAUNCHER_VERSION = '0.1.2';
+const RELEASES_URL = 'https://github.com/UltraXn/crystaltides-launcher-lite/releases/latest';
 
 const CONSTANTS = {
   DISCORD_URL: 'https://discord.com/invite/TDmwYNnvyT',
   CANONICAL_URL: 'https://crystaltidessmp.net/launcher',
-  DEFAULT_SEO_TITLE: 'Cliente Oficial • CrystalTides Launcher | Rendimiento Extremo',
-  DEFAULT_SEO_DESC:
-    'Descarga el nuevo cliente oficial de CrystalTides SMP (Tauri 2.0 + Rust). Arranque instantáneo en 0.6s, <40MB de RAM y sincronización de mods en tiempo real.',
+  WINDOWS_DOWNLOAD_URL: `${RELEASES_URL}/download/CrystalTides-Setup.exe`,
+  CHECKSUMS_URL: `${RELEASES_URL}/download/SHA256SUMS.txt`,
   SEO_KEYWORDS:
-    'CrystalTides Launcher, Minecraft Client, Tauri Minecraft Launcher, Modded SMP 1.21.1, Rust Minecraft Launcher',
+    'CrystalTides Launcher, Launcher Lite, Minecraft Launcher, Modded SMP 1.21.1, CrystalTides SMP',
 } as const;
 
-interface PlatformDownloadInfo {
-  id: 'windows' | 'mac' | 'linux';
-  title: string;
-  badge: string;
-  badgeClass: string;
-  description: string;
-  hash: string;
-  downloadLabel: string;
-  borderHoverClass: string;
-  checkIconClass: string;
-  buttonClass: string;
-}
+// lg:px-20 keeps content clear of the fixed SocialSidebar on the left edge.
+const SECTION_CLASS = 'mx-auto w-full max-w-340 px-4 sm:px-6 lg:px-20';
+const CARD_CLASS = 'rounded-2xl border border-white/10 bg-white/3';
+const PRIMARY_BUTTON_CLASS =
+  'inline-flex items-center justify-center gap-2.5 rounded-xl bg-(--accent) px-6 py-3.5 text-base font-bold text-black transition-colors hover:brightness-110';
+const SECONDARY_BUTTON_CLASS =
+  'inline-flex items-center justify-center rounded-xl border border-white/15 bg-white/5 px-6 py-3.5 text-base font-semibold text-white transition-colors hover:bg-white/10';
 
-const PLATFORM_DOWNLOADS: readonly PlatformDownloadInfo[] = [
-  {
-    id: 'windows',
-    title: 'Windows 10 / 11',
-    badge: '.msi / .exe',
-    badgeClass: 'bg-teal-500/10 text-teal-300',
-    description:
-      'Instalador nativo x64 compatible con WebView2. Incluye auto-actualizador silencioso.',
-    hash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-    downloadLabel: 'Descargar Windows (.msi)',
-    borderHoverClass: 'hover:border-teal-500/40',
-    checkIconClass: 'text-teal-400',
-    buttonClass:
-      'bg-linear-to-r flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl from-teal-400 to-teal-500 px-4 py-3 text-xs font-black uppercase tracking-wider text-slate-950 shadow-lg shadow-teal-500/20 transition-colors hover:from-teal-300 hover:to-teal-400',
-  },
-  {
-    id: 'mac',
-    title: 'macOS Universal',
-    badge: '.dmg',
-    badgeClass: 'bg-purple-500/10 text-purple-300',
-    description:
-      'Binario Universal compilado para Apple Silicon (M1/M2/M3/M4) y procesadores Intel.',
-    hash: 'a8f5f167f44f4964e6c998dee827110cdeep68f9b940026e6e232924157d6205',
-    downloadLabel: 'Descargar macOS (.dmg)',
-    borderHoverClass: 'hover:border-purple-500/40',
-    checkIconClass: 'text-purple-400',
-    buttonClass:
-      'flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/10 px-4 py-3 text-xs font-bold uppercase tracking-wider text-white transition-colors hover:bg-white/15',
-  },
-  {
-    id: 'linux',
-    title: 'Linux Universal',
-    badge: '.AppImage / .deb',
-    badgeClass: 'bg-amber-500/10 text-amber-300',
-    description:
-      'Paquete independiente compatible con Ubuntu, Debian, Arch Linux, Fedora y Flatpak.',
-    hash: '8f434346648f6b96df89dda901c5176b10a6d83961dd3c1ac88b59b2dc327aa4',
-    downloadLabel: 'Descargar Linux (.AppImage)',
-    borderHoverClass: 'hover:border-amber-500/40',
-    checkIconClass: 'text-amber-400',
-    buttonClass:
-      'flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/10 px-4 py-3 text-xs font-bold uppercase tracking-wider text-white transition-colors hover:bg-white/15',
-  },
-];
+type PlatformId = 'windows' | 'macos' | 'linux';
 
-interface FaqItem {
-  id: string;
-  q: string;
-  a: string;
-}
+const PLATFORM_ICONS: Record<PlatformId, LucideIcon> = {
+  windows: Monitor,
+  macos: Laptop,
+  linux: Terminal,
+};
 
-const FAQS: readonly FaqItem[] = [
-  {
-    id: 'faq-security',
-    q: '¿Es seguro el cliente? ¿Pide mi contraseña de Microsoft?',
-    a: '100% seguro. CrystalTides Client utiliza el flujo oficial Microsoft OAuth 2.0 con PKCE en una ventana nativa segura. Tus credenciales nunca tocan nuestros servidores ni se guardan en texto plano en tu equipo.',
-  },
-  {
-    id: 'faq-memory',
-    q: '¿Cómo logra consumir menos de 40MB de memoria RAM?',
-    a: 'A diferencia de la mayoría de launchers que empaquetan un navegador Chromium completo (Electron) consumiendo 400MB-800MB solo en abrirse, nuestro cliente está programado nativamente en Rust con Tauri 2.0 y utiliza el motor WebKit/WebView2 nativo de tu sistema operativo.',
-  },
-  {
-    id: 'faq-mods',
-    q: '¿Puedo añadir mis propios mods de terceros?',
-    a: '¡Sí! El cliente cuenta con un gestor completo de mods donde puedes activar, desactivar o arrastrar tus propios mods (.jar), shaders o resource packs personalizados a cada perfil.',
-  },
-  {
-    id: 'faq-delta',
-    q: '¿Qué es la sincronización Delta SHA-256?',
-    a: 'Cada vez que actualizamos los mods oficiales del servidor, el launcher no vuelve a descargar el modpack completo. Compara los hashes criptográficos de tus archivos locales y descarga únicamente los parches o mods nuevos en segundos.',
-  },
-  {
-    id: 'faq-java',
-    q: '¿Requiere tener Java preinstalado en mi PC?',
-    a: 'No es obligatorio. Si no tienes una versión de Java compatible instalada, el launcher detecta y descarga automáticamente el entorno OpenJDK adecuado (Java 21 para Minecraft 1.21+) de forma aislada y optimizada.',
-  },
-];
+const PLATFORM_NAMES: Record<PlatformId, string> = {
+  windows: 'Windows',
+  macos: 'macOS',
+  linux: 'Linux',
+};
 
-function DiscordIcon({ className }: Readonly<{ className?: string }>) {
+const REQUIREMENT_ROWS: Record<PlatformId, readonly (readonly [string, string])[]> = {
+  windows: [
+    ['label_system', 'windows_system'],
+    ['label_ram', 'windows_ram'],
+    ['label_storage', 'storage_value'],
+  ],
+  macos: [
+    ['label_system', 'macos_system'],
+    ['label_processor', 'macos_processor'],
+    ['label_storage', 'storage_value'],
+  ],
+  linux: [
+    ['label_distros', 'linux_distros'],
+    ['label_format', 'linux_format'],
+    ['label_libraries', 'linux_libraries'],
+  ],
+};
+
+const PLATFORMS: readonly PlatformId[] = ['windows', 'macos', 'linux'];
+const FAQ_IDS = ['security', 'java', 'mods', 'updates', 'memory'] as const;
+
+function SectionHeader({
+  eyebrow,
+  title,
+  subtitle,
+}: Readonly<{ eyebrow: string; title: string; subtitle?: string }>) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128c.125-.094.249-.192.37-.291a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.37.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z" />
-    </svg>
-  );
-}
-
-function NavigationBreadcrumb() {
-  return (
-    <div className="relative z-10 mx-auto max-w-6xl px-4 pb-4 pt-24 sm:px-6 lg:px-8">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <Link
-          to="/"
-          className="inline-flex items-center gap-2 rounded-lg border border-white/5 bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-400 transition-colors hover:border-teal-500/30 hover:text-teal-400"
-        >
-          <ArrowLeft className="size-3.5" />
-          <span>Volver a CrystalTides Home</span>
-        </Link>
-
-        <div className="flex items-center gap-3">
-          <a
-            href={CONSTANTS.DISCORD_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-lg border border-[#5865F2]/30 bg-[#5865F2]/10 px-3 py-1.5 text-xs font-bold text-[#5865F2] transition-colors hover:border-[#5865F2] hover:bg-[#5865F2] hover:text-white"
-          >
-            <DiscordIcon className="size-3.5" />
-            <span>Comunidad Discord</span>
-          </a>
-
-          <div className="hidden items-center gap-2 text-xs text-slate-400 sm:flex">
-            <span className="size-2 animate-ping rounded-full bg-emerald-400" />
-            <span className="font-mono font-medium text-slate-300">v2.4.0 Estable</span>
-          </div>
-        </div>
-      </div>
+    <div className="max-w-2xl space-y-3">
+      <p className="text-(--accent) text-xs font-bold uppercase tracking-[0.08em]">{eyebrow}</p>
+      <h2 className="text-balance text-3xl font-bold tracking-tight text-white sm:text-[40px]/[1.15]">
+        {title}
+      </h2>
+      {subtitle && <p className="text-base/relaxed text-gray-400 sm:text-lg/relaxed">{subtitle}</p>}
     </div>
   );
 }
 
-function HeroMetrics() {
+function ProductShot({
+  src,
+  alt,
+  eager = false,
+}: Readonly<{ src: string; alt: string; eager?: boolean }>) {
   return (
-    <div className="flex flex-wrap items-center justify-center gap-3 pt-2 font-mono text-xs">
-      <div className="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/80 px-3.5 py-2 text-slate-300">
-        <HardDrive className="size-3.5 text-teal-400" />
-        <span>
-          RAM: <strong className="font-bold text-white">&lt; 38.4 MB</strong>
-        </span>
-      </div>
-      <div className="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/80 px-3.5 py-2 text-slate-300">
-        <Activity className="size-3.5 text-teal-400" />
-        <span>
-          Inicio: <strong className="font-bold text-white">0.6s</strong>
-        </span>
-      </div>
-      <div className="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/80 px-3.5 py-2 text-slate-300">
-        <Cpu className="size-3.5 text-teal-400" />
-        <span>
-          FPS Boost: <strong className="font-bold text-white">+140% FPS</strong>
-        </span>
-      </div>
-      <div className="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/80 px-3.5 py-2 text-slate-300">
-        <Layers className="size-3.5 text-teal-400" />
-        <span>
-          Sync: <strong className="font-bold text-white">SHA-256 Delta</strong>
-        </span>
-      </div>
+    <div className="overflow-hidden rounded-2xl border border-white/15 shadow-2xl shadow-black/60">
+      <img
+        src={src}
+        alt={alt}
+        width={1600}
+        height={1000}
+        loading={eager ? 'eager' : 'lazy'}
+        decoding="async"
+        className="block h-auto w-full"
+      />
     </div>
   );
 }
 
 function HeroSection() {
+  const { t } = useTranslation();
   return (
-    <header className="relative z-10 mx-auto max-w-6xl space-y-6 px-4 pb-14 pt-8 text-center sm:px-6 lg:px-8">
-      <div className="inline-flex items-center gap-2 rounded-full border border-teal-500/30 bg-slate-900/90 px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider text-teal-300 shadow-lg shadow-teal-500/10">
-        <Sparkles className="size-3.5 text-teal-400" />
-        <span>CLIENTE OFICIAL TAURI 2.0 • RUST CORE</span>
-      </div>
-
-      <h1 className="mx-auto max-w-4xl text-4xl/tight font-black tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl">
-        El Launcher Definitivo para <br />
-        <span className="bg-linear-to-r from-teal-400 via-purple-300 to-teal-300 bg-clip-text text-transparent">
-          Minecraft Modded
+    <header
+      className={`${SECTION_CLASS} grid items-center gap-12 pb-20 pt-32 lg:grid-cols-[minmax(0,1fr)_minmax(0,600px)] lg:gap-16`}
+    >
+      <div className="space-y-6">
+        <span className="bg-(--accent)/15 text-(--accent) inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold">
+          <span className="bg-(--accent) size-1.5 rounded-full" />
+          {t('launcher_page.hero.eyebrow', { version: LAUNCHER_VERSION })}
         </span>
-      </h1>
-
-      <p className="mx-auto max-w-2xl text-sm/relaxed text-slate-300 sm:text-base md:text-lg">
-        Arranque instantáneo en <strong className="font-bold text-white">0.6 segundos</strong>,
-        consumo menor a <strong className="font-bold text-white">40MB de RAM</strong> y
-        sincronización delta de mods en tiempo real.
-      </p>
-
-      <HeroMetrics />
-
-      <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
-        <a
-          href="#downloads"
-          className="bg-linear-to-r flex cursor-pointer items-center gap-2.5 rounded-xl from-teal-400 to-teal-500 px-8 py-3.5 text-sm font-black tracking-wide text-slate-950 shadow-xl shadow-teal-500/25 transition-colors hover:scale-105 hover:from-teal-300 hover:to-teal-400"
-        >
-          <Download className="size-4" />
-          <span>DESCARGAR PARA TU PC</span>
-        </a>
-        <a
-          href="#sandbox"
-          className="flex cursor-pointer items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-6 py-3.5 text-sm font-bold text-white transition-colors hover:bg-white/10"
-        >
-          <span>Explorar Simulador Web &darr;</span>
-        </a>
+        <h1 className="text-balance text-4xl/tight font-bold tracking-tight text-white sm:text-5xl/tight lg:text-6xl/[1.08]">
+          {t('launcher_page.hero.title')}
+        </h1>
+        <p className="max-w-xl text-lg/relaxed text-gray-400">{t('launcher_page.hero.subtitle')}</p>
+        <div className="flex flex-wrap gap-3">
+          <a href={CONSTANTS.WINDOWS_DOWNLOAD_URL} className={PRIMARY_BUTTON_CLASS}>
+            <Download className="size-4.5" aria-hidden="true" />
+            {t('launcher_page.hero.cta_primary')}
+          </a>
+          <a href="#downloads" className={SECONDARY_BUTTON_CLASS}>
+            {t('launcher_page.hero.cta_secondary')}
+          </a>
+        </div>
+        <p className="text-sm text-gray-400">{t('launcher_page.hero.meta')}</p>
       </div>
+      <ProductShot
+        src="/images/launcher/launcher-lite-main.webp"
+        alt={t('launcher_page.hero.shot_alt')}
+        eager
+      />
     </header>
   );
 }
 
-function SystemRequirementsSection() {
+function TrustStrip() {
+  const { t } = useTranslation();
+  const items: readonly [LucideIcon, string][] = [
+    [ShieldCheck, t('launcher_page.trust.checksums')],
+    [KeyRound, t('launcher_page.trust.microsoft')],
+    [RefreshCw, t('launcher_page.trust.updates')],
+  ];
   return (
-    <section className="relative z-10 mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
-      <div className="rounded-3xl border border-white/10 bg-[#09050d] p-6 shadow-2xl sm:p-8">
-        <div className="mb-6 flex items-center gap-3">
-          <Monitor className="size-5 text-teal-400" />
-          <h3 className="text-xl font-bold text-white">Requisitos del Sistema</h3>
-        </div>
-
-        <div className="grid grid-cols-1 gap-4 text-xs sm:grid-cols-3 sm:text-sm">
-          <div className="bg-white/2 space-y-2 rounded-xl border border-white/5 p-4">
-            <div className="flex items-center gap-2 font-bold text-white">
-              <span className="size-2 rounded-full bg-teal-400" />
-              <span>Windows</span>
-            </div>
-            <div className="space-y-1 text-slate-400">
-              <div>OS: Windows 10 / 11 (64-bit)</div>
-              <div>RAM Mínima: 4 GB (8 GB recomendado)</div>
-              <div>Almacenamiento: 250 MB libres</div>
-            </div>
-          </div>
-
-          <div className="bg-white/2 space-y-2 rounded-xl border border-white/5 p-4">
-            <div className="flex items-center gap-2 font-bold text-white">
-              <span className="size-2 rounded-full bg-purple-400" />
-              <span>macOS</span>
-            </div>
-            <div className="space-y-1 text-slate-400">
-              <div>OS: macOS 11.0 (Big Sur) o superior</div>
-              <div>Arquitectura: Apple Silicon (M1/M2/M3/M4) & Intel</div>
-              <div>Almacenamiento: 250 MB libres</div>
-            </div>
-          </div>
-
-          <div className="bg-white/2 space-y-2 rounded-xl border border-white/5 p-4">
-            <div className="flex items-center gap-2 font-bold text-white">
-              <span className="size-2 rounded-full bg-amber-400" />
-              <span>Linux</span>
-            </div>
-            <div className="space-y-1 text-slate-400">
-              <div>Distros: Ubuntu 20.04+, Debian 11+, Arch, Fedora</div>
-              <div>Formato: AppImage universal / paquete .deb</div>
-              <div>Librerías: webkit2gtk-4.1 / glibc 2.31+</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-interface PlatformCardProps {
-  platform: PlatformDownloadInfo;
-  isCopied: boolean;
-  onCopyHash: (hash: string) => void;
-}
-
-function PlatformCard({ platform, isCopied, onCopyHash }: Readonly<PlatformCardProps>) {
-  return (
-    <div
-      className={`flex flex-col justify-between space-y-4 rounded-2xl border border-white/10 bg-[#0c0714] p-6 shadow-xl transition-colors ${platform.borderHoverClass}`}
-    >
-      <div className="space-y-2">
-        <div className="flex items-center justify-between text-sm font-bold text-white">
-          <span>{platform.title}</span>
-          <span className={`rounded-sm px-2 py-0.5 font-mono text-[10px] ${platform.badgeClass}`}>
-            {platform.badge}
-          </span>
-        </div>
-        <p className="text-xs text-slate-400">{platform.description}</p>
-      </div>
-
-      <div className="space-y-3 pt-2">
-        <button
-          type="button"
-          onClick={() => onCopyHash(platform.hash)}
-          className="flex w-full cursor-pointer items-center justify-between rounded-lg border border-white/5 bg-white/5 px-3 py-2 font-mono text-[11px] text-slate-300 hover:bg-white/10"
-        >
-          <span className="truncate">SHA-256: {platform.hash.slice(0, 16)}...</span>
-          {isCopied ? (
-            <Check className={`size-3.5 ${platform.checkIconClass}`} />
-          ) : (
-            <Copy className="size-3.5 text-slate-500" />
-          )}
-        </button>
-
-        <button type="button" className={platform.buttonClass}>
-          <Download className="size-3.5" />
-          <span>{platform.downloadLabel}</span>
-        </button>
-      </div>
+    <div className={SECTION_CLASS}>
+      <ul className="border-white/8 flex flex-wrap items-center justify-center gap-x-10 gap-y-3 border-y py-5">
+        {items.map(([Icon, label]) => (
+          <li key={label} className="flex items-center gap-2.5 text-sm font-medium text-gray-400">
+            <Icon className="size-4.5" aria-hidden="true" />
+            {label}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
 
-interface DownloadSectionProps {
-  copiedHash: string | null;
-  onCopyHash: (hash: string) => void;
-}
-
-function DownloadSection({ copiedHash, onCopyHash }: Readonly<DownloadSectionProps>) {
+function BenefitsSection() {
+  const { t } = useTranslation();
+  const benefits: readonly [LucideIcon, string][] = [
+    [Zap, 'fast'],
+    [RefreshCw, 'sync'],
+    [Feather, 'light'],
+  ];
   return (
-    <section
-      id="downloads"
-      className="relative z-10 mx-auto max-w-5xl space-y-8 px-4 py-16 sm:px-6 lg:px-8"
-    >
-      <div className="mx-auto max-w-2xl space-y-2 text-center">
-        <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-teal-400">
-          <Download className="size-4" /> DESCARGA DIRECTA MULTI-PLATAFORMA
-        </div>
-        <h2 className="text-3xl font-black text-white sm:text-4xl">Descarga Oficial Verificada</h2>
-        <p className="text-xs text-slate-400 sm:text-sm">
-          Instaladores oficiales firmados digitalmente. Sin publicidad ni software secundario.
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-        {PLATFORM_DOWNLOADS.map((platform) => (
-          <PlatformCard
-            key={platform.id}
-            platform={platform}
-            isCopied={copiedHash === platform.hash}
-            onCopyHash={onCopyHash}
-          />
+    <section className={`${SECTION_CLASS} space-y-12 py-24`}>
+      <SectionHeader
+        eyebrow={t('launcher_page.benefits.eyebrow')}
+        title={t('launcher_page.benefits.title')}
+      />
+      <div className="grid gap-6 md:grid-cols-3">
+        {benefits.map(([Icon, key]) => (
+          <article key={key} className={`${CARD_CLASS} space-y-3.5 p-7`}>
+            <span className="bg-(--accent)/15 text-(--accent) inline-flex rounded-lg p-2.5">
+              <Icon className="size-5" aria-hidden="true" />
+            </span>
+            <h3 className="text-xl font-semibold text-white">
+              {t(`launcher_page.benefits.${key}_title`)}
+            </h3>
+            <p className="text-[15px]/relaxed text-gray-400">
+              {t(`launcher_page.benefits.${key}_body`)}
+            </p>
+          </article>
         ))}
       </div>
     </section>
   );
 }
 
-interface FaqAccordionItemProps {
-  faq: FaqItem;
-  isOpen: boolean;
-  onToggle: () => void;
+function GallerySection() {
+  const { t } = useTranslation();
+  const shots = ['instances', 'settings'] as const;
+  return (
+    <section className={`${SECTION_CLASS} space-y-12 pb-24`}>
+      <SectionHeader
+        eyebrow={t('launcher_page.gallery.eyebrow')}
+        title={t('launcher_page.gallery.title')}
+      />
+      <div className="grid gap-6 md:grid-cols-2">
+        {shots.map((key) => (
+          <figure key={key} className="space-y-4">
+            <ProductShot
+              src={`/images/launcher/launcher-lite-${key}.webp`}
+              alt={t(`launcher_page.gallery.${key}_alt`)}
+            />
+            <figcaption className="space-y-1.5">
+              <h3 className="text-lg font-semibold text-white">
+                {t(`launcher_page.gallery.${key}_title`)}
+              </h3>
+              <p className="text-[15px]/relaxed text-gray-400">
+                {t(`launcher_page.gallery.${key}_desc`)}
+              </p>
+            </figcaption>
+          </figure>
+        ))}
+      </div>
+    </section>
+  );
 }
 
-function FaqAccordionItem({ faq, isOpen, onToggle }: Readonly<FaqAccordionItemProps>) {
+function ComingSoonBadge({ children }: Readonly<{ children: ReactNode }>) {
   return (
-    <div className="overflow-hidden rounded-xl border border-white/10 bg-[#0a0610]/80 transition-colors">
-      <button
-        type="button"
-        onClick={onToggle}
-        className="hover:bg-white/2 flex w-full cursor-pointer items-center justify-between gap-4 p-4 text-left transition-colors sm:p-5"
-      >
-        <span className="text-sm font-bold text-white sm:text-base">{faq.q}</span>
-        <ChevronDown
-          className={`size-4 shrink-0 text-slate-400 transition-transform duration-200 ${
-            isOpen ? 'rotate-180 text-teal-400' : ''
-          }`}
+    <span className="bg-white/8 shrink-0 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold text-gray-300">
+      {children}
+    </span>
+  );
+}
+
+function RequirementsCard({ platform }: Readonly<{ platform: PlatformId }>) {
+  const { t } = useTranslation();
+  const Icon = PLATFORM_ICONS[platform];
+  return (
+    <div className={`${CARD_CLASS} px-6 pb-2 pt-5`}>
+      <div className="flex flex-wrap items-center justify-between gap-3 pb-3.5">
+        <h4 className="flex items-center gap-2.5 text-[17px] font-semibold text-white">
+          <Icon className="size-4.5" aria-hidden="true" />
+          {PLATFORM_NAMES[platform]}
+        </h4>
+        {platform !== 'windows' && (
+          <ComingSoonBadge>{t('launcher_page.requirements.coming_soon')}</ComingSoonBadge>
+        )}
+      </div>
+      <dl>
+        {REQUIREMENT_ROWS[platform].map(([labelKey, valueKey]) => (
+          <div key={labelKey} className="border-white/8 space-y-1 border-t py-3">
+            <dt className="text-xs font-medium uppercase tracking-[0.04em] text-gray-400">
+              {t(`launcher_page.requirements.${labelKey}`)}
+            </dt>
+            <dd className="text-[15px]/snug text-white">
+              {t(`launcher_page.requirements.${valueKey}`)}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  );
+}
+
+function PerformanceSection() {
+  const { t } = useTranslation();
+  const stats = ['startup', 'ram', 'data'] as const;
+  return (
+    <section className="bg-white/2">
+      <div className={`${SECTION_CLASS} space-y-12 py-24`}>
+        <SectionHeader
+          eyebrow={t('launcher_page.performance.eyebrow')}
+          title={t('launcher_page.performance.title')}
+          subtitle={t('launcher_page.performance.subtitle')}
         />
-      </button>
-      {isOpen && (
-        <div className="border-t border-white/5 px-4 pb-5 pt-3 text-xs/relaxed text-slate-300 sm:px-5 sm:text-sm">
-          {faq.a}
+        <dl className="grid gap-6 md:grid-cols-3">
+          {stats.map((key) => (
+            <div key={key} className="rounded-2xl border border-white/10 px-7 py-6">
+              <dd className="text-(--accent) text-4xl font-bold tracking-tight sm:text-[44px]">
+                {t(`launcher_page.performance.${key}_value`)}
+              </dd>
+              <dt className="pt-1.5 text-[15px] text-gray-400">
+                {t(`launcher_page.performance.${key}_label`)}
+              </dt>
+            </div>
+          ))}
+        </dl>
+        <div className="space-y-6">
+          <h3 className="text-[22px] font-semibold text-white">
+            {t('launcher_page.requirements.title')}
+          </h3>
+          <div className="grid gap-6 xl:grid-cols-3">
+            {PLATFORMS.map((platform) => (
+              <RequirementsCard key={platform} platform={platform} />
+            ))}
+          </div>
         </div>
+      </div>
+    </section>
+  );
+}
+
+function DownloadCard({ platform }: Readonly<{ platform: PlatformId }>) {
+  const { t } = useTranslation();
+  const Icon = PLATFORM_ICONS[platform];
+  const available = platform === 'windows';
+  const cardBorder = available ? 'border-(--accent) border-[1.5px]' : 'border-white/10';
+  return (
+    <div className={`bg-white/3 flex flex-col gap-4 rounded-2xl border p-6 ${cardBorder}`}>
+      <div className="flex flex-wrap items-center gap-3">
+        <span
+          className={`inline-flex shrink-0 rounded-lg p-2.5 ${available ? 'bg-(--accent)/15 text-(--accent)' : 'bg-white/6 text-white'}`}
+        >
+          <Icon className="size-5" aria-hidden="true" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <h3 className="text-[19px] font-semibold text-white">{PLATFORM_NAMES[platform]}</h3>
+          <p className="text-sm text-gray-400">{t(`launcher_page.download.${platform}_format`)}</p>
+        </div>
+        {available ? (
+          <span className="bg-(--accent)/15 text-(--accent) shrink-0 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold">
+            {t('launcher_page.download.recommended')}
+          </span>
+        ) : (
+          <ComingSoonBadge>{t('launcher_page.download.coming_soon')}</ComingSoonBadge>
+        )}
+      </div>
+      <p className="flex-1 text-[15px]/relaxed text-gray-400">
+        {t(`launcher_page.download.${platform}_desc`)}
+      </p>
+      {available ? (
+        <a href={CONSTANTS.WINDOWS_DOWNLOAD_URL} className={`${PRIMARY_BUTTON_CLASS} w-full`}>
+          <Download className="size-4" aria-hidden="true" />
+          {t(`launcher_page.download.${platform}_cta`)}
+        </a>
+      ) : (
+        <button
+          type="button"
+          disabled
+          className="bg-white/3 inline-flex w-full cursor-not-allowed items-center justify-center rounded-xl border border-white/10 py-3 text-[15px] font-semibold text-gray-400"
+        >
+          {t(`launcher_page.download.${platform}_cta`)}
+        </button>
+      )}
+      {available && (
+        <a
+          href={CONSTANTS.CHECKSUMS_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-sm text-gray-400 underline-offset-4 hover:text-white hover:underline"
+        >
+          {t('launcher_page.download.verify')}
+        </a>
       )}
     </div>
   );
 }
 
-function FaqSection({
-  openFaq,
-  onToggleFaq,
-}: Readonly<{
-  openFaq: number | null;
-  onToggleFaq: (idx: number) => void;
-}>) {
+function DownloadSection() {
+  const { t } = useTranslation();
   return (
-    <section className="relative z-10 mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8">
-      <div className="mx-auto mb-10 max-w-2xl space-y-2 text-center">
-        <div className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-teal-400">
-          <HelpCircle className="size-4" /> Preguntas Frecuentes
-        </div>
-        <h2 className="text-2xl font-black text-white sm:text-3xl">
-          ¿Tienes dudas sobre el cliente?
-        </h2>
-      </div>
-
-      <div className="space-y-3">
-        {FAQS.map((faq, idx) => (
-          <FaqAccordionItem
-            key={faq.id}
-            faq={faq}
-            isOpen={openFaq === idx}
-            onToggle={() => onToggleFaq(idx)}
-          />
+    <section id="downloads" className={`${SECTION_CLASS} scroll-mt-28 space-y-12 py-24`}>
+      <SectionHeader
+        eyebrow={t('launcher_page.download.eyebrow')}
+        title={t('launcher_page.download.title')}
+        subtitle={t('launcher_page.download.subtitle')}
+      />
+      <div className="grid gap-6 xl:grid-cols-3">
+        {PLATFORMS.map((platform) => (
+          <DownloadCard key={platform} platform={platform} />
         ))}
+      </div>
+      <p className="flex flex-wrap gap-2 text-sm text-gray-400">
+        {t('launcher_page.download.version_note', { version: LAUNCHER_VERSION })}
+        <a
+          href={RELEASES_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-(--accent) font-medium hover:underline"
+        >
+          {t('launcher_page.download.release_notes')}
+        </a>
+      </p>
+    </section>
+  );
+}
+
+function FaqSection() {
+  const { t } = useTranslation();
+  const [openId, setOpenId] = useState<string | null>(FAQ_IDS[0]);
+  const toggle = useCallback((id: string) => {
+    setOpenId((current) => (current === id ? null : id));
+  }, []);
+
+  return (
+    <section className="bg-white/2">
+      <div
+        className={`${SECTION_CLASS} grid gap-12 py-24 lg:grid-cols-[minmax(0,340px)_1fr] lg:gap-20`}
+      >
+        <SectionHeader
+          eyebrow={t('launcher_page.faq.eyebrow')}
+          title={t('launcher_page.faq.title')}
+          subtitle={t('launcher_page.faq.subtitle')}
+        />
+        <div className="space-y-3">
+          {FAQ_IDS.map((id) => {
+            const isOpen = openId === id;
+            const Icon = isOpen ? Minus : Plus;
+            return (
+              <div
+                key={id}
+                className={`bg-white/3 rounded-2xl border ${isOpen ? 'border-white/15' : 'border-white/8'}`}
+              >
+                <button
+                  type="button"
+                  aria-expanded={isOpen}
+                  aria-controls={`launcher-faq-${id}`}
+                  onClick={() => toggle(id)}
+                  className="flex w-full cursor-pointer items-center justify-between gap-4 px-6 py-5 text-left"
+                >
+                  <span className="text-[17px] font-semibold text-white">
+                    {t(`launcher_page.faq.${id}_q`)}
+                  </span>
+                  <Icon
+                    className={`size-4.5 shrink-0 ${isOpen ? 'text-(--accent)' : 'text-gray-400'}`}
+                    aria-hidden="true"
+                  />
+                </button>
+                {isOpen && (
+                  <p
+                    id={`launcher-faq-${id}`}
+                    className="px-6 pb-5 text-[15px]/relaxed text-gray-400"
+                  >
+                    {t(`launcher_page.faq.${id}_a`)}
+                  </p>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
     </section>
   );
 }
 
-function FinalBannerCta() {
+function FinalCta() {
+  const { t } = useTranslation();
   return (
-    <div className="relative z-10 mx-auto max-w-5xl px-4 pb-20 pt-8 text-center sm:px-6 lg:px-8">
-      <div className="bg-linear-to-r space-y-6 rounded-3xl border border-teal-500/20 from-teal-950/40 via-purple-950/30 to-teal-950/40 p-8 shadow-2xl sm:p-12">
-        <h3 className="text-2xl font-black tracking-tight text-white sm:text-3xl md:text-4xl">
-          ¿Listo para experimentar Minecraft a máxima velocidad?
-        </h3>
-        <p className="mx-auto max-w-xl text-sm text-slate-300 sm:text-base">
-          Descarga el instalador oficial, inicia sesión con un clic y únete a la comunidad de
-          CrystalTides SMP.
-        </p>
-        <div className="flex flex-wrap items-center justify-center gap-4">
-          <a
-            href="#downloads"
-            className="bg-linear-to-r cursor-pointer rounded-xl from-teal-400 to-teal-500 px-8 py-3.5 text-sm font-black tracking-wide text-slate-950 shadow-lg shadow-teal-500/20 transition-colors hover:scale-105 hover:from-teal-300 hover:to-teal-400"
-          >
-            DESCARGAR AHORA
+    <section className={`${SECTION_CLASS} py-24`}>
+      <div className="border-(--accent)/35 bg-(--accent)/15 flex flex-col items-center gap-5 rounded-3xl border px-6 py-16 text-center sm:px-12">
+        <h2 className="text-4xl font-bold tracking-tight text-white sm:text-[44px]">
+          {t('launcher_page.cta.title')}
+        </h2>
+        <p className="max-w-xl text-lg/relaxed text-gray-300">{t('launcher_page.cta.subtitle')}</p>
+        <div className="flex flex-wrap justify-center gap-3 pt-1">
+          <a href={CONSTANTS.WINDOWS_DOWNLOAD_URL} className={PRIMARY_BUTTON_CLASS}>
+            <Download className="size-4.5" aria-hidden="true" />
+            {t('launcher_page.cta.primary')}
           </a>
-          <Link
-            to="/wiki"
-            className="rounded-xl border border-white/10 bg-white/5 px-6 py-3.5 text-sm font-bold text-white transition-colors hover:bg-white/10"
-          >
-            Ver Guía de Instalación
-          </Link>
           <a
             href={CONSTANTS.DISCORD_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex cursor-pointer items-center gap-2.5 rounded-xl border border-[#5865F2]/40 bg-[#5865F2]/15 px-6 py-3.5 text-sm font-bold text-white shadow-lg transition-colors hover:border-[#5865F2] hover:bg-[#5865F2] hover:shadow-[#5865F2]/25"
+            className={SECONDARY_BUTTON_CLASS}
           >
-            <DiscordIcon className="size-4" />
-            <span>Comunidad Discord</span>
+            {t('launcher_page.cta.discord')}
           </a>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
 
 export default function LauncherPage() {
   const { t } = useTranslation();
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const [copiedHash, setCopiedHash] = useState<string | null>(null);
 
   useSEO({
-    title: t('launcher.seo_title', CONSTANTS.DEFAULT_SEO_TITLE),
-    description: t('launcher.seo_desc', CONSTANTS.DEFAULT_SEO_DESC),
+    title: t('launcher_page.seo_title'),
+    description: t('launcher_page.seo_desc'),
     keywords: CONSTANTS.SEO_KEYWORDS,
     canonical: CONSTANTS.CANONICAL_URL,
   });
 
-  const handleCopyHash = useCallback((hash: string) => {
-    void navigator.clipboard.writeText(hash);
-    setCopiedHash(hash);
-    setTimeout(() => setCopiedHash(null), 2000);
-  }, []);
-
-  const handleToggleFaq = useCallback((idx: number) => {
-    setOpenFaq((current) => (current === idx ? null : idx));
-  }, []);
-
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#050206] text-white selection:bg-teal-500/30 selection:text-teal-200">
-      {/* Top Glow & Ambient Accents */}
-      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-        <div className="w-200 h-125 bg-linear-to-b absolute -top-40 left-1/2 -translate-x-1/2 rounded-full from-teal-500/10 via-purple-600/5 to-transparent blur-[140px]" />
-        <div className="size-112.5 absolute -left-40 top-1/3 rounded-full bg-purple-900/10 blur-[120px]" />
-        <div className="size-125 absolute -right-40 bottom-10 rounded-full bg-teal-600/10 blur-[140px]" />
-      </div>
-
-      {/* Top Navigation Breadcrumb */}
-      <NavigationBreadcrumb />
-
-      {/* 1. HERO SECTION CINEMATOGRÁFICO */}
+    <div className="selection:bg-(--accent)/30 min-h-screen overflow-x-hidden text-white">
       <HeroSection />
-
-      {/* 2. SANDBOX INTERACTIVO EN VIVO */}
-      <div id="sandbox" className="relative z-10">
-        <LauncherShowcaseSection />
-      </div>
-
-      {/* 3. SISTEMA DE DISEÑO & ANATOMÍA VISUAL */}
-      <DesignSystemShowcase />
-
-      {/* 4. DESGLOSE DE PANTALLAS WIREFRAME UI/UX */}
-      <ScreenShowcaseSection />
-
-      {/* 5. INFOGRAFÍA ARQUITECTURA EN RUST & RENDIMIENTO */}
-      <ArchitectureInfographic />
-
-      {/* 6. MATRIZ DE REQUISITOS DEL SISTEMA */}
-      <SystemRequirementsSection />
-
-      {/* 7. SECCIÓN DE DESCARGAS MULTI-SO CON HASHES SHA-256 */}
-      <DownloadSection copiedHash={copiedHash} onCopyHash={handleCopyHash} />
-
-      {/* 8. PREGUNTAS FRECUENTES (FAQ ACCORDION) */}
-      <FaqSection openFaq={openFaq} onToggleFaq={handleToggleFaq} />
-
-      {/* 9. BANNER FINAL CTA */}
-      <FinalBannerCta />
+      <TrustStrip />
+      <BenefitsSection />
+      <GallerySection />
+      <PerformanceSection />
+      <DownloadSection />
+      <FaqSection />
+      <FinalCta />
     </div>
   );
 }
