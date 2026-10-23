@@ -243,7 +243,7 @@ const SPECIAL_LOOTS: Record<
     itemTitle: 'Estrella del Nether',
     badge: '⭐ VÍSPEIRA JACKPOT',
     color: COLORS.ROSE,
-    imageSrc: '/images/items/Nether_Star.gif',
+    imageSrc: '/images/items/Nether_Star.webp',
     gradient: 'linear-gradient(135deg, rgba(244, 63, 94, 0.25) 0%, rgba(15, 23, 42, 0.85) 100%)',
     isCustomSubtext: true,
   },

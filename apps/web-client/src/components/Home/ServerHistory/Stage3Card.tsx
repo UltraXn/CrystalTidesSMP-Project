@@ -79,12 +79,12 @@ export function Stage3Card({
           <motion.button
             type="button"
             whileHover={{ scale: 1.05 }}
-            onClick={() => setSelectedPhotoModal('/images/memories/memory_4.png')}
+            onClick={() => setSelectedPhotoModal('/images/memories/memory_4.webp')}
             className="group flex cursor-pointer items-center gap-3 rounded-2xl border border-[#a855f7]/40 bg-black/80 p-2.5 shadow-[0_0_20px_rgba(168,85,247,0.2)] backdrop-blur-xl transition-colors hover:border-[#a855f7]"
           >
             <div className="relative h-11 w-14 shrink-0 overflow-hidden rounded-xl border border-[#a855f7]/50 bg-slate-900 shadow-md">
               <img
-                src="/images/memories/memory_4.png"
+                src="/images/memories/memory_4.webp"
                 alt="Bosque Sakura"
                 className="size-full object-cover transition-transform group-hover:scale-110"
               />

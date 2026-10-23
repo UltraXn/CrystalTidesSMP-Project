@@ -31,7 +31,16 @@ if ($Tool -in @('all', 'format')) {
 
 if ($Tool -in @('all', 'pmd')) {
     Write-Host "`n[2/4] Running PMD 7 (AST Code Smells & Dead Code)..." -ForegroundColor Yellow
-    $pmdBin = Join-Path $Root ".tools/pmd-bin-7.10.0/bin/pmd.bat"
+    $pmdVersion = '7.10.0'
+    $pmdBin = Join-Path $Root ".tools/pmd-bin-$pmdVersion/bin/pmd.bat"
+    if (-not (Test-Path $pmdBin)) {
+        # PMD is not versioned in the repo; fetch the official distribution once into .tools/
+        $pmdZip = Join-Path $env:TEMP "pmd-dist-$pmdVersion-bin.zip"
+        Write-Host " -> Downloading PMD $pmdVersion (first run)..." -ForegroundColor Gray
+        Invoke-WebRequest "https://github.com/pmd/pmd/releases/download/pmd_releases%2F$pmdVersion/pmd-dist-$pmdVersion-bin.zip" -OutFile $pmdZip
+        Expand-Archive -Path $pmdZip -DestinationPath (Join-Path $Root ".tools") -Force
+        Remove-Item $pmdZip
+    }
     $targetDirs = @(
         "plugins/crystalcore/src/main/java",
         "apps/game-bridge/java-agent/src/main/java",
