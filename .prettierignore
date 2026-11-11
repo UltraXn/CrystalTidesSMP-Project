@@ -1,0 +1,2 @@
+# Lo genera pnpm: reformatearlo convierte cada cambio de dependencias en un diff de miles de líneas.
+pnpm-lock.yaml
