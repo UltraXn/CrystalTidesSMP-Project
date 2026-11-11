@@ -2081,5 +2081,113 @@
       "status": "ESTADO DEL SISTEMA",
       "back": "VOLVER AL PORTAL"
     }
+  },
+  "launcher_page": {
+    "seo_title": "Launcher Lite | Descarga el launcher oficial de CrystalTides SMP",
+    "seo_desc": "Descarga CrystalTides Launcher Lite: instala el modpack, mantenlo al día y entra al servidor con un clic. Abre en 0,6 s y usa menos de 40 MB de RAM.",
+    "hero": {
+      "eyebrow": "Launcher Lite · v{{version}}",
+      "title": "Entra a CrystalTides con un solo clic",
+      "subtitle": "Instala el modpack, mantenlo al día y conéctate al servidor sin configurar nada. Ligero, rápido y gratis.",
+      "cta_primary": "Descargar para Windows",
+      "cta_secondary": "Otras plataformas",
+      "meta": "Windows 10/11 · macOS y Linux próximamente · Gratis",
+      "shot_alt": "Pantalla principal de CrystalTides Launcher Lite"
+    },
+    "trust": {
+      "checksums": "Suma SHA-256 publicada en cada versión",
+      "microsoft": "Inicio de sesión oficial de Microsoft",
+      "updates": "Actualizaciones automáticas"
+    },
+    "benefits": {
+      "eyebrow": "Por qué usarlo",
+      "title": "Todo lo que necesitas para jugar, nada más",
+      "fast_title": "Abre en 0,6 segundos",
+      "fast_body": "Sin pantallas de carga eternas: el launcher está listo antes de que termines de sentarte.",
+      "sync_title": "Mods siempre al día",
+      "sync_body": "Compara tu carpeta con la del servidor y descarga solo lo que cambió. Nada de reinstalar.",
+      "light_title": "Ligero de verdad",
+      "light_body": "Usa menos de 40 MB de RAM en reposo, así la memoria queda para Minecraft."
+    },
+    "gallery": {
+      "eyebrow": "Así se ve",
+      "title": "Pensado para jugar, no para configurar",
+      "instances_title": "Instancias",
+      "instances_desc": "Perfiles separados para CrystalTides y otros servidores, cada uno con su versión y sus mods.",
+      "instances_alt": "Gestor de instancias de Launcher Lite",
+      "settings_title": "Ajustes",
+      "settings_desc": "Cambia el idioma, el fondo y el color de acento a tu gusto.",
+      "settings_alt": "Ajustes de Launcher Lite"
+    },
+    "performance": {
+      "eyebrow": "Rendimiento",
+      "title": "Rápido incluso en equipos modestos",
+      "subtitle": "Está hecho con tecnología nativa en lugar de un navegador empaquetado, por eso arranca al instante y casi no ocupa memoria.",
+      "startup_value": "0,6 s",
+      "startup_label": "en abrir el launcher",
+      "ram_value": "< 40 MB",
+      "ram_label": "de RAM en reposo",
+      "data_value": "95 %",
+      "data_label": "menos datos en cada actualización"
+    },
+    "requirements": {
+      "title": "Requisitos del sistema",
+      "coming_soon": "Próximamente",
+      "label_system": "Sistema",
+      "label_ram": "RAM",
+      "label_storage": "Espacio",
+      "label_processor": "Procesador",
+      "label_distros": "Distros",
+      "label_format": "Formato",
+      "label_libraries": "Librerías",
+      "windows_system": "Windows 10 / 11 (64-bit)",
+      "windows_ram": "4 GB (8 GB recomendado)",
+      "storage_value": "250 MB libres",
+      "macos_system": "macOS 11 Big Sur o superior",
+      "macos_processor": "Apple Silicon e Intel",
+      "linux_distros": "Ubuntu 20.04+, Debian 11+, Arch, Fedora",
+      "linux_format": "AppImage o .deb",
+      "linux_libraries": "webkit2gtk-4.1, glibc 2.31+"
+    },
+    "download": {
+      "eyebrow": "Descarga",
+      "title": "Elige tu sistema y empieza a jugar",
+      "subtitle": "Instaladores oficiales, sin publicidad ni programas extra.",
+      "recommended": "Recomendado",
+      "coming_soon": "Próximamente",
+      "verify": "Verificar suma SHA-256",
+      "version_note": "Versión {{version}} ·",
+      "release_notes": "Ver notas de la versión",
+      "windows_format": ".exe · 64-bit",
+      "windows_desc": "Incluye actualizaciones automáticas en segundo plano.",
+      "windows_cta": "Descargar",
+      "macos_format": ".dmg · Universal",
+      "macos_desc": "Para Mac con Apple Silicon y con Intel. Lo estamos preparando.",
+      "macos_cta": "Disponible pronto",
+      "linux_format": ".AppImage · .deb",
+      "linux_desc": "Para Ubuntu, Debian, Arch y Fedora. Lo estamos preparando.",
+      "linux_cta": "Disponible pronto"
+    },
+    "faq": {
+      "eyebrow": "Preguntas frecuentes",
+      "title": "¿Tienes dudas?",
+      "subtitle": "Si no encuentras tu respuesta, escríbenos en Discord o abre un ticket de soporte.",
+      "security_q": "¿Es seguro? ¿Me pide mi contraseña de Microsoft?",
+      "security_a": "No. Inicias sesión en la ventana oficial de Microsoft: tu contraseña nunca pasa por nuestros servidores ni se guarda en tu equipo.",
+      "java_q": "¿Necesito tener Java instalado?",
+      "java_a": "No. Si no lo tienes, el launcher descarga automáticamente la versión correcta (Java 21) y la usa solo para el juego.",
+      "mods_q": "¿Puedo añadir mis propios mods?",
+      "mods_a": "Sí. Puedes activar, desactivar o arrastrar tus mods, shaders y resource packs a cada perfil.",
+      "updates_q": "¿Cómo se actualizan los mods del servidor?",
+      "updates_a": "Al abrirlo, compara tus archivos con los del servidor y descarga solo lo que cambió, en segundos.",
+      "memory_q": "¿Por qué usa tan poca memoria?",
+      "memory_a": "Usa el motor web que ya trae tu sistema en lugar de empaquetar un navegador completo. Así se queda por debajo de 40 MB."
+    },
+    "cta": {
+      "title": "¿Listo para jugar?",
+      "subtitle": "Descarga el launcher, inicia sesión con tu cuenta de Microsoft y entra al servidor en menos de un minuto.",
+      "primary": "Descargar para Windows",
+      "discord": "Unirse al Discord"
+    }
   }
 }
