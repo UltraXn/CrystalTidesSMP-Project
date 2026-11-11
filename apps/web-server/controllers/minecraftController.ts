@@ -51,10 +51,19 @@ const SQL = {
   UPDATE_DISCORD_BY_WEB_ID:
     'UPDATE linked_accounts SET discord_id = ?, discord_tag = ? WHERE web_user_id = ?',
   DELETE_UNIVERSAL_CODE: 'DELETE FROM universal_links WHERE code = ?',
-  DELETE_BY_MINECRAFT_UUID: 'DELETE FROM linked_accounts WHERE minecraft_uuid = ?',
-  DELETE_BY_WEB_USER_ID: 'DELETE FROM linked_accounts WHERE web_user_id = ?',
-  INSERT_FULL_LINK:
-    'INSERT INTO linked_accounts (minecraft_uuid, minecraft_name, web_user_id, discord_id, discord_tag, gacha_balance, unlocked_tiers) VALUES (?, ?, ?, ?, ?, ?, ?)',
+  LOCK_LINK_BY_WEB_ID: 'SELECT * FROM linked_accounts WHERE web_user_id = ? FOR UPDATE',
+  LOCK_LINK_BY_MINECRAFT_UUID: 'SELECT * FROM linked_accounts WHERE minecraft_uuid = ? FOR UPDATE',
+  RENAME_MINECRAFT_ACCOUNT:
+    'UPDATE linked_accounts SET minecraft_name = ? WHERE minecraft_uuid = ?',
+  RELEASE_WEB_USER_ROW:
+    'UPDATE linked_accounts SET web_user_id = NULL, discord_id = NULL, discord_tag = NULL, gacha_balance = 0 WHERE web_user_id = ?',
+  // Same statement the plugin runs after linking (WebBridgeModule).
+  CLEANUP_ORPHAN_LINKS:
+    'DELETE FROM linked_accounts WHERE minecraft_uuid IS NULL AND discord_id IS NULL AND web_user_id IS NULL',
+  CLAIM_MINECRAFT_ROW:
+    'UPDATE linked_accounts SET minecraft_name = ?, web_user_id = ?, discord_id = ?, discord_tag = ?, gacha_balance = ? WHERE minecraft_uuid = ?',
+  REPOINT_WEB_USER_ROW:
+    'UPDATE linked_accounts SET minecraft_uuid = ?, minecraft_name = ? WHERE web_user_id = ?',
   INSERT_BASIC_LINK:
     'INSERT INTO linked_accounts (minecraft_uuid, minecraft_name, web_user_id) VALUES (?, ?, ?)',
   SELECT_UNIVERSAL_LINK:
@@ -163,31 +172,100 @@ async function syncSupabaseMetadata(
   }
 }
 
+export interface LinkRow {
+  minecraft_uuid: string | null;
+  web_user_id: string | null;
+  discord_id: string | null;
+  discord_tag: string | null;
+  gacha_balance: number | null;
+}
+
+export interface LinkStatement {
+  sql: string;
+  params: (string | number | null)[];
+}
+
+/**
+ * Statements that link Minecraft account `sourceId` to web user `targetUserId`.
+ *
+ * linked_accounts holds one row per Minecraft account, and the plugin keeps
+ * that account's stats and unlocked tiers in it, so a row is never deleted and
+ * recreated: it is updated in place.
+ *
+ * `current` is the web user's row and `account` the Minecraft account's row;
+ * both are the same row when the user re-links the account they already have.
+ */
+export function planMinecraftLink(
+  current: LinkRow | undefined,
+  account: LinkRow | undefined,
+  sourceId: string,
+  playerName: string,
+  targetUserId: string,
+): LinkStatement[] {
+  if (!account) {
+    return current
+      ? [{ sql: SQL.REPOINT_WEB_USER_ROW, params: [sourceId, playerName, targetUserId] }]
+      : [{ sql: SQL.INSERT_BASIC_LINK, params: [sourceId, playerName, targetUserId] }];
+  }
+
+  if (account.web_user_id === targetUserId) {
+    return [{ sql: SQL.RENAME_MINECRAFT_ACCOUNT, params: [playerName, sourceId] }];
+  }
+
+  // A row nobody owns on the web belongs to the Minecraft account being linked.
+  // A row owned by another web user does not: their coins and Discord link stay theirs.
+  const inheritsRow = !account.web_user_id;
+  const inherited = inheritsRow ? account : undefined;
+  const balance = Number(current?.gacha_balance ?? 0) + Number(inherited?.gacha_balance ?? 0);
+
+  const statements: LinkStatement[] = [];
+  if (current) {
+    // The UNIQUE keys on web_user_id and discord_id force the release to go first.
+    statements.push(
+      { sql: SQL.RELEASE_WEB_USER_ROW, params: [targetUserId] },
+      { sql: SQL.CLEANUP_ORPHAN_LINKS, params: [] },
+    );
+  }
+  statements.push({
+    sql: SQL.CLAIM_MINECRAFT_ROW,
+    params: [
+      playerName,
+      targetUserId,
+      current?.discord_id ?? inherited?.discord_id ?? null,
+      current?.discord_tag ?? inherited?.discord_tag ?? null,
+      balance,
+      sourceId,
+    ],
+  });
+  return statements;
+}
+
 async function syncMinecraftLink(
   sourceId: string,
   playerName: string,
   targetUserId: string,
 ): Promise<void> {
-  await pool.execute(SQL.DELETE_BY_MINECRAFT_UUID, [sourceId]);
-
-  const [existing] = await pool.execute<LinkedAccountRecord[]>(SQL.SELECT_LINK_BY_WEB_ID, [
-    targetUserId,
-  ]);
-
-  if (existing.length > 0) {
-    const oldRow = existing[0];
-    await pool.execute(SQL.DELETE_BY_WEB_USER_ID, [targetUserId]);
-    await pool.execute(SQL.INSERT_FULL_LINK, [
-      sourceId,
-      playerName,
+  const conn = await pool.getConnection();
+  try {
+    // One transaction: failing between the release and the claim would lose the balance.
+    await conn.beginTransaction();
+    const [current] = await conn.execute<LinkedAccountRecord[]>(SQL.LOCK_LINK_BY_WEB_ID, [
       targetUserId,
-      oldRow.discord_id,
-      oldRow.discord_tag,
-      oldRow.gacha_balance,
-      oldRow.unlocked_tiers ?? null,
     ]);
-  } else {
-    await pool.execute(SQL.INSERT_BASIC_LINK, [sourceId, playerName, targetUserId]);
+    const [account] = await conn.execute<LinkedAccountRecord[]>(SQL.LOCK_LINK_BY_MINECRAFT_UUID, [
+      sourceId,
+    ]);
+
+    const plan = planMinecraftLink(current[0], account[0], sourceId, playerName, targetUserId);
+    for (const { sql, params } of plan) {
+      await conn.execute(sql, params);
+    }
+    await conn.commit();
+  } catch (error) {
+    await conn.rollback();
+    throw error;
+  } finally {
+    conn.release();
   }
 }
 
@@ -539,9 +617,10 @@ export const initWebLink = async (req: Request, res: Response) => {
 
 export const checkLinkStatus = async (req: Request, res: Response) => {
   try {
-    const userId = ensureString(req.query.userId);
+    // Always the caller's own link: a `userId` in the query is ignored.
+    const userId = getAuthUserId(req as AuthenticatedRequest);
     if (!userId) {
-      return res.status(400).json({ error: ERRORS.USER_ID_REQUIRED });
+      return res.status(401).json({ error: ERRORS.UNAUTHORIZED });
     }
 
     if (!supabase) {

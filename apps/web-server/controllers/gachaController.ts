@@ -25,6 +25,7 @@ export const DEFAULT_PITY_THRESHOLD = 80;
 const HTTP_STATUS_BAD_REQUEST = 400;
 const HTTP_STATUS_UNAUTHORIZED = 401;
 const HTTP_STATUS_FORBIDDEN = 403;
+const HTTP_STATUS_CONFLICT = 409;
 const HTTP_STATUS_INTERNAL_ERROR = 500;
 
 const LOG_GACHA_ROLL_ERROR = 'Gacha Roll Error:';
@@ -85,6 +86,11 @@ const GACHA_ERROR_MAP: Readonly<Record<string, GachaErrorDefinition>> = {
     statusCode: HTTP_STATUS_BAD_REQUEST,
     code: 'INVALID_TIER',
     message: 'Tier de gacha inválido.',
+  },
+  ROLL_IN_PROGRESS: {
+    statusCode: HTTP_STATUS_CONFLICT,
+    code: 'ROLL_IN_PROGRESS',
+    message: 'Ya hay una tirada en curso. Espera a que termine.',
   },
 };
 

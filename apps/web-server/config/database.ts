@@ -57,7 +57,12 @@ function createMockPool(): mysql.Pool {
       ];
     }
 
-    // 7. Mutating queries (UPDATE, INSERT, DELETE, ALTER, etc.)
+    // 7. Named locks (gacha roll lock): always free in the mock
+    if (sqlUpper.includes('GET_LOCK(')) {
+      return [[{ acquired: 1 }], []];
+    }
+
+    // 8. Mutating queries (UPDATE, INSERT, DELETE, ALTER, etc.)
     if (
       sqlUpper.startsWith('UPDATE') ||
       sqlUpper.startsWith('INSERT') ||
@@ -77,6 +82,9 @@ function createMockPool(): mysql.Pool {
     getConnection: async () => ({
       query: mockQueryHandler,
       execute: mockQueryHandler,
+      beginTransaction: async () => {},
+      commit: async () => {},
+      rollback: async () => {},
       release: () => {},
     }),
     end: async () => {},
