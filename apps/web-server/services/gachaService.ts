@@ -1,4 +1,6 @@
 import crypto from 'node:crypto';
+import type { RowDataPacket } from 'mysql2';
+import pool from '../config/database.js';
 import supabase from '../config/supabaseClient.js';
 import * as commandService from './commandService.js';
 import {
@@ -36,7 +38,59 @@ const GACHA_ERRORS = {
   TIER_LOCKED: 'TIER_LOCKED',
   ACCOUNT_NOT_LINKED: 'ACCOUNT_NOT_LINKED',
   INSUFFICIENT_BALANCE: 'INSUFFICIENT_BALANCE',
+  ROLL_IN_PROGRESS: 'ROLL_IN_PROGRESS',
+  ROLL_LOCK_FAILED: 'ROLL_LOCK_FAILED',
 } as const;
+
+// Each roll in flight keeps one pooled connection for its lock while its own
+// queries need another: capped under half the pool (connectionLimit 10 in
+// config/database.ts) so they never starve.
+export const MAX_ROLLS_IN_FLIGHT = 4;
+let rollsInFlight = 0;
+
+/**
+ * Runs `fn` while holding a MySQL named lock for `userId`, so one user's rolls
+ * never overlap: the free-roll check and the history row that consumes it are
+ * otherwise separate steps, and parallel requests would all roll for free.
+ * The lock lives in MySQL, so it also holds across server instances.
+ */
+async function withRollLock<T>(userId: string, fn: () => Promise<T>): Promise<T> {
+  if (rollsInFlight >= MAX_ROLLS_IN_FLIGHT) throw new Error(GACHA_ERRORS.ROLL_IN_PROGRESS);
+
+  rollsInFlight += 1;
+  try {
+    const conn = await pool.getConnection();
+    let lockStillHeld = false;
+    try {
+      const lockName = `gacha_roll:${userId}`;
+      // Timeout 0: a request that waited would sit on a pooled connection.
+      const [rows] = await conn.query<RowDataPacket[]>('SELECT GET_LOCK(?, 0) AS acquired', [
+        lockName,
+      ]);
+      // 1 = acquired, 0 = held by another roll, NULL = MySQL could not take the lock.
+      const result: unknown = rows[0]?.acquired;
+      const acquired = result == null ? null : Number(result);
+      if (acquired === 0) throw new Error(GACHA_ERRORS.ROLL_IN_PROGRESS);
+      if (acquired !== 1) throw new Error(GACHA_ERRORS.ROLL_LOCK_FAILED);
+
+      try {
+        return await fn();
+      } finally {
+        await conn.query('SELECT RELEASE_LOCK(?)', [lockName]).catch((releaseError: unknown) => {
+          console.error('[Gacha] Failed to release roll lock:', releaseError);
+          lockStillHeld = true;
+        });
+      }
+    } finally {
+      // The lock belongs to the MySQL session: a connection that still holds it
+      // must die instead of going back to the pool, or the user stays locked out.
+      if (lockStillHeld) conn.destroy();
+      else conn.release();
+    }
+  } finally {
+    rollsInFlight -= 1;
+  }
+}
 
 interface GachaHistoryInsertRow {
   user_id: string;
@@ -242,13 +296,13 @@ export const getGachaStatus = async (userId: string) => {
   return { balance, unlockedTiers, tiers: tierStatus };
 };
 
-export const rollGacha = async (
+const rollGachaLocked = async (
   userId: string,
-  tierId: string = 'bronze',
-  quantity: number = 1,
-  isAdmin: boolean = false,
-  testResult?: 'win' | 'loss' | 'random',
-  forceDeduction: boolean = false,
+  tierId: string,
+  quantity: number,
+  isAdmin: boolean,
+  testResult: 'win' | 'loss' | 'random' | undefined,
+  forceDeduction: boolean,
 ) => {
   const { tierKey, tier, minecraftNick } = await validateTierAndAccess(userId, tierId, isAdmin);
 
@@ -294,6 +348,18 @@ export const rollGacha = async (
     throw error;
   }
 };
+
+export const rollGacha = (
+  userId: string,
+  tierId: string = 'bronze',
+  quantity: number = 1,
+  isAdmin: boolean = false,
+  testResult?: 'win' | 'loss' | 'random',
+  forceDeduction: boolean = false,
+) =>
+  withRollLock(userId, () =>
+    rollGachaLocked(userId, tierId, quantity, isAdmin, testResult, forceDeduction),
+  );
 
 export const getCommandForReward = (
   reward: GachaRewardConfig,

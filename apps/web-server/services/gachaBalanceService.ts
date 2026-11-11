@@ -12,6 +12,15 @@ async function syncSupabaseBalance(userId: string, balance: number): Promise<voi
   await supabase.from('profiles').update({ gacha_balance: balance }).eq('id', userId);
 }
 
+/** Writes `balance` to the Supabase ledger and fails if it does not land. */
+export async function setSupabaseBalance(userId: string, balance: number): Promise<void> {
+  const { error } = await supabase
+    .from('profiles')
+    .update({ gacha_balance: balance })
+    .eq('id', userId);
+  if (error) throw error;
+}
+
 export async function getGachaBalance(userId: string): Promise<number> {
   try {
     const [rows] = await pool.execute<LinkedAccountRow[]>(
