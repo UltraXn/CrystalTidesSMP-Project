@@ -21,9 +21,8 @@ catalog:
   '@types/react': ^19.2.7
   '@types/react-dom': ^19.2.3
   typescript: ~5.8.3
-  zod: ^4.2.1
+  zod: ^4.6.6
   vite: ^6.4.4
-
 
 # Dependencias transitivas con vulnerabilidades altas o críticas (pnpm audit).
 # Rangos ^: corrigen sin saltar de versión mayor. Revisar con `pnpm audit --audit-level=high`
@@ -47,8 +46,12 @@ overrides:
   'serialize-javascript@<7.0.3': ^7.0.3 # mocha (cypress-cucumber, solo tests)
   'source-map-js@<1.2.2': ^1.2.2
   'dompurify@<3.4.17': ^3.4.17 # launcher-lite
-  'follow-redirects@<1.16.1': ^1.16.1 # node-vault > axios (web-server)
+  'follow-redirects@<1.16.2': ^1.16.2 # node-vault > axios (web-server)
   'toml@<5.0.1': ^5.0.1 # effect (opencode-plugin-llama.cpp, solo desarrollo)
+  'body-parser@>=2.0.0 <2.4.0': ^2.4.0 # express: DoS
+  'undici@>=8.0.0 <8.12.2': ^8.12.2 # jsdom (web-client, solo tests)
+  'systeminformation@<5.33.16': ^5.33.16 # cypress (solo tests)
+  'zod@>=4.0.0 <4.6.6': ^4.6.6 # @opencode-ai/plugin fija 4.1.8 (solo desarrollo)
 
 auditConfig:
   ignoreGhsas:
