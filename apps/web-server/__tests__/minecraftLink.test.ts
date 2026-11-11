@@ -3,7 +3,13 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import request from 'supertest';
 import app from '../app.js';
 import pool from '../config/database.js';
-import { planMinecraftLink, type LinkRow } from '../controllers/minecraftController.js';
+import supabase from '../config/supabaseClient.js';
+import {
+  planMinecraftLink,
+  syncMinecraftLink,
+  type LinkRow,
+} from '../controllers/minecraftController.js';
+import { FakeSupabase } from './helpers/fakeSupabase.js';
 import { signInAs } from './helpers/signInAs.js';
 
 const USER = 'web-user-a';
@@ -21,6 +27,9 @@ const row = (overrides: Partial<LinkRow>): LinkRow => ({
 });
 
 const sqlOf = (plan: ReturnType<typeof planMinecraftLink>) => plan.map((s) => s.sql);
+
+const INSERT_LINK =
+  'INSERT INTO linked_accounts (minecraft_uuid, minecraft_name, web_user_id, discord_id, discord_tag, gacha_balance) VALUES (?, ?, ?, ?, ?, ?)';
 
 describe('planMinecraftLink', () => {
   it('re-linking the same account only refreshes the name: no row is deleted, the balance is untouched', () => {
@@ -89,28 +98,31 @@ describe('planMinecraftLink', () => {
     expect(plan[2].params).toEqual(['Steve', USER, 'discord-a', 'alice', 1250, UUID_X]);
   });
 
-  it("re-points the user's own row when the Minecraft account has none", () => {
-    const oldRow = row({ minecraft_uuid: UUID_Y, web_user_id: USER, gacha_balance: 700 });
+  it('gives a Minecraft account without a row a fresh one, so the old account keeps its stats and tiers', () => {
+    const oldRow = row({
+      minecraft_uuid: UUID_Y,
+      web_user_id: USER,
+      discord_id: 'discord-a',
+      discord_tag: 'alice',
+      gacha_balance: 700,
+    });
 
     const plan = planMinecraftLink(oldRow, undefined, UUID_X, 'Steve', USER);
 
-    expect(plan).toEqual([
-      {
-        sql: 'UPDATE linked_accounts SET minecraft_uuid = ?, minecraft_name = ? WHERE web_user_id = ?',
-        params: [UUID_X, 'Steve', USER],
-      },
+    expect(sqlOf(plan)).toEqual([
+      'UPDATE linked_accounts SET web_user_id = NULL, discord_id = NULL, discord_tag = NULL, gacha_balance = 0 WHERE web_user_id = ?',
+      'DELETE FROM linked_accounts WHERE minecraft_uuid IS NULL AND discord_id IS NULL AND web_user_id IS NULL',
+      INSERT_LINK,
     ]);
+    expect(plan[2].params).toEqual([UUID_X, 'Steve', USER, 'discord-a', 'alice', 700]);
+    // The old row is released by its web user, never re-pointed to the new UUID.
+    expect(sqlOf(plan).join(' ')).not.toContain('SET minecraft_uuid');
   });
 
-  it('inserts a basic row when neither side has one', () => {
+  it('inserts an empty row when neither side has one', () => {
     const plan = planMinecraftLink(undefined, undefined, UUID_X, 'Steve', USER);
 
-    expect(plan).toEqual([
-      {
-        sql: 'INSERT INTO linked_accounts (minecraft_uuid, minecraft_name, web_user_id) VALUES (?, ?, ?)',
-        params: [UUID_X, 'Steve', USER],
-      },
-    ]);
+    expect(plan).toEqual([{ sql: INSERT_LINK, params: [UUID_X, 'Steve', USER, null, null, 0] }]);
   });
 
   it('never deletes a row that holds an identifier', () => {
@@ -130,6 +142,61 @@ describe('planMinecraftLink', () => {
         );
       }
     }
+  });
+});
+
+describe('syncMinecraftLink', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  // A connection whose two locking SELECTs return the given rows and that records what runs on it.
+  const connectionWith = (current: LinkRow | undefined, account: LinkRow | undefined) => {
+    const writes: string[] = [];
+    const events: string[] = [];
+    const execute = async (sql: string) => {
+      if (sql.includes('WHERE web_user_id = ? FOR UPDATE')) return [current ? [current] : [], []];
+      if (sql.includes('WHERE minecraft_uuid = ? FOR UPDATE'))
+        return [account ? [account] : [], []];
+      writes.push(sql);
+      return [{ affectedRows: 1 }, []];
+    };
+    vi.spyOn(pool, 'getConnection').mockResolvedValue({
+      execute,
+      beginTransaction: async () => void events.push('begin'),
+      commit: async () => void events.push('commit'),
+      rollback: async () => void events.push('rollback'),
+      release: () => void events.push('release'),
+    } as never);
+    return { writes, events };
+  };
+
+  const otherUsersRow = () =>
+    row({ minecraft_uuid: UUID_X, web_user_id: OTHER_USER, gacha_balance: 900 });
+
+  it("saves the previous owner's coins to their Supabase balance before claiming their row", async () => {
+    const db = new FakeSupabase({ profiles: [{ id: OTHER_USER, gacha_balance: 100 }] });
+    vi.spyOn(supabase, 'from').mockImplementation(db.from as unknown as typeof supabase.from);
+    const { writes, events } = connectionWith(undefined, otherUsersRow());
+
+    await syncMinecraftLink(UUID_X, 'Steve', USER);
+
+    expect(db.rows('profiles')[0]).toMatchObject({ id: OTHER_USER, gacha_balance: 900 });
+    expect(writes).toHaveLength(1);
+    expect(writes[0]).toContain('SET minecraft_name = ?, web_user_id = ?');
+    expect(events).toEqual(['begin', 'commit', 'release']);
+  });
+
+  it("leaves the row alone when the previous owner's coins cannot be saved", async () => {
+    const db = new FakeSupabase({ profiles: [{ id: OTHER_USER, gacha_balance: 100 }] });
+    db.failWrites('profiles');
+    vi.spyOn(supabase, 'from').mockImplementation(db.from as unknown as typeof supabase.from);
+    const { writes, events } = connectionWith(undefined, otherUsersRow());
+
+    await expect(syncMinecraftLink(UUID_X, 'Steve', USER)).rejects.toBeDefined();
+
+    expect(writes).toEqual([]);
+    expect(events).toEqual(['begin', 'rollback', 'release']);
   });
 });
 

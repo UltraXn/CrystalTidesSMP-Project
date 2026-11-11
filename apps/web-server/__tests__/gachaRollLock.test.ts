@@ -18,6 +18,7 @@ describe('rollGacha per-user lock', () => {
   let getConnection: ReturnType<typeof vi.spyOn>;
   let releasedConnections: number;
   let deduct: ReturnType<typeof vi.spyOn>;
+  let db: FakeSupabase;
 
   beforeEach(() => {
     heldLocks = new Set();
@@ -41,7 +42,7 @@ describe('rollGacha per-user lock', () => {
       },
     })) as never);
 
-    const db = new FakeSupabase({ gacha_history: [] });
+    db = new FakeSupabase({ gacha_history: [] });
     vi.spyOn(supabase, 'from').mockImplementation(db.from as unknown as typeof supabase.from);
 
     vi.spyOn(balanceService, 'getLinkedMinecraftNick').mockResolvedValue('Steve');
@@ -62,6 +63,36 @@ describe('rollGacha per-user lock', () => {
 
     expect(outcomes(results)).toEqual({ fulfilled: 1, inProgress: 9 });
     expect(deduct).not.toHaveBeenCalled();
+    // The history row is what consumes the free roll.
+    expect(db.rows('gacha_history')).toHaveLength(1);
+  });
+
+  it('reports a lock MySQL could not take as a failure, not as a roll in progress', async () => {
+    getConnection.mockImplementation((async () => ({
+      query: async () => [[{ acquired: null }], []],
+      release: () => {},
+    })) as never);
+
+    await expect(rollGacha('user-1', 'bronze', 1)).rejects.toThrow('ROLL_LOCK_FAILED');
+  });
+
+  it('destroys the connection instead of pooling it when the lock cannot be released', async () => {
+    const destroy = vi.fn();
+    const release = vi.fn();
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    getConnection.mockImplementation((async () => ({
+      query: async (sql: string) => {
+        if (sql.includes('RELEASE_LOCK')) throw new Error('connection lost');
+        return [[{ acquired: 1 }], []];
+      },
+      destroy,
+      release,
+    })) as never);
+
+    await expect(rollGacha('user-1', 'bronze', 1)).resolves.toBeDefined();
+
+    expect(destroy).toHaveBeenCalledTimes(1);
+    expect(release).not.toHaveBeenCalled();
   });
 
   it('does not make different users wait for each other', async () => {

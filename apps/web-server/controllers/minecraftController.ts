@@ -5,6 +5,7 @@ import { createClient, SupabaseClient, User } from '@supabase/supabase-js';
 import * as minecraftService from '../services/minecraftService.js';
 import * as skinService from '../services/skinService.js';
 import pool from '../config/database.js';
+import { setSupabaseBalance } from '../services/gachaBalanceService.js';
 import { ensureString } from '../utils/typeUtils.js';
 
 // --- CONSTANTS ---
@@ -62,10 +63,8 @@ const SQL = {
     'DELETE FROM linked_accounts WHERE minecraft_uuid IS NULL AND discord_id IS NULL AND web_user_id IS NULL',
   CLAIM_MINECRAFT_ROW:
     'UPDATE linked_accounts SET minecraft_name = ?, web_user_id = ?, discord_id = ?, discord_tag = ?, gacha_balance = ? WHERE minecraft_uuid = ?',
-  REPOINT_WEB_USER_ROW:
-    'UPDATE linked_accounts SET minecraft_uuid = ?, minecraft_name = ? WHERE web_user_id = ?',
-  INSERT_BASIC_LINK:
-    'INSERT INTO linked_accounts (minecraft_uuid, minecraft_name, web_user_id) VALUES (?, ?, ?)',
+  INSERT_LINK:
+    'INSERT INTO linked_accounts (minecraft_uuid, minecraft_name, web_user_id, discord_id, discord_tag, gacha_balance) VALUES (?, ?, ?, ?, ?, ?)',
   SELECT_UNIVERSAL_LINK:
     'SELECT source, source_id, player_name, avatar_url, expires_at FROM universal_links WHERE code = ?',
   INSERT_OR_UPDATE_UNIVERSAL_LINK:
@@ -189,8 +188,9 @@ export interface LinkStatement {
  * Statements that link Minecraft account `sourceId` to web user `targetUserId`.
  *
  * linked_accounts holds one row per Minecraft account, and the plugin keeps
- * that account's stats and unlocked tiers in it, so a row is never deleted and
- * recreated: it is updated in place.
+ * that account's stats and unlocked tiers in it. So a row is never deleted or
+ * re-pointed to another account: the web user's coins and Discord link move to
+ * the new account's row, and the old account keeps its own row.
  *
  * `current` is the web user's row and `account` the Minecraft account's row;
  * both are the same row when the user re-links the account they already have.
@@ -202,21 +202,17 @@ export function planMinecraftLink(
   playerName: string,
   targetUserId: string,
 ): LinkStatement[] {
-  if (!account) {
-    return current
-      ? [{ sql: SQL.REPOINT_WEB_USER_ROW, params: [sourceId, playerName, targetUserId] }]
-      : [{ sql: SQL.INSERT_BASIC_LINK, params: [sourceId, playerName, targetUserId] }];
-  }
-
-  if (account.web_user_id === targetUserId) {
+  if (account?.web_user_id === targetUserId) {
     return [{ sql: SQL.RENAME_MINECRAFT_ACCOUNT, params: [playerName, sourceId] }];
   }
 
   // A row nobody owns on the web belongs to the Minecraft account being linked.
-  // A row owned by another web user does not: their coins and Discord link stay theirs.
-  const inheritsRow = !account.web_user_id;
-  const inherited = inheritsRow ? account : undefined;
+  // A row owned by another web user does not: their coins and Discord link stay
+  // theirs (syncMinecraftLink saves that balance before the row is claimed).
+  const inherited = account && !account.web_user_id ? account : undefined;
   const balance = Number(current?.gacha_balance ?? 0) + Number(inherited?.gacha_balance ?? 0);
+  const discordId = current?.discord_id ?? inherited?.discord_id ?? null;
+  const discordTag = current?.discord_tag ?? inherited?.discord_tag ?? null;
 
   const statements: LinkStatement[] = [];
   if (current) {
@@ -226,21 +222,21 @@ export function planMinecraftLink(
       { sql: SQL.CLEANUP_ORPHAN_LINKS, params: [] },
     );
   }
-  statements.push({
-    sql: SQL.CLAIM_MINECRAFT_ROW,
-    params: [
-      playerName,
-      targetUserId,
-      current?.discord_id ?? inherited?.discord_id ?? null,
-      current?.discord_tag ?? inherited?.discord_tag ?? null,
-      balance,
-      sourceId,
-    ],
-  });
+  statements.push(
+    account
+      ? {
+          sql: SQL.CLAIM_MINECRAFT_ROW,
+          params: [playerName, targetUserId, discordId, discordTag, balance, sourceId],
+        }
+      : {
+          sql: SQL.INSERT_LINK,
+          params: [sourceId, playerName, targetUserId, discordId, discordTag, balance],
+        },
+  );
   return statements;
 }
 
-async function syncMinecraftLink(
+export async function syncMinecraftLink(
   sourceId: string,
   playerName: string,
   targetUserId: string,
@@ -255,6 +251,13 @@ async function syncMinecraftLink(
     const [account] = await conn.execute<LinkedAccountRecord[]>(SQL.LOCK_LINK_BY_MINECRAFT_UUID, [
       sourceId,
     ]);
+
+    // Claiming a row another web user owns overwrites its balance. Their coins go
+    // to the Supabase ledger first, the one a user without a linked row is paid from.
+    const previousOwner = account[0]?.web_user_id;
+    if (previousOwner && previousOwner !== targetUserId) {
+      await setSupabaseBalance(previousOwner, Number(account[0].gacha_balance ?? 0));
+    }
 
     const plan = planMinecraftLink(current[0], account[0], sourceId, playerName, targetUserId);
     for (const { sql, params } of plan) {

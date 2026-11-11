@@ -39,6 +39,7 @@ const GACHA_ERRORS = {
   ACCOUNT_NOT_LINKED: 'ACCOUNT_NOT_LINKED',
   INSUFFICIENT_BALANCE: 'INSUFFICIENT_BALANCE',
   ROLL_IN_PROGRESS: 'ROLL_IN_PROGRESS',
+  ROLL_LOCK_FAILED: 'ROLL_LOCK_FAILED',
 } as const;
 
 // Each roll in flight keeps one pooled connection for its lock while its own
@@ -59,23 +60,32 @@ async function withRollLock<T>(userId: string, fn: () => Promise<T>): Promise<T>
   rollsInFlight += 1;
   try {
     const conn = await pool.getConnection();
+    let lockStillHeld = false;
     try {
       const lockName = `gacha_roll:${userId}`;
       // Timeout 0: a request that waited would sit on a pooled connection.
       const [rows] = await conn.query<RowDataPacket[]>('SELECT GET_LOCK(?, 0) AS acquired', [
         lockName,
       ]);
-      if (Number(rows[0]?.acquired) !== 1) throw new Error(GACHA_ERRORS.ROLL_IN_PROGRESS);
+      // 1 = acquired, 0 = held by another roll, NULL = MySQL could not take the lock.
+      const result: unknown = rows[0]?.acquired;
+      const acquired = result == null ? null : Number(result);
+      if (acquired === 0) throw new Error(GACHA_ERRORS.ROLL_IN_PROGRESS);
+      if (acquired !== 1) throw new Error(GACHA_ERRORS.ROLL_LOCK_FAILED);
 
       try {
         return await fn();
       } finally {
         await conn.query('SELECT RELEASE_LOCK(?)', [lockName]).catch((releaseError: unknown) => {
           console.error('[Gacha] Failed to release roll lock:', releaseError);
+          lockStillHeld = true;
         });
       }
     } finally {
-      conn.release();
+      // The lock belongs to the MySQL session: a connection that still holds it
+      // must die instead of going back to the pool, or the user stays locked out.
+      if (lockStillHeld) conn.destroy();
+      else conn.release();
     }
   } finally {
     rollsInFlight -= 1;
