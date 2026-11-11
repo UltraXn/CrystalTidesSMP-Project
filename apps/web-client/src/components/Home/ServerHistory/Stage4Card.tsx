@@ -70,7 +70,7 @@ export function Stage4Card({
           >
             <div className="relative flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[#00e5ff]/50 bg-slate-900/80 p-1 shadow-md">
               <img
-                src="/images/items/enchanted_book.gif"
+                src="/images/items/enchanted_book.webp"
                 alt="Nuevas Estadisticas"
                 className="size-full object-contain"
               />

@@ -71,7 +71,7 @@ export const STAGE_FLOATING_ITEMS: Record<number, StageFloatingItem[]> = {
       y: [6, -6, 6],
     },
     {
-      src: '/images/items/enchanted_book.gif',
+      src: '/images/items/enchanted_book.webp',
       pos: 'top-1/4 right-8 sm:right-16',
       size: SIZE_16_20,
       duration: 17,
